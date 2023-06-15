@@ -51,7 +51,7 @@ namespace
 
     bool IsLast() const
     {
-      ContainerType::const_iterator cur = Current;
+      auto cur = Current;
       return cur != Container.end() && ++cur == Container.end();
     }
 
@@ -94,7 +94,7 @@ namespace
     }
 
   private:
-    typedef std::list<Error> ContainerType;
+    using ContainerType = std::list<Error>;
     ContainerType Container;
     ContainerType::iterator Current;
   };
@@ -117,7 +117,7 @@ namespace
     void paintEvent(QPaintEvent*) override
     {
       QPainter p(this);
-      QFontMetrics fm(font());
+      const QFontMetrics fm(font());
       const QString& fullText = text();
       const QSize& fullSize = fm.size(Qt::TextShowMnemonic, fullText);
       const QRect& availRect = contentsRect();

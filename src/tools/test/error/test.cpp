@@ -30,19 +30,21 @@ namespace
   {
     std::cout << (res ? "Passed" : "Failed") << " test '" << text << "' at " << line << std::endl;
     if (!res)
+    {
       throw 1;
+    }
   }
 
   Error GetError()
   {
-    return Error(LOCATIONS[2], TEXTS[2]);
+    return {LOCATIONS[2], TEXTS[2]};
   }
 
   void TestSuccess(const Error& err)
   {
     Test(!err, "Success checking test", __LINE__);
     Test(err.GetLocation() == Error::Location(), "Success location test", __LINE__);
-    Test(err.GetText() == String(), "Success text test", __LINE__);
+    Test(err.GetText().empty(), "Success text test", __LINE__);
   }
 
   void TestError(unsigned idx, const Error& err)
@@ -62,11 +64,11 @@ int main()
 {
   try
   {
-    Error err0;
+    const Error err0;
     TestSuccess(err0);
     Error err1(LOCATIONS[0], TEXTS[0]);
     TestError(0, err1);
-    Error err2(LOCATIONS[1], TEXTS[1]);
+    const Error err2(LOCATIONS[1], TEXTS[1]);
     TestError(1, err2);
     err1.AddSuberror(err2);
     const Error& err3 = GetError();

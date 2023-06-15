@@ -15,6 +15,8 @@
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
+// std includes
+#include <utility>
 // qt includes
 #include <QtCore/QRegExp>
 
@@ -25,7 +27,7 @@ namespace
 
 namespace
 {
-  const QLatin1String CONTENT_FORMAT("([\\w\\d]+)\\s+(revision|version)\\s+(\\d+)");
+  const QLatin1String CONTENT_FORMAT(R"(([\w\d]+)\s+(revision|version)\s+(\d+))");
 
   enum
   {
@@ -56,9 +58,9 @@ namespace
   class UpdateDownload : public Product::Update
   {
   public:
-    UpdateDownload(RSS::Entry entry, const QString& version)
+    UpdateDownload(RSS::Entry entry, QString version)
       : Entry(std::move(entry))
-      , VersionValue(version)
+      , VersionValue(std::move(version))
     {}
 
     Product::Release::PlatformTag Platform() const override
@@ -174,8 +176,8 @@ namespace
   class FeedVisitor : public RSS::Visitor
   {
   public:
-    FeedVisitor(const QString& project, Downloads::Visitor& delegate)
-      : Project(project)
+    FeedVisitor(QString project, Downloads::Visitor& delegate)
+      : Project(std::move(project))
       , Delegate(delegate)
       , ContentMatch(CONTENT_FORMAT)
     {}

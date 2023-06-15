@@ -23,6 +23,8 @@
 #include <module/players/aym/aym_base.h>
 // boost includes
 #include <boost/algorithm/string.hpp>
+// std includes
+#include <utility>
 
 namespace Module
 {
@@ -54,7 +56,7 @@ namespace Module
   public:
     FYMDumperParameters(Parameters::Accessor::Ptr params, uint_t loopFrame, uint_t opt)
       : Base(opt)
-      , Params(params)
+      , Params(std::move(params))
       , Loop(loopFrame)
     {}
 
@@ -102,7 +104,7 @@ namespace Module
 
   // aym-based conversion
   Binary::Data::Ptr ConvertAYMFormat(const AYM::Holder& holder, const Conversion::Parameter& spec,
-                                     Parameters::Accessor::Ptr params)
+                                     const Parameters::Accessor::Ptr& params)
   {
     using namespace Conversion;
 
@@ -141,7 +143,7 @@ namespace Module
     else if (const auto* fym = parameter_cast<FYMConvertParam>(&spec))
     {
       auto dumpParams = MakePtr<FYMDumperParameters>(params, 0 /*LoopFrame - TODO*/, fym->Optimization);
-      dumper = Devices::AYM::CreateFYMDumper(std::move(dumpParams));
+      dumper = Devices::AYM::CreateFYMDumper(dumpParams);
       errMessage = translate("Failed to convert to FYM format.");
     }
 
@@ -161,12 +163,13 @@ namespace Module
     }
   }
 
-  Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params)
+  Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec,
+                            const Parameters::Accessor::Ptr& params)
   {
     using namespace Conversion;
     if (const auto* aymHolder = dynamic_cast<const AYM::Holder*>(&holder))
     {
-      return ConvertAYMFormat(*aymHolder, spec, std::move(params));
+      return ConvertAYMFormat(*aymHolder, spec, params);
     }
     return {};
   }

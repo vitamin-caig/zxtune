@@ -16,40 +16,37 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace AbyssHighestExperience
   {
-    namespace AbyssHighestExperience
+    // Use simplified parsing due to thirdparty library used
+    class Builder
     {
-      // Use simplified parsing due to thirdparty library used
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+    public:
+      virtual ~Builder() = default;
 
-        virtual MetaBuilder& GetMetaBuilder() = 0;
-      };
+      virtual MetaBuilder& GetMetaBuilder() = 0;
+    };
 
-      Builder& GetStubBuilder();
+    Builder& GetStubBuilder();
 
-      class Decoder : public Formats::Chiptune::Decoder
-      {
-      public:
-        typedef std::shared_ptr<const Decoder> Ptr;
+    class Decoder : public Formats::Chiptune::Decoder
+    {
+    public:
+      using Ptr = std::shared_ptr<const Decoder>;
 
-        virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-      };
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
+    };
 
+    Decoder::Ptr CreateDecoder();
+
+    namespace HivelyTracker
+    {
       Decoder::Ptr CreateDecoder();
+    }
+  }  // namespace AbyssHighestExperience
 
-      namespace HivelyTracker
-      {
-        Decoder::Ptr CreateDecoder();
-      }
-    }  // namespace AbyssHighestExperience
-
-    Decoder::Ptr CreateAbyssHighestExperienceDecoder();
-    Decoder::Ptr CreateHivelyTrackerDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateAbyssHighestExperienceDecoder();
+  Decoder::Ptr CreateHivelyTrackerDecoder();
+}  // namespace Formats::Chiptune

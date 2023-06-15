@@ -20,7 +20,7 @@ class Console
 public:
   virtual ~Console() = default;
 
-  typedef std::pair<int_t, int_t> SizeType;
+  using SizeType = std::pair<int_t, int_t>;
   virtual SizeType GetSize() const = 0;
   virtual void MoveCursorUp(uint_t lines) = 0;
 

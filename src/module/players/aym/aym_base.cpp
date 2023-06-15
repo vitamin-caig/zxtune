@@ -139,22 +139,19 @@ namespace Module
   };
 }  // namespace Module
 
-namespace Module
+namespace Module::AYM
 {
-  namespace AYM
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
   {
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
-    {
-      return MakePtr<AYMHolder>(std::move(chiptune));
-    }
+    return MakePtr<AYMHolder>(std::move(chiptune));
+  }
 
-    Devices::AYM::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params)
-    {
-      typedef Sound::ThreeChannelsMatrixMixer MixerType;
-      auto mixer = MixerType::Create();
-      auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
-      auto chipParams = AYM::CreateChipParameters(samplerate, std::move(pollParams));
-      return Devices::AYM::CreateChip(std::move(chipParams), std::move(mixer));
-    }
-  }  // namespace AYM
-}  // namespace Module
+  Devices::AYM::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params)
+  {
+    using MixerType = Sound::ThreeChannelsMatrixMixer;
+    auto mixer = MixerType::Create();
+    auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
+    auto chipParams = AYM::CreateChipParameters(samplerate, std::move(pollParams));
+    return Devices::AYM::CreateChip(std::move(chipParams), std::move(mixer));
+  }
+}  // namespace Module::AYM

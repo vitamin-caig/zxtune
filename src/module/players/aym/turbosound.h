@@ -16,41 +16,38 @@
 #include <devices/turbosound.h>
 #include <module/holder.h>
 
-namespace Module
+namespace Module::TurboSound
 {
-  namespace TurboSound
+  const uint_t TRACK_CHANNELS = AYM::TRACK_CHANNELS * Devices::TurboSound::CHIPS;
+
+  class DataIterator : public Iterator
   {
-    const uint_t TRACK_CHANNELS = AYM::TRACK_CHANNELS * Devices::TurboSound::CHIPS;
+  public:
+    using Ptr = std::shared_ptr<DataIterator>;
 
-    class DataIterator : public Iterator
-    {
-    public:
-      typedef std::shared_ptr<DataIterator> Ptr;
+    virtual State::Ptr GetStateObserver() const = 0;
 
-      virtual State::Ptr GetStateObserver() const = 0;
+    virtual Devices::TurboSound::Registers GetData() const = 0;
+  };
 
-      virtual Devices::TurboSound::Registers GetData() const = 0;
-    };
+  class Chiptune
+  {
+  public:
+    using Ptr = std::shared_ptr<const Chiptune>;
+    virtual ~Chiptune() = default;
 
-    class Chiptune
-    {
-    public:
-      typedef std::shared_ptr<const Chiptune> Ptr;
-      virtual ~Chiptune() = default;
+    virtual Time::Microseconds GetFrameDuration() const = 0;
 
-      virtual Time::Microseconds GetFrameDuration() const = 0;
+    // One of
+    virtual TrackModel::Ptr FindTrackModel() const = 0;
+    virtual Module::StreamModel::Ptr FindStreamModel() const = 0;
 
-      // One of
-      virtual TrackModel::Ptr FindTrackModel() const = 0;
-      virtual Module::StreamModel::Ptr FindStreamModel() const = 0;
+    virtual Parameters::Accessor::Ptr GetProperties() const = 0;
+    virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first,
+                                                 AYM::TrackParameters::Ptr second) const = 0;
+  };
 
-      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first,
-                                                   AYM::TrackParameters::Ptr second) const = 0;
-    };
+  Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second);
 
-    Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second);
-
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
-  }  // namespace TurboSound
-}  // namespace Module
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
+}  // namespace Module::TurboSound

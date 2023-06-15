@@ -25,7 +25,7 @@ namespace Player
   class Control
   {
   public:
-    typedef std::shared_ptr<Control> Ptr;
+    using Ptr = std::shared_ptr<Control>;
     virtual ~Control() = default;
 
     virtual Parameters::Modifier& GetParameters() const = 0;
@@ -40,7 +40,7 @@ namespace Player
     virtual uint_t GetPlaybackProgress() const = 0;
   };
 
-  typedef ObjectsStorage<Control::Ptr> Storage;
+  using Storage = ObjectsStorage<Control::Ptr>;
 
   jobject Create(JNIEnv* env, const Module::Holder& module, uint_t samplerate);
 

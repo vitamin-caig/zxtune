@@ -24,7 +24,7 @@ namespace Parameters
   {
   public:
     //! Pointer type
-    typedef std::shared_ptr<const Accessor> Ptr;
+    using Ptr = std::shared_ptr<const Accessor>;
 
     virtual ~Accessor() = default;
 

@@ -28,7 +28,7 @@ namespace ZXTune
   class PlayerPlugin : public Plugin
   {
   public:
-    typedef std::shared_ptr<const PlayerPlugin> Ptr;
+    using Ptr = std::shared_ptr<const PlayerPlugin>;
 
     static const std::vector<Ptr>& Enumerate();
 

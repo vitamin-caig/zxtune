@@ -41,7 +41,7 @@
 
 namespace
 {
-  typedef std::pair<uint_t, StringView> CapsPair;
+  using CapsPair = std::pair<uint_t, StringView>;
   String SerializeBitmask(uint_t caps, const CapsPair* from)
   {
     String result;
@@ -235,12 +235,12 @@ namespace
         info.Id(), info.Description(), BackendCaps(info.Capabilities()), status ? status.GetText() : "Available");
   }
 
-  inline void ShowBackends(Sound::BackendInformation::Iterator::Ptr backends)
+  inline void ShowBackends(Sound::BackendInformation::Iterator& backends)
   {
     StdOut << "Supported backends:" << std::endl;
-    for (; backends->IsValid(); backends->Next())
+    for (; backends.IsValid(); backends.Next())
     {
-      StdOut << DescribeBackend(*backends->Get());
+      StdOut << DescribeBackend(*backends.Get());
     }
   }
 
@@ -258,18 +258,19 @@ namespace
   inline void ShowProviders()
   {
     StdOut << "Supported IO providers:" << std::endl;
-    for (IO::Provider::Iterator::Ptr providers = IO::EnumerateProviders(); providers->IsValid(); providers->Next())
+    for (const auto providers = IO::EnumerateProviders(); providers->IsValid();
+         providers->Next())
     {
       StdOut << DescribeProvider(*providers->Get());
     }
   }
 
-  typedef std::variant<Parameters::IntType, Parameters::StringType> ValueType;
+  using ValueType = std::variant<Parameters::IntType, Parameters::StringType>;
 
   struct OptionDesc
   {
     OptionDesc(StringView name)
-      : Name(std::move(name))
+      : Name(name)
     {}
 
     OptionDesc(Parameters::Identifier name, const Char* descr, ValueType def)
@@ -439,7 +440,7 @@ namespace
     }
   }
 
-  typedef std::pair<StringView, const Char*> AttrType;
+  using AttrType = std::pair<StringView, const Char*>;
   void ShowAttribute(const AttrType& arg)
   {
     StdOut << Strings::Format(" {0:<20}- {1}", arg.first, arg.second) << std::endl;
@@ -490,12 +491,6 @@ namespace
   public:
     Information()
       : OptionsDescription("Information keys")
-      , EnumPlugins()
-      , EnumBackends()
-      , EnumProviders()
-      , EnumOptions()
-      , EnumAttributes()
-      , EnumFreqtables()
     {
       using namespace boost::program_options;
       auto opt = OptionsDescription.add_options();
@@ -520,7 +515,7 @@ namespace
       }
       if (EnumBackends)
       {
-        ShowBackends(sound.EnumerateBackends());
+        ShowBackends(*sound.EnumerateBackends());
       }
       if (EnumProviders)
       {
@@ -543,12 +538,12 @@ namespace
 
   private:
     boost::program_options::options_description OptionsDescription;
-    bool EnumPlugins;
-    bool EnumBackends;
-    bool EnumProviders;
-    bool EnumOptions;
-    bool EnumAttributes;
-    bool EnumFreqtables;
+    bool EnumPlugins = false;
+    bool EnumBackends = false;
+    bool EnumProviders = false;
+    bool EnumOptions = false;
+    bool EnumAttributes = false;
+    bool EnumFreqtables = false;
   };
 }  // namespace
 

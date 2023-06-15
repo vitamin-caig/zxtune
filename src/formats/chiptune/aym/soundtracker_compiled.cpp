@@ -23,6 +23,7 @@
 #include <math/numeric.h>
 #include <strings/optimize.h>
 // std includes
+#include <algorithm>
 #include <array>
 
 namespace Formats::Chiptune
@@ -136,32 +137,15 @@ namespace Formats::Chiptune
     static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 33, "Invalid layout");
     static_assert(sizeof(RawSample) * alignof(RawSample) == 99, "Invalid layout");
 
-    bool Starts(const StringView& str, const char* pat)
-    {
-      for (auto it1 = str.begin(), it2 = pat, lim = str.end(); it1 != lim && *it2; ++it1, ++it2)
-      {
-        if (*it1 != *it2)
-        {
-          return false;
-        }
-      }
-      return true;
-    }
-
     bool IsProgramName(StringView name)
     {
-      static const char* STANDARD_PROGRAMS_PREFIXES[] = {
-          "SONG BY ST COMPIL", "SONG BY MB COMPIL", "SONG BY ST-COMPIL", "SONG BY S.T.COMP",  "SONG ST BY COMPILE",
-          "SOUND TRACKER",     "S.T.FULL EDITION",  "S.W.COMPILE V2.0",  "STU SONG COMPILER",
+      static const std::array STANDARD_PROGRAMS_PREFIXES = {
+          "SONG BY ST COMPIL"_sv, "SONG BY MB COMPIL"_sv,  "SONG BY ST-COMPIL"_sv,
+          "SONG BY S.T.COMP"_sv,  "SONG ST BY COMPILE"_sv, "SOUND TRACKER"_sv,
+          "S.T.FULL EDITION"_sv,  "S.W.COMPILE V2.0"_sv,   "STU SONG COMPILER"_sv,
       };
-      for (const auto& prefix : STANDARD_PROGRAMS_PREFIXES)
-      {
-        if (Starts(name, prefix))
-        {
-          return true;
-        }
-      }
-      return false;
+      return std::any_of(STANDARD_PROGRAMS_PREFIXES.begin(), STANDARD_PROGRAMS_PREFIXES.end(),
+                         [name](auto prefix) { return name.starts_with(prefix); });
     }
 
     class Format
@@ -328,7 +312,7 @@ namespace Formats::Chiptune
         AddRange(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
         const RawPositions::PosEntry* const firstEntry = positions->Data;
         const RawPositions::PosEntry* const lastEntry = firstEntry + length;
-        return RangeIterator<const RawPositions::PosEntry*>(firstEntry, lastEntry);
+        return {firstEntry, lastEntry};
       }
 
       const RawPattern& GetPattern(uint_t index) const
@@ -381,15 +365,11 @@ namespace Formats::Chiptune
       {
         struct ChannelState
         {
-          std::size_t Offset;
-          uint_t Period;
-          uint_t Counter;
+          std::size_t Offset = 0;
+          uint_t Period = 0;
+          uint_t Counter = 0;
 
-          ChannelState()
-            : Offset()
-            , Period()
-            , Counter()
-          {}
+          ChannelState() = default;
 
           void Skip(uint_t toSkip)
           {
@@ -405,7 +385,6 @@ namespace Formats::Chiptune
         std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
-          : Channels()
         {
           for (std::size_t idx = 0; idx != src.size(); ++idx)
           {
@@ -475,11 +454,7 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          if (state.Offset >= Data.Size())
-          {
-            return false;
-          }
-          else if (0 == chan && 0xff == PeekByte(state.Offset))
+          if (state.Offset >= Data.Size() || (0 == chan && 0xff == PeekByte(state.Offset)))
           {
             return false;
           }
@@ -797,16 +772,13 @@ namespace Formats::Chiptune
     };
   }  // namespace SoundTrackerCompiled
 
-  namespace SoundTracker
+  namespace SoundTracker::Ver1
   {
-    namespace Ver1
+    Decoder::Ptr CreateCompiledDecoder()
     {
-      Decoder::Ptr CreateCompiledDecoder()
-      {
-        return MakePtr<SoundTrackerCompiled::Decoder>();
-      }
-    }  // namespace Ver1
-  }    // namespace SoundTracker
+      return MakePtr<SoundTrackerCompiled::Decoder>();
+    }
+  }  // namespace SoundTracker::Ver1
 
   Formats::Chiptune::Decoder::Ptr CreateSoundTrackerCompiledDecoder()
   {

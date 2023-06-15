@@ -26,7 +26,7 @@ namespace Formats::Packed
 {
   namespace Sna128
   {
-    typedef std::array<uint8_t, 16384> PageData;
+    using PageData = std::array<uint8_t, 16384>;
 
     struct Header
     {
@@ -61,7 +61,7 @@ namespace Formats::Packed
     };
 
     // 5,2,0,1,3,4,6,7
-    typedef std::array<PageData, 8> ResultData;
+    using ResultData = std::array<PageData, 8>;
 
     static_assert(sizeof(Header) * alignof(Header) == 131103, "Invalid layout");
 
@@ -159,11 +159,11 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Format->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       if (!Sna128::Check(data))
       {
-        return Container::Ptr();
+        return {};
       }
       return Sna128::Decode(data);
     }

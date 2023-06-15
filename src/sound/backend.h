@@ -26,9 +26,9 @@ namespace Sound
   {
   public:
     //! Pointer type
-    typedef std::shared_ptr<const BackendInformation> Ptr;
+    using Ptr = std::shared_ptr<const BackendInformation>;
     //! Iterator type
-    typedef ObjectIterator<Ptr> Iterator;
+    using Iterator = ObjectIterator<Ptr>;
 
     virtual ~BackendInformation() = default;
 
@@ -47,7 +47,7 @@ namespace Sound
   {
   public:
     //! @brief Pointer types
-    typedef std::shared_ptr<VolumeControl> Ptr;
+    using Ptr = std::shared_ptr<VolumeControl>;
 
     virtual ~VolumeControl() = default;
 
@@ -67,7 +67,7 @@ namespace Sound
   {
   public:
     //! @brief Pointer type
-    typedef std::shared_ptr<PlaybackControl> Ptr;
+    using Ptr = std::shared_ptr<PlaybackControl>;
 
     virtual ~PlaybackControl() = default;
 
@@ -112,7 +112,7 @@ namespace Sound
   {
   public:
     //! @brief Pointer type
-    typedef std::shared_ptr<const Backend> Ptr;
+    using Ptr = std::shared_ptr<const Backend>;
 
     virtual ~Backend() = default;
 
@@ -133,7 +133,7 @@ namespace Sound
   class BackendCallback
   {
   public:
-    typedef std::shared_ptr<BackendCallback> Ptr;
+    using Ptr = std::shared_ptr<BackendCallback>;
     virtual ~BackendCallback() = default;
 
     virtual void OnStart() = 0;

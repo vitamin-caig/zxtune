@@ -29,6 +29,7 @@
 #include <debug/log.h>
 // std includes
 #include <cassert>
+#include <utility>
 // qt includes
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
@@ -45,7 +46,6 @@ namespace
   public:
     explicit PlaylistsIterator(QTabWidget& ctr)
       : Container(ctr)
-      , Index(-1)
     {
       GetNext();
     }
@@ -70,7 +70,7 @@ namespace
   private:
     void GetNext()
     {
-      if (Playlist::UI::View* view = static_cast<Playlist::UI::View*>(Container.widget(++Index)))
+      if (auto* view = static_cast<Playlist::UI::View*>(Container.widget(++Index)))
       {
         Current = view->GetPlaylist();
       }
@@ -82,7 +82,7 @@ namespace
 
   private:
     QTabWidget& Container;
-    int Index;
+    int Index = -1;
     Playlist::Controller::Ptr Current;
   };
 
@@ -103,11 +103,10 @@ namespace
   public:
     ContainerViewImpl(QWidget& parent, Parameters::Container::Ptr parameters)
       : Playlist::UI::ContainerView(parent)
-      , Options(parameters)
-      , Container(Playlist::Container::Create(parameters))
+      , Options(std::move(parameters))
+      , Container(Playlist::Container::Create(Options))
       , Session(Playlist::Session::Create())
       , ActionsMenu(new QMenu(this))
-      , ActivePlaylistView(nullptr)
     {
       // setup self
       setupUi(this);
@@ -263,7 +262,7 @@ namespace
 
     void ClosePlaylist(int index) override
     {
-      Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
+      auto* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
       view->hide();  // to save layout
       view->GetPlaylist()->Shutdown();
       widgetsContainer->removeTab(index);
@@ -308,7 +307,7 @@ namespace
 
     void CreatePlaylist(Playlist::Controller::Ptr ctrl) override
     {
-      RegisterPlaylist(ctrl);
+      RegisterPlaylist(std::move(ctrl));
     }
 
     void RenamePlaylist(const QString& name) override
@@ -316,7 +315,7 @@ namespace
       if (QObject* sender = this->sender())
       {
         // assert(dynamic_cast<QWidget*>(sender));
-        QWidget* const widget = static_cast<QWidget*>(sender);
+        auto* const widget = static_cast<QWidget*>(sender);
         const int idx = widgetsContainer->indexOf(widget);
         if (idx != -1)
         {
@@ -330,7 +329,7 @@ namespace
       if (QObject* sender = this->sender())
       {
         // assert(dynamic_cast<Playlist::UI::View*>(sender));
-        Playlist::UI::View* const newView = static_cast<Playlist::UI::View*>(sender);
+        auto* const newView = static_cast<Playlist::UI::View*>(sender);
         if (newView != ActivePlaylistView)
         {
           ActivePlaylistView->Stop();  // just update state
@@ -362,8 +361,8 @@ namespace
     Playlist::UI::View& CreateAnonymousPlaylist()
     {
       Dbg("Create default playlist");
-      const Playlist::Controller::Ptr pl = Container->CreatePlaylist(Playlist::UI::ContainerView::tr("Default"));
-      return RegisterPlaylist(pl);
+      auto pl = Container->CreatePlaylist(Playlist::UI::ContainerView::tr("Default"));
+      return RegisterPlaylist(std::move(pl));
     }
 
     Playlist::UI::View& GetEmptyPlaylist()
@@ -380,8 +379,8 @@ namespace
 
     Playlist::UI::View& RegisterPlaylist(Playlist::Controller::Ptr playlist)
     {
-      Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist, Options);
-      widgetsContainer->addTab(plView, playlist->GetName());
+      Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, std::move(playlist), Options);
+      widgetsContainer->addTab(plView, plView->GetPlaylist()->GetName());
       Require(connect(plView, SIGNAL(Renamed(const QString&)), SLOT(RenamePlaylist(const QString&))));
       Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)),
                       SLOT(ActivateItem(Playlist::Item::Data::Ptr))));
@@ -427,7 +426,7 @@ namespace
 
     Playlist::UI::View& GetVisiblePlaylist()
     {
-      if (Playlist::UI::View* view = static_cast<Playlist::UI::View*>(widgetsContainer->currentWidget()))
+      if (auto* view = static_cast<Playlist::UI::View*>(widgetsContainer->currentWidget()))
       {
         return *view;
       }
@@ -437,7 +436,7 @@ namespace
     void SwitchToLastPlaylist()
     {
       Dbg("Move to another playlist");
-      if (int total = widgetsContainer->count())
+      if (const auto total = widgetsContainer->count())
       {
         ActivatePlaylist(total - 1);
       }
@@ -458,7 +457,8 @@ namespace
     void RestorePlaylistSession()
     {
       Session->Load(Container);
-      Parameters::IntType idx = 0, trk = 0;
+      Parameters::IntType idx = 0;
+      Parameters::IntType trk = 0;
       Options->FindValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
       Options->FindValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
       Dbg("Restore current playlist {} with track {}", idx, trk);
@@ -506,22 +506,19 @@ namespace
     const Playlist::Session::Ptr Session;
     QMenu* const ActionsMenu;
     // state context
-    Playlist::UI::View* ActivePlaylistView;
+    Playlist::UI::View* ActivePlaylistView = nullptr;
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
-  {
-    ContainerView::ContainerView(QWidget& parent)
-      : QWidget(&parent)
-    {}
+  ContainerView::ContainerView(QWidget& parent)
+    : QWidget(&parent)
+  {}
 
-    ContainerView* ContainerView::Create(QWidget& parent, Parameters::Container::Ptr parameters)
-    {
-      REGISTER_METATYPE(Playlist::Controller::Ptr);
-      return new ContainerViewImpl(parent, parameters);
-    }
-  }  // namespace UI
-}  // namespace Playlist
+  ContainerView* ContainerView::Create(QWidget& parent, Parameters::Container::Ptr parameters)
+  {
+    REGISTER_METATYPE(Playlist::Controller::Ptr);
+    return new ContainerViewImpl(parent, std::move(parameters));
+  }
+}  // namespace Playlist::UI

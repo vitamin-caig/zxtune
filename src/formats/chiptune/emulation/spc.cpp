@@ -36,13 +36,13 @@ namespace Formats::Chiptune
 
     const Char DESCRIPTION[] = "SNES SPC700";
 
-    typedef std::array<uint8_t, 28> SignatureType;
+    using SignatureType = std::array<uint8_t, 28>;
     const SignatureType SIGNATURE = {{'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ', 'S', 'o',
                                       'u', 'n', 'd', ' ', 'F', 'i', 'l', 'e', ' ', 'D', 'a', 't', 'a', ' '}};
 
     inline StringView GetTrimmed(const char* begin, const char* end)
     {
-      return StringView(begin, std::find(begin, end, '\0'));
+      return {begin, std::find(begin, end, '\0')};
     }
 
     template<std::size_t D>
@@ -161,14 +161,14 @@ namespace Formats::Chiptune
       {
         const auto str = GetTrimmed(FadeTimeSec);
         const auto val = ToInt(str);
-        return Time::Seconds(val);
+        return Time::Seconds{val};
       }
 
       Time::Milliseconds GetFadeDuration() const
       {
         const auto str = GetTrimmed(FadeDurationMs);
         const auto val = ToInt(str);
-        return Time::Milliseconds(val);
+        return Time::Milliseconds{val};
       }
     };
 
@@ -234,12 +234,12 @@ namespace Formats::Chiptune
       Time::Seconds GetFadeTime() const
       {
         const uint_t val = uint_t(FadeTimeSec[0]) | (uint_t(FadeTimeSec[1]) << 8) | (uint_t(FadeTimeSec[2]) << 16);
-        return Time::Seconds(val);
+        return Time::Seconds{val};
       }
 
       Time::Milliseconds GetFadeDuration() const
       {
-        return Time::Milliseconds(FadeDurationMs);
+        return Time::Milliseconds{FadeDurationMs};
       }
     };
 
@@ -270,7 +270,7 @@ namespace Formats::Chiptune
       uint8_t DSPRegisters[128];
     };
 
-    typedef std::array<uint8_t, 4> IFFId;
+    using IFFId = std::array<uint8_t, 4>;
     const IFFId XID6 = {{'x', 'i', 'd', '6'}};
 
     struct IFFChunkHeader
@@ -372,7 +372,7 @@ namespace Formats::Chiptune
         else
         {
           // assert(!"Invalid subchunk type");
-          return String();
+          return {};
         }
       }
     };
@@ -557,7 +557,7 @@ namespace Formats::Chiptune
         meta.SetProgram(tag.Game);
         target.SetDumper(tag.Dumper);
         meta.SetComment(tag.Comments);
-        target.SetDumpDate(std::move(tag.DumpDate));
+        target.SetDumpDate(tag.DumpDate);
         target.SetLoop(tag.FadeTime);
         target.SetFade(tag.FadeDuration);
         meta.SetAuthor(tag.Artist);

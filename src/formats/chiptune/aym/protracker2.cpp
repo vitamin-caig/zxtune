@@ -131,9 +131,9 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(this + 1);
+        const auto* const src = safe_ptr_cast<const uint8_t*>(this + 1);
         // using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         Line res;
         res.NoiseAndFlags = src[offset++];
         res.LevelHiVibrato = src[offset++];
@@ -144,7 +144,7 @@ namespace Formats::Chiptune
 
     struct RawOrnament : RawObject
     {
-      typedef int8_t Line;
+      using Line = int8_t;
 
       std::size_t GetUsedSize() const
       {
@@ -153,9 +153,9 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        const auto* const src = safe_ptr_cast<const int8_t*>(this + 1);
         // using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
     };
@@ -453,7 +453,8 @@ namespace Formats::Chiptune
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
         Dbg("Samples: {} to parse", samples.Count());
-        bool hasValidSamples = false, hasPartialSamples = false;
+        bool hasValidSamples = false;
+        bool hasPartialSamples = false;
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
@@ -587,15 +588,11 @@ namespace Formats::Chiptune
       {
         struct ChannelState
         {
-          std::size_t Offset;
-          uint_t Period;
-          uint_t Counter;
+          std::size_t Offset = 0;
+          uint_t Period = 0;
+          uint_t Counter = 0;
 
-          ChannelState()
-            : Offset()
-            , Period()
-            , Counter()
-          {}
+          ChannelState() = default;
 
           void Skip(uint_t toSkip)
           {
@@ -611,7 +608,6 @@ namespace Formats::Chiptune
         std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
-          : Channels()
         {
           for (std::size_t idx = 0; idx != src.size(); ++idx)
           {
@@ -685,11 +681,7 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          if (state.Offset >= Data.Size())
-          {
-            return false;
-          }
-          else if (0 == chan && 0x00 == PeekByte(state.Offset))
+          if (state.Offset >= Data.Size() || (0 == chan && 0x00 == PeekByte(state.Offset)))
           {
             return false;
           }
@@ -775,7 +767,7 @@ namespace Formats::Chiptune
           }
           else if (cmd == 0x0e)  // gliss
           {
-            const int8_t val = static_cast<int8_t>(PeekByte(state.Offset++));
+            const auto val = static_cast<int8_t>(PeekByte(state.Offset++));
             builder.SetGlissade(val);
           }
           else if (cmd == 0x0d)  // note gliss

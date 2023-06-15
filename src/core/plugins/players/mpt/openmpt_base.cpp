@@ -28,6 +28,7 @@
 #include <strings/trim.h>
 #include <time/duration.h>
 // std includes
+#include <memory>
 #include <utility>
 // 3rdparty includes
 #define BUILDING_STATIC
@@ -41,14 +42,14 @@ namespace Module::Mpt
 
   Time::Milliseconds ToDuration(double seconds)
   {
-    return Time::Milliseconds(seconds * Time::Milliseconds::PER_SECOND);
+    return Time::Milliseconds{static_cast<uint_t>(seconds * Time::Milliseconds::PER_SECOND)};
   }
 
   // TODO: implement proper loop-related calculations after https://bugs.openmpt.org/view.php?id=1675 fix
   class Information : public Module::TrackInformation
   {
   public:
-    typedef std::shared_ptr<const Information> Ptr;
+    using Ptr = std::shared_ptr<const Information>;
 
     Information(ModulePtr track)
       : Track(std::move(track))
@@ -302,7 +303,7 @@ namespace Module::Mpt
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
       Require(!!Track);  // TODO
-      return MakePtr<Renderer>(std::move(Track), samplerate, std::move(params));
+      return MakePtr<Renderer>(Track, samplerate, std::move(params));
     }
 
   private:
@@ -357,7 +358,7 @@ namespace Module::Mpt
     const Binary::Format::Ptr Fmt;
   };
 
-  String DecodeString(String str)
+  String DecodeString(const String& str)
   {
     const auto out = Strings::TrimSpaces(str);
     return out == str ? str : out.to_string();
@@ -371,8 +372,6 @@ namespace Module::Mpt
       setstate(std::ios_base::badbit);
     }
   };
-
-  static LogStub LOG;
 
   void FillMetadata(const openmpt::module& module, PropertiesHelper& props)
   {
@@ -418,9 +417,11 @@ namespace Module::Mpt
     {
       try
       {
+        static LogStub LOG;
+
         // TODO: specify type filter
-        auto track = ModulePtr(
-            new openmpt::module(static_cast<const uint8_t*>(container.Start()), container.Size(), LOG, Controls));
+        auto track = std::make_shared<openmpt::module>(static_cast<const uint8_t*>(container.Start()), container.Size(),
+                                                       LOG, Controls);
 
         // play all subsongs
         track->select_subsong(-1);

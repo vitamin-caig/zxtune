@@ -115,12 +115,12 @@ namespace Formats::Chiptune
 
     struct RawOrnament : RawObject
     {
-      typedef int8_t Line;
+      using Line = int8_t;
 
       Line GetLine(uint_t idx) const
       {
-        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        const auto* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
 
@@ -419,7 +419,7 @@ namespace Formats::Chiptune
         Ranges.AddService(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
         const RawPositions::PosEntry* const firstEntry = positions->Data;
         const RawPositions::PosEntry* const lastEntry = firstEntry + length;
-        return RangeIterator<const RawPositions::PosEntry*>(firstEntry, lastEntry);
+        return {firstEntry, lastEntry};
       }
 
       const RawPattern& GetPattern(uint_t index) const
@@ -496,15 +496,11 @@ namespace Formats::Chiptune
       {
         struct ChannelState
         {
-          std::size_t Offset;
-          uint_t Period;
-          uint_t Counter;
+          std::size_t Offset = 0;
+          uint_t Period = 0;
+          uint_t Counter = 0;
 
-          ChannelState()
-            : Offset()
-            , Period()
-            , Counter()
-          {}
+          ChannelState() = default;
 
           void Skip(uint_t toSkip)
           {
@@ -520,7 +516,6 @@ namespace Formats::Chiptune
         std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
-          : Channels()
         {
           for (std::size_t idx = 0; idx != src.size(); ++idx)
           {
@@ -590,11 +585,7 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          if (state.Offset >= Data.Size())
-          {
-            return false;
-          }
-          else if (0 == chan && 0x00 == PeekByte(state.Offset))
+          if (state.Offset >= Data.Size() || (0 == chan && 0x00 == PeekByte(state.Offset)))
           {
             return false;
           }
@@ -739,7 +730,7 @@ namespace Formats::Chiptune
         const std::size_t idOffset = sizeof(header);
         if (idOffset + sizeof(RawId) <= size)
         {
-          const RawId* const id = safe_ptr_cast<const RawId*>(&header + 1);
+          const auto* const id = safe_ptr_cast<const RawId*>(&header + 1);
           if (id->Check())
           {
             AddArea(IDENTIFIER, sizeof(header));
@@ -978,7 +969,7 @@ namespace Formats::Chiptune
         else
         {
           patch->InsertData(headerSize, info);
-          const int_t delta = static_cast<int_t>(infoSize);
+          const auto delta = static_cast<int_t>(infoSize);
           patch->FixLEWord(offsetof(RawHeader, PositionsOffset), delta);
           patch->FixLEWord(offsetof(RawHeader, PatternsOffset), delta);
           patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);

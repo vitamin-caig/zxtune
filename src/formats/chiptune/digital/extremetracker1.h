@@ -17,42 +17,39 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace ExtremeTracker1
   {
-    namespace ExtremeTracker1
+    using Positions = LinesObject<uint_t>;
+
+    class Builder
     {
-      typedef LinesObject<uint_t> Positions;
+    public:
+      virtual ~Builder() = default;
 
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+      virtual MetaBuilder& GetMetaBuilder() = 0;
+      // common properties
+      virtual void SetInitialTempo(uint_t tempo) = 0;
+      // samples
+      virtual void SetSamplesFrequency(uint_t freq) = 0;
+      virtual void SetSample(uint_t index, std::size_t loop, Binary::View sample) = 0;
+      // patterns
+      virtual void SetPositions(Positions positions) = 0;
 
-        virtual MetaBuilder& GetMetaBuilder() = 0;
-        // common properties
-        virtual void SetInitialTempo(uint_t tempo) = 0;
-        // samples
-        virtual void SetSamplesFrequency(uint_t freq) = 0;
-        virtual void SetSample(uint_t index, std::size_t loop, Binary::View sample) = 0;
-        // patterns
-        virtual void SetPositions(Positions positions) = 0;
+      virtual PatternBuilder& StartPattern(uint_t index) = 0;
+      //! @invariant Channels are built sequentally
+      virtual void StartChannel(uint_t index) = 0;
+      virtual void SetRest() = 0;
+      virtual void SetNote(uint_t note) = 0;
+      virtual void SetSample(uint_t sample) = 0;
+      virtual void SetVolume(uint_t volume) = 0;
+      virtual void SetGliss(int_t gliss) = 0;
+    };
 
-        virtual PatternBuilder& StartPattern(uint_t index) = 0;
-        //! @invariant Channels are built sequentally
-        virtual void StartChannel(uint_t index) = 0;
-        virtual void SetRest() = 0;
-        virtual void SetNote(uint_t note) = 0;
-        virtual void SetSample(uint_t sample) = 0;
-        virtual void SetVolume(uint_t volume) = 0;
-        virtual void SetGliss(int_t gliss) = 0;
-      };
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+    Builder& GetStubBuilder();
+  }  // namespace ExtremeTracker1
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-      Builder& GetStubBuilder();
-    }  // namespace ExtremeTracker1
-
-    Decoder::Ptr CreateExtremeTracker1Decoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateExtremeTracker1Decoder();
+}  // namespace Formats::Chiptune

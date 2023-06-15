@@ -13,10 +13,7 @@
 // local includes
 #include "module/players/tfm/tfm_factory.h"
 
-namespace Module
+namespace Module::TFD
 {
-  namespace TFD
-  {
-    TFM::Factory::Ptr CreateFactory();
-  }
-}  // namespace Module
+  TFM::Factory::Ptr CreateFactory();
+}  // namespace Module::TFD

@@ -19,7 +19,7 @@ namespace Time
   template<class Unit, class Tick = typename Unit::StorageType, unsigned Precision = 65536>
   class Oscillator
   {
-    typedef Math::FixedPoint<Tick, Precision> FixedPoint;
+    using FixedPoint = Math::FixedPoint<Tick, Precision>;
 
   public:
     Oscillator()
@@ -77,5 +77,5 @@ namespace Time
     FixedPoint TicksPerTimeSlice;
   };
 
-  typedef Oscillator<Microsecond> MicrosecOscillator;
+  using MicrosecOscillator = Oscillator<Microsecond>;
 }  // namespace Time

@@ -48,104 +48,101 @@ namespace Devices::DAC
   }
 }  // namespace Devices::DAC
 
-namespace Devices
+namespace Devices::DAC
 {
-  namespace DAC
+  class BaseSample : public Sample
   {
-    class BaseSample : public Sample
+  public:
+    BaseSample(Binary::View content, std::size_t loop)
+      : Content(new uint8_t[content.Size()])
+      , StartValue(Content.get())
+      , SizeValue(content.Size())
+      , LoopValue(loop)
     {
-    public:
-      BaseSample(Binary::View content, std::size_t loop)
-        : Content(new uint8_t[content.Size()])
-        , StartValue(Content.get())
-        , SizeValue(content.Size())
-        , LoopValue(loop)
-      {
-        std::memcpy(Content.get(), content.Start(), SizeValue);
-      }
-
-      std::size_t Size() const override
-      {
-        return SizeValue;
-      }
-
-      std::size_t Loop() const override
-      {
-        return LoopValue;
-      }
-
-    protected:
-      const std::unique_ptr<uint8_t[]> Content;
-      const uint8_t* const StartValue;
-      const std::size_t SizeValue;
-      const std::size_t LoopValue;
-    };
-
-    class U8Sample : public BaseSample
-    {
-    public:
-      U8Sample(Binary::View content, std::size_t loop)
-        : BaseSample(content, loop)
-      {}
-
-      Sound::Sample::Type Get(std::size_t pos) const override
-      {
-        return pos < SizeValue ? FromU8(StartValue[pos]) : Sound::Sample::MID;
-      }
-    };
-
-    class U4Sample : public BaseSample
-    {
-    public:
-      U4Sample(Binary::View content, std::size_t loop)
-        : BaseSample(content, loop)
-      {}
-
-      Sound::Sample::Type Get(std::size_t pos) const override
-      {
-        return pos < SizeValue ? FromU4Lo(StartValue[pos]) : Sound::Sample::MID;
-      }
-    };
-
-    class U4PackedSample : public BaseSample
-    {
-    public:
-      U4PackedSample(Binary::View content, std::size_t loop)
-        : BaseSample(content, loop)
-      {}
-
-      Sound::Sample::Type Get(std::size_t pos) const override
-      {
-        if (pos < SizeValue * 2)
-        {
-          const uint8_t val = StartValue[pos >> 1];
-          return 0 != (pos & 1) ? FromU4Hi(val) : FromU4Lo(val);
-        }
-        else
-        {
-          return Sound::Sample::MID;
-        }
-      }
-
-      std::size_t Size() const override
-      {
-        return SizeValue * 2;
-      }
-    };
-
-    Sample::Ptr CreateU8Sample(Binary::View content, std::size_t loop)
-    {
-      return MakePtr<U8Sample>(content, loop);
+      std::memcpy(Content.get(), content.Start(), SizeValue);
     }
 
-    Sample::Ptr CreateU4Sample(Binary::View content, std::size_t loop)
+    std::size_t Size() const override
     {
-      return MakePtr<U4Sample>(content, loop);
+      return SizeValue;
     }
 
-    Sample::Ptr CreateU4PackedSample(Binary::View content, std::size_t loop)
+    std::size_t Loop() const override
     {
-      return MakePtr<U4PackedSample>(content, loop);
+      return LoopValue;
     }
-  }  // namespace DAC
-}  // namespace Devices
+
+  protected:
+    const std::unique_ptr<uint8_t[]> Content;
+    const uint8_t* const StartValue;
+    const std::size_t SizeValue;
+    const std::size_t LoopValue;
+  };
+
+  class U8Sample : public BaseSample
+  {
+  public:
+    U8Sample(Binary::View content, std::size_t loop)
+      : BaseSample(content, loop)
+    {}
+
+    Sound::Sample::Type Get(std::size_t pos) const override
+    {
+      return pos < SizeValue ? FromU8(StartValue[pos]) : Sound::Sample::MID;
+    }
+  };
+
+  class U4Sample : public BaseSample
+  {
+  public:
+    U4Sample(Binary::View content, std::size_t loop)
+      : BaseSample(content, loop)
+    {}
+
+    Sound::Sample::Type Get(std::size_t pos) const override
+    {
+      return pos < SizeValue ? FromU4Lo(StartValue[pos]) : Sound::Sample::MID;
+    }
+  };
+
+  class U4PackedSample : public BaseSample
+  {
+  public:
+    U4PackedSample(Binary::View content, std::size_t loop)
+      : BaseSample(content, loop)
+    {}
+
+    Sound::Sample::Type Get(std::size_t pos) const override
+    {
+      if (pos < SizeValue * 2)
+      {
+        const uint8_t val = StartValue[pos >> 1];
+        return 0 != (pos & 1) ? FromU4Hi(val) : FromU4Lo(val);
+      }
+      else
+      {
+        return Sound::Sample::MID;
+      }
+    }
+
+    std::size_t Size() const override
+    {
+      return SizeValue * 2;
+    }
+  };
+
+  Sample::Ptr CreateU8Sample(Binary::View content, std::size_t loop)
+  {
+    return MakePtr<U8Sample>(content, loop);
+  }
+
+  Sample::Ptr CreateU4Sample(Binary::View content, std::size_t loop)
+  {
+    return MakePtr<U4Sample>(content, loop);
+  }
+
+  Sample::Ptr CreateU4PackedSample(Binary::View content, std::size_t loop)
+  {
+    return MakePtr<U4PackedSample>(content, loop);
+  }
+}  // namespace Devices::DAC

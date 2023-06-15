@@ -1,0 +1,44 @@
+---
+  Checks:          '-*,
+                    clang-analyzer-cplusplus.*,
+                    clang-analyzer-nullability.*,
+                    clang-analyzer-core.*,
+                    modernize-*,
+                    -modernize-avoid-c-arrays,
+                    -modernize-macro-to-enum,
+                    -modernize-use-nodiscard,
+                    -modernize-use-trailing-return-type,
+                    performance-*,
+                    readability-*,
+                    -readability-container-size-empty,
+                    -readability-convert-member-functions-to-static,
+                    -readability-else-after-return,
+                    -readability-identifier-length,
+                    -readability-implicit-bool-conversion,
+                    -readability-magic-numbers,
+                    -readability-named-parameter,
+                    -readability-redundant-access-specifiers,
+                    -readability-static-accessed-through-instance,
+                    bugprone-*,
+                    -bugprone-easily-swappable-parameters,
+                    -bugprone-implicit-widening-of-multiplication-result,
+                    -bugprone-macro-parentheses,
+                    -bugprone-narrowing-conversions,
+                    -bugprone-reserved-identifier,
+                    -bugprone-signed-char-misuse,
+                    -bugprone-suspicious-enum-usage,
+                    misc-*,
+                    -misc-misplaced-const,
+                    -misc-no-recursion,
+                    -misc-non-private-member-variables-in-classes,
+                    -misc-unused-using-decls,
+                    '
+  CheckOptions:
+    - key:          modernize-use-default-member-init.UseAssignment
+      value:        1
+    - key:          readability-qualified-auto.AddConstToQualified
+      value:        0
+    - key:          readability-uppercase-literal-suffix.NewSuffixes
+      value:        'L;LL;LU;LLU;u;uL;uLL'
+  FormatStyle:      file
+...

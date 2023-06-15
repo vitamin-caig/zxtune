@@ -141,11 +141,11 @@ namespace
     void FillDevices()
     {
       using namespace Sound;
-      for (Alsa::Device::Iterator::Ptr availableDevices = Alsa::EnumerateDevices(); availableDevices->IsValid();
+      for (const auto availableDevices = Alsa::EnumerateDevices(); availableDevices->IsValid();
            availableDevices->Next())
       {
         const Alsa::Device::Ptr cur = availableDevices->Get();
-        Devices.push_back(Device(*cur));
+        Devices.emplace_back(*cur);
         devices->addItem(Devices.back().Name);
       }
     }
@@ -163,7 +163,7 @@ namespace
 
     struct Device
     {
-      Device() {}
+      Device() = default;
 
       Device(const Sound::Alsa::Device& in)
         : Name(QString::fromLatin1("%1 (%2)").arg(ToQString(in.Name())).arg(ToQString(in.CardName())))
@@ -176,7 +176,7 @@ namespace
       QStringList MixerNames;
     };
 
-    typedef std::vector<Device> DevicesArray;
+    using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
 }  // namespace

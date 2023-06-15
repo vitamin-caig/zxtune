@@ -46,12 +46,12 @@ namespace Sound
 
     static BackendId FromString(StringView s)
     {
-      return BackendId(s.data(), s.size());
+      return {s.data(), s.size()};
     }
   };
 
   constexpr BackendId operator"" _id(const char* str, std::size_t size) noexcept
   {
-    return BackendId(str, size);
+    return {str, size};
   }
 }  // namespace Sound

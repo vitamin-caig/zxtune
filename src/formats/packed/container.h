@@ -15,10 +15,7 @@
 // library includes
 #include <formats/packed.h>
 
-namespace Formats
+namespace Formats::Packed
 {
-  namespace Packed
-  {
-    Container::Ptr CreateContainer(Binary::Container::Ptr data, std::size_t origSize);
-  }  // namespace Packed
-}  // namespace Formats
+  Container::Ptr CreateContainer(Binary::Container::Ptr data, std::size_t origSize);
+}  // namespace Formats::Packed

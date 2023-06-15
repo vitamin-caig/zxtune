@@ -44,7 +44,7 @@ namespace Module::ExtremeTracker1
     return step * 3270 / int_t(C_1_STEP_GLISS * 100);
   }
 
-  typedef DAC::SimpleModuleData ModuleData;
+  using ModuleData = DAC::SimpleModuleData;
 
   class DataBuilder : public Formats::Chiptune::ExtremeTracker1::Builder
   {
@@ -133,12 +133,9 @@ namespace Module::ExtremeTracker1
 
   struct GlissData
   {
-    GlissData()
-      : Sliding()
-      , Glissade()
-    {}
-    int_t Sliding;
-    int_t Glissade;
+    GlissData() = default;
+    int_t Sliding = 0;
+    int_t Glissade = 0;
 
     void Reset()
     {
@@ -191,11 +188,11 @@ namespace Module::ExtremeTracker1
 
     void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             DAC::ChannelDataBuilder builder = track.GetChannel(chan);
             GetNewChannelState(*src, Gliss[chan], builder);
@@ -204,7 +201,7 @@ namespace Module::ExtremeTracker1
       }
     }
 
-    void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
     {
       if (src.HasData())
       {
@@ -306,7 +303,7 @@ namespace Module::ExtremeTracker1
       }
       else
       {
-        return DAC::Chiptune::Ptr();
+        return {};
       }
     }
   };

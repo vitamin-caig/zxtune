@@ -15,5 +15,5 @@
 
 namespace Sound
 {
-  VolumeControl::Ptr CreateVolumeControlDelegate(VolumeControl::Ptr delegate);
+  VolumeControl::Ptr CreateVolumeControlDelegate(const VolumeControl::Ptr& delegate);
 }

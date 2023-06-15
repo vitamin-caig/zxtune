@@ -32,6 +32,7 @@
 #include <QtCore/QString>
 #include <QtCore/QUrl>
 #include <QtCore/QXmlStreamReader>
+#include <utility>
 
 namespace
 {
@@ -59,7 +60,7 @@ namespace
   class PropertiesFilter : public Parameters::Visitor
   {
   public:
-    typedef bool (*PropertyFilter)(Parameters::Identifier);
+    using PropertyFilter = bool (*)(Parameters::Identifier);
 
     PropertiesFilter(Parameters::Visitor& delegate, PropertyFilter filter, bool match)
       : Delegate(delegate)
@@ -110,7 +111,6 @@ namespace
       : File(file)
       , BaseDir(File.absoluteDir())
       , XML(&device)
-      , Version(LAST_VERSION)
       , Properties(Parameters::Container::Create())
       , Items(MakeRWPtr<Playlist::IO::ContainerItems>())
     {
@@ -328,7 +328,7 @@ namespace
     const QDir BaseDir;
     QXmlStreamReader XML;
     // context
-    Parameters::IntType Version;
+    Parameters::IntType Version = LAST_VERSION;
     const Parameters::Container::Ptr Properties;
     const Playlist::IO::ContainerItems::RWPtr Items;
   };
@@ -340,19 +340,19 @@ namespace
     if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
     {
       assert(!"Failed to open playlist");
-      return Playlist::IO::Container::Ptr();
+      return {};
     }
     XSPFReader reader(fileInfo, device);
     if (!reader.Parse(cb))
     {
       Dbg("Failed to parse");
-      return Playlist::IO::Container::Ptr();
+      return {};
     }
 
-    const Playlist::IO::ContainerItems::Ptr items = reader.GetItems();
-    const Parameters::Accessor::Ptr properties = reader.GetProperties();
+    auto items = reader.GetItems();
+    auto properties = reader.GetProperties();
     Dbg("Parsed {} items", items->size());
-    return Playlist::IO::CreateContainer(provider, properties, items);
+    return Playlist::IO::CreateContainer(std::move(provider), std::move(properties), std::move(items));
   }
 
   bool CheckXSPFByName(const QString& filename)
@@ -361,18 +361,15 @@ namespace
   }
 }  // namespace
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
   {
-    Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
+    const QFileInfo info(filename);
+    if (!info.isFile() || !info.isReadable() || !CheckXSPFByName(info.fileName()))
     {
-      const QFileInfo info(filename);
-      if (!info.isFile() || !info.isReadable() || !CheckXSPFByName(info.fileName()))
-      {
-        return Container::Ptr();
-      }
-      return CreateXSPFPlaylist(provider, info, cb);
+      return {};
     }
-  }  // namespace IO
-}  // namespace Playlist
+    return CreateXSPFPlaylist(std::move(provider), info, cb);
+  }
+}  // namespace Playlist::IO

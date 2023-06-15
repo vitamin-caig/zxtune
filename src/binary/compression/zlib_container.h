@@ -14,14 +14,8 @@
 #include <binary/container.h>
 #include <binary/view.h>
 
-namespace Binary
+namespace Binary::Compression::Zlib
 {
-  namespace Compression
-  {
-    namespace Zlib
-    {
-      Container::Ptr CreateDeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint = 0);
-      Container::Ptr Decompress(View packed, std::size_t unpackedSizeHint = 0);
-    }  // namespace Zlib
-  }    // namespace Compression
-}  // namespace Binary
+  Container::Ptr CreateDeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint = 0);
+  Container::Ptr Decompress(View packed, std::size_t unpackedSizeHint = 0);
+}  // namespace Binary::Compression::Zlib

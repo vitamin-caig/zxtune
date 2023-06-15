@@ -28,9 +28,9 @@ namespace Formats::Multitrack
 {
   namespace NSF
   {
-    typedef std::array<uint8_t, 5> SignatureType;
+    using SignatureType = std::array<uint8_t, 5>;
 
-    typedef std::array<char, 32> StringType;
+    using StringType = std::array<char, 32>;
 
     const SignatureType SIGNATURE = {{'N', 'E', 'S', 'M', '\x1a'}};
 
@@ -78,7 +78,7 @@ namespace Formats::Multitrack
       {
         return nullptr;
       }
-      const RawHeader* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
+      const auto* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
       if (hdr->Signature != SIGNATURE)
       {
         return nullptr;

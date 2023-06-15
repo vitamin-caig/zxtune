@@ -17,25 +17,22 @@
 // std includes
 #include <memory>
 
-namespace Module
+namespace Module::PSF
 {
-  namespace PSF
+  struct PsxExe
   {
-    struct PsxExe
-    {
-      using Ptr = std::unique_ptr<const PsxExe>;
-      using RWPtr = std::unique_ptr<PsxExe>;
+    using Ptr = std::unique_ptr<const PsxExe>;
+    using RWPtr = std::unique_ptr<PsxExe>;
 
-      PsxExe() = default;
-      PsxExe(const PsxExe&) = delete;
-      PsxExe& operator=(const PsxExe&) = delete;
+    PsxExe() = default;
+    PsxExe(const PsxExe&) = delete;
+    PsxExe& operator=(const PsxExe&) = delete;
 
-      uint_t RefreshRate = 0;
-      uint32_t PC = 0;
-      uint32_t SP = 0;
-      MemoryRegion RAM;
+    uint_t RefreshRate = 0;
+    uint32_t PC = 0;
+    uint32_t SP = 0;
+    MemoryRegion RAM;
 
-      static void Parse(Binary::View data, PsxExe& exe);
-    };
-  }  // namespace PSF
-}  // namespace Module
+    static void Parse(Binary::View data, PsxExe& exe);
+  };
+}  // namespace Module::PSF

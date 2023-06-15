@@ -35,16 +35,10 @@ public:
   {}
 
   Error(const Error&) = default;
-  Error(Error&& rh)  // = default
-    : ErrorMeta(std::move(rh.ErrorMeta))
-  {}
+  Error(Error&& rh) noexcept = default;
 
   Error& operator=(const Error&) = default;
-  Error& operator=(Error&& rh)  // = default;
-  {
-    ErrorMeta = std::move(rh.ErrorMeta);
-    return *this;
-  }
+  Error& operator=(Error&& rh) noexcept = default;
   //@}
 
   //@{
@@ -52,9 +46,9 @@ public:
 
   //! @brief Adding suberror
   //! @param e Reference to other object. Empty objects are ignored
-  //! @return Modified current object
+  //! @return Lightweight copy of current possibly modified object
   //! @note Error uses shared references scheme, so it's safe to use parameter again
-  Error& AddSuberror(const Error& e) noexcept
+  Error AddSuberror(const Error& e) noexcept
   {
     // do not add/add to 'success' error
     if (e && *this)
@@ -66,7 +60,7 @@ public:
       }
       ptr->Suberror = e.ErrorMeta;
     }
-    return *this;
+    return Error(ErrorMeta);
   }
 
   Error GetSuberror() const noexcept
@@ -117,7 +111,7 @@ private:
     using Ptr = std::shared_ptr<Meta>;
 
     Meta(Location src, String txt)
-      : Source(std::move(src))
+      : Source(src)
       , Text(std::move(txt))
     {}
 

@@ -40,7 +40,7 @@ namespace Module::SQDigitalTracker
     VOLUME_SLIDE,
   };
 
-  typedef DAC::SimpleModuleData ModuleData;
+  using ModuleData = DAC::SimpleModuleData;
 
   class DataBuilder : public Formats::Chiptune::SQDigitalTracker::Builder
   {
@@ -131,17 +131,12 @@ namespace Module::SQDigitalTracker
 
   struct VolumeState
   {
-    VolumeState()
-      : Value(16)
-      , SlideDirection(0)
-      , SlideCounter(0)
-      , SlidePeriod(0)
-    {}
+    VolumeState() = default;
 
-    int_t Value;
-    int_t SlideDirection;
-    uint_t SlideCounter;
-    uint_t SlidePeriod;
+    int_t Value = 16;
+    int_t SlideDirection = 0;
+    uint_t SlideCounter = 0;
+    uint_t SlidePeriod = 0;
 
     bool Update()
     {
@@ -202,11 +197,11 @@ namespace Module::SQDigitalTracker
 
     void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             DAC::ChannelDataBuilder builder = track.GetChannel(chan);
             GetNewChannelState(*src, Volumes[chan], builder);
@@ -215,7 +210,7 @@ namespace Module::SQDigitalTracker
       }
     }
 
-    void GetNewChannelState(const Cell& src, VolumeState& vol, DAC::ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, VolumeState& vol, DAC::ChannelDataBuilder& builder)
     {
       if (const bool* enabled = src.GetEnabled())
       {
@@ -315,7 +310,7 @@ namespace Module::SQDigitalTracker
       }
       else
       {
-        return DAC::Chiptune::Ptr();
+        return {};
       }
     }
   };

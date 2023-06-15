@@ -20,7 +20,7 @@ namespace Binary
   {
   public:
     //! @brief Pointer type
-    typedef std::shared_ptr<const Data> Ptr;
+    using Ptr = std::shared_ptr<const Data>;
 
     virtual ~Data() = default;
 

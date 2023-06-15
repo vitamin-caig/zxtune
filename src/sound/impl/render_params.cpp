@@ -59,7 +59,7 @@ namespace Sound
 {
   RenderParameters::Ptr RenderParameters::Create(Parameters::Accessor::Ptr soundParameters)
   {
-    return MakePtr<RenderParametersImpl>(soundParameters);
+    return MakePtr<RenderParametersImpl>(std::move(soundParameters));
   }
 
   Module::LoopParameters GetLoopParameters(const Parameters::Accessor& params)

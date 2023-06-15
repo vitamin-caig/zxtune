@@ -115,7 +115,7 @@ namespace Module::TwoSF
         {
           clockDown = std::atoi(tag.second.c_str());
         }
-        else if (auto target = FindTagTarget(tag.first))
+        else if (auto* target = FindTagTarget(tag.first))
         {
           *target = std::atoi(tag.second.c_str());
         }

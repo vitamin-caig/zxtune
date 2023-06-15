@@ -136,8 +136,6 @@ namespace Formats::Packed
     public:
       Bitstream(const uint8_t* data, std::size_t size)
         : ByteStream(data, size)
-        , Bits()
-        , Mask(0)
       {}
 
       uint_t GetBit()
@@ -196,8 +194,8 @@ namespace Formats::Packed
       }
 
     private:
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class RawDataDecoder
@@ -324,7 +322,7 @@ namespace Formats::Packed
         std::size_t GetUsedSizeWithPadding() const
         {
           const std::size_t usefulSize = GetUsedSize();
-          const std::size_t sizeOnDisk = Math::Align<std::size_t>(usefulSize, 256);
+          const auto sizeOnDisk = Math::Align<std::size_t>(usefulSize, 256);
           const std::size_t resultSize = std::min(sizeOnDisk, Size);
           const std::size_t paddingSize = resultSize - usefulSize;
           const std::size_t MIN_SIGNATURE_MATCH = 10;
@@ -449,7 +447,7 @@ namespace Formats::Packed
       public:
         void AddBlock(Binary::Container::Ptr block)
         {
-          Blocks.push_back(block);
+          Blocks.emplace_back(std::move(block));
         }
 
         Binary::Container::Ptr GetResult() const
@@ -496,7 +494,6 @@ namespace Formats::Packed
       public:
         explicit DataDecoder(const Binary::Container& data)
           : Data(data)
-          , UsedSize()
         {
           if (Container(data.Start(), data.Size()).FastCheck())
           {
@@ -568,7 +565,7 @@ namespace Formats::Packed
       private:
         const Binary::Container& Data;
         Binary::Container::Ptr Result;
-        std::size_t UsedSize;
+        std::size_t UsedSize = 0;
       };
     }  // namespace Version3
   }    // namespace Hrust2
@@ -594,12 +591,12 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Hrust2::Version1::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       Hrust2::Version1::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());
@@ -630,12 +627,12 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Hrust2::Version3::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       Hrust2::Version3::DataDecoder decoder(rawData);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

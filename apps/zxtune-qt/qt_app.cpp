@@ -29,13 +29,13 @@ namespace
   class QTApplication : public Platform::Application
   {
   public:
-    QTApplication() {}
+    QTApplication() = default;
 
     int Run(Strings::Array argv) override
     {
       int fakeArgc = 1;
       char* fakeArgv[] = {""};
-      QApplication qapp(fakeArgc, fakeArgv);
+      const QApplication qapp(fakeArgc, fakeArgv);
       // storageLocation(DataLocation) is ${profile}/[${organizationName}/][${applicationName}/]
       // applicationName cannot be empty since qt4.8.7 (binary name is used instead)
       // So, do not set  organization name and override application name
@@ -43,7 +43,7 @@ namespace
       qapp.setApplicationVersion(ToQString(Platform::Version::GetProgramVersionString()));
       qapp.setOrganizationDomain(ToQString(Urls::Site()));
       const Parameters::Container::Ptr params = GlobalOptions::Instance().Get();
-      const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(params, std::move(argv));
+      const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(*params, std::move(argv));
       if (mode->StartMaster())
       {
         const MainWindow::Ptr win = WidgetsFactory::Instance().CreateMainWindow(params);

@@ -53,7 +53,7 @@ namespace Module::SPC
     static const uint_t C_7_FREQ = 2093;
 
   public:
-    typedef std::shared_ptr<SPC> Ptr;
+    using Ptr = std::shared_ptr<SPC>;
 
     explicit SPC(Binary::View data)
       : Data(data)
@@ -69,7 +69,7 @@ namespace Module::SPC
       Spc.clear_echo();
       Spc.disable_surround(true);
       Filter.clear();
-      Filter.set_gain(::SPC_Filter::gain_unit * 1.4);  // as in GME
+      Filter.set_gain(static_cast<int>(::SPC_Filter::gain_unit * 1.4));  // as in GME
     }
 
     Sound::Chunk Render(uint_t samples)
@@ -77,15 +77,16 @@ namespace Module::SPC
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       Sound::Chunk result(samples);
-      ::SNES_SPC::sample_t* const buffer = safe_ptr_cast< ::SNES_SPC::sample_t*>(result.data());
-      CheckError(Spc.play(samples * Sound::Sample::CHANNELS, buffer));
-      Filter.run(buffer, samples * Sound::Sample::CHANNELS);
+      auto* const buffer = safe_ptr_cast< ::SNES_SPC::sample_t*>(result.data());
+      const auto dataSize = static_cast<int>(samples * Sound::Sample::CHANNELS);
+      CheckError(Spc.play(dataSize, buffer));
+      Filter.run(buffer, dataSize);
       return result;
     }
 
     void Skip(uint_t samples)
     {
-      CheckError(Spc.skip(samples * Sound::Sample::CHANNELS));
+      CheckError(Spc.skip(static_cast<int>(samples * Sound::Sample::CHANNELS)));
     }
 
   private:

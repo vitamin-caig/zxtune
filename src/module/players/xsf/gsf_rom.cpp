@@ -16,38 +16,35 @@
 // library includes
 #include <formats/chiptune/emulation/gameboyadvancesoundformat.h>
 
-namespace Module
+namespace Module::GSF
 {
-  namespace GSF
+  class RomParser : public Formats::Chiptune::GameBoyAdvanceSoundFormat::Builder
   {
-    class RomParser : public Formats::Chiptune::GameBoyAdvanceSoundFormat::Builder
+  public:
+    explicit RomParser(GbaRom& rom)
+      : Rom(rom)
+    {}
+
+    void SetEntryPoint(uint32_t addr) override
     {
-    public:
-      explicit RomParser(GbaRom& rom)
-        : Rom(rom)
-      {}
-
-      void SetEntryPoint(uint32_t addr) override
+      if (addr && !Rom.EntryPoint)
       {
-        if (addr && !Rom.EntryPoint)
-        {
-          Rom.EntryPoint = addr;
-        }
+        Rom.EntryPoint = addr;
       }
-
-      void SetRom(uint32_t address, Binary::View content) override
-      {
-        Rom.Content.Update(address & 0x1fffffff, content);
-      }
-
-    private:
-      GbaRom& Rom;
-    };
-
-    void GbaRom::Parse(Binary::View data, GbaRom& rom)
-    {
-      RomParser parser(rom);
-      Formats::Chiptune::GameBoyAdvanceSoundFormat::ParseRom(data, parser);
     }
-  }  // namespace GSF
-}  // namespace Module
+
+    void SetRom(uint32_t address, Binary::View content) override
+    {
+      Rom.Content.Update(address & 0x1fffffff, content);
+    }
+
+  private:
+    GbaRom& Rom;
+  };
+
+  void GbaRom::Parse(Binary::View data, GbaRom& rom)
+  {
+    RomParser parser(rom);
+    Formats::Chiptune::GameBoyAdvanceSoundFormat::ParseRom(data, parser);
+  }
+}  // namespace Module::GSF

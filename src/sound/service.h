@@ -22,7 +22,7 @@ namespace Sound
   {
   public:
     //! Pointer type
-    typedef std::shared_ptr<const Service> Ptr;
+    using Ptr = std::shared_ptr<const Service>;
     virtual ~Service() = default;
 
     //! Enumerate all the registered backends

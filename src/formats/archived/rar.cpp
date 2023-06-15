@@ -21,6 +21,7 @@
 // std includes
 #include <cstring>
 #include <deque>
+#include <memory>
 #include <numeric>
 
 namespace Formats::Archived
@@ -31,15 +32,11 @@ namespace Formats::Archived
 
     struct FileBlock
     {
-      const Packed::Rar::FileBlockHeader* Header;
-      std::size_t Offset;
-      std::size_t Size;
+      const Packed::Rar::FileBlockHeader* Header = nullptr;
+      std::size_t Offset = 0;
+      std::size_t Size = 0;
 
-      FileBlock()
-        : Header()
-        , Offset()
-        , Size()
-      {}
+      FileBlock() = default;
 
       FileBlock(const Packed::Rar::FileBlockHeader* header, std::size_t offset, std::size_t size)
         : Header(header)
@@ -155,7 +152,7 @@ namespace Formats::Archived
     class ChainDecoder
     {
     public:
-      typedef std::shared_ptr<const ChainDecoder> Ptr;
+      using Ptr = std::shared_ptr<const ChainDecoder>;
 
       explicit ChainDecoder(Binary::Container::Ptr data)
         : Data(std::move(data))
@@ -183,7 +180,7 @@ namespace Formats::Archived
         if (ChainIterator->GetOffset() > offset)
         {
           Dbg(" Reset caching iterator to beginning");
-          ChainIterator.reset(new BlocksIterator(*Data));
+          ChainIterator = std::make_unique<BlocksIterator>(*Data);
         }
         while (ChainIterator->GetOffset() <= offset && !ChainIterator->IsEof())
         {
@@ -236,7 +233,7 @@ namespace Formats::Archived
     public:
       File(ChainDecoder::Ptr decoder, FileBlock block, StringView name)
         : Decoder(std::move(decoder))
-        , Block(std::move(block))
+        , Block(block)
         , Name(name.to_string())
       {}
 
@@ -414,7 +411,7 @@ namespace Formats::Archived
     {
       if (!Format->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
 
       uint_t filesCount = 0;
@@ -433,7 +430,7 @@ namespace Formats::Archived
       }
       else
       {
-        return Container::Ptr();
+        return {};
       }
     }
 

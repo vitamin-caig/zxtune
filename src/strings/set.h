@@ -17,5 +17,5 @@
 
 namespace Strings
 {
-  typedef std::set<String> Set;
+  using Set = std::set<String>;
 }

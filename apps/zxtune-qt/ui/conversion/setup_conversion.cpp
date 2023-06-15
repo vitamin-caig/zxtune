@@ -53,7 +53,8 @@ namespace
   Playlist::Item::Conversion::Options::Ptr CreateOptions(StringView type, const QString& filenameTemplate,
                                                          Parameters::Accessor::Ptr params)
   {
-    return MakePtr<Playlist::Item::Conversion::Options>(type.to_string(), FromQString(filenameTemplate), params);
+    return MakePtr<Playlist::Item::Conversion::Options>(type.to_string(), FromQString(filenameTemplate),
+                                                        std::move(params));
   }
 
   class SetupConversionDialogImpl
@@ -101,7 +102,7 @@ namespace
       }
       else
       {
-        return Playlist::Item::Conversion::Options::Ptr();
+        return {};
       }
     }
 
@@ -170,13 +171,13 @@ namespace
     UI::State::Ptr State;
     UI::FilenameTemplateWidget* const TargetTemplate;
     UI::SupportedFormatsWidget* const TargetFormat;
-    typedef std::map<String, UI::BackendSettingsWidget*> BackendIdToSettings;
+    using BackendIdToSettings = std::map<String, UI::BackendSettingsWidget*>;
     BackendIdToSettings BackendSettings;
   };
 
-  QString GetDefaultFilename(Playlist::Item::Data::Ptr item)
+  QString GetDefaultFilename(const Playlist::Item::Data& item)
   {
-    const auto& filePath = item->GetFilePath();
+    const auto& filePath = item.GetFilePath();
     const auto id = IO::ResolveUri(filePath);
     return ToQString(id->Filename());
   }
@@ -216,7 +217,7 @@ namespace
   private:
     void AddRawType(const QString& type)
     {
-      Types.push_back("");
+      Types.emplace_back("");
       Filters << MakeFilter(type);
     }
 
@@ -272,7 +273,7 @@ namespace UI
     }
     else
     {
-      return Playlist::Item::Conversion::Options::Ptr();
+      return {};
     }
   }
 
@@ -282,13 +283,13 @@ namespace UI
     return dialog->Execute();
   }
 
-  Playlist::Item::Conversion::Options::Ptr GetSaveAsParameters(Playlist::Item::Data::Ptr item)
+  Playlist::Item::Conversion::Options::Ptr GetSaveAsParameters(const Playlist::Item::Data& item)
   {
-    if (item->GetState())
+    if (item.GetState())
     {
-      return Playlist::Item::Conversion::Options::Ptr();
+      return {};
     }
-    const QString type = ToQString(item->GetType()).toLower();
+    const QString type = ToQString(item.GetType()).toLower();
     const Formats formats(type);
     // QFileDialog automatically change extension only when filter is selected
     QString filename = FixExtension(GetDefaultFilename(item), type);
@@ -299,7 +300,7 @@ namespace UI
     }
     else
     {
-      return Playlist::Item::Conversion::Options::Ptr();
+      return {};
     }
   }
 }  // namespace UI

@@ -23,7 +23,7 @@ namespace Parameters
   {
   public:
     //! Pointer type
-    typedef std::shared_ptr<Visitor> Ptr;
+    using Ptr = std::shared_ptr<Visitor>;
 
     virtual ~Visitor() = default;
 

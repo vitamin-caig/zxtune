@@ -98,11 +98,11 @@ namespace
     void FillDevices()
     {
       using namespace Sound;
-      for (DirectSound::Device::Iterator::Ptr availableDevices = DirectSound::EnumerateDevices();
+      for (const auto availableDevices = DirectSound::EnumerateDevices();
            availableDevices->IsValid(); availableDevices->Next())
       {
         const DirectSound::Device::Ptr cur = availableDevices->Get();
-        Devices.push_back(Device(*cur));
+        Devices.emplace_back(*cur);
         devices->addItem(Devices.back().Name);
       }
     }
@@ -112,7 +112,7 @@ namespace
 
     struct Device
     {
-      Device() {}
+      Device() = default;
 
       explicit Device(const Sound::DirectSound::Device& in)
         : Name(ToQString(in.Name()))
@@ -123,7 +123,7 @@ namespace
       String Id;
     };
 
-    typedef std::vector<Device> DevicesArray;
+    using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
 }  // namespace

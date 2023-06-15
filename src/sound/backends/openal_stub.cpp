@@ -23,7 +23,7 @@ namespace Sound
   {
     Strings::Array EnumerateDevices()
     {
-      return Strings::Array();
+      return {};
     }
   }  // namespace OpenAl
 }  // namespace Sound

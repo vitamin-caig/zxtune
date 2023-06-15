@@ -36,6 +36,7 @@
 #include <iostream>
 #include <locale>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <set>
 // boost includes
@@ -57,7 +58,7 @@ namespace Analysis
   class Node
   {
   public:
-    typedef std::shared_ptr<const Node> Ptr;
+    using Ptr = std::shared_ptr<const Node>;
     virtual ~Node() = default;
 
     //! Name to distinguish. Can be empty
@@ -95,7 +96,7 @@ namespace
 
     Analysis::Node::Ptr Parent() const override
     {
-      return Analysis::Node::Ptr();
+      return {};
     }
 
   private:
@@ -161,9 +162,9 @@ namespace Analysis
 
 namespace Analysis
 {
-  typedef DataReceiver<Node::Ptr> NodeReceiver;
-  typedef DataTransmitter<Node::Ptr> NodeTransmitter;
-  typedef DataTransceiver<Node::Ptr> NodeTransceiver;
+  using NodeReceiver = DataReceiver<Node::Ptr>;
+  using NodeTransmitter = DataTransmitter<Node::Ptr>;
+  using NodeTransceiver = DataTransceiver<Node::Ptr>;
 }  // namespace Analysis
 
 namespace Formats
@@ -303,7 +304,7 @@ namespace Parsing
   class Result
   {
   public:
-    typedef std::unique_ptr<const Result> Ptr;
+    using Ptr = std::unique_ptr<const Result>;
     virtual ~Result() = default;
 
     virtual String Name() const = 0;
@@ -312,10 +313,10 @@ namespace Parsing
 
   Result::Ptr CreateResult(StringView name, Binary::Container::Ptr data);
 
-  typedef DataReceiver<Result::Ptr> Target;
+  using Target = DataReceiver<Result::Ptr>;
 
-  typedef DataTransmitter<Result::Ptr> Source;
-  typedef DataTransceiver<Result::Ptr> Pipe;
+  using Source = DataTransmitter<Result::Ptr>;
+  using Pipe = DataTransceiver<Result::Ptr>;
 }  // namespace Parsing
 
 namespace
@@ -348,7 +349,7 @@ namespace Parsing
 {
   Result::Ptr CreateResult(StringView name, Binary::Container::Ptr data)
   {
-    return MakePtr<StaticResult>(name.to_string(), data);
+    return MakePtr<StaticResult>(name.to_string(), std::move(data));
   }
 }  // namespace Parsing
 
@@ -387,10 +388,7 @@ namespace
   class StatisticTarget : public Parsing::Target
   {
   public:
-    StatisticTarget()
-      : Total(0)
-      , TotalSize(0)
-    {}
+    StatisticTarget() = default;
 
     void ApplyData(Parsing::Result::Ptr data) override
     {
@@ -404,8 +402,8 @@ namespace
     }
 
   private:
-    std::size_t Total;
-    uint64_t TotalSize;
+    std::size_t Total = 0;
+    uint64_t TotalSize = 0;
   };
 }  // namespace
 
@@ -460,7 +458,7 @@ namespace
     void ApplyData(Analysis::Node::Ptr result) override
     {
       const Binary::Container::Ptr data = result->Data();
-      const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
+      const auto* const begin = static_cast<const uint8_t*>(data->Start());
       const uint8_t* const end = begin + data->Size();
       const auto first = *begin;
       if (std::any_of(begin, end, [first](auto b) { return first != b; }))
@@ -511,17 +509,17 @@ namespace Analysis
 {
   NodeReceiver::Ptr CreateSizeFilter(std::size_t minSize, NodeReceiver::Ptr target)
   {
-    return MakePtr<SizeFilter>(minSize, target);
+    return MakePtr<SizeFilter>(minSize, std::move(target));
   }
 
   NodeReceiver::Ptr CreateEmptyDataFilter(NodeReceiver::Ptr target)
   {
-    return MakePtr<EmptyDataFilter>(target);
+    return MakePtr<EmptyDataFilter>(std::move(target));
   }
 
   NodeReceiver::Ptr CreateMatchFilter(StringView filter, NodeReceiver::Ptr target)
   {
-    return MakePtr<MatchedDataFilter>(filter, target);
+    return MakePtr<MatchedDataFilter>(filter, std::move(target));
   }
 }  // namespace Analysis
 
@@ -663,9 +661,9 @@ namespace
   const auto DEFAULT_TARGET_NAME_TEMPLATE =
       Strings::Format("XTractor/[{0}]/[{1}]", TEMPLATE_FIELD_FILENAME, TEMPLATE_FIELD_SUBPATH);
 
-  typedef DataReceiver<String> StringsReceiver;
+  using StringsReceiver = DataReceiver<String>;
 
-  typedef DataTransceiver<String, Analysis::Node::Ptr> OpenPoint;
+  using OpenPoint = DataTransceiver<String, Analysis::Node::Ptr>;
 
   class OpenPointImpl : public OpenPoint
   {
@@ -761,7 +759,7 @@ namespace
       }
       else
       {
-        return String();
+        return {};
       }
     }
 
@@ -777,7 +775,7 @@ namespace
 
     const Strings::Array& GetSubpath() const
     {
-      if (!Subpath.get())
+      if (!Subpath)
       {
         FillCache();
       }
@@ -799,7 +797,7 @@ namespace
         {
           const String fileName = node->Name();
           RootIdentifier = IO::ResolveUri(fileName);
-          Subpath.reset(new Strings::Array(subpath.rbegin(), subpath.rend()));
+          Subpath = std::make_unique<Strings::Array>(subpath.rbegin(), subpath.rend());
           break;
         }
       }
@@ -925,7 +923,7 @@ namespace
   typename DataReceiver<Object>::Ptr AsyncWrap(std::size_t threads, std::size_t queueSize,
                                                typename DataReceiver<Object>::Ptr target)
   {
-    return Async::DataReceiver<Object>::Create(threads, queueSize, target);
+    return Async::DataReceiver<Object>::Create(threads, queueSize, std::move(target));
   }
 
   class TargetOptions
@@ -951,22 +949,67 @@ namespace
     virtual std::size_t AnalysisDataQueueSize() const = 0;
   };
 
+  class PipelineBuilder
+  {
+  public:
+    explicit PipelineBuilder(const TargetOptions& opts)
+    {
+      Target = MakePtr<TargetNamePoint>(opts.TargetNameTemplate(), CreateTarget(opts.StatisticOutput()));
+    }
+
+    void AddEmptyDataFilter()
+    {
+      Target = Analysis::CreateEmptyDataFilter(std::move(Target));
+    }
+
+    void AddMinSizeFilter(std::size_t minSize)
+    {
+      Target = Analysis::CreateSizeFilter(minSize, std::move(Target));
+    }
+
+    void AddFormatFilter(StringView format)
+    {
+      Target = Analysis::CreateMatchFilter(format, std::move(Target));
+    }
+
+    Analysis::NodeReceiver::Ptr CaptureResult()
+    {
+      return {std::move(Target)};
+    }
+
+  private:
+    Parsing::Target::Ptr CreateTarget(bool statistics)
+    {
+      if (statistics)
+      {
+        return Parsing::CreateStatisticTarget();
+      }
+      else
+      {
+        return Parsing::CreateSaveTarget();
+      }
+    }
+
+  private:
+    Analysis::NodeReceiver::Ptr Target;
+  };
+
   Analysis::NodeReceiver::Ptr CreateTarget(const TargetOptions& opts)
   {
-    const Parsing::Target::Ptr save = opts.StatisticOutput() ? Parsing::CreateStatisticTarget()
-                                                             : Parsing::CreateSaveTarget();
-    const Analysis::NodeReceiver::Ptr makeName = MakePtr<TargetNamePoint>(opts.TargetNameTemplate(), save);
-    const Analysis::NodeReceiver::Ptr storeAll = makeName;
-    const Analysis::NodeReceiver::Ptr storeNoEmpty = opts.IgnoreEmptyData() ? Analysis::CreateEmptyDataFilter(storeAll)
-                                                                            : storeAll;
-    const std::size_t minSize = opts.MinDataSize();
-    const Analysis::NodeReceiver::Ptr storeEnoughSize = minSize ? Analysis::CreateSizeFilter(minSize, storeNoEmpty)
-                                                                : storeNoEmpty;
-    const std::string filter = opts.FormatFilter();
-    const Analysis::NodeReceiver::Ptr storeMatchedFilter =
-        !filter.empty() ? Analysis::CreateMatchFilter(filter, storeEnoughSize) : storeEnoughSize;
-    const Analysis::NodeReceiver::Ptr result = storeMatchedFilter;
-    return AsyncWrap<Analysis::Node::Ptr>(opts.SaveThreadsCount(), opts.SaveDataQueueSize(), result);
+    PipelineBuilder builder(opts);
+    if (opts.IgnoreEmptyData())
+    {
+      builder.AddEmptyDataFilter();
+    }
+    if (const auto minSize = opts.MinDataSize())
+    {
+      builder.AddMinSizeFilter(minSize);
+    }
+    if (const auto& filter = opts.FormatFilter(); !filter.empty())
+    {
+      builder.AddFormatFilter(filter);
+    }
+    return AsyncWrap<Analysis::Node::Ptr>(opts.SaveThreadsCount(), opts.SaveDataQueueSize(), builder.CaptureResult());
   }
 
   template<class InType, class OutType = InType>
@@ -1020,16 +1063,7 @@ namespace
   {
   public:
     Options()
-      : AnalysisThreadsValue(1)
-      , AnalysisDataQueueSizeValue(10)
-      , TargetNameTemplateValue(DEFAULT_TARGET_NAME_TEMPLATE)
-      , IgnoreEmptyDataValue(false)
-      , MinDataSizeValue(0)
-      , FormatFilterValue()
-      , SaveThreadsCountValue(1)
-      , SaveDataQueueSizeValue(500)
-      , StatisticOutputValue(false)
-      // cmdline
+      : TargetNameTemplateValue(DEFAULT_TARGET_NAME_TEMPLATE)
       , OptionsDescription("Target options")
     {
       using namespace boost::program_options;
@@ -1116,15 +1150,15 @@ namespace
     }
 
   private:
-    std::size_t AnalysisThreadsValue;
-    std::size_t AnalysisDataQueueSizeValue;
+    std::size_t AnalysisThreadsValue = 1;
+    std::size_t AnalysisDataQueueSizeValue = 10;
     String TargetNameTemplateValue;
-    bool IgnoreEmptyDataValue;
-    std::size_t MinDataSizeValue;
+    bool IgnoreEmptyDataValue = false;
+    std::size_t MinDataSizeValue = 0;
     std::string FormatFilterValue;
-    std::size_t SaveThreadsCountValue;
-    std::size_t SaveDataQueueSizeValue;
-    bool StatisticOutputValue;
+    std::size_t SaveThreadsCountValue = 1;
+    std::size_t SaveDataQueueSizeValue = 500;
+    bool StatisticOutputValue = false;
     boost::program_options::options_description OptionsDescription;
   };
 }  // namespace
@@ -1132,7 +1166,7 @@ namespace
 class MainApplication : public Platform::Application
 {
 public:
-  MainApplication() {}
+  MainApplication() = default;
 
   int Run(Strings::Array args) override
   {
@@ -1151,12 +1185,12 @@ public:
                                        factory      +<-converted-+                            factory directory
 
     */
-    const Analysis::NodeReceiver::Ptr result = CreateTarget(Opts);
-    const Analysis::NodeTransceiver::Ptr analyse = CreateAnalyser(Opts);
+    auto result = CreateTarget(Opts);
+    auto analyse = CreateAnalyser(Opts);
     const OpenPoint::Ptr input = CreateSource();
 
-    input->SetTarget(analyse);
-    analyse->SetTarget(result);
+    analyse->SetTarget(std::move(result));
+    input->SetTarget(std::move(analyse));
 
     for (const auto& p : paths)
     {
@@ -1170,9 +1204,9 @@ private:
   bool ParseCmdline(Strings::Array args, Strings::Array& paths) const
   {
     using namespace boost::program_options;
-    const auto helpKey = "help";
-    const auto inputKey = "input";
-    const auto versionKey = "version";
+    const auto* const helpKey = "help";
+    const auto* const inputKey = "input";
+    const auto* const versionKey = "version";
     options_description options(Strings::Format("Usage:\n{0} [options] [--{1}] <input paths>", args[0], inputKey));
     auto opt = options.add_options();
     opt(helpKey, "show this message");

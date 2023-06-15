@@ -20,7 +20,7 @@
 
 namespace Sound
 {
-  typedef std::array<Gain::Type, Sample::CHANNELS> MultiConfigValue;
+  using MultiConfigValue = std::array<Gain::Type, Sample::CHANNELS>;
 
   void GetMatrixRow(const Parameters::Accessor& params, uint_t channels, uint_t inChan, MultiConfigValue& out)
   {
@@ -58,9 +58,9 @@ namespace Sound
   {
   public:
     MixerNotificationParameters(Parameters::Accessor::Ptr params, typename MixerType::Ptr mixer)
-      : Params(params)
+      : Params(std::move(params))
       , Mixer(std::move(mixer))
-      , LastVersion(~params->Version())
+      , LastVersion(~Params->Version())
     {}
 
     uint_t Version() const override
@@ -124,12 +124,12 @@ namespace Sound
   Parameters::Accessor::Ptr CreateMixerNotificationParameters(Parameters::Accessor::Ptr delegate,
                                                               ThreeChannelsMatrixMixer::Ptr mixer)
   {
-    return CreateMixerNotificationParametersInternal<3>(delegate, mixer);
+    return CreateMixerNotificationParametersInternal<3>(std::move(delegate), std::move(mixer));
   }
 
   Parameters::Accessor::Ptr CreateMixerNotificationParameters(Parameters::Accessor::Ptr delegate,
                                                               FourChannelsMatrixMixer::Ptr mixer)
   {
-    return CreateMixerNotificationParametersInternal<4>(delegate, mixer);
+    return CreateMixerNotificationParametersInternal<4>(std::move(delegate), std::move(mixer));
   }
 }  // namespace Sound

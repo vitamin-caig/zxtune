@@ -20,15 +20,13 @@ namespace Sound
   public:
     static const uint_t CHANNELS = 2;
     static const uint_t BITS = 16;
-    typedef int16_t Type;
-    typedef int_t WideType;
+    using Type = int16_t;
+    using WideType = int_t;
     static const Type MIN = -32768;
     static const Type MID = 0;
     static const Type MAX = 32767;
 
-    Sample()
-      : Value()
-    {}
+    Sample() = default;
 
     template<class T>
     Sample(T left, T right)
@@ -61,8 +59,8 @@ namespace Sound
     {}
 
   private:
-    typedef uint32_t StorageType;
+    using StorageType = uint32_t;
     static const uint_t SHIFT = 8 * sizeof(StorageType) / 2;
-    StorageType Value;
+    StorageType Value = 0;
   };
 }  // namespace Sound

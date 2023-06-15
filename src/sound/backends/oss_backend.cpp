@@ -23,7 +23,6 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 // platform-specific includes
-#include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/poll.h>
@@ -32,6 +31,7 @@
 #include <unistd.h>
 // std includes
 #include <algorithm>
+#include <cerrno>
 #include <cstring>
 #include <mutex>
 
@@ -46,13 +46,10 @@ namespace Sound::Oss
   class AutoDescriptor
   {
   public:
-    AutoDescriptor()
-      : Handle(-1)
-    {}
+    AutoDescriptor() = default;
 
     explicit AutoDescriptor(StringView name)
       : Name(name.to_string())
-      , Handle(-1)
     {}
 
     AutoDescriptor(StringView name, int mode)
@@ -142,7 +139,7 @@ namespace Sound::Oss
   private:
     String Name;
     // leave handle as int
-    int Handle;
+    int Handle = -1;
   };
 
   class SoundFormat
@@ -261,7 +258,6 @@ namespace Sound::Oss
   public:
     explicit BackendWorker(Parameters::Accessor::Ptr params)
       : Params(std::move(params))
-      , Format(-1)
       , VolumeController(new VolumeControl(StateMutex, MixHandle))
     {}
 
@@ -312,7 +308,7 @@ namespace Sound::Oss
       }
       assert(DevHandle.Valid());
       std::size_t toWrite(buffer.size() * sizeof(buffer.front()));
-      const uint8_t* data(safe_ptr_cast<const uint8_t*>(buffer.data()));
+      const auto* data(safe_ptr_cast<const uint8_t*>(buffer.data()));
       while (toWrite)
       {
         const int res = DevHandle.WriteAsync(data, toWrite * sizeof(*data));
@@ -360,7 +356,7 @@ namespace Sound::Oss
     std::mutex StateMutex;
     AutoDescriptor MixHandle;
     AutoDescriptor DevHandle;
-    int Format;
+    int Format = -1;
     const VolumeControl::Ptr VolumeController;
   };
 

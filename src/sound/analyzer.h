@@ -24,7 +24,7 @@ namespace Sound
   {
   public:
     //! Pointer type
-    typedef std::shared_ptr<const Analyzer> Ptr;
+    using Ptr = std::shared_ptr<const Analyzer>;
 
     virtual ~Analyzer() = default;
 

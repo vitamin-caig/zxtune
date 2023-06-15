@@ -21,6 +21,8 @@
 // library includes
 #include <parameters/merged_accessor.h>
 #include <sound/service.h>
+// std includes
+#include <utility>
 // qt includes
 #include <QtCore/QTimer>
 
@@ -202,7 +204,7 @@ namespace
         if (Backend)
         {
           Control = Backend->GetPlaybackControl();
-          Item = item;
+          Item = std::move(item);
           return true;
         }
       }
@@ -213,7 +215,7 @@ namespace
       return false;
     }
 
-    Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module)
+    Sound::Backend::Ptr CreateBackend(const Module::Holder::Ptr& module)
     {
       // create backend
       const Sound::BackendCallback::Ptr cb(static_cast<Sound::BackendCallback*>(this),
@@ -232,7 +234,7 @@ namespace
         }
       }
       ReportErrors(errors);
-      return Sound::Backend::Ptr();
+      return {};
     }
 
     void ReportErrors(const std::list<Error>& errors)
@@ -260,5 +262,5 @@ PlaybackSupport* PlaybackSupport::Create(QObject& parent, Parameters::Accessor::
 {
   REGISTER_METATYPE(Sound::Backend::Ptr);
   REGISTER_METATYPE(Error);
-  return new PlaybackSupportImpl(parent, sndOptions);
+  return new PlaybackSupportImpl(parent, std::move(sndOptions));
 }

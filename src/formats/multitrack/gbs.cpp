@@ -28,9 +28,9 @@ namespace Formats::Multitrack
 {
   namespace GBS
   {
-    typedef std::array<uint8_t, 3> SignatureType;
+    using SignatureType = std::array<uint8_t, 3>;
 
-    typedef std::array<char, 32> StringType;
+    using StringType = std::array<char, 32>;
 
     const SignatureType SIGNATURE = {{'G', 'B', 'S'}};
 
@@ -73,7 +73,7 @@ namespace Formats::Multitrack
       {
         return nullptr;
       }
-      const RawHeader* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
+      const auto* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
       if (hdr->Signature != SIGNATURE)
       {
         return nullptr;

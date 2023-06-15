@@ -111,23 +111,23 @@ namespace
   class CountingVisitor : public Parameters::Visitor
   {
   public:
-    void SetValue(Parameters::Identifier name, Parameters::IntType val)
+    void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
       Names.emplace_back(name.AsString());
       Integers.push_back(val);
     }
 
-    void SetValue(Parameters::Identifier name, StringView val)
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
       Names.emplace_back(name.AsString());
       Strings.emplace_back(val.to_string());
     }
 
-    void SetValue(Parameters::Identifier name, Binary::View val)
+    void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       Names.emplace_back(name.AsString());
       const auto* raw = val.As<uint8_t>();
-      Datas.emplace_back(Binary::Dump(raw, raw + val.Size()));
+      Datas.emplace_back(raw, raw + val.Size());
     }
 
     std::vector<String> Names;
@@ -159,9 +159,18 @@ namespace
       Test("count", cnt.Integers.size() + cnt.Strings.size() + cnt.Datas.size(), std::size_t(0));
     }
 
-    const Parameters::IntType int1 = 1, int2 = 2, int3 = 3, int4 = 4, *noInt = nullptr;
-    const Parameters::StringType str1 = "a", str2 = "b", str3 = "c", str4 = "d", *noString = nullptr;
-    const Parameters::DataType data = {}, *noData = nullptr;
+    const Parameters::IntType int1 = 1;
+    const Parameters::IntType int2 = 2;
+    const Parameters::IntType int3 = 3;
+    const Parameters::IntType int4 = 4;
+    const Parameters::IntType* noInt = nullptr;
+    const Parameters::StringType str1 = "a";
+    const Parameters::StringType str2 = "b";
+    const Parameters::StringType str3 = "c";
+    const Parameters::StringType str4 = "d";
+    const Parameters::StringType* noString = nullptr;
+    const Parameters::DataType data = {};
+    const Parameters::DataType* noData = nullptr;
 
     std::cout << "3 inseters" << std::endl;
     cont->SetValue("int", int1);

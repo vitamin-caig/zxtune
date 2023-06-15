@@ -24,6 +24,7 @@
 #include <sound/sound_parameters.h>
 // std includes
 #include <atomic>
+#include <utility>
 
 namespace Sound::BackendBase
 {
@@ -280,8 +281,8 @@ namespace Sound::BackendBase
   BackendCallback::Ptr CreateCallback(BackendCallback::Ptr callback, BackendWorker::Ptr worker)
   {
     static StubBackendCallback STUB;
-    const BackendCallback::Ptr cb = callback ? callback : MakeSingletonPointer(STUB);
-    return MakePtr<CallbackOverWorker>(cb, worker);
+    auto&& cb = callback ? std::move(callback) : MakeSingletonPointer(STUB);
+    return MakePtr<CallbackOverWorker>(std::move(cb), std::move(worker));
   }
 
   class ControlInternal : public PlaybackControl
@@ -374,10 +375,10 @@ namespace Sound::BackendBase
 
 namespace Sound
 {
-  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr globalParams, Module::Holder::Ptr holder,
+  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr globalParams, const Module::Holder::Ptr& holder,
                              BackendCallback::Ptr origCallback, BackendWorker::Ptr worker)
   {
-    auto origRenderer = Module::CreatePipelinedRenderer(*holder, globalParams);
+    auto origRenderer = Module::CreatePipelinedRenderer(*holder, std::move(globalParams));
     auto callback = BackendBase::CreateCallback(std::move(origCallback), worker);
     auto renderer = MakePtr<BackendBase::RendererWrapper>(std::move(origRenderer), callback);
     auto asyncWorker = MakePtr<BackendBase::AsyncWrapper>(std::move(callback), renderer, worker);

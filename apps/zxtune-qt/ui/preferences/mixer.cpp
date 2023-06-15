@@ -85,7 +85,7 @@ namespace
     MixerValueImpl(UI::MixerWidget& parent, Container& ctr, Identifier name, int defValue)
       : MixerValue(parent)
       , Storage(ctr)
-      , Name(name)
+      , Name(std::move(name))
     {
       IntType value = defValue;
       Storage.FindValue(Name, value);

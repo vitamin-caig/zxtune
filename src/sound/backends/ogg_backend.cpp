@@ -48,7 +48,7 @@ namespace Sound::Ogg
   class OggBitStream
   {
   public:
-    typedef std::shared_ptr<OggBitStream> Ptr;
+    using Ptr = std::shared_ptr<OggBitStream>;
     OggBitStream(Api::Ptr api, Binary::OutputStream::Ptr file)
       : OggApi(std::move(api))
       , File(std::move(file))
@@ -104,7 +104,7 @@ namespace Sound::Ogg
   class MetaData
   {
   public:
-    typedef std::shared_ptr<MetaData> Ptr;
+    using Ptr = std::shared_ptr<MetaData>;
 
     explicit MetaData(Vorbis::Api::Ptr api)
       : VorbisApi(std::move(api))
@@ -135,7 +135,7 @@ namespace Sound::Ogg
   class VorbisState
   {
   public:
-    typedef std::shared_ptr<VorbisState> Ptr;
+    using Ptr = std::shared_ptr<VorbisState>;
     VorbisState(Vorbis::Api::Ptr api, vorbis_info* info)
       : VorbisApi(std::move(api))
     {
@@ -204,7 +204,7 @@ namespace Sound::Ogg
   class VorbisInfo
   {
   public:
-    typedef std::shared_ptr<VorbisInfo> Ptr;
+    using Ptr = std::shared_ptr<VorbisInfo>;
     VorbisInfo(Vorbis::Api::Ptr vorbisApi, VorbisEnc::Api::Ptr vorbisEncApi)
       : VorbisApi(std::move(vorbisApi))
       , VorbisEncApi(std::move(vorbisEncApi))
@@ -270,7 +270,9 @@ namespace Sound::Ogg
 
     void FlushMetadata() override
     {
-      ogg_packet id, meta, code;
+      ogg_packet id;
+      ogg_packet meta;
+      ogg_packet code;
       CheckVorbisCall(VorbisApi->vorbis_analysis_headerout(State->Get(), Meta->Get(), &id, &meta, &code), THIS_LINE);
       Stream->AddPacket(&id);
       Stream->AddPacket(&meta);

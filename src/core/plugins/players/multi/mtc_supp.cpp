@@ -29,6 +29,7 @@
 // std includes
 #include <algorithm>
 #include <list>
+#include <utility>
 
 namespace Module::MTC
 {
@@ -36,25 +37,25 @@ namespace Module::MTC
 
   Parameters::Accessor::Ptr CombineProps(Parameters::Accessor::Ptr first, Parameters::Accessor::Ptr second)
   {
-    return first ? (second ? Parameters::CreateMergedAccessor(first, second) : first) : second;
+    return first ? (second ? Parameters::CreateMergedAccessor(std::move(first), std::move(second)) : first) : second;
   }
 
   Parameters::Accessor::Ptr CombineProps(Parameters::Accessor::Ptr first, Parameters::Accessor::Ptr second,
                                          Parameters::Accessor::Ptr third)
   {
-    return first ? (second
-                        ? (third ? Parameters::CreateMergedAccessor(first, second, third) : CombineProps(first, second))
-                        : CombineProps(first, third))
-                 : CombineProps(second, third);
+    return first
+               ? (second
+                      ? (third ? Parameters::CreateMergedAccessor(std::move(first), std::move(second), std::move(third))
+                               : CombineProps(std::move(first), std::move(second)))
+                      : CombineProps(std::move(first), std::move(third)))
+               : CombineProps(std::move(second), std::move(third));
   }
 
   class DataBuilder : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
     DataBuilder(const Parameters::Accessor& params, Parameters::Container::Ptr props)
-      : Module(params, props)
-      , CurTrack()
-      , CurStream()
+      : Module(params, std::move(props))
       , CurEntity(&Module)
     {}
 
@@ -119,7 +120,7 @@ namespace Module::MTC
     class TrackEntity
     {
     public:
-      typedef std::shared_ptr<TrackEntity> Ptr;
+      using Ptr = std::shared_ptr<TrackEntity>;
 
       virtual ~TrackEntity() = default;
 
@@ -223,17 +224,17 @@ namespace Module::MTC
         if (Data)
         {
           auto initialProperties = CombineProps(GetProperties(), std::move(TrackProperties), std::move(TuneProperties));
-          Holder = OpenModule(std::move(Data), std::move(initialProperties));
+          Holder = OpenModule(*Data, std::move(initialProperties));
         }
       }
 
-      Module::Holder::Ptr OpenModule(Binary::Container::Ptr data, Parameters::Accessor::Ptr baseProperties) const
+      Module::Holder::Ptr OpenModule(const Binary::Container& data, Parameters::Accessor::Ptr baseProperties) const
       {
         const auto initialProperties =
             Parameters::CreateMergedContainer(std::move(baseProperties), Parameters::Container::Create());
         for (const auto& plugin : ZXTune::PlayerPlugin::Enumerate())
         {
-          if (auto result = plugin->TryOpen(Params, *data, initialProperties))
+          if (auto result = plugin->TryOpen(Params, data, initialProperties))
           {
             return result;
           }
@@ -255,8 +256,7 @@ namespace Module::MTC
     public:
       Track(const Parameters::Accessor& params, Parameters::Accessor::Ptr tuneProperties)
         : Params(params)
-        , TuneProperties(tuneProperties)
-        , SelectedStream()
+        , TuneProperties(std::move(tuneProperties))
       {}
 
       Stream* AddStream(Binary::Container::Ptr data)
@@ -293,7 +293,7 @@ namespace Module::MTC
       const Parameters::Accessor& Params;
       const Parameters::Accessor::Ptr TuneProperties;
       std::list<Stream> Streams;
-      mutable const Stream* SelectedStream;
+      mutable const Stream* SelectedStream = nullptr;
     };
 
     class Tune : public TrackEntity
@@ -338,7 +338,7 @@ namespace Module::MTC
       }
 
     private:
-      static bool CompareByDuration(Module::Holder::Ptr lh, Module::Holder::Ptr rh)
+      static bool CompareByDuration(const Module::Holder::Ptr& lh, const Module::Holder::Ptr& rh)
       {
         return lh->GetModuleInformation()->Duration() < rh->GetModuleInformation()->Duration();
       }
@@ -351,8 +351,8 @@ namespace Module::MTC
 
   private:
     Tune Module;
-    Track* CurTrack;
-    Stream* CurStream;
+    Track* CurTrack = nullptr;
+    Stream* CurStream = nullptr;
     TrackEntity* CurEntity;
   };
 

@@ -24,7 +24,7 @@ namespace Module::TFM
   public:
     ChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
       : Samplerate(samplerate)
-      , Params(params)
+      , Params(std::move(params))
     {}
 
     uint_t Version() const override

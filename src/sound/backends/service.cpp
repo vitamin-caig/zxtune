@@ -71,7 +71,7 @@ namespace Sound
     , public BackendsStorage
   {
   public:
-    typedef std::shared_ptr<ServiceImpl> RWPtr;
+    using RWPtr = std::shared_ptr<ServiceImpl>;
 
     explicit ServiceImpl(Parameters::Accessor::Ptr options)
       : Options(std::move(options))
@@ -175,7 +175,7 @@ namespace Sound
       BackendWorkerFactory::Ptr Factory;
 
       FactoryWithId(BackendId id, BackendWorkerFactory::Ptr factory)
-        : Id(std::move(id))
+        : Id(id)
         , Factory(std::move(factory))
       {}
 
@@ -189,21 +189,21 @@ namespace Sound
 
   Service::Ptr CreateSystemService(Parameters::Accessor::Ptr options)
   {
-    const ServiceImpl::RWPtr result = MakeRWPtr<ServiceImpl>(options);
+    auto result = MakeRWPtr<ServiceImpl>(std::move(options));
     RegisterSystemBackends(*result);
     return result;
   }
 
   Service::Ptr CreateFileService(Parameters::Accessor::Ptr options)
   {
-    const ServiceImpl::RWPtr result = MakeRWPtr<ServiceImpl>(options);
+    auto result = MakeRWPtr<ServiceImpl>(std::move(options));
     RegisterFileBackends(*result);
     return result;
   }
 
   Service::Ptr CreateGlobalService(Parameters::Accessor::Ptr options)
   {
-    const ServiceImpl::RWPtr result = MakeRWPtr<ServiceImpl>(options);
+    auto result = MakeRWPtr<ServiceImpl>(std::move(options));
     RegisterAllBackends(*result);
     return result;
   }

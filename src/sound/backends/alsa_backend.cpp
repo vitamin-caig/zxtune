@@ -28,7 +28,7 @@
 #include <sound/sound_parameters.h>
 #include <strings/split.h>
 // std includes
-#include <functional>
+#include <utility>
 
 namespace Sound::Alsa
 {
@@ -212,7 +212,7 @@ namespace Sound::Alsa
   {
   public:
     PCMDevice(Api::Ptr api, const Identifier& id)
-      : AutoHandle<snd_pcm_t>(api, id.GetPCM())
+      : AutoHandle<snd_pcm_t>(std::move(api), id.GetPCM())
     {
       Open();
     }
@@ -273,19 +273,18 @@ namespace Sound::Alsa
   {
     T* res = nullptr;
     CheckResult(*api, ((*api).*allocFunc)(&res), THIS_LINE);
-    return res ? std::shared_ptr<T>(res, std::bind(freeFunc, api, std::placeholders::_1)) : std::shared_ptr<T>();
+    return res ? std::shared_ptr<T>(res, [api = std::move(api), freeFunc](auto&& arg) { ((*api).*freeFunc)(arg); })
+               : std::shared_ptr<T>();
   }
 
   class DeviceWrapper
   {
   public:
-    typedef std::shared_ptr<DeviceWrapper> Ptr;
+    using Ptr = std::shared_ptr<DeviceWrapper>;
 
     DeviceWrapper(Api::Ptr api, const Identifier& id)
-      : AlsaApi(api)
-      , Pcm(api, id)
-      , CanPause(false)
-      , Format(SND_PCM_FORMAT_UNKNOWN)
+      : AlsaApi(std::move(api))
+      , Pcm(AlsaApi, id)
     {}
 
     ~DeviceWrapper()
@@ -300,14 +299,14 @@ namespace Sound::Alsa
 
     void SetParameters(Time::Milliseconds lat, const RenderParameters& params)
     {
-      const std::shared_ptr<snd_pcm_hw_params_t> hwParams =
+      const auto hwParams =
           Allocate<snd_pcm_hw_params_t>(AlsaApi, &Api::snd_pcm_hw_params_malloc, &Api::snd_pcm_hw_params_free);
       Pcm.CheckedCall(&Api::snd_pcm_hw_params_any, hwParams.get(), THIS_LINE);
 
       const bool canPause = AlsaApi->snd_pcm_hw_params_can_pause(hwParams.get()) != 0;
       Dbg(canPause ? "Hardware support pause" : "Hardware doesn't support pause");
 
-      const std::shared_ptr<snd_pcm_format_mask_t> fmtMask =
+      const auto fmtMask =
           Allocate<snd_pcm_format_mask_t>(AlsaApi, &Api::snd_pcm_format_mask_malloc, &Api::snd_pcm_format_mask_free);
       AlsaApi->snd_pcm_hw_params_get_format_mask(hwParams.get(), fmtMask.get());
 
@@ -373,8 +372,8 @@ namespace Sound::Alsa
   private:
     const Api::Ptr AlsaApi;
     PCMDevice Pcm;
-    bool CanPause;
-    snd_pcm_format_t Format;
+    bool CanPause = false;
+    snd_pcm_format_t Format = SND_PCM_FORMAT_UNKNOWN;
   };
 
   class MixerElementsIterator
@@ -431,7 +430,7 @@ namespace Sound::Alsa
   {
   public:
     MixerDevice(Api::Ptr api, StringView card)
-      : AutoHandle<snd_mixer_t>(api, card)
+      : AutoHandle<snd_mixer_t>(std::move(api), card)
     {
       Open();
     }
@@ -466,9 +465,9 @@ namespace Sound::Alsa
   {
   public:
     AttachedMixer(Api::Ptr api, StringView card)
-      : AlsaApi(api)
+      : AlsaApi(std::move(api))
       , Name(card.to_string())
-      , MixDev(api, card)
+      , MixDev(AlsaApi, card)
     {
       Open();
     }
@@ -505,7 +504,7 @@ namespace Sound::Alsa
     MixerElementsIterator GetElements() const
     {
       Require(MixDev.Get());
-      return MixerElementsIterator(AlsaApi, *MixDev.Get());
+      return {AlsaApi, *MixDev.Get()};
     }
 
   private:
@@ -517,12 +516,11 @@ namespace Sound::Alsa
   class Mixer
   {
   public:
-    typedef std::shared_ptr<Mixer> Ptr;
+    using Ptr = std::shared_ptr<Mixer>;
 
     Mixer(Api::Ptr api, const Identifier& id, StringView mixer)
-      : AlsaApi(api)
-      , Attached(api, id.GetCard())
-      , MixerElement(nullptr)
+      : AlsaApi(std::move(api))
+      , Attached(AlsaApi, id.GetCard())
     {
 
       Dbg("Opening mixer '{}'", mixer);
@@ -571,24 +569,26 @@ namespace Sound::Alsa
     {
       if (!MixerElement)
       {
-        return Gain();
+        return {};
       }
       else
       {
         static_assert(Gain::CHANNELS == 2, "Invalid channels count");
-        long minVol = 0, maxVol = 0;
+        long minVol = 0;
+        long maxVol = 0;
         CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol),
                     THIS_LINE);
         const long volRange = maxVol - minVol;
 
-        long leftVol = 0, rightVol = 0;
+        long leftVol = 0;
+        long rightVol = 0;
         CheckResult(*AlsaApi,
                     AlsaApi->snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, &leftVol),
                     THIS_LINE);
         CheckResult(*AlsaApi,
                     AlsaApi->snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, &rightVol),
                     THIS_LINE);
-        return Gain(Gain::Type(leftVol - minVol, volRange), Gain::Type(rightVol - minVol, volRange));
+        return {Gain::Type(leftVol - minVol, volRange), Gain::Type(rightVol - minVol, volRange)};
       }
     }
 
@@ -601,7 +601,8 @@ namespace Sound::Alsa
       if (MixerElement)
       {
         static_assert(Gain::CHANNELS == 2, "Invalid channels count");
-        long minVol = 0, maxVol = 0;
+        long minVol = 0;
+        long maxVol = 0;
         CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol),
                     THIS_LINE);
         const long volRange = maxVol - minVol;
@@ -620,13 +621,13 @@ namespace Sound::Alsa
   private:
     const Api::Ptr AlsaApi;
     AttachedMixer Attached;
-    snd_mixer_elem_t* MixerElement;
+    snd_mixer_elem_t* MixerElement = nullptr;
   };
 
   class VolumeControl : public Sound::VolumeControl
   {
   public:
-    explicit VolumeControl(Mixer::Ptr mixer)
+    explicit VolumeControl(const Mixer::Ptr& mixer)
       : Mix(mixer)
     {}
 
@@ -638,7 +639,7 @@ namespace Sound::Alsa
         return obj->GetVolume();
       }
       Dbg("Volume control is expired");
-      return Gain();
+      return {};
     }
 
     void SetVolume(const Gain& volume) override
@@ -664,28 +665,30 @@ namespace Sound::Alsa
 
     String GetDeviceName() const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::DEVICE, strVal);
+      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
+      Parameters::StringType strVal = DEVICE_DEFAULT;
+      Accessor.FindValue(DEVICE, strVal);
       return strVal;
     }
 
     String GetMixerName() const
     {
+      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
       Parameters::StringType strVal;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, strVal);
+      Accessor.FindValue(MIXER, strVal);
       return strVal;
     }
 
     Time::Milliseconds GetLatency() const
     {
-      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::Alsa::LATENCY_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::LATENCY, val)
-          && !Math::InRange<Parameters::IntType>(val, LATENCY_MIN, LATENCY_MAX))
+      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
+      Parameters::IntType val = LATENCY_DEFAULT;
+      if (Accessor.FindValue(LATENCY, val) && !Math::InRange<Parameters::IntType>(val, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, translate("ALSA backend error: latency ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(val), LATENCY_MIN, LATENCY_MAX);
       }
-      return Time::Milliseconds(val);
+      return Time::Milliseconds{static_cast<uint_t>(val)};
     }
 
   private:
@@ -791,7 +794,7 @@ namespace Sound::Alsa
   {
     snd_ctl_t* ctl = nullptr;
     return api->snd_ctl_open(&ctl, deviceName.c_str(), 0) >= 0
-               ? std::shared_ptr<snd_ctl_t>(ctl, std::bind(&Api::snd_ctl_close, api, std::placeholders::_1))
+               ? std::shared_ptr<snd_ctl_t>(ctl, [api = std::move(api)](auto&& arg) { api->snd_ctl_close(arg); })
                : std::shared_ptr<snd_ctl_t>();
   }
 
@@ -800,7 +803,6 @@ namespace Sound::Alsa
   public:
     explicit CardsIterator(Api::Ptr api)
       : AlsaApi(std::move(api))
-      , Index(-1)
     {
       Next();
     }
@@ -830,7 +832,7 @@ namespace Sound::Alsa
       CurHandle = std::shared_ptr<snd_ctl_t>();
       CurName.clear();
       CurId.clear();
-      const std::shared_ptr<snd_ctl_card_info_t> cardInfo =
+      const auto cardInfo =
           Allocate<snd_ctl_card_info_t>(AlsaApi, &Api::snd_ctl_card_info_malloc, &Api::snd_ctl_card_info_free);
 
       for (; AlsaApi->snd_card_next(&Index) >= 0 && Index >= 0;)
@@ -854,7 +856,7 @@ namespace Sound::Alsa
 
   private:
     const Api::Ptr AlsaApi;
-    int Index;
+    int Index = -1;
     std::shared_ptr<snd_ctl_t> CurHandle;
     String CurName;
     String CurId;
@@ -866,7 +868,7 @@ namespace Sound::Alsa
     DevicesIterator(Api::Ptr api, const CardsIterator& card)
       : AlsaApi(std::move(api))
       , Card(card)
-      , Index(-1)
+
     {
       Next();
     }
@@ -913,7 +915,7 @@ namespace Sound::Alsa
   private:
     const Api::Ptr AlsaApi;
     const CardsIterator& Card;
-    int Index;
+    int Index = -1;
     String CurName;
   };
 
@@ -958,20 +960,20 @@ namespace Sound::Alsa
       }
       catch (const Error&)
       {
-        return Strings::Array();
+        return {};
       }
     }
 
     static Ptr CreateDefault(Api::Ptr api)
     {
       static const auto DEFAULT_DEVICE_NAME = "Default"_sv;
-      return MakePtr<DeviceInfo>(api, Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT, DEFAULT_DEVICE_NAME,
-                                 DEFAULT_DEVICE_NAME);
+      return MakePtr<DeviceInfo>(std::move(api), Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT,
+                                 DEFAULT_DEVICE_NAME, DEFAULT_DEVICE_NAME);
     }
 
     static Ptr Create(Api::Ptr api, const CardsIterator& card, const DevicesIterator& dev)
     {
-      return MakePtr<DeviceInfo>(api, dev.Id(), dev.Name(), card.Name());
+      return MakePtr<DeviceInfo>(std::move(api), dev.Id(), dev.Name(), card.Name());
     }
 
   private:
@@ -985,10 +987,10 @@ namespace Sound::Alsa
   {
   public:
     explicit DeviceInfoIterator(Api::Ptr api)
-      : AlsaApi(api)
-      , Cards(api)
-      , Devices(api, Cards)
-      , Current(Cards.IsValid() && Devices.IsValid() ? DeviceInfo::CreateDefault(api) : Device::Ptr())
+      : AlsaApi(std::move(api))
+      , Cards(AlsaApi)
+      , Devices(AlsaApi, Cards)
+      , Current(Cards.IsValid() && Devices.IsValid() ? DeviceInfo::CreateDefault(AlsaApi) : Device::Ptr())
     {}
 
     bool IsValid() const override

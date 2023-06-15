@@ -42,8 +42,8 @@ namespace Formats::Chiptune
 
       explicit DirectoryEntry(Binary::InputStream& stream)
       {
-        const auto nameBegin = stream.PeekRawData(36);
-        const auto nameEnd = std::find(nameBegin, nameBegin + 36, 0);
+        const auto* const nameBegin = stream.PeekRawData(36);
+        const auto* const nameEnd = std::find(nameBegin, nameBegin + 36, 0);
         Name.assign(nameBegin, nameEnd);
         stream.Skip(36);
         Offset = stream.Read<le_uint32_t>();
@@ -171,13 +171,13 @@ namespace Formats::Chiptune
           else if (0 == entry.Size)
           {
             // empty file may have zero offset
-            target.OnFile(std::move(entryPath), Binary::Container::Ptr());
+            target.OnFile(entryPath, Binary::Container::Ptr());
           }
           else
           {
             Require(entryPos < entry.Offset);
             auto blocks = ParseFileBlocks(entry.Size, entry.BlockSize);
-            target.OnFile(std::move(entryPath), ScatteredContainer::Create(std::move(blocks), entry.Size));
+            target.OnFile(entryPath, ScatteredContainer::Create(std::move(blocks), entry.Size));
           }
           Stream.Seek(entryPos + DirectoryEntry::RAW_SIZE);
         }
@@ -244,7 +244,7 @@ namespace Formats::Chiptune
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
       {
-        return Formats::Chiptune::Container::Ptr();  // TODO
+        return {};  // TODO
       }
 
     private:

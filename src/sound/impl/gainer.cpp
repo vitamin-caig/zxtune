@@ -34,7 +34,7 @@ namespace Sound
 
     Sample Apply(Sample in) const
     {
-      return Sample(Clamp((Level * in.Left()).Round()), Clamp((Level * in.Right()).Round()));
+      return {Clamp((Level * in.Left()).Round()), Clamp((Level * in.Right()).Round())};
     }
 
     bool SetGain(Gain::Type in)

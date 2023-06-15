@@ -13,10 +13,7 @@
 // local includes
 #include "module/players/dac/dac_factory.h"
 
-namespace Module
+namespace Module::SQDigitalTracker
 {
-  namespace SQDigitalTracker
-  {
-    DAC::Factory::Ptr CreateFactory();
-  }
-}  // namespace Module
+  DAC::Factory::Ptr CreateFactory();
+}  // namespace Module::SQDigitalTracker

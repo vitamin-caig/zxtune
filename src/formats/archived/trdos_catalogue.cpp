@@ -18,9 +18,11 @@
 #include <binary/data_builder.h>
 #include <strings/format.h>
 // std includes
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <numeric>
+#include <utility>
 
 namespace TRDos
 {
@@ -65,12 +67,12 @@ namespace TRDos
     return false;
   }
 
-  typedef std::vector<File::Ptr> FilesList;
+  using FilesList = std::vector<File::Ptr>;
 
   class MultiFile : public File
   {
   public:
-    typedef std::shared_ptr<MultiFile> Ptr;
+    using Ptr = std::shared_ptr<MultiFile>;
 
     virtual bool Merge(File::Ptr other) = 0;
 
@@ -115,7 +117,6 @@ namespace TRDos
   public:
     explicit NamesGenerator(StringView name)
       : Name(name)
-      , Idx(1)
     {}
 
     String operator()() const
@@ -140,15 +141,15 @@ namespace TRDos
 
   private:
     const StringView Name;
-    unsigned Idx;
+    unsigned Idx = 1;
   };
 
   class CommonCatalogue : public Binary::BaseContainer<Formats::Archived::Container>
   {
   public:
     template<class T>
-    CommonCatalogue(Binary::Container::Ptr data, T from, T to)
-      : BaseContainer(std::move(data))
+    CommonCatalogue(const Binary::Container::Ptr& data, T from, T to)
+      : BaseContainer(data)
       , Files(from, to)
     {}
 
@@ -181,7 +182,7 @@ namespace TRDos
     const FilesList Files;
   };
 
-  typedef std::vector<MultiFile::Ptr> MultiFilesList;
+  using MultiFilesList = std::vector<MultiFile::Ptr>;
 
   class BaseCatalogueBuilder : public CatalogueBuilder
   {
@@ -211,7 +212,7 @@ namespace TRDos
       }
       else
       {
-        return Formats::Archived::Container::Ptr();
+        return {};
       }
     }
 
@@ -221,7 +222,7 @@ namespace TRDos
   private:
     bool Merge(File::Ptr newOne) const
     {
-      return !Files.empty() && Files.back()->Merge(newOne);
+      return !Files.empty() && Files.back()->Merge(std::move(newOne));
     }
 
     void AddNewOne(File::Ptr newOne)
@@ -251,14 +252,7 @@ namespace TRDos
 
     bool HasFile(StringView name) const
     {
-      for (const auto& file : Files)
-      {
-        if (file->GetName() == name)
-        {
-          return true;
-        }
-      }
-      return false;
+      return std::any_of(Files.begin(), Files.end(), [name](auto file) { return file->GetName() == name; });
     }
 
   private:

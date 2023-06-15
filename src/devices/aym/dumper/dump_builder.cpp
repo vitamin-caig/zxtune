@@ -20,7 +20,7 @@ namespace Devices::AYM
   class RenderState
   {
   public:
-    typedef std::shared_ptr<RenderState> Ptr;
+    using Ptr = std::shared_ptr<RenderState>;
     virtual ~RenderState() = default;
 
     virtual void Reset() = 0;
@@ -108,8 +108,7 @@ namespace Devices::AYM
         const uint8_t newVal = delta[reg] & GetValueMask(reg);
         if (Registers::ENV != reg && Base.Has(reg))
         {
-          uint8_t& base = Base[reg];
-          if (newVal == base)
+          if (newVal == Base[reg])
           {
             Delta.Reset(reg);
             continue;
@@ -127,8 +126,6 @@ namespace Devices::AYM
       : FrameDuration(frameDuration)
       , Builder(std::move(builder))
       , State(std::move(state))
-      , FramesToSkip(0)
-      , NextFrame()
     {
       Reset();
     }
@@ -190,7 +187,7 @@ namespace Devices::AYM
     const Time::Duration<TimeUnit> FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
     const RenderState::Ptr State;
-    uint_t FramesToSkip;
+    uint_t FramesToSkip = 0;
     Stamp NextFrame;
   };
 

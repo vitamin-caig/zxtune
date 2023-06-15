@@ -22,16 +22,7 @@ namespace Sound
   class LPFilter
   {
   public:
-    LPFilter()
-      : A()
-      , B()
-      , C()
-      , DCShift()
-      , In1()
-      , In2()
-      , Out1()
-      , Out2()
-    {}
+    LPFilter() = default;
 
     void SetParameters(uint64_t sampleFreq, uint64_t cutOffFreq)
     {
@@ -68,8 +59,8 @@ namespace Sound
       // specify gain to avoid overload
       const float gain = 1.0f;  // 0.98f;
 
-      const float sinus = sin(w0);
-      const float cosine = cos(w0);
+      const float sinus = std::sin(w0);
+      const float cosine = std::cos(w0);
       const float alpha = sinus / (2.0f * q);
 
       const float a0 = (1.0f + alpha) / gain;
@@ -85,7 +76,7 @@ namespace Sound
       // 2 bits- scale for A (4)
       DCShift = Math::Log2(static_cast<uint_t>(1.0f / a)) - 3;
 
-      A = a * (1 << DCShift);
+      A = a * float(1 << DCShift);
       B = b;
       C = c;
 
@@ -117,9 +108,9 @@ namespace Sound
     }
 
   private:
-    typedef Math::FixedPoint<int_t, 16384> Coeff;
+    using Coeff = Math::FixedPoint<int_t, 16384>;
     Coeff A, B, C;
-    uint_t DCShift;
+    uint_t DCShift = 0;
     Sample In1, In2;
     Sample Out1, Out2;
   };

@@ -101,7 +101,7 @@ namespace Module::XSF
       {
         Require(!Files.empty());
         FillStrings();
-        Delegate = HolderFactory->CreateMultifileModule(Head, std::move(Files), std::move(Properties));
+        Delegate = HolderFactory->CreateMultifileModule(Head, Files, std::move(Properties));
         Head = File();
       }
       return *Delegate;
@@ -174,7 +174,7 @@ namespace Module::XSF
           if (file.Dependencies.empty())
           {
             Dbg("Singlefile");
-            return Delegate->CreateSinglefileModule(std::move(file), std::move(properties));
+            return Delegate->CreateSinglefileModule(file, std::move(properties));
           }
           else
           {
@@ -187,7 +187,7 @@ namespace Module::XSF
       {
         Dbg("Failed to parse");
       }
-      return Module::Holder::Ptr();
+      return {};
     }
 
   private:

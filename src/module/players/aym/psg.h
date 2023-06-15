@@ -13,10 +13,7 @@
 // local includes
 #include "module/players/aym/aym_factory.h"
 
-namespace Module
+namespace Module::PSG
 {
-  namespace PSG
-  {
-    AYM::Factory::Ptr CreateFactory();
-  }
-}  // namespace Module
+  AYM::Factory::Ptr CreateFactory();
+}  // namespace Module::PSG

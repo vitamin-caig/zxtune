@@ -10,6 +10,8 @@
 
 #pragma once
 
+// local includes
+#include "devices/aym/src/generators.h"
 // library includes
 #include <devices/aym/chip.h>
 // std includes
@@ -20,10 +22,7 @@ namespace Devices::AYM
   class MultiVolumeTable
   {
   public:
-    MultiVolumeTable()
-      : Table(nullptr)
-      , Layout(nullptr)
-    {}
+    MultiVolumeTable() = default;
 
     void SetParameters(ChipType type, LayoutType layout, const MixerType& mixer)
     {
@@ -82,7 +81,7 @@ namespace Devices::AYM
              + val * (Sound::Sample::MAX - Sound::Sample::MID) / (Sound::Sample::MAX - Sound::Sample::MIN);
     }
 
-    typedef std::array<uint_t, SOUND_CHANNELS> LayoutData;
+    using LayoutData = std::array<uint_t, SOUND_CHANNELS>;
 
     static const LayoutData* GetLayout(LayoutType type)
     {
@@ -97,7 +96,7 @@ namespace Devices::AYM
       return type == LAYOUT_MONO ? nullptr : LAYOUTS + type;
     }
 
-    typedef MixerType::InDataType MultiSample;
+    using MultiSample = MixerType::InDataType;
 
     void FillLookupTable(const MixerType& mixer)
     {
@@ -125,8 +124,8 @@ namespace Devices::AYM
     }
 
   private:
-    const Sound::Sample::Type* Table;
-    const LayoutData* Layout;
+    const Sound::Sample::Type* Table = nullptr;
+    const LayoutData* Layout = nullptr;
     std::array<Sound::Sample, 1 << SOUND_CHANNELS * BITS_PER_LEVEL> Lookup;
   };
 }  // namespace Devices::AYM

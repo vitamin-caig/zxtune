@@ -73,11 +73,11 @@ namespace Binary
     {
       if (offset < Length)
       {
-        return View(static_cast<const uint8_t*>(Begin) + offset, std::min(maxSize, Length - offset));
+        return {static_cast<const uint8_t*>(Begin) + offset, std::min(maxSize, Length - offset)};
       }
       else
       {
-        return View();
+        return {};
       }
     }
 

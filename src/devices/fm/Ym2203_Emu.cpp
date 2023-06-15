@@ -235,117 +235,113 @@ static const uint_t opn_fktable[16] = {0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3};
 #define SLOT4 3
 
 /* struct describing a single operator (SLOT) */
-typedef struct
+using FM_SLOT = struct
 {
-	int32_t	*DT;		/* detune          :dt_tab[DT] */
-	uint_t	KSR;		/* key scale rate  :3-KSR */
-	uint32_t	ar;			/* attack rate  */
-	uint32_t	d1r;		/* decay rate   */
-	uint32_t	d2r;		/* sustain rate */
-	uint32_t	rr;			/* release rate */
-	uint_t	ksr;		/* key scale rate  :kcode>>(3-KSR) */
-	uint32_t	mul;		/* multiple        :ML_TABLE[ML] */
+  int32_t* DT;  /* detune          :dt_tab[DT] */
+  uint_t KSR;   /* key scale rate  :3-KSR */
+  uint32_t ar;  /* attack rate  */
+  uint32_t d1r; /* decay rate   */
+  uint32_t d2r; /* sustain rate */
+  uint32_t rr;  /* release rate */
+  uint_t ksr;   /* key scale rate  :kcode>>(3-KSR) */
+  uint32_t mul; /* multiple        :ML_TABLE[ML] */
 
-	/* Phase Generator */
-	uint32_t	phase;		/* phase counter */
-	uint32_t	Incr;		/* phase step */
+  /* Phase Generator */
+  uint32_t phase; /* phase counter */
+  uint32_t Incr;  /* phase step */
 
-	/* Envelope Generator */
-	uint_t	state;		/* phase type */
-	uint32_t	tl;			/* total level: TL << 3 */
-	int32_t	volume;		/* envelope counter */
-	uint32_t	sl;			/* sustain level:sl_table[SL] */
-	uint32_t	vol_out;	/* current output from EG circuit (without AM from LFO) */
+  /* Envelope Generator */
+  uint_t state;     /* phase type */
+  uint32_t tl;      /* total level: TL << 3 */
+  int32_t volume;   /* envelope counter */
+  uint32_t sl;      /* sustain level:sl_table[SL] */
+  uint32_t vol_out; /* current output from EG circuit (without AM from LFO) */
 
-	uint_t	eg_sh_ar;	/*  (attack state) */
-	uint_t	eg_sel_ar;	/*  (attack state) */
-	uint_t	eg_sh_d1r;	/*  (decay state) */
-	uint_t	eg_sel_d1r;	/*  (decay state) */
-	uint_t	eg_sh_d2r;	/*  (sustain state) */
-	uint_t	eg_sel_d2r;	/*  (sustain state) */
-	uint_t	eg_sh_rr;	/*  (release state) */
-	uint_t	eg_sel_rr;	/*  (release state) */
+  uint_t eg_sh_ar;   /*  (attack state) */
+  uint_t eg_sel_ar;  /*  (attack state) */
+  uint_t eg_sh_d1r;  /*  (decay state) */
+  uint_t eg_sel_d1r; /*  (decay state) */
+  uint_t eg_sh_d2r;  /*  (sustain state) */
+  uint_t eg_sel_d2r; /*  (sustain state) */
+  uint_t eg_sh_rr;   /*  (release state) */
+  uint_t eg_sel_rr;  /*  (release state) */
 
-	uint_t	ssg;		/* SSG-EG waveform */
-	uint_t	ssgn;		/* SSG-EG negated output */
+  uint_t ssg;  /* SSG-EG waveform */
+  uint_t ssgn; /* SSG-EG negated output */
 
-	uint32_t	key;		/* 0=last key was KEY OFF, 1=KEY ON */
-} FM_SLOT;
+  uint32_t key; /* 0=last key was KEY OFF, 1=KEY ON */
+};
 
-typedef struct
+using FM_CH = struct
 {
-	FM_SLOT	SLOT[4];	/* four SLOTs (operators) */
+  FM_SLOT SLOT[4]; /* four SLOTs (operators) */
 
-	uint_t	ALGO;		/* algorithm */
-	uint_t	FB;			/* feedback shift */
-	int32_t	op1_out[2];	/* op1 output for feedback */
+  uint_t ALGO;        /* algorithm */
+  uint_t FB;          /* feedback shift */
+  int32_t op1_out[2]; /* op1 output for feedback */
 
-	int32_t	*connect1;	/* SLOT1 output pointer */
-	int32_t	*connect3;	/* SLOT3 output pointer */
-	int32_t	*connect2;	/* SLOT2 output pointer */
-	int32_t	*connect4;	/* SLOT4 output pointer */
+  int32_t* connect1; /* SLOT1 output pointer */
+  int32_t* connect3; /* SLOT3 output pointer */
+  int32_t* connect2; /* SLOT2 output pointer */
+  int32_t* connect4; /* SLOT4 output pointer */
 
-	int32_t	*mem_connect;/* where to put the delayed sample (MEM) */
-	int32_t	mem_value;	/* delayed sample (MEM) value */
+  int32_t* mem_connect; /* where to put the delayed sample (MEM) */
+  int32_t mem_value;    /* delayed sample (MEM) value */
 
-	uint32_t	fc;			/* fnum,blk:adjusted to sample rate */
-	uint_t	kcode;		/* key code:                        */
-} FM_CH;
+  uint32_t fc;  /* fnum,blk:adjusted to sample rate */
+  uint_t kcode; /* key code:                        */
+};
 
-
-typedef struct
+using FM_ST = struct
 {
-	uint64_t		clock;		/* master clock  (Hz)   */
-	int		rate;		/* sampling rate (Hz)   */
-	double	freqbase;	/* frequency base       */
-	uint32_t	mode;		/* mode  CSM / 3SLOT    */
-	uint_t	prescaler_sel;/* prescaler selector */
-	uint_t	fn_h;		/* freq latch           */
-	/* local time tables */
-	int32_t	dt_tab[8][32];/* DeTune table       */
-} FM_ST;
-
-
+  uint64_t clock;       /* master clock  (Hz)   */
+  int rate;             /* sampling rate (Hz)   */
+  double freqbase;      /* frequency base       */
+  uint32_t mode;        /* mode  CSM / 3SLOT    */
+  uint_t prescaler_sel; /* prescaler selector */
+  uint_t fn_h;          /* freq latch           */
+  /* local time tables */
+  int32_t dt_tab[8][32]; /* DeTune table       */
+};
 
 /***********************************************************/
 /* OPN unit                                                */
 /***********************************************************/
 
 /* OPN 3slot struct */
-typedef struct
+using FM_3SLOT = struct
 {
-	uint32_t  fc[3];			/* fnum3,blk3: calculated */
-	uint_t	fn_h;			/* freq3 latch */
-	uint_t	kcode[3];		/* key code */
-} FM_3SLOT;
+  uint32_t fc[3];  /* fnum3,blk3: calculated */
+  uint_t fn_h;     /* freq3 latch */
+  uint_t kcode[3]; /* key code */
+};
 
 /* OPN/A/B common state */
-typedef struct
+using FM_OPN = struct
 {
-	FM_ST	ST;				/* general state */
-	FM_3SLOT SL3;			/* 3 slot mode state */
-	FM_CH	*P_CH;			/* pointer of CH */
+  FM_ST ST;     /* general state */
+  FM_3SLOT SL3; /* 3 slot mode state */
+  FM_CH* P_CH;  /* pointer of CH */
 
-	uint32_t	eg_cnt;			/* global envelope generator counter */
-	uint32_t	eg_timer;		/* global envelope generator counter works at frequency = chipclock/64/3 */
-	uint32_t	eg_timer_add;	/* step of eg_timer */
-	uint32_t	eg_timer_overflow;/* envelope generator timer overlfows every 3 samples (on real chip) */
+  uint32_t eg_cnt;            /* global envelope generator counter */
+  uint32_t eg_timer;          /* global envelope generator counter works at frequency = chipclock/64/3 */
+  uint32_t eg_timer_add;      /* step of eg_timer */
+  uint32_t eg_timer_overflow; /* envelope generator timer overlfows every 3 samples (on real chip) */
 
+  /* there are 2048 FNUMs that can be generated using FNUM/BLK registers
+  but LFO works with one more bit of a precision so we really need 4096 elements */
 
-	/* there are 2048 FNUMs that can be generated using FNUM/BLK registers
-        but LFO works with one more bit of a precision so we really need 4096 elements */
-
-	uint32_t	fn_table[4096];	/* fnumber->increment counter */
-} FM_OPN;
+  uint32_t fn_table[4096]; /* fnumber->increment counter */
+};
 
 /* current chip state */
-typedef struct
+using FM_STATE = struct
 {
-  int32_t	m2,c1,c2;		/* Phase Modulation input for operators 2,3,4 */
-  int32_t	mem;			/* one sample delay memory */
+  int32_t m2, c1, c2; /* Phase Modulation input for operators 2,3,4 */
+  int32_t mem;        /* one sample delay memory */
 
-  int32_t	out_fm[8];		/* outputs of working channels */
-} FM_STATE;
+  int32_t out_fm[8]; /* outputs of working channels */
+};
 
 /* OPN Mode Register Write */
 inline void set_timers( FM_ST *ST, int v )
@@ -1214,39 +1210,39 @@ void OPNPrescaler_w(FM_OPN *OPN , int addr, int pre_divider)
 }
 
 /* here's the virtual YM2203(OPN) */
-typedef struct
+using YM2203 = struct
 {
-	uint8_t REGS[256];		/* registers         */
-	FM_STATE State;
-	FM_OPN OPN;				/* OPN state         */
-	FM_CH CH[3];			/* channel state     */
-} YM2203;
+  uint8_t REGS[256]; /* registers         */
+  FM_STATE State;
+  FM_OPN OPN;  /* OPN state         */
+  FM_CH CH[3]; /* channel state     */
+};
 
 /* Generate samples for one of the YM2203s */
 void YM2203UpdateOne(void *chip, int32_t *buffer, int length)
 {
-	YM2203 *F2203 = (YM2203*)chip;
-	FM_OPN *OPN =   &F2203->OPN;
-	FM_STATE *state = &F2203->State;
-	FM_CH	*cch[3];
+  auto* F2203 = (YM2203*)chip;
+  FM_OPN* OPN = &F2203->OPN;
+  FM_STATE* state = &F2203->State;
+  FM_CH* cch[3];
 
-	cch[0]   = &F2203->CH[0];
-	cch[1]   = &F2203->CH[1];
-	cch[2]   = &F2203->CH[2];
+  cch[0] = &F2203->CH[0];
+  cch[1] = &F2203->CH[1];
+  cch[2] = &F2203->CH[2];
 
-	/* refresh PG and EG */
-	refresh_fc_eg_chan( cch[0] );
-	refresh_fc_eg_chan( cch[1] );
-	if( (F2203->OPN.ST.mode & 0xc0) )
-	{
-		/* 3SLOT MODE */
-		if( cch[2]->SLOT[SLOT1].Incr==-1)
-		{
-			refresh_fc_eg_slot(&cch[2]->SLOT[SLOT1] , OPN->SL3.fc[1] , OPN->SL3.kcode[1] );
-			refresh_fc_eg_slot(&cch[2]->SLOT[SLOT2] , OPN->SL3.fc[2] , OPN->SL3.kcode[2] );
-			refresh_fc_eg_slot(&cch[2]->SLOT[SLOT3] , OPN->SL3.fc[0] , OPN->SL3.kcode[0] );
-			refresh_fc_eg_slot(&cch[2]->SLOT[SLOT4] , cch[2]->fc , cch[2]->kcode );
-		}
+  /* refresh PG and EG */
+  refresh_fc_eg_chan(cch[0]);
+  refresh_fc_eg_chan(cch[1]);
+  if ((F2203->OPN.ST.mode & 0xc0))
+  {
+    /* 3SLOT MODE */
+    if (cch[2]->SLOT[SLOT1].Incr == -1)
+    {
+      refresh_fc_eg_slot(&cch[2]->SLOT[SLOT1], OPN->SL3.fc[1], OPN->SL3.kcode[1]);
+      refresh_fc_eg_slot(&cch[2]->SLOT[SLOT2], OPN->SL3.fc[2], OPN->SL3.kcode[2]);
+      refresh_fc_eg_slot(&cch[2]->SLOT[SLOT3], OPN->SL3.fc[0], OPN->SL3.kcode[0]);
+      refresh_fc_eg_slot(&cch[2]->SLOT[SLOT4], cch[2]->fc, cch[2]->kcode);
+    }
 	}else refresh_fc_eg_chan( cch[2] );
 
 	/* buffering */
@@ -1279,8 +1275,8 @@ void YM2203UpdateOne(void *chip, int32_t *buffer, int length)
 void YM2203ResetChip(void *chip)
 {
 	int i;
-	YM2203 *F2203 = (YM2203*)chip;
-	FM_OPN *OPN = &F2203->OPN;
+        auto* F2203 = (YM2203*)chip;
+        FM_OPN *OPN = &F2203->OPN;
 	FM_STATE *state = &F2203->State;
 
 	/* Reset Prescaler */
@@ -1329,19 +1325,19 @@ void * YM2203Init(uint64_t clock, int rate)
 /* shut down emulator */
 void YM2203Shutdown(void *chip)
 {
-	YM2203 *FM2203 = (YM2203*)chip;
+  auto* FM2203 = (YM2203*)chip;
 
-	FMCloseTable();
-	free(FM2203);
+  FMCloseTable();
+  free(FM2203);
 }
 
 void YM2203WriteRegs(void *chip, int reg, unsigned char val)
 {
-	YM2203 *F2203 = (YM2203*)chip;
-	FM_OPN *OPN = &F2203->OPN;
-	if (reg >= 0x2d && reg <= 0x2f)
-	{
-	  OPNPrescaler_w(OPN, reg, 1);
+  auto* F2203 = (YM2203*)chip;
+  FM_OPN* OPN = &F2203->OPN;
+  if (reg >= 0x2d && reg <= 0x2f)
+  {
+    OPNPrescaler_w(OPN, reg, 1);
 	}
 	F2203->REGS[reg] = val;
 	if (0x20 == (reg & 0xf0))

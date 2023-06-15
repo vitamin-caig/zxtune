@@ -113,7 +113,7 @@ namespace ZXTune
     }
 
   private:
-    bool DetectModules(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+    bool DetectModules(const Parameters::Accessor& params, const DataLocation::Ptr& inputData,
                        const Formats::Multitrack::Container& container, Module::DetectCallback& callback) const
     {
       const auto tracksCount = container.TracksCount();
@@ -135,7 +135,7 @@ namespace ZXTune
       else
       {
         MultistreamDbg("{}: detect in all {} tracks", Identifier, tracksCount);
-        return ProcessAllSubtracks(params, std::move(inputData), container, callback);
+        return ProcessAllSubtracks(params, inputData, container, callback);
       }
     }
 
@@ -155,7 +155,7 @@ namespace ZXTune
       return false;
     }
 
-    bool ProcessAllSubtracks(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+    bool ProcessAllSubtracks(const Parameters::Accessor& params, const DataLocation::Ptr& inputData,
                              const Formats::Multitrack::Container& container, Module::DetectCallback& callback) const
     {
       bool result = false;

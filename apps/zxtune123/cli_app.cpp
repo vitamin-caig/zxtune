@@ -43,6 +43,7 @@
 #include <cctype>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <numeric>
 // boost includes
 #include <boost/program_options.hpp>
@@ -71,7 +72,7 @@ namespace
     Module::Holder::Ptr Holder;
     Binary::Data::Ptr Data;
 
-    typedef DataReceiver<HolderAndData> Receiver;
+    using Receiver = DataReceiver<HolderAndData>;
   };
 
   class SaveEndpoint : public HolderAndData::Receiver
@@ -117,27 +118,27 @@ namespace
     std::unique_ptr<Module::Conversion::Parameter> param;
     if (mode == "psg"_sv)
     {
-      param.reset(new Module::Conversion::PSGConvertParam(optimization));
+      param = std::make_unique<Module::Conversion::PSGConvertParam>(optimization);
     }
     else if (mode == "zx50"_sv)
     {
-      param.reset(new Module::Conversion::ZX50ConvertParam(optimization));
+      param = std::make_unique<Module::Conversion::ZX50ConvertParam>(optimization);
     }
     else if (mode == "txt"_sv)
     {
-      param.reset(new Module::Conversion::TXTConvertParam());
+      param = std::make_unique<Module::Conversion::TXTConvertParam>();
     }
     else if (mode == "debugay"_sv)
     {
-      param.reset(new Module::Conversion::DebugAYConvertParam(optimization));
+      param = std::make_unique<Module::Conversion::DebugAYConvertParam>(optimization);
     }
     else if (mode == "aydump"_sv)
     {
-      param.reset(new Module::Conversion::AYDumpConvertParam(optimization));
+      param = std::make_unique<Module::Conversion::AYDumpConvertParam>(optimization);
     }
     else if (mode == "fym"_sv)
     {
-      param.reset(new Module::Conversion::FYMConvertParam(optimization));
+      param = std::make_unique<Module::Conversion::FYMConvertParam>(optimization);
     }
     else
     {
@@ -257,7 +258,8 @@ namespace
     {
       const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
-      String path, type;
+      String path;
+      String type;
       props->FindValue(Module::ATTR_FULLPATH, path);
       props->FindValue(Module::ATTR_TYPE, type);
 
@@ -378,7 +380,6 @@ namespace
       , Sourcer(SourceComponent::Create(ConfigParams))
       , Sounder(SoundComponent::Create(ConfigParams))
       , Display(DisplayComponent::Create())
-      , SeekStep(10)
       , BenchmarkIterations(NO_BENCHMARK)
     {}
 
@@ -590,7 +591,7 @@ namespace
     std::unique_ptr<SourceComponent> Sourcer;
     std::unique_ptr<SoundComponent> Sounder;
     std::unique_ptr<DisplayComponent> Display;
-    uint_t SeekStep;
+    uint_t SeekStep = 10;
     uint_t BenchmarkIterations;
     bool DumpUnknownData = false;
   };

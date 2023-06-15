@@ -23,7 +23,7 @@ namespace
 {
   const Debug::Stream Dbg("L10n");
 
-  typedef std::shared_ptr<std::locale> LocalePtr;
+  using LocalePtr = std::shared_ptr<std::locale>;
 
   class DomainVocabulary : public L10n::Vocabulary
   {
@@ -112,7 +112,7 @@ namespace
       auto& info = Locales[trans.Language];
       info.language = trans.Language;
       info.encoding = SystemLocale.Encoding;
-      info.domains.push_back(gnu_gettext::messages_info::domain(trans.Domain));
+      info.domains.emplace_back(trans.Domain);
       info.callback = &LoadMessage;
       info.paths.assign(&EMPTY_PATH, &EMPTY_PATH + 1);
 
@@ -164,7 +164,7 @@ namespace
         Dbg("Loading message {} with encoding {}", file, encoding);
         const auto* rawStart = static_cast<const char*>((*data)->Start());
         const auto rawSize = (*data)->Size();
-        return std::vector<char>(rawStart, rawStart + rawSize);
+        return {rawStart, rawStart + rawSize};
       }
       else
       {

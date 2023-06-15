@@ -241,6 +241,6 @@ namespace Async
 {
   Job::Ptr CreateJob(Coroutine::Ptr routine)
   {
-    return MakePtr<CoroutineJob>(routine);
+    return MakePtr<CoroutineJob>(std::move(routine));
   }
 }  // namespace Async

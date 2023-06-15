@@ -33,11 +33,11 @@
 
 namespace
 {
-  static const uint_t FREQUENCES[] = {8000, 12000, 16000, 22000, 24000, 32000, 44100, 48000};
+  const uint_t FREQUENCES[] = {8000, 12000, 16000, 22000, 24000, 32000, 44100, 48000};
 
   auto GetSystemBackends(Parameters::Accessor::Ptr params)
   {
-    return Sound::CreateSystemService(params)->GetAvailableBackends();
+    return Sound::CreateSystemService(std::move(params))->GetAvailableBackends();
   }
 
   class SoundOptionsWidget
@@ -82,9 +82,9 @@ namespace
     void SelectBackend(int idx) override
     {
       const auto& id = Backends[idx];
-      for (auto it = SetupPages.begin(), lim = SetupPages.end(); it != lim; ++it)
+      for (const auto& page : SetupPages)
       {
-        it->second->setVisible(it->first == id);
+        page.second->setVisible(page.first == id);
       }
       settingsHint->setVisible(0 == SetupPages.count(id));
     }

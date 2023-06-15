@@ -17,6 +17,8 @@
 #include <make_ptr.h>
 // library includes
 #include <tools/progress_callback_helpers.h>
+// std includes
+#include <utility>
 // qt includes
 #include <QtCore/QRegExp>
 
@@ -25,7 +27,7 @@ namespace
   class Predicate
   {
   public:
-    typedef std::shared_ptr<const Predicate> Ptr;
+    using Ptr = std::shared_ptr<const Predicate>;
     virtual ~Predicate() = default;
 
     virtual bool Match(const Playlist::Item::Data& data) const = 0;
@@ -38,7 +40,6 @@ namespace
       : Callback(cb)
       , Pred(std::move(pred))
       , Result(MakeRWPtr<Playlist::Model::IndexSet>())
-      , Done(0)
     {}
 
     void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
@@ -59,7 +60,7 @@ namespace
     Log::ProgressCallback& Callback;
     const Predicate::Ptr Pred;
     const Playlist::Model::IndexSet::RWPtr Result;
-    uint_t Done;
+    uint_t Done = 0;
   };
 
   class SearchOperation : public Playlist::Item::SelectionOperation
@@ -102,7 +103,7 @@ namespace
   class StringPredicate
   {
   public:
-    typedef std::shared_ptr<const StringPredicate> Ptr;
+    using Ptr = std::shared_ptr<const StringPredicate>;
     virtual ~StringPredicate() = default;
 
     virtual bool Match(StringView str) const = 0;
@@ -143,8 +144,8 @@ namespace
   class SimpleStringPredicate : public StringPredicate
   {
   public:
-    SimpleStringPredicate(const QString& pat, bool caseSensitive)
-      : Pattern(pat)
+    SimpleStringPredicate(QString pat, bool caseSensitive)
+      : Pattern(std::move(pat))
       , Mode(caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive)
     {}
 
@@ -196,20 +197,17 @@ namespace
   }
 }  // namespace
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  SelectionOperation::Ptr CreateSearchOperation(const Search::Data& data)
   {
-    SelectionOperation::Ptr CreateSearchOperation(const Search::Data& data)
-    {
-      const Predicate::Ptr pred = CreatePredicate(data);
-      return MakePtr<SearchOperation>(pred);
-    }
+    const Predicate::Ptr pred = CreatePredicate(data);
+    return MakePtr<SearchOperation>(pred);
+  }
 
-    SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSet::Ptr items, const Search::Data& data)
-    {
-      const Predicate::Ptr pred = CreatePredicate(data);
-      return MakePtr<SearchOperation>(items, pred);
-    }
-  }  // namespace Item
-}  // namespace Playlist
+  SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSet::Ptr items, const Search::Data& data)
+  {
+    auto pred = CreatePredicate(data);
+    return MakePtr<SearchOperation>(std::move(items), std::move(pred));
+  }
+}  // namespace Playlist::Item

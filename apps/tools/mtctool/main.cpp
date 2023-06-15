@@ -50,7 +50,6 @@ namespace
     CmdlineIterator(int argc, const char* argv[])
       : Argc(argc)
       , Argv(argv)
-      , Pos()
     {}
 
     StringView Executable() const
@@ -100,7 +99,7 @@ namespace
   private:
     const int Argc;
     const char** Argv;
-    int Pos;
+    int Pos = 0;
   };
 
   StringView GetFilename(StringView path)
@@ -199,10 +198,7 @@ namespace
   class Extractor : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
-    Extractor()
-      : LastTrackIdx()
-      , LastDataIdx()
-    {}
+    Extractor() = default;
 
     void SetAuthor(StringView /*author*/) override {}
     void SetTitle(StringView /*title*/) override {}
@@ -245,8 +241,8 @@ namespace
   private:
     Binary::Container::Ptr LastData;
     String LastDataName;
-    uint_t LastTrackIdx;
-    uint_t LastDataIdx;
+    uint_t LastTrackIdx = 0;
+    uint_t LastDataIdx = 0;
   };
 
   void Extract(CmdlineIterator& arg)
@@ -258,7 +254,7 @@ namespace
     extractor.Flush();
   }
 
-  typedef void (*ModeFunc)(CmdlineIterator&);
+  using ModeFunc = void (*)(CmdlineIterator&);
 
   struct ModeEntry
   {

@@ -97,16 +97,16 @@ namespace
     , public Playlist::UI::Ui_PropertiesDialog
   {
   public:
-    explicit PropertiesDialogImpl(QWidget& parent, Playlist::Item::Data::Ptr item)
+    explicit PropertiesDialogImpl(QWidget& parent, const Playlist::Item::Data& item)
       : Playlist::UI::PropertiesDialog(parent)
     {
       // setup self
       setupUi(this);
-      setWindowTitle(ToQString(item->GetFullPath()));
+      setWindowTitle(ToQString(item.GetFullPath()));
 
-      Properties = MakePtr<ItemPropertiesContainer>(item->GetAdjustedParameters(), item->GetModuleProperties());
+      Properties = MakePtr<ItemPropertiesContainer>(item.GetAdjustedParameters(), item.GetModuleProperties());
 
-      FillProperties(item->GetCapabilities());
+      FillProperties(item.GetCapabilities());
       itemsLayout->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding),
                            itemsLayout->rowCount(), 0);
 
@@ -180,14 +180,14 @@ namespace
 
     void AddStringProperty(const QString& title, Parameters::Identifier name)
     {
-      const auto wid = new QLineEdit(this);
+      auto* const wid = new QLineEdit(this);
       Parameters::Value* const value = Parameters::StringValue::Bind(*wid, *Properties, name, Parameters::StringType());
       AddProperty(title, wid, value);
     }
 
     void AddSetProperty(const QString& title, Parameters::Identifier name, const QStringList& values)
     {
-      const auto wid = new QComboBox(this);
+      auto* const wid = new QComboBox(this);
       wid->addItems(values);
       Parameters::Value* const value = Parameters::IntegerValue::Bind(*wid, *Properties, name, -1);
       AddProperty(title, wid, value);
@@ -195,14 +195,14 @@ namespace
 
     void AddIntegerProperty(const QString& title, const Parameters::IntegerTraits& traits)
     {
-      const auto wid = new QLineEdit(this);
+      auto* const wid = new QLineEdit(this);
       Parameters::Value* const value = Parameters::BigIntegerValue::Bind(*wid, *Properties, traits);
       AddProperty(title, wid, value);
     }
 
     void AddProperty(const QString& title, QWidget* widget, Parameters::Value* value)
     {
-      const auto resetButton = new QToolButton(this);
+      auto* const resetButton = new QToolButton(this);
       resetButton->setArrowType(Qt::DownArrow);
       resetButton->setToolTip(Playlist::UI::PropertiesDialog::tr("Reset value"));
       const int row = itemsLayout->rowCount();
@@ -218,7 +218,7 @@ namespace
       Parameters::StringType value;
       if (Properties->FindValue(name, value))
       {
-        const auto strings = new QTextBrowser(this);
+        auto* const strings = new QTextBrowser(this);
         QFont font;
         font.setFamily(QString::fromLatin1("Courier New"));
         strings->setFont(font);
@@ -235,31 +235,28 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
+  PropertiesDialog::PropertiesDialog(QWidget& parent)
+    : QDialog(&parent)
+  {}
+
+  PropertiesDialog::Ptr PropertiesDialog::Create(QWidget& parent, const Item::Data& item)
   {
-    PropertiesDialog::PropertiesDialog(QWidget& parent)
-      : QDialog(&parent)
-    {}
+    return MakePtr<PropertiesDialogImpl>(parent, item);
+  }
 
-    PropertiesDialog::Ptr PropertiesDialog::Create(QWidget& parent, Item::Data::Ptr item)
+  void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, const Model::IndexSet& scope)
+  {
+    if (scope.size() != 1)
     {
-      return MakePtr<PropertiesDialogImpl>(parent, item);
+      return;
     }
-
-    void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Model::IndexSet::Ptr scope)
+    const Item::Data::Ptr item = model->GetItem(*scope.begin());
+    if (!item->GetState())
     {
-      if (scope->size() != 1)
-      {
-        return;
-      }
-      const Item::Data::Ptr item = model->GetItem(*scope->begin());
-      if (!item->GetState())
-      {
-        const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(parent, item);
-        dialog->exec();
-      }
+      const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(parent, *item);
+      dialog->exec();
     }
-  }  // namespace UI
-}  // namespace Playlist
+  }
+}  // namespace Playlist::UI

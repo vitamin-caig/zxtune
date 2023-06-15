@@ -24,9 +24,7 @@ namespace Async
       : Value(ToMask(val))
     {}
 
-    Event()
-      : Value(0)
-    {}
+    Event() = default;
 
     void Set(Type val)
     {
@@ -90,7 +88,7 @@ namespace Async
     }
 
   private:
-    unsigned Value;
+    unsigned Value = 0;
     mutable std::mutex Mutex;
     std::condition_variable Condition;
   };

@@ -13,10 +13,7 @@
 // local includes
 #include "module/players/aym/aym_factory.h"
 
-namespace Module
+namespace Module::ProTracker1
 {
-  namespace ProTracker1
-  {
-    AYM::Factory::Ptr CreateFactory();
-  }
-}  // namespace Module
+  AYM::Factory::Ptr CreateFactory();
+}  // namespace Module::ProTracker1

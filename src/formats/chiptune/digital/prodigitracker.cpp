@@ -44,7 +44,7 @@ namespace Formats::Chiptune
     const std::size_t ZX_PAGE_SIZE = 0x4000;
     const std::size_t PAGES_START = 0xc000;
 
-    typedef std::array<int8_t, 16> RawOrnament;
+    using RawOrnament = std::array<int8_t, 16>;
 
     struct RawOrnamentLoop
     {
@@ -116,9 +116,9 @@ namespace Formats::Chiptune
       uint8_t ParamSample;
     };
 
-    typedef std::array<RawNote, CHANNELS_COUNT> RawLine;
+    using RawLine = std::array<RawNote, CHANNELS_COUNT>;
 
-    typedef std::array<RawLine, PATTERN_SIZE> RawPattern;
+    using RawPattern = std::array<RawLine, PATTERN_SIZE>;
 
     struct RawHeader
     {
@@ -282,7 +282,7 @@ namespace Formats::Chiptune
         {
           names[idx] = Strings::OptimizeAscii(Source.Samples[idx].Name);
         }
-        meta.SetStrings(std::move(names));
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -307,7 +307,7 @@ namespace Formats::Chiptune
       void ParseSamples(const Indices& sams, Builder& target) const
       {
         const auto samplesData = RawData.SubView(sizeof(Source));
-        const auto samplesStart = samplesData.As<uint8_t>();
+        const auto* const samplesStart = samplesData.As<uint8_t>();
         for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
@@ -430,7 +430,7 @@ namespace Formats::Chiptune
             break;
           case CMD_SPECIAL:
           {
-            switch (uint_t param = note.GetParameter())
+            switch (const auto param = note.GetParameter())
             {
             case COMMAND_NONE:
               if (halftones == NOTE_EMPTY)
@@ -477,11 +477,7 @@ namespace Formats::Chiptune
     bool FastCheck(Binary::View rawData)
     {
       const auto* header = rawData.As<RawHeader>();
-      if (!header || header->Loop > header->Length)
-      {
-        return false;
-      }
-      return true;
+      return header && header->Loop <= header->Length;
     }
 
     const auto FORMAT =
@@ -549,7 +545,7 @@ namespace Formats::Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
@@ -564,7 +560,7 @@ namespace Formats::Chiptune
       const Binary::View data(rawData);
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
 
       try
@@ -590,7 +586,7 @@ namespace Formats::Chiptune
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 

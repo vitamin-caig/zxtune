@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <cstring>
 #include <thread>
+#include <utility>
 
 namespace Sound::AyLpt
 {
@@ -67,8 +68,8 @@ namespace Sound::AyLpt
   class LptPort
   {
   public:
-    typedef std::shared_ptr<LptPort> Ptr;
-    virtual ~LptPort() {}
+    using Ptr = std::shared_ptr<LptPort>;
+    virtual ~LptPort() = default;
 
     virtual void Control(uint_t val) = 0;
     virtual void Data(uint_t val) = 0;
@@ -78,18 +79,18 @@ namespace Sound::AyLpt
   {
   public:
     BackendWorker(Binary::Data::Ptr data, LptPort::Ptr port)
-      : Data(data)
-      , Port(port)
+      : Data(std::move(data))
+      , Port(std::move(port))
     {}
 
-    virtual ~BackendWorker() {}
+    ~BackendWorker() override = default;
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return VolumeControl::Ptr();
     }
 
-    virtual void Startup()
+    void Startup() override
     {
       Reset();
       Dbg("Successfull start");
@@ -97,20 +98,20 @@ namespace Sound::AyLpt
       FrameDuration = std::chrono::microseconds(20000);  // TODO
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       Reset();
       Dbg("Successfull shut down");
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Reset();
     }
 
-    virtual void Resume() {}
+    void Resume() override {}
 
-    virtual void FrameStart(const Module::State& state)
+    void FrameStart(const Module::State& state) override
     {
       WaitForNextFrame();
       const auto frame = state.At().CastTo<Time::Microsecond>().Get() / FrameDuration.count();
@@ -118,7 +119,7 @@ namespace Sound::AyLpt
       WriteRegisters(regs);
     }
 
-    virtual void FrameFinish(Chunk /*buffer*/)
+    void FrameFinish(Chunk /*buffer*/) override
     {
       NextFrameTime += FrameDuration;
     }
@@ -181,16 +182,16 @@ namespace Sound::AyLpt
   {
   public:
     explicit DlPortIO(Platform::SharedLibrary::Ptr lib)
-      : Lib(lib)
+      : Lib(std::move(lib))
       , WriteByte(reinterpret_cast<WriteFunctionType>(Lib->GetSymbol("DlPortWritePortUchar")))
     {}
 
-    virtual void Control(uint_t val)
+    void Control(uint_t val) override
     {
       WriteByte(CONTROL_PORT, val);
     }
 
-    virtual void Data(uint_t val)
+    void Data(uint_t val) override
     {
       WriteByte(DATA_PORT, val);
     }
@@ -204,17 +205,17 @@ namespace Sound::AyLpt
   class DllName : public Platform::SharedLibrary::Name
   {
   public:
-    StringView Base() const
+    StringView Base() const override
     {
       return "dlportio"_sv;
     }
 
-    virtual std::vector<StringView> PosixAlternatives() const
+    std::vector<StringView> PosixAlternatives() const override
     {
       return {};
     }
 
-    virtual std::vector<StringView> WindowsAlternatives() const
+    std::vector<StringView> WindowsAlternatives() const override
     {
       return {"inpout32.dll"_sv, "inpoutx64.dll"_sv};
     }
@@ -231,10 +232,10 @@ namespace Sound::AyLpt
   {
   public:
     explicit BackendWorkerFactory(LptPort::Ptr port)
-      : Port(port)
+      : Port(std::move(port))
     {}
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const override
     {
       static const Module::Conversion::AYDumpConvertParam spec;
       if (const Binary::Data::Ptr data = Module::Convert(*holder, spec, params))

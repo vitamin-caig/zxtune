@@ -80,15 +80,8 @@ namespace Formats::Packed
         const uint_t bitStreamAddr = lastBytesAddr - header.SizeOfPacked;
 
         const uint_t srcPacked = header.SrcPacked;
-        if (bitStreamAddr == srcPacked)
-        {
-          // move forward
-        }
-        else if (lastBytesAddr == srcPacked + 1)
-        {
-          // move backward
-        }
-        else
+        if (bitStreamAddr != srcPacked &&    // move forward
+            lastBytesAddr != srcPacked + 1)  // move backward
         {
           return false;
         }
@@ -249,12 +242,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const MSPack::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       MSPack::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSize());

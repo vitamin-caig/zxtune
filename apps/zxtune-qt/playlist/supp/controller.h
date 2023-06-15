@@ -54,7 +54,7 @@ namespace Playlist
       explicit Iterator(QObject& parent);
 
     public:
-      typedef Iterator* Ptr;
+      using Ptr = Iterator*;
 
       // access
       virtual unsigned GetIndex() const = 0;
@@ -84,7 +84,7 @@ namespace Playlist
   class TextNotification
   {
   public:
-    typedef std::shared_ptr<const TextNotification> Ptr;
+    using Ptr = std::shared_ptr<const TextNotification>;
     virtual ~TextNotification() = default;
 
     virtual QString Category() const = 0;
@@ -96,8 +96,8 @@ namespace Playlist
   {
     Q_OBJECT
   public:
-    typedef std::shared_ptr<Controller> Ptr;
-    typedef ObjectIterator<Ptr> Iterator;
+    using Ptr = std::shared_ptr<Controller>;
+    using Iterator = ObjectIterator<Ptr>;
 
     static Ptr Create(const QString& name, Item::DataProvider::Ptr provider);
 

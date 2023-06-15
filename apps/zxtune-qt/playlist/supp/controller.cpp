@@ -21,6 +21,8 @@
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
+// std includes
+#include <utility>
 // qt includes
 #include <QtWidgets/QMessageBox>
 
@@ -43,7 +45,6 @@ namespace
       : Playlist::Item::Iterator(parent)
       , Model(model)
       , Index(NO_INDEX)
-      , State(Playlist::Item::STOPPED)
     {
       Require(connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
                       SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
@@ -143,7 +144,7 @@ namespace
       else
       {
         State = Playlist::Item::STOPPED;
-        emit ItemActivated(item);
+        emit ItemActivated(std::move(item));
         emit ItemActivated(Index);
       }
     }
@@ -192,15 +193,15 @@ namespace
   private:
     const Playlist::Model::Ptr Model;
     unsigned Index;
-    Playlist::Item::State State;
+    Playlist::Item::State State = Playlist::Item::STOPPED;
   };
 
   class ControllerImpl : public Playlist::Controller
   {
   public:
-    ControllerImpl(const QString& name, Playlist::Item::DataProvider::Ptr provider)
-      : Name(name)
-      , Scanner(Playlist::Scanner::Create(*this, provider))
+    ControllerImpl(QString name, Playlist::Item::DataProvider::Ptr provider)
+      : Name(std::move(name))
+      , Scanner(Playlist::Scanner::Create(*this, std::move(provider)))
       , Model(Playlist::Model::Create(*this))
       , Iterator(new ItemIteratorImpl(*this, Model))
     {
@@ -285,6 +286,6 @@ namespace Playlist
   Controller::Ptr Controller::Create(const QString& name, Playlist::Item::DataProvider::Ptr provider)
   {
     REGISTER_METATYPE(Playlist::TextNotification::Ptr);
-    return MakePtr<ControllerImpl>(name, provider);
+    return MakePtr<ControllerImpl>(name, std::move(provider));
   }
 }  // namespace Playlist

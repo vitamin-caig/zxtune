@@ -153,9 +153,9 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(this + 1);
+        const auto* const src = safe_ptr_cast<const uint8_t*>(this + 1);
         // using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         Line res;
         res.LevelAndFlags = src[offset++];
         res.NoiseHiShift = src[offset++];
@@ -166,7 +166,7 @@ namespace Formats::Chiptune
 
     struct RawOrnament : RawObject
     {
-      typedef int8_t Line;
+      using Line = int8_t;
 
       uint_t GetSize() const
       {
@@ -191,9 +191,9 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        const auto* const src = safe_ptr_cast<const int8_t*>(this + 1);
         // using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
     };
@@ -251,8 +251,6 @@ namespace Formats::Chiptune
         , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
         , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
         , UsedOrnaments(0, MAX_ORNAMENTS_COUNT - 1)
-        , NonEmptyPatterns(false)
-        , NonEmptySamples(false)
       {
         UsedSamples.Insert(0);
         UsedOrnaments.Insert(0);
@@ -384,15 +382,9 @@ namespace Formats::Chiptune
         {
           return false;
         }
-        for (uint_t idx = 0; idx != smp.Lines.size(); ++idx)
-        {
-          const Sample::Line& line = smp.Lines[idx];
-          if ((!line.ToneMask && line.Level) || !line.NoiseMask)
-          {
-            return true;  // has envelope or tone with volume
-          }
-        }
-        return false;
+        // has envelope or tone with volume
+        return std::any_of(smp.Lines.begin(), smp.Lines.end(),
+                           [](const auto& line) { return !line.NoiseMask || (!line.ToneMask && line.Level); });
       }
 
     private:
@@ -400,8 +392,8 @@ namespace Formats::Chiptune
       Indices UsedPatterns;
       Indices UsedSamples;
       Indices UsedOrnaments;
-      bool NonEmptyPatterns;
-      bool NonEmptySamples;
+      bool NonEmptyPatterns = false;
+      bool NonEmptySamples = false;
     };
 
     class RangesMap
@@ -473,7 +465,7 @@ namespace Formats::Chiptune
           }
           if (titleBegin < gapEnd)
           {
-            const auto titleStart = PeekObject<char>(titleBegin);
+            const auto* const titleStart = PeekObject<char>(titleBegin);
             const StringView title(titleStart, titleStart + gapEnd - titleBegin);
             meta.SetTitle(Strings::OptimizeAscii(title));
           }
@@ -659,12 +651,7 @@ namespace Formats::Chiptune
 
       struct ChannelState
       {
-        ChannelState()
-          : Offset()
-          , Period()
-          , Counter()
-          , Note()
-        {}
+        ChannelState() = default;
 
         void UpdateNote(uint_t delta)
         {
@@ -678,10 +665,10 @@ namespace Formats::Chiptune
           }
         }
 
-        std::size_t Offset;
-        uint_t Period;
-        uint_t Counter;
-        uint_t Note;
+        std::size_t Offset = 0;
+        uint_t Period = 0;
+        uint_t Counter = 0;
+        uint_t Note = 0;
       };
 
       struct ParserState
@@ -689,7 +676,6 @@ namespace Formats::Chiptune
         std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
-          : Channels()
         {
           for (uint_t idx = 0; idx != src.size(); ++idx)
           {
@@ -708,9 +694,9 @@ namespace Formats::Chiptune
 
         void SkipLines(uint_t toSkip)
         {
-          for (uint_t idx = 0; idx != Channels.size(); ++idx)
+          for (auto& chan : Channels)
           {
-            Channels[idx].Counter -= toSkip;
+            chan.Counter -= toSkip;
           }
         }
       };
@@ -772,11 +758,7 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          if (chan.Offset >= Data.Size())
-          {
-            return false;
-          }
-          else if (PeekByte(chan.Offset) >= 0xfc)
+          if (chan.Offset >= Data.Size() || PeekByte(chan.Offset) >= 0xfc)
           {
             return false;
           }

@@ -19,13 +19,10 @@
 #include <memory>
 
 // forward declarations
-namespace boost
+namespace boost::program_options
 {
-  namespace program_options
-  {
-    class options_description;
-  }
-}  // namespace boost
+  class options_description;
+}  // namespace boost::program_options
 
 class SoundComponent
 {

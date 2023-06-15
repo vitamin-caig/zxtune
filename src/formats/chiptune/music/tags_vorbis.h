@@ -15,13 +15,7 @@
 // library includes
 #include <binary/input_stream.h>
 
-namespace Formats
+namespace Formats::Chiptune::Vorbis
 {
-  namespace Chiptune
-  {
-    namespace Vorbis
-    {
-      void ParseComment(Binary::DataInputStream& stream, MetaBuilder& target);
-    }
-  }  // namespace Chiptune
-}  // namespace Formats
+  void ParseComment(Binary::DataInputStream& payload, MetaBuilder& target);
+}  // namespace Formats::Chiptune::Vorbis

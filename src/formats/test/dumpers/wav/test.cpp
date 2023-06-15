@@ -110,7 +110,7 @@ namespace
       case Wav::Format::PCM:
         return "pcm";
       case Wav::Format::ADPCM:
-        return "pcm";
+        return "adpcm";
       case Wav::Format::IEEE_FLOAT:
         return "float32";
       case Wav::Format::ATRAC3:

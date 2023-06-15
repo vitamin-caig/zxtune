@@ -28,8 +28,8 @@ namespace Binary
   class FuzzyFormat : public FormatDetails
   {
   public:
-    typedef std::array<uint8_t, 256> PatternRow;
-    typedef std::vector<PatternRow> PatternMatrix;
+    using PatternRow = std::array<uint8_t, 256>;
+    using PatternMatrix = std::vector<PatternRow>;
 
     FuzzyFormat(PatternMatrix mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)
       : Offset(offset)
@@ -58,7 +58,7 @@ namespace Binary
       {
         return size;
       }
-      const uint8_t* const typedData = static_cast<const uint8_t*>(data.Start());
+      const auto* const typedData = static_cast<const uint8_t*>(data.Start());
       const std::size_t endOfPat = Offset + Pat.size();
       const uint8_t* const scanStart = typedData + endOfPat - 1;
       const uint8_t* const scanStop = typedData + size;
@@ -137,7 +137,7 @@ namespace Binary
   private:
     std::size_t SearchBackward(const uint8_t* data) const
     {
-      auto it = PatRBegin;
+      const auto* it = PatRBegin;
       if (const std::size_t offset = (*it)[*data])
       {
         return offset;
@@ -166,7 +166,7 @@ namespace Binary
   class ExactFormat : public FormatDetails
   {
   public:
-    typedef std::vector<uint8_t> PatternMatrix;
+    using PatternMatrix = std::vector<uint8_t>;
 
     ExactFormat(PatternMatrix mtx, std::size_t offset, std::size_t minSize)
       : Offset(offset)
@@ -195,7 +195,7 @@ namespace Binary
       }
       const uint8_t* const patternStart = &Pattern.front();
       const uint8_t* const patternEnd = patternStart + Pattern.size();
-      const uint8_t* const typedDataStart = static_cast<const uint8_t*>(data.Start());
+      const auto* const typedDataStart = static_cast<const uint8_t*>(data.Start());
       const uint8_t* const typedDataEnd = typedDataStart + size;
       const uint8_t* const matched = std::search(typedDataStart + Offset + 1, typedDataEnd, patternStart, patternEnd);
       return matched != typedDataEnd ? matched - typedDataStart - Offset : size;
@@ -219,7 +219,7 @@ namespace Binary
         }
         else
         {
-          return Ptr();
+          return {};
         }
       }
       return MakePtr<ExactFormat>(std::move(tmp), startOffset, minSize);

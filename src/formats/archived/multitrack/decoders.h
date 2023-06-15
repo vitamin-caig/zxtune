@@ -13,10 +13,7 @@
 // library includes
 #include <formats/archived.h>
 
-namespace Formats
+namespace Formats::Archived
 {
-  namespace Archived
-  {
-    Decoder::Ptr CreateAYDecoder();
-  }  // namespace Archived
-}  // namespace Formats
+  Decoder::Ptr CreateAYDecoder();
+}  // namespace Formats::Archived

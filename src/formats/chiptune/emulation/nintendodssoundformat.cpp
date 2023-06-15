@@ -24,7 +24,7 @@ namespace Formats::Chiptune
   {
     const Char DESCRIPTION[] = "Nintendo DS Sound Format";
 
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
     const SignatureType SAVESTATE_SIGNATURE = {{'S', 'A', 'V', 'E'}};
 
     void ParseRom(Binary::View data, Builder& target)
@@ -88,7 +88,7 @@ namespace Formats::Chiptune
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
       {
-        return Formats::Chiptune::Container::Ptr();  // TODO
+        return {};  // TODO
       }
 
     private:

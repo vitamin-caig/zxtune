@@ -33,8 +33,8 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::YM");
 
-    typedef std::array<uint8_t, 14> RegistersDump;
-    typedef std::array<uint8_t, 4> IdentifierType;
+    using RegistersDump = std::array<uint8_t, 14>;
+    using IdentifierType = std::array<uint8_t, 4>;
 
     const uint_t CLOCKRATE_MIN = 100000;    // 100kHz
     const uint_t CLOCKRATE_MAX = 10000000;  // 10MHz
@@ -126,8 +126,8 @@ namespace Formats::Chiptune
     {
       const uint8_t ID[] = {'Y', 'M', '5', '!', 'L', 'e', 'O', 'n', 'A', 'r', 'D', '!'};
 
-      typedef std::array<uint8_t, 16> RegistersDump;
-      typedef std::array<uint8_t, 4> Footer;
+      using RegistersDump = std::array<uint8_t, 16>;
+      using Footer = std::array<uint8_t, 4>;
 
       struct RawHeader
       {
@@ -204,7 +204,7 @@ namespace Formats::Chiptune
 
       bool FastCheck(Binary::View data)
       {
-        if (const auto hdr = data.As<RawHeader>())
+        if (const auto* const hdr = data.As<RawHeader>())
         {
           const std::size_t hdrLen = hdr->GetDataOffset();
           if (hdrLen + hdr->PackedSize + FOOTER_SIZE > data.Size())

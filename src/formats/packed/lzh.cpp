@@ -243,11 +243,7 @@ namespace Formats::Packed
           return false;
         }
         const uint_t usedSize = GetUsedSize();
-        if (usedSize > Size)
-        {
-          return false;
-        }
-        return true;
+        return usedSize <= Size;
       }
 
       uint_t GetUsedSize() const
@@ -373,12 +369,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const typename LZH::Container<Version> container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       typename LZH::DataDecoder<Version> decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSize());

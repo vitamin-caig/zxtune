@@ -42,7 +42,7 @@ namespace Module::LibVGM
 
   using PlayerPtr = std::unique_ptr< ::PlayerBase>;
 
-  typedef PlayerPtr (*PlayerCreator)();
+  using PlayerCreator = PlayerPtr (*)();
 
   template<class PlayerType>
   PlayerPtr Create()
@@ -227,7 +227,7 @@ namespace Module::LibVGM
 
     static Sound::Sample ConvertSample(WAVE_32BS data)
     {
-      return Sound::Sample(Convert(data.L), Convert(data.R));
+      return {Convert(data.L), Convert(data.R)};
     }
 
     static Sound::Sample::Type Convert(DEV_SMPL in)
@@ -349,7 +349,7 @@ namespace Module::VideoGameMusic
 
     Module::Information::Ptr CaptureResult() const
     {
-      return std::move(Info);
+      return Info;
     }
 
   private:
@@ -410,7 +410,7 @@ namespace Module::Sound98
 
     Module::Information::Ptr CaptureResult() const
     {
-      return std::move(Info);
+      return Info;
     }
 
   private:

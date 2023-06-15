@@ -28,7 +28,7 @@ namespace Formats::Multitrack
 {
   namespace HES
   {
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
 
     const SignatureType SIGNATURE = {{'H', 'E', 'S', 'M'}};
 
@@ -72,7 +72,7 @@ namespace Formats::Multitrack
       {
         return nullptr;
       }
-      const RawHeader* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
+      const auto* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
       if (hdr->Signature != SIGNATURE)
       {
         return nullptr;

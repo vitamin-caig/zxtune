@@ -73,7 +73,7 @@ namespace Analysis
 
   Result::Ptr CreateUnmatchedResult(Binary::Format::Ptr format, Binary::Container::Ptr data)
   {
-    return MakePtr<UnmatchedResult>(format, data);
+    return MakePtr<UnmatchedResult>(std::move(format), std::move(data));
   }
 
   Result::Ptr CreateUnmatchedResult(std::size_t unmatchedSize)

@@ -20,7 +20,7 @@ namespace Parameters
   {
   public:
     /*explicit*/ constexpr Identifier(StringView sv)
-      : Storage(std::move(sv))
+      : Storage(sv)
     {}
 
     /*explicit*/ constexpr Identifier(const char* str)
@@ -65,7 +65,7 @@ namespace Parameters
       }
       else
       {
-        return Identifier();
+        return {};
       }
     }
 

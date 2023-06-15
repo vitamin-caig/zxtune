@@ -28,6 +28,7 @@
 #include <sound/sound_parameters.h>
 // std includes
 #include <condition_variable>
+#include <utility>
 
 namespace Sound::Sdl
 {
@@ -96,7 +97,7 @@ namespace Sound::Sdl
         }
         const uint_t inBuffer = PlayIter->Data.size() * sizeof(PlayIter->Data.front());
         const uint_t toCopy = std::min<uint_t>(len, PlayIter->BytesToPlay);
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(PlayIter->Data.data());
+        const auto* const src = safe_ptr_cast<const uint8_t*>(PlayIter->Data.data());
         std::memcpy(stream, src + (inBuffer - PlayIter->BytesToPlay), toCopy);
         PlayIter->BytesToPlay -= toCopy;
         stream += toCopy;
@@ -128,10 +129,8 @@ namespace Sound::Sdl
     std::condition_variable FilledEvent, PlayedEvent;
     struct Buffer
     {
-      Buffer()
-        : BytesToPlay()
-      {}
-      uint_t BytesToPlay;
+      Buffer() = default;
+      uint_t BytesToPlay = 0;
       Chunk Data;
     };
     std::vector<Buffer> Buffers;
@@ -142,8 +141,8 @@ namespace Sound::Sdl
   {
   public:
     BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : SdlApi(api)
-      , Params(params)
+      : SdlApi(std::move(api))
+      , Params(std::move(params))
       , WasInitialized(SdlApi->SDL_WasInit(SDL_INIT_EVERYTHING))
       , Queue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT)
     {
@@ -159,7 +158,7 @@ namespace Sound::Sdl
       }
     }
 
-    virtual ~BackendWorker()
+    ~BackendWorker() override
     {
       if (0 == WasInitialized)
       {
@@ -173,7 +172,7 @@ namespace Sound::Sdl
       }
     }
 
-    virtual void Startup()
+    void Startup() override
     {
       Dbg("Starting playback");
 
@@ -210,38 +209,38 @@ namespace Sound::Sdl
       format.callback = OnBuffer;
       format.userdata = &Queue;
       Queue.SetSize(backend.GetBuffersCount());
-      CheckCall(SdlApi->SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
+      CheckCall(SdlApi->SDL_OpenAudio(&format, nullptr) >= 0, THIS_LINE);
       SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       Dbg("Shutdown");
       SdlApi->SDL_CloseAudio();
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Dbg("Pause");
       SdlApi->SDL_PauseAudio(1);
     }
 
-    virtual void Resume()
+    void Resume() override
     {
       Dbg("Resume");
       SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void FrameStart(const Module::State& /*state*/) {}
+    void FrameStart(const Module::State& /*state*/) override {}
 
-    virtual void FrameFinish(Chunk buffer)
+    void FrameFinish(Chunk buffer) override
     {
       Queue.AddData(buffer);
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
-      return VolumeControl::Ptr();
+      return {};
     }
 
   private:
@@ -259,7 +258,7 @@ namespace Sound::Sdl
 
     static void OnBuffer(void* param, ::Uint8* stream, int len)
     {
-      BuffersQueue* const queue = static_cast<BuffersQueue*>(param);
+      auto* const queue = static_cast<BuffersQueue*>(param);
       queue->GetData(stream, len);
     }
 
@@ -274,10 +273,10 @@ namespace Sound::Sdl
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : SdlApi(api)
+      : SdlApi(std::move(api))
     {}
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       return MakePtr<BackendWorker>(SdlApi, params);
     }

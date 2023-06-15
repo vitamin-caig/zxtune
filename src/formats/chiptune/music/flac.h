@@ -15,32 +15,29 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace Flac
   {
-    namespace Flac
+    // Use simplified parsing due to thirdparty library used
+    class Builder
     {
-      // Use simplified parsing due to thirdparty library used
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+    public:
+      virtual ~Builder() = default;
 
-        virtual MetaBuilder& GetMetaBuilder() = 0;
+      virtual MetaBuilder& GetMetaBuilder() = 0;
 
-        virtual void SetBlockSize(uint_t minimal, uint_t maximal) = 0;
-        virtual void SetFrameSize(uint_t minimal, uint_t maximal) = 0;
-        virtual void SetStreamParameters(uint_t sampleRate, uint_t channels, uint_t bitsPerSample) = 0;
-        virtual void SetTotalSamples(uint64_t count) = 0;
+      virtual void SetBlockSize(uint_t minimal, uint_t maximal) = 0;
+      virtual void SetFrameSize(uint_t minimal, uint_t maximal) = 0;
+      virtual void SetStreamParameters(uint_t sampleRate, uint_t channels, uint_t bitsPerSample) = 0;
+      virtual void SetTotalSamples(uint64_t count) = 0;
 
-        virtual void AddFrame(std::size_t offset) = 0;
-      };
+      virtual void AddFrame(std::size_t offset) = 0;
+    };
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-      Builder& GetStubBuilder();
-    }  // namespace Flac
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+    Builder& GetStubBuilder();
+  }  // namespace Flac
 
-    Decoder::Ptr CreateFlacDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateFLACDecoder();
+}  // namespace Formats::Chiptune

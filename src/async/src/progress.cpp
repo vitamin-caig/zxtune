@@ -21,10 +21,7 @@ namespace Async
   class SynchronizedProgress : public Progress
   {
   public:
-    SynchronizedProgress()
-      : Produced()
-      , Consumed()
-    {}
+    SynchronizedProgress() = default;
 
     void Produce(uint_t items) override
     {
@@ -60,8 +57,8 @@ namespace Async
     }
 
   private:
-    uint_t Produced;
-    uint_t Consumed;
+    uint_t Produced = 0;
+    uint_t Consumed = 0;
     mutable std::mutex Mutex;
     mutable std::condition_variable Complete;
   };

@@ -31,7 +31,7 @@ namespace Module
     }
     else
     {
-      const auto src = static_cast<const uint8_t*>(data.Start());
+      const auto* const src = static_cast<const uint8_t*>(data.Start());
       Data.assign(src, src + data.Size());
       Start = addr;
     }

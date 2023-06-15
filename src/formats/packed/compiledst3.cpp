@@ -58,7 +58,7 @@ namespace Formats::Packed
 
       Binary::View GetInfo() const
       {
-        return Binary::View(Information, 55);
+        return {Information, 55};
       }
     };
 
@@ -88,9 +88,9 @@ namespace Formats::Packed
       assert(info.Size() == 55);
       // 28 is fixed
       // 27 is title
-      const auto start = info.As<Char>();
-      const auto end = start + info.Size();
-      const auto titleStart = start + 28;
+      const auto* const start = info.As<Char>();
+      const auto* const end = start + info.Size();
+      const auto* const titleStart = start + 28;
       return std::none_of(titleStart, end, [](auto c) { return c > ' '; });
     }
   }  // namespace CompiledST3
@@ -119,14 +119,14 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Player->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto& rawPlayer = *data.As<RawPlayer>();
       const std::size_t playerSize = rawPlayer.GetSize();
       if (playerSize >= std::min(data.Size(), MAX_PLAYER_SIZE))
       {
         Dbg("Invalid compile addr");
-        return Container::Ptr();
+        return {};
       }
       const uint_t compileAddr = rawPlayer.GetCompileAddr();
       Dbg("Detected player compiled at #{:04x} in first {} bytes", compileAddr, playerSize);
@@ -152,7 +152,7 @@ namespace Formats::Packed
         Dbg("Failed to parse fixed module");
       }
       Dbg("Failed to find module after player");
-      return Container::Ptr();
+      return {};
     }
 
   private:

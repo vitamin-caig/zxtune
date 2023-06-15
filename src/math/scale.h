@@ -42,7 +42,7 @@ namespace Math
   inline constexpr uint64_t Scale(uint64_t value, uint64_t inRange, uint64_t outRange)
   {
     // really reverseBits(significantBits(val))
-    const uint64_t unsafeScaleMask = HiBitsMask<uint64_t>(Log2(outRange));
+    const auto unsafeScaleMask = HiBitsMask<uint64_t>(Log2(outRange));
     if (0 == (value & unsafeScaleMask))
     {
       return (value * outRange) / inRange;

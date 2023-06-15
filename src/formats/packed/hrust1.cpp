@@ -76,7 +76,7 @@ namespace Formats::Packed
       std::size_t GetUsedSizeWithPadding() const
       {
         const std::size_t usefulSize = GetUsedSize();
-        const std::size_t sizeOnDisk = Math::Align<std::size_t>(usefulSize, 256);
+        const auto sizeOnDisk = Math::Align<std::size_t>(usefulSize, 256);
         const std::size_t resultSize = std::min(sizeOnDisk, Size);
         const std::size_t paddingSize = resultSize - usefulSize;
         const std::size_t TRDOS_ENTRY_SIZE = 16;
@@ -430,12 +430,12 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Hrust1::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       Hrust1::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());

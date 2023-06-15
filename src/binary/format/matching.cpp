@@ -54,7 +54,7 @@ namespace Binary
   class ExactMatchOnlyFormat : public MatchOnlyFormatBase
   {
   public:
-    typedef std::vector<uint8_t> PatternMatrix;
+    using PatternMatrix = std::vector<uint8_t>;
 
     ExactMatchOnlyFormat(PatternMatrix mtx, std::size_t offset, std::size_t minSize)
       : Offset(offset)
@@ -87,7 +87,7 @@ namespace Binary
         }
         else
         {
-          return Ptr();
+          return {};
         }
       }
       return MakePtr<ExactMatchOnlyFormat>(std::move(tmp), startOffset, minSize);

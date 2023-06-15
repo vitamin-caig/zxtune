@@ -24,8 +24,6 @@
 #include <platform/version/api.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
-// std includes
-#include <functional>
 
 namespace Sound::PulseAudio
 {
@@ -53,7 +51,7 @@ namespace Sound::PulseAudio
     void Shutdown() override
     {
       Dbg("Shutdown");
-      Device = std::shared_ptr<pa_simple>();
+      Device = {};
     }
 
     void Pause() override
@@ -84,7 +82,7 @@ namespace Sound::PulseAudio
 
     VolumeControl::Ptr GetVolumeControl() const override
     {
-      return VolumeControl::Ptr();
+      return {};
     }
 
   private:
@@ -92,10 +90,10 @@ namespace Sound::PulseAudio
     {
       const pa_sample_spec format = GetFormat();
       int error = 0;
-      if (pa_simple* result = PaApi->pa_simple_new(nullptr, Client.c_str(), PA_STREAM_PLAYBACK, nullptr, Stream.c_str(),
-                                                   &format, nullptr, nullptr, &error))
+      if (auto* result = PaApi->pa_simple_new(nullptr, Client.c_str(), PA_STREAM_PLAYBACK, nullptr, Stream.c_str(),
+                                              &format, nullptr, nullptr, &error))
       {
-        return std::shared_ptr<pa_simple>(result, std::bind(&Api::pa_simple_free, PaApi, std::placeholders::_1));
+        return {result, [api = PaApi](auto&& arg) { api->pa_simple_free(arg); }};
       }
       throw MakeError(error, THIS_LINE);
     }
@@ -121,7 +119,7 @@ namespace Sound::PulseAudio
       }
       else
       {
-        return Error(loc, translate("Unknown error in PulseAudio backend."));
+        return {loc, translate("Unknown error in PulseAudio backend.")};
       }
     }
 
@@ -150,7 +148,8 @@ namespace Sound::PulseAudio
     static String GetStreamName(const Module::Holder& holder)
     {
       const Parameters::Accessor::Ptr props = holder.GetModuleProperties();
-      String author, title;
+      String author;
+      String title;
       props->FindValue(Module::ATTR_AUTHOR, author);
       props->FindValue(Module::ATTR_TITLE, title);
       const bool hasAuthor = !author.empty();

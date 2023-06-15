@@ -50,7 +50,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_forcedInit(JNIEnv* /*env*
   class EmptyVisitor : public ZXTune::PluginVisitor
   {
   public:
-    void Visit(const ZXTune::Plugin&) {}
+    void Visit(const ZXTune::Plugin&) override {}
   } stub;
   ZXTune::EnumeratePlugins(stub);
 }

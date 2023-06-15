@@ -15,10 +15,7 @@
 // library includes
 #include <formats/chiptune/digital/abysshighestexperience.h>
 
-namespace Module
+namespace Module::AHX
 {
-  namespace AHX
-  {
-    Factory::Ptr CreateFactory(Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr decoder);
-  }
-}  // namespace Module
+  Factory::Ptr CreateFactory(Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr decoder);
+}  // namespace Module::AHX

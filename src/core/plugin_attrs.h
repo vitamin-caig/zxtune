@@ -10,6 +10,9 @@
 
 #pragma once
 
+// common includes
+#include <types.h>
+
 namespace ZXTune
 {
   class PluginId : public StringView
@@ -24,7 +27,7 @@ namespace ZXTune
 
   constexpr PluginId operator"" _id(const char* str, std::size_t size) noexcept
   {
-    return PluginId(str, size);
+    return {str, size};
   }
 
   /*

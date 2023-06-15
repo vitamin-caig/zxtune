@@ -32,6 +32,7 @@
 #include <iostream>
 #include <list>
 #include <sstream>
+#include <utility>
 // boost includes
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -40,7 +41,7 @@ namespace
 {
   const Debug::Stream Dbg("zxtune123::Sound");
 
-  static const String NOTUSED_MARK("\x01\x02");
+  const String NOTUSED_MARK("\x01\x02");
 
   class CommonBackendParameters
   {
@@ -92,14 +93,13 @@ namespace
   class Component : public SoundComponent
   {
     // Id => Options
-    typedef Strings::ValueMap<String> PerBackendOptions;
+    using PerBackendOptions = Strings::ValueMap<String>;
 
   public:
     explicit Component(Parameters::Container::Ptr configParams)
       : Service(Sound::CreateGlobalService(configParams))
-      , Params(new CommonBackendParameters(configParams))
+      , Params(new CommonBackendParameters(std::move(configParams)))
       , OptionsDescription("Sound options")
-      , Looped(false)
     {
       using namespace boost::program_options;
       auto opt = OptionsDescription.add_options();
@@ -175,7 +175,7 @@ namespace
           Dbg("Trying backend {}", id);
           try
           {
-            const Sound::Backend::Ptr result = Service->CreateBackend(id, module, callback);
+            auto result = Service->CreateBackend(id, module, callback);
             Dbg("Success!");
             UsedId = id;
             return result;
@@ -198,7 +198,7 @@ namespace
       return Service->EnumerateBackends();
     }
 
-    uint_t GetSamplerate() const
+    uint_t GetSamplerate() const override
     {
       return Sound::GetSoundFrequency(*Params->GetDefaultParameters());
     }
@@ -216,7 +216,7 @@ namespace
     PerBackendOptions BackendOptions;
     Strings::Map SoundOptions;
 
-    bool Looped;
+    bool Looped = false;
 
     String UsedId;
   };
@@ -224,5 +224,5 @@ namespace
 
 std::unique_ptr<SoundComponent> SoundComponent::Create(Parameters::Container::Ptr configParams)
 {
-  return std::unique_ptr<SoundComponent>(new Component(configParams));
+  return std::unique_ptr<SoundComponent>(new Component(std::move(configParams)));
 }

@@ -105,17 +105,14 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
-  {
-    ScannerView::ScannerView(QWidget& parent)
-      : QWidget(&parent)
-    {}
+  ScannerView::ScannerView(QWidget& parent)
+    : QWidget(&parent)
+  {}
 
-    ScannerView* ScannerView::Create(QWidget& parent, Playlist::Scanner::Ptr scanner)
-    {
-      return new ScannerViewImpl(parent, scanner);
-    }
-  }  // namespace UI
-}  // namespace Playlist
+  ScannerView* ScannerView::Create(QWidget& parent, Playlist::Scanner::Ptr scanner)
+  {
+    return new ScannerViewImpl(parent, scanner);
+  }
+}  // namespace Playlist::UI

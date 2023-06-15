@@ -13,73 +13,66 @@
 // library includes
 #include <devices/fm.h>
 
-namespace Devices
+namespace Devices::TFM
 {
-  namespace TFM
+  const uint_t CHIPS = 2;
+  const uint_t VOICES = FM::VOICES * CHIPS;
+
+  using Devices::FM::TimeUnit;
+  using Devices::FM::Stamp;
+
+  class Register : public FM::Register
   {
-    const uint_t CHIPS = 2;
-    const uint_t VOICES = FM::VOICES * CHIPS;
+  public:
+    Register() = default;
 
-    using Devices::FM::TimeUnit;
-    using Devices::FM::Stamp;
-
-    class Register : public FM::Register
+    Register(uint_t chip, FM::Register reg)
+      : FM::Register(reg)
     {
-    public:
-      Register()
-        : FM::Register()
-      {}
+      Val |= chip << 16;
+    }
 
-      Register(uint_t chip, FM::Register reg)
-        : FM::Register(std::move(reg))
-      {
-        Val |= chip << 16;
-      }
-
-      Register(uint_t chip, uint_t idx, uint_t val)
-        : FM::Register(idx, val)
-      {
-        Val |= chip << 16;
-      }
-
-      uint_t Chip() const
-      {
-        return (Val >> 16) & 0xff;
-      }
-    };
-
-    typedef std::vector<Register> Registers;
-
-    struct DataChunk
+    Register(uint_t chip, uint_t idx, uint_t val)
+      : FM::Register(idx, val)
     {
-      DataChunk()
-        : TimeStamp()
-      {}
+      Val |= chip << 16;
+    }
 
-      Stamp TimeStamp;
-      Registers Data;
-    };
-
-    class Device
+    uint_t Chip() const
     {
-    public:
-      typedef std::shared_ptr<Device> Ptr;
-      virtual ~Device() = default;
+      return (Val >> 16) & 0xff;
+    }
+  };
 
-      virtual void RenderData(const DataChunk& src) = 0;
-      virtual void Reset() = 0;
-    };
+  using Registers = std::vector<Register>;
 
-    class Chip : public Device
-    {
-    public:
-      using Ptr = std::shared_ptr<Chip>;
+  struct DataChunk
+  {
+    DataChunk() = default;
 
-      /// Render rest data and return result
-      virtual Sound::Chunk RenderTill(Stamp stamp) = 0;
-    };
+    Stamp TimeStamp;
+    Registers Data;
+  };
 
-    using FM::ChipParameters;
-    Chip::Ptr CreateChip(ChipParameters::Ptr params);
-  }  // namespace TFM
-}  // namespace Devices
+  class Device
+  {
+  public:
+    using Ptr = std::shared_ptr<Device>;
+    virtual ~Device() = default;
+
+    virtual void RenderData(const DataChunk& src) = 0;
+    virtual void Reset() = 0;
+  };
+
+  class Chip : public Device
+  {
+  public:
+    using Ptr = std::shared_ptr<Chip>;
+
+    /// Render rest data and return result
+    virtual Sound::Chunk RenderTill(Stamp stamp) = 0;
+  };
+
+  using FM::ChipParameters;
+  Chip::Ptr CreateChip(ChipParameters::Ptr params);
+}  // namespace Devices::TFM

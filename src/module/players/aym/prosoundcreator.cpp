@@ -61,9 +61,6 @@ namespace Module::ProSoundCreator
   public:
     ObjectLinesIterator()
       : Obj()
-      , Position()
-      , LoopPosition()
-      , Break()
     {}
 
     void Set(const Object& obj)
@@ -120,19 +117,15 @@ namespace Module::ProSoundCreator
 
   private:
     const Object* Obj;
-    uint_t Position;
-    uint_t LoopPosition;
-    bool Break;
+    uint_t Position = 0;
+    uint_t LoopPosition = 0;
+    bool Break = false;
   };
 
   class ToneSlider
   {
   public:
-    ToneSlider()
-      : Sliding()
-      , Glissade()
-      , Steps()
-    {}
+    ToneSlider() = default;
 
     void SetSliding(int_t sliding)
     {
@@ -177,19 +170,15 @@ namespace Module::ProSoundCreator
     }
 
   private:
-    int_t Sliding;
-    int_t Glissade;
-    uint_t Steps;
+    int_t Sliding = 0;
+    int_t Glissade = 0;
+    uint_t Steps = 0;
   };
 
   class VolumeSlider
   {
   public:
-    VolumeSlider()
-      : Counter()
-      , Period()
-      , Delta()
-    {}
+    VolumeSlider() = default;
 
     void Reset()
     {
@@ -216,9 +205,9 @@ namespace Module::ProSoundCreator
     }
 
   private:
-    uint_t Counter;
-    uint_t Period;
-    int_t Delta;
+    uint_t Counter = 0;
+    uint_t Period = 0;
+    int_t Delta = 0;
   };
 
   using ModuleData = AYM::ModuleData<OrderList, Sample, Ornament>;
@@ -363,25 +352,18 @@ namespace Module::ProSoundCreator
 
   struct ChannelState
   {
-    ChannelState()
-      : Note()
-      , ToneAccumulator()
-      , Volume()
-      , Attenuation()
-      , NoiseAccumulator()
-      , EnvelopeEnabled()
-    {}
+    ChannelState() = default;
 
     ObjectLinesIterator<Sample> SampleIterator;
     ObjectLinesIterator<Ornament> OrnamentIterator;
     ToneSlider ToneSlide;
     VolumeSlider VolumeSlide;
-    int_t Note;
-    int16_t ToneAccumulator;
-    uint_t Volume;
-    int_t Attenuation;
-    uint_t NoiseAccumulator;
-    bool EnvelopeEnabled;
+    int_t Note = 0;
+    int16_t ToneAccumulator = 0;
+    uint_t Volume = 0;
+    int_t Attenuation = 0;
+    uint_t NoiseAccumulator = 0;
+    bool EnvelopeEnabled = false;
   };
 
   class DataRenderer : public AYM::DataRenderer
@@ -389,8 +371,6 @@ namespace Module::ProSoundCreator
   public:
     explicit DataRenderer(ModuleData::Ptr data)
       : Data(std::move(data))
-      , EnvelopeTone()
-      , NoiseBase()
     {
       Reset();
     }
@@ -399,9 +379,8 @@ namespace Module::ProSoundCreator
     {
       const Sample& stubSample = Data->Samples.Get(0);
       const Ornament& stubOrnament = Data->Ornaments.Get(0);
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      for (auto& dst : PlayerState)
       {
-        ChannelState& dst = PlayerState[chan];
         dst = ChannelState();
         dst.SampleIterator.Set(stubSample);
         dst.SampleIterator.SetBreakLoop(false);
@@ -426,25 +405,25 @@ namespace Module::ProSoundCreator
   private:
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }
         }
       }
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      for (auto& chan : PlayerState)
       {
-        PlayerState[chan].NoiseAccumulator += NoiseBase;
+        chan.NoiseAccumulator += NoiseBase;
       }
     }
 
     void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
-      const uint16_t oldTone =
+      const auto oldTone =
           static_cast<uint16_t>(track.GetFrequency(dst.Note) + dst.ToneAccumulator + dst.ToneSlide.GetSliding());
       if (const bool* enabled = src.GetEnabled())
       {
@@ -585,7 +564,7 @@ namespace Module::ProSoundCreator
 
       // apply level
       dst.Attenuation += curSampleLine->VolumeDelta + dst.VolumeSlide.Update();
-      const int_t level = Math::Clamp<int_t>(dst.Attenuation + dst.Volume, 0, 15);
+      const auto level = Math::Clamp<int_t>(dst.Attenuation + dst.Volume, 0, 15);
       dst.Attenuation = level - dst.Volume;
       const uint_t vol = 1 + static_cast<uint_t>(level);
       channel.SetLevel(vol * curSampleLine->Level >> 4);
@@ -618,8 +597,8 @@ namespace Module::ProSoundCreator
   private:
     const ModuleData::Ptr Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
-    uint_t EnvelopeTone;
-    uint_t NoiseBase;
+    uint_t EnvelopeTone = 0;
+    uint_t NoiseBase = 0;
   };
 
   class Factory : public AYM::Factory

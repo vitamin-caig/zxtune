@@ -64,7 +64,7 @@ namespace Formats::Archived
       }
       else
       {
-        return Container::Ptr();
+        return {};
       }
     }
   }  // namespace ZXZip
@@ -90,7 +90,7 @@ namespace Formats::Archived
     {
       if (!FileDecoder->GetFormat()->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
 
       const Container::Ptr files = ZXZip::ParseArchive(*FileDecoder, data);

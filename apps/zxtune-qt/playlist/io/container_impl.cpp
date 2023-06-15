@@ -18,6 +18,8 @@
 #include <debug/log.h>
 #include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
+// std includes
+#include <utility>
 
 namespace
 {
@@ -75,12 +77,12 @@ namespace
     // common
     Module::Holder::Ptr GetModule() const override
     {
-      return Module::Holder::Ptr();
+      return {};
     }
 
     Binary::Data::Ptr GetModuleData() const override
     {
-      return Binary::Data::Ptr();
+      return {};
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -116,7 +118,7 @@ namespace
 
     String GetType() const override
     {
-      return String();
+      return {};
     }
 
     String GetDisplayName() const override
@@ -131,17 +133,17 @@ namespace
 
     String GetAuthor() const override
     {
-      return String();
+      return {};
     }
 
     String GetTitle() const override
     {
-      return String();
+      return {};
     }
 
     String GetComment() const override
     {
-      return String();
+      return {};
     }
 
     uint32_t GetChecksum() const override
@@ -168,13 +170,13 @@ namespace
   class DelayLoadItemProvider
   {
   public:
-    typedef std::unique_ptr<const DelayLoadItemProvider> Ptr;
+    using Ptr = std::unique_ptr<const DelayLoadItemProvider>;
 
     DelayLoadItemProvider(Playlist::Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr playlistParams,
                           const Playlist::IO::ContainerItem& item)
       : Provider(std::move(provider))
       , Params(Parameters::CreateMergedAccessor(Module::CreatePathProperties(item.Path), item.AdjustedParameters,
-                                                playlistParams))
+                                                std::move(playlistParams)))
       , Path(item.Path)
     {}
 
@@ -199,7 +201,7 @@ namespace
 
     Parameters::Container::Ptr GetParameters() const
     {
-      const Parameters::Container::Ptr res = Parameters::Container::Create();
+      auto res = Parameters::Container::Create();
       Params->Process(*res);
       return res;
     }
@@ -393,14 +395,11 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  Container::Ptr CreateContainer(Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr properties,
+                                 ContainerItems::Ptr items)
   {
-    Container::Ptr CreateContainer(Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr properties,
-                                   ContainerItems::Ptr items)
-    {
-      return MakePtr<ContainerImpl>(provider, properties, items);
-    }
-  }  // namespace IO
-}  // namespace Playlist
+    return MakePtr<ContainerImpl>(std::move(provider), std::move(properties), std::move(items));
+  }
+}  // namespace Playlist::IO

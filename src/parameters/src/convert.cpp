@@ -42,7 +42,7 @@ namespace
   inline void DataFromString(StringView val, DataType& res)
   {
     res.resize((val.size() - 1) / 2);
-    auto src = val.begin();
+    const auto* src = val.begin();
     for (auto& re : res)
     {
       const auto highNibble = FromHex(*++src);
@@ -95,7 +95,7 @@ namespace
   {
     if (IsQuoted(val))
     {
-      return StringView(val.begin() + 1, val.end() - 1);
+      return {val.begin() + 1, val.end() - 1};
     }
     return val;
   }

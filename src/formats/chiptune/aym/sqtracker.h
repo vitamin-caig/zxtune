@@ -19,91 +19,75 @@
 // std includes
 #include <array>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace SQTracker
   {
-    namespace SQTracker
+    struct SampleLine
     {
-      struct SampleLine
-      {
-        SampleLine()
-          : Level()
-          , Noise()
-          , ToneDeviation()
-          , EnableNoise()
-          , EnableTone()
-        {}
+      SampleLine() = default;
 
-        uint_t Level;  // 0-15
-        uint_t Noise;  // 0-31
-        int_t ToneDeviation;
-        bool EnableNoise;
-        bool EnableTone;
+      uint_t Level = 0;  // 0-15
+      uint_t Noise = 0;  // 0-31
+      int_t ToneDeviation = 0;
+      bool EnableNoise = false;
+      bool EnableTone = false;
+    };
+
+    using Sample = LinesObjectWithLoopLimit<SampleLine>;
+
+    using Ornament = LinesObjectWithLoopLimit<int_t>;
+
+    struct PositionEntry
+    {
+      PositionEntry() = default;
+
+      struct Channel
+      {
+        Channel() = default;
+
+        uint_t Pattern = 0;
+        int_t Transposition = 0;
+        uint_t Attenuation = 0;
+        bool EnabledEffects = true;
       };
 
-      typedef LinesObjectWithLoopLimit<SampleLine> Sample;
+      uint_t Tempo = 0;
+      std::array<Channel, 3> Channels;
+    };
 
-      typedef LinesObjectWithLoopLimit<int_t> Ornament;
+    using Positions = LinesObject<PositionEntry>;
 
-      struct PositionEntry
-      {
-        PositionEntry()
-          : Tempo()
-        {}
+    class Builder
+    {
+    public:
+      virtual ~Builder() = default;
 
-        struct Channel
-        {
-          Channel()
-            : Pattern()
-            , Transposition()
-            , Attenuation()
-            , EnabledEffects(true)
-          {}
+      virtual MetaBuilder& GetMetaBuilder() = 0;
+      // samples+ornaments
+      virtual void SetSample(uint_t index, Sample sample) = 0;
+      virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
+      // patterns
+      virtual void SetPositions(Positions positions) = 0;
 
-          uint_t Pattern;
-          int_t Transposition;
-          uint_t Attenuation;
-          bool EnabledEffects;
-        };
+      virtual PatternBuilder& StartPattern(uint_t index) = 0;
 
-        uint_t Tempo;
-        std::array<Channel, 3> Channels;
-      };
+      virtual void SetTempoAddon(uint_t add) = 0;
+      virtual void SetRest() = 0;
+      virtual void SetNote(uint_t note) = 0;
+      virtual void SetSample(uint_t sample) = 0;
+      virtual void SetOrnament(uint_t ornament) = 0;
+      virtual void SetEnvelope(uint_t type, uint_t value) = 0;
+      virtual void SetGlissade(int_t step) = 0;
+      virtual void SetAttenuation(uint_t att) = 0;
+      virtual void SetAttenuationAddon(int_t add) = 0;
+      virtual void SetGlobalAttenuation(uint_t att) = 0;
+      virtual void SetGlobalAttenuationAddon(int_t add) = 0;
+    };
 
-      typedef LinesObject<PositionEntry> Positions;
+    Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
+    Builder& GetStubBuilder();
+  }  // namespace SQTracker
 
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
-
-        virtual MetaBuilder& GetMetaBuilder() = 0;
-        // samples+ornaments
-        virtual void SetSample(uint_t index, Sample sample) = 0;
-        virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
-        // patterns
-        virtual void SetPositions(Positions positions) = 0;
-
-        virtual PatternBuilder& StartPattern(uint_t index) = 0;
-
-        virtual void SetTempoAddon(uint_t add) = 0;
-        virtual void SetRest() = 0;
-        virtual void SetNote(uint_t note) = 0;
-        virtual void SetSample(uint_t sample) = 0;
-        virtual void SetOrnament(uint_t ornament) = 0;
-        virtual void SetEnvelope(uint_t type, uint_t value) = 0;
-        virtual void SetGlissade(int_t step) = 0;
-        virtual void SetAttenuation(uint_t att) = 0;
-        virtual void SetAttenuationAddon(int_t add) = 0;
-        virtual void SetGlobalAttenuation(uint_t att) = 0;
-        virtual void SetGlobalAttenuationAddon(int_t add) = 0;
-      };
-
-      Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
-      Builder& GetStubBuilder();
-    }  // namespace SQTracker
-
-    Decoder::Ptr CreateSQTrackerDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateSQTrackerDecoder();
+}  // namespace Formats::Chiptune

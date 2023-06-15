@@ -61,7 +61,7 @@ namespace Formats::Packed
 
         Binary::Dump GetInfo() const
         {
-          return Binary::Dump(Information.begin(), Information.end());
+          return {Information.begin(), Information.end()};
         }
       };
     };
@@ -159,9 +159,9 @@ namespace Formats::Packed
       assert(info.Size() == 53);
       // 28 is fixed
       // 25 is title
-      const auto start = info.As<Char>();
-      const auto end = start + info.Size();
-      const auto titleStart = start + 28;
+      const auto* const start = info.As<Char>();
+      const auto* const end = start + info.Size();
+      const auto* const titleStart = start + 28;
       return std::none_of(titleStart, end, [](auto b) { return b > ' '; });
     }
   }  // namespace CompiledSTP
@@ -190,14 +190,14 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Player->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto& rawPlayer = *data.As<typename Version::RawPlayer>();
       const auto playerSize = rawPlayer.GetSize();
       if (playerSize >= std::min(data.Size(), CompiledSTP::MAX_PLAYER_SIZE))
       {
         Dbg("Invalid player");
-        return Container::Ptr();
+        return {};
       }
       Dbg("Detected player in first {} bytes", playerSize);
       const auto modData = rawData.GetSubcontainer(playerSize, CompiledSTP::MAX_MODULE_SIZE);
@@ -222,7 +222,7 @@ namespace Formats::Packed
         Dbg("Failed to parse fixed module");
       }
       Dbg("Failed to find module after player");
-      return Container::Ptr();
+      return {};
     }
 
   private:

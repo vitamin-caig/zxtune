@@ -136,16 +136,16 @@ namespace Module::FFmpeg
       case AV_SAMPLE_FMT_S16P:
       case AV_SAMPLE_FMT_S16:
       {
-        const auto begin = GetSamples<int16_t>(0);
-        const auto end = begin + Frame->nb_samples;
+        const auto* const begin = GetSamples<int16_t>(0);
+        const auto* const end = begin + Frame->nb_samples;
         std::transform(begin, end, target, DecodeMonoSample<int16_t>);
       }
       break;
       case AV_SAMPLE_FMT_FLT:
       case AV_SAMPLE_FMT_FLTP:
       {
-        const auto begin = GetSamples<float>(0);
-        const auto end = begin + Frame->nb_samples;
+        const auto* const begin = GetSamples<float>(0);
+        const auto* const end = begin + Frame->nb_samples;
         std::transform(begin, end, target, DecodeMonoSample<float>);
       }
       break;
@@ -161,31 +161,31 @@ namespace Module::FFmpeg
       {
       case AV_SAMPLE_FMT_S16P:
       {
-        const auto begin1 = GetSamples<int16_t>(0);
-        const auto begin2 = GetSamples<int16_t>(1);
-        const auto end = begin1 + Frame->nb_samples;
+        const auto* const begin1 = GetSamples<int16_t>(0);
+        const auto* const begin2 = GetSamples<int16_t>(1);
+        const auto* const end = begin1 + Frame->nb_samples;
         std::transform(begin1, end, begin2, target, DecodePlanarSample<int16_t>);
       }
       break;
       case AV_SAMPLE_FMT_S16:
       {
-        const auto begin = GetSamples<std::array<int16_t, 2>>(0);
-        const auto end = begin + Frame->nb_samples;
+        const auto* const begin = GetSamples<std::array<int16_t, 2>>(0);
+        const auto* const end = begin + Frame->nb_samples;
         std::transform(begin, end, target, DecodeStereoSample<int16_t>);
       }
       break;
       case AV_SAMPLE_FMT_FLTP:
       {
-        const auto begin1 = GetSamples<float>(0);
-        const auto begin2 = GetSamples<float>(1);
-        const auto end = begin1 + Frame->nb_samples;
+        const auto* const begin1 = GetSamples<float>(0);
+        const auto* const begin2 = GetSamples<float>(1);
+        const auto* const end = begin1 + Frame->nb_samples;
         std::transform(begin1, end, begin2, target, DecodePlanarSample<float>);
       }
       break;
       case AV_SAMPLE_FMT_FLT:
       {
-        const auto begin = GetSamples<std::array<float, 2>>(0);
-        const auto end = begin + Frame->nb_samples;
+        const auto* const begin = GetSamples<std::array<float, 2>>(0);
+        const auto* const end = begin + Frame->nb_samples;
         std::transform(begin, end, target, DecodeStereoSample<float>);
       }
       break;
@@ -246,7 +246,7 @@ namespace Module::FFmpeg
     decoder->SetBlockSize(blockSize);
     decoder->SetExtraData(config);
     decoder->Init();
-    return Decoder::Ptr(std::move(decoder));
+    return decoder;
   }
 
   Decoder::Ptr CreateAtrac3PlusDecoder(uint_t channels, uint_t blockSize)
@@ -255,7 +255,7 @@ namespace Module::FFmpeg
     decoder->SetChannels(channels);
     decoder->SetBlockSize(blockSize);
     decoder->Init();
-    return Decoder::Ptr(std::move(decoder));
+    return decoder;
   }
 
   Decoder::Ptr CreateAtrac9Decoder(uint_t blockSize, Binary::View config)
@@ -264,6 +264,6 @@ namespace Module::FFmpeg
     decoder->SetBlockSize(blockSize);
     decoder->SetExtraData(config);
     decoder->Init();
-    return Decoder::Ptr(std::move(decoder));
+    return decoder;
   }
 }  // namespace Module::FFmpeg

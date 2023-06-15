@@ -19,113 +19,106 @@
 // std includes
 #include <array>
 
-namespace Devices
+namespace Devices::SAA
 {
-  namespace SAA
+  // 6 tones + 2 noises + 2 envelopes
+  const uint_t VOICES = 10;
+
+  using TimeUnit = Time::Microsecond;
+  using Stamp = Time::Instant<TimeUnit>;
+
+  struct Registers
   {
-    // 6 tones + 2 noises + 2 envelopes
-    const uint_t VOICES = 10;
-
-    using TimeUnit = Time::Microsecond;
-    using Stamp = Time::Instant<TimeUnit>;
-
-    struct Registers
+    // registers offsets in data
+    enum
     {
-      // registers offsets in data
-      enum
-      {
-        LEVEL0 = 0,
-        LEVEL1,
-        LEVEL2,
-        LEVEL3,
-        LEVEL4,
-        LEVEL5,
+      LEVEL0 = 0,
+      LEVEL1,
+      LEVEL2,
+      LEVEL3,
+      LEVEL4,
+      LEVEL5,
 
-        TONENUMBER0 = 8,
-        TONENUMBER1,
-        TONENUMBER2,
-        TONENUMBER3,
-        TONENUMBER4,
-        TONENUMBER5,
+      TONENUMBER0 = 8,
+      TONENUMBER1,
+      TONENUMBER2,
+      TONENUMBER3,
+      TONENUMBER4,
+      TONENUMBER5,
 
-        TONEOCTAVE01 = 16,
-        TONEOCTAVE23,
-        TONEOCTAVE45,
+      TONEOCTAVE01 = 16,
+      TONEOCTAVE23,
+      TONEOCTAVE45,
 
-        TONEMIXER = 20,
-        NOISEMIXER = 21,
-        NOISECLOCK = 22,
+      TONEMIXER = 20,
+      NOISEMIXER = 21,
+      NOISECLOCK = 22,
 
-        ENVELOPE0 = 24,
-        ENVELOPE1,
+      ENVELOPE0 = 24,
+      ENVELOPE1,
 
-        TOTAL = 28
-      };
-
-      Registers()
-        : Mask()
-        , Data()
-      {}
-
-      uint32_t Mask;
-      std::array<uint8_t, TOTAL> Data;
+      TOTAL = 28
     };
 
-    struct DataChunk
-    {
+    Registers()
+      : Data()
+    {}
 
-      DataChunk()
-        : TimeStamp()
-        , Data()
-      {}
+    uint32_t Mask = 0;
+    std::array<uint8_t, TOTAL> Data;
+  };
 
-      Stamp TimeStamp;
-      Registers Data;
-    };
+  struct DataChunk
+  {
 
-    class Device
-    {
-    public:
-      typedef std::shared_ptr<Device> Ptr;
-      virtual ~Device() = default;
+    DataChunk() = default;
 
-      /// render single data chunk
-      virtual void RenderData(const DataChunk& src) = 0;
+    Stamp TimeStamp;
+    Registers Data;
+  };
 
-      /// reset internal state to initial
-      virtual void Reset() = 0;
-    };
+  class Device
+  {
+  public:
+    using Ptr = std::shared_ptr<Device>;
+    virtual ~Device() = default;
 
-    // Describes real device
-    class Chip : public Device
-    {
-    public:
-      using Ptr = std::shared_ptr<Chip>;
+    /// render single data chunk
+    virtual void RenderData(const DataChunk& src) = 0;
 
-      virtual Sound::Chunk RenderTill(Stamp till) = 0;
-    };
+    /// reset internal state to initial
+    virtual void Reset() = 0;
+  };
 
-    enum InterpolationType
-    {
-      INTERPOLATION_NONE = 0,
-      INTERPOLATION_LQ = 1,
-      INTERPOLATION_HQ = 2
-    };
+  // Describes real device
+  class Chip : public Device
+  {
+  public:
+    using Ptr = std::shared_ptr<Chip>;
 
-    class ChipParameters
-    {
-    public:
-      typedef std::shared_ptr<const ChipParameters> Ptr;
+    virtual Sound::Chunk RenderTill(Stamp till) = 0;
+  };
 
-      virtual ~ChipParameters() = default;
+  enum InterpolationType
+  {
+    INTERPOLATION_NONE = 0,
+    INTERPOLATION_LQ = 1,
+    INTERPOLATION_HQ = 2
+  };
 
-      virtual uint_t Version() const = 0;
-      virtual uint64_t ClockFreq() const = 0;
-      virtual uint_t SoundFreq() const = 0;
-      virtual InterpolationType Interpolation() const = 0;
-    };
+  class ChipParameters
+  {
+  public:
+    using Ptr = std::shared_ptr<const ChipParameters>;
 
-    /// Virtual constructors
-    Chip::Ptr CreateChip(ChipParameters::Ptr params);
-  }  // namespace SAA
-}  // namespace Devices
+    virtual ~ChipParameters() = default;
+
+    virtual uint_t Version() const = 0;
+    virtual uint64_t ClockFreq() const = 0;
+    virtual uint_t SoundFreq() const = 0;
+    virtual InterpolationType Interpolation() const = 0;
+  };
+
+  /// Virtual constructors
+  Chip::Ptr CreateChip(ChipParameters::Ptr params);
+}  // namespace Devices::SAA

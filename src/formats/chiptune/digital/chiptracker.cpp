@@ -98,7 +98,7 @@ namespace Formats::Chiptune
       uint8_t NoteCmd;
     };
 
-    typedef std::array<Note, CHANNELS_COUNT> NoteRow;
+    using NoteRow = std::array<Note, CHANNELS_COUNT>;
 
     // format commands
     enum
@@ -127,7 +127,7 @@ namespace Formats::Chiptune
       uint8_t SampParam;
     };
 
-    typedef std::array<NoteParam, CHANNELS_COUNT> NoteParamRow;
+    using NoteParamRow = std::array<NoteParam, CHANNELS_COUNT>;
 
     struct Pattern
     {
@@ -276,7 +276,7 @@ namespace Formats::Chiptune
         {
           names.push_back(Strings::OptimizeAscii(name));
         }
-        meta.SetStrings(std::move(names));
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -324,7 +324,7 @@ namespace Formats::Chiptune
             {
               break;
             }
-            const std::size_t alignedSize = Math::Align<std::size_t>(size, 256);
+            const auto alignedSize = Math::Align<std::size_t>(size, 256);
             sampleStart += alignedSize;
             memLeft -= alignedSize;
           }
@@ -447,11 +447,7 @@ namespace Formats::Chiptune
       }
       const uint_t patternsCount =
           1 + *std::max_element(header->Positions.begin(), header->Positions.begin() + header->Length + 1);
-      if (sizeof(*header) + patternsCount * sizeof(Pattern) > data.Size())
-      {
-        return false;
-      }
-      return true;
+      return sizeof(*header) + patternsCount * sizeof(Pattern) <= data.Size();
     }
 
     const auto FORMAT =
@@ -493,7 +489,7 @@ namespace Formats::Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
@@ -508,7 +504,7 @@ namespace Formats::Chiptune
       const Binary::View data(rawData);
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
 
       try
@@ -533,7 +529,7 @@ namespace Formats::Chiptune
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 

@@ -16,30 +16,27 @@
 #include <binary/dump.h>
 #include <binary/view.h>
 
-namespace Binary
+namespace Binary::Base64
 {
-  namespace Base64
+  std::size_t CalculateConvertedSize(std::size_t size);
+
+  //! @throws std::exception in case of error
+  //! @return End of encoded data
+  char* Encode(const uint8_t* inBegin, const uint8_t* inEnd, char* outBegin, const char* outEnd);
+
+  //! @throws std::exception in case of error
+  //! @return End of decoded data
+  uint8_t* Decode(const char* inBegin, const char* inEnd, uint8_t* outBegin, const uint8_t* outEnd);
+
+  // easy-to-use wrappers
+  inline String Encode(View input)
   {
-    std::size_t CalculateConvertedSize(std::size_t size);
+    String result(CalculateConvertedSize(input.Size()), ' ');
+    const auto* const in = input.As<uint8_t>();
+    char* const out = result.data();
+    Encode(in, in + input.Size(), out, out + result.size());
+    return result;
+  }
 
-    //! @throws std::exception in case of error
-    //! @return End of encoded data
-    char* Encode(const uint8_t* inBegin, const uint8_t* inEnd, char* outBegin, char* outEnd);
-
-    //! @throws std::exception in case of error
-    //! @return End of decoded data
-    uint8_t* Decode(const char* inBegin, const char* inEnd, uint8_t* outBegin, uint8_t* outEnd);
-
-    // easy-to-use wrappers
-    inline String Encode(View input)
-    {
-      String result(CalculateConvertedSize(input.Size()), ' ');
-      const uint8_t* const in = input.As<uint8_t>();
-      char* const out = &result[0];
-      Encode(in, in + input.Size(), out, out + result.size());
-      return result;
-    }
-
-    Dump Decode(StringView input);
-  }  // namespace Base64
-}  // namespace Binary
+  Dump Decode(StringView input);
+}  // namespace Binary::Base64

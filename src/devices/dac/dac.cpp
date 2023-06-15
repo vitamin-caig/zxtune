@@ -29,18 +29,18 @@ namespace Devices::DAC
   class FastSample
   {
   public:
-    typedef std::shared_ptr<const FastSample> Ptr;
+    using Ptr = std::shared_ptr<const FastSample>;
 
     // use additional sample for interpolation
-    explicit FastSample(std::size_t idx, Sample::Ptr in)
+    explicit FastSample(std::size_t idx, const Sample& in)
       : Index(static_cast<uint_t>(idx))
-      , Data(new Sound::Sample::Type[in->Size() + 1])
-      , Size(in->Size())
-      , Loop(std::min(Size, in->Loop()))
+      , Data(new Sound::Sample::Type[in.Size() + 1])
+      , Size(in.Size())
+      , Loop(std::min(Size, in.Loop()))
     {
       for (std::size_t pos = 0; pos != Size; ++pos)
       {
-        Data[pos] = in->Get(pos);
+        Data[pos] = in.Get(pos);
       }
       Data[Size] = Data[Size - 1];
     }
@@ -48,8 +48,7 @@ namespace Devices::DAC
     FastSample()
       : Index(NO_INDEX)
       , Data(new Sound::Sample::Type[2])
-      , Size(1)
-      , Loop(1)
+
     {
       Data[0] = Data[1] = 0;
     }
@@ -59,18 +58,12 @@ namespace Devices::DAC
       return Index;
     }
 
-    typedef Math::FixedPoint<uint_t, 256> Position;
+    using Position = Math::FixedPoint<uint_t, 256>;
 
     class Iterator
     {
     public:
-      Iterator()
-        : Data()
-        , Step()
-        , Limit()
-        , Loop()
-        , Pos()
-      {}
+      Iterator() = default;
 
       bool IsValid() const
       {
@@ -145,7 +138,7 @@ namespace Devices::DAC
       }
 
     private:
-      const Sound::Sample::Type* Data;
+      const Sound::Sample::Type* Data = nullptr;
       Position Step;
       Position Limit;
       Position Loop;
@@ -156,16 +149,14 @@ namespace Devices::DAC
     friend class Iterator;
     const uint_t Index;
     const std::unique_ptr<Sound::Sample::Type[]> Data;
-    const std::size_t Size;
-    const std::size_t Loop;
+    const std::size_t Size = 1;
+    const std::size_t Loop = 1;
   };
 
   class ClockSource
   {
   public:
     ClockSource()
-      : SampleFreq()
-      , SoundFreq()
     {
       Reset();
     }
@@ -183,12 +174,12 @@ namespace Devices::DAC
 
     FastSample::Position GetStep(int_t halftones, int_t slideHz) const
     {
-      const int_t halftonesLim = Math::Clamp<int_t>(halftones, 0, Details::FreqTable::SIZE - 1);
+      const auto halftonesLim = Math::Clamp<int_t>(halftones, 0, Details::FreqTable::SIZE - 1);
       const Details::Frequency baseFreq = Details::FreqTable::GetHalftoneFrequency(0);
       const Details::Frequency freq =
           Details::FreqTable::GetHalftoneFrequency(halftonesLim) + Details::Frequency(slideHz);
       // step 1 is for first note
-      return FastSample::Position(int64_t((freq * SampleFreq).Integer()), (baseFreq * SoundFreq).Integer());
+      return {int64_t((freq * SampleFreq).Integer()), (baseFreq * SoundFreq).Integer()};
     }
 
     Stamp GetCurrentTime() const
@@ -204,28 +195,27 @@ namespace Devices::DAC
     }
 
   private:
-    uint_t SampleFreq;
-    uint_t SoundFreq;
+    uint_t SampleFreq = 0;
+    uint_t SoundFreq = 0;
     Stamp CurrentTime;
   };
 
   class SamplesStorage
   {
   public:
-    void Add(std::size_t idx, Sample::Ptr sample)
+    void Add(std::size_t idx, const Sample::Ptr& sample)
     {
       if (sample)
       {
         Content.resize(std::max(Content.size(), idx + 1));
-        const FastSample::Ptr fast = MakePtr<FastSample>(idx, sample);
-        Content[idx] = fast;
+        Content[idx] = MakePtr<FastSample>(idx, *sample);
       }
     }
 
     FastSample::Ptr Get(std::size_t idx) const
     {
       static FastSample STUB;
-      if (const FastSample::Ptr val = idx < Content.size() ? Content[idx] : FastSample::Ptr())
+      if (auto val = idx < Content.size() ? Content[idx] : FastSample::Ptr())
       {
         return val;
       }
@@ -236,34 +226,26 @@ namespace Devices::DAC
     std::vector<FastSample::Ptr> Content;
   };
 
-  typedef Math::FixedPoint<int, ChannelData::LevelType::PRECISION> SignedLevelType;
+  using SignedLevelType = Math::FixedPoint<int, ChannelData::LevelType::PRECISION>;
 
   // channel state type
   struct ChannelState
   {
     ChannelState()
-      : Enabled()
-      , Note()
-      , NoteSlide()
-      , FreqSlide()
-      , Level(1)
+      : Level(1)
     {}
 
     explicit ChannelState(FastSample::Ptr sample)
-      : Enabled()
-      , Note()
-      , NoteSlide()
-      , FreqSlide()
-      , Source(std::move(sample))
+      : Source(std::move(sample))
       , Level(1)
     {}
 
-    bool Enabled;
-    uint_t Note;
+    bool Enabled = false;
+    uint_t Note = 0;
     // current slide in halftones
-    int_t NoteSlide;
+    int_t NoteSlide = 0;
     // current slide in Hz
-    int_t FreqSlide;
+    int_t FreqSlide = 0;
     // sample
     FastSample::Ptr Source;
     FastSample::Iterator Iterator;
@@ -442,7 +424,6 @@ namespace Devices::DAC
     RenderersSet(const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
       : LQ(mixer, state)
       , MQ(mixer, state)
-      , Current()
       , State(state)
     {}
 
@@ -482,7 +463,7 @@ namespace Devices::DAC
   private:
     LQRenderer<Channels> LQ;
     MQRenderer<Channels> MQ;
-    Renderer* Current;
+    Renderer* Current = nullptr;
     ChannelState* const State;
   };
 
@@ -493,7 +474,6 @@ namespace Devices::DAC
     FixedChannelsChip(ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer)
       : Params(std::move(params))
       , Mixer(std::move(mixer))
-      , Clock()
       , Renderers(*Mixer, State.data())
     {
       FixedChannelsChip::Reset();

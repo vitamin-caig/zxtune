@@ -43,7 +43,7 @@ namespace Module::ProSoundMaker
   using Formats::Chiptune::ProSoundMaker::Sample;
   using Formats::Chiptune::ProSoundMaker::Ornament;
 
-  typedef SimpleOrderListWithTransposition<Formats::Chiptune::ProSoundMaker::PositionEntry> OrderListWithTransposition;
+  using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::ProSoundMaker::PositionEntry>;
 
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 
@@ -155,43 +155,30 @@ namespace Module::ProSoundMaker
 
   struct SampleState
   {
-    SampleState()
-      : Current(nullptr)
-      , Position(0)
-      , LoopsCount(0)
-      , Finished(false)
-    {}
+    SampleState() = default;
 
-    const Sample* Current;
-    uint_t Position;
-    uint_t LoopsCount;
-    bool Finished;
+    const Sample* Current = nullptr;
+    uint_t Position = 0;
+    uint_t LoopsCount = 0;
+    bool Finished = false;
   };
 
   struct OrnamentState
   {
-    OrnamentState()
-      : Current(nullptr)
-      , Position(0)
-      , Finished()
-      , KeepFinished()
-    {}
+    OrnamentState() = default;
 
-    const Ornament* Current;
-    uint_t Position;
-    bool Finished;
-    bool KeepFinished;
+    const Ornament* Current = nullptr;
+    uint_t Position = 0;
+    bool Finished = false;
+    bool KeepFinished = false;
   };
 
   struct EnvelopeState
   {
-    EnvelopeState()
-      : Reinit(false)
-      , Type()
-    {}
+    EnvelopeState() = default;
 
-    bool Reinit;
-    uint_t Type;
+    bool Reinit = false;
+    uint_t Type = 0;
     std::optional<uint_t> Note;
     std::optional<uint_t> Tone;
 
@@ -222,21 +209,15 @@ namespace Module::ProSoundMaker
 
   struct ChannelState
   {
-    ChannelState()
-      : Enabled(false)
-      , Note()
-      , VolumeDelta()
-      , BaseVolumeDelta()
-      , Slide()
-    {}
-    bool Enabled;
+    ChannelState() = default;
+    bool Enabled = false;
     EnvelopeState Envelope;
-    uint_t Note;
+    uint_t Note = 0;
     SampleState Smp;
     OrnamentState Orn;
-    uint_t VolumeDelta;
-    uint_t BaseVolumeDelta;
-    int_t Slide;
+    uint_t VolumeDelta = 0;
+    uint_t BaseVolumeDelta = 0;
+    int_t Slide = 0;
   };
 
   class DataRenderer : public AYM::DataRenderer
@@ -250,9 +231,8 @@ namespace Module::ProSoundMaker
 
     void Reset() override
     {
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      for (auto& state : PlayerState)
       {
-        ChannelState& state = PlayerState[chan];
         state = ChannelState();
         state.Smp.Current = &Data->Samples.Get(0);
         state.Orn.Current = &Data->Ornaments.Get(0);
@@ -271,13 +251,13 @@ namespace Module::ProSoundMaker
   private:
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         const auto transposition = Data->Order->GetTransposition(state.Position());
         const auto newPattern = 0 == state.Line();
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             auto& dst = PlayerState[chan];
             if (newPattern)
@@ -387,7 +367,7 @@ namespace Module::ProSoundMaker
       }
     }
 
-    void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
+    static void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
     {
       const bool hasEnvelope = dst.Envelope.Enabled();
       const Ornament& curOrnament = *dst.Orn.Current;
@@ -396,8 +376,8 @@ namespace Module::ProSoundMaker
       const Sample::Line& curSampleLine = curSample.GetLine(dst.Smp.Position);
 
       dst.Slide += curSampleLine.Gliss;
-      const int_t halftones = Math::Clamp<int_t>(int_t(dst.Note) + ornamentLine, 0, 95);
-      const int_t tone = Math::Clamp<int_t>(track.GetFrequency(halftones) + dst.Slide, 0, 4095);
+      const auto halftones = Math::Clamp<int_t>(int_t(dst.Note) + ornamentLine, 0, 95);
+      const auto tone = Math::Clamp<int_t>(track.GetFrequency(halftones) + dst.Slide, 0, 4095);
       channel.SetTone(tone);
 
       // emulate level construction due to possibility of envelope bit reset

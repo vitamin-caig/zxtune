@@ -20,6 +20,7 @@
 #include <strings/encoding.h>
 #include <strings/map.h>
 // std includes
+#include <memory>
 #include <numeric>
 
 namespace Formats::Archived
@@ -112,7 +113,7 @@ namespace Formats::Archived
         if (const auto* header = GetBlock<LocalFileHeader>())
         {
           const auto file = CompressedFile::Create(*header, Stream.GetRestSize());
-          return file.get() ? file->GetPackedSize() : 0;
+          return file ? file->GetPackedSize() : 0;
         }
         else if (const auto* footer = GetBlock<LocalFileFooter>())
         {
@@ -165,7 +166,7 @@ namespace Formats::Archived
       bool IsValid() const
       {
         assert(!IsEof());
-        if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
+        if (const auto* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
         {
           return header->IsSupported();
         }
@@ -175,7 +176,7 @@ namespace Formats::Archived
       String GetName() const
       {
         assert(!IsEof());
-        if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
+        if (const auto* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
         {
           const StringView rawName(header->Name, header->NameSize);
           const bool isUtf8 = 0 != (header->Flags & Packed::Zip::FILE_UTF8);
@@ -189,7 +190,7 @@ namespace Formats::Archived
       {
         assert(IsValid());
         const auto file = Blocks.GetFile();
-        if (file.get())
+        if (file)
         {
           auto data = Data.GetSubcontainer(Blocks.GetOffset(), file->GetPackedSize());
           return MakePtr<File>(Decoder, GetName(), file->GetUnpackedSize(), std::move(data));
@@ -267,7 +268,7 @@ namespace Formats::Archived
 
       File::Ptr FindCachedFile(StringView name) const
       {
-        if (Iter.get())
+        if (Iter)
         {
           return Files.Get(name);
         }
@@ -300,9 +301,9 @@ namespace Formats::Archived
 
       void CreateIterator() const
       {
-        if (!Iter.get())
+        if (!Iter)
         {
-          Iter.reset(new FileIterator(*Decoder, *Delegate));
+          Iter = std::make_unique<FileIterator>(*Decoder, *Delegate);
         }
       }
 
@@ -335,14 +336,14 @@ namespace Formats::Archived
     {
       if (!FileDecoder->GetFormat()->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
 
       uint_t filesCount = 0;
       Zip::BlocksIterator iter(data);
       for (; !iter.IsEof(); iter.Next())
       {
-        if (const Packed::Zip::LocalFileHeader* file = iter.GetBlock<Packed::Zip::LocalFileHeader>())
+        if (const auto* file = iter.GetBlock<Packed::Zip::LocalFileHeader>())
         {
           filesCount += file->IsSupported();
         }
@@ -354,7 +355,7 @@ namespace Formats::Archived
       }
       else
       {
-        return Container::Ptr();
+        return {};
       }
     }
 

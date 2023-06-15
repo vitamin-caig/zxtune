@@ -26,6 +26,7 @@
 #include <strings/encoding.h>
 // std includes
 #include <thread>
+#include <utility>
 // boost includes
 #include <boost/range/size.hpp>
 
@@ -67,7 +68,7 @@ namespace Sound::DirectSound
   {
     if (!guid)
     {
-      return String();
+      return {};
     }
     OLECHAR strGuid[39] = {0};
     if (const int chars = ::StringFromGUID2(*guid, strGuid, boost::size(strGuid)))
@@ -76,7 +77,7 @@ namespace Sound::DirectSound
     }
     else
     {
-      return String();
+      return {};
     }
   }
 
@@ -84,7 +85,7 @@ namespace Sound::DirectSound
   {
     if (str.empty())
     {
-      return std::unique_ptr<GUID>();
+      return {};
     }
     std::vector<OLECHAR> strGuid(str.begin(), str.end());
     strGuid.push_back(0);
@@ -93,22 +94,22 @@ namespace Sound::DirectSound
     return res;
   }
 
-  typedef std::shared_ptr<IDirectSound> DirectSoundPtr;
-  typedef std::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
+  using DirectSoundPtr = std::shared_ptr<IDirectSound>;
+  using DirectSoundBufferPtr = std::shared_ptr<IDirectSoundBuffer>;
 
   DirectSoundPtr OpenDevice(Api& api, StringView device)
   {
     Dbg("OpenDevice({})", device);
-    IDirectSound* raw = 0;
+    IDirectSound* raw = nullptr;
     const std::unique_ptr<GUID> deviceUuid = String2Guid(device);
-    CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
-    const DirectSoundPtr result = DirectSoundPtr(raw, &ReleaseRef);
+    CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, nullptr), THIS_LINE);
+    auto result = DirectSoundPtr(raw, &ReleaseRef);
     CheckWin32Error(result->SetCooperativeLevel(GetWindowHandle(), DSSCL_PRIORITY), THIS_LINE);
     Dbg("Opened");
     return result;
   }
 
-  DirectSoundBufferPtr CreateSecondaryBuffer(DirectSoundPtr device, uint_t sampleRate, uint_t bufferInMs)
+  DirectSoundBufferPtr CreateSecondaryBuffer(IDirectSound& device, uint_t sampleRate, uint_t bufferInMs)
   {
     Dbg("CreateSecondaryBuffer");
     WAVEFORMATEX format;
@@ -128,15 +129,14 @@ namespace Sound::DirectSound
     buffer.dwBufferBytes = format.nAvgBytesPerSec * bufferInMs / 1000;
     buffer.lpwfxFormat = &format;
 
-    LPDIRECTSOUNDBUFFER rawSecondary = 0;
-    CheckWin32Error(device->CreateSoundBuffer(&buffer, &rawSecondary, NULL), THIS_LINE);
+    LPDIRECTSOUNDBUFFER rawSecondary = nullptr;
+    CheckWin32Error(device.CreateSoundBuffer(&buffer, &rawSecondary, nullptr), THIS_LINE);
     assert(rawSecondary);
-    const std::shared_ptr<IDirectSoundBuffer> secondary(rawSecondary, &ReleaseRef);
     Dbg("Created");
-    return secondary;
+    return {rawSecondary, &ReleaseRef};
   }
 
-  DirectSoundBufferPtr CreatePrimaryBuffer(DirectSoundPtr device)
+  DirectSoundBufferPtr CreatePrimaryBuffer(IDirectSound& device)
   {
     Dbg("CreatePrimaryBuffer");
     DSBUFFERDESC buffer;
@@ -144,24 +144,21 @@ namespace Sound::DirectSound
     buffer.dwSize = sizeof(buffer);
     buffer.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_PRIMARYBUFFER;
 
-    LPDIRECTSOUNDBUFFER rawPrimary = 0;
-    CheckWin32Error(device->CreateSoundBuffer(&buffer, &rawPrimary, NULL), THIS_LINE);
+    LPDIRECTSOUNDBUFFER rawPrimary = nullptr;
+    CheckWin32Error(device.CreateSoundBuffer(&buffer, &rawPrimary, nullptr), THIS_LINE);
     assert(rawPrimary);
-    const std::shared_ptr<IDirectSoundBuffer> primary(rawPrimary, &ReleaseRef);
     Dbg("Created");
-    return primary;
+    return {rawPrimary, &ReleaseRef};
   }
 
   class StreamBuffer
   {
   public:
-    typedef std::shared_ptr<StreamBuffer> Ptr;
+    using Ptr = std::shared_ptr<StreamBuffer>;
 
     explicit StreamBuffer(DirectSoundBufferPtr buff)
-      : Buff(buff)
+      : Buff(std::move(buff))
       , SleepPeriod(1)
-      , BuffSize(0)
-      , Cursor(0)
     {
       DSBCAPS caps;
       std::memset(&caps, 0, sizeof(caps));
@@ -175,7 +172,7 @@ namespace Sound::DirectSound
     void Add(const Chunk& buffer)
     {
       std::size_t inputSize = buffer.size() * sizeof(buffer.front());
-      const uint8_t* inputStart = safe_ptr_cast<const uint8_t*>(buffer.data());
+      const auto* inputStart = safe_ptr_cast<const uint8_t*>(buffer.data());
 
       while (inputSize)
       {
@@ -185,8 +182,10 @@ namespace Sound::DirectSound
           return;
         }
 
-        LPVOID part1Data = 0, part2Data = 0;
-        DWORD part1Size = 0, part2Size = 0;
+        LPVOID part1Data = nullptr;
+        LPVOID part2Data = nullptr;
+        DWORD part1Size = 0;
+        DWORD part2Size = 0;
 
         for (;;)
         {
@@ -216,8 +215,10 @@ namespace Sound::DirectSound
 
     void Pause()
     {
-      LPVOID part1Data = 0, part2Data = 0;
-      DWORD part1Size = 0, part2Size = 0;
+      LPVOID part1Data = nullptr;
+      LPVOID part2Data = nullptr;
+      DWORD part1Size = 0;
+      DWORD part2Size = 0;
       for (;;)
       {
         const HRESULT res = Buff->Lock(0, 0, &part1Data, &part1Size, &part2Data, &part2Size, DSBLOCK_ENTIREBUFFER);
@@ -264,7 +265,7 @@ namespace Sound::DirectSound
     std::size_t GetBytesToWrite() const
     {
       DWORD playCursor = 0;
-      CheckWin32Error(Buff->GetCurrentPosition(&playCursor, NULL), THIS_LINE);
+      CheckWin32Error(Buff->GetCurrentPosition(&playCursor, nullptr), THIS_LINE);
       if (Cursor > playCursor)  // go ahead
       {
         return BuffSize - (Cursor - playCursor);
@@ -290,8 +291,8 @@ namespace Sound::DirectSound
   private:
     const DirectSoundBufferPtr Buff;
     const std::chrono::milliseconds SleepPeriod;
-    std::size_t BuffSize;
-    std::size_t Cursor;
+    std::size_t BuffSize = 0;
+    std::size_t Cursor = 0;
   };
 
   // in centidecibell
@@ -311,11 +312,11 @@ namespace Sound::DirectSound
   public:
     // buffer depends of device
     VolumeControl(DirectSoundPtr device, DirectSoundBufferPtr buffer)
-      : Device(device)
-      , Buffer(buffer)
+      : Device(std::move(device))
+      , Buffer(std::move(buffer))
     {}
 
-    virtual Gain GetVolume() const
+    Gain GetVolume() const override
     {
       const VolPan vols = GetVolumeImpl();
       static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
@@ -327,7 +328,7 @@ namespace Sound::DirectSound
       return volume;
     }
 
-    virtual void SetVolume(const Gain& volume)
+    void SetVolume(const Gain& volume) override
     {
       if (!volume.IsNormalized())
       {
@@ -343,7 +344,7 @@ namespace Sound::DirectSound
     }
 
   private:
-    typedef std::pair<LONG, LONG> VolPan;
+    using VolPan = std::pair<LONG, LONG>;
 
     VolPan GetVolumeImpl() const
     {
@@ -399,35 +400,35 @@ namespace Sound::DirectSound
   {
   public:
     BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : DsApi(api)
-      , BackendParams(params)
+      : DsApi(std::move(api))
+      , BackendParams(std::move(params))
       , RenderingParameters(RenderParameters::Create(BackendParams))
     {}
 
-    virtual void Startup()
+    void Startup() override
     {
       Dbg("Starting");
       Objects = OpenDevices();
       Dbg("Started");
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       Dbg("Stopping");
       Objects = DSObjects();
       Dbg("Stopped");
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Objects.Stream->Pause();
     }
 
-    virtual void Resume() {}
+    void Resume() override {}
 
-    virtual void FrameStart(const Module::State& /*state*/) {}
+    void FrameStart(const Module::State& /*state*/) override {}
 
-    virtual void FrameFinish(Chunk buffer)
+    void FrameFinish(Chunk buffer) override
     {
       /*
 
@@ -447,7 +448,7 @@ namespace Sound::DirectSound
       Objects.Stream->Add(buffer);
     }
 
-    VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return CreateVolumeControlDelegate(Objects.Volume);
     }
@@ -482,9 +483,9 @@ namespace Sound::DirectSound
       DSObjects res;
       res.Device = OpenDevice(*DsApi, device);
       const uint_t latency = params.GetLatency();
-      const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
+      const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(*res.Device, RenderingParameters->SoundFreq(), latency);
       res.Stream = MakePtr<StreamBuffer>(buffer);
-      const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
+      const DirectSoundBufferPtr primary = CreatePrimaryBuffer(*res.Device);
       res.Volume = MakePtr<VolumeControl>(res.Device, primary);
       return res;
     }
@@ -500,10 +501,10 @@ namespace Sound::DirectSound
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : DsApi(api)
+      : DsApi(std::move(api))
     {}
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       return MakePtr<BackendWorker>(DsApi, params);
     }
@@ -520,12 +521,12 @@ namespace Sound::DirectSound
       , NameValue(name.to_string())
     {}
 
-    virtual String Id() const
+    String Id() const override
     {
       return IdValue;
     }
 
-    virtual String Name() const
+    String Name() const override
     {
       return NameValue;
     }
@@ -538,10 +539,10 @@ namespace Sound::DirectSound
   class DevicesIterator : public Device::Iterator
   {
   public:
-    explicit DevicesIterator(Api::Ptr api)
+    explicit DevicesIterator(Api& api)
       : Current(Devices.begin())
     {
-      if (DS_OK != api->DirectSoundEnumerateW(&EnumerateDevicesCallback, &Devices))
+      if (DS_OK != api.DirectSoundEnumerateW(&EnumerateDevicesCallback, &Devices))
       {
         Dbg("Failed to enumerate devices. Skip backend.");
         Current = Devices.end();
@@ -553,17 +554,17 @@ namespace Sound::DirectSound
       }
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Current != Devices.end();
     }
 
-    virtual Device::Ptr Get() const
+    Device::Ptr Get() const override
     {
       return IsValid() ? MakePtr<DirectSoundDevice>(Current->first, Current->second) : Device::Ptr();
     }
 
-    virtual void Next()
+    void Next() override
     {
       if (IsValid())
       {
@@ -580,13 +581,13 @@ namespace Sound::DirectSound
       const auto& mod = Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(module));
       Dbg("Detected device '{}' (uuid={} module='{}')", name, id, mod);
       DevicesArray& devices = *static_cast<DevicesArray*>(param);
-      devices.push_back(IdAndName(id, name));
+      devices.emplace_back(id, name);
       return TRUE;
     }
 
   private:
-    typedef std::pair<String, String> IdAndName;
-    typedef std::vector<IdAndName> DevicesArray;
+    using IdAndName = std::pair<String, String>;
+    using DevicesArray = std::vector<IdAndName>;
     DevicesArray Devices;
     DevicesArray::const_iterator Current;
   };
@@ -599,7 +600,7 @@ namespace Sound
     try
     {
       auto api = DirectSound::LoadDynamicApi();
-      if (DirectSound::DevicesIterator(api).IsValid())
+      if (DirectSound::DevicesIterator(*api).IsValid())
       {
         auto factory = MakePtr<DirectSound::BackendWorkerFactory>(std::move(api));
         storage.Register(DirectSound::BACKEND_ID, DirectSound::BACKEND_DESCRIPTION, DirectSound::CAPABILITIES,
@@ -622,8 +623,8 @@ namespace Sound
     {
       try
       {
-        auto api = LoadDynamicApi();
-        return MakePtr<DevicesIterator>(std::move(api));
+        const auto api = LoadDynamicApi();
+        return MakePtr<DevicesIterator>(*api);
       }
       catch (const Error& e)
       {

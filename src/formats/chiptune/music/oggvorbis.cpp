@@ -32,7 +32,7 @@ namespace Formats::Chiptune
   namespace Ogg
   {
     const uint8_t SIGNATURE[] = {'O', 'g', 'g', 'S', 0};
-    const uint64_t UNFINISHED_PAGE_POSITION = ~0ull;
+    const uint64_t UNFINISHED_PAGE_POSITION = ~0uLL;
     const uint_t MAX_SEGMENT_SIZE = 255;
     const uint_t MAX_PAGE_SIZE = 32768;
     const uint_t CONTINUED_PACKET = 1;
@@ -169,7 +169,7 @@ namespace Formats::Chiptune
           currentStream->StartPage(Stream.Read<le_uint32_t>());
           /*const auto crc = */ Stream.Read<le_uint32_t>();
           const auto segmentsCount = Stream.ReadByte();
-          const auto segmentsSizes = Stream.PeekRawData(segmentsCount);
+          const auto* const segmentsSizes = Stream.PeekRawData(segmentsCount);
           if (!segmentsSizes)
           {
             Stream.Seek(offset);
@@ -185,7 +185,10 @@ namespace Formats::Chiptune
             currentStream->AddPart(offset, position, Stream.ReadData(std::min(payloadSize, Stream.GetRestSize())));
           }
         }
-        currentStream->Flush(target);
+        if (currentStream)
+        {
+          currentStream->Flush(target);
+        }
         return Stream.GetReadContainer();
       }
 
@@ -338,12 +341,12 @@ namespace Formats::Chiptune
         }
         else
         {
-          return Container::Ptr();
+          return {};
         }
       }
       catch (const std::exception&)
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 
@@ -410,7 +413,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
       }
 

@@ -25,4 +25,4 @@ void alGetSourcef(ALuint source, ALenum pname, ALfloat* value)
 #other
 const ALchar* alGetString(ALenum param)
 const ALCchar* alcGetString(ALCdevice* device, ALenum param)
-ALenum alGetError(void)
+ALenum alGetError()

@@ -62,8 +62,6 @@ namespace Formats::Packed
     public:
       explicit Bitstream(Binary::View data)
         : ByteStream(data.As<uint8_t>(), data.Size())
-        , Bits()
-        , Mask(0)
       {}
 
       uint8_t GetByte()
@@ -118,8 +116,8 @@ namespace Formats::Packed
       using ByteStream::GetProcessedBytes;
 
     private:
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class DataDecoder
@@ -226,7 +224,7 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Depacker->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       MegaLZ::DataDecoder decoder(data.SubView(0, MegaLZ::MAX_DECODED_SIZE));
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

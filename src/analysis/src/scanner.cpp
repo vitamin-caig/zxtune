@@ -47,7 +47,7 @@ namespace Analysis
 
     DecoderPtrType FetchDecoder()
     {
-      const DecoderPtrType result = Storage.front().Decoder;
+      auto result = Storage.front().Decoder;
       Storage.pop_front();
       return result;
     }
@@ -78,7 +78,7 @@ namespace Analysis
         return Position < rh.Position;
       }
     };
-    typedef std::list<PositionAndDecoder> StorageType;
+    using StorageType = std::list<PositionAndDecoder>;
     StorageType Storage;
   };
 
@@ -89,7 +89,6 @@ namespace Analysis
       : Delegate(delegate)
       , Limit(Delegate.Size())
       , Content(static_cast<const uint8_t*>(Delegate.Start()))
-      , Offset(0)
     {}
 
     std::size_t GetOffset() const
@@ -138,7 +137,7 @@ namespace Analysis
     const Binary::Container& Delegate;
     const std::size_t Limit;
     const uint8_t* const Content;
-    std::size_t Offset;
+    std::size_t Offset = 0;
   };
 
   template<class Traits>
@@ -281,9 +280,9 @@ namespace Analysis
 
   struct ArchivedDataTraits
   {
-    typedef Archived::Decoder Decoder;
-    typedef Archived::Container Container;
-    typedef std::deque<Decoder::Ptr> DecodersList;
+    using Decoder = Archived::Decoder;
+    using Container = Archived::Container;
+    using DecodersList = std::deque<Decoder::Ptr>;
 
     static std::size_t GetUsedSize(const Container& container)
     {
@@ -293,9 +292,9 @@ namespace Analysis
 
   struct PackedDataTraits
   {
-    typedef Packed::Decoder Decoder;
-    typedef Packed::Container Container;
-    typedef std::deque<Decoder::Ptr> DecodersList;
+    using Decoder = Packed::Decoder;
+    using Container = Packed::Container;
+    using DecodersList = std::deque<Decoder::Ptr>;
 
     static std::size_t GetUsedSize(const Container& container)
     {
@@ -305,9 +304,9 @@ namespace Analysis
 
   struct ImageDataTraits
   {
-    typedef Image::Decoder Decoder;
-    typedef Image::Container Container;
-    typedef std::deque<Decoder::Ptr> DecodersList;
+    using Decoder = Image::Decoder;
+    using Container = Image::Container;
+    using DecodersList = std::deque<Decoder::Ptr>;
 
     static std::size_t GetUsedSize(const Container& container)
     {
@@ -317,9 +316,9 @@ namespace Analysis
 
   struct ChiptuneDataTraits
   {
-    typedef Chiptune::Decoder Decoder;
-    typedef Chiptune::Container Container;
-    typedef std::deque<Decoder::Ptr> DecodersList;
+    using Decoder = Chiptune::Decoder;
+    using Container = Chiptune::Container;
+    using DecodersList = std::deque<Decoder::Ptr>;
 
     static std::size_t GetUsedSize(const Container& container)
     {

@@ -31,7 +31,7 @@ namespace
 
   void ShowModuleInfo(const Module::Information& info)
   {
-    if (const auto trackInfo = dynamic_cast<const Module::TrackInformation*>(&info))
+    if (const auto* const trackInfo = dynamic_cast<const Module::TrackInformation*>(&info))
     {
       std::cout << "Positions: " << trackInfo->PositionsCount() << " (" << trackInfo->LoopPosition() << ')'
                 << std::endl;
@@ -48,12 +48,12 @@ namespace
       Write(name, Parameters::ConvertToString(val));
     }
 
-    virtual void SetValue(Parameters::Identifier name, StringView val) override
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }
 
-    virtual void SetValue(Parameters::Identifier name, Binary::View val) override
+    void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }

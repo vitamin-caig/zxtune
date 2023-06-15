@@ -103,7 +103,7 @@ namespace Formats::Chiptune
         // big endian:
         // ffffffff ffffffff ffffcccb bbbbssss ssssssss ssssssss ssssssss ssssssss
         const uint64_t params = input.Read<be_uint64_t>();
-        const auto totalSamples = params & 0xfffffffffull;
+        const auto totalSamples = params & 0xfffffffffuLL;
         const auto bitsPerSample = 1 + uint_t((params >> 36) & 0x1f);
         const auto channels = 1 + uint_t((params >> 41) & 7);
         const auto sampleRate = uint_t(params >> 44);
@@ -136,9 +136,9 @@ namespace Formats::Chiptune
       std::size_t FindFrameHeader()
       {
         const auto limit = Stream.GetRestSize();
-        const auto start = Stream.PeekRawData(limit);
-        const auto end = start + limit;
-        for (auto cursor = start; cursor + MAX_HEADER_SIZE < end;)
+        const auto* const start = Stream.PeekRawData(limit);
+        const auto* const end = start + limit;
+        for (const auto* cursor = start; cursor + MAX_HEADER_SIZE < end;)
         {
           const auto headerSize = GetFrameHeaderSize(cursor);
           if (headerSize >= MIN_HEADER_SIZE)
@@ -146,7 +146,7 @@ namespace Formats::Chiptune
             Stream.Skip(cursor - start);
             return headerSize;
           }
-          const auto match = std::find(cursor + 1, end, 0xff);
+          const auto* const match = std::find(cursor + 1, end, 0xff);
           if (match == end)
           {
             return 0;
@@ -200,7 +200,7 @@ namespace Formats::Chiptune
       }
       catch (const std::exception&)
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 
@@ -264,7 +264,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
       }
 

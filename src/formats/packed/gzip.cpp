@@ -27,7 +27,7 @@ namespace Formats::Packed
 {
   namespace Gzip
   {
-    typedef std::array<uint8_t, 2> SignatureType;
+    using SignatureType = std::array<uint8_t, 2>;
 
     const SignatureType SIGNATURE = {{0x1f, 0x8b}};
 
@@ -122,7 +122,7 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Formats::Packed::Container::Ptr();
+        return {};
       }
       try
       {
@@ -160,7 +160,7 @@ namespace Formats::Packed
       {}
       catch (const std::exception&)
       {}
-      return Formats::Packed::Container::Ptr();
+      return {};
     }
 
   private:

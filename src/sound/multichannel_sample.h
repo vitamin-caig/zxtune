@@ -20,6 +20,6 @@ namespace Sound
   template<unsigned Channels>
   struct MultichannelSample
   {
-    typedef std::array<Sample::Type, Channels> Type;
+    using Type = std::array<Sample::Type, Channels>;
   };
 }  // namespace Sound

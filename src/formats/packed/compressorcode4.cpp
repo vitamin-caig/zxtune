@@ -24,6 +24,7 @@
 // std includes
 #include <algorithm>
 #include <iterator>
+#include <memory>
 
 namespace Formats::Packed
 {
@@ -60,7 +61,7 @@ namespace Formats::Packed
           return false;
         }
         const uint8_t RET_CODE = 0xc9;
-        const uint8_t* const depacker = safe_ptr_cast<const uint8_t*>(&header);
+        const auto* const depacker = safe_ptr_cast<const uint8_t*>(&header);
         return depacker[depackerSize - 1] == RET_CODE;
       }
 
@@ -99,7 +100,7 @@ namespace Formats::Packed
         {
           return false;
         }
-        const auto retPos = static_cast<const uint8_t*>(header.Padding1) + depackerSize - 256 - 1;
+        const auto* const retPos = static_cast<const uint8_t*>(header.Padding1) + depackerSize - 256 - 1;
         return *retPos == 0xc9;
       }
 
@@ -189,7 +190,6 @@ namespace Formats::Packed
     public:
       StreamAdapter(const uint8_t* data, std::size_t size)
         : ByteStream(data, size)
-        , UsedData(0)
       {}
 
       std::size_t GetUsedData() const
@@ -210,15 +210,14 @@ namespace Formats::Packed
       }
 
     private:
-      std::size_t UsedData;
+      std::size_t UsedData = 0;
     };
 
     class RawDataDecoder
     {
     public:
       RawDataDecoder(const uint8_t* data, std::size_t dataSize, uint_t chunksCount)
-        : IsValid(true)
-        , Stream(data, dataSize)
+        : Stream(data, dataSize)
         , ChunksCount(chunksCount)
         , Decoded(2 * ChunksCount)
       {
@@ -378,7 +377,7 @@ namespace Formats::Packed
       }
 
     private:
-      bool IsValid;
+      bool IsValid = true;
       StreamAdapter Stream;
       const uint_t ChunksCount;
       Binary::DataBuilder Decoded;
@@ -402,12 +401,12 @@ namespace Formats::Packed
 
       Binary::Container::Ptr GetResult()
       {
-        return Delegate.get() ? Delegate->GetResult() : Binary::Container::Ptr();
+        return Delegate ? Delegate->GetResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
       {
-        return Delegate.get() ? DataOffset + Delegate->GetUsedSize() : 0;
+        return Delegate ? DataOffset + Delegate->GetUsedSize() : 0;
       }
 
     private:
@@ -421,8 +420,6 @@ namespace Formats::Packed
     public:
       Bitstream(const uint8_t* data, std::size_t size)
         : Source(data, size)
-        , Bits()
-        , Mask(0)
       {}
 
       std::size_t GetUsedData() const
@@ -452,7 +449,7 @@ namespace Formats::Packed
 
       uint_t GetIndex()
       {
-        if (uint_t len = GetBits(3))
+        if (const uint_t len = GetBits(3))
         {
           return GetBits(len) | (1 << len);
         }
@@ -464,8 +461,8 @@ namespace Formats::Packed
 
     private:
       StreamAdapter Source;
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     template<>
@@ -475,22 +472,22 @@ namespace Formats::Packed
       explicit DataDecoder(const Container<Version4Plus>& container)
         : Header(container.GetHeader())
         , DataOffset(0x14 + Header.RestDepackerSize)
-        , DataSize(0)
       {
         if (container.FastCheck() && DecodeHuffman(container.GetAvailableData() - DataOffset))
         {
-          Delegate.reset(new RawDataDecoder(&UnhuffmanData.Get<uint8_t>(0), UnhuffmanData.Size(), Header.ChunksCount));
+          Delegate = std::make_unique<RawDataDecoder>(&UnhuffmanData.Get<uint8_t>(0), UnhuffmanData.Size(),
+                                                      Header.ChunksCount);
         }
       }
 
       Binary::Container::Ptr GetResult()
       {
-        return Delegate.get() ? Delegate->GetResult() : Binary::Container::Ptr();
+        return Delegate ? Delegate->GetResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
       {
-        return Delegate.get() ? DataOffset + DataSize : 0;
+        return Delegate ? DataOffset + DataSize : 0;
       }
 
     private:
@@ -518,7 +515,7 @@ namespace Formats::Packed
     private:
       const Version4Plus::RawHeader& Header;
       const uint_t DataOffset;
-      std::size_t DataSize;
+      std::size_t DataSize = 0;
       Binary::DataBuilder UnhuffmanData;
       std::unique_ptr<RawDataDecoder> Delegate;
     };
@@ -546,12 +543,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const CompressorCode::Container<Version> container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       CompressorCode::DataDecoder<Version> decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

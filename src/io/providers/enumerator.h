@@ -21,7 +21,7 @@ namespace IO
   class DataProvider : public Provider
   {
   public:
-    typedef std::shared_ptr<const DataProvider> Ptr;
+    using Ptr = std::shared_ptr<const DataProvider>;
 
     virtual Strings::Set Schemes() const = 0;
     virtual Identifier::Ptr Resolve(StringView uri) const = 0;

@@ -374,7 +374,7 @@ namespace Formats::Chiptune
         Ranges.AddService(0, sizeof(Source));
       }
 
-      void ParseCommonProperties(Builder& builder) const
+      static void ParseCommonProperties(Builder& builder)
       {
         builder.GetMetaBuilder().SetProgram(PROGRAM);
       }
@@ -408,7 +408,7 @@ namespace Formats::Chiptune
           }
           else
           {
-            const RawPosEntry::Channel& partialEntry = GetServiceObject<RawPosEntry::Channel>(posOffset);
+            const auto& partialEntry = GetServiceObject<RawPosEntry::Channel>(posOffset);
             Require(0 == partialEntry.GetPattern());
             const std::size_t tailSize = std::min(sizeof(RawPosEntry), Data.Size() - posOffset);
             Ranges.Add(posOffset, tailSize);
@@ -527,18 +527,14 @@ namespace Formats::Chiptune
 
       struct ParserState
       {
-        uint_t Counter;
+        uint_t Counter = 0;
         std::size_t Cursor;
-        uint_t LastNote;
-        std::size_t LastNoteStart;
-        bool RepeatLastNote;
+        uint_t LastNote = 0;
+        std::size_t LastNoteStart = 0;
+        bool RepeatLastNote = false;
 
         ParserState(std::size_t cursor)
-          : Counter()
-          , Cursor(cursor)
-          , LastNote()
-          , LastNoteStart()
-          , RepeatLastNote()
+          : Cursor(cursor)
         {}
       };
 

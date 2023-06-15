@@ -182,31 +182,22 @@ namespace Module::ProTracker2
   struct ChannelState
   {
     ChannelState()
-      : Enabled(false)
-      , Envelope(false)
-      , Note()
-      , SampleNum(Formats::Chiptune::ProTracker2::DEFAULT_SAMPLE)
-      , PosInSample(0)
+      : SampleNum(Formats::Chiptune::ProTracker2::DEFAULT_SAMPLE)
       , OrnamentNum(Formats::Chiptune::ProTracker2::DEFAULT_ORNAMENT)
-      , PosInOrnament(0)
-      , Volume(15)
-      , NoiseAdd(0)
-      , Sliding(0)
       , SlidingTargetNote(LIMITER)
-      , Glissade(0)
     {}
-    bool Enabled;
-    bool Envelope;
-    uint_t Note;
+    bool Enabled = false;
+    bool Envelope = false;
+    uint_t Note = 0;
     uint_t SampleNum;
-    uint_t PosInSample;
+    uint_t PosInSample = 0;
     uint_t OrnamentNum;
-    uint_t PosInOrnament;
-    uint_t Volume;
-    int_t NoiseAdd;
-    int_t Sliding;
+    uint_t PosInOrnament = 0;
+    uint_t Volume = 15;
+    int_t NoiseAdd = 0;
+    int_t Sliding = 0;
     uint_t SlidingTargetNote;
-    int_t Glissade;
+    int_t Glissade = 0;
   };
 
   class DataRenderer : public AYM::DataRenderer
@@ -233,11 +224,11 @@ namespace Module::ProTracker2
   private:
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }
@@ -245,7 +236,7 @@ namespace Module::ProTracker2
       }
     }
 
-    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
+    static void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (const bool* enabled = src.GetEnabled())
       {

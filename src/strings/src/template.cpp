@@ -65,13 +65,13 @@ namespace Strings
           // add text to set
           auto text = templ.substr(textBegin, fieldBegin - textBegin);
           const auto idx = FixedStrings.size();
-          FixedStrings.emplace_back(std::move(text));
+          FixedStrings.emplace_back(text);
           Entries.emplace_back(idx, false);
         }
         {
           auto field = templ.substr(fieldBegin + 1, fieldEnd - fieldBegin - 1);
           const auto idx = Fields.size();
-          Fields.emplace_back(std::move(field));
+          Fields.emplace_back(field);
           Entries.emplace_back(idx, true);
         }
         textBegin = fieldEnd + 1;
@@ -80,7 +80,7 @@ namespace Strings
       {
         auto restText = templ.substr(textBegin);
         const auto restIdx = FixedStrings.size();
-        FixedStrings.emplace_back(std::move(restText));
+        FixedStrings.emplace_back(restText);
         Entries.emplace_back(restIdx, false);
       }
     }
@@ -106,8 +106,8 @@ namespace Strings
     const String Value;
     std::vector<StringView> FixedStrings;
     std::vector<StringView> Fields;
-    typedef std::pair<std::size_t, bool> PartEntry;  // index => isField
-    typedef std::vector<PartEntry> PartEntries;
+    using PartEntry = std::pair<std::size_t, bool>;  // index => isField
+    using PartEntries = std::vector<PartEntry>;
     PartEntries Entries;
   };
 

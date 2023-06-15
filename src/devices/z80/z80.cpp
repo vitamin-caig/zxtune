@@ -39,34 +39,33 @@ namespace Devices::Z80
 
     std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const override
     {
-      ExtendedIOBus* const self = const_cast<ExtendedIOBus*>(this);
-      return std::shared_ptr<Z80EX_CONTEXT>(
-          z80ex_create(&ReadByte, self, &WriteByte, self, &InByte, self, &OutByte, self, &IntRead, self),
-          &z80ex_destroy);
+      auto* const self = const_cast<ExtendedIOBus*>(this);
+      return {z80ex_create(&ReadByte, self, &WriteByte, self, &InByte, self, &OutByte, self, &IntRead, self),
+              &z80ex_destroy};
     }
 
   private:
     static Z80EX_BYTE ReadByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
     {
-      const ExtendedIOBus* const self = static_cast<const ExtendedIOBus*>(userData);
+      const auto* const self = static_cast<const ExtendedIOBus*>(userData);
       return self->Read(*self->Memory, addr);
     }
 
     static void WriteByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
     {
-      const ExtendedIOBus* const self = static_cast<const ExtendedIOBus*>(userData);
+      const auto* const self = static_cast<const ExtendedIOBus*>(userData);
       return self->Write(*self->Memory, addr, value);
     }
 
     static Z80EX_BYTE InByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, void* userData)
     {
-      const ExtendedIOBus* const self = static_cast<const ExtendedIOBus*>(userData);
+      const auto* const self = static_cast<const ExtendedIOBus*>(userData);
       return self->Read(*self->Ports, port);
     }
 
     static void OutByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, Z80EX_BYTE value, void* userData)
     {
-      const ExtendedIOBus* const self = static_cast<const ExtendedIOBus*>(userData);
+      const auto* const self = static_cast<const ExtendedIOBus*>(userData);
       return self->Write(*self->Ports, port, value);
     }
 
@@ -75,7 +74,7 @@ namespace Devices::Z80
       return 0xff;
     }
 
-    Z80EX_BYTE Read(ChipIO& io, Z80EX_WORD addr) const
+    static Z80EX_BYTE Read(ChipIO& io, Z80EX_WORD addr)
     {
       return io.Read(addr);
     }
@@ -103,36 +102,35 @@ namespace Devices::Z80
 
     std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const override
     {
-      SimpleIOBus* const self = const_cast<SimpleIOBus*>(this);
+      auto* const self = const_cast<SimpleIOBus*>(this);
       const bool isLimited = Memory.size() < 65536;
       const z80ex_mread_cb read = isLimited ? &ReadByteLimited : &ReadByteUnlimited;
       const z80ex_mwrite_cb write = isLimited ? &WriteByteLimited : &WriteByteUnlimited;
-      return std::shared_ptr<Z80EX_CONTEXT>(
-          z80ex_create(read, self, write, self, &InByte, self, &OutByte, self, &IntRead, self), &z80ex_destroy);
+      return {z80ex_create(read, self, write, self, &InByte, self, &OutByte, self, &IntRead, self), &z80ex_destroy};
     }
 
   private:
     static Z80EX_BYTE ReadByteUnlimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
     {
-      const SimpleIOBus* const self = static_cast<const SimpleIOBus*>(userData);
+      const auto* const self = static_cast<const SimpleIOBus*>(userData);
       return self->RawMemory[addr];
     }
 
     static Z80EX_BYTE ReadByteLimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
     {
-      const SimpleIOBus* const self = static_cast<const SimpleIOBus*>(userData);
+      const auto* const self = static_cast<const SimpleIOBus*>(userData);
       return addr < self->Memory.size() ? self->RawMemory[addr] : 0xff;
     }
 
     static void WriteByteUnlimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
     {
-      SimpleIOBus* const self = static_cast<SimpleIOBus*>(userData);
+      auto* const self = static_cast<SimpleIOBus*>(userData);
       self->RawMemory[addr] = value;
     }
 
     static void WriteByteLimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
     {
-      SimpleIOBus* const self = static_cast<SimpleIOBus*>(userData);
+      auto* const self = static_cast<SimpleIOBus*>(userData);
       if (addr < self->Memory.size())
       {
         self->RawMemory[addr] = value;
@@ -141,13 +139,13 @@ namespace Devices::Z80
 
     static Z80EX_BYTE InByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, void* userData)
     {
-      const SimpleIOBus* const self = static_cast<const SimpleIOBus*>(userData);
+      const auto* const self = static_cast<const SimpleIOBus*>(userData);
       return self->Ports->Read(port);
     }
 
     static void OutByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, Z80EX_BYTE value, void* userData)
     {
-      const SimpleIOBus* const self = static_cast<const SimpleIOBus*>(userData);
+      const auto* const self = static_cast<const SimpleIOBus*>(userData);
       return self->Ports->Write(self->Clock, port, value);
     }
 
@@ -166,10 +164,7 @@ namespace Devices::Z80
   class ClockSource
   {
   public:
-    ClockSource()
-      : ClockFreq()
-      , IntDuration()
-    {}
+    ClockSource() = default;
 
     void Reset()
     {
@@ -227,8 +222,8 @@ namespace Devices::Z80
     }
 
   private:
-    uint64_t ClockFreq;
-    uint_t IntDuration;
+    uint64_t ClockFreq = 0;
+    uint_t IntDuration = 0;
     Oscillator Clock;
   };
 
@@ -264,7 +259,7 @@ namespace Devices::Z80
       const uint64_t limit = Clock.GetIntEnd();
       while (Clock.GetCurrentTick() < limit)
       {
-        if (uint_t tick = z80ex_int(Context.get()))
+        if (const uint_t tick = z80ex_int(Context.get()))
         {
           Clock.AdvanceTick(tick);
           continue;
@@ -394,18 +389,15 @@ namespace Devices::Z80
   };
 }  // namespace Devices::Z80
 
-namespace Devices
+namespace Devices::Z80
 {
-  namespace Z80
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports)
   {
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports)
-    {
-      return MakePtr<Z80Chip>(std::move(params), std::move(memory), std::move(ports));
-    }
+    return MakePtr<Z80Chip>(std::move(params), std::move(memory), std::move(ports));
+  }
 
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Binary::View memory, ChipIO::Ptr ports)
-    {
-      return MakePtr<Z80Chip>(std::move(params), memory, std::move(ports));
-    }
-  }  // namespace Z80
-}  // namespace Devices
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, Binary::View memory, ChipIO::Ptr ports)
+  {
+    return MakePtr<Z80Chip>(std::move(params), memory, std::move(ports));
+  }
+}  // namespace Devices::Z80

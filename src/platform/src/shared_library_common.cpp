@@ -54,6 +54,6 @@ namespace Platform
     }
     throw resError;
     // workaround for MSVS7.1
-    return SharedLibrary::Ptr();
+    return {};
   }
 }  // namespace Platform

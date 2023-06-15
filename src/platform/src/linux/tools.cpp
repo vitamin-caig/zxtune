@@ -13,10 +13,10 @@
 #include <platform/tools.h>
 // platform includes
 #include <dlfcn.h>
-#include <errno.h>
 #include <sys/stat.h>
 #include <unistd.h>
 // std includes
+#include <cerrno>
 #include <vector>
 
 namespace
@@ -31,13 +31,13 @@ namespace
     Dl_info info;
     if (::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info) && info.dli_sname && info.dli_saddr)
     {
-      const String result(info.dli_fname);
+      String result(info.dli_fname);
       Dbg("Shared library name: {}", result);
       return result;
     }
     else
     {
-      return String();
+      return {};
     }
   }
 
@@ -48,12 +48,12 @@ namespace
     if (-1 == ::lstat(selfPath.c_str(), &sb))
     {
       Dbg("Failed to stat {} (errno {})", selfPath, errno);
-      return String();
+      return {};
     }
     if (!S_ISLNK(sb.st_mode))
     {
       Dbg("{} is not a symlink", selfPath);
-      return String();
+      return {};
     }
 
     std::vector<char> filename(1024);
@@ -63,7 +63,7 @@ namespace
       if (len == -1)
       {
         Dbg("Failed to readlink '{}' (errno {})", selfPath, errno);
-        return String();
+        return {};
       }
       else if (len == static_cast<int>(filename.size()) - 1)
       {
@@ -75,7 +75,7 @@ namespace
         break;
       }
     }
-    const String result(filename.data());
+    String result(filename.data());
     Dbg("Executable name: {}", result);
     return result;
   }

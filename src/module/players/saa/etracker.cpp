@@ -37,17 +37,15 @@ namespace Module::ETracker
   using Formats::Chiptune::ETracker::Sample;
   using Formats::Chiptune::ETracker::Ornament;
 
-  typedef SimpleOrderListWithTransposition<Formats::Chiptune::ETracker::PositionEntry> OrderListWithTransposition;
+  using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::ETracker::PositionEntry>;
 
   class ModuleData : public TrackModel
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
-    ModuleData()
-      : InitialTempo()
-    {}
+    ModuleData() = default;
 
     uint_t GetChannelsCount() const override
     {
@@ -69,7 +67,7 @@ namespace Module::ETracker
       return *Patterns;
     }
 
-    uint_t InitialTempo;
+    uint_t InitialTempo = 0;
     OrderListWithTransposition::Ptr Order;
     PatternsSet::Ptr Patterns;
     SparsedObjectsStorage<Sample> Samples;
@@ -179,7 +177,6 @@ namespace Module::ETracker
   public:
     ObjectLinesIterator()
       : Obj()
-      , Position()
     {}
 
     void Set(const Object& obj)
@@ -213,23 +210,19 @@ namespace Module::ETracker
 
   private:
     const Object* Obj;
-    uint_t Position;
+    uint_t Position = 0;
   };
 
   // enabled state via sample
   struct ChannelState
   {
-    ChannelState()
-      : Note()
-      , Attenuation()
-      , SwapSampleChannels()
-    {}
+    ChannelState() = default;
 
-    uint_t Note;
+    uint_t Note = 0;
     ObjectLinesIterator<Sample> SampleIterator;
     ObjectLinesIterator<Ornament> OrnamentIterator;
-    uint_t Attenuation;
-    bool SwapSampleChannels;
+    uint_t Attenuation = 0;
+    bool SwapSampleChannels = false;
   };
 
   class DataRenderer : public SAA::DataRenderer
@@ -238,7 +231,6 @@ namespace Module::ETracker
     explicit DataRenderer(ModuleData::Ptr data)
       : Data(std::move(data))
       , Noise()
-      , Transposition()
     {
       Reset();
     }
@@ -247,9 +239,8 @@ namespace Module::ETracker
     {
       static const Sample STUB_SAMPLE;
       static const Ornament STUB_ORNAMENT;
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      for (auto& dst : PlayerState)
       {
-        ChannelState& dst = PlayerState[chan];
         dst = ChannelState();
         dst.SampleIterator.Set(STUB_SAMPLE);
         dst.SampleIterator.Disable();
@@ -276,11 +267,11 @@ namespace Module::ETracker
   private:
     void GetNewLineState(const TrackModelState& state, SAA::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             SAA::ChannelBuilder channel = track.GetChannel(chan);
             GetNewChannelState(chan, *src, PlayerState[chan], channel);
@@ -355,9 +346,7 @@ namespace Module::ETracker
     class Note
     {
     public:
-      Note()
-        : Value(0x7ff)
-      {}
+      Note() = default;
 
       void Set(uint_t halfTones)
       {
@@ -383,7 +372,7 @@ namespace Module::ETracker
       }
 
     private:
-      uint_t Value;
+      uint_t Value = 0x7ff;
     };
 
     void SynthesizeChannel(uint_t idx, SAA::ChannelBuilder& channel)
@@ -442,7 +431,7 @@ namespace Module::ETracker
     const ModuleData::Ptr Data;
     std::array<ChannelState, SAA::TRACK_CHANNELS> PlayerState;
     std::array<uint_t, 2> Noise;
-    uint_t Transposition;
+    uint_t Transposition = 0;
   };
 
   class Chiptune : public SAA::Chiptune
@@ -495,7 +484,7 @@ namespace Module::ETracker
         auto chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
         return SAA::CreateHolder(std::move(chiptune));
       }
-      return Holder::Ptr();
+      return {};
     }
   };
 

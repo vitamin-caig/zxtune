@@ -26,6 +26,7 @@
 #include <parameters/accessor.h>
 // std includes
 #include <cstring>
+#include <utility>
 
 namespace IO::Network
 {
@@ -110,7 +111,7 @@ namespace IO::Network
   {
   public:
     explicit RemoteResource(Curl::Api::Ptr api)
-      : Object(api)
+      : Object(std::move(api))
     {
       Object.SetOption(CURLOPT_DEBUGFUNCTION, reinterpret_cast<void*>(&DebugCallback), THIS_LINE);
       Object.SetOption(CURLOPT_VERBOSE, 1, THIS_LINE);
@@ -191,10 +192,10 @@ namespace IO::Network
 
     static int ProgressCallback(void* data, double dlTotal, double dlNow, double /*ulTotal*/, double /*ulNow*/)
     {
-      if (dlTotal)  // 0 for source files with unknown size
+      if (dlTotal != 0.0)  // 0 for source files with unknown size
       {
-        Log::ProgressCallback* const cb = static_cast<Log::ProgressCallback*>(data);
-        const uint_t progress = static_cast<uint_t>(dlNow * 100 / dlTotal);
+        auto* const cb = static_cast<Log::ProgressCallback*>(data);
+        const auto progress = static_cast<uint_t>(dlNow * 100 / dlTotal);
         cb->OnProgress(progress);
       }
       return 0;
@@ -247,13 +248,13 @@ namespace IO::Network
     String Filename() const override
     {
       // filename usually is useless on remote schemes
-      return String();
+      return {};
     }
 
     String Extension() const override
     {
       // filename usually is useless on remote schemes
-      return String();
+      return {};
     }
 
     String Subpath() const override
@@ -306,7 +307,7 @@ namespace IO::Network
 
     Error Status() const override
     {
-      return Error();
+      return {};
     }
 
     Strings::Set Schemes() const override
@@ -372,16 +373,16 @@ namespace IO
 {
   DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api)
   {
-    return MakePtr<Network::DataProvider>(api);
+    return MakePtr<Network::DataProvider>(std::move(api));
   }
 
   void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
   {
     try
     {
-      const Curl::Api::Ptr api = Curl::LoadDynamicApi();
+      auto api = Curl::LoadDynamicApi();
       Network::Dbg("Detected CURL library {}", api->curl_version());
-      enumerator.RegisterProvider(CreateNetworkDataProvider(api));
+      enumerator.RegisterProvider(CreateNetworkDataProvider(std::move(api)));
     }
     catch (const Error& e)
     {

@@ -281,13 +281,13 @@ namespace Formats::Chiptune
       template<class RawHeader>
       static HeaderTraits Create(Binary::View data)
       {
-        const RawHeader* const hdr = data.As<RawHeader>();
+        const auto* const hdr = data.As<RawHeader>();
         Require(hdr != nullptr);
         return HeaderTraits(*hdr);
       }
     };
 
-    typedef HeaderTraits (*CreateHeaderFunc)(Binary::View);
+    using CreateHeaderFunc = HeaderTraits (*)(Binary::View);
 
     struct VersionTraits
     {
@@ -306,7 +306,7 @@ namespace Formats::Chiptune
     struct Version0
     {
       static const VersionTraits TRAITS;
-      typedef RawHeaderVer0 RawHeader;
+      using RawHeader = RawHeaderVer0;
     };
 
     const VersionTraits Version0::TRAITS = {255, 0x2400,  //~9k
@@ -323,7 +323,7 @@ namespace Formats::Chiptune
     struct Version1
     {
       static const VersionTraits TRAITS;
-      typedef RawHeaderVer1 RawHeader;
+      using RawHeader = RawHeaderVer1;
     };
 
     const VersionTraits Version1::TRAITS = {256, 0x3a00,  //~15k
@@ -646,7 +646,7 @@ namespace Formats::Chiptune
       {
         Dbg("Samples: {} to parse", samples.Count());
         const std::size_t baseOffset = Header.SamplesOffset;
-        const RawSamplesList& list = GetServiceObject<RawSamplesList>(baseOffset);
+        const auto& list = GetServiceObject<RawSamplesList>(baseOffset);
         std::size_t prevOffset = list.Offsets[0] - sizeof(RawSample::Line);
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
@@ -664,7 +664,7 @@ namespace Formats::Chiptune
       {
         Dbg("Ornaments: {} to parse", ornaments.Count());
         const std::size_t baseOffset = Header.OrnamentsOffset;
-        const RawOrnamentsList& list = GetServiceObject<RawOrnamentsList>(baseOffset);
+        const auto& list = GetServiceObject<RawOrnamentsList>(baseOffset);
         std::size_t prevOffset = list.Offsets[0] - sizeof(RawOrnament::Line);
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
@@ -733,17 +733,12 @@ namespace Formats::Chiptune
       {
         struct ChannelState
         {
-          std::size_t Offset;
-          uint_t Period;
-          uint_t Counter;
-          bool Envelope;
+          std::size_t Offset = 0;
+          uint_t Period = 0;
+          uint_t Counter = 0;
+          bool Envelope = false;
 
-          ChannelState()
-            : Offset()
-            , Period()
-            , Counter()
-            , Envelope()
-          {}
+          ChannelState() = default;
 
           void Skip(uint_t toSkip)
           {
@@ -759,7 +754,6 @@ namespace Formats::Chiptune
         std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
-          : Channels()
         {
           for (std::size_t idx = 0; idx != src.size(); ++idx)
           {
@@ -783,7 +777,7 @@ namespace Formats::Chiptune
 
       bool ParsePattern(std::size_t baseOffset, uint_t patIndex, Builder& builder) const
       {
-        const RawPattern& pat = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
+        const auto& pat = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         const DataCursors rangesStarts(pat, baseOffset);
         ParserState state(rangesStarts);
@@ -829,11 +823,7 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          if (state.Offset >= Data.Size())
-          {
-            return false;
-          }
-          else if (0 == chan && 0xff == PeekByte(state.Offset))
+          if (state.Offset >= Data.Size() || (0 == chan && 0xff == PeekByte(state.Offset)))
           {
             return false;
           }
@@ -957,7 +947,7 @@ namespace Formats::Chiptune
 
       Sample ParseSample(std::size_t offset) const
       {
-        const RawSample& src = GetObject<RawSample>(offset);
+        const auto& src = GetObject<RawSample>(offset);
         Sample result;
         const std::size_t availSize = (Data.Size() - offset) / sizeof(RawSample::Line);
         for (std::size_t idx = 0, lim = std::min(availSize, MAX_SAMPLE_SIZE); idx != lim; ++idx)
@@ -1096,11 +1086,7 @@ namespace Formats::Chiptune
           return false;
         }
         const std::size_t idSize = GetAreaSize(IDENTIFIER);
-        if (idSize != 0 && idSize < sizeof(RawId))
-        {
-          return false;
-        }
-        return true;
+        return idSize == 0 || idSize >= sizeof(RawId);
       }
 
       bool CheckSamples() const

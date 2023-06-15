@@ -39,8 +39,8 @@ namespace Strings
         else
         {
           T result = T();
-          auto it = str.begin();
-          const auto lim = str.end();
+          const auto* it = str.begin();
+          const auto* const lim = str.end();
           const bool hasMinus = std::is_signed<T>::value && *it == '-';
           if (*it == '-' || *it == '+')
           {

@@ -19,7 +19,7 @@
 
 namespace ZXTune
 {
-  typedef Formats::Archived::Decoder::Ptr (*CreateArchivedDecoderFunc)();
+  using CreateArchivedDecoderFunc = Formats::Archived::Decoder::Ptr (*)();
 
   struct ContainerPluginDescription
   {

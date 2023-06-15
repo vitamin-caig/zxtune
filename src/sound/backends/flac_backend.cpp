@@ -23,14 +23,13 @@
 #include <sound/render_params.h>
 // std includes
 #include <algorithm>
-#include <functional>
 #include <optional>
 
 namespace Sound::Flac
 {
   const Debug::Stream Dbg("Sound::Backend::Flac");
 
-  typedef std::shared_ptr<FLAC__StreamEncoder> EncoderPtr;
+  using EncoderPtr = std::shared_ptr<FLAC__StreamEncoder>;
 
   void CheckFlacCall(FLAC__bool res, Error::LocationRef loc)
   {
@@ -48,12 +47,12 @@ namespace Sound::Flac
    FLAC__stream_encoder_set_bits_per_sample().  For example, if the resolution
    is 16 bits per sample, the samples should all be in the range [-32768,32767].
   */
-  typedef std::pair<FLAC__int32, FLAC__int32> FlacSample;
+  using FlacSample = std::pair<FLAC__int32, FLAC__int32>;
 
   inline FlacSample ConvertSample(Sample in)
   {
     static_assert(Sample::MID == 0, "Incompatible sound sample type");
-    return FlacSample(in.Left(), in.Right());
+    return {in.Left(), in.Right()};
   }
 
   class MetaData
@@ -62,7 +61,7 @@ namespace Sound::Flac
     explicit MetaData(Api::Ptr api)
       : FlacApi(std::move(api))
       , Tags(FlacApi->FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT),
-             std::bind(&Api::FLAC__metadata_object_delete, FlacApi, std::placeholders::_1))
+             [api = FlacApi](auto&& arg) { api->FLAC__metadata_object_delete(arg); })
     {}
 
     void AddTag(const String& name, const String& value)
@@ -90,9 +89,9 @@ namespace Sound::Flac
   {
   public:
     FileStream(Api::Ptr api, EncoderPtr encoder, Binary::OutputStream::Ptr stream)
-      : FlacApi(api)
+      : FlacApi(std::move(api))
       , Encoder(std::move(encoder))
-      , Meta(api)
+      , Meta(FlacApi)
       , Stream(std::move(stream))
     {}
 
@@ -115,8 +114,7 @@ namespace Sound::Flac
     {
       Meta.Encode(*Encoder);
       // real stream initializing should be performed after all set functions
-      if (const Binary::SeekableOutputStream::Ptr seekableStream =
-              std::dynamic_pointer_cast<Binary::SeekableOutputStream>(Stream))
+      if (const auto seekableStream = std::dynamic_pointer_cast<Binary::SeekableOutputStream>(Stream))
       {
         Dbg("Using seekable stream for FLAC output");
         CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK
@@ -157,7 +155,7 @@ namespace Sound::Flac
                                                         const FLAC__byte buffer[], size_t bytes, unsigned /*samples*/,
                                                         unsigned /*current_frame*/, void* client_data)
     {
-      Binary::OutputStream* const stream = static_cast<Binary::OutputStream*>(client_data);
+      auto* const stream = static_cast<Binary::OutputStream*>(client_data);
       stream->ApplyData(Binary::View(buffer, bytes));
       return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     }
@@ -165,7 +163,7 @@ namespace Sound::Flac
     static FLAC__StreamEncoderSeekStatus SeekCallback(const FLAC__StreamEncoder* /*encoder*/,
                                                       FLAC__uint64 absolute_byte_offset, void* client_data)
     {
-      Binary::SeekableOutputStream* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
+      auto* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
       stream->Seek(absolute_byte_offset);
       return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
     }
@@ -173,7 +171,7 @@ namespace Sound::Flac
     static FLAC__StreamEncoderTellStatus TellCallback(const FLAC__StreamEncoder* /*encoder*/,
                                                       FLAC__uint64* absolute_byte_offset, void* client_data)
     {
-      Binary::SeekableOutputStream* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
+      auto* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
       *absolute_byte_offset = stream->Position();
       return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
     }
@@ -242,10 +240,10 @@ namespace Sound::Flac
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
-      const EncoderPtr encoder(FlacApi->FLAC__stream_encoder_new(),
-                               std::bind(&Api::FLAC__stream_encoder_delete, FlacApi, std::placeholders::_1));
+      auto encoder = EncoderPtr(FlacApi->FLAC__stream_encoder_new(),
+                                [api = FlacApi](auto&& arg) { api->FLAC__stream_encoder_delete(arg); });
       SetupEncoder(*encoder);
-      return MakePtr<FileStream>(FlacApi, encoder, stream);
+      return MakePtr<FileStream>(FlacApi, std::move(encoder), std::move(stream));
     }
 
   private:

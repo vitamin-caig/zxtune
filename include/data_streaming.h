@@ -20,9 +20,9 @@ template<class T>
 class DataReceiver
 {
 public:
-  typedef T InDataType;
+  using InDataType = T;
   //! @brief Pointer type
-  typedef typename std::shared_ptr<DataReceiver<T> > Ptr;
+  using Ptr = typename std::shared_ptr<DataReceiver<T>>;
 
   virtual ~DataReceiver() = default;
 
@@ -55,9 +55,9 @@ template<class T>
 class DataTransmitter
 {
 public:
-  typedef T OutDataType;
+  using OutDataType = T;
   //! @brief Pointer type
-  typedef typename std::shared_ptr<DataTransmitter> Ptr;
+  using Ptr = typename std::shared_ptr<DataTransmitter>;
 
   virtual ~DataTransmitter() = default;
 
@@ -72,7 +72,7 @@ class DataTransceiver
 {
 public:
   //! @brief Pointer type.
-  typedef typename std::shared_ptr<DataTransceiver<InType, OutType> > Ptr;
+  using Ptr = typename std::shared_ptr<DataTransceiver<InType, OutType>>;
 };
 
 template<class InType, class OutType = InType>

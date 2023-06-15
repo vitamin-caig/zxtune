@@ -154,17 +154,12 @@ namespace
     }
   };
 
-  static const QLatin1String LINE_BREAK("\n");
+  const QLatin1String LINE_BREAK("\n");
 
   class StatisticNotification : public Playlist::Item::StatisticTextNotification
   {
   public:
-    StatisticNotification()
-      : Processed()
-      , Invalids()
-      , Duration()
-      , Size()
-    {}
+    StatisticNotification() = default;
 
     QString Category() const override
     {
@@ -224,10 +219,10 @@ namespace
     }
 
   private:
-    std::size_t Processed;
-    std::size_t Invalids;
+    std::size_t Processed = 0;
+    std::size_t Invalids = 0;
     Time::Duration<Time::BaseUnit<uint64_t, 1000>> Duration;
-    uint64_t Size;
+    uint64_t Size = 0;
     Strings::ValueMap<std::size_t> Types;
     std::set<String> Paths;
   };
@@ -240,9 +235,7 @@ namespace
   class ExportResult : public Playlist::Item::ConversionResultNotification
   {
   public:
-    ExportResult()
-      : Succeeds()
-    {}
+    ExportResult() = default;
 
     QString Category() const override
     {
@@ -279,7 +272,7 @@ namespace
     }
 
   private:
-    std::size_t Succeeds;
+    std::size_t Succeeds = 0;
     QStringList Errors;
   };
 
@@ -469,7 +462,7 @@ namespace
     void SaveAsSelected() const override
     {
       const Playlist::Item::Data::Ptr item = GetSelectedItem();
-      if (const Playlist::Item::Conversion::Options::Ptr params = UI::GetSaveAsParameters(item))
+      if (const Playlist::Item::Conversion::Options::Ptr params = UI::GetSaveAsParameters(*item))
       {
         ExecuteConvertOperation(*params);
       }
@@ -477,23 +470,23 @@ namespace
 
     void SelectFound() const override
     {
-      if (Playlist::Item::SelectionOperation::Ptr op = Playlist::UI::ExecuteSearchDialog(View))
+      if (auto op = Playlist::UI::ExecuteSearchDialog(View))
       {
-        ExecuteSelectOperation(op);
+        ExecuteSelectOperation(std::move(op));
       }
     }
 
     void SelectFoundInSelected() const override
     {
-      if (Playlist::Item::SelectionOperation::Ptr op = Playlist::UI::ExecuteSearchDialog(View, SelectedItems))
+      if (auto op = Playlist::UI::ExecuteSearchDialog(View, SelectedItems))
       {
-        ExecuteSelectOperation(op);
+        ExecuteSelectOperation(std::move(op));
       }
     }
 
     void ShowPropertiesOfSelected() const override
     {
-      Playlist::UI::ExecutePropertiesDialog(View, Controller.GetModel(), SelectedItems);
+      Playlist::UI::ExecutePropertiesDialog(View, Controller.GetModel(), *SelectedItems);
     }
 
     void ShuffleAll() const override
@@ -521,7 +514,7 @@ namespace
       const Playlist::Model::Ptr model = Controller.GetModel();
       Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)),
                              SLOT(RemoveItems(Playlist::Model::IndexSet::Ptr))));
-      model->PerformOperation(op);
+      model->PerformOperation(std::move(op));
     }
 
     void ExecuteSelectOperation(Playlist::Item::SelectionOperation::Ptr op) const
@@ -529,7 +522,7 @@ namespace
       const Playlist::Model::Ptr model = Controller.GetModel();
       Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)),
                            SLOT(SelectItems(Playlist::Model::IndexSet::Ptr))));
-      model->PerformOperation(op);
+      model->PerformOperation(std::move(op));
     }
 
     void ExecuteNotificationOperation(Playlist::Item::TextResultOperation::Ptr op) const
@@ -537,7 +530,7 @@ namespace
       const Playlist::Model::Ptr model = Controller.GetModel();
       Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
                                  SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
-      model->PerformOperation(op);
+      model->PerformOperation(std::move(op));
     }
 
     void ExecuteConvertAllOperation(const Playlist::Item::Conversion::Options& opts) const
@@ -569,18 +562,15 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
-  {
-    ItemsContextMenu::ItemsContextMenu(QObject& parent)
-      : QObject(&parent)
-    {}
+  ItemsContextMenu::ItemsContextMenu(QObject& parent)
+    : QObject(&parent)
+  {}
 
-    void ExecuteContextMenu(const QPoint& pos, TableView& view, Controller& playlist)
-    {
-      ItemsContextMenuImpl menu(view, playlist);
-      menu.Exec(pos);
-    }
-  }  // namespace UI
-}  // namespace Playlist
+  void ExecuteContextMenu(const QPoint& pos, TableView& view, Controller& playlist)
+  {
+    ItemsContextMenuImpl menu(view, playlist);
+    menu.Exec(pos);
+  }
+}  // namespace Playlist::UI

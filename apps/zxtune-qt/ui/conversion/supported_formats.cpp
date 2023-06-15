@@ -121,7 +121,7 @@ namespace
     }
 
   private:
-    typedef std::map<String, QRadioButton*> IdToButton;
+    using IdToButton = std::map<String, QRadioButton*>;
 
     void SetupButton(IdToButton::value_type but)
     {

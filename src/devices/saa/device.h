@@ -13,216 +13,206 @@
 // local includes
 #include "generators.h"
 
-namespace Devices
+namespace Devices::SAA
 {
-  namespace SAA
+  inline uint_t LoNibble(uint_t val)
   {
-    inline uint_t LoNibble(uint_t val)
+    return val & 15;
+  }
+
+  inline uint_t HiNibble(uint_t val)
+  {
+    return val >> 4;
+  }
+
+  class SAASubDevice
+  {
+  public:
+    SAASubDevice() = default;
+
+    void SetLevel(uint_t generator, uint_t left, uint_t right)
     {
-      return val & 15;
+      Levels[generator] = FastSample(left, right);
     }
 
-    inline uint_t HiNibble(uint_t val)
+    void SetToneNumber(uint_t generator, uint_t number)
     {
-      return val >> 4;
+      Tones[generator].SetNumber(number);
+      UpdateLinkedGenerators(generator);
     }
 
-    class SAASubDevice
+    void SetToneOctave(uint_t generator, uint_t octave)
     {
-    public:
-      SAASubDevice()
-        : Tones()
-        , Noise()
-        , Envelope()
-        , Levels()
-      {}
+      Tones[generator].SetOctave(octave);
+      UpdateLinkedGenerators(generator);
+    }
 
-      void SetLevel(uint_t generator, uint_t left, uint_t right)
-      {
-        Levels[generator] = FastSample(left, right);
-      }
-
-      void SetToneNumber(uint_t generator, uint_t number)
-      {
-        Tones[generator].SetNumber(number);
-        UpdateLinkedGenerators(generator);
-      }
-
-      void SetToneOctave(uint_t generator, uint_t octave)
-      {
-        Tones[generator].SetOctave(octave);
-        UpdateLinkedGenerators(generator);
-      }
-
-      void SetToneMixer(uint_t mixer)
-      {
-        Tones[0].SetMasked(0 == (mixer & 1));
-        Tones[1].SetMasked(0 == (mixer & 2));
-        Tones[2].SetMasked(0 == (mixer & 4));
-      }
-
-      void SetNoiseMixer(uint_t mixer)
-      {
-        Noise.SetMixer(mixer & 7);
-      }
-
-      void SetNoiseControl(uint_t ctrl)
-      {
-        Noise.SetMode(ctrl & 3);
-      }
-
-      void SetEnvelope(uint_t value)
-      {
-        Envelope.SetControl(value);
-      }
-
-      void Reset()
-      {
-        for (std::size_t chan = 0; chan != 3; ++chan)
-        {
-          Tones[chan].Reset();
-          Levels[chan] = FastSample();
-        }
-        Noise.Reset();
-        Envelope.Reset();
-      }
-
-      void Tick(uint_t ticks)
-      {
-        Tones[0].Tick(ticks);
-        Tones[1].Tick(ticks);
-        Tones[2].Tick(ticks);
-        Noise.Tick(ticks);
-        Envelope.Tick(ticks);
-      }
-
-      FastSample GetLevels() const
-      {
-        const uint_t noise = Noise.GetLevel();
-
-        FastSample out;
-        if (noise & Tones[0].GetLevel<1>())
-        {
-          out.Add(Levels[0]);
-        }
-        if (noise & Tones[1].GetLevel<2>())
-        {
-          out.Add(Levels[1]);
-        }
-        if (noise & Tones[2].GetLevel<4>())
-        {
-          out.Add(Envelope.GetLevel(Levels[2]));
-        }
-        return out;
-      }
-
-    private:
-      void UpdateLinkedGenerators(uint_t generator)
-      {
-        if (0 == generator)
-        {
-          Noise.SetPeriod(Tones[0].GetHalfPeriod());
-        }
-        else if (1 == generator)
-        {
-          Envelope.SetPeriod(Tones[1].GetHalfPeriod());
-        }
-      }
-
-    private:
-      ToneGenerator Tones[3];
-      NoiseGenerator Noise;
-      EnvelopeGenerator Envelope;
-      FastSample Levels[3];
-    };
-
-    class SAADevice
+    void SetToneMixer(uint_t mixer)
     {
-    public:
-      SAADevice()
-        : Subdevices()
-      {}
+      Tones[0].SetMasked(0 == (mixer & 1));
+      Tones[1].SetMasked(0 == (mixer & 2));
+      Tones[2].SetMasked(0 == (mixer & 4));
+    }
 
-      void SetLevel(uint_t generator, uint_t left, uint_t right)
+    void SetNoiseMixer(uint_t mixer)
+    {
+      Noise.SetMixer(mixer & 7);
+    }
+
+    void SetNoiseControl(uint_t ctrl)
+    {
+      Noise.SetMode(ctrl & 3);
+    }
+
+    void SetEnvelope(uint_t value)
+    {
+      Envelope.SetControl(value);
+    }
+
+    void Reset()
+    {
+      for (std::size_t chan = 0; chan != 3; ++chan)
       {
-        if (generator < 3)
-        {
-          Subdevices[0].SetLevel(generator, left, right);
-        }
-        else
-        {
-          Subdevices[1].SetLevel(generator - 3, left, right);
-        }
+        Tones[chan].Reset();
+        Levels[chan] = FastSample();
       }
+      Noise.Reset();
+      Envelope.Reset();
+    }
 
-      void SetToneNumber(uint_t generator, uint_t number)
+    void Tick(uint_t ticks)
+    {
+      Tones[0].Tick(ticks);
+      Tones[1].Tick(ticks);
+      Tones[2].Tick(ticks);
+      Noise.Tick(ticks);
+      Envelope.Tick(ticks);
+    }
+
+    FastSample GetLevels() const
+    {
+      const uint_t noise = Noise.GetLevel();
+
+      FastSample out;
+      if (noise & Tones[0].GetLevel<1>())
       {
-        if (generator < 3)
-        {
-          Subdevices[0].SetToneNumber(generator, number);
-        }
-        else
-        {
-          Subdevices[1].SetToneNumber(generator - 3, number);
-        }
+        out.Add(Levels[0]);
       }
-
-      void SetToneOctave(uint_t generator, uint_t octave)
+      if (noise & Tones[1].GetLevel<2>())
       {
-        if (generator < 3)
-        {
-          Subdevices[0].SetToneOctave(generator, octave);
-        }
-        else
-        {
-          Subdevices[1].SetToneOctave(generator - 3, octave);
-        }
+        out.Add(Levels[1]);
       }
-
-      void SetToneMixer(uint_t mixer)
+      if (noise & Tones[2].GetLevel<4>())
       {
-        Subdevices[0].SetToneMixer(mixer);
-        Subdevices[1].SetToneMixer(mixer >> 3);
+        out.Add(Envelope.GetLevel(Levels[2]));
       }
+      return out;
+    }
 
-      void SetNoiseMixer(uint_t mixer)
+  private:
+    void UpdateLinkedGenerators(uint_t generator)
+    {
+      if (0 == generator)
       {
-        Subdevices[0].SetNoiseMixer(mixer);
-        Subdevices[1].SetNoiseMixer(mixer >> 3);
+        Noise.SetPeriod(Tones[0].GetHalfPeriod());
       }
-
-      void SetNoiseControl(uint_t ctrl)
+      else if (1 == generator)
       {
-        Subdevices[0].SetNoiseControl(LoNibble(ctrl));
-        Subdevices[1].SetNoiseControl(HiNibble(ctrl));
+        Envelope.SetPeriod(Tones[1].GetHalfPeriod());
       }
+    }
 
-      void SetEnvelope(uint_t generator, uint_t value)
+  private:
+    ToneGenerator Tones[3];
+    NoiseGenerator Noise;
+    EnvelopeGenerator Envelope;
+    FastSample Levels[3];
+  };
+
+  class SAADevice
+  {
+  public:
+    SAADevice() = default;
+
+    void SetLevel(uint_t generator, uint_t left, uint_t right)
+    {
+      if (generator < 3)
       {
-        Subdevices[generator].SetEnvelope(value);
+        Subdevices[0].SetLevel(generator, left, right);
       }
-
-      void Reset()
+      else
       {
-        Subdevices[0].Reset();
-        Subdevices[1].Reset();
+        Subdevices[1].SetLevel(generator - 3, left, right);
       }
+    }
 
-      void Tick(uint_t ticks)
+    void SetToneNumber(uint_t generator, uint_t number)
+    {
+      if (generator < 3)
       {
-        Subdevices[0].Tick(ticks);
-        Subdevices[1].Tick(ticks);
+        Subdevices[0].SetToneNumber(generator, number);
       }
-
-      Sound::Sample GetLevels() const
+      else
       {
-        FastSample out = Subdevices[0].GetLevels();
-        out.Add(Subdevices[1].GetLevels());
-        return out.Convert();
+        Subdevices[1].SetToneNumber(generator - 3, number);
       }
+    }
 
-    private:
-      SAASubDevice Subdevices[2];
-    };
-  }  // namespace SAA
-}  // namespace Devices
+    void SetToneOctave(uint_t generator, uint_t octave)
+    {
+      if (generator < 3)
+      {
+        Subdevices[0].SetToneOctave(generator, octave);
+      }
+      else
+      {
+        Subdevices[1].SetToneOctave(generator - 3, octave);
+      }
+    }
+
+    void SetToneMixer(uint_t mixer)
+    {
+      Subdevices[0].SetToneMixer(mixer);
+      Subdevices[1].SetToneMixer(mixer >> 3);
+    }
+
+    void SetNoiseMixer(uint_t mixer)
+    {
+      Subdevices[0].SetNoiseMixer(mixer);
+      Subdevices[1].SetNoiseMixer(mixer >> 3);
+    }
+
+    void SetNoiseControl(uint_t ctrl)
+    {
+      Subdevices[0].SetNoiseControl(LoNibble(ctrl));
+      Subdevices[1].SetNoiseControl(HiNibble(ctrl));
+    }
+
+    void SetEnvelope(uint_t generator, uint_t value)
+    {
+      Subdevices[generator].SetEnvelope(value);
+    }
+
+    void Reset()
+    {
+      Subdevices[0].Reset();
+      Subdevices[1].Reset();
+    }
+
+    void Tick(uint_t ticks)
+    {
+      Subdevices[0].Tick(ticks);
+      Subdevices[1].Tick(ticks);
+    }
+
+    Sound::Sample GetLevels() const
+    {
+      FastSample out = Subdevices[0].GetLevels();
+      out.Add(Subdevices[1].GetLevels());
+      return out.Convert();
+    }
+
+  private:
+    SAASubDevice Subdevices[2];
+  };
+}  // namespace Devices::SAA

@@ -99,11 +99,7 @@ namespace Formats::Packed
           return false;
         }
         const uint_t sides = header.Sides;
-        if (!Math::InRange(sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT))
-        {
-          return false;
-        }
-        return true;
+        return Math::InRange(sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT);
       }
 
       const RawHeader& GetHeader() const
@@ -130,7 +126,6 @@ namespace Formats::Packed
         , Header(container.GetHeader())
         , Limit(container.GetSize())
         , Result(FDI_MAX_SIZE)
-        , UsedSize(0)
       {
         IsValid = DecodeData();
       }
@@ -140,7 +135,7 @@ namespace Formats::Packed
         return IsValid ? Result.CaptureResult() : Binary::Container::Ptr();
       }
 
-      std::size_t GetUsedSize()
+      std::size_t GetUsedSize() const
       {
         return UsedSize;
       }
@@ -148,7 +143,7 @@ namespace Formats::Packed
     private:
       bool DecodeData()
       {
-        const uint8_t* const rawData = static_cast<const uint8_t*>(Header.ID);
+        const auto* const rawData = static_cast<const uint8_t*>(Header.ID);
         const std::size_t dataOffset = Header.DataOffset;
         const uint_t cylinders = Header.Cylinders;
         const uint_t sides = Header.Sides;
@@ -164,7 +159,7 @@ namespace Formats::Packed
               return false;
             }
 
-            const RawTrack* const trackInfo = safe_ptr_cast<const RawTrack*>(rawData + trackInfoOffset);
+            const auto* const trackInfo = safe_ptr_cast<const RawTrack*>(rawData + trackInfoOffset);
             // collect sectors reference
             std::map<uint_t, Binary::View> sectors;
             for (std::size_t secNum = 0; secNum != trackInfo->SectorsCount; ++secNum)
@@ -204,7 +199,7 @@ namespace Formats::Packed
       const RawHeader& Header;
       const std::size_t Limit;
       Binary::DataBuilder Result;
-      std::size_t UsedSize;
+      std::size_t UsedSize = 0;
     };
 
     const Char DESCRIPTION[] = "FDI (Full Disk Image)";
@@ -240,7 +235,7 @@ namespace Formats::Packed
       const FullDiskImage::Container container(data, availSize);
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       FullDiskImage::Decoder decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

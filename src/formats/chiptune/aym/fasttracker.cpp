@@ -559,7 +559,7 @@ namespace Formats::Chiptune
         const std::size_t positionsStart = sizeof(Source);
         for (uint_t posIdx = 0;; ++posIdx)
         {
-          const RawPosition& pos = GetServiceObject<RawPosition>(positionsStart + sizeof(RawPosition) * posIdx);
+          const auto& pos = GetServiceObject<RawPosition>(positionsStart + sizeof(RawPosition) * posIdx);
           const uint_t patIdx = pos.PatternIndex;
           if (patIdx == 0xff)
           {
@@ -710,15 +710,11 @@ namespace Formats::Chiptune
       {
         struct ChannelState
         {
-          std::size_t Offset;
-          uint_t Period;
-          uint_t Counter;
+          std::size_t Offset = 0;
+          uint_t Period = 0;
+          uint_t Counter = 0;
 
-          ChannelState()
-            : Offset()
-            , Period()
-            , Counter()
-          {}
+          ChannelState() = default;
 
           void Skip(uint_t toSkip)
           {
@@ -734,7 +730,7 @@ namespace Formats::Chiptune
         std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
-          : Channels()
+
         {
           for (std::size_t idx = 0; idx != src.size(); ++idx)
           {
@@ -758,7 +754,7 @@ namespace Formats::Chiptune
 
       bool ParsePattern(std::size_t baseOffset, std::size_t minOffset, uint_t patIndex, Builder& builder) const
       {
-        const RawPattern& pat = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
+        const auto& pat = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         const DataCursors rangesStarts(pat, BaseAddr);
         Require(
@@ -808,11 +804,7 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          if (state.Offset >= Data.Size())
-          {
-            return false;
-          }
-          else if (0 == chan && 0xff == PeekByte(state.Offset))
+          if (state.Offset >= Data.Size() || (0 == chan && 0xff == PeekByte(state.Offset)))
           {
             return false;
           }
@@ -984,7 +976,6 @@ namespace Formats::Chiptune
     {
     public:
       explicit Areas(Binary::View data)
-        : BaseAddr(0)
       {
         const auto& header = *data.As<RawHeader>();
         const std::size_t firstPatternOffset = header.PatternsOffset;
@@ -1043,11 +1034,7 @@ namespace Formats::Chiptune
 
       bool CheckHeader() const
       {
-        if (sizeof(RawHeader) > GetAreaSize(HEADER) || Undefined != GetAreaSize(END))
-        {
-          return false;
-        }
-        return true;
+        return GetAreaSize(HEADER) >= sizeof(RawHeader) && Undefined == GetAreaSize(END);
       }
 
       bool CheckPositions() const
@@ -1088,7 +1075,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      std::size_t BaseAddr;
+      std::size_t BaseAddr = 0;
     };
 
     bool FastCheck(const Areas& areas)

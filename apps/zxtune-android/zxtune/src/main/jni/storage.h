@@ -22,11 +22,9 @@ template<class PtrType>
 class ObjectsStorage
 {
 public:
-  typedef int32_t HandleType;
+  using HandleType = int32_t;
 
-  ObjectsStorage()
-    : NextHandle()
-  {}
+  ObjectsStorage() = default;
 
   HandleType Add(PtrType obj)
   {
@@ -78,8 +76,8 @@ private:
   }
 
 private:
-  typedef std::map<HandleType, PtrType> StorageType;
+  using StorageType = std::map<HandleType, PtrType>;
   StorageType Storage;
-  HandleType NextHandle;
+  HandleType NextHandle = 0;
   mutable std::mutex Lock;
 };

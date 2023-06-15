@@ -178,7 +178,7 @@ namespace Formats::Chiptune
 
     struct RawOrnament : RawObject
     {
-      typedef int8_t Line;
+      using Line = int8_t;
 
       std::size_t GetUsedSize() const
       {
@@ -187,9 +187,9 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        const auto* const src = safe_ptr_cast<const int8_t*>(this + 1);
         // using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
     };
@@ -291,10 +291,10 @@ namespace Formats::Chiptune
     {
       if (const auto* hdr = data.As<RawHeader>())
       {
-        const auto dataBegin = safe_ptr_cast<const uint8_t*>(hdr->Id.data());
-        const auto dataEnd =
+        const auto* const dataBegin = safe_ptr_cast<const uint8_t*>(hdr->Id.data());
+        const auto* const dataEnd =
             dataBegin + std::min(data.Size(), MAX_POSITIONS_COUNT + offsetof(RawHeader, Positions) + 1);
-        const auto lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
+        const auto* const lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
         if (lastPosition != dataEnd && std::all_of(hdr->Positions, lastPosition, [](auto b) { return 0 == b % 3; }))
         {
           return lastPosition + 1 - dataBegin;
@@ -385,7 +385,8 @@ namespace Formats::Chiptune
       {
         Dbg("Samples: {} to parse", samples.Count());
         // samples are mandatory
-        bool hasValidSamples = false, hasPartialSamples = false;
+        bool hasValidSamples = false;
+        bool hasPartialSamples = false;
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
@@ -510,15 +511,11 @@ namespace Formats::Chiptune
       {
         struct ChannelState
         {
-          std::size_t Offset;
-          uint_t Period;
-          uint_t Counter;
+          std::size_t Offset = 0;
+          uint_t Period = 0;
+          uint_t Counter = 0;
 
-          ChannelState()
-            : Offset()
-            , Period()
-            , Counter()
-          {}
+          ChannelState() = default;
 
           void Skip(uint_t toSkip)
           {
@@ -534,7 +531,6 @@ namespace Formats::Chiptune
         std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
-          : Channels()
         {
           for (std::size_t idx = 0; idx != src.size(); ++idx)
           {
@@ -608,11 +604,7 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          if (state.Offset >= Data.Size())
-          {
-            return false;
-          }
-          else if (0 == chan && 0x00 == PeekByte(state.Offset))
+          if (state.Offset >= Data.Size() || (0 == chan && 0x00 == PeekByte(state.Offset)))
           {
             return false;
           }
@@ -719,7 +711,7 @@ namespace Formats::Chiptune
             builder.SetSample(num);
           }
         }
-        for (std::vector<uint_t>::const_reverse_iterator it = commands.rbegin(), lim = commands.rend(); it != lim; ++it)
+        for (auto it = commands.rbegin(), lim = commands.rend(); it != lim; ++it)
         {
           switch (*it)
           {

@@ -17,6 +17,8 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/image.h>
+// std includes
+#include <memory>
 
 namespace Formats::Image
 {
@@ -49,8 +51,6 @@ namespace Formats::Image
     public:
       explicit BitStream(Binary::View data)
         : Stream(data)
-        , Bits()
-        , Mask()
       {}
 
       uint8_t GetByte()
@@ -108,8 +108,8 @@ namespace Formats::Image
 
     private:
       Binary::DataInputStream Stream;
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class Container
@@ -141,7 +141,7 @@ namespace Formats::Image
         {
           return Data.SubView(sizeof(*hdr) + hdr->AdditionalSize);
         }
-        return Binary::View(nullptr, 0);
+        return {nullptr, 0};
       }
 
     private:
@@ -249,7 +249,7 @@ namespace Formats::Image
               } while (--len > 0);
             }
           }
-          Result.reset(new Binary::Dump());
+          Result = std::make_unique<Binary::Dump>();
           if (target <= PIXELS_SIZE)
           {
             decoded.resize(PIXELS_SIZE);
@@ -297,12 +297,12 @@ namespace Formats::Image
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const LaserCompact52::Container container(rawData);
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       LaserCompact52::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

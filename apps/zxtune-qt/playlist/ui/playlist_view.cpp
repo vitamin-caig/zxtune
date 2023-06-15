@@ -37,6 +37,8 @@
 // boost includes
 #include <boost/algorithm/string/find.hpp>
 #include <boost/algorithm/string/replace.hpp>
+// std includes
+#include <utility>
 // qt includes
 #include <QtCore/QIdentityProxyModel>
 #include <QtCore/QMimeData>
@@ -109,7 +111,7 @@ namespace
 
   class TooltipFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
   {
-    typedef Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> Parent;
+    using Parent = Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>;
 
   public:
     explicit TooltipFieldsSourceAdapter(const Parameters::Accessor& props)
@@ -141,7 +143,7 @@ namespace
     {
       static const Char NEWLINE[] = {'\n', 0};
       static const Char ELLIPSIS[] = {'\n', '<', '.', '.', '.', '>', 0};
-      typedef boost::iterator_range<String::iterator> Range;
+      using Range = boost::iterator_range<String::iterator>;
       const Range head = boost::algorithm::find_nth(result, NEWLINE, maxLines / 2 - 1);
       const Range tail = boost::algorithm::find_nth(result, NEWLINE, -maxLines / 2);
       if (head.begin() < tail.begin())
@@ -221,7 +223,7 @@ namespace
     {
       if (!index.isValid())
       {
-        return QVariant();
+        return {};
       }
       else if (Qt::ToolTipRole == role)
       {
@@ -260,7 +262,7 @@ namespace
           return Playlist::UI::View::tr("Loading...");
         }
       }
-      return QVariant();
+      return {};
     }
 
     QVariant GetTooltip(const Playlist::Item::Data& item) const
@@ -276,7 +278,7 @@ namespace
       }
     }
 
-    QVariant GetHeaderText(unsigned column) const
+    static QVariant GetHeaderText(unsigned column)
     {
       switch (column)
       {
@@ -301,7 +303,7 @@ namespace
       case Playlist::Model::COLUMN_FIXEDCRC:
         return Playlist::UI::View::tr("FixedCRC");
       default:
-        return QVariant();
+        return {};
       };
     }
 
@@ -331,14 +333,14 @@ namespace
       : Playlist::UI::View(parent)
       , LayoutState(UI::State::Create(Parameters::ZXTuneQT::Playlist::NAMESPACE_NAME))
       , Controller(std::move(playlist))
-      , Options(PlaylistOptionsWrapper(params))
+      , Options(PlaylistOptionsWrapper(std::move(params)))
       , State(*Controller->GetModel(), *Controller->GetIterator())
       , View(Playlist::UI::TableView::Create(*this, State, *new RetranslateModel(*Controller->GetModel())))
       , OperationProgress(OverlayProgress::Create(*this))
     {
       // setup ui
       setAcceptDrops(true);
-      if (const auto layout = new QVBoxLayout(this))
+      if (auto* const layout = new QVBoxLayout(this))
       {
         layout->setSpacing(1);
         layout->setMargin(1);
@@ -493,7 +495,7 @@ namespace
                              &saveCase))
       {
         const Playlist::IO::ExportFlags flags = GetSavePlaylistFlags(saveCase);
-        Playlist::Save(Controller, filename, flags);
+        Playlist::Save(*Controller, filename, flags);
       }
     }
 
@@ -705,7 +707,7 @@ namespace
       }
     }
 
-    Playlist::IO::ExportFlags GetSavePlaylistFlags(int saveCase) const
+    static Playlist::IO::ExportFlags GetSavePlaylistFlags(int saveCase)
     {
       const Parameters::Accessor::Ptr options = GlobalOptions::Instance().Get();
       Parameters::IntType val = Parameters::ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT;
@@ -738,17 +740,14 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
-  {
-    View::View(QWidget& parent)
-      : QWidget(&parent)
-    {}
+  View::View(QWidget& parent)
+    : QWidget(&parent)
+  {}
 
-    View* View::Create(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params)
-    {
-      return new ViewImpl(parent, playlist, params);
-    }
-  }  // namespace UI
-}  // namespace Playlist
+  View* View::Create(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params)
+  {
+    return new ViewImpl(parent, std::move(playlist), std::move(params));
+  }
+}  // namespace Playlist::UI

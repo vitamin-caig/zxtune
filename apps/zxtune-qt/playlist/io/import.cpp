@@ -28,30 +28,27 @@ namespace
   }
 }  // namespace
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  Container::Ptr Open(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
   {
-    Container::Ptr Open(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
+    if (auto ayl = OpenAYL(provider, filename, cb))
     {
-      if (const Container::Ptr ayl = OpenAYL(provider, filename, cb))
-      {
-        return ayl;
-      }
-      else if (const Container::Ptr xspf = OpenXSPF(provider, filename, cb))
-      {
-        return xspf;
-      }
-      return Container::Ptr();
+      return ayl;
     }
+    else if (auto xspf = OpenXSPF(std::move(provider), filename, cb))
+    {
+      return xspf;
+    }
+    return {};
+  }
 
-    Container::Ptr OpenPlainList(Item::DataProvider::Ptr provider, const QStringList& uris)
-    {
-      const ContainerItems::RWPtr items = MakeRWPtr<ContainerItems>();
-      std::transform(uris.begin(), uris.end(), std::back_inserter(*items), &CreateContainerItem);
-      const Parameters::Container::Ptr props = Parameters::Container::Create();
-      props->SetValue(ATTRIBUTE_ITEMS, items->size());
-      return CreateContainer(provider, props, items);
-    }
-  }  // namespace IO
-}  // namespace Playlist
+  Container::Ptr OpenPlainList(Item::DataProvider::Ptr provider, const QStringList& uris)
+  {
+    auto items = MakeRWPtr<ContainerItems>();
+    std::transform(uris.begin(), uris.end(), std::back_inserter(*items), &CreateContainerItem);
+    auto props = Parameters::Container::Create();
+    props->SetValue(ATTRIBUTE_ITEMS, items->size());
+    return CreateContainer(std::move(provider), std::move(props), std::move(items));
+  }
+}  // namespace Playlist::IO

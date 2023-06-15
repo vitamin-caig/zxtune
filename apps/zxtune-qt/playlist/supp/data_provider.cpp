@@ -55,7 +55,7 @@ namespace
   class DataProvider
   {
   public:
-    typedef std::shared_ptr<const DataProvider> Ptr;
+    using Ptr = std::shared_ptr<const DataProvider>;
 
     virtual ~DataProvider() = default;
 
@@ -80,7 +80,7 @@ namespace
 
   DataProvider::Ptr CreateSimpleDataProvider(Parameters::Accessor::Ptr ioParams)
   {
-    return MakePtr<SimpleDataProvider>(ioParams);
+    return MakePtr<SimpleDataProvider>(std::move(ioParams));
   }
 
   template<class T>
@@ -89,9 +89,9 @@ namespace
   template<>
   struct ObjectTraits<Binary::Container::Ptr>
   {
-    typedef std::size_t WeightType;
+    using WeightType = std::size_t;
 
-    static WeightType Weight(Binary::Container::Ptr obj)
+    static WeightType Weight(const Binary::Container::Ptr& obj)
     {
       return obj->Size();
     }
@@ -107,8 +107,7 @@ namespace
       W Weight;
 
       Item()
-        : Id()
-        , Value()
+        : Value()
         , Weight()
       {}
 
@@ -119,7 +118,7 @@ namespace
       {}
     };
 
-    typedef std::deque<Item> ItemsList;
+    using ItemsList = std::deque<Item>;
 
   public:
     ObjectsCache()
@@ -242,11 +241,11 @@ namespace
   class CachedDataProvider : public DataProvider
   {
   public:
-    typedef std::shared_ptr<CachedDataProvider> Ptr;
+    using Ptr = std::shared_ptr<CachedDataProvider>;
 
     explicit CachedDataProvider(Parameters::Accessor::Ptr ioParams)
       : Params(ioParams)
-      , Delegate(CreateSimpleDataProvider(ioParams))
+      , Delegate(CreateSimpleDataProvider(std::move(ioParams)))
     {}
 
     Binary::Container::Ptr GetData(StringView dataPath) const override
@@ -282,7 +281,7 @@ namespace
       {
         return cached;
       }
-      const auto data = Delegate->GetData(dataPath);
+      auto data = Delegate->GetData(dataPath);
       Cache.Add(dataPath, data);
       Cache.Fit(filesLimit, memLimit);
       ReportCache();
@@ -305,7 +304,7 @@ namespace
   class DataSource : public Module::AdditionalFilesSource
   {
   public:
-    typedef std::shared_ptr<const DataSource> Ptr;
+    using Ptr = std::shared_ptr<const DataSource>;
 
     DataSource(CachedDataProvider::Ptr provider, IO::Identifier::Ptr id)
       : Provider(std::move(provider))
@@ -313,7 +312,7 @@ namespace
       , Dir(ExtractDir(*DataId))
     {}
 
-    ~DataSource()
+    ~DataSource() override
     {
       Provider->FlushCachedData(DataId->Path());
     }
@@ -367,10 +366,10 @@ namespace
           Parameters::CreateMergedContainer(std::move(forcedProperties), Parameters::Container::Create());
       auto data = Source->GetData();
       const auto& subpath = ModuleId->Subpath();
-      const auto module = Service->OpenModule(std::move(data), subpath, std::move(initialProperties));
+      auto module = Service->OpenModule(std::move(data), subpath, std::move(initialProperties));
       if (subpath.empty())
       {
-        if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
+        if (const auto* const files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
         {
           Module::ResolveAdditionalFiles(*Source, *files);
         }
@@ -407,7 +406,7 @@ namespace
     {
       return val;
     }
-    return String();
+    return {};
   }
 
   Parameters::IntType GetIntProperty(const Parameters::Accessor& props, StringView propName,
@@ -421,7 +420,7 @@ namespace
   class DynamicAttributesProvider
   {
   public:
-    typedef std::shared_ptr<const DynamicAttributesProvider> Ptr;
+    using Ptr = std::shared_ptr<const DynamicAttributesProvider>;
 
     DynamicAttributesProvider()
       : DisplayNameTemplate(Strings::Template::Create("[Author] - [Title]"))
@@ -450,7 +449,7 @@ namespace
   class DataImpl : public Playlist::Item::Data
   {
   public:
-    typedef Playlist::Item::Data::Ptr Ptr;
+    using Ptr = Playlist::Item::Data::Ptr;
 
     DataImpl(DynamicAttributesProvider::Ptr attributes, ModuleSource source, Parameters::Accessor::Ptr moduleProps,
              Parameters::Container::Ptr adjustedParams, Time::Milliseconds duration, uint_t caps)
@@ -581,7 +580,7 @@ namespace
       , Attributes(std::move(attributes))
       , Service(std::move(service))
       , DataId(dataId)
-      , Source(MakePtr<DataSource>(provider, dataId))
+      , Source(MakePtr<DataSource>(std::move(provider), std::move(dataId)))
     {}
 
     Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const override
@@ -597,7 +596,7 @@ namespace
       const String subPath = location.GetPath()->AsString();
       if (subPath.empty())
       {
-        if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
+        if (const auto* const files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
         {
           Module::ResolveAdditionalFiles(*Source, *files);
         }
@@ -664,7 +663,7 @@ namespace
   public:
     explicit DataProviderImpl(Parameters::Accessor::Ptr parameters)
       : Provider(MakePtr<CachedDataProvider>(parameters))
-      , Service(MakePtr<ThreadCheckingService>(parameters))
+      , Service(MakePtr<ThreadCheckingService>(std::move(parameters)))
       , Attributes(MakePtr<DynamicAttributesProvider>())
     {}
 
@@ -701,13 +700,10 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  DataProvider::Ptr DataProvider::Create(Parameters::Accessor::Ptr parameters)
   {
-    DataProvider::Ptr DataProvider::Create(Parameters::Accessor::Ptr parameters)
-    {
-      return MakePtr<DataProviderImpl>(parameters);
-    }
-  }  // namespace Item
-}  // namespace Playlist
+    return MakePtr<DataProviderImpl>(std::move(parameters));
+  }
+}  // namespace Playlist::Item

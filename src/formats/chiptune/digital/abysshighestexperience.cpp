@@ -21,12 +21,13 @@
 #include <strings/trim.h>
 // std includes
 #include <array>
+#include <utility>
 
 namespace Formats::Chiptune
 {
   namespace AbyssHighestExperience
   {
-    typedef std::array<uint8_t, 3> IdentifierType;
+    using IdentifierType = std::array<uint8_t, 3>;
 
     const IdentifierType ID_AHX = {{'T', 'H', 'X'}};
     const IdentifierType ID_HVL = {{'H', 'V', 'L'}};
@@ -218,7 +219,7 @@ namespace Formats::Chiptune
           const auto name = Strings::TrimSpaces(Stream.ReadCString(Stream.GetRestSize()));
           names[smp] = Strings::ToAutoUtf8(name);
         }
-        meta.SetStrings(std::move(names));
+        meta.SetStrings(names);
       }
 
       void ParseProgram(MetaBuilder& meta)
@@ -300,8 +301,8 @@ namespace Formats::Chiptune
     class VersionedDecoder : public Decoder
     {
     public:
-      explicit VersionedDecoder(const FormatTraits& traits)
-        : Traits(traits)
+      explicit VersionedDecoder(FormatTraits traits)
+        : Traits(std::move(traits))
         , Header(Binary::CreateFormat(Traits.Format, MIN_SIZE))
       {}
 
@@ -330,7 +331,7 @@ namespace Formats::Chiptune
       {
         if (!Check(data))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
 
         try
@@ -341,7 +342,7 @@ namespace Formats::Chiptune
         }
         catch (const std::exception&)
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
       }
 

@@ -256,9 +256,9 @@ namespace Formats::Packed
       assert(0 != (header.Flags & FILE_ATTRIBUTES_IN_FOOTER));
 
       const uint32_t signature = LocalFileFooter::SIGNATURE;
-      const uint8_t* const rawSignature = safe_ptr_cast<const uint8_t*>(&signature);
+      const auto* const rawSignature = safe_ptr_cast<const uint8_t*>(&signature);
 
-      const uint8_t* const seekStart = safe_ptr_cast<const uint8_t*>(&header);
+      const auto* const seekStart = safe_ptr_cast<const uint8_t*>(&header);
       const uint8_t* const seekEnd = seekStart + size;
       for (const uint8_t* seekPos = seekStart; seekPos < seekEnd;)
       {
@@ -291,7 +291,7 @@ namespace Formats::Packed
         {
           return std::unique_ptr<const CompressedFile>(new StreamedFile(hdr, *footer));
         }
-        return std::unique_ptr<const CompressedFile>();
+        return {};
       }
       else
       {
@@ -321,14 +321,14 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Zip::Container container(rawData);
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
-      Zip::DispatchedDataDecoder decoder(container);
+      const Zip::DispatchedDataDecoder decoder(container);
       return CreateContainer(decoder.Decompress(), container.GetFile().GetPackedSize());
     }
 

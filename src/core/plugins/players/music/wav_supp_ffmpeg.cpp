@@ -65,6 +65,6 @@ namespace Module::Wav
     Require(props.BlockSizeSamples != 0);
     Require(props.BlockSize != 0);
     auto decoder = FFmpeg::CreateAtrac9Decoder(props.BlockSize, extraData);
-    return MakePtr<FFmpegModel>(props, std::move(decoder));
+    return MakePtr<FFmpegModel>(std::move(props), std::move(decoder));
   }
 }  // namespace Module::Wav

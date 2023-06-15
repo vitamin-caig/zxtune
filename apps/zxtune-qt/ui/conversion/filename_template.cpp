@@ -79,7 +79,7 @@ namespace
 
     QString GetFilenameTemplate() const override
     {
-      const QString name = FileTemplate->currentText();
+      auto name = FileTemplate->currentText();
       if (0 == name.size())
       {
         return name;
@@ -126,13 +126,12 @@ namespace
   public:
     explicit FilenameTemplateDialog(QWidget& parent)
       : QDialog(&parent)
-      , TemplateBuilder(nullptr)
     {
       TemplateBuilder = UI::FilenameTemplateWidget::Create(*this);
-      const auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
+      auto* const buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
       Require(connect(buttons, SIGNAL(accepted()), this, SLOT(accept())));
       Require(connect(buttons, SIGNAL(rejected()), this, SLOT(reject())));
-      const auto layout = new QVBoxLayout(this);
+      auto* const layout = new QVBoxLayout(this);
       layout->setContentsMargins(4, 4, 4, 4);
       layout->setSpacing(4);
       layout->addWidget(TemplateBuilder);
@@ -146,7 +145,7 @@ namespace
     }
 
   private:
-    UI::FilenameTemplateWidget* TemplateBuilder;
+    UI::FilenameTemplateWidget* TemplateBuilder = nullptr;
   };
 }  // namespace
 

@@ -24,7 +24,7 @@ namespace Module
   {
   public:
     //! Pointer type
-    typedef std::shared_ptr<const Information> Ptr;
+    using Ptr = std::shared_ptr<const Information>;
 
     virtual ~Information() = default;
 

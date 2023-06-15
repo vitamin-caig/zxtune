@@ -24,12 +24,12 @@ namespace
 {
   const Debug::Stream Dbg("Playlist::Storage");
 
-  typedef std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType> IndexedItem;
+  using IndexedItem = std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType>;
 
   // simple std::list wrapper that guarantees contstant complexivity of size() method
   class ItemsContainer : private std::list<IndexedItem>
   {
-    typedef std::list<IndexedItem> Parent;
+    using Parent = std::list<IndexedItem>;
 
   public:
     using Parent::value_type;
@@ -40,9 +40,7 @@ namespace
     using Parent::end;
     using Parent::sort;
 
-    ItemsContainer()
-      : Size()
-    {}
+    ItemsContainer() = default;
 
     ItemsContainer(const ItemsContainer& rh) = default;
 
@@ -104,7 +102,7 @@ namespace
     }
 
   private:
-    std::size_t Size;
+    std::size_t Size = 0;
   };
 
   template<class IteratorType>
@@ -212,8 +210,8 @@ namespace
   {
   public:
     ItemsCollection(ItemsContainer::const_iterator begin, ItemsContainer::const_iterator end)
-      : Current(std::move(begin))
-      , Limit(std::move(end))
+      : Current(begin)
+      , Limit(end)
     {}
 
     bool IsValid() const override
@@ -242,14 +240,12 @@ namespace
   {
   public:
     LinearStorage()
-      : Version(0)
     {
       Dbg("Created at {}", Self());
     }
 
     LinearStorage(const LinearStorage& rh)
-      : Version(0)
-      , Items(rh.Items)
+      : Items(rh.Items)
     {
       Dbg("Created at {} (cloned from {} with {} items)", Self(), rh.Self(), Items.size());
     }
@@ -288,7 +284,7 @@ namespace
 
     void Add(Item::Collection::Ptr items) override
     {
-      for (Model::IndexType idx = static_cast<Model::IndexType>(Items.size()); items->IsValid(); items->Next(), ++idx)
+      for (auto idx = static_cast<Model::IndexType>(Items.size()); items->IsValid(); items->Next(), ++idx)
       {
         const IndexedItem idxItem(items->Get(), idx);
         Items.push_back(idxItem);
@@ -305,9 +301,9 @@ namespace
     {
       if (idx >= Model::IndexType(Items.size()))
       {
-        return Item::Data::Ptr();
+        return {};
       }
-      const ItemsContainer::const_iterator it = GetIteratorByIndex(idx);
+      const auto it = GetIteratorByIndex(idx);
       return it->first;
     }
 
@@ -318,9 +314,9 @@ namespace
 
     void ForAllItems(Item::Visitor& visitor) const override
     {
-      for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
+      for (const auto& item : Items)
       {
-        visitor.OnItem(it->second, it->first);
+        visitor.OnItem(item.second, item.first);
       }
     }
 
@@ -362,16 +358,15 @@ namespace
     {
       std::vector<ItemsContainer::const_iterator> iters;
       iters.reserve(Items.size());
-      for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
+      for (auto it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
-        iters.push_back(it);
+        iters.emplace_back(it);
       }
       std::shuffle(iters.begin(), iters.end(), std::mt19937(std::random_device()()));
       ItemsContainer newOne;
-      for (std::vector<ItemsContainer::const_iterator>::const_iterator it = iters.begin(), lim = iters.end(); it != lim;
-           ++it)
+      for (const auto& it : iters)
       {
-        newOne.push_back(**it);
+        newOne.push_back(*it);
       }
       newOne.swap(Items);
       ClearCache();
@@ -400,12 +395,12 @@ namespace
 
     static Model::OldToNewIndexMap::value_type MakeIndexPair(const IndexedItem& item, Model::IndexType idx)
     {
-      return Model::OldToNewIndexMap::value_type(item.second, idx);
+      return {item.second, idx};
     }
 
     static IndexedItem UpdateItemIndex(const IndexedItem& item, Model::IndexType idx)
     {
-      return IndexedItem(item.first, idx);
+      return {item.first, idx};
     }
 
     class ComparerWrapper : public std::binary_function<ItemsContainer::value_type, ItemsContainer::value_type, bool>
@@ -415,7 +410,7 @@ namespace
         : Cmp(cmp)
       {}
 
-      result_type operator()(first_argument_type lh, second_argument_type rh) const
+      result_type operator()(const first_argument_type& lh, const second_argument_type& rh) const
       {
         return Cmp.CompareItems(*lh.first, *rh.first);
       }
@@ -424,7 +419,7 @@ namespace
       const Item::Comparer& Cmp;
     };
 
-    typedef std::map<Model::IndexType, ItemsContainer::iterator> IndexToIterator;
+    using IndexToIterator = std::map<Model::IndexType, ItemsContainer::iterator>;
 
     ItemsContainer::iterator GetIteratorByIndex(Model::IndexType idx) const
     {
@@ -462,28 +457,28 @@ namespace
     IndexToIterator::value_type GetNearestPredefinedIterator(Model::IndexType idx) const
     {
       const Model::IndexType firstIndex = 0;
-      const Model::IndexType lastIndex = Model::IndexType(Items.size() - 1);
+      const auto lastIndex = Model::IndexType(Items.size() - 1);
       const std::size_t toFirst = idx - firstIndex;
       const std::size_t toLast = lastIndex - idx;
       if (toFirst <= toLast)
       {
-        return IndexToIterator::value_type(firstIndex, Items.begin());
+        return {firstIndex, Items.begin()};
       }
       else
       {
-        return IndexToIterator::value_type(lastIndex, --Items.end());
+        return {lastIndex, --Items.end()};
       }
     }
 
     IndexToIterator::value_type GetNearestCachedIterator(Model::IndexType idx) const
     {
       assert(!IteratorsCache.empty());
-      const IndexToIterator::const_iterator upper = IteratorsCache.upper_bound(idx);
+      const auto upper = IteratorsCache.upper_bound(idx);
       if (upper == IteratorsCache.begin())
       {
         return *upper;
       }
-      IndexToIterator::const_iterator lower = upper;
+      auto lower = upper;
       --lower;
       if (upper == IteratorsCache.end())
       {
@@ -570,19 +565,16 @@ namespace
     }
 
   private:
-    unsigned Version;
+    unsigned Version = 0;
     mutable ItemsContainer Items;
     mutable IndexToIterator IteratorsCache;
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  Storage::Ptr Storage::Create()
   {
-    Storage::Ptr Storage::Create()
-    {
-      return MakePtr<LinearStorage>();
-    }
-  }  // namespace Item
-}  // namespace Playlist
+    return MakePtr<LinearStorage>();
+  }
+}  // namespace Playlist::Item

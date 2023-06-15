@@ -26,6 +26,7 @@
 #include <strings/format.h>
 #include <strings/optimize.h>
 // std includes
+#include <algorithm>
 #include <array>
 #include <cstring>
 
@@ -87,12 +88,12 @@ namespace Formats::Chiptune
 
     struct RawOrnament : RawObject
     {
-      typedef int8_t Line;
+      using Line = int8_t;
 
       Line GetLine(uint_t idx) const
       {
-        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        const auto* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
 
@@ -219,8 +220,6 @@ namespace Formats::Chiptune
         , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
         , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
         , UsedOrnaments(0, MAX_ORNAMENTS_COUNT - 1)
-        , NonEmptyPatterns(false)
-        , NonEmptySamples(false)
       {
         UsedSamples.Insert(0);
         UsedOrnaments.Insert(0);
@@ -340,15 +339,9 @@ namespace Formats::Chiptune
         {
           return false;
         }
-        for (uint_t idx = 0; idx != smp.Lines.size(); ++idx)
-        {
-          const Sample::Line& line = smp.Lines[idx];
-          if ((!line.ToneMask && line.Level) || !line.NoiseMask)
-          {
-            return true;  // has envelope or tone with volume
-          }
-        }
-        return false;
+        // has envelope or tone with volume
+        return std::any_of(smp.Lines.begin(), smp.Lines.end(),
+                           [](const auto& line) { return (!line.ToneMask && line.Level) || !line.NoiseMask; });
       }
 
     private:
@@ -356,8 +349,8 @@ namespace Formats::Chiptune
       Indices UsedPatterns;
       Indices UsedSamples;
       Indices UsedOrnaments;
-      bool NonEmptyPatterns;
-      bool NonEmptySamples;
+      bool NonEmptyPatterns = false;
+      bool NonEmptySamples = false;
     };
 
     class RangesMap
@@ -432,7 +425,7 @@ namespace Formats::Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        const uint8_t* const begin = safe_ptr_cast<const uint8_t*>(&Source);
+        const auto* const begin = safe_ptr_cast<const uint8_t*>(&Source);
         const uint8_t* const posStart = Source.Positions;
         const uint8_t* const posEnd = posStart + Source.Length;
         Ranges.AddService(posStart - begin, posEnd - posStart);
@@ -463,7 +456,8 @@ namespace Formats::Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        bool hasValidSamples = false, hasPartialSamples = false;
+        bool hasValidSamples = false;
+        bool hasPartialSamples = false;
         Dbg("Samples: {} to parse", samples.Count());
         const std::size_t minOffset = HeaderSize;
         const std::size_t maxOffset = Data.Size();
@@ -608,15 +602,11 @@ namespace Formats::Chiptune
       {
         struct ChannelState
         {
-          std::size_t Offset;
-          uint_t Period;
-          uint_t Counter;
+          std::size_t Offset = 0;
+          uint_t Period = 0;
+          uint_t Counter = 0;
 
-          ChannelState()
-            : Offset()
-            , Period()
-            , Counter()
-          {}
+          ChannelState() = default;
 
           void Skip(uint_t toSkip)
           {
@@ -632,7 +622,6 @@ namespace Formats::Chiptune
         std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
-          : Channels()
         {
           for (std::size_t idx = 0; idx != src.size(); ++idx)
           {
@@ -702,11 +691,7 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          if (state.Offset >= Data.Size())
-          {
-            return false;
-          }
-          else if (0 == chan && 0xff == PeekByte(state.Offset))
+          if (state.Offset >= Data.Size() || (0 == chan && 0xff == PeekByte(state.Offset)))
           {
             return false;
           }

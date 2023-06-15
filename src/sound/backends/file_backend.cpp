@@ -25,6 +25,9 @@
 #include <parameters/convert.h>
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
+// std includes
+#include <memory>
+#include <utility>
 
 namespace Sound::File
 {
@@ -73,7 +76,7 @@ namespace Sound::File
 
     String Instantiate(const Module::State& state) const
     {
-      if (const auto track = dynamic_cast<const Module::TrackState*>(&state))
+      if (const auto* const track = dynamic_cast<const Module::TrackState*>(&state))
       {
         if (CurPosition.Update(track->Position()) || CurPattern.Update(track->Pattern())
             || CurLine.Update(track->Line()))
@@ -98,7 +101,6 @@ namespace Sound::File
     public:
       explicit TrackableValue(bool trackable)
         : Trackable(trackable)
-        , Value(-1)
       {}
 
       bool Update(int_t newVal)
@@ -113,7 +115,7 @@ namespace Sound::File
 
     private:
       const bool Trackable;
-      int_t Value;
+      int_t Value = -1;
     };
 
   private:
@@ -129,7 +131,7 @@ namespace Sound::File
   public:
     FileParameters(Parameters::Accessor::Ptr params, BackendId id)
       : Params(std::move(params))
-      , Id(std::move(id))
+      , Id(id)
     {}
 
     String GetFilenameTemplate() const
@@ -272,7 +274,7 @@ namespace Sound::File
     // BackendWorker
     void Startup() override
     {
-      Source.reset(new StreamSource(Params, Properties, Factory));
+      Source = std::make_unique<StreamSource>(Params, Properties, Factory);
     }
 
     void Shutdown() override
@@ -302,14 +304,14 @@ namespace Sound::File
     VolumeControl::Ptr GetVolumeControl() const override
     {
       // Does not support volume control
-      return VolumeControl::Ptr();
+      return {};
     }
 
   private:
     void SetStream(Receiver::Ptr str)
     {
       Stream->Flush();
-      Stream = str;
+      Stream = std::move(str);
     }
 
   private:

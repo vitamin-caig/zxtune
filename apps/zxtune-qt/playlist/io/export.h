@@ -10,25 +10,22 @@
 
 #pragma once
 
-// local includes
-#include "container.h"
 // common includes
 #include <progress_callback.h>
 
 class QString;
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  class Container;
+
+  enum ExportFlagValues
   {
-    enum ExportFlagValues
-    {
-      SAVE_ATTRIBUTES = 1,
-      RELATIVE_PATHS = 2,
-      SAVE_CONTENT = 4
-    };
+    SAVE_ATTRIBUTES = 1,
+    RELATIVE_PATHS = 2,
+    SAVE_CONTENT = 4
+  };
 
-    typedef uint_t ExportFlags;
+  using ExportFlags = uint_t;
 
-    void SaveXSPF(Container::Ptr container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags);
-  }  // namespace IO
-}  // namespace Playlist
+  void SaveXSPF(const Container& container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags);
+}  // namespace Playlist::IO

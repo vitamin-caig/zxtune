@@ -20,8 +20,8 @@ namespace Analysis
   class Path
   {
   public:
-    typedef std::shared_ptr<const Path> Ptr;
-    typedef ObjectIterator<String> Iterator;
+    using Ptr = std::shared_ptr<const Path>;
+    using Iterator = ObjectIterator<String>;
 
     virtual ~Path() = default;
 

@@ -155,7 +155,7 @@ namespace Formats::Chiptune
         {
           Dbg("Out of range {}..{} ({})", static_cast<const void*>(Start), static_cast<const void*>(Finish),
               static_cast<const void*>(ptr));
-          return Binary::View(nullptr, 0);
+          return {nullptr, 0};
         }
         const std::size_t offset = ptr - Start;
         const std::size_t maxSize = Finish - ptr;
@@ -170,7 +170,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      const uint8_t* GetPointerNocheck(const be_int16_t* beField) const
+      static const uint8_t* GetPointerNocheck(const be_int16_t* beField)
       {
         const int16_t relOffset = *beField;
         return safe_ptr_cast<const uint8_t*>(beField) + relOffset;
@@ -313,12 +313,12 @@ namespace Formats::Chiptune
       {
         if (play)
         {
-          Im1Player player(init, play);
+          const Im1Player player(init, play);
           AddBlock(0, player.Data);
         }
         else
         {
-          Im2Player player(init);
+          const Im2Player player(init);
           AddBlock(0, player.Data);
         }
       }
@@ -374,14 +374,7 @@ namespace Formats::Chiptune
       }
 
     public:
-      FileBuilder()
-        : Duration()
-        , Fadeout()
-        , Register()
-        , StackPointer()
-        , InitRoutine()
-        , PlayRoutine()
-      {}
+      FileBuilder() = default;
 
       void SetTitle(StringView title) override
       {
@@ -478,13 +471,13 @@ namespace Formats::Chiptune
       String Title;
       String Author;
       String Comment;
-      uint16_t Duration;
-      uint16_t Fadeout;
-      uint16_t Register;
-      uint16_t StackPointer;
-      uint16_t InitRoutine;
-      uint16_t PlayRoutine;
-      typedef std::list<std::pair<uint16_t, Binary::Data::Ptr> > BlocksList;
+      uint16_t Duration = 0;
+      uint16_t Fadeout = 0;
+      uint16_t Register = 0;
+      uint16_t StackPointer = 0;
+      uint16_t InitRoutine = 0;
+      uint16_t PlayRoutine = 0;
+      using BlocksList = std::list<std::pair<uint16_t, Binary::Data::Ptr>>;
       BlocksList Blocks;
     };
 

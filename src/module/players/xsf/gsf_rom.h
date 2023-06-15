@@ -17,23 +17,20 @@
 // std includes
 #include <memory>
 
-namespace Module
+namespace Module::GSF
 {
-  namespace GSF
+  struct GbaRom
   {
-    struct GbaRom
-    {
-      using Ptr = std::unique_ptr<const GbaRom>;
-      using RWPtr = std::unique_ptr<GbaRom>;
+    using Ptr = std::unique_ptr<const GbaRom>;
+    using RWPtr = std::unique_ptr<GbaRom>;
 
-      GbaRom() = default;
-      GbaRom(const GbaRom&) = delete;
-      GbaRom& operator=(const GbaRom&) = delete;
+    GbaRom() = default;
+    GbaRom(const GbaRom&) = delete;
+    GbaRom& operator=(const GbaRom&) = delete;
 
-      uint32_t EntryPoint = 0;
-      MemoryRegion Content;
+    uint32_t EntryPoint = 0;
+    MemoryRegion Content;
 
-      static void Parse(Binary::View data, GbaRom& rom);
-    };
-  }  // namespace GSF
-}  // namespace Module
+    static void Parse(Binary::View data, GbaRom& rom);
+  };
+}  // namespace Module::GSF

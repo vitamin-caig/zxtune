@@ -14,10 +14,7 @@
 
 class QWidget;
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
-  {
-    Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent);
-  }
-}  // namespace Playlist
+  Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent);
+}  // namespace Playlist::UI

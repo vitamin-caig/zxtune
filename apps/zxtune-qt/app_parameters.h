@@ -14,13 +14,10 @@
 #include <parameters/identifier.h>
 #include <parameters/types.h>
 
-namespace Parameters
+namespace Parameters::ZXTuneQT
 {
-  namespace ZXTuneQT
-  {
-    const auto PREFIX = "zxtune-qt"_id;
+  const auto PREFIX = "zxtune-qt"_id;
 
-    const auto SINGLE_INSTANCE = PREFIX + "SingleInstance"_id;
-    const IntType SINGLE_INSTANCE_DEFAULT = 0;
-  }  // namespace ZXTuneQT
-}  // namespace Parameters
+  const auto SINGLE_INSTANCE = PREFIX + "SingleInstance"_id;
+  const IntType SINGLE_INSTANCE_DEFAULT = 0;
+}  // namespace Parameters::ZXTuneQT

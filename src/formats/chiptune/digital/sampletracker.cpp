@@ -132,7 +132,7 @@ namespace Formats::Chiptune
         {
           names.push_back(Strings::OptimizeAscii(name));
         }
-        meta.SetStrings(std::move(names));
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -263,14 +263,14 @@ namespace Formats::Chiptune
         const SampleInfo& info = Source.SampleDescriptions[samIdx];
         const std::size_t absAddr = 256 * info.AddrHi;
         const std::size_t maxSize = 128 * info.SizeHiDoubled;
-        if (!absAddr || absAddr < SAMPLES_ADDR || absAddr + maxSize > SAMPLES_LIMIT_ADDR)
+        if (absAddr < SAMPLES_ADDR || absAddr + maxSize > SAMPLES_LIMIT_ADDR)
         {
-          return Binary::View(nullptr, 0);
+          return {nullptr, 0};
         }
         const std::size_t sampleOffset = offsetof(Header, Samples) + (absAddr - SAMPLES_ADDR);
         if (sampleOffset >= RawData.Size())
         {
-          return Binary::View(nullptr, 0);
+          return {nullptr, 0};
         }
         const std::size_t sampleAvail = std::min(maxSize, RawData.Size() - sampleOffset);
         Dbg("Sample {}: start=#{:04x} size=#{:04x} (avail=#{:04x})", samIdx, absAddr, maxSize, sampleAvail);
@@ -340,7 +340,7 @@ namespace Formats::Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = Digital::GetStubBuilder();
         return Parse(rawData, stub);
@@ -355,7 +355,7 @@ namespace Formats::Chiptune
       const Binary::View data(rawData);
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
 
       try
@@ -380,7 +380,7 @@ namespace Formats::Chiptune
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
   }  // namespace SampleTracker

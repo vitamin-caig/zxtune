@@ -13,19 +13,16 @@
 // library includes
 #include <formats/archived.h>
 
-namespace Formats
+namespace Formats::Archived
 {
-  namespace Archived
-  {
-    Decoder::Ptr CreateZipDecoder();
-    Decoder::Ptr CreateRarDecoder();
-    Decoder::Ptr CreateZXZipDecoder();
-    Decoder::Ptr CreateSCLDecoder();
-    Decoder::Ptr CreateTRDDecoder();
-    Decoder::Ptr CreateHripDecoder();
-    Decoder::Ptr CreateLhaDecoder();
-    Decoder::Ptr CreateZXStateDecoder();
-    Decoder::Ptr CreateUMXDecoder();
-    Decoder::Ptr Create7zipDecoder();
-  }  // namespace Archived
-}  // namespace Formats
+  Decoder::Ptr CreateZipDecoder();
+  Decoder::Ptr CreateRarDecoder();
+  Decoder::Ptr CreateZXZipDecoder();
+  Decoder::Ptr CreateSCLDecoder();
+  Decoder::Ptr CreateTRDDecoder();
+  Decoder::Ptr CreateHripDecoder();
+  Decoder::Ptr CreateLhaDecoder();
+  Decoder::Ptr CreateZXStateDecoder();
+  Decoder::Ptr CreateUMXDecoder();
+  Decoder::Ptr Create7zipDecoder();
+}  // namespace Formats::Archived

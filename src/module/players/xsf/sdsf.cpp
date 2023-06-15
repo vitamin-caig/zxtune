@@ -72,7 +72,7 @@ namespace Module::SDSF
       Dreamcast = 2,
     };
 
-    std::unique_ptr<uint8_t[]> CreateSega(Version version) const
+    static std::unique_ptr<uint8_t[]> CreateSega(Version version)
     {
       std::unique_ptr<uint8_t[]> res(new uint8_t[::sega_get_state_size(static_cast<uint8>(version))]);
       ::sega_clear_state(res.get(), static_cast<uint8>(version));
@@ -154,7 +154,7 @@ namespace Module::SDSF
         const auto unpackedSection = Binary::Compression::Zlib::Decompress(*packed);
         const auto rawSize = unpackedSection->Size();
         Require(rawSize > sizeof(le_uint32_t));
-        const auto rawStart = static_cast<le_uint32_t*>(const_cast<void*>(unpackedSection->Start()));
+        auto* const rawStart = static_cast<le_uint32_t*>(const_cast<void*>(unpackedSection->Start()));
         const auto toCopy = FixupSection(rawStart, rawSize);
         // TODO: make input const
         Dbg("Section {} -> {}  @ 0x{:08x}", packed->Size(), toCopy, *rawStart);

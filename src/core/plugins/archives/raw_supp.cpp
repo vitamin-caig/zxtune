@@ -40,7 +40,7 @@ namespace ZXTune
   class StatisticBuilder
   {
   public:
-    typedef std::array<String, Fields> Line;
+    using Line = std::array<String, Fields>;
 
     StatisticBuilder()
       : Lines()
@@ -103,11 +103,7 @@ namespace ZXTune
     using TimeUnit = Time::Timer::NativeUnit;
 
   public:
-    Statistic()
-      : TotalData(0)
-      , ArchivedData(0)
-      , ModulesData(0)
-    {}
+    Statistic() = default;
 
     ~Statistic()
     {
@@ -123,10 +119,10 @@ namespace ZXTune
       builder.Add(MakeStatLine(), 0);
       StatItem total;
       total.Name = "Total";
-      for (DetectMap::const_iterator it = Detection.begin(), lim = Detection.end(); it != lim; ++it)
+      for (const auto& it : Detection)
       {
-        builder.Add(MakeStatLine(it->second), 1 + it->second.Index);
-        total += it->second;
+        builder.Add(MakeStatLine(it.second), 1 + it.second.Index);
+        total += it.second;
       }
       builder.Add(MakeStatLine(total), 1 + Detection.size());
       Dbg(builder.Get().c_str());
@@ -182,21 +178,14 @@ namespace ZXTune
     struct StatItem
     {
       String Name;
-      std::size_t Index;
-      std::size_t Aimed;
-      std::size_t Missed;
+      std::size_t Index = 0;
+      std::size_t Aimed = 0;
+      std::size_t Missed = 0;
       Time::Duration<TimeUnit> AimedTime;
       Time::Duration<TimeUnit> MissedTime;
       Time::Duration<TimeUnit> ScanTime;
 
-      StatItem()
-        : Index()
-        , Aimed()
-        , Missed()
-        , AimedTime()
-        , MissedTime()
-        , ScanTime()
-      {}
+      StatItem() = default;
 
       StatItem& operator+=(const StatItem& rh)
       {
@@ -261,10 +250,10 @@ namespace ZXTune
 
   private:
     const Time::Timer Timer;
-    uint64_t TotalData;
-    uint64_t ArchivedData;
-    uint64_t ModulesData;
-    typedef std::map<const void*, StatItem> DetectMap;
+    uint64_t TotalData = 0;
+    uint64_t ArchivedData = 0;
+    uint64_t ModulesData = 0;
+    using DetectMap = std::map<const void*, StatItem>;
     DetectMap Detection;
   };
 }  // namespace ZXTune
@@ -344,12 +333,12 @@ namespace ZXTune::Raw
   class ScanDataContainer : public Binary::Container
   {
   public:
-    typedef std::shared_ptr<ScanDataContainer> Ptr;
+    using Ptr = std::shared_ptr<ScanDataContainer>;
 
     ScanDataContainer(Binary::Container::Ptr delegate, std::size_t offset)
-      : Delegate(delegate)
-      , OriginalSize(delegate->Size())
-      , OriginalData(static_cast<const uint8_t*>(delegate->Start()))
+      : Delegate(std::move(delegate))
+      , OriginalSize(Delegate->Size())
+      , OriginalData(static_cast<const uint8_t*>(Delegate->Start()))
       , Offset(offset)
     {}
 
@@ -373,7 +362,7 @@ namespace ZXTune::Raw
       return Offset + minSize <= OriginalSize;
     }
 
-    std::size_t GetOffset()
+    std::size_t GetOffset() const
     {
       return Offset;
     }
@@ -393,7 +382,7 @@ namespace ZXTune::Raw
   class ScanDataLocation : public DataLocation
   {
   public:
-    typedef std::shared_ptr<ScanDataLocation> Ptr;
+    using Ptr = std::shared_ptr<ScanDataLocation>;
 
     ScanDataLocation(DataLocation::Ptr parent, std::size_t offset)
       : Parent(std::move(parent))
@@ -407,8 +396,8 @@ namespace ZXTune::Raw
 
     Analysis::Path::Ptr GetPath() const override
     {
-      const Analysis::Path::Ptr parentPath = Parent->GetPath();
-      if (std::size_t offset = Subdata->GetOffset())
+      auto parentPath = Parent->GetPath();
+      if (const auto offset = Subdata->GetOffset())
       {
         const auto subPath = CreateFilename(offset);
         return parentPath->Append(subPath);
@@ -418,7 +407,7 @@ namespace ZXTune::Raw
 
     Analysis::Path::Ptr GetPluginsChain() const override
     {
-      const Analysis::Path::Ptr parentPlugins = Parent->GetPluginsChain();
+      auto parentPlugins = Parent->GetPluginsChain();
       if (Subdata->GetOffset())
       {
         return parentPlugins->Append(ID);
@@ -492,18 +481,15 @@ namespace ZXTune::Raw
     struct PluginEntry
     {
       typename P::Ptr Plugin;
-      std::size_t Offset;
+      std::size_t Offset = 0;
 
       explicit PluginEntry(typename P::Ptr plugin)
         : Plugin(std::move(plugin))
-        , Offset()
       {}
 
-      PluginEntry()
-        : Offset()
-      {}
+      PluginEntry() = default;
     };
-    typedef typename std::vector<PluginEntry> PluginsList;
+    using PluginsList = typename std::vector<PluginEntry>;
 
   public:
     class Iterator
@@ -558,7 +544,6 @@ namespace ZXTune::Raw
 
     template<class Container>
     explicit LookaheadPluginsStorage(const Container& plugins)
-      : Offset()
     {
       for (const auto& plugin : plugins)
       {
@@ -592,7 +577,7 @@ namespace ZXTune::Raw
     }
 
   private:
-    std::size_t Offset;
+    std::size_t Offset = 0;
     PluginsList Plugins;
   };
 
@@ -679,7 +664,6 @@ namespace ZXTune::Raw
       : Params(params)
       , Players(PlayerPlugin::Enumerate())
       , Archives(plainArchivesDoubleAnalysis ? DoubleAnalyzedArchives::GetPlugins() : ArchivePlugin::Enumerate())
-      , Offset()
     {}
 
     std::pair<std::size_t, bool> Detect(DataLocation::Ptr input, ArchiveCallback& callback)
@@ -690,7 +674,7 @@ namespace ZXTune::Raw
         Statistic::Self().AddModule(matched);
         return {matched, true};
       }
-      const auto detectedArchives = DetectIn(Archives, input, callback);
+      const auto detectedArchives = DetectIn(Archives, std::move(input), callback);
       if (const auto matched = detectedArchives->GetMatchedDataSize())
       {
         Statistic::Self().AddArchived(matched);
@@ -720,7 +704,7 @@ namespace ZXTune::Raw
       {
         const Time::Timer detectTimer;
         const auto& plugin = iter.GetPlugin();
-        const auto result = plugin.Detect(Params, input, callback);
+        auto result = plugin.Detect(Params, input, callback);
         const auto id = plugin.Id();
         if (const auto usedSize = result->GetMatchedDataSize())
         {
@@ -753,7 +737,7 @@ namespace ZXTune::Raw
     const Parameters::Accessor& Params;
     LookaheadPluginsStorage<PlayerPlugin> Players;
     LookaheadPluginsStorage<ArchivePlugin> Archives;
-    std::size_t Offset;
+    std::size_t Offset = 0;
   };
 
   class Scaner : public ArchivePlugin

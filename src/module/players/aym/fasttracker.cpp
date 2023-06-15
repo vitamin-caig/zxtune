@@ -44,7 +44,7 @@ namespace Module::FastTracker
   using Formats::Chiptune::FastTracker::Sample;
   using Formats::Chiptune::FastTracker::Ornament;
 
-  typedef SimpleOrderListWithTransposition<Formats::Chiptune::FastTracker::PositionEntry> OrderListWithTransposition;
+  using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::FastTracker::PositionEntry>;
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 
   class DataBuilder : public Formats::Chiptune::FastTracker::Builder
@@ -187,7 +187,6 @@ namespace Module::FastTracker
   public:
     ObjectLinesIterator()
       : Obj()
-      , Position()
     {}
 
     void Set(const Object& obj)
@@ -221,15 +220,13 @@ namespace Module::FastTracker
 
   private:
     const Object* Obj;
-    uint_t Position;
+    uint_t Position = 0;
   };
 
   class Accumulator
   {
   public:
-    Accumulator()
-      : Value()
-    {}
+    Accumulator() = default;
 
     void Reset()
     {
@@ -247,17 +244,13 @@ namespace Module::FastTracker
     }
 
   private:
-    int_t Value;
+    int_t Value = 0;
   };
 
   class ToneSlider
   {
   public:
-    ToneSlider()
-      : Sliding()
-      , Glissade()
-      , Direction()
-    {}
+    ToneSlider() = default;
 
     void SetSlide(int_t slide)
     {
@@ -291,29 +284,21 @@ namespace Module::FastTracker
     }
 
   private:
-    int_t Sliding;
-    int_t Glissade;
-    int_t Direction;
+    int_t Sliding = 0;
+    int_t Glissade = 0;
+    int_t Direction = 0;
   };
 
   struct ChannelState
   {
-    ChannelState()
-      : Note()
-      , Envelope()
-      , EnvelopeEnabled()
-      , Volume(15)
-      , VolumeSlide()
-      , Noise()
-      , ToneAddon()
-    {}
+    ChannelState() = default;
 
-    uint_t Note;
-    uint_t Envelope;
-    bool EnvelopeEnabled;
-    uint_t Volume;
-    int_t VolumeSlide;
-    int_t Noise;
+    uint_t Note = 0;
+    uint_t Envelope = 0;
+    bool EnvelopeEnabled = false;
+    uint_t Volume = 15;
+    int_t VolumeSlide = 0;
+    int_t Noise = 0;
     ObjectLinesIterator<Sample> SampleIterator;
     ObjectLinesIterator<Ornament> OrnamentIterator;
     Accumulator NoteAccumulator;
@@ -321,7 +306,7 @@ namespace Module::FastTracker
     Accumulator NoiseAccumulator;
     Accumulator SampleNoiseAccumulator;
     Accumulator EnvelopeAccumulator;
-    int_t ToneAddon;
+    int_t ToneAddon = 0;
     ToneSlider ToneSlide;
   };
 
@@ -330,7 +315,6 @@ namespace Module::FastTracker
   public:
     explicit DataRenderer(ModuleData::Ptr data)
       : Data(std::move(data))
-      , Transposition()
     {
       Reset();
     }
@@ -339,9 +323,8 @@ namespace Module::FastTracker
     {
       const Sample& stubSample = Data->Samples.Get(0);
       const Ornament& stubOrnament = Data->Ornaments.Get(0);
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      for (auto& dst : PlayerState)
       {
-        ChannelState& dst = PlayerState[chan];
         dst = ChannelState();
         dst.SampleIterator.Set(stubSample);
         dst.SampleIterator.Disable();
@@ -367,11 +350,11 @@ namespace Module::FastTracker
   private:
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }
@@ -461,7 +444,7 @@ namespace Module::FastTracker
       }
     }
 
-    void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
+    static void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
     {
       const Ornament::Line& curOrnamentLine = *dst.OrnamentIterator.GetLine();
       const int_t noteAddon = dst.NoteAccumulator.Update(curOrnamentLine.NoteAddon, curOrnamentLine.KeepNoteAddon);
@@ -489,7 +472,7 @@ namespace Module::FastTracker
         }
         // apply level
         dst.VolumeSlide += curSampleLine->VolSlide;
-        const int_t volume = Math::Clamp<int_t>(curSampleLine->Level + dst.VolumeSlide, 0, 15);
+        const auto volume = Math::Clamp<int_t>(curSampleLine->Level + dst.VolumeSlide, 0, 15);
         const uint_t level = ((dst.Volume * 17 + (dst.Volume > 7)) * volume + 128) / 256;
         channel.SetLevel(level);
 
@@ -515,7 +498,7 @@ namespace Module::FastTracker
   private:
     const ModuleData::Ptr Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
-    int_t Transposition;
+    int_t Transposition = 0;
   };
 
   class Factory : public AYM::Factory

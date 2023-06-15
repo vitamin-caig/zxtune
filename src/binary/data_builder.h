@@ -23,7 +23,7 @@ namespace Binary
   class DataBuilder
   {
   public:
-    DataBuilder() {}
+    DataBuilder() = default;
 
     explicit DataBuilder(std::size_t reserve)
     {
@@ -39,7 +39,7 @@ namespace Binary
     template<class T, typename std::enable_if<std::is_trivial<T>::value && !std::is_pointer<T>::value, int>::type = 0>
     void Add(T val)
     {
-      static_assert(sizeof(T) == 1 || alignof(T) == 1, "Endian-dependent type");
+      static_assert(alignof(T) == 1, "Endian-dependent type");
       std::memcpy(Allocate(sizeof(T)), &val, sizeof(val));
     }
 
@@ -87,7 +87,7 @@ namespace Binary
 
     View GetView() const
     {
-      return View(Content);
+      return {Content};
     }
 
     void Resize(std::size_t size)

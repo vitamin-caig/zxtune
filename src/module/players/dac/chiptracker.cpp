@@ -50,7 +50,7 @@ namespace Module::ChipTracker
     SLIDE
   };
 
-  typedef DAC::SimpleModuleData ModuleData;
+  using ModuleData = DAC::SimpleModuleData;
 
   class DataBuilder : public Formats::Chiptune::ChipTracker::Builder
   {
@@ -141,12 +141,9 @@ namespace Module::ChipTracker
 
   struct GlissData
   {
-    GlissData()
-      : Sliding()
-      , Glissade()
-    {}
-    int_t Sliding;
-    int_t Glissade;
+    GlissData() = default;
+    int_t Sliding = 0;
+    int_t Glissade = 0;
 
     void Reset()
     {
@@ -200,12 +197,12 @@ namespace Module::ChipTracker
     void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
     {
       Gliss.fill(GlissData());
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
         {
           DAC::ChannelDataBuilder builder = track.GetChannel(chan);
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, Gliss[chan], builder);
           }
@@ -213,7 +210,7 @@ namespace Module::ChipTracker
       }
     };
 
-    void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
     {
       if (const bool* enabled = src.GetEnabled())
       {
@@ -308,7 +305,7 @@ namespace Module::ChipTracker
         props.SetPlatform(Platforms::ZX_SPECTRUM);
         return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
-      return DAC::Chiptune::Ptr();
+      return {};
     }
   };
 

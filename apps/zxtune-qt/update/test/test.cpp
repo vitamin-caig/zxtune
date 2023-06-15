@@ -1,31 +1,37 @@
+// local includes
+#include "apps/zxtune-qt/ui/utils.h"
 #include "apps/zxtune-qt/update/downloads.h"
 #include "apps/zxtune-qt/update/product.h"
 #include "apps/zxtune-qt/update/rss.h"
+// common includes
+#include <types.h>
+// std includes
+#include <iostream>
+#include <stdexcept>
+// qt includes
 #include <QtCore/QByteArray>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
-#include <iostream>
-#include <stdexcept>
 
 namespace
 {
   QByteArray OpenFile(StringView name)
   {
-    QFile file(QString::fromStdString(name));
+    QFile file(ToQString(name));
     if (!file.open(QIODevice::ReadOnly))
     {
-      throw std::runtime_error("Failed to open " + name);
+      throw std::runtime_error("Failed to open " + name.to_string());
     }
     return file.readAll();
   }
 
   void SaveFile(StringView name, const QByteArray& data)
   {
-    QFile file(QString::fromStdString(name));
+    QFile file(ToQString(name));
     if (!file.open(QIODevice::WriteOnly))
     {
-      throw std::runtime_error("Failed to open " + name);
+      throw std::runtime_error("Failed to open " + name.to_string());
     }
     file.write(data);
   }
@@ -40,7 +46,7 @@ namespace
       : Stream(&dump)
     {}
 
-    virtual void OnEntry(const RSS::Entry& entry)
+    void OnEntry(const RSS::Entry& entry) override
     {
       Stream << QString(
                     "Entry %1\n"
@@ -67,7 +73,7 @@ namespace
       : Stream(&dump)
     {}
 
-    virtual void OnDownload(Product::Update::Ptr update)
+    void OnDownload(Product::Update::Ptr update) override
     {
       Stream << QString(
                     "Download %1\n"
@@ -133,7 +139,7 @@ int main(int argc, char* argv[])
 {
   try
   {
-    QCoreApplication app(argc, argv);
+    const QCoreApplication app(argc, argv);
     TestFeed("single_entry");
   }
   catch (const std::exception& e)

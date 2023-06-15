@@ -18,7 +18,7 @@
 
 namespace Strings
 {
-  typedef std::map<String, String> Map;
+  using Map = std::map<String, String>;
 
   template<class T>
   class ValueMap : public std::map<String, T, std::less<>>
@@ -37,7 +37,7 @@ namespace Strings
     using parent::emplace;
     using parent::erase;
 
-    T& operator[](StringView key)
+    auto& operator[](StringView key)
     {
       const auto it = find(key);
       if (it != end())
@@ -47,7 +47,7 @@ namespace Strings
       return emplace(key.to_string(), T()).first->second;
     }
 
-    T& at(StringView key)
+    auto& at(StringView key)
     {
       const auto it = find(key);
       if (it == end())
@@ -57,7 +57,7 @@ namespace Strings
       return it->second;
     }
 
-    const T& at(StringView key) const
+    const auto& at(StringView key) const
     {
       const auto it = find(key);
       if (it == cend())
@@ -88,13 +88,13 @@ namespace Strings
       return it != cend() ? &*(it->second) : nullptr;
     }
 
-    const T* FindPtr(StringView key) const
+    const auto* FindPtr(StringView key) const
     {
       const auto it = find(key);
       return it != cend() ? &(it->second) : nullptr;
     }
 
-    T Get(StringView key, T def = T()) const
+    auto Get(StringView key, T def = T()) const
     {
       const auto it = find(key);
       return it != cend() ? it->second : def;

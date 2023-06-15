@@ -16,38 +16,35 @@
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 
-namespace Sound
+namespace Sound::Vorbis
 {
-  namespace Vorbis
+  class LibraryName : public Platform::SharedLibrary::Name
   {
-    class LibraryName : public Platform::SharedLibrary::Name
+  public:
+    LibraryName() = default;
+
+    StringView Base() const override
     {
-    public:
-      LibraryName() {}
+      return "vorbis"_sv;
+    }
 
-      StringView Base() const override
-      {
-        return "vorbis"_sv;
-      }
+    std::vector<StringView> PosixAlternatives() const override
+    {
+      return {"libvorbis.so.0"_sv};
+    }
 
-      std::vector<StringView> PosixAlternatives() const override
-      {
-        return {"libvorbis.so.0"_sv};
-      }
-
-      std::vector<StringView> WindowsAlternatives() const override
-      {
-        return {};
-      }
-    };
+    std::vector<StringView> WindowsAlternatives() const override
+    {
+      return {};
+    }
+  };
 
 <TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
 
-    Api::Ptr LoadDynamicApi()
-    {
-      static const LibraryName NAME;
-      auto lib = Platform::SharedLibrary::Load(NAME);
-      return MakePtr<DynamicApi>(std::move(lib));
-    }
-  }  // namespace Vorbis
-}  // namespace Sound
+  Api::Ptr LoadDynamicApi()
+  {
+    static const LibraryName NAME;
+    auto lib = Platform::SharedLibrary::Load(NAME);
+    return MakePtr<DynamicApi>(std::move(lib));
+  }
+}  // namespace Sound::Vorbis

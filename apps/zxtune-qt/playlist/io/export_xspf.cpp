@@ -9,6 +9,7 @@
  **/
 
 // local includes
+#include "container.h"
 #include "export.h"
 #include "tags/xspf.h"
 #include "ui/utils.h"
@@ -22,6 +23,7 @@
 #include <sound/sound_parameters.h>
 #include <zxtune.h>
 // std includes
+#include <memory>
 #include <set>
 // qt includes
 #include <QtCore/QDir>
@@ -38,7 +40,7 @@ namespace
 
   const unsigned XSPF_VERSION = 1;
 
-  typedef bool (*AttributesFilter)(Parameters::Identifier);
+  using AttributesFilter = bool (*)(Parameters::Identifier);
 
   QString DataToQString(const QByteArray& data)
   {
@@ -91,7 +93,7 @@ namespace
 
     ElementHelper Subtag(const Char* tagName)
     {
-      return ElementHelper(Xml, tagName);
+      return {Xml, tagName};
     }
 
   private:
@@ -162,7 +164,7 @@ namespace
     {
       if (!Saver)
       {
-        Saver.reset(new StringPropertySaver(XML));
+        Saver = std::make_unique<StringPropertySaver>(XML);
       }
       const String strVal = Parameters::ConvertToString(value);
       Saver->SaveProperty(name, strVal);
@@ -317,7 +319,7 @@ namespace
   class ItemFullLocationWriter : public ItemWriter
   {
   public:
-    ItemFullLocationWriter() {}
+    ItemFullLocationWriter() = default;
 
     void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
@@ -344,7 +346,7 @@ namespace
   class ItemContentLocationWriter : public ItemWriter
   {
   public:
-    ItemContentLocationWriter() {}
+    ItemContentLocationWriter() = default;
 
     void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
@@ -376,7 +378,7 @@ namespace
   class ItemShortPropertiesWriter : public ItemWriter
   {
   public:
-    ItemShortPropertiesWriter() {}
+    ItemShortPropertiesWriter() = default;
 
     void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
@@ -389,7 +391,7 @@ namespace
   class ItemFullPropertiesWriter : public ItemWriter
   {
   public:
-    ItemFullPropertiesWriter() {}
+    ItemFullPropertiesWriter() = default;
 
     void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
@@ -434,26 +436,26 @@ namespace
     std::unique_ptr<ItemWriter> props;
     if (0 != (flags & Playlist::IO::SAVE_CONTENT))
     {
-      location.reset(new ItemContentLocationWriter());
-      props.reset(new ItemShortPropertiesWriter());
+      location = std::make_unique<ItemContentLocationWriter>();
+      props = std::make_unique<ItemShortPropertiesWriter>();
     }
     else
     {
       if (0 != (flags & Playlist::IO::SAVE_ATTRIBUTES))
       {
-        props.reset(new ItemFullPropertiesWriter());
+        props = std::make_unique<ItemFullPropertiesWriter>();
       }
       else
       {
-        props.reset(new ItemShortPropertiesWriter());
+        props = std::make_unique<ItemShortPropertiesWriter>();
       }
       if (0 != (flags & Playlist::IO::RELATIVE_PATHS))
       {
-        location.reset(new ItemRelativeLocationWriter(QFileInfo(filename).absolutePath()));
+        location = std::make_unique<ItemRelativeLocationWriter>(QFileInfo(filename).absolutePath());
       }
       else
       {
-        location.reset(new ItemFullLocationWriter());
+        location = std::make_unique<ItemFullLocationWriter>();
       }
     }
     return std::unique_ptr<const ItemWriter>(new ItemCompositeWriter(std::move(location), std::move(props)));
@@ -485,13 +487,13 @@ namespace
     void WriteItems(const Playlist::IO::Container& container, Log::ProgressCallback& cb)
     {
       const uint64_t PERCENTS = 100;
-      ElementHelper tracklist(XML, XSPF::TRACKLIST_TAG);
+      const ElementHelper tracklist(XML, XSPF::TRACKLIST_TAG);
       const uint_t totalItems = container.GetItemsCount();
       uint_t doneItems = 0;
-      for (Playlist::Item::Collection::Ptr items = container.GetItems(); items->IsValid(); items->Next())
+      for (Playlist::Item::Collection::Ptr const items = container.GetItems(); items->IsValid(); items->Next())
       {
         const Playlist::Item::Data::Ptr item = items->Get();
-        WriteItem(item);
+        WriteItem(*item);
         cb.OnProgress((PERCENTS * ++doneItems / totalItems));
       }
     }
@@ -502,11 +504,11 @@ namespace
     }
 
   private:
-    void WriteItem(Playlist::Item::Data::Ptr item)
+    void WriteItem(const Playlist::Item::Data& item)
     {
       Dbg("Save playitem");
       ItemPropertiesSaver saver(XML);
-      Writer.Save(*item, saver);
+      Writer.Save(item, saver);
     }
 
   private:
@@ -515,22 +517,19 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  void SaveXSPF(const Container& container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags)
   {
-    void SaveXSPF(Container::Ptr container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags)
+    QFile device(filename);
+    if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
     {
-      QFile device(filename);
-      if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
-      {
-        throw Error(THIS_LINE, FromQString(QFile::tr("Cannot create %1 for output").arg(filename)));
-      }
-      const std::unique_ptr<const ItemWriter> itemWriter = CreateWriter(filename, flags);
-      XSPFWriter writer(device, *itemWriter);
-      const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
-      writer.WriteProperties(*playlistProperties, container->GetItemsCount());
-      writer.WriteItems(*container, cb);
+      throw Error(THIS_LINE, FromQString(QFile::tr("Cannot create %1 for output").arg(filename)));
     }
-  }  // namespace IO
-}  // namespace Playlist
+    const std::unique_ptr<const ItemWriter> itemWriter = CreateWriter(filename, flags);
+    XSPFWriter writer(device, *itemWriter);
+    const Parameters::Accessor::Ptr playlistProperties = container.GetProperties();
+    writer.WriteProperties(*playlistProperties, container.GetItemsCount());
+    writer.WriteItems(container, cb);
+  }
+}  // namespace Playlist::IO

@@ -17,13 +17,10 @@ namespace
 {
   struct Range
   {
-    uint_t Min;
-    uint_t Max;
+    uint_t Min = 255;
+    uint_t Max = 0;
 
-    Range()
-      : Min(255)
-      , Max(0)
-    {}
+    Range() = default;
 
     void Apply(uint_t val)
     {
@@ -54,7 +51,7 @@ namespace
       else
       {
         assert(!"Invalid case");
-        return std::string();
+        return {};
       }
     }
   };
@@ -67,13 +64,10 @@ namespace
 
   struct BinaryMask
   {
-    uint_t Zeroes;
-    uint_t Ones;
+    uint_t Zeroes = 0;
+    uint_t Ones = 0;
 
-    BinaryMask()
-      : Zeroes()
-      , Ones()
-    {}
+    BinaryMask() = default;
 
     void Apply(uint_t val)
     {
@@ -146,9 +140,7 @@ namespace
   {
     std::bitset<256> Values;
 
-    Bitmask()
-      : Values()
-    {}
+    Bitmask() = default;
 
     void Apply(uint_t val)
     {
@@ -172,11 +164,7 @@ namespace
   class CumulativeFormat
   {
   public:
-    CumulativeFormat()
-      : Ranges()
-      , Binaries()
-      , Bitmasks()
-    {}
+    CumulativeFormat() = default;
 
     bool Add(const Binary::Dump& data)
     {
@@ -251,7 +239,7 @@ namespace
     std::string HomogeniousToString(const std::vector<T>& vals) const
     {
       std::string result;
-      for (typename std::vector<T>::const_iterator it = vals.begin(), lim = vals.end(); it != lim; ++it)
+      for (auto it = vals.begin(), lim = vals.end(); it != lim; ++it)
       {
         result += it->ToString();
       }
@@ -343,7 +331,8 @@ int main(int argc, char* argv[])
     }
     if (bitMask)
     {
-      std::string hi, lo;
+      std::string hi;
+      std::string lo;
       for (int idx = 255; idx >= 0; --idx)
       {
         hi += ToHex(idx >> 4);

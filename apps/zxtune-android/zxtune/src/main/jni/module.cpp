@@ -35,7 +35,7 @@ namespace
   public:
     static void Init(JNIEnv* env)
     {
-      const auto tmpClass = env->FindClass("app/zxtune/core/jni/JniModule");
+      auto* const tmpClass = env->FindClass("app/zxtune/core/jni/JniModule");
       Class = static_cast<jclass>(env->NewGlobalRef(tmpClass));
       Require(Class);
       Constructor = env->GetMethodID(Class, "<init>", "(I)V");
@@ -59,7 +59,7 @@ namespace
 
     static jobject Create(JNIEnv* env, Module::Storage::HandleType handle)
     {
-      const auto res = env->NewObject(Class, Constructor, handle);
+      auto* const res = env->NewObject(Class, Constructor, handle);
       Jni::ThrowIfError(env);
       return res;
     }
@@ -79,11 +79,11 @@ namespace
   public:
     static void Init(JNIEnv* env)
     {
-      const auto detectClass = env->FindClass("app/zxtune/core/jni/DetectCallback");
+      auto* const detectClass = env->FindClass("app/zxtune/core/jni/DetectCallback");
       Require(detectClass);
       OnModule = env->GetMethodID(detectClass, "onModule", "(Ljava/lang/String;Lapp/zxtune/core/Module;)V");
       Require(OnModule);
-      const auto progressClass = env->FindClass("app/zxtune/utils/ProgressCallback");
+      auto* const progressClass = env->FindClass("app/zxtune/utils/ProgressCallback");
       Require(progressClass);
       OnProgress = env->GetMethodID(progressClass, "onProgressUpdate", "(II)V");
       Require(OnProgress);
@@ -195,7 +195,7 @@ namespace
     void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& /*decoder*/,
                        Module::Holder::Ptr holder) override
     {
-      const auto object = CreateJniObject(Env, std::move(holder));
+      auto* const object = CreateJniObject(Env, std::move(holder));
       CallbacksJni::CallOnModule(Env, Delegate, location.GetPath()->AsString(), object);
     }
 
@@ -305,12 +305,12 @@ JNIEXPORT jobjectArray JNICALL Java_app_zxtune_core_jni_JniModule_getAdditionalF
   return Jni::Call(env, [=]() {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
     const auto module = Module::Storage::Instance().Get(moduleHandle);
-    if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
+    if (const auto* const files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
     {
       const auto& filenames = files->Enumerate();
       if (const auto count = filenames.size())
       {
-        const auto result = env->NewObjectArray(count, env->FindClass("java/lang/String"), nullptr);
+        auto* const result = env->NewObjectArray(count, env->FindClass("java/lang/String"), nullptr);
         for (std::size_t i = 0; i < count; ++i)
         {
           env->SetObjectArrayElement(result, i, Jni::MakeJstring(env, filenames[i]));

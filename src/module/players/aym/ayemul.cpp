@@ -27,6 +27,7 @@
 #include <module/players/streaming.h>
 // std includes
 #include <algorithm>
+#include <utility>
 
 namespace Module::AYEMUL
 {
@@ -37,8 +38,6 @@ namespace Module::AYEMUL
   public:
     explicit AyDataChannel(Devices::AYM::Chip::Ptr chip)
       : Chip(std::move(chip))
-      , Register()
-      , Blocked()
     {}
 
     void Reset()
@@ -65,7 +64,7 @@ namespace Module::AYEMUL
     {
       if (IsRegisterSelected())
       {
-        const Devices::AYM::Registers::Index idx = static_cast<Devices::AYM::Registers::Index>(Register);
+        const auto idx = static_cast<Devices::AYM::Registers::Index>(Register);
         if (Devices::AYM::DataChunk* chunk = GetChunk(timeStamp))
         {
           chunk->Data[idx] = val;
@@ -117,10 +116,10 @@ namespace Module::AYEMUL
 
   private:
     const Devices::AYM::Chip::Ptr Chip;
-    uint_t Register;
+    uint_t Register = 0;
     std::vector<Devices::AYM::DataChunk> Chunks;
     Devices::AYM::DataChunk State;
-    bool Blocked;
+    bool Blocked = false;
   };
 
   class BeeperDataChannel
@@ -128,8 +127,6 @@ namespace Module::AYEMUL
   public:
     explicit BeeperDataChannel(Devices::Beeper::Chip::Ptr chip)
       : Chip(std::move(chip))
-      , State(false)
-      , Blocked(false)
     {}
 
     void Reset()
@@ -178,14 +175,14 @@ namespace Module::AYEMUL
   private:
     const Devices::Beeper::Chip::Ptr Chip;
     std::vector<Devices::Beeper::DataChunk> Chunks;
-    bool State;
-    bool Blocked;
+    bool State = false;
+    bool Blocked = false;
   };
 
   class DataChannel
   {
   public:
-    typedef std::shared_ptr<DataChannel> Ptr;
+    using Ptr = std::shared_ptr<DataChannel>;
 
     DataChannel(Devices::AYM::Chip::Ptr ay, Devices::Beeper::Chip::Ptr beep)
       : Ay(std::move(ay))
@@ -243,7 +240,7 @@ namespace Module::AYEMUL
   private:
     static Sound::Sample MixSamples(Sound::Sample lh, Sound::Sample rh)
     {
-      return Sound::Sample((lh.Left() + rh.Left()) / 2, (lh.Right() + rh.Right()) / 2);
+      return {(lh.Left() + rh.Left()) / 2, (lh.Right() + rh.Right()) / 2};
     }
 
   private:
@@ -313,8 +310,6 @@ namespace Module::AYEMUL
   public:
     explicit CPCAYPort(DataChannel::Ptr channel)
       : Channel(std::move(channel))
-      , Data()
-      , Selector()
     {}
 
     void Reset()
@@ -324,7 +319,7 @@ namespace Module::AYEMUL
       Selector = 0;
     }
 
-    uint8_t Read(uint16_t /*port*/)
+    static uint8_t Read(uint16_t /*port*/)
     {
       return 0xff;
     }
@@ -375,8 +370,8 @@ namespace Module::AYEMUL
 
   private:
     const DataChannel::Ptr Channel;
-    uint8_t Data;
-    uint_t Selector;
+    uint8_t Data = '\0';
+    uint_t Selector = 0;
   };
 
   class PortsPlexer : public Devices::Z80::ChipIO
@@ -385,14 +380,13 @@ namespace Module::AYEMUL
     explicit PortsPlexer(DataChannel::Ptr channel)
       : Channel(channel)
       , ZX(channel)
-      , CPC(channel)
-      , Current()
+      , CPC(std::move(channel))
     {}
-    typedef std::shared_ptr<PortsPlexer> Ptr;
+    using Ptr = std::shared_ptr<PortsPlexer>;
 
     static Ptr Create(DataChannel::Ptr ayData)
     {
-      return MakePtr<PortsPlexer>(ayData);
+      return MakePtr<PortsPlexer>(std::move(ayData));
     }
 
     void Reset()
@@ -441,7 +435,7 @@ namespace Module::AYEMUL
     const DataChannel::Ptr Channel;
     ZXAYPort ZX;
     CPCAYPort CPC;
-    CPCAYPort* Current;
+    CPCAYPort* Current = nullptr;
   };
 
   class CPUParameters : public Devices::Z80::ChipParameters
@@ -479,18 +473,14 @@ namespace Module::AYEMUL
   class ModuleData
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
-    ModuleData()
-      : Frames()
-      , Registers()
-      , StackPointer()
-    {}
+    ModuleData() = default;
 
     Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
     {
-      const auto result = Devices::Z80::CreateChip(params, *Memory, ports);
+      auto result = Devices::Z80::CreateChip(std::move(params), *Memory, std::move(ports));
       Devices::Z80::Registers regs;
       regs.Mask = ~0;
       std::fill(regs.Data.begin(), regs.Data.end(), Registers);
@@ -501,17 +491,17 @@ namespace Module::AYEMUL
       return result;
     }
 
-    uint_t Frames;
+    uint_t Frames = 0;
     Time::Microseconds FrameDuration;
-    uint16_t Registers;
-    uint16_t StackPointer;
+    uint16_t Registers = 0;
+    uint16_t StackPointer = 0;
     Binary::Data::Ptr Memory;
   };
 
   class Computer
   {
   public:
-    typedef std::shared_ptr<Computer> Ptr;
+    using Ptr = std::shared_ptr<Computer>;
 
     Computer(ModuleData::Ptr data, Devices::Z80::ChipParameters::Ptr params, PortsPlexer::Ptr cpuPorts)
       : Data(std::move(data))
@@ -764,7 +754,7 @@ namespace Module::AYEMUL
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Chip::Ptr ay,
                                  Devices::Beeper::Chip::Ptr beep) const
     {
-      auto cpuParams = MakePtr<CPUParameters>(params);
+      auto cpuParams = MakePtr<CPUParameters>(std::move(params));
       auto channel = MakePtr<DataChannel>(std::move(ay), std::move(beep));
       auto cpuPorts = PortsPlexer::Create(channel);
       auto comp = MakePtr<Computer>(Data, std::move(cpuParams), std::move(cpuPorts));

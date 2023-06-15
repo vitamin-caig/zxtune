@@ -22,7 +22,9 @@ namespace
   {
     std::cout << (val ? "Passed" : "Failed") << " test for " << msg << std::endl;
     if (!val)
+    {
       throw 1;
+    }
   }
 
   template<class T>
@@ -193,7 +195,7 @@ namespace
     {
       const auto format = Binary::CreateFormat(notation);
       const Binary::View sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
-      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
+      return {format->Match(sample), format->NextMatchOffset(sample)};
     }
     catch (const std::exception&)
     {
@@ -207,7 +209,7 @@ namespace
     {
       const Binary::Format::Ptr format = Binary::CreateMatchOnlyFormat(notation);
       const Binary::View sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
-      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
+      return {format->Match(sample), format->NextMatchOffset(sample)};
     }
     catch (const std::exception&)
     {
@@ -223,7 +225,7 @@ namespace
       auto foot = Binary::CreateFormat(footer);
       const auto format = Binary::CreateCompositeFormat(std::move(hdr), std::move(foot), minSize, maxSize);
       const Binary::View sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
-      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
+      return {format->Match(sample), format->NextMatchOffset(sample)};
     }
     catch (const std::exception&)
     {
@@ -700,11 +702,11 @@ namespace
     },
     {
       "matched from 13 with skip at end",
-      "0d0e\?\?111213\?\?", 
-      "C(0d0e) M(\?) M(\?) C(111213) M(\?) M(\?) ",
-      "0d 0e \? \? 11 12 13 \? \? ",
-      "0d 0e \? \? 11 12 13 \? \? ",
-      "0d 0e \? \? 11 12 13 \? \? ",
+      R"(0d0e??111213??)",
+      R"(C(0d0e) M(?) M(?) C(111213) M(?) M(?) )",
+      R"(0d 0e ? ? 11 12 13 ? ? )",
+      R"(0d 0e ? ? 11 12 13 ? ? )",
+      R"(0d 0e ? ? 11 12 13 ? ? )",
       FormatResult(false, 13),
       FormatResult(false, 32)
     },

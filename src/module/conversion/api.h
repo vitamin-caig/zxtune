@@ -20,5 +20,6 @@ namespace Module
 {
   //! @return Binary::Data::Ptr if cannot convert
   //! @throw Error in case of internal problems
-  Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params);
+  Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec,
+                            const Parameters::Accessor::Ptr& params);
 }  // namespace Module

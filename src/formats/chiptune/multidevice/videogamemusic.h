@@ -16,27 +16,24 @@
 #include <formats/chiptune.h>
 #include <time/duration.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace VideoGameMusic
   {
-    namespace VideoGameMusic
+    class Builder
     {
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+    public:
+      virtual ~Builder() = default;
 
-        virtual MetaBuilder& GetMetaBuilder() = 0;
+      virtual MetaBuilder& GetMetaBuilder() = 0;
 
-        virtual void SetTimings(Time::Milliseconds total, Time::Milliseconds loop) = 0;
-      };
+      virtual void SetTimings(Time::Milliseconds total, Time::Milliseconds loop) = 0;
+    };
 
-      Builder& GetStubBuilder();
+    Builder& GetStubBuilder();
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-    }  // namespace VideoGameMusic
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+  }  // namespace VideoGameMusic
 
-    Decoder::Ptr CreateVideoGameMusicDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateVideoGameMusicDecoder();
+}  // namespace Formats::Chiptune

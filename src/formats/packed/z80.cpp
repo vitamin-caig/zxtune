@@ -273,7 +273,7 @@ namespace Formats::Packed
 
     void DecodeBlock(Binary::InputStream& stream, std::size_t srcSize, void* dst, std::size_t dstSize)
     {
-      const auto src = stream.PeekRawData(srcSize);
+      const auto* const src = stream.PeekRawData(srcSize);
       const auto used = DecodeBlock(src, srcSize, static_cast<uint8_t*>(dst), dstSize);
       stream.Skip(used);
     }
@@ -304,8 +304,6 @@ namespace Formats::Packed
       static const int_t NO_PAGE = -1;
 
       PlatformTraits(std::size_t additionalSize, uint_t hwMode, uint_t port7ffd)
-        : MinPages()
-        , Pages()
       {
         if (additionalSize == Version2_0::ADDITIONAL_SIZE)
         {
@@ -462,8 +460,8 @@ namespace Formats::Packed
       }
 
     private:
-      uint_t MinPages;
-      uint_t Pages;
+      uint_t MinPages = 0;
+      uint_t Pages = 0;
       std::vector<int_t> Numbers;
     };
 
@@ -545,7 +543,7 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       try
       {
@@ -554,7 +552,7 @@ namespace Formats::Packed
       }
       catch (const std::exception&)
       {
-        return Container::Ptr();
+        return {};
       }
     }
 

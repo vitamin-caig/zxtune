@@ -15,10 +15,7 @@
 // library includes
 #include <formats/chiptune/fm/tfmmusicmaker.h>
 
-namespace Module
+namespace Module::TFMMusicMaker
 {
-  namespace TFMMusicMaker
-  {
-    TFM::Factory::Ptr CreateFactory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder);
-  }
-}  // namespace Module
+  TFM::Factory::Ptr CreateFactory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder);
+}  // namespace Module::TFMMusicMaker

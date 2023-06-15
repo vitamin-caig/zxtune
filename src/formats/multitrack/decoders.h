@@ -13,16 +13,13 @@
 // library includes
 #include <formats/multitrack.h>
 
-namespace Formats
+namespace Formats::Multitrack
 {
-  namespace Multitrack
-  {
-    Decoder::Ptr CreateSIDDecoder();
-    Decoder::Ptr CreateNSFDecoder();
-    Decoder::Ptr CreateNSFEDecoder();
-    Decoder::Ptr CreateGBSDecoder();
-    Decoder::Ptr CreateSAPDecoder();
-    Decoder::Ptr CreateKSSXDecoder();
-    Decoder::Ptr CreateHESDecoder();
-  }  // namespace Multitrack
-}  // namespace Formats
+  Decoder::Ptr CreateSIDDecoder();
+  Decoder::Ptr CreateNSFDecoder();
+  Decoder::Ptr CreateNSFEDecoder();
+  Decoder::Ptr CreateGBSDecoder();
+  Decoder::Ptr CreateSAPDecoder();
+  Decoder::Ptr CreateKSSXDecoder();
+  Decoder::Ptr CreateHESDecoder();
+}  // namespace Formats::Multitrack

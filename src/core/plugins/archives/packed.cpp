@@ -72,8 +72,7 @@ namespace ZXTune
       {
         const auto packedSize = subData->PackedSize();
         auto subPath = EncodeArchivePluginToPath(Identifier);
-        auto subLocation =
-            CreateNestedLocation(std::move(inputData), std::move(subData), Identifier, std::move(subPath));
+        auto subLocation = CreateNestedLocation(std::move(inputData), std::move(subData), Identifier, subPath);
         callback.ProcessData(std::move(subLocation));
         return Analysis::CreateMatchedResult(packedSize);
       }
@@ -93,7 +92,7 @@ namespace ZXTune
       const auto rawData = inputData->GetData();
       if (auto subData = Decoder->Decode(*rawData))
       {
-        return CreateNestedLocation(std::move(inputData), std::move(subData), Identifier, std::move(pathComponent));
+        return CreateNestedLocation(std::move(inputData), std::move(subData), Identifier, pathComponent);
       }
       return {};
     }

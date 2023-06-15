@@ -12,6 +12,7 @@
 
 // library includes
 #include <strings/format.h>
+#include <time/duration.h>
 
 namespace Time
 {

@@ -18,129 +18,127 @@
 // std includes
 #include <map>
 
-namespace Module
+namespace Module::VideoGameMusic
 {
-  namespace VideoGameMusic
+  enum DeviceType
   {
-    enum DeviceType
+    UNUSED,
+    SN76489,
+    YM2413,
+    YM2612,
+    YM2151,
+    SEGA_PCM,
+    RF5C68,
+    YM2203,
+    YM2608,
+    YM2610,
+    YM3812,
+    YM3526,
+    Y8950,
+    YMF262,
+    YMF278B,
+    YMF271,
+    YMZ280B,
+    RF5C164,
+    PWM,
+    AY8910,
+    LR35902,
+    N2A03,
+    MULTI_PCM,
+    UPD7759,
+    OKIM6258,
+    OKIM6295,
+    K051649,
+    K054539,
+    HUC6280,
+    C140,
+    K053260,
+    POKEY,
+    QSOUND,
+    SCSP,
+    WONDER_SWAN,
+    VSU,
+    SAA1099,
+    ES5503,
+    ES5506,
+    X1_010,
+    C352,
+    GA20,
+
+    GAMEGEAR_STEREO,
+
+    DUAL = 0x8000000,
+  };
+
+  struct DeviceTraits
+  {
+    uint_t Clock = 0;
+    bool HasCommands = false;
+  };
+
+  struct MatchResult
+  {
+    uint_t AllDevices = 0;
+    uint_t Declared = 0;
+    uint_t ClockMatched = 0;
+    uint_t HasCommands = 0;
+  };
+
+  struct PlatformTrait
+  {
+    const StringView Id;
+
+    struct DeviceTrait
     {
-      UNUSED,
-      SN76489,
-      YM2413,
-      YM2612,
-      YM2151,
-      SEGA_PCM,
-      RF5C68,
-      YM2203,
-      YM2608,
-      YM2610,
-      YM3812,
-      YM3526,
-      Y8950,
-      YMF262,
-      YMF278B,
-      YMF271,
-      YMZ280B,
-      RF5C164,
-      PWM,
-      AY8910,
-      LR35902,
-      N2A03,
-      MULTI_PCM,
-      UPD7759,
-      OKIM6258,
-      OKIM6295,
-      K051649,
-      K054539,
-      HUC6280,
-      C140,
-      K053260,
-      POKEY,
-      QSOUND,
-      SCSP,
-      WONDER_SWAN,
-      VSU,
-      SAA1099,
-      ES5503,
-      ES5506,
-      X1_010,
-      C352,
-      GA20,
-
-      GAMEGEAR_STEREO,
-
-      DUAL = 0x8000000,
+      uint_t Id;
+      uint_t Clocks[6];
     };
+    DeviceTrait Devices[4];
 
-    struct DeviceTraits
+    bool HasDevice(uint_t id, uint_t clock) const
     {
-      uint_t Clock = 0;
-      bool HasCommands = false;
-    };
-
-    struct MatchResult
-    {
-      uint_t AllDevices = 0;
-      uint_t Declared = 0;
-      uint_t ClockMatched = 0;
-      uint_t HasCommands = 0;
-    };
-
-    struct PlatformTrait
-    {
-      const StringView Id;
-
-      struct DeviceTrait
+      for (const auto& dev : Devices)
       {
-        uint_t Id;
-        uint_t Clocks[6];
-      };
-      DeviceTrait Devices[4];
-
-      bool HasDevice(uint_t id, uint_t clock) const
-      {
-        for (const auto& dev : Devices)
+        if (dev.Id == UNUSED)
         {
-          if (dev.Id == UNUSED)
+          break;
+        }
+        else if (dev.Id == id)
+        {
+          for (const auto& cl : dev.Clocks)
           {
-            break;
-          }
-          else if (dev.Id == id)
-          {
-            for (const auto& cl : dev.Clocks)
+            if (cl == clock)
             {
-              if (cl == clock)
-              {
-                return true;
-              }
-              else if (!cl)
-              {
-                break;
-              }
+              return true;
+            }
+            else if (!cl)
+            {
+              break;
             }
           }
         }
-        return false;
       }
+      return false;
+    }
 
-      bool HasDevice(uint_t id) const
+    bool HasDevice(uint_t id) const
+    {
+      for (const auto& dev : Devices)
       {
-        for (const auto& dev : Devices)
+        if (dev.Id == UNUSED)
         {
-          if (dev.Id == UNUSED)
-          {
-            break;
-          }
-          else if (dev.Id == id)
-          {
-            return true;
-          }
+          break;
         }
-        return false;
+        else if (dev.Id == id)
+        {
+          return true;
+        }
       }
-    };
+      return false;
+    }
+  };
 
-    // clang-format off
+  // clang-format off
     static const PlatformTrait::DeviceTrait SEGA_SN76489 =
     {
       SN76489,
@@ -311,220 +309,219 @@ namespace Module
         }
       }
     };
-    // clang-format on
+  // clang-format on
 
-    class PlatformsSet
+  class PlatformsSet
+  {
+  public:
+    void Intersect(PlatformsSet rh)
     {
-    public:
-      void Intersect(PlatformsSet rh)
-      {
-        Value &= rh.Value;
-      }
+      Value &= rh.Value;
+    }
 
-      PlatformsSet Intersect(PlatformsSet rh) const
-      {
-        return PlatformsSet(Value & rh.Value);
-      }
-
-      bool IsEmpty() const
-      {
-        return Value == 0;
-      }
-
-      const StringView FindSingleName() const
-      {
-        uint_t mask = 1;
-        for (const auto& plat : PLATFORMS)
-        {
-          if (Value & mask)
-          {
-            return Value == mask ? plat.Id : StringView();
-          }
-          mask <<= 1;
-        }
-        return {};
-      }
-
-      StringView GetBaseName() const
-      {
-        uint_t mask = 1;
-        for (const auto& plat : PLATFORMS)
-        {
-          if (Value & mask)
-          {
-            return plat.Id;
-          }
-          mask <<= 1;
-        }
-        return {};
-      }
-
-      static PlatformsSet All()
-      {
-        return PlatformsSet(~uint_t(0));
-      }
-
-      static PlatformsSet ForDevice(uint_t id, uint_t clock)
-      {
-        uint_t mask = 1;
-        uint_t val = 0;
-        for (const auto& plat : PLATFORMS)
-        {
-          if (plat.HasDevice(id, clock))
-          {
-            val |= mask;
-          }
-          mask <<= 1;
-        }
-        return PlatformsSet(val);
-      }
-
-      static PlatformsSet ForDevice(uint_t id)
-      {
-        uint_t mask = 1;
-        uint_t val = 0;
-        for (const auto& plat : PLATFORMS)
-        {
-          if (plat.HasDevice(id))
-          {
-            val |= mask;
-          }
-          mask <<= 1;
-        }
-        return PlatformsSet(val);
-      }
-
-    private:
-      PlatformsSet() = default;
-      explicit PlatformsSet(uint_t val)
-        : Value(val)
-      {}
-
-    private:
-      uint_t Value = 0;
-    };
-
-    class PlatformDetector
+    PlatformsSet Intersect(PlatformsSet rh) const
     {
-    public:
-      explicit PlatformDetector(Binary::View data)
-        : Input(data)
-      {
-        Input.Seek(0x8);
-        const auto vers = Input.PeekRawData(4);
-        Version = (vers[0] & 15) + 10 * (vers[0] >> 4) + 100 * (vers[1] & 15) + 1000 * (vers[1] >> 4);
+      return PlatformsSet(Value & rh.Value);
+    }
 
+    bool IsEmpty() const
+    {
+      return Value == 0;
+    }
+
+    StringView FindSingleName() const
+    {
+      uint_t mask = 1;
+      for (const auto& plat : PLATFORMS)
+      {
+        if (Value & mask)
         {
-          const std::size_t offsetPos = 0x34;
-          Input.Seek(offsetPos);
-          const auto vgmOffset = ReadDword();
-          DataOffset = vgmOffset ? vgmOffset + offsetPos : 0x40;
+          return Value == mask ? plat.Id : StringView();
         }
-        {
-          const std::size_t offsetPos = 0x14;
-          Input.Seek(offsetPos);
-          const auto gd3Offset = ReadDword();
-          TagsOffset = gd3Offset ? gd3Offset + offsetPos : 0;
-        }
+        mask <<= 1;
       }
+      return {};
+    }
 
-      StringView GetResult()
+    StringView GetBaseName() const
+    {
+      uint_t mask = 1;
+      for (const auto& plat : PLATFORMS)
       {
-        const auto fromTags = GetFromTags();
-        if (fromTags.size())
+        if (Value & mask)
         {
-          return fromTags;
+          return plat.Id;
+        }
+        mask <<= 1;
+      }
+      return {};
+    }
+
+    static PlatformsSet All()
+    {
+      return PlatformsSet(~uint_t(0));
+    }
+
+    static PlatformsSet ForDevice(uint_t id, uint_t clock)
+    {
+      uint_t mask = 1;
+      uint_t val = 0;
+      for (const auto& plat : PLATFORMS)
+      {
+        if (plat.HasDevice(id, clock))
+        {
+          val |= mask;
+        }
+        mask <<= 1;
+      }
+      return PlatformsSet(val);
+    }
+
+    static PlatformsSet ForDevice(uint_t id)
+    {
+      uint_t mask = 1;
+      uint_t val = 0;
+      for (const auto& plat : PLATFORMS)
+      {
+        if (plat.HasDevice(id))
+        {
+          val |= mask;
+        }
+        mask <<= 1;
+      }
+      return PlatformsSet(val);
+    }
+
+  private:
+    PlatformsSet() = default;
+    explicit PlatformsSet(uint_t val)
+      : Value(val)
+    {}
+
+  private:
+    uint_t Value = 0;
+  };
+
+  class PlatformDetector
+  {
+  public:
+    explicit PlatformDetector(Binary::View data)
+      : Input(data)
+    {
+      Input.Seek(0x8);
+      const auto* const vers = Input.PeekRawData(4);
+      Version = (vers[0] & 15) + 10 * (vers[0] >> 4) + 100 * (vers[1] & 15) + 1000 * (vers[1] >> 4);
+
+      {
+        const std::size_t offsetPos = 0x34;
+        Input.Seek(offsetPos);
+        const auto vgmOffset = ReadDword();
+        DataOffset = vgmOffset ? vgmOffset + offsetPos : 0x40;
+      }
+      {
+        const std::size_t offsetPos = 0x14;
+        Input.Seek(offsetPos);
+        const auto gd3Offset = ReadDword();
+        TagsOffset = gd3Offset ? gd3Offset + offsetPos : 0;
+      }
+    }
+
+    StringView GetResult()
+    {
+      const auto fromTags = GetFromTags();
+      if (!fromTags.empty())
+      {
+        return fromTags;
+      }
+      else
+      {
+        const auto byClocks = GuessByClocks();
+        const auto singleName = byClocks.FindSingleName();
+        if (!singleName.empty())
+        {
+          return singleName;
         }
         else
         {
-          const auto byClocks = GuessByClocks();
-          const auto singleName = byClocks.FindSingleName();
-          if (singleName.size())
+          const auto byCommands = GuessByCommands();
+          if (byCommands.IsEmpty())
+          {
+            return byClocks.GetBaseName();
+          }
+          const auto singleName = byCommands.FindSingleName();
+          if (!singleName.empty())
           {
             return singleName;
           }
           else
           {
-            const auto byCommands = GuessByCommands();
-            if (byCommands.IsEmpty())
+            const auto match = byClocks.Intersect(byCommands);
+            if (match.IsEmpty())
             {
-              return byClocks.GetBaseName();
-            }
-            const auto singleName = byCommands.FindSingleName();
-            if (singleName.size())
-            {
-              return singleName;
+              return byCommands.GetBaseName();
             }
             else
             {
-              const auto match = byClocks.Intersect(byCommands);
-              if (match.IsEmpty())
-              {
-                return byCommands.GetBaseName();
-              }
-              else
-              {
-                return match.GetBaseName();
-              }
+              return match.GetBaseName();
             }
           }
         }
       }
+    }
 
-    private:
-      StringView GetFromTags()
+  private:
+    StringView GetFromTags()
+    {
+      if (!TagsOffset)
       {
-        if (!TagsOffset)
-        {
-          return {};
-        }
-        try
-        {
-          Input.Seek(TagsOffset);
-          Require(ReadDword() == 0x20336447);
-          Input.Skip(8);
-          ReadUtf16();  // title en
-          ReadUtf16();  // title ja
-          ReadUtf16();  // game en
-          ReadUtf16();  // game ja
-          const auto sys = ReadUtf16();
-          return ConvertPlatform(String(sys.begin(), sys.end()));
-        }
-        catch (const std::exception&)
-        {}
         return {};
       }
-
-      uint8_t ReadByte()
+      try
       {
-        return Input.ReadByte();
+        Input.Seek(TagsOffset);
+        Require(ReadDword() == 0x20336447);
+        Input.Skip(8);
+        ReadUtf16();  // title en
+        ReadUtf16();  // title ja
+        ReadUtf16();  // game en
+        ReadUtf16();  // game ja
+        const auto sys = ReadUtf16();
+        return ConvertPlatform(String(sys.begin(), sys.end()));
       }
+      catch (const std::exception&)
+      {}
+      return {};
+    }
 
-      uint32_t ReadDword()
+    uint8_t ReadByte()
+    {
+      return Input.ReadByte();
+    }
+
+    uint32_t ReadDword()
+    {
+      return Input.Read<le_uint32_t>();
+    }
+
+    basic_string_view<le_uint16_t> ReadUtf16()
+    {
+      const auto symbolsAvailable = Input.GetRestSize() / sizeof(le_uint16_t);
+      const auto* begin = safe_ptr_cast<const le_uint16_t*>(Input.PeekRawData(symbolsAvailable * sizeof(le_uint16_t)));
+      const auto* end = std::find(begin, begin + symbolsAvailable, 0);
+      Require(end != begin + symbolsAvailable);
+      Input.Skip((end + 1 - begin) * sizeof(*begin));
+      return {begin, end};
+    }
+
+    static StringView ConvertPlatform(StringView str)
+    {
+      struct PlatformName
       {
-        return Input.Read<le_uint32_t>();
-      }
+        const StringView Name;
+        const StringView Id;
+      };
 
-      basic_string_view<le_uint16_t> ReadUtf16()
-      {
-        const auto symbolsAvailable = Input.GetRestSize() / sizeof(le_uint16_t);
-        const auto* begin =
-            safe_ptr_cast<const le_uint16_t*>(Input.PeekRawData(symbolsAvailable * sizeof(le_uint16_t)));
-        auto end = std::find(begin, begin + symbolsAvailable, 0);
-        Require(end != begin + symbolsAvailable);
-        Input.Skip((end + 1 - begin) * sizeof(*begin));
-        return basic_string_view<le_uint16_t>(begin, end);
-      }
-
-      static StringView ConvertPlatform(StringView str)
-      {
-        struct PlatformName
-        {
-          const StringView Name;
-          const StringView Id;
-        };
-
-        // clang-format off
+      // clang-format off
         static const PlatformName PLATFORMS[] =
         {
           {"Sega Master System"_sv, Platforms::SEGA_MASTER_SYSTEM},
@@ -537,52 +534,52 @@ namespace Module
           {"Coleco"_sv, Platforms::COLECOVISION},
           {"BBC M"_sv, Platforms::BBC_MICRO},
         };
-        // clang-format on
-        for (const auto& pair : PLATFORMS)
-        {
-          const auto prefixSize = pair.Name.size();
-          if (0 == str.compare(0, prefixSize, pair.Name))
-          {
-            return pair.Id;
-          }
-        }
-        return {};
-      }
-
-      PlatformsSet GuessByClocks()
+      // clang-format on
+      for (const auto& pair : PLATFORMS)
       {
-        AnalyzeClocks();
-        auto result = PlatformsSet::All();
-        for (const auto& dev : Traits)
+        const auto prefixSize = pair.Name.size();
+        if (0 == str.compare(0, prefixSize, pair.Name))
         {
-          result.Intersect(PlatformsSet::ForDevice(dev.first, dev.second.Clock));
+          return pair.Id;
         }
-        return result;
       }
+      return {};
+    }
 
-      PlatformsSet GuessByCommands()
+    PlatformsSet GuessByClocks()
+    {
+      AnalyzeClocks();
+      auto result = PlatformsSet::All();
+      for (const auto& dev : Traits)
       {
-        AnalyzeCommands();
-        auto result = PlatformsSet::All();
-        for (const auto& dev : Traits)
+        result.Intersect(PlatformsSet::ForDevice(dev.first, dev.second.Clock));
+      }
+      return result;
+    }
+
+    PlatformsSet GuessByCommands()
+    {
+      AnalyzeCommands();
+      auto result = PlatformsSet::All();
+      for (const auto& dev : Traits)
+      {
+        if (dev.second.HasCommands)
         {
-          if (dev.second.HasCommands)
-          {
-            result.Intersect(PlatformsSet::ForDevice(dev.first));
-          }
+          result.Intersect(PlatformsSet::ForDevice(dev.first));
         }
-        return result;
       }
+      return result;
+    }
 
-      void AnalyzeClocks()
+    void AnalyzeClocks()
+    {
+      struct DeviceDesc
       {
-        struct DeviceDesc
-        {
-          DeviceType Id;
-          std::size_t ClockOffset;
-        };
+        DeviceType Id;
+        std::size_t ClockOffset;
+      };
 
-        // clang-format off
+      // clang-format off
         static const DeviceDesc SIMPLE_DEVICES[] =
         {
           {SEGA_PCM, 0x38},
@@ -631,100 +628,100 @@ namespace Module
           {C352, 0xdc},
           {GA20, 0xe0}
         };
-        // clang-format on
+      // clang-format on
 
-        for (const auto& dev : SIMPLE_DEVICES)
+      for (const auto& dev : SIMPLE_DEVICES)
+      {
+        if (const auto data = ReadClock(dev.ClockOffset))
         {
-          if (const auto data = ReadClock(dev.ClockOffset))
+          AddSimpleDevice(dev.Id, data);
+        }
+      }
+      for (const auto& dev : DUAL_DEVICES)
+      {
+        if (const auto data = ReadClock(dev.ClockOffset))
+        {
+          AddDevice(dev.Id, data);
+        }
+      }
+    }
+
+    void AnalyzeCommands()
+    {
+      Input.Seek(DataOffset);
+      try
+      {
+        for (;;)
+        {
+          const auto code = ReadByte();
+          if (code == 0x66)
           {
-            AddSimpleDevice(dev.Id, data);
+            break;
           }
-        }
-        for (const auto& dev : DUAL_DEVICES)
-        {
-          if (const auto data = ReadClock(dev.ClockOffset))
-          {
-            AddDevice(dev.Id, data);
-          }
+          Require(ParseFixedCommand(code) || ParseDataBlock(code) || ParseRamWrite(code) || ParseBuggyCommand(code));
         }
       }
+      catch (const std::exception&)
+      {}
+    }
 
-      void AnalyzeCommands()
+    uint32_t ReadClock(std::size_t offset)
+    {
+      if (offset + sizeof(uint32_t) <= DataOffset)
       {
-        Input.Seek(DataOffset);
-        try
+        Input.Seek(offset);
+        return ReadDword();
+      }
+      else
+      {
+        return 0;
+      }
+    }
+
+    void AddDevice(DeviceType id, uint32_t data)
+    {
+      auto& trait = Traits[id];
+      trait.Clock = data & 0x3fffffff;
+      if (data & 0x40000000)
+      {
+        auto& dualTrait = Traits[id | DUAL];
+        dualTrait.Clock = trait.Clock;
+      }
+    }
+
+    void AddSimpleDevice(DeviceType id, uint32_t data)
+    {
+      auto& trait = Traits[id];
+      trait.Clock = data;
+    }
+
+    struct FixedCmd
+    {
+      const uint8_t CodeMin;
+      const uint8_t CodeMax;
+      const std::size_t SequentSize;
+      DeviceType Device;
+
+      bool Match(uint8_t code) const
+      {
+        return code >= CodeMin && code <= CodeMax;
+      }
+    };
+
+    bool ParseFixedCommand(uint8_t code)
+    {
+      if (code == 0x4f)
+      {
+        // assume that else Game Gear is backward compatible with Sega Master System
+        const auto param = ReadByte();
+        if (param != 0xff)
         {
-          for (;;)
-          {
-            const auto code = ReadByte();
-            if (code == 0x66)
-            {
-              break;
-            }
-            Require(ParseFixedCommand(code) || ParseDataBlock(code) || ParseRamWrite(code) || ParseBuggyCommand(code));
-          }
+          AddCmd(GAMEGEAR_STEREO);
         }
-        catch (const std::exception&)
-        {}
+        return true;
       }
 
-      uint32_t ReadClock(std::size_t offset)
-      {
-        if (offset + sizeof(uint32_t) <= DataOffset)
-        {
-          Input.Seek(offset);
-          return ReadDword();
-        }
-        else
-        {
-          return 0;
-        }
-      }
-
-      void AddDevice(DeviceType id, uint32_t data)
-      {
-        auto& trait = Traits[id];
-        trait.Clock = data & 0x3fffffff;
-        if (data & 0x40000000)
-        {
-          auto& dualTrait = Traits[id | DUAL];
-          dualTrait.Clock = trait.Clock;
-        }
-      }
-
-      void AddSimpleDevice(DeviceType id, uint32_t data)
-      {
-        auto& trait = Traits[id];
-        trait.Clock = data;
-      }
-
-      struct FixedCmd
-      {
-        const uint8_t CodeMin;
-        const uint8_t CodeMax;
-        const std::size_t SequentSize;
-        DeviceType Device;
-
-        bool Match(uint8_t code) const
-        {
-          return code >= CodeMin && code <= CodeMax;
-        }
-      };
-
-      bool ParseFixedCommand(uint8_t code)
-      {
-        if (code == 0x4f)
-        {
-          // assume that else Game Gear is backward compatible with Sega Master System
-          const auto param = ReadByte();
-          if (param != 0xff)
-          {
-            AddCmd(GAMEGEAR_STEREO);
-          }
-          return true;
-        }
-
-        // clang-format off
+      // clang-format off
         static const FixedCmd SIMPLE_COMMANDS[] =
         {
           {0x50, 0x50, 1, SN76489},
@@ -751,31 +748,31 @@ namespace Module
           {0x94, 0x94, 1, UNUSED},
           {0x95, 0x95, 4, UNUSED},
         };
-        // clang-format on
+      // clang-format on
 
-        for (const auto& cmd : SIMPLE_COMMANDS)
+      for (const auto& cmd : SIMPLE_COMMANDS)
+      {
+        if (cmd.Match(code))
         {
-          if (cmd.Match(code))
-          {
-            AddCmd(cmd.Device);
-            return Skip(cmd);
-          }
+          AddCmd(cmd.Device);
+          return Skip(cmd);
         }
+      }
 
-        static const FixedCmd DUAL_COMMANDS[] = {
-            {0x30, 0x3f, 1, SN76489},
-        };
+      static const FixedCmd DUAL_COMMANDS[] = {
+          {0x30, 0x3f, 1, SN76489},
+      };
 
-        for (const auto& cmd : DUAL_COMMANDS)
+      for (const auto& cmd : DUAL_COMMANDS)
+      {
+        if (cmd.Match(code))
         {
-          if (cmd.Match(code))
-          {
-            AddDualCmd(cmd.Device);
-            return Skip(cmd);
-          }
+          AddDualCmd(cmd.Device);
+          return Skip(cmd);
         }
+      }
 
-        // clang-format off
+      // clang-format off
         static const FixedCmd DUAL_YM_COMMANDS[] =
         {
           {0x51, 0x51, 2, YM2413},
@@ -790,23 +787,23 @@ namespace Module
           {0x5d, 0x5d, 2, YMZ280B},
           {0x5e, 0x5f, 2, YMF262},
         };
-        // clang-format on
+      // clang-format on
 
-        for (const auto& cmd : DUAL_YM_COMMANDS)
+      for (const auto& cmd : DUAL_YM_COMMANDS)
+      {
+        if (cmd.Match(code))
         {
-          if (cmd.Match(code))
-          {
-            AddCmd(cmd.Device);
-            return Skip(cmd);
-          }
-          else if (cmd.Match(code - 0x50))
-          {
-            AddDualCmd(cmd.Device);
-            return Skip(cmd);
-          }
+          AddCmd(cmd.Device);
+          return Skip(cmd);
         }
+        else if (cmd.Match(code - 0x50))
+        {
+          AddDualCmd(cmd.Device);
+          return Skip(cmd);
+        }
+      }
 
-        // clang-format off
+      // clang-format off
         static const FixedCmd DUAL_PARAMETER_COMMANDS[] =
         {
           {0xa0, 0xa0, 2, AY8910},
@@ -836,132 +833,131 @@ namespace Module
           {0xd6, 0xd6, 3, ES5506},
           {0xe1, 0xe1, 4, C352},
         };
-        // clang-format on
+      // clang-format on
 
-        for (const auto& cmd : DUAL_PARAMETER_COMMANDS)
+      for (const auto& cmd : DUAL_PARAMETER_COMMANDS)
+      {
+        if (cmd.Match(code))
         {
-          if (cmd.Match(code))
+          const auto param1 = ReadByte();
+          Input.Skip(-1);
+          if (param1 >= 0x80)
           {
-            const auto param1 = ReadByte();
-            Input.Skip(-1);
-            if (param1 >= 0x80)
-            {
-              AddDualCmd(cmd.Device);
-            }
-            else
-            {
-              AddCmd(cmd.Device);
-            }
-            return Skip(cmd);
+            AddDualCmd(cmd.Device);
           }
-        }
-        return false;
-      }
-
-      void AddCmd(DeviceType id)
-      {
-        if (id != UNUSED)
-        {
-          Traits[id].HasCommands = true;
+          else
+          {
+            AddCmd(cmd.Device);
+          }
+          return Skip(cmd);
         }
       }
-
-      void AddDualCmd(DeviceType id)
-      {
-        Traits[id | DUAL].HasCommands = true;
-      }
-
-      bool Skip(const FixedCmd& cmd)
-      {
-        Input.Skip(cmd.SequentSize);
-        return true;
-      }
-
-      bool ParseDataBlock(uint8_t code)
-      {
-        if (code != 0x67)
-        {
-          return false;
-        }
-        Input.Skip(1);
-        const auto type = ReadByte();
-        const auto dev = GetDeviceTypeByBlockType(type);
-        AddCmd(dev);
-        const auto size = ReadDword() & 0x7fffffff;
-        Input.Skip(size);
-        return true;
-      }
-
-      bool ParseRamWrite(uint8_t code)
-      {
-        if (code != 0x68)
-        {
-          return false;
-        }
-        Input.Skip(1);
-        const auto type = ReadByte();
-        const auto dev = GetDeviceTypeByBlockType(type);
-        AddCmd(dev);
-        Input.Skip(6);
-        const auto size = (ReadDword() - 1) & 0xffffff;
-        Input.Skip(size);
-        return true;
-      }
-
-      static DeviceType GetDeviceTypeByBlockType(uint8_t type)
-      {
-        static const DeviceType STREAMS[64] = {YM2612, RF5C68, RF5C164, PWM, OKIM6258, HUC6280, SCSP, N2A03};
-
-        static const DeviceType DUMPS[64] = {SEGA_PCM, YM2608, YM2610,    YM2610,  YMF278B,  YMF271,  YMZ280B,
-                                             YMF278B,  Y8950,  MULTI_PCM, UPD7759, OKIM6295, K054539, C140,
-                                             K053260,  QSOUND, ES5506,    X1_010,  C352,     GA20};
-
-        static const DeviceType WRITES[64] = {RF5C68, RF5C164, N2A03, SCSP, ES5503};
-
-        if (type < 0x40)
-        {
-          return STREAMS[type];
-        }
-        else if (type < 0x7f)
-        {
-          return STREAMS[type - 0x40];
-        }
-        else if (type == 0x7f)
-        {
-          return UNUSED;
-        }
-        else if (type < 0xc0)
-        {
-          return DUMPS[type - 0x80];
-        }
-        else
-        {
-          return WRITES[type - 0xc0];
-        }
-      }
-
-      bool ParseBuggyCommand(uint8_t code)
-      {
-        if (code >= 0x40 && code <= 0x4e)
-        {
-          Input.Skip(1 + (Version >= 160));
-          return true;
-        }
-        return false;
-      }
-
-    private:
-      Binary::DataInputStream Input;
-      uint_t Version = 0;
-      std::size_t DataOffset = 0;
-      std::size_t TagsOffset;
-      std::map<uint_t, DeviceTraits> Traits;
-    };
-
-    StringView DetectPlatform(Binary::View data)
-    {
-      PlatformDetector detector(data);
-      return detector.GetResult();
+      return false;
     }
-  }  // namespace VideoGameMusic
-}  // namespace Module
+
+    void AddCmd(DeviceType id)
+    {
+      if (id != UNUSED)
+      {
+        Traits[id].HasCommands = true;
+      }
+    }
+
+    void AddDualCmd(DeviceType id)
+    {
+      Traits[id | DUAL].HasCommands = true;
+    }
+
+    bool Skip(const FixedCmd& cmd)
+    {
+      Input.Skip(cmd.SequentSize);
+      return true;
+    }
+
+    bool ParseDataBlock(uint8_t code)
+    {
+      if (code != 0x67)
+      {
+        return false;
+      }
+      Input.Skip(1);
+      const auto type = ReadByte();
+      const auto dev = GetDeviceTypeByBlockType(type);
+      AddCmd(dev);
+      const auto size = ReadDword() & 0x7fffffff;
+      Input.Skip(size);
+      return true;
+    }
+
+    bool ParseRamWrite(uint8_t code)
+    {
+      if (code != 0x68)
+      {
+        return false;
+      }
+      Input.Skip(1);
+      const auto type = ReadByte();
+      const auto dev = GetDeviceTypeByBlockType(type);
+      AddCmd(dev);
+      Input.Skip(6);
+      const auto size = (ReadDword() - 1) & 0xffffff;
+      Input.Skip(size);
+      return true;
+    }
+
+    static DeviceType GetDeviceTypeByBlockType(uint8_t type)
+    {
+      static const DeviceType STREAMS[64] = {YM2612, RF5C68, RF5C164, PWM, OKIM6258, HUC6280, SCSP, N2A03};
+
+      static const DeviceType DUMPS[64] = {SEGA_PCM, YM2608, YM2610,    YM2610,  YMF278B,  YMF271,  YMZ280B,
+                                           YMF278B,  Y8950,  MULTI_PCM, UPD7759, OKIM6295, K054539, C140,
+                                           K053260,  QSOUND, ES5506,    X1_010,  C352,     GA20};
+
+      static const DeviceType WRITES[64] = {RF5C68, RF5C164, N2A03, SCSP, ES5503};
+
+      if (type < 0x40)
+      {
+        return STREAMS[type];
+      }
+      else if (type < 0x7f)
+      {
+        return STREAMS[type - 0x40];
+      }
+      else if (type == 0x7f)
+      {
+        return UNUSED;
+      }
+      else if (type < 0xc0)
+      {
+        return DUMPS[type - 0x80];
+      }
+      else
+      {
+        return WRITES[type - 0xc0];
+      }
+    }
+
+    bool ParseBuggyCommand(uint8_t code)
+    {
+      if (code >= 0x40 && code <= 0x4e)
+      {
+        Input.Skip(1 + (Version >= 160));
+        return true;
+      }
+      return false;
+    }
+
+  private:
+    Binary::DataInputStream Input;
+    uint_t Version = 0;
+    std::size_t DataOffset = 0;
+    std::size_t TagsOffset;
+    std::map<uint_t, DeviceTraits> Traits;
+  };
+
+  StringView DetectPlatform(Binary::View data)
+  {
+    PlatformDetector detector(data);
+    return detector.GetResult();
+  }
+}  // namespace Module::VideoGameMusic

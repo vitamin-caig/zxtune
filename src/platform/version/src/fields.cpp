@@ -12,45 +12,42 @@
 #include <platform/version/api.h>
 #include <platform/version/fields.h>
 
-namespace Platform
+namespace Platform::Version
 {
-  namespace Version
+  class VersionFieldsSource : public Strings::FieldsSource
   {
-    class VersionFieldsSource : public Strings::FieldsSource
+  public:
+    String GetFieldValue(StringView fieldName) const override
     {
-    public:
-      String GetFieldValue(StringView fieldName) const override
+      if (fieldName == "Program"_sv)
       {
-        if (fieldName == "Program"_sv)
-        {
-          return GetProgramTitle();
-        }
-        else if (fieldName == "Version"_sv)
-        {
-          return GetProgramVersion();
-        }
-        else if (fieldName == "Date"_sv)
-        {
-          return GetBuildDate();
-        }
-        else if (fieldName == "Platform"_sv)
-        {
-          return GetBuildPlatform();
-        }
-        else if (fieldName == "Arch"_sv)
-        {
-          return GetBuildArchitecture();
-        }
-        else
-        {
-          return {};
-        }
+        return GetProgramTitle();
       }
-    };
-
-    std::unique_ptr<Strings::FieldsSource> CreateVersionFieldsSource()
-    {
-      return std::unique_ptr<Strings::FieldsSource>(new VersionFieldsSource());
+      else if (fieldName == "Version"_sv)
+      {
+        return GetProgramVersion();
+      }
+      else if (fieldName == "Date"_sv)
+      {
+        return GetBuildDate();
+      }
+      else if (fieldName == "Platform"_sv)
+      {
+        return GetBuildPlatform();
+      }
+      else if (fieldName == "Arch"_sv)
+      {
+        return GetBuildArchitecture();
+      }
+      else
+      {
+        return {};
+      }
     }
-  }  // namespace Version
-}  // namespace Platform
+  };
+
+  std::unique_ptr<Strings::FieldsSource> CreateVersionFieldsSource()
+  {
+    return std::unique_ptr<Strings::FieldsSource>(new VersionFieldsSource());
+  }
+}  // namespace Platform::Version

@@ -40,8 +40,8 @@ LD_MODE_FLAGS += --coverage
 endif
 
 DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch))
-INCLUDES_DIRS = $(sort $(includes.dirs) $(includes.dirs.$(platform)) $(includes.dirs.$(notdir $1)))
-INCLUDES_FILES = $(includes.files) $(includes.files.$(platform))
+INCLUDES_DIRS = $(foreach i,$(sort $(includes.dirs) $(includes.dirs.$(platform)) $(includes.dirs.$(notdir $1))),$(abspath $(i)))
+INCLUDES_FILES = $(foreach f,$(includes.files) $(includes.files.$(platform)),$(abspath $(f)))
 
 #setup flags
 CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \

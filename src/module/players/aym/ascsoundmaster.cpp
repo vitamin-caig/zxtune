@@ -233,53 +233,31 @@ namespace Module::ASCSoundMaster
   struct ChannelState
   {
     ChannelState()
-      : Enabled(false)
-      , Envelope(false)
-      , BreakSample(false)
-      , Volume(15)
-      , VolumeAddon(0)
-      , VolSlideDelay(0)
-      , VolSlideAddon()
-      , VolSlideCounter(0)
-      , BaseNoise(0)
-      , CurrentNoise(0)
-      , Note(0)
-      , NoteAddon(0)
-      , SampleNum(0)
-      , CurrentSampleNum(0)
-      , PosInSample(0)
-      , OrnamentNum(0)
-      , CurrentOrnamentNum(0)
-      , PosInOrnament(0)
-      , ToneDeviation(0)
-      , SlidingSteps(0)
-      , Sliding(0)
-      , SlidingTargetNote(LIMITER)
-      , Glissade(0)
+      : SlidingTargetNote(LIMITER)
     {}
-    bool Enabled;
-    bool Envelope;
-    bool BreakSample;
-    uint_t Volume;
-    int_t VolumeAddon;
-    uint_t VolSlideDelay;
-    int_t VolSlideAddon;
-    uint_t VolSlideCounter;
-    int_t BaseNoise;
-    int_t CurrentNoise;
-    uint_t Note;
-    int8_t NoteAddon;
-    uint_t SampleNum;
-    uint_t CurrentSampleNum;
-    uint_t PosInSample;
-    uint_t OrnamentNum;
-    uint_t CurrentOrnamentNum;
-    uint_t PosInOrnament;
-    int_t ToneDeviation;
-    int_t SlidingSteps;  // may be infinite (negative)
-    int_t Sliding;
+    bool Enabled = false;
+    bool Envelope = false;
+    bool BreakSample = false;
+    uint_t Volume = 15;
+    int_t VolumeAddon = 0;
+    uint_t VolSlideDelay = 0;
+    int_t VolSlideAddon = 0;
+    uint_t VolSlideCounter = 0;
+    int_t BaseNoise = 0;
+    int_t CurrentNoise = 0;
+    uint_t Note = 0;
+    int8_t NoteAddon = 0;
+    uint_t SampleNum = 0;
+    uint_t CurrentSampleNum = 0;
+    uint_t PosInSample = 0;
+    uint_t OrnamentNum = 0;
+    uint_t CurrentOrnamentNum = 0;
+    uint_t PosInOrnament = 0;
+    int_t ToneDeviation = 0;
+    int_t SlidingSteps = 0;  // may be infinite (negative)
+    int_t Sliding = 0;
     uint_t SlidingTargetNote;
-    int_t Glissade;
+    int_t Glissade = 0;
 
     void ResetBaseNoise()
     {
@@ -292,7 +270,6 @@ namespace Module::ASCSoundMaster
   public:
     explicit DataRenderer(ModuleData::Ptr data)
       : Data(std::move(data))
-      , EnvelopeTone(0)
     {}
 
     void Reset() override
@@ -319,11 +296,11 @@ namespace Module::ASCSoundMaster
           state.ResetBaseNoise();
         }
       }
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }
@@ -339,7 +316,8 @@ namespace Module::ASCSoundMaster
       }
       dst.VolSlideCounter = 0;
       dst.SlidingSteps = 0;
-      bool contSample = false, contOrnament = false;
+      bool contSample = false;
+      bool contOrnament = false;
       bool reloadNote = false;
       for (CommandsIterator it = src.GetCommands(); it; ++it)
       {
@@ -559,7 +537,7 @@ namespace Module::ASCSoundMaster
 
   private:
     const ModuleData::Ptr Data;
-    uint_t EnvelopeTone;
+    uint_t EnvelopeTone = 0;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
 

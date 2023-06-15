@@ -17,35 +17,32 @@
 #include <formats/chiptune/emulation/playstation2soundformat.h>
 #include <strings/casing.h>
 
-namespace Module
+namespace Module::PSF
 {
-  namespace PSF
+  String PsxVfs::Normalize(StringView str)
   {
-    String PsxVfs::Normalize(StringView str)
+    return Strings::ToUpperAscii(str);
+  }
+
+  class VfsParser : public Formats::Chiptune::Playstation2SoundFormat::Builder
+  {
+  public:
+    explicit VfsParser(PsxVfs& vfs)
+      : Vfs(vfs)
+    {}
+
+    void OnFile(StringView path, Binary::Container::Ptr content) override
     {
-      return Strings::ToUpperAscii(str);
+      Vfs.Add(path, std::move(content));
     }
 
-    class VfsParser : public Formats::Chiptune::Playstation2SoundFormat::Builder
-    {
-    public:
-      explicit VfsParser(PsxVfs& vfs)
-        : Vfs(vfs)
-      {}
+  private:
+    PsxVfs& Vfs;
+  };
 
-      void OnFile(StringView path, Binary::Container::Ptr content) override
-      {
-        Vfs.Add(path, std::move(content));
-      }
-
-    private:
-      PsxVfs& Vfs;
-    };
-
-    void PsxVfs::Parse(const Binary::Container& data, PsxVfs& vfs)
-    {
-      VfsParser parser(vfs);
-      Formats::Chiptune::Playstation2SoundFormat::ParseVFS(data, parser);
-    }
-  }  // namespace PSF
-}  // namespace Module
+  void PsxVfs::Parse(const Binary::Container& data, PsxVfs& vfs)
+  {
+    VfsParser parser(vfs);
+    Formats::Chiptune::Playstation2SoundFormat::ParseVFS(data, parser);
+  }
+}  // namespace Module::PSF

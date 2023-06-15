@@ -36,8 +36,8 @@ namespace Module::ProDigiTracker
   class ModuleData : public DAC::SimpleModuleData
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     ModuleData()
       : DAC::SimpleModuleData(CHANNELS_COUNT)
@@ -130,12 +130,9 @@ namespace Module::ProDigiTracker
 
   struct OrnamentState
   {
-    OrnamentState()
-      : Object()
-      , Position()
-    {}
-    const Ornament* Object;
-    std::size_t Position;
+    OrnamentState() = default;
+    const Ornament* Object = nullptr;
+    std::size_t Position = 0;
 
     int_t GetOffset() const
     {
@@ -188,11 +185,11 @@ namespace Module::ProDigiTracker
 
     void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             DAC::ChannelDataBuilder builder = track.GetChannel(chan);
             GetNewChannelState(*src, Ornaments[chan], builder);
@@ -288,7 +285,7 @@ namespace Module::ProDigiTracker
       }
       else
       {
-        return DAC::Chiptune::Ptr();
+        return {};
       }
     }
   };

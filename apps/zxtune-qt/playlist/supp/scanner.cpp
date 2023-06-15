@@ -21,10 +21,12 @@
 #include <debug/log.h>
 #include <time/elapsed.h>
 // std includes
+#include <memory>
 #include <mutex>
 // qt includes
 #include <QtCore/QDirIterator>
 #include <QtCore/QStringList>
+#include <utility>
 
 namespace
 {
@@ -88,7 +90,7 @@ namespace
     {
       while (NoCurrentDir())
       {
-        const QString res = Delegate.GetNext();
+        auto res = Delegate.GetNext();
         if (IsDir(res))
         {
           OpenDir(res);
@@ -106,7 +108,7 @@ namespace
   private:
     bool NoCurrentDir() const
     {
-      return nullptr == CurDir.get() || !CurDir->hasNext();
+      return nullptr == CurDir || !CurDir->hasNext();
     }
 
     static bool IsDir(const QString& name)
@@ -117,7 +119,7 @@ namespace
     void OpenDir(const QString& name)
     {
       const QDir::Filters filter = QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden;
-      CurDir.reset(new QDirIterator(name, filter, QDirIterator::Subdirectories));
+      CurDir = std::make_unique<QDirIterator>(name, filter, QDirIterator::Subdirectories);
     }
 
     void CloseDir()
@@ -176,7 +178,6 @@ namespace
   public:
     FilenamesSourceStatistic(FilenamesSource& delegate)
       : Delegate(delegate)
-      , GotFilenames(0)
     {}
 
     bool Empty() const override
@@ -197,7 +198,7 @@ namespace
 
   private:
     FilenamesSource& Delegate;
-    unsigned GotFilenames;
+    unsigned GotFilenames = 0;
   };
 
   class FilesQueue
@@ -206,7 +207,7 @@ namespace
     , public Playlist::ScanStatus
   {
   public:
-    typedef std::shared_ptr<FilesQueue> Ptr;
+    using Ptr = std::shared_ptr<FilesQueue>;
 
     FilesQueue()
       : Resolved(Source)
@@ -347,7 +348,7 @@ namespace
     , public Async::Coroutine
   {
   public:
-    typedef std::shared_ptr<ScanRoutine> Ptr;
+    using Ptr = std::shared_ptr<ScanRoutine>;
 
     ScanRoutine(ScannerCallback& cb, Playlist::Item::DataProvider::Ptr provider)
       : Callback(cb)
@@ -450,7 +451,7 @@ namespace
     ScannerImpl(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
       : Playlist::Scanner(parent)
       , Provider(provider)
-      , Routine(MakePtr<ScanRoutine>(static_cast<ScannerCallback&>(*this), provider))
+      , Routine(MakePtr<ScanRoutine>(static_cast<ScannerCallback&>(*this), std::move(provider)))
       , ScanJob(Async::CreateJob(Routine))
     {
       Dbg("Created at {}", Self());
@@ -554,6 +555,6 @@ namespace Playlist
     REGISTER_METATYPE(Playlist::Item::Data::Ptr);
     REGISTER_METATYPE(Playlist::Item::Collection::Ptr);
     REGISTER_METATYPE(Playlist::ScanStatus::Ptr);
-    return new ScannerImpl(parent, provider);
+    return new ScannerImpl(parent, std::move(provider));
   }
 }  // namespace Playlist

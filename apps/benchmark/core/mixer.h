@@ -13,10 +13,7 @@
 // library includes
 #include <time/duration.h>
 
-namespace Benchmark
+namespace Benchmark::Mixer
 {
-  namespace Mixer
-  {
-    double Test(uint_t channels, const Time::Milliseconds& duration, uint_t soundFreq);
-  }
-}  // namespace Benchmark
+  double Test(uint_t channels, const Time::Milliseconds& duration, uint_t soundFreq);
+}  // namespace Benchmark::Mixer

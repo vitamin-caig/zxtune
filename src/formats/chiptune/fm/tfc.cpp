@@ -28,7 +28,7 @@ namespace Formats::Chiptune
   {
     const Char DESCRIPTION[] = "TurboFM Compiled Dump";
 
-    typedef std::array<uint8_t, 6> SignatureType;
+    using SignatureType = std::array<uint8_t, 6>;
 
     const SignatureType SIGNATURE = {{'T', 'F', 'M', 'c', 'o', 'm'}};
 
@@ -122,13 +122,10 @@ namespace Formats::Chiptune
 
     struct Context
     {
-      std::size_t RetAddr;
-      std::size_t RepeatFrames;
+      std::size_t RetAddr = 0;
+      std::size_t RepeatFrames = 0;
 
-      Context()
-        : RetAddr()
-        , RepeatFrames()
-      {}
+      Context() = default;
     };
 
     class Container
@@ -137,7 +134,6 @@ namespace Formats::Chiptune
       explicit Container(Binary::View data)
         : Data(data)
         , Min(Data.Size())
-        , Max(0)
       {}
 
       std::size_t ParseFrameControl(std::size_t cursor, Builder& target, Context& context) const
@@ -243,7 +239,7 @@ namespace Formats::Chiptune
           cursor += 2;
           target.SetFreq(freq);
         }
-        if (uint_t regs = (data & 0x3e) >> 1)
+        if (const uint_t regs = (data & 0x3e) >> 1)
         {
           for (uint_t i = 0; i != regs; ++i)
           {
@@ -273,7 +269,7 @@ namespace Formats::Chiptune
     private:
       const Binary::View Data;
       mutable std::size_t Min;
-      mutable std::size_t Max;
+      mutable std::size_t Max = 0;
     };
 
     String DecodeString(StringView str)
@@ -322,7 +318,7 @@ namespace Formats::Chiptune
       }
       catch (const std::exception&)
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 

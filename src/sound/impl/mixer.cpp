@@ -28,7 +28,7 @@ namespace Sound
   template<unsigned Channels>
   class MixerImpl : public FixedChannelsMatrixMixer<Channels>
   {
-    typedef FixedChannelsMatrixMixer<Channels> Base;
+    using Base = FixedChannelsMatrixMixer<Channels>;
 
   public:
     MixerImpl()

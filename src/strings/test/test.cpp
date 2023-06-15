@@ -221,31 +221,31 @@ int main()
     std::cout << "---- Test for prefixed index ----" << std::endl;
     {
       {
-        Strings::PrefixedIndex composed("Prefix", 123);
+        const Strings::PrefixedIndex composed("Prefix", 123);
         Test(composed.IsValid(), "Composed IsValid");
         Test(composed.GetIndex() == 123, "Composed GetIndex");
         Test(composed.ToString() == "Prefix123", "Composed ToString");
       }
       {
-        Strings::PrefixedIndex parsed("Prefix", "Prefix456");
+        const Strings::PrefixedIndex parsed("Prefix", "Prefix456");
         Test(parsed.IsValid(), "Parsed IsValid");
         Test(parsed.GetIndex() == 456, "Parsed GetIndex");
         Test(parsed.ToString() == "Prefix456", "Parsed ToString");
       }
       {
-        Strings::PrefixedIndex garbage("Prefix", "Prefix456sub");
+        const Strings::PrefixedIndex garbage("Prefix", "Prefix456sub");
         Test(!garbage.IsValid(), "Garbage IsValid");
         Test(garbage.GetIndex() == 0, "Garbage GetIndex");
         Test(garbage.ToString() == "Prefix456sub", "Garbage ToString");
       }
       {
-        Strings::PrefixedIndex invalid("Prefix", "SomeString");
+        const Strings::PrefixedIndex invalid("Prefix", "SomeString");
         Test(!invalid.IsValid(), "Invalid IsValid");
         Test(invalid.GetIndex() == 0, "Invalid GetIndex");
         Test(invalid.ToString() == "SomeString", "Invalid ToString");
       }
       {
-        Strings::PrefixedIndex empty("Prefix", "Prefix");
+        const Strings::PrefixedIndex empty("Prefix", "Prefix");
         Test(!empty.IsValid(), "Empty IsValid");
         Test(empty.GetIndex() == 0, "Empty GetIndex");
         Test(empty.ToString() == "Prefix", "Empty ToString");
@@ -259,7 +259,7 @@ int main()
       TestParse<int>("zero", "0", 0, "");
       TestParse<uint8_t>("positive overflow", "123456", uint8_t(123456), "");
       TestParse<uint_t>("positive", "123456", 123456, "");
-      TestParse<uint64_t>("max positive", "18446744073709551615", 18446744073709551615ULL, "");
+      TestParse<uint64_t>("max positive", "18446744073709551615", 18446744073709551615uLL, "");
       TestParse<int_t>("negative", "-123456", -123456, "");
       TestParse<uint_t>("plus positive", "+123456", 123456, "");
       TestParse<uint_t>("with suffix", "1234M", 1234, "M");
@@ -289,9 +289,9 @@ int main()
       {
         Strings::ValueMap<String> mapOfStrings{{"key", "value"}};
         TestEquals("value", mapOfStrings["key"], "String.get_key");
-        Test("" == mapOfStrings["key2"] && mapOfStrings.size() == 2, "String.allocate_key");
+        Test(mapOfStrings["key2"].empty() && mapOfStrings.size() == 2, "String.allocate_key");
         TestEquals("", *mapOfStrings.FindPtr("key2"), "String.FindPtr.existing");
-        Test("" == mapOfStrings.Get("key3") && mapOfStrings.size() == 2, "String.get_with_default");
+        Test(mapOfStrings.Get("key3").empty() && mapOfStrings.size() == 2, "String.get_with_default");
         Test(!mapOfStrings.FindPtr("key3"), "String.FindPtr.nonexisting");
       }
       {

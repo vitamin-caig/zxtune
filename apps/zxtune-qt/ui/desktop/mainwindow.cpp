@@ -32,6 +32,7 @@
 #include "urls.h"
 // common includes
 #include <contract.h>
+#include <make_ptr.h>
 // library includes
 #include <debug/log.h>
 #include <platform/version/api.h>
@@ -52,7 +53,7 @@ namespace
 
   UI::Language::Ptr CreateLanguage(const Parameters::Container& options)
   {
-    const UI::Language::Ptr res = UI::Language::Create();
+    auto res = UI::Language::Create();
     Parameters::StringType lang = FromQString(res->GetSystem());
     options.FindValue(Parameters::ZXTuneQT::UI::LANGUAGE, lang);
     res->Set(ToQString(lang));
@@ -65,8 +66,8 @@ namespace
   {
   public:
     explicit DesktopMainWindowImpl(Parameters::Container::Ptr options)
-      : Options(options)
-      , Language(CreateLanguage(*options))
+      : Options(std::move(options))
+      , Language(CreateLanguage(*Options))
       , Playback(PlaybackSupport::Create(*this, Options))
       , Controls(PlaybackControls::Create(*this, *Playback))
       , FastOptions(PlaybackOptions::Create(*this, *Playback, Options))
@@ -75,7 +76,6 @@ namespace
       , Seeking(SeekControls::Create(*this, *Playback))
       , Analyzer(AnalyzerControl::Create(*this, *Playback))
       , MultiPlaylist(Playlist::UI::ContainerView::Create(*this, Options))
-      , Playing(false)
     {
       setupUi(this);
       State = UI::State::Create(*this);
@@ -243,11 +243,11 @@ namespace
     }
 
   private:
-    typedef std::pair<QWidget*, QToolBar*> WidgetOnToolbar;
+    using WidgetOnToolbar = std::pair<QWidget*, QToolBar*>;
 
     WidgetOnToolbar AddWidgetOnToolbar(QWidget* widget, bool lastInRow)
     {
-      const auto toolBar = new QToolBar(this);
+      auto* const toolBar = new QToolBar(this);
       toolBar->setObjectName(widget->objectName());
       QSizePolicy sizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
       sizePolicy.setHorizontalStretch(0);
@@ -264,7 +264,7 @@ namespace
       {
         addToolBarBreak();
       }
-      return WidgetOnToolbar(widget, toolBar);
+      return {widget, toolBar};
     }
 
     QWidget* AddWidgetOnLayout(QWidget* widget)
@@ -276,10 +276,10 @@ namespace
     void FillLayoutMenu()
     {
       menuLayout->clear();
-      for (std::vector<WidgetOnToolbar>::const_iterator it = Toolbars.begin(), lim = Toolbars.end(); it != lim; ++it)
+      for (const auto& toolbar : Toolbars)
       {
-        it->second->setWindowTitle(it->first->windowTitle());
-        menuLayout->addAction(it->second->toggleViewAction());
+        toolbar.second->setWindowTitle(toolbar.first->windowTitle());
+        menuLayout->addAction(toolbar.second->toggleViewAction());
       }
     }
 
@@ -295,14 +295,14 @@ namespace
     SeekControls* const Seeking;
     AnalyzerControl* const Analyzer;
     Playlist::UI::ContainerView* const MultiPlaylist;
-    bool Playing;
+    bool Playing = false;
     std::vector<WidgetOnToolbar> Toolbars;
   };
 }  // namespace
 
 MainWindow::Ptr DesktopMainWindow::Create(Parameters::Container::Ptr options)
 {
-  const MainWindow::Ptr res = new DesktopMainWindowImpl(options);
+  auto res = MakePtr<DesktopMainWindowImpl>(std::move(options));
   res->show();
   return res;
 }

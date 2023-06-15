@@ -27,6 +27,7 @@
 #include <sound/resampler.h>
 // std includes
 #include <list>
+#include <memory>
 // 3rdparty includes
 #include <3rdparty/sseqplayer/Player.h>
 #include <3rdparty/sseqplayer/SDAT.h>
@@ -68,7 +69,7 @@ namespace Module::NCSF
 
       PseudoFile file;
       file.data = &Rom.Data;
-      SDat.reset(new SDAT(file, SSeq));
+      SDat = std::make_unique<SDAT>(file, SSeq);
       NCSFPlayer.sampleRate = SoundFrequency;
       NCSFPlayer.interpolation = INTERPOLATION_SINC;
       NCSFPlayer.Setup(SDat->sseq.get());
@@ -102,7 +103,7 @@ namespace Module::NCSF
       return res;
     }
 
-    uint32_t GetSampleFrequency()
+    uint32_t GetSampleFrequency() const
     {
       return SoundFrequency;
     }
@@ -134,7 +135,6 @@ namespace Module::NCSF
 
     void SetupState(const std::list<Binary::Container::Ptr>& blocks)
     {
-      ChunkBuilder builder;
       for (const auto& block : blocks)
       {
         SSeq = Formats::Chiptune::NitroComposerSoundFormat::ParseState(*block);

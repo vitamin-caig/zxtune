@@ -17,61 +17,59 @@
 #include <platform/version/api.h>
 #include <strings/format.h>
 
-namespace Platform
+namespace Platform::Version
 {
-  namespace Version
+  String GetProgramTitle()
   {
-    String GetProgramTitle()
-    {
-      return PROGRAM_NAME;
-    }
+    return PROGRAM_NAME;
+  }
 
-    String GetProgramVersion()
-    {
+  String GetProgramVersion()
+  {
 #define TOSTRING(a) #a
 #define STR(a) TOSTRING(a)
-      constexpr const char VERSION[] = STR(BUILD_VERSION);
-      static_assert(VERSION[0] != 0, "Undefined version");
-      return VERSION;
-    }
+    constexpr const char VERSION[] = STR(BUILD_VERSION);
+    static_assert(VERSION[0] != 0, "Undefined version");
+    return VERSION;
+  }
 
-    String GetBuildDate()
-    {
-      static const char DATE[] = __DATE__;
-      return DATE;
-    }
+  String GetBuildDate()
+  {
+    static const char DATE[] = __DATE__;
+    return DATE;
+  }
 
-    String GetBuildPlatform()
+  String GetBuildPlatform()
+  {
+    // TODO: StringView
+    String os = Details::OS;
+    String toolset = Details::TOOLSET;
+    // some business-logic
+    if (os == "windows" && toolset == "mingw")
     {
-      const String os = Details::OS;
-      const String toolset = Details::TOOLSET;
-      // some business-logic
-      if (os == "windows" && toolset == "mingw")
-      {
-        return toolset;
-      }
-      else
-      {
-        return os;
-      }
+      return toolset;
     }
+    else
+    {
+      return os;
+    }
+  }
 
-    String GetBuildArchitecture()
-    {
-      return Details::ARCH;
-    }
+  String GetBuildArchitecture()
+  {
+    return Details::ARCH;
+  }
 
-    String GetBuildArchitectureVersion()
-    {
-      return Details::ARCH_VERSION;
-    }
+  String GetBuildArchitectureVersion()
+  {
+    return Details::ARCH_VERSION;
+  }
 
-    String GetProgramVersionString()
-    {
-      // 1- program name, 2- program version, 3- build date 4- platform, 5- architecture, 6- architecture version
-      constexpr const Char PROGRAM_VERSION_STRING[] = "{} {} {} {}-{} {}";
-      return Strings::Format(PROGRAM_VERSION_STRING, GetProgramTitle(), GetProgramVersion(), GetBuildDate(),
-                             GetBuildPlatform(), GetBuildArchitecture(), GetBuildArchitectureVersion());
-    }
-  }  // namespace Version
-}  // namespace Platform
+  String GetProgramVersionString()
+  {
+    // 1- program name, 2- program version, 3- build date 4- platform, 5- architecture, 6- architecture version
+    constexpr const Char PROGRAM_VERSION_STRING[] = "{} {} {} {}-{} {}";
+    return Strings::Format(PROGRAM_VERSION_STRING, GetProgramTitle(), GetProgramVersion(), GetBuildDate(),
+                           GetBuildPlatform(), GetBuildArchitecture(), GetBuildArchitectureVersion());
+  }
+}  // namespace Platform::Version

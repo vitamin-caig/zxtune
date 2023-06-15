@@ -13,21 +13,18 @@
 // library includes
 #include <module/players/properties_helper.h>
 
-namespace Module
+namespace Module::AYM
 {
-  namespace AYM
+  class PropertiesHelper : public Module::PropertiesHelper
   {
-    class PropertiesHelper : public Module::PropertiesHelper
-    {
-    public:
-      explicit PropertiesHelper(Parameters::Modifier& delegate)
-        : Module::PropertiesHelper(delegate)
-      {}
+  public:
+    explicit PropertiesHelper(Parameters::Modifier& delegate)
+      : Module::PropertiesHelper(delegate)
+    {}
 
-      void SetFrequencyTable(StringView freqTable);
-      void SetChipType(uint_t type);
-      void SetChannelsLayout(uint_t type);
-      void SetChipFrequency(uint64_t freq);
-    };
-  }  // namespace AYM
-}  // namespace Module
+    void SetFrequencyTable(StringView freqTable);
+    void SetChipType(uint_t type);
+    void SetChannelsLayout(uint_t layout);
+    void SetChipFrequency(uint64_t freq);
+  };
+}  // namespace Module::AYM

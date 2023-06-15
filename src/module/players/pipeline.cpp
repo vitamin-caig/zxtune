@@ -81,7 +81,7 @@ namespace Module
       using namespace Parameters::ZXTune::Sound;
       const auto fadeIn = GetDurationValue(params, FADEIN, FADEIN_DEFAULT, FADEIN_PRECISION);
       const auto fadeOut = GetDurationValue(params, FADEOUT, FADEOUT_DEFAULT, FADEOUT_PRECISION);
-      return FadeInfo(fadeIn, fadeOut, duration);
+      return {fadeIn, fadeOut, duration};
     }
   };
 

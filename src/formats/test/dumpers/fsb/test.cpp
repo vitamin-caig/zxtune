@@ -48,7 +48,7 @@ namespace
     const auto DUMP_SIZE = std::min<std::size_t>(data.Size(), 256);
     for (std::size_t offset = 0; offset < DUMP_SIZE;)
     {
-      const auto in = data.As<uint8_t>() + offset;
+      const auto* const in = data.As<uint8_t>() + offset;
       const auto toPrint = std::min(data.Size() - offset, LINE_SIZE);
       std::string msg(5 + 2 + LINE_SIZE * 3 + 2 + LINE_SIZE, ' ');
       msg[0] = ToHex((offset >> 12) & 15);

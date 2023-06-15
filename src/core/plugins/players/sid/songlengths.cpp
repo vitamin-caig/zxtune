@@ -48,6 +48,6 @@ namespace Module::Sid
         return Time::Seconds(entry->Seconds);
       }
     }
-    return TimeType();
+    return {};
   }
 }  // namespace Module::Sid

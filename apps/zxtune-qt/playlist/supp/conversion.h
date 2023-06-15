@@ -13,26 +13,20 @@
 // library includes
 #include <parameters/accessor.h>
 
-namespace Playlist
+namespace Playlist::Item::Conversion
 {
-  namespace Item
+  struct Options
   {
-    namespace Conversion
-    {
-      struct Options
-      {
-        typedef std::shared_ptr<const Options> Ptr;
+    using Ptr = std::shared_ptr<const Options>;
 
-        Options(String type, String filenameTemplate, Parameters::Accessor::Ptr params)
-          : Type(std::move(type))
-          , FilenameTemplate(std::move(filenameTemplate))
-          , Params(std::move(params))
-        {}
+    Options(String type, String filenameTemplate, Parameters::Accessor::Ptr params)
+      : Type(std::move(type))
+      , FilenameTemplate(std::move(filenameTemplate))
+      , Params(std::move(params))
+    {}
 
-        const String Type;
-        const String FilenameTemplate;
-        const Parameters::Accessor::Ptr Params;
-      };
-    }  // namespace Conversion
-  }    // namespace Item
-}  // namespace Playlist
+    const String Type;
+    const String FilenameTemplate;
+    const Parameters::Accessor::Ptr Params;
+  };
+}  // namespace Playlist::Item::Conversion

@@ -32,7 +32,7 @@ namespace Formats::Packed
     const std::size_t MAX_MODULE_SIZE = 0x3a00;
     const std::size_t MAX_PLAYER_SIZE = 1700;
 
-    typedef std::array<uint8_t, 63> InfoData;
+    using InfoData = std::array<uint8_t, 63>;
 
     struct PlayerVer0
     {
@@ -99,10 +99,10 @@ namespace Formats::Packed
       }
     };
 
-    typedef PlayerTraits (*CreatePlayerFunc)(Binary::View);
-    typedef Formats::Chiptune::Container::Ptr (*ParseFunc)(const Binary::Container&,
-                                                           Formats::Chiptune::ASCSoundMaster::Builder&);
-    typedef Binary::Container::Ptr (*InsertMetaInfoFunc)(const Binary::Container&, Binary::View);
+    using CreatePlayerFunc = PlayerTraits (*)(Binary::View);
+    using ParseFunc = Formats::Chiptune::Container::Ptr (*)(const Binary::Container&,
+                                                            Formats::Chiptune::ASCSoundMaster::Builder&);
+    using InsertMetaInfoFunc = Binary::Container::Ptr (*)(const Binary::Container&, Binary::View);
 
     struct VersionTraits
     {
@@ -199,10 +199,10 @@ namespace Formats::Packed
       // 20 - author
       // 4  - ignore
       // 20 - title
-      const auto authorStart = info.As<char>() + 19;
-      const auto ignoreStart = authorStart + 20;
-      const auto titleStart = ignoreStart + 4;
-      const auto end = titleStart + 20;
+      const auto* const authorStart = info.As<char>() + 19;
+      const auto* const ignoreStart = authorStart + 20;
+      const auto* const titleStart = ignoreStart + 4;
+      const auto* const end = titleStart + 20;
       const auto isVisible = [](Char c) { return c > ' '; };
       return std::none_of(authorStart, ignoreStart, isVisible) && std::none_of(titleStart, end, isVisible);
     }
@@ -232,13 +232,13 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Player->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto rawPlayer = Version.CreatePlayer(data);
       if (rawPlayer.Size >= std::min(data.Size(), MAX_PLAYER_SIZE))
       {
         Dbg("Invalid player");
-        return Container::Ptr();
+        return {};
       }
       Dbg("Detected player in first {} bytes", rawPlayer.Size);
       const auto modData = rawData.GetSubcontainer(rawPlayer.Size, MAX_MODULE_SIZE);
@@ -263,7 +263,7 @@ namespace Formats::Packed
         Dbg("Failed to parse fixed module");
       }
       Dbg("Failed to find module after player");
-      return Container::Ptr();
+      return {};
     }
 
   private:

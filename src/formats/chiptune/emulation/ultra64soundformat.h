@@ -14,26 +14,23 @@
 #include <binary/view.h>
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace Ultra64SoundFormat
   {
-    namespace Ultra64SoundFormat
+    const uint_t VERSION_ID = 0x21;
+
+    class Builder
     {
-      const uint_t VERSION_ID = 0x21;
+    public:
+      virtual ~Builder() = default;
 
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+      virtual void SetRom(uint32_t offset, Binary::View content) = 0;
+      virtual void SetSaveState(uint32_t offset, Binary::View content) = 0;
+    };
 
-        virtual void SetRom(uint32_t offset, Binary::View content) = 0;
-        virtual void SetSaveState(uint32_t offset, Binary::View content) = 0;
-      };
+    void ParseSection(Binary::View data, Builder& target);
+  }  // namespace Ultra64SoundFormat
 
-      void ParseSection(Binary::View data, Builder& target);
-    }  // namespace Ultra64SoundFormat
-
-    Decoder::Ptr CreateUSFDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateUSFDecoder();
+}  // namespace Formats::Chiptune

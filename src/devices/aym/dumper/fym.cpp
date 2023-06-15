@@ -77,7 +77,7 @@ namespace Devices::AYM
       const std::size_t contentSize = framesCount * storedRegisters;
 
       Binary::DataBuilder builder(headerSize + contentSize);
-      FYMHeader& header = builder.Add<FYMHeader>();
+      auto& header = builder.Add<FYMHeader>();
       header.HeaderSize = headerSize;
       header.FramesCount = framesCount;
       header.LoopFrame = Params->LoopFrame();
@@ -88,7 +88,7 @@ namespace Devices::AYM
 
       for (uint_t reg = 0; reg < storedRegisters; ++reg)
       {
-        uint8_t* const result = static_cast<uint8_t*>(builder.Allocate(framesCount));
+        auto* const result = static_cast<uint8_t*>(builder.Allocate(framesCount));
         for (uint_t frm = 0, inOffset = reg; frm < framesCount; ++frm, inOffset += Registers::TOTAL)
         {
           result[frm] = input[inOffset];
@@ -102,7 +102,7 @@ namespace Devices::AYM
     const FramedDumpBuilder::Ptr Delegate;
   };
 
-  Dumper::Ptr CreateFYMDumper(FYMDumperParameters::Ptr params)
+  Dumper::Ptr CreateFYMDumper(const FYMDumperParameters::Ptr& params)
   {
     auto builder = MakePtr<FYMBuilder>(params);
     return CreateDumper(*params, std::move(builder));

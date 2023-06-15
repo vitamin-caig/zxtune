@@ -51,9 +51,9 @@ namespace Module::GME
 {
   const Debug::Stream Dbg("Core::GMESupp");
 
-  typedef std::shared_ptr< ::Music_Emu> EmuPtr;
+  using EmuPtr = std::shared_ptr< ::Music_Emu>;
 
-  typedef EmuPtr (*EmuCreator)();
+  using EmuCreator = EmuPtr (*)();
 
   template<class EmuType>
   EmuPtr Create()
@@ -138,7 +138,7 @@ namespace Module::GME
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       Sound::Chunk result(samples);
       auto* const buffer = safe_ptr_cast< ::Music_Emu::sample_t*>(result.data());
-      CheckError(Emu->play(samples * Sound::Sample::CHANNELS, buffer));
+      CheckError(Emu->play(static_cast<int>(samples * Sound::Sample::CHANNELS), buffer));
       return result;
     }
 
@@ -393,7 +393,7 @@ namespace Module::GME
 
   struct MultitrackPluginDescription
   {
-    typedef Formats::Multitrack::Decoder::Ptr (*MultitrackDecoderCreator)();
+    using MultitrackDecoderCreator = Formats::Multitrack::Decoder::Ptr (*)();
 
     PluginDescription Desc;
     const MultitrackDecoderCreator CreateMultitrackDecoder;
@@ -464,7 +464,7 @@ namespace Module::GME
 
   struct SingletrackPluginDescription
   {
-    typedef Formats::Chiptune::Decoder::Ptr (*ChiptuneDecoderCreator)();
+    using ChiptuneDecoderCreator = Formats::Chiptune::Decoder::Ptr (*)();
 
     PluginDescription Desc;
     const ChiptuneDecoderCreator CreateChiptuneDecoder;

@@ -21,7 +21,7 @@ namespace
   class CurrentRelease : public Product::Release
   {
   public:
-    CurrentRelease() {}
+    CurrentRelease() = default;
 
     Product::Release::PlatformTag Platform() const override
     {

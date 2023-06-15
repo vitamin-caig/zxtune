@@ -39,7 +39,7 @@ namespace Sound::Null
 
     VolumeControl::Ptr GetVolumeControl() const override
     {
-      return VolumeControl::Ptr();
+      return {};
     }
   };
 

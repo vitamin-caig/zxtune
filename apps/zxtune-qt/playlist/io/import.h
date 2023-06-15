@@ -19,16 +19,13 @@
 class QString;
 class QStringList;
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
-  {
-    // common
-    Container::Ptr Open(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb);
-    // specific
-    Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb);
-    Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb);
+  // common
+  Container::Ptr Open(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb);
+  // specific
+  Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb);
+  Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb);
 
-    Container::Ptr OpenPlainList(Item::DataProvider::Ptr provider, const QStringList& uris);
-  }  // namespace IO
-}  // namespace Playlist
+  Container::Ptr OpenPlainList(Item::DataProvider::Ptr provider, const QStringList& uris);
+}  // namespace Playlist::IO

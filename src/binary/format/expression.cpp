@@ -27,12 +27,12 @@
 
 namespace Binary::FormatDSL
 {
-  typedef RangeIterator<StringView::const_iterator> PatternIterator;
+  using PatternIterator = RangeIterator<StringView::const_iterator>;
 
   class AnyValuePredicate : public Predicate
   {
   public:
-    AnyValuePredicate() {}
+    AnyValuePredicate() = default;
 
     bool Match(uint_t /*val*/) const override
     {
@@ -347,7 +347,7 @@ namespace Binary::FormatDSL
       }
     }
     Require(false);
-    return Predicate::Ptr();
+    return {};
   }
 
   class PredicatesFactory : public FormatTokensVisitor
@@ -367,7 +367,7 @@ namespace Binary::FormatDSL
     void GroupEnd() override
     {
       Require(!GroupBegins.empty());
-      Groups.push(std::make_pair(GroupBegins.top(), Result.size()));
+      Groups.emplace(GroupBegins.top(), Result.size());
       GroupBegins.pop();
     }
 

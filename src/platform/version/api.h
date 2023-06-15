@@ -13,19 +13,16 @@
 // common includes
 #include <types.h>
 
-namespace Platform
+namespace Platform::Version
 {
-  namespace Version
-  {
-    // Should be defined in app
-    extern const Char PROGRAM_NAME[];
+  // Should be defined in app
+  extern const Char PROGRAM_NAME[];
 
-    String GetProgramTitle();
-    String GetProgramVersion();
-    String GetBuildDate();
-    String GetBuildPlatform();
-    String GetBuildArchitecture();
-    String GetBuildArchitectureVersion();
-    String GetProgramVersionString();
-  }  // namespace Version
-}  // namespace Platform
+  String GetProgramTitle();
+  String GetProgramVersion();
+  String GetBuildDate();
+  String GetBuildPlatform();
+  String GetBuildArchitecture();
+  String GetBuildArchitectureVersion();
+  String GetProgramVersionString();
+}  // namespace Platform::Version

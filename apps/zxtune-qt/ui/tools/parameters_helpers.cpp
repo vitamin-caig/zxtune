@@ -15,6 +15,8 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
+// std includes
+#include <utility>
 // qt includes
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QAction>
@@ -38,7 +40,7 @@ namespace
       : BooleanValue(parent)
       , Parent(parent)
       , Storage(ctr)
-      , Name(name)
+      , Name(std::move(name))
       , Default(defValue)
       , OneValue(oneValue)
     {
@@ -88,7 +90,7 @@ namespace
       : ExclusiveValue(parent)
       , Parent(parent)
       , Storage(ctr)
-      , Name(name)
+      , Name(std::move(name))
       , Value(value.to_string())
     {
       StringSetValue::Reload();
@@ -161,7 +163,7 @@ namespace
       : IntegerValue(parent)
       , Parent(parent)
       , Storage(ctr)
-      , Name(name)
+      , Name(std::move(name))
       , Default(defValue)
     {
       IntegerValueImpl<Holder>::Reload();
@@ -243,7 +245,7 @@ namespace
       : BigIntegerValue(parent)
       , Parent(parent)
       , Storage(ctr)
-      , Traits(std::move(traits))
+      , Traits(traits)
     {
       BigIntegerValueImpl::Reload();
       Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));
@@ -301,7 +303,7 @@ namespace
       : StringValue(parent)
       , Parent(parent)
       , Storage(ctr)
-      , Name(name)
+      , Name(std::move(name))
       , Default(defValue.to_string())
     {
       StringValueImpl::Reload();
@@ -406,7 +408,7 @@ namespace Parameters
 
   Value* IntegerValue::Bind(QComboBox& combo, Integer::Ptr val)
   {
-    return new IntegerValueControl<QComboBox>(combo, val);
+    return new IntegerValueControl<QComboBox>(combo, std::move(val));
   }
 
   Value* BigIntegerValue::Bind(QLineEdit& edit, Container& ctr, const IntegerTraits& traits)

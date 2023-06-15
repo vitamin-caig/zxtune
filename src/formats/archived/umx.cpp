@@ -42,7 +42,7 @@ namespace Formats::Archived
         "??0000 ????"  // imports
         ""_sv;
 
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
 
     const SignatureType SIGNATURE = {{0xc1, 0x83, 0x2a, 0x9e}};
 
@@ -67,11 +67,9 @@ namespace Formats::Archived
 
     struct Index
     {
-      int_t Value;
+      int_t Value = 0;
 
-      Index()
-        : Value()
-      {}
+      Index() = default;
     };
 
     struct ClassName
@@ -105,39 +103,32 @@ namespace Formats::Archived
     struct NameEntry
     {
       String Name;
-      uint32_t Flags;
+      uint32_t Flags = 0;
 
-      NameEntry()
-        : Flags()
-      {}
+      NameEntry() = default;
     };
 
     struct ExportEntry
     {
       Index Class;
       Index Super;
-      uint32_t Group;
+      uint32_t Group = 0;
       Index ObjectName;
-      uint32_t ObjectFlags;
+      uint32_t ObjectFlags = 0;
       Index SerialSize;
       Index SerialOffset;
 
-      ExportEntry()
-        : Group()
-        , ObjectFlags()
-      {}
+      ExportEntry() = default;
     };
 
     struct ImportEntry
     {
       Index ClassPackage;
       Index ClassName;
-      uint32_t Package;
+      uint32_t Package = 0;
       Index ObjectName;
 
-      ImportEntry()
-        : Package()
-      {}
+      ImportEntry() = default;
     };
 
     class InputStream
@@ -149,7 +140,6 @@ namespace Formats::Archived
         , Start(static_cast<const uint8_t*>(Data.Start()))
         , Cursor(Start)
         , Limit(Start + Data.Size())
-        , MaxUsedSize()
       {}
 
       // primitives
@@ -232,7 +222,7 @@ namespace Formats::Archived
         Read(res.ObjectName);
       }
 
-      void Read(Property& res)
+      static void Read(Property& res)
       {
         Require(!res.IsLimiter());
         // TODO: implement
@@ -276,7 +266,7 @@ namespace Formats::Archived
       const uint8_t* const Start;
       const uint8_t* Cursor;
       const uint8_t* const Limit;
-      std::size_t MaxUsedSize;
+      std::size_t MaxUsedSize = 0;
     };
 
     class Format
@@ -324,13 +314,13 @@ namespace Formats::Archived
           ReadProperties(stream);
           const ClassName& cls = GetClass(exp.Class);
           Dbg("Entry[{}] data at {} size={} class={}", idx, offset, size, cls.Name);
-          const Binary::Container::Ptr result = cls.IsMusic() ? ExtractMusicData(stream) : stream.ReadRestContainer();
+          auto result = cls.IsMusic() ? ExtractMusicData(stream) : stream.ReadRestContainer();
           UsedSize = std::max(UsedSize, offset + stream.GetMaxUsedSize());
           return result;
         }
         catch (const std::exception&)
         {
-          return Binary::Container::Ptr();
+          return {};
         }
       }
 
@@ -421,14 +411,16 @@ namespace Formats::Archived
         const uint_t version = Header.PackageVersion;
         if (version >= 120)
         {
-          uint32_t flags, aux;
+          uint32_t flags;
+          uint32_t aux;
           stream.Read(format);
           stream.Read(flags);
           stream.Read(aux);
         }
         else if (version >= 100)
         {
-          uint32_t flags, aux;
+          uint32_t flags;
+          uint32_t aux;
           stream.Read(flags);
           stream.Read(format);
           stream.Read(aux);

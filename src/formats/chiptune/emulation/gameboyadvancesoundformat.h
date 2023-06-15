@@ -14,26 +14,23 @@
 #include <binary/view.h>
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace GameBoyAdvanceSoundFormat
   {
-    namespace GameBoyAdvanceSoundFormat
+    const uint_t VERSION_ID = 0x22;
+
+    class Builder
     {
-      const uint_t VERSION_ID = 0x22;
+    public:
+      virtual ~Builder() = default;
 
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+      virtual void SetEntryPoint(uint32_t addr) = 0;
+      virtual void SetRom(uint32_t addr, Binary::View content) = 0;
+    };
 
-        virtual void SetEntryPoint(uint32_t addr) = 0;
-        virtual void SetRom(uint32_t addr, Binary::View content) = 0;
-      };
+    void ParseRom(Binary::View data, Builder& target);
+  }  // namespace GameBoyAdvanceSoundFormat
 
-      void ParseRom(Binary::View data, Builder& target);
-    }  // namespace GameBoyAdvanceSoundFormat
-
-    Decoder::Ptr CreateGSFDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateGSFDecoder();
+}  // namespace Formats::Chiptune

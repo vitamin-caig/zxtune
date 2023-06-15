@@ -30,9 +30,7 @@ namespace
 {
   struct Device
   {
-    Device()
-      : Id()
-    {}
+    Device() = default;
 
     explicit Device(const Sound::Win32::Device& in)
       : Name(ToQString(in.Name()))
@@ -40,7 +38,7 @@ namespace
     {}
 
     QString Name;
-    int_t Id;
+    int_t Id = 0;
   };
 
   class Win32OptionsWidget
@@ -117,18 +115,18 @@ namespace
     void FillDevices()
     {
       using namespace Sound;
-      for (Win32::Device::Iterator::Ptr availableDevices = Win32::EnumerateDevices(); availableDevices->IsValid();
+      for (const auto availableDevices = Win32::EnumerateDevices(); availableDevices->IsValid();
            availableDevices->Next())
       {
         const Win32::Device::Ptr cur = availableDevices->Get();
-        Devices.push_back(Device(*cur));
+        Devices.emplace_back(*cur);
         devices->addItem(Devices.back().Name);
       }
     }
 
   private:
     const Parameters::Container::Ptr Options;
-    typedef std::vector<Device> DevicesArray;
+    using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
 }  // namespace

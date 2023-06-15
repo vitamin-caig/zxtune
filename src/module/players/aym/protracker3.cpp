@@ -25,7 +25,7 @@
 
 namespace Module::ProTracker3
 {
-  typedef Vortex::ModuleData ModuleData;
+  using ModuleData = Vortex::ModuleData;
 
   const Char TURBOSOUND_COMMENT[] = "TurboSound module";
 
@@ -193,7 +193,7 @@ namespace Module::ProTracker3
 
   class StubLine : public Line
   {
-    StubLine() {}
+    StubLine() = default;
 
   public:
     const Cell* GetChannel(uint_t /*idx*/) const override
@@ -263,7 +263,7 @@ namespace Module::ProTracker3
     class Line : public Module::Line
     {
     public:
-      typedef std::unique_ptr<Line> Ptr;
+      using Ptr = std::unique_ptr<Line>;
 
       Line(const Module::Line* first, const Module::Line* second)
         : First(first ? first : StubLine::Create())
@@ -297,7 +297,7 @@ namespace Module::ProTracker3
     class Pattern : public Module::Pattern
     {
     public:
-      typedef std::unique_ptr<Pattern> Ptr;
+      using Ptr = std::unique_ptr<Pattern>;
 
       Pattern(const Module::Pattern& first, const Module::Pattern& second)
         : First(first)
@@ -306,14 +306,14 @@ namespace Module::ProTracker3
 
       const Line* GetLine(uint_t row) const override
       {
-        if (const auto cached = Lines.Get(row).get())
+        if (auto* const cached = Lines.Get(row).get())
         {
           return cached;
         }
         else
         {
-          const auto first = First.GetLine(row);
-          const auto second = Second.GetLine(row);
+          const auto* const first = First.GetLine(row);
+          const auto* const second = Second.GetLine(row);
           return Lines.Add(row, MakePtr<Line>(first, second)).get();
         }
       }
@@ -339,14 +339,14 @@ namespace Module::ProTracker3
 
       const Pattern* Get(uint_t idx) const override
       {
-        if (const auto cached = Patterns.Get(idx).get())
+        if (auto* const cached = Patterns.Get(idx).get())
         {
           return cached;
         }
         else
         {
-          const auto first = Delegate->Get(idx);
-          const auto second = Delegate->Get(Base - 1 - idx);
+          const auto* const first = Delegate->Get(idx);
+          const auto* const second = Delegate->Get(Base - 1 - idx);
           return Patterns.Add(idx, MakePtr<Pattern>(*first, *second)).get();
         }
       }

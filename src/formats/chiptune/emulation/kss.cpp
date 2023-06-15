@@ -27,7 +27,7 @@ namespace Formats::Chiptune
   {
     const Char DESCRIPTION[] = "KSS Music Format";
 
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
 
     struct RawHeader
     {
@@ -82,7 +82,7 @@ namespace Formats::Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         const RawHeader& hdr = *safe_ptr_cast<const RawHeader*>(rawData.Start());
         const std::size_t bankSize = 0 != (hdr.ExtraBanks & 0x80) ? 8192 : 16384;

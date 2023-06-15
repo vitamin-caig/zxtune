@@ -21,35 +21,32 @@ namespace Parameters
   class Modifier;
 }
 
-namespace Module
+namespace Module::XSF
 {
-  namespace XSF
+  struct MetaInformation
   {
-    struct MetaInformation
-    {
-      using Ptr = std::shared_ptr<const MetaInformation>;
-      using RWPtr = std::shared_ptr<MetaInformation>;
+    using Ptr = std::shared_ptr<const MetaInformation>;
+    using RWPtr = std::shared_ptr<MetaInformation>;
 
-      String Title;
-      String Artist;
-      String Game;
-      String Year;
-      String Genre;
-      String Comment;
-      String Copyright;
-      String Dumper;
+    String Title;
+    String Artist;
+    String Game;
+    String Year;
+    String Genre;
+    String Comment;
+    String Copyright;
+    String Dumper;
 
-      std::vector<std::pair<String, String>> Tags;
+    std::vector<std::pair<String, String>> Tags;
 
-      uint_t RefreshRate = 0;
-      Time::Milliseconds Duration;
-      Time::Milliseconds Fadeout;
+    uint_t RefreshRate = 0;
+    Time::Milliseconds Duration;
+    Time::Milliseconds Fadeout;
 
-      float Volume = 0.0f;
+    float Volume = 0.0f;
 
-      void Merge(const MetaInformation& rh);
+    void Merge(const MetaInformation& rh);
 
-      void Dump(Parameters::Modifier& out) const;
-    };
-  }  // namespace XSF
-}  // namespace Module
+    void Dump(Parameters::Modifier& out) const;
+  };
+}  // namespace Module::XSF

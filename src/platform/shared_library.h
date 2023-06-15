@@ -10,8 +10,10 @@
 
 #pragma once
 
+// common includes
+#include <types.h>
 // std includes
-#include <string>
+#include <memory>
 #include <vector>
 
 namespace Platform
@@ -19,7 +21,7 @@ namespace Platform
   class SharedLibrary
   {
   public:
-    typedef std::shared_ptr<const SharedLibrary> Ptr;
+    using Ptr = std::shared_ptr<const SharedLibrary>;
     virtual ~SharedLibrary() = default;
 
     virtual void* GetSymbol(const String& name) const = 0;

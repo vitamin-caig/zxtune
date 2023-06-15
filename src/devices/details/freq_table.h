@@ -13,22 +13,20 @@
 // library includes
 #include <math/fixedpoint.h>
 
-namespace Devices
+namespace Devices::Details
 {
-  namespace Details
+  // in centiHz
+  using Frequency = Math::FixedPoint<int_t, 100>;
+
+  class FreqTable
   {
-    // in centiHz
-    typedef Math::FixedPoint<int_t, 100> Frequency;
+  public:
+    static const uint_t SIZE = 96;
 
-    class FreqTable
+    static Frequency GetHalftoneFrequency(uint_t halftones)
     {
-    public:
-      static const uint_t SIZE = 96;
-
-      static Frequency GetHalftoneFrequency(uint_t halftones)
-      {
-        // http://www.phy.mtu.edu/~suits/notefreqs.html
-        // clang-format off
+      // http://www.phy.mtu.edu/~suits/notefreqs.html
+      // clang-format off
         static const Frequency NOTES[SIZE] =
         {
         //C           C#/Db       D           D#/Eb       E           F           F#/Gb       G           G#/Ab       A           A#/Bb       B
@@ -49,15 +47,14 @@ namespace Devices
           //octave8
           CHz(418601),CHz(443492),CHz(469864),CHz(497803),CHz(527405),CHz(558766),CHz(591991),CHz(627192),CHz(664488),CHz(704000),CHz(745862),CHz(790214)
         };
-        // clang-format on
-        return NOTES[halftones];
-      }
+      // clang-format on
+      return NOTES[halftones];
+    }
 
-    private:
-      static inline Frequency CHz(uint_t frq)
-      {
-        return Frequency(frq, Frequency::PRECISION);
-      }
-    };
-  }  // namespace Details
-}  // namespace Devices
+  private:
+    static inline Frequency CHz(uint_t frq)
+    {
+      return {frq, Frequency::PRECISION};
+    }
+  };
+}  // namespace Devices::Details

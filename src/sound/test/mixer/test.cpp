@@ -24,7 +24,7 @@ namespace Sound
 
   Gain CreateGain(double l, double r)
   {
-    return Gain(Gain::Type(l), Gain::Type(r));
+    return {Gain::Type(l), Gain::Type(r)};
   }
 
   const Gain GAINS[] = {CreateGain(0.0, 0.0), CreateGain(1.0, 1.0), CreateGain(1.0, 0.0),

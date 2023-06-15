@@ -32,6 +32,7 @@
 #include <QtCore/QMimeData>
 #include <QtCore/QSet>
 #include <QtCore/QStringList>
+#include <utility>
 
 namespace
 {
@@ -58,7 +59,7 @@ namespace
 
     QVariant GetData(const Playlist::Item::Data& /*item*/, unsigned /*column*/) const override
     {
-      return QVariant();
+      return {};
     }
   };
 
@@ -101,7 +102,7 @@ namespace
       case Playlist::Model::COLUMN_FIXEDCRC:
         return ToHex(item.GetCoreChecksum());
       default:
-        return QVariant();
+        return {};
       };
     }
   };
@@ -134,7 +135,7 @@ namespace
   class TypedPlayitemsComparer : public Playlist::Item::Comparer
   {
   public:
-    typedef T (Playlist::Item::Data::*Functor)() const;
+    using Functor = T (Playlist::Item::Data::*)() const;
     TypedPlayitemsComparer(Functor fn, bool ascending)
       : Getter(fn)
       , Ascending(ascending)
@@ -183,7 +184,7 @@ namespace
     case Playlist::Model::COLUMN_FIXEDCRC:
       return CreateComparer(&Playlist::Item::Data::GetCoreChecksum, ascending);
     default:
-      return Playlist::Item::Comparer::Ptr();
+      return {};
     }
   }
 
@@ -193,7 +194,6 @@ namespace
     ComparisonsCounter(const Playlist::Item::Comparer& delegate, Log::ProgressCallback& cb)
       : Delegate(delegate)
       , Callback(cb)
-      , Done(0)
     {}
 
     bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const override
@@ -205,7 +205,7 @@ namespace
   private:
     const Playlist::Item::Comparer& Delegate;
     Log::ProgressCallback& Callback;
-    mutable uint_t Done;
+    mutable uint_t Done = 0;
   };
 
   class SortOperation : public Playlist::Item::StorageModifyOperation
@@ -340,7 +340,7 @@ namespace
     MutexType WriterLock;
   };
 
-  typedef RWMutexType<std::mutex> RWMutex;
+  using RWMutex = RWMutexType<std::mutex>;
 
   class ModelImpl
     : public Playlist::Model
@@ -352,7 +352,6 @@ namespace
     explicit ModelImpl(QObject& parent)
       : Playlist::Model(parent)
       , Providers()
-      , FetchedItemsCount()
       , Container(Playlist::Item::Storage::Create())
       , AsyncExecution(Async::Activity::CreateStub())
       , Canceled(false)
@@ -592,16 +591,16 @@ namespace
       if (Qt::Vertical == orientation && Qt::DisplayRole == role)
       {
         // item number is 1-based
-        return QVariant(section + 1);
+        return {section + 1};
       }
-      return QVariant();
+      return {};
     }
 
     QVariant data(const QModelIndex& index, int role) const override
     {
       if (!index.isValid())
       {
-        return QVariant();
+        return {};
       }
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
@@ -618,17 +617,17 @@ namespace
           AsyncLoad(std::move(item), index);
         }
       }
-      return QVariant();
+      return {};
     }
 
     void sort(int column, Qt::SortOrder order) override
     {
       Dbg("Sort data in column={} by order={}", column, static_cast<int>(order));
       const bool ascending = order == Qt::AscendingOrder;
-      if (Playlist::Item::Comparer::Ptr comparer = CreateComparerByColumn(column, ascending))
+      if (auto comparer = CreateComparerByColumn(column, ascending))
       {
-        const Playlist::Item::StorageModifyOperation::Ptr op = MakePtr<SortOperation>(comparer);
-        PerformOperation(op);
+        auto op = MakePtr<SortOperation>(std::move(comparer));
+        PerformOperation(std::move(op));
       }
     }
 
@@ -640,7 +639,7 @@ namespace
 
     void AsyncLoad(Playlist::Item::Data::Ptr item, const QModelIndex& index) const
     {
-      IOThread::Execute([weakItem = toWeak(item), self = toWeak(const_cast<ModelImpl*>(this)), index]() {
+      IOThread::Execute([weakItem = toWeak(std::move(item)), self = toWeak(const_cast<ModelImpl*>(this)), index]() {
         if (auto item = weakItem.lock())
         {
           if (!item->IsLoaded())
@@ -690,7 +689,6 @@ namespace
 
     void ExecuteOperation(Playlist::Item::StorageModifyOperation::Ptr operation) override
     {
-      Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
         emit OperationStarted();
         Playlist::Item::Storage::Ptr tmpStorage;
@@ -739,7 +737,7 @@ namespace
   private:
     const DataProvidersSet Providers;
     mutable RWMutex SyncAccess;
-    std::size_t FetchedItemsCount;
+    std::size_t FetchedItemsCount = 0;
     Playlist::Item::Storage::Ptr Container;
     Async::Activity::Ptr AsyncExecution;
     std::atomic<bool> Canceled;
@@ -760,7 +758,7 @@ namespace Playlist
 
   const Model::IndexType* Model::OldToNewIndexMap::FindNewIndex(IndexType oldIdx) const
   {
-    const const_iterator it = find(oldIdx);
+    const auto it = find(oldIdx);
     if (it != end())
     {
       return &it->second;

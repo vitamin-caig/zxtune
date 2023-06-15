@@ -21,7 +21,9 @@ namespace
   {
     std::cout << (val ? "Passed" : "Failed") << " test for " << msg << std::endl;
     if (!val)
+    {
       throw 1;
+    }
   }
 
   template<class T1, class T2>
@@ -83,7 +85,7 @@ int main()
   {
     std::cout << "---- Test for time instant ----" << std::endl;
     {
-      constexpr const Time::AtNanosecond ns(10000000ull);
+      constexpr const Time::AtNanosecond ns(10000000uLL);
       {
         constexpr const Time::AtNanosecond ons(ns);
         Test<uint64_t>("Ns => Ns", ons.Get(), ns.Get());

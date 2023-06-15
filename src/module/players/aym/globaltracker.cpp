@@ -135,24 +135,15 @@ namespace Module::GlobalTracker
 
   struct ChannelState
   {
-    ChannelState()
-      : Enabled(false)
-      , Envelope(false)
-      , Note()
-      , SampleNum(0)
-      , PosInSample(0)
-      , OrnamentNum(0)
-      , PosInOrnament(0)
-      , Volume(0)
-    {}
-    bool Enabled;
-    bool Envelope;
-    uint_t Note;
-    uint_t SampleNum;
-    uint_t PosInSample;
-    uint_t OrnamentNum;
-    uint_t PosInOrnament;
-    uint_t Volume;
+    ChannelState() = default;
+    bool Enabled = false;
+    bool Envelope = false;
+    uint_t Note = 0;
+    uint_t SampleNum = 0;
+    uint_t PosInSample = 0;
+    uint_t OrnamentNum = 0;
+    uint_t PosInOrnament = 0;
+    uint_t Volume = 0;
   };
 
   class DataRenderer : public AYM::DataRenderer
@@ -179,11 +170,11 @@ namespace Module::GlobalTracker
   private:
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }
@@ -191,7 +182,7 @@ namespace Module::GlobalTracker
       }
     }
 
-    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
+    static void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (const bool* enabled = src.GetEnabled())
       {
@@ -260,7 +251,7 @@ namespace Module::GlobalTracker
       const Ornament& curOrnament = Data->Ornaments.Get(dst.OrnamentNum);
 
       // apply tone
-      const int_t halftones = Math::Clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament), 0, 95);
+      const auto halftones = Math::Clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament), 0, 95);
       const uint_t freq = (track.GetFrequency(halftones) + curSampleLine.Vibrato) & 0xfff;
       channel.SetTone(freq);
 
@@ -268,7 +259,7 @@ namespace Module::GlobalTracker
       {
         channel.DisableTone();
       }
-      const int_t level = Math::Clamp<int_t>(int_t(curSampleLine.Level) - dst.Volume, 0, 255);
+      const auto level = Math::Clamp<int_t>(int_t(curSampleLine.Level) - dst.Volume, 0, 255);
       // apply level
       channel.SetLevel(level & 0xf);
       // apply envelope

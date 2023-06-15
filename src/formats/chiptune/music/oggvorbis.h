@@ -15,32 +15,29 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace OggVorbis
   {
-    namespace OggVorbis
+    // Use simplified parsing due to thirdparty library used
+    class Builder
     {
-      // Use simplified parsing due to thirdparty library used
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+    public:
+      virtual ~Builder() = default;
 
-        virtual MetaBuilder& GetMetaBuilder() = 0;
+      virtual MetaBuilder& GetMetaBuilder() = 0;
 
-        virtual void SetStreamId(uint32_t id) = 0;
-        virtual void AddUnknownPacket(Binary::View data) = 0;
-        virtual void SetProperties(uint_t channels, uint_t frequency, uint_t blockSizeLo, uint_t blockSizeHi) = 0;
-        // Full setup block, including header
-        virtual void SetSetup(Binary::View data) = 0;
-        virtual void AddFrame(std::size_t offset, uint64_t positionInFrames, Binary::View data) = 0;
-      };
+      virtual void SetStreamId(uint32_t id) = 0;
+      virtual void AddUnknownPacket(Binary::View data) = 0;
+      virtual void SetProperties(uint_t channels, uint_t frequency, uint_t blockSizeLo, uint_t blockSizeHi) = 0;
+      // Full setup block, including header
+      virtual void SetSetup(Binary::View data) = 0;
+      virtual void AddFrame(std::size_t offset, uint64_t positionInFrames, Binary::View data) = 0;
+    };
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-      Builder& GetStubBuilder();
-    }  // namespace OggVorbis
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+    Builder& GetStubBuilder();
+  }  // namespace OggVorbis
 
-    Decoder::Ptr CreateOGGDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateOGGDecoder();
+}  // namespace Formats::Chiptune

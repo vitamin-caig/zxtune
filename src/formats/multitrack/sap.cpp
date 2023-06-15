@@ -45,13 +45,13 @@ namespace Formats::Multitrack
 
     const Char DESCRIPTION[] = "Slight Atari Player Sound Format";
 
-    typedef std::array<uint8_t, 5> TextSignatureType;
+    using TextSignatureType = std::array<uint8_t, 5>;
 
     const TextSignatureType TEXT_SIGNATURE = {{'S', 'A', 'P', 0x0d, 0x0a}};
     const auto SONGS = "SONGS"_sv;
     const auto DEFSONG = "DEFSONG"_sv;
 
-    typedef std::array<uint8_t, 2> BinarySignatureType;
+    using BinarySignatureType = std::array<uint8_t, 2>;
     const BinarySignatureType BINARY_SIGNATURE = {{0xff, 0xff}};
 
     const std::size_t MIN_SIZE = 256;
@@ -62,19 +62,16 @@ namespace Formats::Multitrack
       virtual ~Builder() = default;
 
       virtual void SetProperty(StringView name, StringView value) = 0;
-      virtual void SetBlock(const uint_t start, Binary::View data) = 0;
+      virtual void SetBlock(uint_t start, Binary::View data) = 0;
     };
 
     class DataBuilder : public Builder
     {
     public:
-      typedef std::shared_ptr<const DataBuilder> Ptr;
-      typedef std::shared_ptr<DataBuilder> RWPtr;
+      using Ptr = std::shared_ptr<const DataBuilder>;
+      using RWPtr = std::shared_ptr<DataBuilder>;
 
-      DataBuilder()
-        : TracksCount(1)
-        , DefaultTrack(0)
-      {}
+      DataBuilder() = default;
 
       void SetProperty(StringView name, StringView value) override
       {
@@ -124,8 +121,8 @@ namespace Formats::Multitrack
 
     private:
       Strings::Array Lines;
-      uint_t TracksCount;
-      uint_t DefaultTrack;
+      uint_t TracksCount = 1;
+      uint_t DefaultTrack = 0;
       std::map<uint_t, Binary::View> Blocks;
     };
 
@@ -219,7 +216,8 @@ namespace Formats::Multitrack
             break;
           }
           stream.Seek(pos);
-          StringView name, value;
+          StringView name;
+          StringView value;
           const auto line = stream.ReadString();
           auto spacePos = line.find(' ');
           if (spacePos != line.npos)

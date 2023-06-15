@@ -28,7 +28,6 @@ namespace Formats::Chiptune
   public:
     explicit Patcher(Binary::View src)
       : Source(src)
-      , SizeAddon(0)
     {}
 
     void InsertData(std::size_t offset, Binary::View data) override
@@ -107,22 +106,19 @@ namespace Formats::Chiptune
 
   private:
     const Binary::View Source;
-    typedef std::map<std::size_t, Binary::View> BlobsMap;
-    typedef std::map<std::size_t, int_t> FixesMap;
+    using BlobsMap = std::map<std::size_t, Binary::View>;
+    using FixesMap = std::map<std::size_t, int_t>;
     BlobsMap Insertions;
     BlobsMap Overwrites;
     FixesMap LEWordFixes;
-    std::size_t SizeAddon;
+    std::size_t SizeAddon = 0;
   };
 }  // namespace Formats::Chiptune
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  PatchedDataBuilder::Ptr PatchedDataBuilder::Create(Binary::View data)
   {
-    PatchedDataBuilder::Ptr PatchedDataBuilder::Create(Binary::View data)
-    {
-      return MakePtr<Patcher>(data);
-    }
-  }  // namespace Chiptune
-}  // namespace Formats
+    return MakePtr<Patcher>(data);
+  }
+}  // namespace Formats::Chiptune

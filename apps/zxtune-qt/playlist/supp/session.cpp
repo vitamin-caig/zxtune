@@ -40,9 +40,9 @@ namespace
   class TasksSet
   {
   public:
-    void Add(Playlist::Controller::Ptr ctrl)
+    void Add(const Playlist::Controller& ctrl)
     {
-      Models.push_back(ctrl->GetModel());
+      Models.emplace_back(ctrl.GetModel());
     }
 
     void Wait()
@@ -69,8 +69,8 @@ namespace
   // does not exists), but store only to actual.
   QDir GetOutdatedPlaylistsDir()
   {
-    return QDir(QStandardPaths::locate(QStandardPaths::DataLocation, "", QStandardPaths::LocateDirectory) + "/"
-                + QCoreApplication::applicationName() + "/Playlists");
+    return {QStandardPaths::locate(QStandardPaths::DataLocation, "", QStandardPaths::LocateDirectory) + "/"
+            + QCoreApplication::applicationName() + "/Playlists"};
   }
 
   QStringList GetPlaylistFiles(const QDir& dir)
@@ -96,9 +96,8 @@ namespace
 
     void Load(Playlist::Container::Ptr container) override
     {
-      for (QStringList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      for (const auto& fileName : Files)
       {
-        const QString& fileName = *it;
         const QString& fullPath = SourceDir.absoluteFilePath(fileName);
         Dbg("Loading stored playlist '{}'", FromQString(fullPath));
         container->OpenPlaylist(fullPath);
@@ -107,7 +106,7 @@ namespace
 
     void Save(Playlist::Controller::Iterator::Ptr it) override
     {
-      const QStringList& newFiles = SaveFiles(it);
+      const QStringList& newFiles = SaveFiles(*it);
       Dbg("Saved {} playlists to {}", newFiles.size(), FromQString(TargetDir.absolutePath()));
       const QStringList& toRemove = Substract(SourceDir == TargetDir ? Files : GetPlaylistFiles(TargetDir), newFiles);
       RemoveFiles(toRemove);
@@ -115,7 +114,7 @@ namespace
     }
 
   private:
-    QStringList SaveFiles(Playlist::Controller::Iterator::Ptr it)
+    QStringList SaveFiles(Playlist::Controller::Iterator& it)
     {
       if (!TargetDir.exists())
       {
@@ -123,13 +122,13 @@ namespace
       }
       TasksSet tasks;
       QStringList newFiles;
-      for (int idx = 0; it->IsValid(); it->Next(), ++idx)
+      for (int idx = 0; it.IsValid(); it.Next(), ++idx)
       {
-        const Playlist::Controller::Ptr ctrl = it->Get();
+        const Playlist::Controller::Ptr ctrl = it.Get();
         const QString& fileName = BuildPlaylistFileName(idx);
         const QString& fullPath = TargetDir.absoluteFilePath(fileName);
-        Playlist::Save(ctrl, fullPath, 0);
-        tasks.Add(ctrl);
+        Playlist::Save(*ctrl, fullPath, 0);
+        tasks.Add(*ctrl);
         newFiles.push_back(fileName);
       }
       tasks.Wait();

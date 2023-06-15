@@ -48,7 +48,7 @@ namespace
       : UserAgent(std::move(userAgent))
     {}
 
-    IOParameters() {}
+    IOParameters() = default;
 
     uint_t Version() const override
     {
@@ -161,7 +161,7 @@ namespace
 
   unsigned short VersionToRevision(const QString& str)
   {
-    static const QLatin1String REV_FORMAT("(\?:r(\?:ev)\?)\?(\\d{4,5}).*");
+    static const QLatin1String REV_FORMAT(R"((?:r(?:ev)?)?(\d{4,5}).*)");
     QRegExp expr(REV_FORMAT);
     if (expr.exactMatch(str))
     {
@@ -179,10 +179,7 @@ namespace
   class Version
   {
   public:
-    Version()
-      : AsDate()
-      , AsRev()
-    {}
+    Version() = default;
 
     explicit Version(const QString& ver, const QDate& date)
       : AsDate(VersionToDate(ver, date))
@@ -206,15 +203,8 @@ namespace
       {
         const bool thisValid = AsRev || AsDate.isValid();
         const bool rhValid = rh.AsRev || rh.AsDate.isValid();
-        if (thisValid && !rhValid)
-        {
-          // prefer much more valid
-          return true;
-        }
-        else
-        {
-          return false;
-        }
+        // prefer much more valid
+        return thisValid && !rhValid;
       }
     }
 
@@ -232,7 +222,7 @@ namespace
 
   private:
     QDate AsDate;
-    unsigned short AsRev;
+    unsigned short AsRev = 0;
   };
 
   class UpdateState : public Downloads::Visitor
@@ -255,8 +245,7 @@ namespace
       const Product::Update::TypeTag type =
           Product::GetUpdateType(update->Platform(), update->Architecture(), update->Packaging());
       Dbg("Update {}, type {}", FromQString(update->Title()), int(type));
-      const std::vector<Product::Update::TypeTag>::const_iterator it =
-          std::find(CurTypes.begin(), CurTypes.end(), type);
+      const auto it = std::find(CurTypes.begin(), CurTypes.end(), type);
       if (CurTypes.end() == it)
       {
         Dbg(" unsupported");
@@ -534,7 +523,7 @@ namespace Update
   {
     try
     {
-      UpdateParameters params(GlobalOptions::Instance().Get());
+      const UpdateParameters params(GlobalOptions::Instance().Get());
       if (IO::ResolveUri(params.GetFeedUrl()))
       {
         std::unique_ptr<CheckOperation> res(new UpdateCheckOperation(parent, params));

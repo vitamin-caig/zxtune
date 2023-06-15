@@ -21,11 +21,6 @@
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-// std includes
-#include <algorithm>
-#include <functional>
-#include <iterator>
-#include <numeric>
 
 namespace Formats::Packed
 {
@@ -200,8 +195,6 @@ namespace Formats::Packed
       Bitstream(const uint8_t* data, std::size_t size)
         : Data(data)
         , Pos(Data + size)
-        , Bits()
-        , Mask(0)
       {}
 
       bool Eof() const
@@ -237,8 +230,8 @@ namespace Formats::Packed
     private:
       const uint8_t* const Data;
       const uint8_t* Pos;
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class Container
@@ -275,11 +268,7 @@ namespace Formats::Packed
           return false;
         }
         const uint_t usedSize = GetUsedSize();
-        if (Size < usedSize)
-        {
-          return false;
-        }
-        return true;
+        return Size >= usedSize;
       }
 
       uint_t GetUsedSize() const
@@ -388,7 +377,7 @@ namespace Formats::Packed
             return 0x221 + Stream.GetBits(Header.WindowSize);
           }
           const uint_t size = 0x0a + Stream.GetBits(5);
-          Generate(Decoded, size, std::bind(&Bitstream::GetByte, &Stream));
+          Generate(Decoded, size, [stream = &Stream] { return stream->GetByte(); });
           return 0;
         }
         //%0
@@ -430,12 +419,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const ESVCruncher::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       ESVCruncher::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSize());

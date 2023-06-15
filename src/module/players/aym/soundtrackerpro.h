@@ -15,10 +15,7 @@
 // library includes
 #include <formats/chiptune/aym/soundtrackerpro.h>
 
-namespace Module
+namespace Module::SoundTrackerPro
 {
-  namespace SoundTrackerPro
-  {
-    AYM::Factory::Ptr CreateFactory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder);
-  }
-}  // namespace Module
+  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder);
+}  // namespace Module::SoundTrackerPro

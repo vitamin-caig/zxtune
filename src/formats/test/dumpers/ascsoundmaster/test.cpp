@@ -57,7 +57,7 @@ namespace
       std::cout << "Author: " << author << std::endl;
     }
 
-    void SetStrings(const Strings::Array& strings) override
+    void SetStrings(const Strings::Array& /*strings*/) override
     {
       std::cout << "Strings: [some]" << std::endl;
     }

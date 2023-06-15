@@ -41,7 +41,7 @@ namespace Formats::Chiptune
             return CreateCalculatingCrcContainer(subData, 0, subData->Size());
           }
         }
-        return Container::Ptr();
+        return {};
       }
 
     private:
@@ -88,7 +88,7 @@ namespace Formats::Chiptune
           return false;
         }
         Stream.Skip(patchMapSize);
-        if (const auto speech = Stream.PeekRawData(sizeof(uint32_t)))
+        if (const auto* const speech = Stream.PeekRawData(sizeof(uint32_t)))
         {
           const auto pos = Stream.GetPosition();
           const uint_t speechSize = Stream.Read<le_uint32_t>();
@@ -177,7 +177,7 @@ namespace Formats::Chiptune
               usecs = safe_ptr_cast<const le_uint32_t*>(Delays + 3 * GdNum)[gdIdx];
             }
           }
-          return Time::Milliseconds(totalTime);
+          return Time::Milliseconds{static_cast<uint_t>(totalTime)};
         }
       };
     };
@@ -190,7 +190,7 @@ namespace Formats::Chiptune
       }
       catch (const std::exception&)
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 
@@ -247,7 +247,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
       }
 

@@ -20,7 +20,7 @@ namespace Playlist
   class ScanStatus
   {
   public:
-    typedef std::shared_ptr<const ScanStatus> Ptr;
+    using Ptr = std::shared_ptr<const ScanStatus>;
     virtual ~ScanStatus() = default;
 
     virtual unsigned DoneFiles() const = 0;
@@ -36,7 +36,7 @@ namespace Playlist
     explicit Scanner(QObject& parent);
 
   public:
-    typedef Scanner* Ptr;
+    using Ptr = Scanner*;
 
     static Ptr Create(QObject& parent, Item::DataProvider::Ptr provider);
 

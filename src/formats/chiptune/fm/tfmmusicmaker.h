@@ -19,131 +19,110 @@
 // std includes
 #include <array>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace TFMMusicMaker
   {
-    namespace TFMMusicMaker
+    struct Instrument
     {
-      struct Instrument
+      struct Operator
       {
-        struct Operator
-        {
-          Operator()
-            : Multiple()
-            , Detune()
-            , TotalLevel()
-            , RateScaling()
-            , Attack()
-            , Decay()
-            , Sustain()
-            , Release()
-            , SustainLevel()
-            , EnvelopeType()
-          {}
+        Operator() = default;
 
-          uint_t Multiple;
-          int_t Detune;
-          uint_t TotalLevel;
-          uint_t RateScaling;
-          uint_t Attack;
-          uint_t Decay;
-          uint_t Sustain;
-          uint_t Release;
-          uint_t SustainLevel;
-          uint_t EnvelopeType;
-        };
-
-        Instrument()
-          : Algorithm()
-          , Feedback()
-        {}
-
-        uint_t Algorithm;
-        uint_t Feedback;
-        std::array<Operator, 4> Operators;
+        uint_t Multiple = 0;
+        int_t Detune = 0;
+        uint_t TotalLevel = 0;
+        uint_t RateScaling = 0;
+        uint_t Attack = 0;
+        uint_t Decay = 0;
+        uint_t Sustain = 0;
+        uint_t Release = 0;
+        uint_t SustainLevel = 0;
+        uint_t EnvelopeType = 0;
       };
 
-      struct Date
-      {
-        Date()
-          : Year()
-          , Month()
-          , Day()
-        {}
+      Instrument() = default;
 
-        uint_t Year;
-        uint_t Month;
-        uint_t Day;
-      };
+      uint_t Algorithm = 0;
+      uint_t Feedback = 0;
+      std::array<Operator, 4> Operators;
+    };
 
-      typedef LinesObject<uint_t> Positions;
+    struct Date
+    {
+      Date() = default;
 
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+      uint_t Year = 0;
+      uint_t Month = 0;
+      uint_t Day = 0;
+    };
 
-        virtual MetaBuilder& GetMetaBuilder() = 0;
-        virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod) = 0;
-        virtual void SetDate(const Date& created, const Date& saved) = 0;
+    using Positions = LinesObject<uint_t>;
 
-        virtual void SetInstrument(uint_t index, Instrument instrument) = 0;
-        // patterns
-        virtual void SetPositions(Positions positions) = 0;
+    class Builder
+    {
+    public:
+      virtual ~Builder() = default;
 
-        virtual PatternBuilder& StartPattern(uint_t index) = 0;
+      virtual MetaBuilder& GetMetaBuilder() = 0;
+      virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod) = 0;
+      virtual void SetDate(const Date& created, const Date& saved) = 0;
 
-        //! @invariant Channels are built sequentally
-        virtual void StartChannel(uint_t index) = 0;
-        virtual void SetKeyOff() = 0;
-        virtual void SetNote(uint_t note) = 0;
-        virtual void SetVolume(uint_t vol) = 0;
-        virtual void SetInstrument(uint_t ins) = 0;
-        virtual void SetArpeggio(uint_t add1, uint_t add2) = 0;
-        virtual void SetSlide(int_t step) = 0;
-        virtual void SetPortamento(int_t step) = 0;
-        virtual void SetVibrato(uint_t speed, uint_t depth) = 0;
-        virtual void SetTotalLevel(uint_t op, uint_t value) = 0;
-        virtual void SetVolumeSlide(uint_t up, uint_t down) = 0;
-        virtual void SetSpecialMode(bool on) = 0;
-        virtual void SetToneOffset(uint_t op, uint_t offset) = 0;
-        virtual void SetMultiple(uint_t op, uint_t val) = 0;
-        virtual void SetOperatorsMixing(uint_t mask) = 0;
-        virtual void SetLoopStart() = 0;
-        virtual void SetLoopEnd(uint_t additionalCount) = 0;
-        virtual void SetPane(uint_t pane) = 0;
-        virtual void SetNoteRetrig(uint_t period) = 0;
-        virtual void SetNoteCut(uint_t quirk) = 0;
-        virtual void SetNoteDelay(uint_t quirk) = 0;
-        virtual void SetDropEffects() = 0;
-        virtual void SetFeedback(uint_t val) = 0;
-        virtual void SetTempoInterleave(uint_t val) = 0;
-        virtual void SetTempoValues(uint_t even, uint_t odd) = 0;
-      };
+      virtual void SetInstrument(uint_t index, Instrument instrument) = 0;
+      // patterns
+      virtual void SetPositions(Positions positions) = 0;
 
-      Builder& GetStubBuilder();
+      virtual PatternBuilder& StartPattern(uint_t index) = 0;
 
-      class Decoder : public Formats::Chiptune::Decoder
-      {
-      public:
-        typedef std::shared_ptr<const Decoder> Ptr;
+      //! @invariant Channels are built sequentally
+      virtual void StartChannel(uint_t index) = 0;
+      virtual void SetKeyOff() = 0;
+      virtual void SetNote(uint_t note) = 0;
+      virtual void SetVolume(uint_t vol) = 0;
+      virtual void SetInstrument(uint_t ins) = 0;
+      virtual void SetArpeggio(uint_t add1, uint_t add2) = 0;
+      virtual void SetSlide(int_t step) = 0;
+      virtual void SetPortamento(int_t step) = 0;
+      virtual void SetVibrato(uint_t speed, uint_t depth) = 0;
+      virtual void SetTotalLevel(uint_t op, uint_t value) = 0;
+      virtual void SetVolumeSlide(uint_t up, uint_t down) = 0;
+      virtual void SetSpecialMode(bool on) = 0;
+      virtual void SetToneOffset(uint_t op, uint_t offset) = 0;
+      virtual void SetMultiple(uint_t op, uint_t val) = 0;
+      virtual void SetOperatorsMixing(uint_t mask) = 0;
+      virtual void SetLoopStart() = 0;
+      virtual void SetLoopEnd(uint_t additionalCount) = 0;
+      virtual void SetPane(uint_t pane) = 0;
+      virtual void SetNoteRetrig(uint_t period) = 0;
+      virtual void SetNoteCut(uint_t quirk) = 0;
+      virtual void SetNoteDelay(uint_t quirk) = 0;
+      virtual void SetDropEffects() = 0;
+      virtual void SetFeedback(uint_t val) = 0;
+      virtual void SetTempoInterleave(uint_t val) = 0;
+      virtual void SetTempoValues(uint_t even, uint_t odd) = 0;
+    };
 
-        virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-      };
+    Builder& GetStubBuilder();
 
-      namespace Ver05
-      {
-        Decoder::Ptr CreateDecoder();
-      }
+    class Decoder : public Formats::Chiptune::Decoder
+    {
+    public:
+      using Ptr = std::shared_ptr<const Decoder>;
 
-      namespace Ver13
-      {
-        Decoder::Ptr CreateDecoder();
-      }
-    }  // namespace TFMMusicMaker
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
+    };
 
-    Decoder::Ptr CreateTFMMusicMaker05Decoder();
-    Decoder::Ptr CreateTFMMusicMaker13Decoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+    namespace Ver05
+    {
+      Decoder::Ptr CreateDecoder();
+    }
+
+    namespace Ver13
+    {
+      Decoder::Ptr CreateDecoder();
+    }
+  }  // namespace TFMMusicMaker
+
+  Decoder::Ptr CreateTFMMusicMaker05Decoder();
+  Decoder::Ptr CreateTFMMusicMaker13Decoder();
+}  // namespace Formats::Chiptune

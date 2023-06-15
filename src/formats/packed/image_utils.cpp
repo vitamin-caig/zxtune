@@ -33,14 +33,13 @@ namespace Formats
   public:
     SparsedImageBuilder()
       : Sectors(&CompareCHS)
-      , TotalSize()
     {}
 
     void SetGeometry(const CHS& /*geometry*/) override {}
 
     void SetSector(const CHS& location, Binary::View data) override
     {
-      const auto res = Sectors.insert(SectorsMap::value_type(location, std::move(data)));
+      const auto res = Sectors.insert(SectorsMap::value_type(location, data));
       if (res.second)
       {
         TotalSize += res.first->second.Size();
@@ -58,9 +57,9 @@ namespace Formats
     }
 
   private:
-    typedef std::map<CHS, Binary::View, bool (*)(const CHS&, const CHS&)> SectorsMap;
+    using SectorsMap = std::map<CHS, Binary::View, bool (*)(const CHS&, const CHS&)>;
     SectorsMap Sectors;
-    std::size_t TotalSize;
+    std::size_t TotalSize = 0;
   };
 
   ImageBuilder::Ptr CreateSparsedImageBuilder()

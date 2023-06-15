@@ -15,22 +15,19 @@
 // library includes
 #include <strings/array.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  class MetaBuilder
   {
-    class MetaBuilder
-    {
-    public:
-      virtual ~MetaBuilder() = default;
+  public:
+    virtual ~MetaBuilder() = default;
 
-      virtual void SetProgram(StringView program) = 0;
-      virtual void SetTitle(StringView title) = 0;
-      virtual void SetAuthor(StringView author) = 0;
-      virtual void SetStrings(const Strings::Array& strings) = 0;
-      virtual void SetComment(StringView comment) = 0;
-    };
+    virtual void SetProgram(StringView program) = 0;
+    virtual void SetTitle(StringView title) = 0;
+    virtual void SetAuthor(StringView author) = 0;
+    virtual void SetStrings(const Strings::Array& strings) = 0;
+    virtual void SetComment(StringView comment) = 0;
+  };
 
-    MetaBuilder& GetStubMetaBuilder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  MetaBuilder& GetStubMetaBuilder();
+}  // namespace Formats::Chiptune

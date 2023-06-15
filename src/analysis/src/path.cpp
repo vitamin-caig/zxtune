@@ -128,7 +128,7 @@ namespace Analysis
 
     String AsString() const override
     {
-      return String();
+      return {};
     }
 
     Iterator::Ptr GetIterator() const override

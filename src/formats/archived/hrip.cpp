@@ -107,7 +107,7 @@ namespace Formats::Archived
       }
       const auto* const hripHeader = safe_ptr_cast<const Header*>(data);
       if (0 != std::memcmp(hripHeader->ID, HRIP_ID, sizeof(HRIP_ID))
-          || !(0 == hripHeader->Catalogue || 1 == hripHeader->Catalogue) || !hripHeader->ArchiveSectors
+          || (0 != hripHeader->Catalogue && 1 != hripHeader->Catalogue) || !hripHeader->ArchiveSectors
           || !hripHeader->FilesCount)
       {
         return false;
@@ -146,7 +146,7 @@ namespace Formats::Archived
       std::size_t archiveSize = 0;
       if (!FastCheck(data.Start(), availSize, files, archiveSize))
       {
-        return Container::Ptr();
+        return {};
       }
       const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
       const Formats::Packed::Decoder::Ptr decoder = Packed::CreateHrust23Decoder();

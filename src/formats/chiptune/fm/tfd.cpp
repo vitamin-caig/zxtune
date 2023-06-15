@@ -43,7 +43,7 @@ namespace Formats::Chiptune
 
     const std::size_t MIN_FRAMES = 150;  //~3sec
 
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
 
     const SignatureType SIGNATURE = {{'T', 'F', 'M', 'D'}};
 
@@ -113,7 +113,7 @@ namespace Formats::Chiptune
     {
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
       try
       {
@@ -166,7 +166,7 @@ namespace Formats::Chiptune
       }
       catch (const std::exception&)
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 

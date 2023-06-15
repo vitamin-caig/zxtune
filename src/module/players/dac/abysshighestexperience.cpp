@@ -29,7 +29,7 @@ namespace Module::AHX
 {
   const Debug::Stream Dbg("Core::AHXSupp");
 
-  typedef std::shared_ptr<hvl_tune> HvlPtr;
+  using HvlPtr = std::shared_ptr<hvl_tune>;
 
   enum StereoSeparation
   {
@@ -45,9 +45,9 @@ namespace Module::AHX
       hvl_InitReplayer();
       initialized = true;
     }
-    const HvlPtr result =
+    auto result =
         HvlPtr(hvl_ParseTune(static_cast<const uint8*>(data.Start()), data.Size(), samplerate, MONO), &hvl_FreeTune);
-    Require(result.get() != nullptr);
+    Require(result != nullptr);
     return result;
   }
 
@@ -121,15 +121,8 @@ namespace Module::AHX
 
     Time::AtMillisecond At() const override
     {
-      if (Hvl->ht_SongEndReached)
-      {
-        // TODO: investigate
-        return Time::AtMillisecond() + Total();
-      }
-      else
-      {
-        return Time::AtMillisecond() + Total();
-      }
+      // TODO: investigate for Hvl->ht_SongEndReached
+      return Time::AtMillisecond() + Total();
     }
 
     Time::Milliseconds Total() const override
@@ -184,7 +177,7 @@ namespace Module::AHX
   class HVL
   {
   public:
-    typedef std::shared_ptr<HVL> Ptr;
+    using Ptr = std::shared_ptr<HVL>;
 
     HVL(Binary::View data, uint_t samplerate)
       : Hvl(LoadModule(data, samplerate))
@@ -346,7 +339,7 @@ namespace Module::AHX
       {
         Dbg("Failed to create AHX: {}", e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
 
   private:

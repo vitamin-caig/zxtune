@@ -26,7 +26,7 @@ namespace Formats::Multitrack
 {
   namespace SID
   {
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
 
     const SignatureType SIGNATURE_RSID = {{'R', 'S', 'I', 'D'}};
     const SignatureType SIGNATURE_PSID = {{'P', 'S', 'I', 'D'}};

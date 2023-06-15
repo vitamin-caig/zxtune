@@ -64,9 +64,8 @@ namespace Module::GSF
     };
 
     AVStream()
-    {
-      std::memset(this, 0, sizeof(mAVStream));
-    }
+      : mAVStream()
+    {}
 
     void RenderSamples(uint_t count)
     {
@@ -113,7 +112,7 @@ namespace Module::GSF
 
     Sound::Chunk CaptureResult()
     {
-      return Sound::Chunk(std::move(Result));
+      return {std::move(Result)};
     }
 
   private:
@@ -123,9 +122,9 @@ namespace Module::GSF
 
     static void OnRenderComplete(struct mAVStream* in, blip_t* left, blip_t* right)
     {
-      AVStream* const self = safe_ptr_cast<AVStream*>(in);
+      auto* const self = safe_ptr_cast<AVStream*>(in);
       const auto ready = self->Result.size() - self->SamplesToRender;
-      const auto dst = safe_ptr_cast<int16_t*>(&self->Result[ready]);
+      auto* const dst = safe_ptr_cast<int16_t*>(&self->Result[ready]);
       const auto done = std::min(blip_read_samples(left, dst, self->SamplesToRender, true),
                                  blip_read_samples(right, dst + 1, self->SamplesToRender, true));
       self->SamplesToRender -= done;
@@ -137,7 +136,7 @@ namespace Module::GSF
 
     static void OnSkipComplete(struct mAVStream* in, blip_t* left, blip_t* right)
     {
-      AVStream* const self = safe_ptr_cast<AVStream*>(in);
+      auto* const self = safe_ptr_cast<AVStream*>(in);
       int16_t dummy[AUDIO_BUFFER_SIZE];
       const auto toSkip = std::min<uint_t>(self->SamplesToSkip, AUDIO_BUFFER_SIZE);
       const auto done =
@@ -174,10 +173,10 @@ namespace Module::GSF
       : Core(GBACoreCreate())
     {
       Core->init(Core);
-      mCoreInitConfig(Core, NULL);
+      mCoreInitConfig(Core, nullptr);
       // core owns rom file memory, so copy it
-      const auto romFile = VFileMemChunk(rom.Content.Data.data(), rom.Content.Data.size());
-      Require(romFile != 0);
+      auto* const romFile = VFileMemChunk(rom.Content.Data.data(), rom.Content.Data.size());
+      Require(romFile != nullptr);
       Core->loadROM(Core, romFile);
       Reset();
     }

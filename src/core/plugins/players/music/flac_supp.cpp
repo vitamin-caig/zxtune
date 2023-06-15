@@ -19,7 +19,6 @@
 #include <binary/input_stream.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/flac.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
@@ -93,14 +92,14 @@ namespace Module::Flac
   };
 
   template<uint_t width>
-  static Sound::Sample MakeMonoSample(int32_t val)
+  Sound::Sample MakeMonoSample(int32_t val)
   {
     const auto converted = SampleTraits<width>::ConvertChannel(val);
     return Sound::Sample(converted, converted);
   }
 
   template<uint_t width>
-  static Sound::Sample MakeStereoSample(int32_t left, int32_t right)
+  Sound::Sample MakeStereoSample(int32_t left, int32_t right)
   {
     return Sound::Sample(SampleTraits<width>::ConvertChannel(left), SampleTraits<width>::ConvertChannel(right));
   }
@@ -230,7 +229,7 @@ namespace Module::Flac
       const auto bits = frame->header.bits_per_sample;
       const auto samplesBefore = self.Chunk.size();
       self.Chunk.resize(samplesBefore + samples);
-      const auto target = self.Chunk.data() + samplesBefore;
+      auto* const target = self.Chunk.data() + samplesBefore;
       switch (frame->header.channels)
       {
       case 1:
@@ -251,7 +250,7 @@ namespace Module::Flac
       self.Chunk.clear();
     }
 
-    void RenderMono(const int32_t* mono, Sound::Sample* target, uint_t samples, uint_t width)
+    static void RenderMono(const int32_t* mono, Sound::Sample* target, uint_t samples, uint_t width)
     {
       switch (width)
       {
@@ -275,7 +274,8 @@ namespace Module::Flac
       }
     }
 
-    void RenderStereo(const int32_t* left, const int32_t* right, Sound::Sample* target, uint_t samples, uint_t width)
+    static void RenderStereo(const int32_t* left, const int32_t* right, Sound::Sample* target, uint_t samples,
+                             uint_t width)
     {
       switch (width)
       {
@@ -310,7 +310,7 @@ namespace Module::Flac
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, Sound::Converter::Ptr target)
+    Renderer(const Model::Ptr& data, Sound::Converter::Ptr target)
       : Tune(data)
       , State(MakePtr<SampledState>(data->TotalSamples, data->Frequency))
       , Target(std::move(target))
@@ -471,7 +471,7 @@ namespace ZXTune
 
     auto decoder = Formats::Chiptune::CreateFLACDecoder();
     auto factory = MakePtr<Module::Flac::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
     registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

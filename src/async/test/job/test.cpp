@@ -31,35 +31,33 @@ namespace
 
   Error FailedToInitializeError()
   {
-    return Error(THIS_LINE, "Failed to initialize");
+    return {THIS_LINE, "Failed to initialize"};
   }
 
   Error FailedToFinalizeError()
   {
-    return Error(THIS_LINE, "Failed to finalize");
+    return {THIS_LINE, "Failed to finalize"};
   }
 
   Error FailedToSuspendError()
   {
-    return Error(THIS_LINE, "Failed to suspend");
+    return {THIS_LINE, "Failed to suspend"};
   }
 
   Error FailedToResumeError()
   {
-    return Error(THIS_LINE, "Failed to resume");
+    return {THIS_LINE, "Failed to resume"};
   }
 
   Error FailedToExecuteError()
   {
-    return Error(THIS_LINE, "Failed to execute");
+    return {THIS_LINE, "Failed to execute"};
   }
 
   class TempWorker : public Worker
   {
   public:
-    TempWorker()
-      : Finished(true)
-    {}
+    TempWorker() = default;
 
     void Initialize() override
     {
@@ -106,7 +104,7 @@ namespace
     Error SuspendError;
     Error ResumeError;
     Error ExecError;
-    bool Finished;
+    bool Finished = true;
   };
 
   void CheckActive(const Job& job, Error::LocationRef loc)

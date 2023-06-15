@@ -15,6 +15,8 @@
 #include <binary/input_stream.h>
 #include <binary/view.h>
 #include <sound/chunk.h>
+// std includes
+#include <utility>
 
 namespace Module::Wav
 {
@@ -46,7 +48,7 @@ namespace Module::Wav
   {
   public:
     BlockingModel(Properties props)
-      : Props(props)
+      : Props(std::move(props))
       , Stream(*Props.Data)
     {
       Require(Props.BlockSize != 0);

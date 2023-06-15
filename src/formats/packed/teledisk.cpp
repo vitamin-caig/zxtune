@@ -280,7 +280,7 @@ namespace Formats::Packed
     {
       for (;;)
       {
-        const RawTrack& track = stream.Get<RawTrack>();
+        const auto& track = stream.Get<RawTrack>();
         if (track.IsLast())
         {
           break;
@@ -288,14 +288,14 @@ namespace Formats::Packed
         Require(Math::InRange<uint_t>(track.Cylinder, 0, MAX_CYLINDERS_COUNT));
         for (uint_t sect = 0; sect != track.Sectors; ++sect)
         {
-          const RawSector& sector = stream.Get<RawSector>();
+          const auto& sector = stream.Get<RawSector>();
           if (sector.NoData())
           {
             continue;
           }
           Require(Math::InRange<uint_t>(sector.Size, 0, 6));
           const std::size_t sectorSize = std::size_t(128) << sector.Size;
-          const RawData& srcDataDesc = stream.Get<RawData>();
+          const auto& srcDataDesc = stream.Get<RawData>();
           Require(Math::InRange<uint_t>(srcDataDesc.Method, RAW_SECTOR, RLE_SECTOR));
           const std::size_t dataSize = srcDataDesc.Size - 1;
           const uint8_t* const rawData = stream.GetData(dataSize);
@@ -314,14 +314,14 @@ namespace Formats::Packed
       SourceStream stream(rawData);
       try
       {
-        const RawHeader& header = stream.Get<RawHeader>();
+        const auto& header = stream.Get<RawHeader>();
         const uint_t id = header.ID;
         Require(id == ID_OLD || id == ID_NEW);
         Require(header.Sequence == 0);
         Require(Math::InRange<uint_t>(header.Sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT));
         if (header.HasComment())
         {
-          const RawComment& comment = stream.Get<RawComment>();
+          const auto& comment = stream.Get<RawComment>();
           if (const std::size_t size = comment.Size)
           {
             stream.GetData(size);
@@ -405,7 +405,7 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Formats::ImageBuilder::Ptr builder = CreateSparsedImageBuilder();
       TeleDiskImage::ImageVisitorAdapter visitor(builder);
@@ -413,7 +413,7 @@ namespace Formats::Packed
       {
         return CreateContainer(builder->GetResult(), usedSize);
       }
-      return Container::Ptr();
+      return {};
     }
 
   private:

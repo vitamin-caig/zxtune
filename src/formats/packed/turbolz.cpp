@@ -89,7 +89,7 @@ namespace Formats::Packed
       {
         KeyFunc(const uint8_t* /*data*/, std::size_t /*size*/) {}
 
-        KeyFunc() {}
+        KeyFunc() = default;
 
         uint8_t operator()()
         {
@@ -257,11 +257,7 @@ namespace Formats::Packed
         {
           return false;
         }
-        if (GetPackedDataSize())
-        {
-          return true;
-        }
-        return false;
+        return GetPackedDataSize() != 0;
       }
 
       std::size_t GetPackedDataOffset() const
@@ -443,12 +439,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const typename TurboLZ::Container<Version> container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       TurboLZ::DataDecoder<Version> decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

@@ -67,8 +67,8 @@ namespace Module::DigitalMusicMaker
   class ModuleData : public DAC::SimpleModuleData
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     ModuleData()
       : DAC::SimpleModuleData(CHANNELS_COUNT)
@@ -77,11 +77,9 @@ namespace Module::DigitalMusicMaker
     struct MixedChannel
     {
       MutableCell Mixin;
-      uint_t Period;
+      uint_t Period = 0;
 
-      MixedChannel()
-        : Period()
-      {}
+      MixedChannel() = default;
     };
 
     std::array<MixedChannel, 64> Mixes;
@@ -270,26 +268,7 @@ namespace Module::DigitalMusicMaker
   public:
     ChannelState()
       // values are from player' defaults
-      : FreqSlideStep(1)
-      , VibratoPeriod(4)
-      , VibratoStep(3)
-      , ArpeggioPeriod(1)
-      , ArpeggioStep(18)
-      , NoteSlidePeriod(2)
-      , NoteSlideStep(12)
-      , NoteDoublePeriod(3)
-      , AttackPeriod(1)
-      , AttackLimit(15)
-      , DecayPeriod(1)
-      , DecayLimit(1)
-      , MixPeriod(3)
-      , Counter(0)
-      , Note(0)
-      , NoteSlide(0)
-      , FreqSlide(0)
-      , Volume(15)
-      , Sample(0)
-      , Effect(&ChannelState::NoEffect)
+      : Effect(&ChannelState::NoEffect)
     {}
 
     void OnFrame(DAC::ChannelDataBuilder& builder)
@@ -406,7 +385,7 @@ namespace Module::DigitalMusicMaker
       }
     }
 
-    void GetState(DAC::ChannelDataBuilder& builder)
+    void GetState(DAC::ChannelDataBuilder& builder) const
     {
       builder.SetNote(Note);
       builder.SetNoteSlide(NoteSlide);
@@ -574,38 +553,38 @@ namespace Module::DigitalMusicMaker
     }
 
   private:
-    int_t FreqSlideStep;
+    int_t FreqSlideStep = 1;
 
-    uint_t VibratoPeriod;  // VBT_x
-    int_t VibratoStep;     // VBF_x * VBA1/VBA2
+    uint_t VibratoPeriod = 4;  // VBT_x
+    int_t VibratoStep = 3;     // VBF_x * VBA1/VBA2
 
-    uint_t ArpeggioPeriod;  // APT_x
-    int_t ArpeggioStep;     // APF_x * APA1/APA2
+    uint_t ArpeggioPeriod = 1;  // APT_x
+    int_t ArpeggioStep = 18;    // APF_x * APA1/APA2
 
-    uint_t NoteSlidePeriod;  // SUT_x/SDT_x
-    int_t NoteSlideStep;
+    uint_t NoteSlidePeriod = 2;  // SUT_x/SDT_x
+    int_t NoteSlideStep = 12;
 
-    uint_t NoteDoublePeriod;  // DUT_x
+    uint_t NoteDoublePeriod = 3;  // DUT_x
 
-    uint_t AttackPeriod;  // ATT_x
-    uint_t AttackLimit;   // ATL_x
+    uint_t AttackPeriod = 1;  // ATT_x
+    uint_t AttackLimit = 15;  // ATL_x
 
-    uint_t DecayPeriod;  // DYT_x
-    uint_t DecayLimit;   // DYL_x
+    uint_t DecayPeriod = 1;  // DYT_x
+    uint_t DecayLimit = 1;   // DYL_x
 
-    uint_t MixPeriod;
+    uint_t MixPeriod = 3;
 
-    uint_t Counter;  // COUN_x
-    uint_t Note;     // NOTN_x
-    uint_t NoteSlide;
-    uint_t FreqSlide;
-    uint_t Volume;  // pVOL_x
-    uint_t Sample;
+    uint_t Counter = 0;  // COUN_x
+    uint_t Note = 0;     // NOTN_x
+    uint_t NoteSlide = 0;
+    uint_t FreqSlide = 0;
+    uint_t Volume = 15;  // pVOL_x
+    uint_t Sample = 0;
 
     Cell OldData;
     Devices::DAC::ChannelData DacState;
 
-    typedef void (ChannelState::*EffectFunc)(DAC::ChannelDataBuilder&);
+    using EffectFunc = void (ChannelState::*)(DAC::ChannelDataBuilder&);
     EffectFunc Effect;
   };
 
@@ -625,7 +604,7 @@ namespace Module::DigitalMusicMaker
 
     void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
     {
-      const auto line = 0 == state.Quirk() ? state.LineObject() : nullptr;
+      const auto* const line = 0 == state.Quirk() ? state.LineObject() : nullptr;
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         DAC::ChannelDataBuilder builder = track.GetChannel(chan);
@@ -635,7 +614,7 @@ namespace Module::DigitalMusicMaker
         // begin note
         if (line)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             chanState.OnNote(*src, *Data, builder);
           }
@@ -703,7 +682,7 @@ namespace Module::DigitalMusicMaker
       }
       else
       {
-        return DAC::Chiptune::Ptr();
+        return {};
       }
     }
   };

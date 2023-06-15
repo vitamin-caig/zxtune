@@ -37,13 +37,13 @@ namespace
 
     const auto archived = Formats::Archived::CreateRarDecoder();
     std::vector<std::string> files;
-    files.push_back("p0.bin");
-    files.push_back("p1.bin");
-    files.push_back("p2.bin");
-    files.push_back("p3.bin");
-    files.push_back("p4.bin");
-    files.push_back("p5.bin");
-    files.push_back("pMM.bin");
+    files.emplace_back("p0.bin");
+    files.emplace_back("p1.bin");
+    files.emplace_back("p2.bin");
+    files.emplace_back("p3.bin");
+    files.emplace_back("p4.bin");
+    files.emplace_back("p5.bin");
+    files.emplace_back("pMM.bin");
     Test::TestArchived(*archived, etalon, *rar, files);
   }
 
@@ -63,8 +63,8 @@ namespace
 
     const auto archived = Formats::Archived::CreateRarDecoder();
     std::vector<std::string> files;
-    files.push_back("p5.bin");
-    files.push_back("p5_solid.bin");
+    files.emplace_back("p5.bin");
+    files.emplace_back("p5_solid.bin");
     Test::TestArchived(*archived, etalon, *rar, files);
   }
 }  // namespace

@@ -159,7 +159,7 @@ namespace Formats::Packed
       Binary::Container::Ptr GetDecodedData() override
       {
         const uint_t packedSize = Header.PackedSize;
-        const uint8_t* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
+        const auto* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
         return Binary::CreateContainer(Binary::View{sourceData, packedSize});
       }
 
@@ -224,8 +224,6 @@ namespace Formats::Packed
     public:
       Bitstream(const uint8_t* data, std::size_t size)
         : SafeByteStream(data, size)
-        , Bits()
-        , Mask(128)
       {}
 
       bool GetBit()
@@ -267,8 +265,8 @@ namespace Formats::Packed
       }
 
     private:
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 128;
     };
 
     class ImplodeDataDecoder : public DataDecoder
@@ -382,7 +380,9 @@ namespace Formats::Packed
         assert(InvertBits(1) == 0x8000);
         assert(InvertBits(0x180) == 0x180);
         assert(InvertBits(0x8000) == 1);
-        uint_t code = 0, codeIncrement = 0, lastBits = 0;
+        uint_t code = 0;
+        uint_t codeIncrement = 0;
+        uint_t lastBits = 0;
         for (auto it = tree.rbegin(), lim = tree.rend(); it != lim; ++it)
         {
           code += codeIncrement;
@@ -404,15 +404,11 @@ namespace Formats::Packed
     {
       static const uint_t LIMITER = 256;
 
-      uint_t Parent;
-      uint8_t Value;
-      bool IsFree;
+      uint_t Parent = 0;
+      uint8_t Value = '\0';
+      bool IsFree = false;
 
-      LZWEntry()
-        : Parent()
-        , Value()
-        , IsFree()
-      {}
+      LZWEntry() = default;
 
       explicit LZWEntry(uint_t value)
         : Parent(LIMITER)
@@ -421,7 +417,7 @@ namespace Formats::Packed
       {}
     };
 
-    typedef std::array<LZWEntry, 8192> LZWTree;
+    using LZWTree = std::array<LZWEntry, 8192>;
 
     class ShrinkDataDecoder : public DataDecoder
     {
@@ -442,7 +438,7 @@ namespace Formats::Packed
           LZWTree tree;
           ResetTree(tree);
 
-          auto lastFree = tree.begin() + LZWEntry::LIMITER;
+          auto* lastFree = tree.begin() + LZWEntry::LIMITER;
 
           uint_t codeSize = 9;
           uint_t oldCode = stream.GetBits(codeSize);
@@ -545,7 +541,7 @@ namespace Formats::Packed
       case SHRINK:
         return std::unique_ptr<DataDecoder>(new ShrinkDataDecoder(header));
       default:
-        return std::unique_ptr<DataDecoder>();
+        return {};
       };
     };
 
@@ -612,12 +608,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const ZXZip::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       ZXZip::DispatchedDataDecoder decoder(container);
       return CreateContainer(decoder.GetDecodedData(), container.GetUsedSize());

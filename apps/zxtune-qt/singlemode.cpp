@@ -22,6 +22,7 @@
 #include <QtCore/QDir>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
+#include <memory>
 
 namespace
 {
@@ -40,7 +41,7 @@ namespace
     template<class It>
     StubModeDispatcher(It cmdBegin, It cmdEnd)
     {
-      QDir curDir;
+      const QDir curDir;
       for (auto it = cmdBegin; it != cmdEnd; ++it)
       {
         const auto arg = ToQString(*it);
@@ -198,7 +199,7 @@ namespace
 
     void StartLocalServer()
     {
-      Server.reset(new QLocalServer(this));
+      Server = std::make_unique<QLocalServer>(this);
       Require(connect(Server.get(), SIGNAL(newConnection()), SLOT(SlaveStarted())));
       while (!Server->listen(SERVER_NAME))
       {
@@ -220,10 +221,10 @@ namespace
   };
 }  // namespace
 
-SingleModeDispatcher::Ptr SingleModeDispatcher::Create(Parameters::Accessor::Ptr params, Strings::Array argv)
+SingleModeDispatcher::Ptr SingleModeDispatcher::Create(const Parameters::Accessor& params, Strings::Array argv)
 {
   Parameters::IntType val = Parameters::ZXTuneQT::SINGLE_INSTANCE_DEFAULT;
-  params->FindValue(Parameters::ZXTuneQT::SINGLE_INSTANCE, val);
+  params.FindValue(Parameters::ZXTuneQT::SINGLE_INSTANCE, val);
   auto cmdBegin = argv.begin();
   ++cmdBegin;
   const auto cmdEnd = argv.end();

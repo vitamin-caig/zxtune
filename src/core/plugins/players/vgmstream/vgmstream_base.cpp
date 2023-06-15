@@ -49,6 +49,7 @@ extern "C"
 #include <array>
 #include <map>
 #include <set>
+#include <utility>
 
 namespace Module::VGMStream
 {
@@ -91,14 +92,7 @@ namespace Module::VGMStream
 
     bool HasUnresolved() const
     {
-      for (const auto& entry : Content)
-      {
-        if (!entry.second)
-        {
-          return true;
-        }
-      }
-      return false;
+      return std::any_of(Content.begin(), Content.end(), [](const auto& entry) { return !entry.second; });
     }
 
     Strings::Array GetUnresolved() const
@@ -143,7 +137,7 @@ namespace Module::VGMStream
   class MemoryStream : public STREAMFILE
   {
   public:
-    explicit MemoryStream(Vfs::Ptr vfs)
+    explicit MemoryStream(const Vfs::Ptr& vfs)
       : MemoryStream(vfs, vfs->Root(), vfs->Request(vfs->Root()))
     {}
 
@@ -152,7 +146,7 @@ namespace Module::VGMStream
       : STREAMFILE()
       , Fs(std::move(vfs))
       , Filename(filename.to_string())
-      , Raw(std::move(raw))
+      , Raw(raw)
     {
       read = &Read;
       get_size = &Length;
@@ -211,7 +205,7 @@ namespace Module::VGMStream
       const StringView name(filename);
       if (auto blob = self->Fs->Request(name))
       {
-        auto* result = new MemoryStream(self->Fs, name, std::move(blob));
+        auto* result = new MemoryStream(self->Fs, name, blob);
         result->stream_index = self->stream_index;
         return result;
       }
@@ -346,7 +340,7 @@ namespace Module::VGMStream
   class Information : public Module::Information
   {
   public:
-    explicit Information(VGMStreamPtr stream)
+    explicit Information(const VGMStreamPtr& stream)
       : Total(stream->num_samples)
       , LoopStart(stream->loop_start_sample)
       , Samplerate(stream->sample_rate)
@@ -407,7 +401,7 @@ namespace Module::VGMStream
       {
         Require(!!Stream);  // TODO
       }
-      return VGMStreamPtr(std::move(Stream));
+      return {std::move(Stream)};
     }
 
   private:
@@ -417,7 +411,7 @@ namespace Module::VGMStream
     const Parameters::Accessor::Ptr Properties;
   };
 
-  VGMStreamPtr TryOpenStream(Vfs::Ptr vfs, int subtrackIndex = -1)
+  VGMStreamPtr TryOpenStream(const Vfs::Ptr& vfs, int subtrackIndex = -1)
   {
     // Streams are reopened for further seeking and partial decoding
     MemoryStream stream(vfs);
@@ -697,7 +691,7 @@ namespace Module::VGMStream
         {
           auto data = rawData.GetSubcontainer(0, rawData.Size());
           auto vfs = MakePtr<Vfs>(Desc.Suffix, data);
-          if (auto stream = TryOpenStream(std::move(vfs)))
+          if (auto stream = TryOpenStream(vfs))
           {
             // Formats clashing
             if (stream->num_streams)

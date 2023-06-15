@@ -245,11 +245,7 @@ namespace Formats::Packed
           return false;
         }
         const typename Version::RawHeader& header = GetHeader();
-        if (header.SizeOfPacked <= sizeof(header.LastBytes))
-        {
-          return false;
-        }
-        return true;
+        return header.SizeOfPacked > sizeof(header.LastBytes);
       }
 
       const typename Version::RawHeader& GetHeader() const
@@ -273,8 +269,6 @@ namespace Formats::Packed
     public:
       Bitstream(const uint8_t* data, std::size_t size)
         : ByteStream(data, size)
-        , Bits()
-        , Mask(0)
       {}
 
       uint_t GetBit()
@@ -298,8 +292,8 @@ namespace Formats::Packed
       }
 
     private:
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class BitstreamDecoder
@@ -478,12 +472,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const PowerfullCodeDecreaser6::Container<Version> container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       PowerfullCodeDecreaser6::DataDecoder<Version> decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

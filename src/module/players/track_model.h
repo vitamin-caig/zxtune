@@ -22,12 +22,7 @@ namespace Module
 {
   struct Command
   {
-    Command()
-      : Type()
-      , Param1()
-      , Param2()
-      , Param3()
-    {}
+    Command() = default;
 
     Command(uint_t type, int_t p1, int_t p2, int_t p3)
       : Type(type)
@@ -41,27 +36,19 @@ namespace Module
       return Type == type;
     }
 
-    uint_t Type;
-    int_t Param1;
-    int_t Param2;
-    int_t Param3;
+    uint_t Type = 0;
+    int_t Param1 = 0;
+    int_t Param2 = 0;
+    int_t Param3 = 0;
   };
 
-  typedef std::vector<Command> CommandsArray;
-  typedef RangeIterator<CommandsArray::const_iterator> CommandsIterator;
+  using CommandsArray = std::vector<Command>;
+  using CommandsIterator = RangeIterator<CommandsArray::const_iterator>;
 
   class Cell
   {
   public:
-    Cell()
-      : Mask()
-      , Enabled()
-      , Note()
-      , SampleNum()
-      , OrnamentNum()
-      , Volume()
-      , Commands()
-    {}
+    Cell() = default;
 
     bool HasData() const
     {
@@ -95,7 +82,7 @@ namespace Module
 
     CommandsIterator GetCommands() const
     {
-      return CommandsIterator(Commands.begin(), Commands.end());
+      return {Commands.begin(), Commands.end()};
     }
 
   protected:
@@ -108,12 +95,12 @@ namespace Module
       VOLUME = 16
     };
 
-    uint_t Mask;
-    bool Enabled;
-    uint_t Note;
-    uint_t SampleNum;
-    uint_t OrnamentNum;
-    uint_t Volume;
+    uint_t Mask = 0;
+    bool Enabled = false;
+    uint_t Note = 0;
+    uint_t SampleNum = 0;
+    uint_t OrnamentNum = 0;
+    uint_t Volume = 0;
     CommandsArray Commands;
   };
 
@@ -139,7 +126,7 @@ namespace Module
   class PatternsSet
   {
   public:
-    typedef std::unique_ptr<const PatternsSet> Ptr;
+    using Ptr = std::unique_ptr<const PatternsSet>;
     virtual ~PatternsSet() = default;
 
     virtual const class Pattern* Get(uint_t idx) const = 0;
@@ -149,7 +136,7 @@ namespace Module
   class OrderList
   {
   public:
-    typedef std::unique_ptr<const OrderList> Ptr;
+    using Ptr = std::unique_ptr<const OrderList>;
     virtual ~OrderList() = default;
 
     virtual uint_t GetSize() const = 0;
@@ -160,7 +147,7 @@ namespace Module
   class TrackModel
   {
   public:
-    typedef std::shared_ptr<const TrackModel> Ptr;
+    using Ptr = std::shared_ptr<const TrackModel>;
     virtual ~TrackModel() = default;
 
     virtual uint_t GetChannelsCount() const = 0;
@@ -172,7 +159,7 @@ namespace Module
   class TrackModelState : public TrackState
   {
   public:
-    typedef std::shared_ptr<const TrackModelState> Ptr;
+    using Ptr = std::shared_ptr<const TrackModelState>;
 
     virtual const class Pattern* PatternObject() const = 0;
     virtual const class Line* LineObject() const = 0;

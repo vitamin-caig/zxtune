@@ -21,6 +21,7 @@
 // qt includes
 #include <QtGui/QCursor>
 #include <QtWidgets/QToolTip>
+#include <memory>
 
 namespace
 {
@@ -50,14 +51,14 @@ namespace
       return Time::AtMillisecond() + SliderPositionToTime(pos);
     }
 
-    Time::Milliseconds SliderPositionToTime(int pos) const
+    static Time::Milliseconds SliderPositionToTime(int pos)
     {
       return PRECISION * pos;
     }
 
     Time::Milliseconds GetPlayed() const
     {
-      return Time::Milliseconds(State->At().CastTo<Time::Millisecond>().Get());
+      return Time::Milliseconds{State->At().CastTo<Time::Millisecond>().Get()};
     }
 
   private:
@@ -88,7 +89,7 @@ namespace
 
     void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item) override
     {
-      Scaler.reset(new ScaledTime(*item, player->GetState()));
+      Scaler = std::make_unique<ScaledTime>(*item, player->GetState());
       timePosition->setRange(0, Scaler->GetSliderRange());
     }
 

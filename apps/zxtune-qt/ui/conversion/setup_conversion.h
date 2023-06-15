@@ -25,7 +25,7 @@ namespace UI
     explicit SetupConversionDialog(QWidget& parent);
 
   public:
-    typedef std::shared_ptr<SetupConversionDialog> Ptr;
+    using Ptr = std::shared_ptr<SetupConversionDialog>;
 
     static Ptr Create(QWidget& parent);
 
@@ -39,5 +39,5 @@ namespace UI
   // sound formats (TBD dumps)
   Playlist::Item::Conversion::Options::Ptr GetConvertParameters(QWidget& parent);
   // universal for single item
-  Playlist::Item::Conversion::Options::Ptr GetSaveAsParameters(Playlist::Item::Data::Ptr item);
+  Playlist::Item::Conversion::Options::Ptr GetSaveAsParameters(const Playlist::Item::Data& item);
 }  // namespace UI

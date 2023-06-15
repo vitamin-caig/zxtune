@@ -57,10 +57,16 @@ namespace Async
       Delegate->Flush();
     }
 
-    static typename ::DataReceiver<T>::Ptr Create(std::size_t workersCount, std::size_t queueSize,
-                                                  typename ::DataReceiver<T>::Ptr delegate)
+    static auto Create(std::size_t workersCount, std::size_t queueSize, typename ::DataReceiver<T>::Ptr delegate)
     {
-      return workersCount ? MakePtr<DataReceiver>(workersCount, queueSize, delegate) : delegate;
+      if (workersCount)
+      {
+        return MakePtr<DataReceiver>(workersCount, queueSize, std::move(delegate));
+      }
+      else
+      {
+        return delegate;
+      }
     }
 
   private:
@@ -136,7 +142,7 @@ namespace Async
     const typename Queue<T>::Ptr QueueObject;
     const Progress::Ptr Statistic;
     const typename ::DataReceiver<T>::Ptr Delegate;
-    typedef std::list<typename Activity::Ptr> ActivitiesList;
+    using ActivitiesList = std::list<typename Activity::Ptr>;
     ActivitiesList Activities;
   };
 }  // namespace Async

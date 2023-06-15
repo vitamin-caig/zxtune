@@ -34,10 +34,7 @@ namespace
   struct BandLevel
   {
   public:
-    BandLevel()
-      : Value(0)
-      , Changed(false)
-    {}
+    BandLevel() = default;
 
     void Fall(uint_t delta)
     {
@@ -64,11 +61,11 @@ namespace
       return oldc ? &Value : nullptr;
     }
 
-    uint_t Value;
-    bool Changed;
+    uint_t Value = 0;
+    bool Changed = false;
   };
 
-  typedef std::array<BandLevel, MAX_BANDS> Analyzed;
+  using Analyzed = std::array<BandLevel, MAX_BANDS>;
 
   class AnalyzerControlImpl : public AnalyzerControl
   {
@@ -76,7 +73,6 @@ namespace
     AnalyzerControlImpl(QWidget& parent, PlaybackSupport& supp)
       : AnalyzerControl(parent)
       , Palette()
-      , Levels()
     {
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 32);

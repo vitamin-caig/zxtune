@@ -92,7 +92,6 @@ namespace
     LinesSource(QTextStream& stream, const VersionLayer& version)
       : Stream(stream)
       , Version(version)
-      , Valid(true)
     {
       Next();
     }
@@ -133,7 +132,7 @@ namespace
     QTextStream& Stream;
     const VersionLayer& Version;
     String Line;
-    bool Valid;
+    bool Valid = true;
   };
 
   class AYLContainer
@@ -145,14 +144,13 @@ namespace
     };
     struct AYLEntries : public std::vector<AYLEntry>
     {
-      typedef std::shared_ptr<const AYLEntries> Ptr;
-      typedef std::shared_ptr<AYLEntries> RWPtr;
+      using Ptr = std::shared_ptr<const AYLEntries>;
+      using RWPtr = std::shared_ptr<AYLEntries>;
     };
 
   public:
     AYLContainer(LinesSource& source, Log::ProgressCallback& cb)
       : Container(MakeRWPtr<AYLEntries>())
-      , Parameters()
     {
       Log::PercentProgressCallback progress(source.GetSize(), cb);
       const uint_t REPORT_PERIOD_ITEMS = 1000;
@@ -183,7 +181,7 @@ namespace
         return Delegate;
       }
 
-      const String GetPath() const
+      String GetPath() const
       {
         return Delegate->Path;
       }
@@ -275,8 +273,6 @@ namespace
     ParametersFilter(const VersionLayer& version, Parameters::Visitor& delegate)
       : Version(version)
       , Delegate(delegate)
-      , FormatSpec()
-      , Offset()
     {}
 
     std::size_t GetFormatSpec() const
@@ -400,13 +396,13 @@ namespace
   private:
     const VersionLayer& Version;
     Parameters::Visitor& Delegate;
-    std::size_t FormatSpec;
-    std::size_t Offset;
+    std::size_t FormatSpec = 0;
+    std::size_t Offset = 0;
   };
 
   Parameters::Container::Ptr CreateProperties(const VersionLayer& version, const AYLContainer& aylItems)
   {
-    const Parameters::Container::Ptr properties = Parameters::Container::Create();
+    auto properties = Parameters::Container::Create();
     ParametersFilter filter(version, *properties);
     const Strings::Map& listParams = aylItems.GetParameters();
     Parameters::Convert(listParams, filter);
@@ -465,11 +461,11 @@ namespace
       item.AdjustedParameters = adjustedParams;
       const QString absItemPath = baseDir.absoluteFilePath(ToQString(itemPath));
       item.Path = FromQString(baseDir.cleanPath(absItemPath));
-      if (std::size_t formatSpec = filter.GetFormatSpec())
+      if (const auto formatSpec = filter.GetFormatSpec())
       {
         ApplyFormatSpecificData(formatSpec, item);
       }
-      if (std::size_t offset = filter.GetOffset())
+      if (const auto offset = filter.GetOffset())
       {
         ApplyOffset(offset, item);
       }
@@ -485,39 +481,36 @@ namespace
   }
 }  // namespace
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
   {
-    Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
+    const QFileInfo info(filename);
+    if (!info.isFile() || !info.isReadable() || !CheckAYLByName(info.fileName()))
     {
-      const QFileInfo info(filename);
-      if (!info.isFile() || !info.isReadable() || !CheckAYLByName(info.fileName()))
-      {
-        return Container::Ptr();
-      }
-      QFile device(filename);
-      if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
-      {
-        assert(!"Failed to open playlist");
-        return Container::Ptr();
-      }
-      QTextStream stream(&device);
-      const String header = FromQString(stream.readLine(0).simplified());
-      const int vers = CheckAYLBySignature(header);
-      if (vers < 0)
-      {
-        return Container::Ptr();
-      }
-      Dbg("Processing AYL version {}", vers);
-      const VersionLayer version(vers);
-      LinesSource lines(stream, version);
-      const AYLContainer aylItems(lines, cb);
-      const QString basePath = info.absolutePath();
-      const ContainerItems::Ptr items = CreateItems(basePath, version, aylItems);
-      const Parameters::Container::Ptr properties = CreateProperties(version, aylItems);
-      properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
-      return Playlist::IO::CreateContainer(provider, properties, items);
+      return {};
     }
-  }  // namespace IO
-}  // namespace Playlist
+    QFile device(filename);
+    if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+      assert(!"Failed to open playlist");
+      return {};
+    }
+    QTextStream stream(&device);
+    const String header = FromQString(stream.readLine(0).simplified());
+    const int vers = CheckAYLBySignature(header);
+    if (vers < 0)
+    {
+      return {};
+    }
+    Dbg("Processing AYL version {}", vers);
+    const VersionLayer version(vers);
+    LinesSource lines(stream, version);
+    const AYLContainer aylItems(lines, cb);
+    const QString basePath = info.absolutePath();
+    auto items = CreateItems(basePath, version, aylItems);
+    auto properties = CreateProperties(version, aylItems);
+    properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
+    return Playlist::IO::CreateContainer(std::move(provider), std::move(properties), std::move(items));
+  }
+}  // namespace Playlist::IO

@@ -56,7 +56,7 @@ namespace Module::SQTracker
   public:
     uint_t Add(const Formats::Chiptune::SQTracker::PositionEntry& pos)
     {
-      const uint_t newIdx = static_cast<uint_t>(Storage.size());
+      const auto newIdx = static_cast<uint_t>(Storage.size());
       const HashedPosition hashedPos(pos);
       return Storage.insert(std::make_pair(hashedPos, newIdx)).first->second;
     }
@@ -64,15 +64,12 @@ namespace Module::SQTracker
   private:
     struct HashedPosition : Formats::Chiptune::SQTracker::PositionEntry
     {
-      std::size_t Hash;
+      std::size_t Hash = 0;
 
-      HashedPosition()
-        : Hash()
-      {}
+      HashedPosition() = default;
 
       explicit HashedPosition(const Formats::Chiptune::SQTracker::PositionEntry& pos)
         : Formats::Chiptune::SQTracker::PositionEntry(pos)
-        , Hash()
       {
         boost::hash_combine(Hash, pos.Tempo);
         for (uint_t chan = 0; chan != 3; ++chan)
@@ -109,15 +106,15 @@ namespace Module::SQTracker
     };
 
   private:
-    typedef std::unordered_map<HashedPosition, uint_t, PositionHash> StorageType;
+    using StorageType = std::unordered_map<HashedPosition, uint_t, PositionHash>;
     StorageType Storage;
   };
 
   class ModuleData : public TrackModel
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     uint_t GetChannelsCount() const override
     {
@@ -230,7 +227,7 @@ namespace Module::SQTracker
 
       MultiLine GetLine(uint_t row) const
       {
-        return MultiLine(Delegates[0]->GetLine(row), Delegates[1]->GetLine(row), Delegates[2]->GetLine(row));
+        return {Delegates[0]->GetLine(row), Delegates[1]->GetLine(row), Delegates[2]->GetLine(row)};
       }
 
     private:
@@ -242,9 +239,6 @@ namespace Module::SQTracker
     public:
       explicit MutablePatternHelper(PatternsBuilder& pat)
         : Pattern(pat)
-        , Tempo()
-        , Row()
-        , CurrentLine()
       {}
 
       void SetRow(uint_t row)
@@ -282,9 +276,9 @@ namespace Module::SQTracker
 
     private:
       PatternsBuilder& Pattern;
-      uint_t Tempo;
-      uint_t Row;
-      MutableLine* CurrentLine;
+      uint_t Tempo = 0;
+      uint_t Row = 0;
+      MutableLine* CurrentLine = nullptr;
     };
 
     void ConvertPattern(const Formats::Chiptune::SQTracker::PositionEntry& patAttrs, PatternsBuilder& builder) const
@@ -315,14 +309,14 @@ namespace Module::SQTracker
       for (uint_t idx = 0; idx != patAttrs.Channels.size(); ++idx)
       {
         const uint_t chan = patAttrs.Channels.size() - idx - 1;
-        if (const auto line = inLine.GetSubline(chan))
+        if (const auto* const line = inLine.GetSubline(chan))
         {
           const bool enabledEffects = patAttrs.Channels[chan].EnabledEffects;
           if (const uint_t newTempo = enabledEffects ? line->GetTempo() : 0)
           {
             tempo = newTempo;
           }
-          if (const auto inCell = line->GetChannel(0))
+          if (const auto* const inCell = line->GetChannel(0))
           {
             MutableCell& outCell = outLine.AddChannel(chan);
             if (const uint_t tempoAddon = ConvertChannel(*inCell, enabledEffects, outCell))
@@ -390,9 +384,7 @@ namespace Module::SQTracker
     {}
 
   public:
-    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh) noexcept  // = default
-      : PatternsBuilder(std::move(rh))
-    {}
+    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh) noexcept = default;
 
     void StartLine(uint_t index) override
     {
@@ -402,9 +394,9 @@ namespace Module::SQTracker
 
     static SingleChannelPatternsBuilder Create()
     {
-      typedef MultichannelMutableLine<1> LineType;
-      typedef SparsedMutablePattern<LineType> PatternType;
-      typedef SparsedMutablePatternsSet<PatternType> PatternsSetType;
+      using LineType = MultichannelMutableLine<1>;
+      using PatternType = SparsedMutablePattern<LineType>;
+      using PatternsSetType = SparsedMutablePatternsSet<PatternType>;
       return SingleChannelPatternsBuilder(MakePtr<PatternsSetType>());
     }
   };
@@ -520,33 +512,20 @@ namespace Module::SQTracker
 
   struct ChannelState
   {
-    ChannelState()
-      : Note()
-      , Attenuation()
-      , Transposition()
-      , CurSample()
-      , SampleTick()
-      , SamplePos()
-      , CurOrnament()
-      , OrnamentTick()
-      , OrnamentPos()
-      , Envelope()
-      , Sliding()
-      , Glissade()
-    {}
-    uint_t Note;
-    uint_t Attenuation;
-    int_t Transposition;
+    ChannelState() = default;
+    uint_t Note = 0;
+    uint_t Attenuation = 0;
+    int_t Transposition = 0;
     // ornament presence means enabled channel
-    const Sample* CurSample;
-    uint_t SampleTick;
-    uint_t SamplePos;
-    const Ornament* CurOrnament;
-    uint_t OrnamentTick;
-    uint_t OrnamentPos;
-    bool Envelope;
-    int_t Sliding;
-    int_t Glissade;
+    const Sample* CurSample = nullptr;
+    uint_t SampleTick = 0;
+    uint_t SamplePos = 0;
+    const Ornament* CurOrnament = nullptr;
+    uint_t OrnamentTick = 0;
+    uint_t OrnamentPos = 0;
+    bool Envelope = false;
+    int_t Sliding = 0;
+    int_t Glissade = 0;
 
     void AddAttenuation(int_t delta)
     {
@@ -591,12 +570,12 @@ namespace Module::SQTracker
 
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t idx = 0; idx != PlayerState.size(); ++idx)
         {
           const uint_t chan = PlayerState.size() - idx - 1;
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }
@@ -651,9 +630,9 @@ namespace Module::SQTracker
           // global
           if (it->Param2)
           {
-            for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+            for (auto& chan : PlayerState)
             {
-              PlayerState[chan].Attenuation = it->Param1;
+              chan.Attenuation = it->Param1;
             }
           }
           else
@@ -665,9 +644,9 @@ namespace Module::SQTracker
           // global
           if (it->Param2)
           {
-            for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+            for (auto& chan : PlayerState)
             {
-              PlayerState[chan].AddAttenuation(it->Param1);
+              chan.AddAttenuation(it->Param1);
             }
           }
           else
@@ -688,7 +667,7 @@ namespace Module::SQTracker
       }
     }
 
-    void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
+    static void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
     {
       if (!dst.CurSample)
       {

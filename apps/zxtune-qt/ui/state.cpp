@@ -19,6 +19,8 @@
 // library includes
 #include <debug/log.h>
 #include <parameters/convert.h>
+// std includes
+#include <utility>
 // qt includes
 #include <QtCore/QByteArray>
 #include <QtWidgets/QAbstractButton>
@@ -36,7 +38,7 @@ namespace
   class WidgetState
   {
   public:
-    typedef std::shared_ptr<const WidgetState> Ptr;
+    using Ptr = std::shared_ptr<const WidgetState>;
     virtual ~WidgetState() = default;
 
     virtual void Load() const = 0;
@@ -105,7 +107,7 @@ namespace
     {
     public:
       NamespacedVisitor(Parameters::Identifier prefix, Parameters::Visitor& delegate)
-        : Prefix(prefix)
+        : Prefix(std::move(prefix))
         , Delegate(delegate)
       {}
 
@@ -150,7 +152,7 @@ namespace
   {
     if (const int size = blob.size())
     {
-      const uint8_t* const rawData = safe_ptr_cast<const uint8_t*>(blob.data());
+      const auto* const rawData = safe_ptr_cast<const uint8_t*>(blob.data());
       const Parameters::DataType data(rawData, rawData + size);
       options.SetValue(name, data);
     }
@@ -165,15 +167,22 @@ namespace
     Binary::Dump val;
     if (options.FindValue(name, val) && !val.empty())
     {
-      return QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size());
+      return {safe_ptr_cast<const char*>(val.data()), static_cast<int>(val.size())};
     }
-    return QByteArray();
+    return {};
   }
 
   Parameters::Container::Ptr CreateSubcontainer(Parameters::Container::Ptr parent, QObject& obj)
   {
     const QString name = obj.objectName();
-    return name.size() == 0 ? parent : MakePtr<NamespaceContainer>(parent, name.toStdString());
+    if (name.size() == 0)
+    {
+      return parent;
+    }
+    else
+    {
+      return MakePtr<NamespaceContainer>(std::move(parent), name.toStdString());
+    }
   }
 
   class MainWindowState : public WidgetState
@@ -255,7 +264,7 @@ namespace
   public:
     TabWidgetState(QTabWidget* tabs, Parameters::Container::Ptr ctr)
       : Wid(*tabs)
-      , Container(CreateSubcontainer(ctr, Wid))
+      , Container(CreateSubcontainer(std::move(ctr), Wid))
     {}
 
     void Load() const override
@@ -280,7 +289,7 @@ namespace
   public:
     ComboBoxState(QComboBox* tabs, Parameters::Container::Ptr ctr)
       : Wid(*tabs)
-      , Container(CreateSubcontainer(ctr, Wid))
+      , Container(CreateSubcontainer(std::move(ctr), Wid))
     {}
 
     void Load() const override
@@ -359,7 +368,7 @@ namespace
   public:
     HeaderViewState(QHeaderView* view, Parameters::Container::Ptr ctr)
       : View(*view)
-      , Container(CreateSubcontainer(ctr, View))
+      , Container(CreateSubcontainer(std::move(ctr), View))
     {}
 
     void Load() const override
@@ -417,7 +426,7 @@ namespace
   public:
     AnyWidgetState(QWidget* wid, Parameters::Container::Ptr ctr)
       : Wid(*wid)
-      , Container(CreateSubcontainer(ctr, Wid))
+      , Container(CreateSubcontainer(std::move(ctr), Wid))
     {}
 
     void Load() const override
@@ -453,31 +462,31 @@ namespace
 
     void AddWidget(QWidget& wid) override
     {
-      if (QMainWindow* mainWnd = dynamic_cast<QMainWindow*>(&wid))
+      if (auto* mainWnd = dynamic_cast<QMainWindow*>(&wid))
       {
         Substates.push_back(MakePtr<MainWindowState>(mainWnd, Options));
       }
-      else if (QFileDialog* fileDialog = dynamic_cast<QFileDialog*>(&wid))
+      else if (auto* fileDialog = dynamic_cast<QFileDialog*>(&wid))
       {
         Substates.push_back(MakePtr<FileDialogState>(fileDialog, Options));
       }
-      else if (QDialog* dialog = dynamic_cast<QDialog*>(&wid))
+      else if (auto* dialog = dynamic_cast<QDialog*>(&wid))
       {
         Substates.push_back(MakePtr<DialogState>(dialog, Options));
       }
-      else if (QTabWidget* tabs = dynamic_cast<QTabWidget*>(&wid))
+      else if (auto* tabs = dynamic_cast<QTabWidget*>(&wid))
       {
         Substates.push_back(MakePtr<TabWidgetState>(tabs, Options));
       }
-      else if (QComboBox* combo = dynamic_cast<QComboBox*>(&wid))
+      else if (auto* combo = dynamic_cast<QComboBox*>(&wid))
       {
         Substates.push_back(MakePtr<ComboBoxState>(combo, Options));
       }
-      else if (QHeaderView* headerView = dynamic_cast<QHeaderView*>(&wid))
+      else if (auto* headerView = dynamic_cast<QHeaderView*>(&wid))
       {
         Substates.push_back(MakePtr<HeaderViewState>(headerView, Options));
       }
-      else if (QAbstractButton* button = dynamic_cast<QAbstractButton*>(&wid))
+      else if (auto* button = dynamic_cast<QAbstractButton*>(&wid))
       {
         Substates.push_back(MakePtr<ButtonState>(button, Options));
       }

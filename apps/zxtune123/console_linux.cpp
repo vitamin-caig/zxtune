@@ -15,13 +15,13 @@
 // library includes
 #include <platform/application.h>
 // platform-dependent includes
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
 // std includes
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
 #include <iostream>
 
 namespace
@@ -82,18 +82,18 @@ namespace
     {
       if (!IsConsoleOut)
       {
-        return SizeType(-1, -1);
+        return {-1, -1};
       }
 #if defined TIOCGSIZE
       struct ttysize ts;
       ThrowIfError(ioctl(STDOUT_FILENO, TIOCGSIZE, &ts), THIS_LINE);
-      return SizeType(ts.ts_cols, ts.ts_lines);
+      return {ts.ts_cols, ts.ts_lines};
 #elif defined TIOCGWINSZ
       struct winsize ws;
       ThrowIfError(ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws), THIS_LINE);
-      return SizeType(ws.ws_col, ws.ws_row);
+      return {ws.ws_col, ws.ws_row};
 #else
-      return SizeType(-1, -1);
+      return {-1, -1};
 #endif
     }
 

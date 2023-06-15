@@ -22,11 +22,6 @@
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-// std includes
-#include <algorithm>
-#include <functional>
-#include <iterator>
-#include <numeric>
 
 namespace Formats::Packed
 {
@@ -208,8 +203,6 @@ namespace Formats::Packed
       Bitstream(const uint8_t* data, std::size_t size)
         : Data(data)
         , Pos(Data + size)
-        , Bits()
-        , Mask(0)
       {}
 
       uint_t GetBit()
@@ -247,8 +240,8 @@ namespace Formats::Packed
     private:
       const uint8_t* const Data;
       const uint8_t* Pos;
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class Container
@@ -285,11 +278,7 @@ namespace Formats::Packed
           return false;
         }
         const uint_t usedSize = GetUsedSize();
-        if (Size < usedSize)
-        {
-          return false;
-        }
-        return true;
+        return Size >= usedSize;
       }
 
       uint_t GetUsedSize() const
@@ -418,7 +407,7 @@ namespace Formats::Packed
       void CopySingleBytes()
       {
         const uint_t count = 14 + Stream.GetBits(5);
-        Generate(Decoded, count, std::bind(&Bitstream::Get8Bits, &Stream));
+        Generate(Decoded, count, [stream = &Stream] { return stream->Get8Bits(); });
       }
 
     private:
@@ -450,12 +439,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const DataSquieezer::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       DataSquieezer::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSize());

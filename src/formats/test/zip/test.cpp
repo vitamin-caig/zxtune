@@ -42,16 +42,16 @@ namespace
 
     const auto archived = Formats::Archived::CreateZipDecoder();
     std::vector<std::string> files;
-    files.push_back("p0.bin");
-    files.push_back("p1.bin");
-    files.push_back("p2.bin");
-    files.push_back("p3.bin");
-    files.push_back("p4.bin");
-    files.push_back("p5.bin");
-    files.push_back("p6.bin");
-    files.push_back("p7.bin");
-    files.push_back("p8.bin");
-    files.push_back("p9.bin");
+    files.emplace_back("p0.bin");
+    files.emplace_back("p1.bin");
+    files.emplace_back("p2.bin");
+    files.emplace_back("p3.bin");
+    files.emplace_back("p4.bin");
+    files.emplace_back("p5.bin");
+    files.emplace_back("p6.bin");
+    files.emplace_back("p7.bin");
+    files.emplace_back("p8.bin");
+    files.emplace_back("p9.bin");
     Test::TestArchived(*archived, etalon, *zip, files);
   }
 
@@ -60,17 +60,17 @@ namespace
     const auto archived = Formats::Archived::CreateZipDecoder();
     {
       std::vector<std::string> files;
-      files.push_back("p0.bin");
+      files.emplace_back("p0.bin");
       Test::TestArchived(*archived, "etalon.bin", "streamed_p0.zip", files);
     }
     {
       std::vector<std::string> files;
-      files.push_back("p9.bin");
+      files.emplace_back("p9.bin");
       Test::TestArchived(*archived, "etalon.bin", "streamed_p9.zip", files);
     }
     {
       std::vector<std::string> files;
-      files.push_back("p9.zip");
+      files.emplace_back("p9.zip");
       Test::TestArchived(*archived, "streamed_p9.zip", "streamed_p9_p0.zip", files);
     }
   }

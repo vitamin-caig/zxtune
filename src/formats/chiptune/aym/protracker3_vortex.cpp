@@ -127,9 +127,7 @@ namespace Formats::Chiptune
     class BoolObject
     {
     public:
-      BoolObject()
-        : Value(false)
-      {}
+      BoolObject() = default;
 
       explicit BoolObject(char val)
         : Value(val)
@@ -152,10 +150,10 @@ namespace Formats::Chiptune
       }
 
     private:
-      const char Value;
+      const char Value = false;
     };
 
-    typedef BoolObject<'+', '-'> SignFlag;
+    using SignFlag = BoolObject<'+', '-'>;
 
     template<char Max, char AltZero>
     class NibbleObject
@@ -190,26 +188,24 @@ namespace Formats::Chiptune
 
       NibbleObject<Max, AltZero>& operator=(uint_t val)
       {
-        return *this = NibbleObject<Max, AltZero>(val);
+        *this = NibbleObject<Max, AltZero>(val);
+        return *this;
       }
 
     private:
       char Value;
     };
 
-    typedef NibbleObject<'F', '0'> SimpleNibble;
-    typedef NibbleObject<'F', '.'> DottedNibble;
+    using SimpleNibble = NibbleObject<'F', '0'>;
+    using DottedNibble = NibbleObject<'F', '.'>;
 
     template<uint_t Width, char AltZero>
     class UnsignedHexObject
     {
     public:
-      UnsignedHexObject()
-        : Value(0)
-      {}
+      UnsignedHexObject() = default;
 
       explicit UnsignedHexObject(StringView val)
-        : Value(0)
       {
         Require(val.size() == Width);
         for (const auto sym : val)
@@ -247,22 +243,19 @@ namespace Formats::Chiptune
       }
 
     private:
-      uint_t Value;
+      uint_t Value = 0;
     };
 
     template<uint_t Width>
     class SignedHexObject
     {
     public:
-      SignedHexObject()
-        : Value(0)
-      {}
+      SignedHexObject() = default;
 
       explicit SignedHexObject(StringView val)
-        : Value(0)
       {
         Require(val.size() == Width + 1);
-        auto it = val.begin();
+        const auto* it = val.begin();
         const SignFlag sign(*it);
         for (++it; it != val.end(); ++it)
         {
@@ -297,7 +290,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      int_t Value;
+      int_t Value = 0;
     };
 
     /*
@@ -368,14 +361,11 @@ namespace Formats::Chiptune
     template<class T>
     struct LoopedList : std::vector<T>
     {
-      typedef std::vector<T> Parent;
+      using Parent = std::vector<T>;
 
-      LoopedList()
-        : Loop(0)
-      {}
+      LoopedList() = default;
 
       explicit LoopedList(StringView str)
-        : Loop(0)
       {
         const std::size_t NO_LOOP = ~std::size_t(0);
 
@@ -427,7 +417,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      uint_t Loop;
+      uint_t Loop = 0;
     };
 
     class StringStream
@@ -463,16 +453,9 @@ namespace Formats::Chiptune
     struct ModuleHeader
     {
     public:
-      ModuleHeader()
-        : Version(0)
-        , Table(PROTRACKER)
-        , Tempo(0)
-      {}
+      ModuleHeader() = default;
 
       explicit ModuleHeader(StringStream& src)
-        : Version(0)
-        , Table(PROTRACKER)
-        , Tempo(0)
       {
         const SectionHeader hdr(Headers::MODULE, src.ReadString());
         Require(hdr);
@@ -560,10 +543,7 @@ namespace Formats::Chiptune
           , Value(value.to_string())
         {}
 
-        Entry(Entry&& rh) noexcept  // = default
-          : Name(std::move(rh.Name))
-          , Value(std::move(rh.Value))
-        {}
+        Entry(Entry&& rh) noexcept = default;
 
         void Dump(std::ostream& str) const
         {
@@ -571,11 +551,11 @@ namespace Formats::Chiptune
         }
       };
 
-      uint_t Version;
+      uint_t Version = 0;
       String Title;
       String Author;
-      NoteTable Table;
-      uint_t Tempo;
+      NoteTable Table = PROTRACKER;
+      uint_t Tempo = 0;
       LoopedList<uint_t> PlayOrder;
       std::vector<Entry> OtherFields;
     };
@@ -602,10 +582,7 @@ namespace Formats::Chiptune
       OrnamentObject(const OrnamentObject&) = delete;
       OrnamentObject& operator=(const OrnamentObject&) = delete;
 
-      OrnamentObject(OrnamentObject&& rh) noexcept  // = default
-        : Ornament(std::move(rh))
-        , Index(rh.Index)
-      {}
+      OrnamentObject(OrnamentObject&& rh) noexcept = default;
 
       uint_t GetIndex() const
       {
@@ -621,7 +598,7 @@ namespace Formats::Chiptune
 
       static SectionHeader ParseHeader(StringView hdr)
       {
-        return SectionHeader(Headers::ORNAMENT, hdr);
+        return {Headers::ORNAMENT, hdr};
       }
 
     private:
@@ -661,10 +638,7 @@ namespace Formats::Chiptune
       SampleObject(const SampleObject&) = delete;
       SampleObject& operator=(const SampleObject&) = delete;
 
-      SampleObject(SampleObject&& rh) noexcept  // = default
-        : Sample(std::move(rh))
-        , Index(rh.Index)
-      {}
+      SampleObject(SampleObject&& rh) noexcept = default;
 
       uint_t GetIndex() const
       {
@@ -687,7 +661,7 @@ namespace Formats::Chiptune
 
       static SectionHeader ParseHeader(StringView hdr)
       {
-        return SectionHeader(Headers::SAMPLE, hdr);
+        return {Headers::SAMPLE, hdr};
       }
 
     private:
@@ -717,7 +691,7 @@ namespace Formats::Chiptune
         }
 
         LineObject(Line src, bool looped)
-          : Sample::Line(std::move(src))
+          : Sample::Line(src)
           , Looped(looped)
         {}
 
@@ -737,13 +711,13 @@ namespace Formats::Chiptune
         }
 
       private:
-        typedef BoolObject<'t', 'T'> ToneFlag;
-        typedef BoolObject<'n', 'N'> NoiseFlag;
-        typedef BoolObject<'e', 'E'> EnvelopeFlag;
-        typedef BoolObject<'^', '_'> AccumulatorFlag;
-        typedef SignedHexObject<3> ToneValue;
-        typedef SignedHexObject<2> NoiseEnvelopeValue;
-        typedef SimpleNibble VolumeValue;
+        using ToneFlag = BoolObject<'t', 'T'>;
+        using NoiseFlag = BoolObject<'n', 'N'>;
+        using EnvelopeFlag = BoolObject<'e', 'E'>;
+        using AccumulatorFlag = BoolObject<'^', '_'>;
+        using ToneValue = SignedHexObject<3>;
+        using NoiseEnvelopeValue = SignedHexObject<2>;
+        using VolumeValue = SimpleNibble;
 
         void ParseMasks(StringView str)
         {
@@ -861,7 +835,7 @@ namespace Formats::Chiptune
     private:
       uint_t AsInt() const
       {
-        const auto notePos = std::find(NOTES.begin(), NOTES.end(), Val.substr(0, 2));
+        const auto* const notePos = std::find(NOTES.begin(), NOTES.end(), Val.substr(0, 2));
         Require(notePos != NOTES.end());
         const uint_t halftone = notePos - NOTES.begin();
         const char octave = Val[2];
@@ -876,7 +850,7 @@ namespace Formats::Chiptune
     class NoteParametersObject
     {
     public:
-      NoteParametersObject() {}
+      NoteParametersObject() = default;
 
       explicit NoteParametersObject(StringView str)
       {
@@ -926,10 +900,10 @@ namespace Formats::Chiptune
         return res;
       }
 
-      typedef NibbleObject<'Z', '.'> SampleNumber;
-      typedef DottedNibble EnvelopeType;
-      typedef DottedNibble OrnamentNumber;
-      typedef DottedNibble VolumeLevel;
+      using SampleNumber = NibbleObject<'Z', '.'>;
+      using EnvelopeType = DottedNibble;
+      using OrnamentNumber = DottedNibble;
+      using VolumeLevel = DottedNibble;
 
       SampleNumber Sample;
       EnvelopeType Envelope;
@@ -950,7 +924,7 @@ namespace Formats::Chiptune
       static const uint_t ENVSLIDE_DOWN = 10;
       static const uint_t TEMPO = 11;
 
-      NoteCommandObject() {}
+      NoteCommandObject() = default;
 
       explicit NoteCommandObject(StringView str)
       {
@@ -1012,9 +986,9 @@ namespace Formats::Chiptune
         return res;
       }
 
-      typedef DottedNibble CommandCode;
-      typedef DottedNibble CommandPeriod;
-      typedef UnsignedHexObject<2, '.'> CommandParameter;
+      using CommandCode = DottedNibble;
+      using CommandPeriod = DottedNibble;
+      using CommandParameter = UnsignedHexObject<2, '.'>;
 
       CommandCode Command;
       CommandPeriod Period;
@@ -1024,7 +998,7 @@ namespace Formats::Chiptune
     class ChannelObject
     {
     public:
-      ChannelObject() {}
+      ChannelObject() = default;
 
       explicit ChannelObject(StringView str)
       {
@@ -1056,7 +1030,7 @@ namespace Formats::Chiptune
     class PatternLineObject
     {
     public:
-      PatternLineObject() {}
+      PatternLineObject() = default;
 
       explicit PatternLineObject(StringView str)
       {
@@ -1092,8 +1066,8 @@ namespace Formats::Chiptune
         str << '\n';
       }
 
-      typedef UnsignedHexObject<4, '.'> EnvelopeBase;
-      typedef UnsignedHexObject<2, '.'> NoiseBase;
+      using EnvelopeBase = UnsignedHexObject<4, '.'>;
+      using NoiseBase = UnsignedHexObject<2, '.'>;
 
       EnvelopeBase Envelope;
       NoiseBase Noise;
@@ -1103,9 +1077,7 @@ namespace Formats::Chiptune
     class PatternObject
     {
     public:
-      PatternObject()
-        : Index()
-      {}
+      PatternObject() = default;
 
       explicit PatternObject(uint_t idx)
         : Index(idx)
@@ -1122,7 +1094,7 @@ namespace Formats::Chiptune
         for (auto line = src.ReadString(); !line.empty();
              line = 0 != src.GetRestSize() ? src.ReadString() : StringView())
         {
-          Lines.push_back(PatternLineObject(line));
+          Lines.emplace_back(line);
         }
       }
 
@@ -1165,11 +1137,11 @@ namespace Formats::Chiptune
 
       static SectionHeader ParseHeader(StringView str)
       {
-        return SectionHeader(Headers::PATTERN, str);
+        return {Headers::PATTERN, str};
       }
 
     private:
-      uint_t Index;
+      uint_t Index = 0;
       std::vector<PatternLineObject> Lines;
     };
 
@@ -1366,14 +1338,14 @@ namespace Formats::Chiptune
 
       void SetSample(uint_t index, Sample sample) override
       {
-        Samples.push_back(SampleObject(std::move(sample), index));
+        Samples.emplace_back(std::move(sample), index);
       }
 
       void SetOrnament(uint_t index, Ornament ornament) override
       {
         if (index != DEFAULT_ORNAMENT)
         {
-          Ornaments.push_back(OrnamentObject(std::move(ornament), index));
+          Ornaments.emplace_back(std::move(ornament), index);
         }
       }
 
@@ -1536,22 +1508,18 @@ namespace Formats::Chiptune
       struct BuildContext
       {
         std::vector<PatternObject>& Patterns;
-        PatternObject* CurPattern;
-        PatternLineObject* CurLine;
-        ChannelObject* CurChannel;
-        uint_t CurNoiseBase;
+        PatternObject* CurPattern = nullptr;
+        PatternLineObject* CurLine = nullptr;
+        ChannelObject* CurChannel = nullptr;
+        uint_t CurNoiseBase = 0;
 
         BuildContext(std::vector<PatternObject>& patterns)
           : Patterns(patterns)
-          , CurPattern()
-          , CurLine()
-          , CurChannel()
-          , CurNoiseBase()
         {}
 
         void SetPattern(uint_t idx)
         {
-          Patterns.push_back(PatternObject(idx));
+          Patterns.emplace_back(idx);
           CurPattern = &Patterns.back();
           CurLine = nullptr;
           CurChannel = nullptr;

@@ -92,7 +92,6 @@ namespace Formats::Archived
         : Data(std::move(data))
         , Start(static_cast<const uint8_t*>(Data->Start()))
         , Limit(Data->Size())
-        , Position()
       {
         Read = DoRead;
         Seek = DoSeek;
@@ -142,7 +141,7 @@ namespace Formats::Archived
       const Binary::Data::Ptr Data;
       const uint8_t* const Start;
       const std::size_t Limit;
-      std::size_t Position;
+      std::size_t Position = 0;
     };
 
     class LookupStream : public CLookToRead
@@ -163,7 +162,7 @@ namespace Formats::Archived
     class Archive
     {
     public:
-      typedef std::shared_ptr<const Archive> Ptr;
+      using Ptr = std::shared_ptr<const Archive>;
 
       explicit Archive(Binary::Data::Ptr data)
         : Stream(std::move(data))
@@ -225,13 +224,11 @@ namespace Formats::Archived
       struct UnpackCache
       {
         UInt32 BlockIndex;
-        Byte* OutBuffer;
-        size_t OutBufferSize;
+        Byte* OutBuffer = nullptr;
+        size_t OutBufferSize = 0;
 
         UnpackCache()
           : BlockIndex(~UInt32(0))
-          , OutBuffer(nullptr)
-          , OutBufferSize(0)
         {}
       };
 
@@ -335,7 +332,7 @@ namespace Formats::Archived
       const Binary::View data(rawData);
       if (!Format->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto& hdr = *data.As<SevenZip::Header>();
       const std::size_t totalSize = sizeof(hdr) + hdr.NextHeaderOffset + hdr.NextHeaderSize;

@@ -97,7 +97,7 @@ namespace Formats::Archived
       }
       const std::size_t checksumOffset = descriptionsSize + dataSize;
       const auto* dump = data.As<uint8_t>();
-      const uint32_t storedChecksum = ReadLE<uint32_t>(dump + checksumOffset);
+      const auto storedChecksum = ReadLE<uint32_t>(dump + checksumOffset);
       const uint32_t checksum = std::accumulate(dump, dump + checksumOffset, uint32_t(0));
       if (storedChecksum != checksum)
       {
@@ -113,7 +113,7 @@ namespace Formats::Archived
       const Binary::View data(rawData);
       if (!FastCheck(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto* header = data.As<Header>();
 

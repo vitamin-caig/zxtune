@@ -320,8 +320,6 @@ namespace Formats::Chiptune
     {
     public:
       explicit VersionTraits(const Header& hdr)
-        : HasRestCmd()
-        , GlissVolParamsMask()
       {
         Analyze(hdr);
       }
@@ -351,25 +349,25 @@ namespace Formats::Chiptune
     private:
       void Analyze(const Header& hdr)
       {
-        for (uint_t pat = 0; pat != hdr.Patterns.size(); ++pat)
+        for (const auto& pat : hdr.Patterns)
         {
-          Analyze(hdr.Patterns[pat]);
+          Analyze(pat);
         }
       }
 
       void Analyze(const Pattern& pat)
       {
-        for (uint_t line = 0; line != MAX_PATTERN_SIZE; ++line)
+        for (const auto& line : pat.Lines)
         {
-          Analyze(pat.Lines[line]);
+          Analyze(line);
         }
       }
 
       void Analyze(const Pattern::Line& line)
       {
-        for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
+        for (const auto& chan : line.Channels)
         {
-          Analyze(line.Channels[chan]);
+          Analyze(chan);
         }
       }
 
@@ -395,8 +393,8 @@ namespace Formats::Chiptune
       }
 
     private:
-      bool HasRestCmd;
-      uint_t GlissVolParamsMask;
+      bool HasRestCmd = false;
+      uint_t GlissVolParamsMask = 0;
     };
 
     class Format
@@ -496,14 +494,14 @@ namespace Formats::Chiptune
         }
       }
 
-      std::size_t GetSize() const
+      static std::size_t GetSize()
       {
         return MODULE_SIZE;
       }
 
       RangeChecker::Range GetFixedArea() const
       {
-        return RangeChecker::Range(offsetof(Header, Patterns), sizeof(Source.Patterns));
+        return {offsetof(Header, Patterns), sizeof(Source.Patterns)};
       }
 
     private:
@@ -641,7 +639,7 @@ namespace Formats::Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
@@ -674,7 +672,7 @@ namespace Formats::Chiptune
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 

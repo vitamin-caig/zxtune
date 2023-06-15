@@ -13,12 +13,9 @@
 // library includes
 #include <formats/image.h>
 
-namespace Formats
+namespace Formats::Image
 {
-  namespace Image
-  {
-    Decoder::Ptr CreateLaserCompact52Decoder();
-    Decoder::Ptr CreateASCScreenCrusherDecoder();
-    Decoder::Ptr CreateLaserCompact40Decoder();
-  }  // namespace Image
-}  // namespace Formats
+  Decoder::Ptr CreateLaserCompact52Decoder();
+  Decoder::Ptr CreateASCScreenCrusherDecoder();
+  Decoder::Ptr CreateLaserCompact40Decoder();
+}  // namespace Formats::Image

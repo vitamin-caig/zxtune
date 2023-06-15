@@ -31,6 +31,8 @@
 #include <3rdparty/he/Core/psx.h>
 #include <3rdparty/he/Core/r3000.h>
 #include <3rdparty/he/Core/spu.h>
+// std includes
+#include <utility>
 
 namespace Module::PSF
 {
@@ -151,7 +153,7 @@ namespace Module::PSF
     }
 
   public:
-    std::unique_ptr<uint8_t[]> CreatePSX(int version) const
+    static std::unique_ptr<uint8_t[]> CreatePSX(int version)
     {
       std::unique_ptr<uint8_t[]> res(new uint8_t[::psx_get_state_size(version)]);
       ::psx_clear_state(res.get(), version);
@@ -245,27 +247,27 @@ namespace Module::PSF
 
     void SetRAM(const MemoryRegion& mem)
     {
-      const auto iop = ::psx_get_iop_state(Emu.get());
+      auto* const iop = ::psx_get_iop_state(Emu.get());
       ::iop_upload_to_ram(iop, mem.Start, mem.Data.data(), mem.Data.size());
     }
 
     void SetRegisters(uint32_t pc, uint32_t sp)
     {
-      const auto iop = ::psx_get_iop_state(Emu.get());
-      const auto cpu = ::iop_get_r3000_state(iop);
+      auto* const iop = ::psx_get_iop_state(Emu.get());
+      auto* const cpu = ::iop_get_r3000_state(iop);
       ::r3000_setreg(cpu, R3000_REG_PC, pc);
       ::r3000_setreg(cpu, R3000_REG_GEN + 29, sp);
     }
 
     void SetupIo(PsxVfs::Ptr vfs)
     {
-      Io = VfsIO(vfs);
+      Io = VfsIO(std::move(vfs));
       ::psx_set_readfile(Emu.get(), &ReadCallback, &Io);
     }
 
     static sint32 ReadCallback(void* context, const char* path, sint32 offset, char* buffer, sint32 length)
     {
-      const auto io = static_cast<VfsIO*>(context);
+      auto* const io = static_cast<VfsIO*>(context);
       return io->Read(path, offset, buffer, length);
     }
 

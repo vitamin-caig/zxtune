@@ -32,8 +32,8 @@ namespace Module::SoundTrackerPro
   using Formats::Chiptune::SoundTrackerPro::Sample;
   using Formats::Chiptune::SoundTrackerPro::Ornament;
 
-  typedef SimpleOrderListWithTransposition<Formats::Chiptune::SoundTrackerPro::PositionEntry>
-      OrderListWithTransposition;
+  using OrderListWithTransposition =
+      SimpleOrderListWithTransposition<Formats::Chiptune::SoundTrackerPro::PositionEntry>;
 
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 
@@ -142,27 +142,19 @@ namespace Module::SoundTrackerPro
   struct ChannelState
   {
     ChannelState()
-      : Enabled(false)
-      , Envelope(false)
-      , Volume(0)
-      , Note(0)
-      , SampleNum(Formats::Chiptune::SoundTrackerPro::DEFAULT_SAMPLE)
-      , PosInSample(0)
+      : SampleNum(Formats::Chiptune::SoundTrackerPro::DEFAULT_SAMPLE)
       , OrnamentNum(Formats::Chiptune::SoundTrackerPro::DEFAULT_ORNAMENT)
-      , PosInOrnament(0)
-      , TonSlide(0)
-      , Glissade(0)
     {}
-    bool Enabled;
-    bool Envelope;
-    uint_t Volume;
-    uint_t Note;
+    bool Enabled = false;
+    bool Envelope = false;
+    uint_t Volume = 0;
+    uint_t Note = 0;
     uint_t SampleNum;
-    uint_t PosInSample;
+    uint_t PosInSample = 0;
     uint_t OrnamentNum;
-    uint_t PosInOrnament;
-    int_t TonSlide;
-    int_t Glissade;
+    uint_t PosInOrnament = 0;
+    int_t TonSlide = 0;
+    int_t Glissade = 0;
   };
 
   class DataRenderer : public AYM::DataRenderer
@@ -189,11 +181,11 @@ namespace Module::SoundTrackerPro
   private:
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }
@@ -201,7 +193,7 @@ namespace Module::SoundTrackerPro
       }
     }
 
-    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
+    static void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (const bool* enabled = src.GetEnabled())
       {

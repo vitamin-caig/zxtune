@@ -66,13 +66,13 @@ namespace Devices::TFM
 
   struct Traits
   {
-    typedef Chip BaseClass;
-    typedef DataChunk DataChunkType;
-    typedef Stamp StampType;
-    typedef ChipAdapter AdapterType;
+    using BaseClass = Chip;
+    using DataChunkType = DataChunk;
+    using StampType = Stamp;
+    using AdapterType = ChipAdapter;
   };
 
-  typedef FM::Details::BaseChip<Traits> TFMChip;
+  using TFMChip = FM::Details::BaseChip<Traits>;
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params)
   {

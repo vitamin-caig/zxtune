@@ -20,12 +20,13 @@
 #include <cassert>
 #include <cctype>
 #include <fstream>
+#include <memory>
 
 namespace
 {
-  static const Char PARAMETERS_DELIMITER = ',';
+  const Char PARAMETERS_DELIMITER = ',';
 
-  static const Char CONFIG_FILENAME[] = "zxtune.conf";
+  const Char CONFIG_FILENAME[] = "zxtune.conf";
 
   // try to search config in homedir, if defined
   String GetDefaultConfigFile()
@@ -64,7 +65,8 @@ namespace
       value ::= [^,]*
       name is prepended with prefix before insert to result
     */
-    String paramName, paramValue;
+    String paramName;
+    String paramValue;
     for (auto it = str.begin(), lim = str.end(); it != lim; ++it)
     {
       bool doApply = false;
@@ -142,7 +144,7 @@ namespace
   {
     const String configName(filename.empty() ? CONFIG_FILENAME : filename);
 
-    typedef std::basic_ifstream<Char> FileStream;
+    using FileStream = std::basic_ifstream<Char>;
     std::unique_ptr<FileStream> configFile(new FileStream(configName.c_str()));
     if (!*configFile)
     {
@@ -150,7 +152,7 @@ namespace
       {
         throw Error(THIS_LINE, "Failed to open configuration file " + configName);
       }
-      configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
+      configFile = std::make_unique<FileStream>(GetDefaultConfigFile().c_str());
     }
     if (!*configFile)
     {
@@ -162,7 +164,7 @@ namespace
     std::vector<Char> buffer(1024);
     for (;;)
     {
-      configFile->getline(&buffer[0], buffer.size());
+      configFile->getline(buffer.data(), buffer.size());
       if (const std::streamsize lineSize = configFile->gcount())
       {
         const auto endof = buffer.cbegin() + lineSize - 1;
@@ -195,9 +197,9 @@ void ParseConfigFile(StringView filename, Parameters::Modifier& result)
   }
 }
 
-void ParseParametersString(Parameters::Identifier pfx, StringView str, Parameters::Modifier& result)
+void ParseParametersString(Parameters::Identifier prefix, StringView str, Parameters::Modifier& result)
 {
   Strings::Map strMap;
-  ParseParametersString(pfx, str, strMap);
+  ParseParametersString(prefix, str, strMap);
   Parameters::Convert(strMap, result);
 }

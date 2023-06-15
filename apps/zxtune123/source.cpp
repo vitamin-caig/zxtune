@@ -33,6 +33,7 @@
 // std includes
 #include <iomanip>
 #include <iostream>
+#include <utility>
 // boost includes
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -140,7 +141,7 @@ namespace
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : nullptr)
     {}
 
-    Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const
+    Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const override
     {
       auto subId = Id->WithSubpath(subpath);
       auto moduleProperties = Module::CreatePathProperties(std::move(subId));
@@ -152,7 +153,7 @@ namespace
     {
       if (location.GetPath()->Empty())
       {
-        if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
+        if (const auto* const files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
         {
           const RealFilesSource source(*Params, *Id);
           Module::ResolveAdditionalFiles(source, *files);
@@ -186,8 +187,6 @@ namespace
       : Params(std::move(configParams))
       , Service(ZXTune::Service::Create(Params))
       , OptionsDescription("Input options")
-      , ShowProgress(false)
-      , YM(false)
     {
       using namespace boost::program_options;
       auto opt = OptionsDescription.add_options();
@@ -240,9 +239,9 @@ namespace
 
     void ProcessItems(OnItemCallback& callback) override
     {
-      for (Strings::Array::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      for (const auto& file : Files)
       {
-        ProcessItem(*it, callback);
+        ProcessItem(file, callback);
       }
     }
 
@@ -278,13 +277,13 @@ namespace
     boost::program_options::options_description OptionsDescription;
     Strings::Array Files;
     String ProvidersOptions;
-    bool ShowProgress;
+    bool ShowProgress = false;
     String CoreOptions;
-    bool YM;
+    bool YM = false;
   };
 }  // namespace
 
 std::unique_ptr<SourceComponent> SourceComponent::Create(Parameters::Container::Ptr configParams)
 {
-  return std::unique_ptr<SourceComponent>(new Source(configParams));
+  return std::unique_ptr<SourceComponent>(new Source(std::move(configParams)));
 }

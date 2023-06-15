@@ -273,7 +273,7 @@ namespace Formats::Chiptune
             names[samIdx] = Strings::OptimizeAscii(srcSample.Name);
           }
         }
-        meta.SetStrings(std::move(names));
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const
@@ -330,7 +330,7 @@ namespace Formats::Chiptune
             continue;
           }
           const std::size_t bankSize = bankEnd - SAMPLES_ADDR;
-          const std::size_t alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
+          const auto alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
           if (is4bitSamples)
           {
             const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
@@ -557,13 +557,9 @@ namespace Formats::Chiptune
     bool FastCheck(Binary::View data)
     {
       const auto* header = data.As<Header>();
-      if (!header
-          || !(header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32
-               || header->PatternSize == 24))
-      {
-        return false;
-      }
-      return true;
+      return header
+             && (header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32
+                 || header->PatternSize == 24);
     }
 
     const auto FORMAT =
@@ -610,7 +606,7 @@ namespace Formats::Chiptune
         const Binary::View data(rawData);
         if (!Format->Match(data))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
@@ -625,7 +621,7 @@ namespace Formats::Chiptune
       const Binary::View data(rawData);
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
 
       try
@@ -649,7 +645,7 @@ namespace Formats::Chiptune
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 

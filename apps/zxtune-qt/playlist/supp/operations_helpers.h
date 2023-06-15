@@ -13,11 +13,8 @@
 // local includes
 #include "model.h"
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
-  {
-    void ExecuteOperation(const class Storage& stor, Model::IndexSet::Ptr selectedItems, class Visitor& visitor,
-                          Log::ProgressCallback& cb);
-  }
-}  // namespace Playlist
+  void ExecuteOperation(const class Storage& stor, const Model::IndexSet::Ptr& selectedItems, class Visitor& visitor,
+                        Log::ProgressCallback& cb);
+}  // namespace Playlist::Item
