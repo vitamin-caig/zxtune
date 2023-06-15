@@ -367,12 +367,12 @@
         <translation>Создавать промежуточные директории для файлов результата</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="175"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="174"/>
         <source>Invalid parameter</source>
         <translation>Неправильный параметр</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="176"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="175"/>
         <source>Filename template is empty</source>
         <translation>Шаблон имени пустой</translation>
     </message>
@@ -395,7 +395,7 @@
         <translation>Многопоточная конверсия</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.cpp" line="163"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.cpp" line="164"/>
         <source>No options</source>
         <translation>Нет настроек</translation>
     </message>

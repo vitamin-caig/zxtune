@@ -129,17 +129,17 @@
         </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="171"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="166"/>
         <source>Statistic</source>
         <translation>Статистика</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="179"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="174"/>
         <source>Total duration: %1</source>
         <translation>Общее время: %1</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="181"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="176"/>
         <source>%n different modules&apos; type(s)</source>
         <translation>
             <numerusform>%n тип модулей</numerusform>
@@ -148,22 +148,22 @@
         </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="177"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="172"/>
         <source>Total: %1</source>
         <translation>Всего: %1</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="178"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="173"/>
         <source>Invalid: %1</source>
         <translation>Недоступно: %1</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="180"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="175"/>
         <source>Total size: %1</source>
         <translation>Общий размер: %1</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="182"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="177"/>
         <source>%n files referenced</source>
         <translation>
             <numerusform>%n файл</numerusform>
@@ -172,22 +172,22 @@
         </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="249"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="242"/>
         <source>Export</source>
         <translation>Экспорт</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="254"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="247"/>
         <source>Converted: %1&lt;br/&gt;Failed: %2</source>
         <translation>Сконвертировано: %1&lt;br/&gt;Неудачно: %2</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="271"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="264"/>
         <source>Failed to open &apos;%1&apos; for conversion</source>
         <translation>Ошибка доступа к &apos;%1&apos; при конверсии</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="276"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="269"/>
         <source>Failed to convert &apos;%1&apos;: %2</source>
         <translation>Ошибка конверсии &apos;%1&apos;: %2</translation>
     </message>
