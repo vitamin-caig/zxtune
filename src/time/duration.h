@@ -47,6 +47,20 @@ namespace Time
       return Duration<Return>(this->template CastTo<Return>().Get() + rh.template CastTo<Return>().Get());
     }
 
+    template<class OtherUnit>
+    constexpr const auto& operator-=(Duration<OtherUnit> rh)
+    {
+      Value -= Duration(rh).Get();
+      return *this;
+    }
+
+    template<class OtherUnit>
+    constexpr auto operator-(Duration<OtherUnit> rh) const
+    {
+      using Return = std::conditional_t<PER_SECOND >= OtherUnit::PER_SECOND, Unit, OtherUnit>;
+      return Duration<Return>(this->template CastTo<Return>().Get() - rh.template CastTo<Return>().Get());
+    }
+
     template<class T>
     constexpr auto operator*(T mult) const
     {
