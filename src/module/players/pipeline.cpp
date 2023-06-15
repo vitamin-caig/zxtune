@@ -56,24 +56,15 @@ namespace Module
       return FadeIn + FadeOut < Duration;
     }
 
-    bool IsFadein(Time::Instant<TimeUnit> pos) const
-    {
-      return pos.Get() < FadeIn.Get();
-    }
-
-    bool IsFadeout(Time::Instant<TimeUnit> pos) const
-    {
-      return FadeOut && Duration.Get() < FadeOut.Get() + pos.Get();
-    }
-
     Sound::Gain::Type GetFadein(Sound::Gain::Type vol, Time::Instant<TimeUnit> pos) const
     {
-      return vol * pos.Get() / FadeIn.Get();
+      return pos.Get() < FadeIn.Get() ? vol * pos.Get() / FadeIn.Get() : vol;
     }
 
     Sound::Gain::Type GetFadeout(Sound::Gain::Type vol, Time::Instant<TimeUnit> pos) const
     {
-      return vol * (Duration.Get() - pos.Get()) / FadeOut.Get();
+      return FadeOut && Duration.Get() < FadeOut.Get() + pos.Get() ? vol * (Duration.Get() - pos.Get()) / FadeOut.Get()
+                                                                   : vol;
     }
 
     static FadeInfo Create(Time::Milliseconds duration, const Parameters::Accessor& params)
@@ -158,13 +149,13 @@ namespace Module
       {
         return {};
       }
+      const auto posBefore = State->At();
       auto data = Delegate->Render();
       if (Silence.Detected(data))
       {
         return {};
       }
-      // Apply fading at post-rendering position to avoid absolute silence at the beginning
-      Gainer->SetGain(CalculateGain());
+      Gainer->SetGain(CalculateGain(posBefore));
       return Gainer->Apply(std::move(data));
     }
 
@@ -195,25 +186,32 @@ namespace Module
       }
     }
 
-    Sound::Gain::Type CalculateGain()
+    Sound::Gain::Type CalculateGain(Time::AtMillisecond posBefore)
     {
       if (!Fading.IsValid())
       {
         return Preamp;
       }
-      const auto pos = State->At();
-      if (Fading.IsFadein(pos) && !State->LoopCount())
+      const auto posAfter = State->At();
+      if (const auto doneLoops = State->LoopCount())
       {
-        return Fading.GetFadein(Preamp, pos);
-      }
-      else if (!Loop.Enabled && Fading.IsFadeout(pos))
-      {
-        // TODO: implement fadeout on last loop cycle
-        return Fading.GetFadeout(Preamp, pos);
+        // if last iteration
+        if (!Loop(doneLoops + 1))
+        {
+          // allow possible fadeout - and only fadeout
+          // if loop happened just now, posBefore > posAfter
+          return Fading.GetFadeout(Preamp, std::min(posBefore, posAfter));
+        }
+        else
+        {
+          return Preamp;
+        }
       }
       else
       {
-        return Preamp;
+        // assert(posBefore < posAfter)
+        // to avoid absolute silence
+        return Fading.GetFadein(Preamp, posAfter);
       }
     }
 
