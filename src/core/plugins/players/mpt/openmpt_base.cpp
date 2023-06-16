@@ -38,7 +38,102 @@ namespace Module::Mpt
 {
   const Debug::Stream Dbg("Core::OpenMPT");
 
-  using ModulePtr = std::shared_ptr<openmpt::module>;
+  class LogStub : public std::ostream
+  {
+  public:
+    LogStub()
+    {
+      setstate(std::ios_base::badbit);
+    }
+  };
+
+  // 'The lifetime of the reference has to be as long as the lifetime of the module instance'
+  // The only reliable way to achieve it is to tie them together.
+  // Using static variables breaks darwin behaviour (std::ostream references to code from stlib)
+  class ModuleWithLog
+  {
+  public:
+    explicit ModuleWithLog(Binary::View data, const std::map<std::string, std::string>& controls)
+      : Module(data.Start(), data.Size(), Log, controls)
+    {
+      // play all subsongs
+      Module.select_subsong(-1);
+
+      // use external repeats control
+      Module.set_repeat_count(-1);
+    }
+
+    auto get_metadata(const std::string& key) const
+    {
+      return Module.get_metadata(key);
+    }
+
+    auto get_duration_seconds() const
+    {
+      return Module.get_duration_seconds();
+    }
+
+    auto get_position_seconds() const
+    {
+      return Module.get_position_seconds();
+    }
+
+    auto get_num_orders() const
+    {
+      return Module.get_num_orders();
+    }
+
+    auto get_num_channels() const
+    {
+      return Module.get_num_channels();
+    }
+
+    auto get_current_order() const
+    {
+      return Module.get_current_order();
+    }
+
+    auto get_current_pattern() const
+    {
+      return Module.get_current_pattern();
+    }
+
+    auto get_current_row() const
+    {
+      return Module.get_current_row();
+    }
+
+    auto get_current_tempo() const
+    {
+      return Module.get_current_tempo();
+    }
+
+    auto get_current_playing_channels() const
+    {
+      return Module.get_current_playing_channels();
+    }
+
+    auto read_interleaved_stereo(std::int32_t samplerate, std::size_t count, std::int16_t* interleaved_stereo)
+    {
+      return Module.read_interleaved_stereo(samplerate, count, interleaved_stereo);
+    }
+
+    auto set_position_seconds(double seconds)
+    {
+      return Module.set_position_seconds(seconds);
+    }
+
+    auto set_render_param(int param, std::int32_t value)
+    {
+      return Module.set_render_param(param, value);
+    }
+
+  private:
+    LogStub Log;
+    openmpt::module Module;
+  };
+
+  using ModulePtr = std::shared_ptr<ModuleWithLog>;
 
   Time::Milliseconds ToDuration(double seconds)
   {
@@ -364,16 +459,7 @@ namespace Module::Mpt
     return out == str ? str : out.to_string();
   }
 
-  class LogStub : public std::ostream
-  {
-  public:
-    LogStub()
-    {
-      setstate(std::ios_base::badbit);
-    }
-  };
-
-  void FillMetadata(const openmpt::module& module, PropertiesHelper& props)
+  void FillMetadata(const ModuleWithLog& module, PropertiesHelper& props)
   {
     props.SetTitle(DecodeString(module.get_metadata("title")));
     props.SetAuthor(DecodeString(module.get_metadata("artist")));
@@ -417,17 +503,8 @@ namespace Module::Mpt
     {
       try
       {
-        static LogStub LOG;
-
         // TODO: specify type filter
-        auto track = std::make_shared<openmpt::module>(static_cast<const uint8_t*>(container.Start()), container.Size(),
-                                                       LOG, Controls);
-
-        // play all subsongs
-        track->select_subsong(-1);
-
-        // use external repeats control
-        track->set_repeat_count(-1);
+        auto track = std::make_shared<ModuleWithLog>(container, Controls);
 
         if (!track->get_num_orders() || track->get_duration_seconds() < MIN_DURATION)
         {
