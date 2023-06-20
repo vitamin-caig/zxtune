@@ -279,7 +279,9 @@ namespace
       for (std::vector<WidgetOnToolbar>::const_iterator it = Toolbars.begin(), lim = Toolbars.end(); it != lim; ++it)
       {
         it->second->setWindowTitle(it->first->windowTitle());
-        menuLayout->addAction(it->second->toggleViewAction());
+        auto* action = it->second->toggleViewAction();
+        action->setMenuRole(QAction::NoRole);
+        menuLayout->addAction(action);
       }
     }
 

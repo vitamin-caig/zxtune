@@ -122,7 +122,10 @@
     <string>Preferences</string>
    </property>
    <property name="shortcut">
-    <string notr="true">Ctrl+P</string>
+    <enum>QKeySequence::Preferences</enum>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
   <action name="actionQuit">
@@ -133,6 +136,9 @@
    </property>
    <property name="text">
     <string>Quit</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
   <action name="actionOnlineHelp">
@@ -207,6 +213,9 @@
    <property name="text">
     <string>About</string>
    </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
   </action>
   <action name="actionAboutQt">
    <property name="icon">
@@ -216,6 +225,9 @@
    </property>
    <property name="text">
     <string>About QT</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
  </widget>
