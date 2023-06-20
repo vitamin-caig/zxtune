@@ -69,7 +69,8 @@ RUN git clone --depth=1 --branch=v${qt} https://github.com/qt/qt5.git && \
       sed -i '/xcodebuild -license/d' mkspecs/features/mac/default_pre.prf && \
       sed -i 's|2>&1|2>/dev/null|' mkspecs/features/mac/sdk.mk && \
       sed -i '/\$\$arch_flags/d' mkspecs/features/mac/default_post.prf && \
-      sed -i '46i#include <limits>' src/corelib/global/qfloat16.h src/corelib/text/qbytearraymatcher.h src/corelib/global/qendian.h) && \
+      sed -i '46i#include <limits>' src/corelib/global/qfloat16.h src/corelib/text/qbytearraymatcher.h src/corelib/global/qendian.h && \
+      git cherry-pick -n 4bee9cdc0ac4bbee7f061e8f6050d704032f6d0f) && \
      ./configure -v -platform linux-clang -xplatform macx-clang \
       -device-option CROSS_COMPILE=${execprefix} -prefix ${prebuilt}/qt-${qt}-darwin-${arch} \
       -release -opensource -static -confirm-license -no-rpath \
