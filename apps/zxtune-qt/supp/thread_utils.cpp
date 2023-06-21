@@ -25,8 +25,8 @@ IOThread::IOThread()
 {
   auto* thread = new QThread();
   moveToThread(thread);
-  Require(QObject::connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater())));
-  Require(QObject::connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()), thread, SLOT(quit())));
+  Require(connect(thread, &QThread::finished, thread, &QThread::deleteLater));
+  Require(connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, thread, &QThread::quit));
   thread->setObjectName("IOThread");
   thread->start();
 }

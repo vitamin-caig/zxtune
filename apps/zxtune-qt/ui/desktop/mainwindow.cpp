@@ -98,43 +98,42 @@ namespace
       }
 
       // connect root actions
-      Require(connect(actionComponents, SIGNAL(triggered()), SLOT(ShowComponentsInformation())));
-      Require(connect(actionAbout, SIGNAL(triggered()), SLOT(ShowAboutProgram())));
-      Require(connect(actionOnlineHelp, SIGNAL(triggered()), SLOT(VisitHelp())));
-      Require(connect(actionWebSite, SIGNAL(triggered()), SLOT(VisitSite())));
-      Require(connect(actionOnlineFAQ, SIGNAL(triggered()), SLOT(VisitFAQ())));
-      Require(connect(actionReportBug, SIGNAL(triggered()), SLOT(ReportIssue())));
-      Require(connect(actionAboutQt, SIGNAL(triggered()), SLOT(ShowAboutQt())));
-      Require(connect(actionPreferences, SIGNAL(triggered()), SLOT(ShowPreferences())));
+      Require(connect(actionComponents, &QAction::triggered, this, &DesktopMainWindowImpl::ShowComponentsInformation));
+      Require(connect(actionAbout, &QAction::triggered, this, &DesktopMainWindowImpl::ShowAboutProgram));
+      Require(connect(actionOnlineHelp, &QAction::triggered, this, &DesktopMainWindowImpl::VisitHelp));
+      Require(connect(actionWebSite, &QAction::triggered, this, &DesktopMainWindowImpl::VisitSite));
+      Require(connect(actionOnlineFAQ, &QAction::triggered, this, &DesktopMainWindowImpl::VisitFAQ));
+      Require(connect(actionReportBug, &QAction::triggered, this, &DesktopMainWindowImpl::ReportIssue));
+      Require(connect(actionAboutQt, &QAction::triggered, this, &DesktopMainWindowImpl::ShowAboutQt));
+      Require(connect(actionPreferences, &QAction::triggered, this, &DesktopMainWindowImpl::ShowPreferences));
       if (Update::CheckOperation* op = Update::CheckOperation::Create(*this))
       {
-        Require(op->connect(actionCheckUpdates, SIGNAL(triggered()), SLOT(Execute())));
-        Require(connect(op, SIGNAL(ErrorOccurred(const Error&)), SLOT(ShowError(const Error&))));
+        Require(connect(actionCheckUpdates, &QAction::triggered, op, &Update::CheckOperation::Execute));
+        Require(connect(op, &Update::CheckOperation::ErrorOccurred, this, &DesktopMainWindowImpl::ShowError));
       }
       else
       {
         actionCheckUpdates->setEnabled(false);
       }
 
-      Require(MultiPlaylist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev())));
-      Require(MultiPlaylist->connect(Controls, SIGNAL(OnNext()), SLOT(Next())));
-      Require(MultiPlaylist->connect(Playback, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-                                     SLOT(Play())));
-      Require(MultiPlaylist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play())));
-      Require(MultiPlaylist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause())));
-      Require(MultiPlaylist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop())));
-      Require(MultiPlaylist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish())));
-      Require(Playback->connect(MultiPlaylist, SIGNAL(Activated(Playlist::Item::Data::Ptr)),
-                                SLOT(SetDefaultItem(Playlist::Item::Data::Ptr))));
-      Require(Playback->connect(MultiPlaylist, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)),
-                                SLOT(SetItem(Playlist::Item::Data::Ptr))));
-      Require(Playback->connect(MultiPlaylist, SIGNAL(Deactivated()), SLOT(ResetItem())));
-      Require(connect(Playback, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-                      SLOT(StartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));
-      Require(connect(Playback, SIGNAL(OnStopModule()), SLOT(StopModule())));
-      Require(connect(Playback, SIGNAL(ErrorOccurred(const Error&)), SLOT(ShowError(const Error&))));
-      Require(connect(actionAddFiles, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFiles())));
-      Require(connect(actionAddFolder, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFolder())));
+      Require(connect(Controls, &PlaybackControls::OnPrevious, MultiPlaylist, &Playlist::UI::ContainerView::Prev));
+      Require(connect(Controls, &PlaybackControls::OnNext, MultiPlaylist, &Playlist::UI::ContainerView::Next));
+      Require(
+          connect(Playback, &PlaybackSupport::OnStartModule, MultiPlaylist,
+                  [playlists = MultiPlaylist](Sound::Backend::Ptr, Playlist::Item::Data::Ptr) { playlists->Play(); }));
+      Require(connect(Playback, &PlaybackSupport::OnResumeModule, MultiPlaylist, &Playlist::UI::ContainerView::Play));
+      Require(connect(Playback, &PlaybackSupport::OnPauseModule, MultiPlaylist, &Playlist::UI::ContainerView::Pause));
+      Require(connect(Playback, &PlaybackSupport::OnStopModule, MultiPlaylist, &Playlist::UI::ContainerView::Stop));
+      Require(connect(Playback, &PlaybackSupport::OnFinishModule, MultiPlaylist, &Playlist::UI::ContainerView::Finish));
+      Require(
+          connect(MultiPlaylist, &Playlist::UI::ContainerView::Activated, Playback, &PlaybackSupport::SetDefaultItem));
+      Require(connect(MultiPlaylist, &Playlist::UI::ContainerView::ItemActivated, Playback, &PlaybackSupport::SetItem));
+      Require(connect(MultiPlaylist, &Playlist::UI::ContainerView::Deactivated, Playback, &PlaybackSupport::ResetItem));
+      Require(connect(Playback, &PlaybackSupport::OnStartModule, this, &DesktopMainWindowImpl::StartModule));
+      Require(connect(Playback, &PlaybackSupport::OnStopModule, this, &DesktopMainWindowImpl::StopModule));
+      Require(connect(Playback, &PlaybackSupport::ErrorOccurred, this, &DesktopMainWindowImpl::ShowError));
+      Require(connect(actionAddFiles, &QAction::triggered, MultiPlaylist, &Playlist::UI::ContainerView::AddFiles));
+      Require(connect(actionAddFolder, &QAction::triggered, MultiPlaylist, &Playlist::UI::ContainerView::AddFolder));
 
       StopModule();
 
@@ -153,64 +152,6 @@ namespace
       {
         MultiPlaylist->Open(args);
       }
-    }
-
-    void StartModule(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item) override
-    {
-      setWindowTitle(
-          ToQString(Strings::Format("{1} [{0}]", Platform::Version::GetProgramTitle(), item->GetDisplayName())));
-      Playing = true;
-    }
-
-    void StopModule() override
-    {
-      Playing = false;
-      setWindowTitle(ToQString(Platform::Version::GetProgramTitle()));
-    }
-
-    void ShowPreferences() override
-    {
-      UI::ShowPreferencesDialog(*this, Playing);
-    }
-
-    void ShowComponentsInformation() override
-    {
-      UI::ShowComponentsInformation(*this);
-    }
-
-    void ShowAboutProgram() override
-    {
-      UI::ShowProgramInformation(*this);
-    }
-
-    void ShowAboutQt() override
-    {
-      QMessageBox::aboutQt(this);
-    }
-
-    void VisitHelp() override
-    {
-      QDesktopServices::openUrl(ToQString(Urls::Help()));
-    }
-
-    void VisitSite() override
-    {
-      QDesktopServices::openUrl(ToQString(Urls::Site()));
-    }
-
-    void VisitFAQ() override
-    {
-      QDesktopServices::openUrl(ToQString(Urls::Faq()));
-    }
-
-    void ReportIssue() override
-    {
-      QDesktopServices::openUrl(ToQString(Urls::Bugreport()));
-    }
-
-    void ShowError(const Error& err) override
-    {
-      ShowErrorMessage(QString(), err);
     }
 
     // QWidgets virtuals
@@ -281,6 +222,64 @@ namespace
         toolbar.second->setWindowTitle(toolbar.first->windowTitle());
         menuLayout->addAction(toolbar.second->toggleViewAction());
       }
+    }
+
+    void StartModule(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
+    {
+      setWindowTitle(
+          ToQString(Strings::Format("{1} [{0}]", Platform::Version::GetProgramTitle(), item->GetDisplayName())));
+      Playing = true;
+    }
+
+    void StopModule()
+    {
+      Playing = false;
+      setWindowTitle(ToQString(Platform::Version::GetProgramTitle()));
+    }
+
+    void ShowPreferences()
+    {
+      UI::ShowPreferencesDialog(*this, Playing);
+    }
+
+    void ShowComponentsInformation()
+    {
+      UI::ShowComponentsInformation(*this);
+    }
+
+    void ShowAboutProgram()
+    {
+      UI::ShowProgramInformation(*this);
+    }
+
+    void ShowAboutQt()
+    {
+      QMessageBox::aboutQt(this);
+    }
+
+    void VisitHelp()
+    {
+      QDesktopServices::openUrl(ToQString(Urls::Help()));
+    }
+
+    void VisitSite()
+    {
+      QDesktopServices::openUrl(ToQString(Urls::Site()));
+    }
+
+    void VisitFAQ()
+    {
+      QDesktopServices::openUrl(ToQString(Urls::Faq()));
+    }
+
+    void ReportIssue()
+    {
+      QDesktopServices::openUrl(ToQString(Urls::Bugreport()));
+    }
+
+    void ShowError(const Error& err)
+    {
+      ShowErrorMessage(QString(), err);
     }
 
   private:

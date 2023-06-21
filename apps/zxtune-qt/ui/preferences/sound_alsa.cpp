@@ -72,8 +72,8 @@ namespace
 
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
       Parameters::IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
-      Require(connect(mixers, SIGNAL(currentIndexChanged(const QString&)), SLOT(MixerChanged(const QString&))));
-      Require(connect(devices, SIGNAL(currentIndexChanged(const QString&)), SLOT(DeviceChanged(const QString&))));
+      Require(connect(mixers, &QComboBox::currentTextChanged, this, &AlsaOptionsWidget::MixerChanged));
+      Require(connect(devices, &QComboBox::currentTextChanged, this, &AlsaOptionsWidget::DeviceChanged));
     }
 
     String GetBackendId() const override
@@ -85,37 +85,6 @@ namespace
     QString GetDescription() const override
     {
       return nameGroup->title();
-    }
-
-    void DeviceChanged(const QString& name) override
-    {
-      const auto& id = FromQString(name);
-      Dbg("Selecting device '{}'", id);
-      const auto it = std::find_if(Devices.begin(), Devices.end(),
-                                   [&name, &id](const Device& dev) { return dev.Name == name || dev.Id == id; });
-      if (it != Devices.end())
-      {
-        devices->setCurrentIndex(it - Devices.begin());
-        mixers->clear();
-        mixers->addItems(it->MixerNames);
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::Alsa::DEVICE, it->Id);
-        SelectMixer();
-      }
-      else
-      {
-        devices->setCurrentIndex(-1);
-      }
-    }
-
-    void MixerChanged(const QString& name) override
-    {
-      // while recreating combobox message with empty parameter can be passed
-      if (name.size())
-      {
-        const String mixer = FromQString(name);
-        Dbg("Selecting mixer '{}'", mixer);
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, mixer);
-      }
     }
 
     // QWidget
@@ -156,6 +125,37 @@ namespace
       String curMixer;
       Options->FindValue(MIXER, curMixer);
       SetComboValue(*mixers, curMixer);
+    }
+
+    void DeviceChanged(const QString& name)
+    {
+      const auto& id = FromQString(name);
+      Dbg("Selecting device '{}'", id);
+      const auto it = std::find_if(Devices.begin(), Devices.end(),
+                                   [&name, &id](const Device& dev) { return dev.Name == name || dev.Id == id; });
+      if (it != Devices.end())
+      {
+        devices->setCurrentIndex(it - Devices.begin());
+        mixers->clear();
+        mixers->addItems(it->MixerNames);
+        Options->SetValue(Parameters::ZXTune::Sound::Backends::Alsa::DEVICE, it->Id);
+        SelectMixer();
+      }
+      else
+      {
+        devices->setCurrentIndex(-1);
+      }
+    }
+
+    void MixerChanged(const QString& name)
+    {
+      // while recreating combobox message with empty parameter can be passed
+      if (name.size())
+      {
+        const String mixer = FromQString(name);
+        Dbg("Selecting mixer '{}'", mixer);
+        Options->SetValue(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, mixer);
+      }
     }
 
   private:

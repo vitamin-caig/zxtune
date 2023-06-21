@@ -27,6 +27,13 @@ namespace UI
   public:
     virtual String GetBackendId() const = 0;
     virtual QString GetDescription() const = 0;
+
+  protected:
+    template<class T>
+    void SettingChanged(T)
+    {
+      emit SettingsChanged();
+    }
   signals:
     void SettingsChanged();
   };

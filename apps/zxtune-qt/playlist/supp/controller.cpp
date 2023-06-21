@@ -46,8 +46,7 @@ namespace
       , Model(model)
       , Index(NO_INDEX)
     {
-      Require(connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
-                      SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
+      Require(connect(Model, &Playlist::Model::IndicesChanged, this, &ItemIteratorImpl::UpdateIndices));
     }
 
     unsigned GetIndex() const override
@@ -90,7 +89,8 @@ namespace
       SelectItem(idx);
     }
 
-    void UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr remapping) override
+  private:
+    void UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr remapping)
     {
       Dbg("Iterator: index changed.");
       if (NO_INDEX == Index)
@@ -111,7 +111,6 @@ namespace
       }
     }
 
-  private:
     bool SelectItem(unsigned idx)
     {
       if (auto item = Model->GetItem(idx))
@@ -207,10 +206,9 @@ namespace
     {
       // setup connections
       // use direct connection due to possible model locking
-      Require(Model->connect(Scanner, SIGNAL(ItemFound(Playlist::Item::Data::Ptr)),
-                             SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
-      Require(Model->connect(Scanner, SIGNAL(ItemsFound(Playlist::Item::Collection::Ptr)),
-                             SLOT(AddItems(Playlist::Item::Collection::Ptr)), Qt::DirectConnection));
+      Require(connect(Scanner, &Playlist::Scanner::ItemFound, Model, &Playlist::Model::AddItem, Qt::DirectConnection));
+      Require(
+          connect(Scanner, &Playlist::Scanner::ItemsFound, Model, &Playlist::Model::AddItems, Qt::DirectConnection));
 
       Dbg("Created at {}", static_cast<void*>(this));
     }

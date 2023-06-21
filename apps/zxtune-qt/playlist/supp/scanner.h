@@ -42,7 +42,6 @@ namespace Playlist
 
     virtual void AddItems(const QStringList& items) = 0;
     virtual void PasteItems(const QStringList& items) = 0;
-  public slots:
     virtual void Pause(bool pause) = 0;
     virtual void Stop() = 0;
   signals:

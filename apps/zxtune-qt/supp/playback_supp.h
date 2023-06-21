@@ -26,7 +26,7 @@ protected:
 public:
   static PlaybackSupport* Create(QObject& parent, Parameters::Accessor::Ptr sndOptions);
 
-public slots:
+public:
   virtual void SetDefaultItem(Playlist::Item::Data::Ptr item) = 0;
   virtual void SetItem(Playlist::Item::Data::Ptr item) = 0;
   virtual void ResetItem() = 0;

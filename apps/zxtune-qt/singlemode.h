@@ -28,7 +28,4 @@ public:
   virtual QStringList GetCmdline() const = 0;
 signals:
   void OnSlaveStarted(const QStringList& cmdline);
-
-private slots:
-  virtual void SlaveStarted() = 0;
 };

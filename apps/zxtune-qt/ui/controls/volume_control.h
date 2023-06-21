@@ -26,11 +26,4 @@ protected:
 public:
   // creator
   static VolumeControl* Create(QWidget& parent, PlaybackSupport& supp);
-
-public slots:
-  virtual void StartPlayback(Sound::Backend::Ptr) = 0;
-  virtual void UpdateState() = 0;
-  virtual void StopPlayback() = 0;
-private slots:
-  virtual void SetLevel(int level) = 0;
 };

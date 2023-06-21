@@ -113,17 +113,18 @@ namespace
       SetupMenu();
 
       // playlist actions
-      Require(connect(actionCreatePlaylist, SIGNAL(triggered()), SLOT(CreatePlaylist())));
-      Require(connect(actionLoadPlaylist, SIGNAL(triggered()), SLOT(LoadPlaylist())));
-      Require(connect(actionSavePlaylist, SIGNAL(triggered()), SLOT(SavePlaylist())));
-      Require(connect(actionRenamePlaylist, SIGNAL(triggered()), SLOT(RenamePlaylist())));
-      Require(connect(actionClosePlaylist, SIGNAL(triggered()), SLOT(CloseCurrentPlaylist())));
-      Require(connect(actionClearPlaylist, SIGNAL(triggered()), SLOT(Clear())));
+      Require(connect(actionCreatePlaylist, &QAction::triggered, this, &Playlist::UI::ContainerView::CreatePlaylist));
+      Require(connect(actionLoadPlaylist, &QAction::triggered, this, &Playlist::UI::ContainerView::LoadPlaylist));
+      Require(connect(actionSavePlaylist, &QAction::triggered, this, &Playlist::UI::ContainerView::SavePlaylist));
+      Require(connect(actionRenamePlaylist, &QAction::triggered, this, &Playlist::UI::ContainerView::RenamePlaylist));
+      Require(
+          connect(actionClosePlaylist, &QAction::triggered, this, &Playlist::UI::ContainerView::CloseCurrentPlaylist));
+      Require(connect(actionClearPlaylist, &QAction::triggered, this, &Playlist::UI::ContainerView::Clear));
 
-      Require(connect(Container.get(), SIGNAL(PlaylistCreated(Playlist::Controller::Ptr)),
-                      SLOT(CreatePlaylist(Playlist::Controller::Ptr))));
-
-      Require(connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int))));
+      Require(connect(Container.get(), &Playlist::Container::PlaylistCreated, this,
+                      [this](Playlist::Controller::Ptr ctrl) { RegisterPlaylist(std::move(ctrl)); }));
+      Require(
+          connect(widgetsContainer, &QTabWidget::tabCloseRequested, this, &Playlist::UI::ContainerView::ClosePlaylist));
 
       Parameters::BooleanValue::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED,
                                      Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
@@ -305,36 +306,12 @@ namespace
       return this;
     }
 
-    void CreatePlaylist(Playlist::Controller::Ptr ctrl) override
+    void RenamePlaylist(QWidget* widget, const QString& name)
     {
-      RegisterPlaylist(std::move(ctrl));
-    }
-
-    void RenamePlaylist(const QString& name) override
-    {
-      if (QObject* sender = this->sender())
+      const int idx = widgetsContainer->indexOf(widget);
+      if (idx != -1)
       {
-        // assert(dynamic_cast<QWidget*>(sender));
-        auto* const widget = static_cast<QWidget*>(sender);
-        const int idx = widgetsContainer->indexOf(widget);
-        if (idx != -1)
-        {
-          widgetsContainer->setTabText(idx, name);
-        }
-      }
-    }
-
-    void ActivateItem(Playlist::Item::Data::Ptr /*item*/) override
-    {
-      if (QObject* sender = this->sender())
-      {
-        // assert(dynamic_cast<Playlist::UI::View*>(sender));
-        auto* const newView = static_cast<Playlist::UI::View*>(sender);
-        if (newView != ActivePlaylistView)
-        {
-          ActivePlaylistView->Stop();  // just update state
-          SwitchTo(newView);
-        }
+        widgetsContainer->setTabText(idx, name);
       }
     }
 
@@ -381,11 +358,13 @@ namespace
     {
       Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, std::move(playlist), Options);
       widgetsContainer->addTab(plView, plView->GetPlaylist()->GetName());
-      Require(connect(plView, SIGNAL(Renamed(const QString&)), SLOT(RenamePlaylist(const QString&))));
-      Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)),
-                      SLOT(ActivateItem(Playlist::Item::Data::Ptr))));
-      Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)),
-                      SIGNAL(ItemActivated(Playlist::Item::Data::Ptr))));
+      Require(connect(
+          plView, &Playlist::UI::View::Renamed, this,
+          [plView, this](const QString& name) { RenamePlaylist(plView, name); }, Qt::DirectConnection));
+      Require(connect(
+          plView, &Playlist::UI::View::ItemActivated, this, [plView, this]() { SwitchTo(plView); },
+          Qt::DirectConnection));
+      Require(connect(plView, &Playlist::UI::View::ItemActivated, this, &Playlist::UI::ContainerView::ItemActivated));
       if (!ActivePlaylistView)
       {
         SwitchTo(plView);
@@ -396,22 +375,25 @@ namespace
 
     void SwitchTo(Playlist::UI::View* plView)
     {
+      if (plView == ActivePlaylistView)
+      {
+        return;
+      }
       Dbg("Switch playlist {} -> {}", static_cast<const void*>(ActivePlaylistView), static_cast<const void*>(plView));
       const bool wasPrevious = ActivePlaylistView != nullptr;
       if (wasPrevious)
       {
+        ActivePlaylistView->Stop();  // just update state
         const Playlist::Item::Iterator::Ptr iter = ActivePlaylistView->GetPlaylist()->GetIterator();
-        Require(iter->disconnect(this, SIGNAL(Activated(Playlist::Item::Data::Ptr))));
-        Require(iter->disconnect(this, SIGNAL(Deactivated())));
+        Require(disconnect(iter, nullptr, this, nullptr));
       }
       ActivePlaylistView = plView;
       if (ActivePlaylistView)
       {
         const Playlist::Controller::Ptr ctrl = ActivePlaylistView->GetPlaylist();
         const Playlist::Item::Iterator::Ptr iter = ctrl->GetIterator();
-        Require(
-            connect(iter, SIGNAL(Activated(Playlist::Item::Data::Ptr)), SIGNAL(Activated(Playlist::Item::Data::Ptr))));
-        Require(connect(iter, SIGNAL(Deactivated()), SIGNAL(Deactivated())));
+        Require(connect(iter, &Playlist::Item::Iterator::Activated, this, &Playlist::UI::ContainerView::Activated));
+        Require(connect(iter, &Playlist::Item::Iterator::Deactivated, this, &Playlist::UI::ContainerView::Deactivated));
       }
     }
 
@@ -494,7 +476,7 @@ namespace
       default:
       {
         auto& pl = GetEmptyPlaylist();
-        QTimer::singleShot(1000, pl.GetPlaylist()->GetIterator(), SLOT(Reset()));
+        QTimer::singleShot(1000, pl.GetPlaylist()->GetIterator(), qOverload<>(&Playlist::Item::Iterator::Reset));
         return pl;
       }
       }

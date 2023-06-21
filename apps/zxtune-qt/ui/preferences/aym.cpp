@@ -42,8 +42,9 @@ namespace
       // setup self
       setupUi(this);
 
-      Require(connect(clockRateValue, SIGNAL(textChanged(const QString&)), SLOT(OnClockRateChanged(const QString&))));
-      Require(connect(clockRatePresets, SIGNAL(currentIndexChanged(int)), SLOT(OnClockRatePresetChanged(int))));
+      Require(connect(clockRateValue, &QLineEdit::textChanged, this, &AYMOptionsWidget::OnClockRateChanged));
+      Require(connect(clockRatePresets, qOverload<int>(&QComboBox::currentIndexChanged), this,
+                      &AYMOptionsWidget::OnClockRatePresetChanged));
 
       using namespace Parameters;
       const IntegerTraits clockRate(ZXTune::Core::AYM::CLOCKRATE, ZXTune::Core::AYM::CLOCKRATE_DEFAULT,
@@ -54,29 +55,6 @@ namespace
                          ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT);
       Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::AYM::INTERPOLATION,
                                          ZXTune::Core::AYM::INTERPOLATION_DEFAULT);
-    }
-
-    void OnClockRateChanged(const QString& val) override
-    {
-      const qlonglong num = val.toLongLong();
-      const uint64_t* const preset = std::find(PRESETS, std::end(PRESETS), num);
-      if (preset == std::end(PRESETS))
-      {
-        clockRatePresets->setCurrentIndex(0);  // custom
-      }
-      else
-      {
-        clockRatePresets->setCurrentIndex(1 + (preset - PRESETS));
-      }
-    }
-
-    void OnClockRatePresetChanged(int idx) override
-    {
-      if (idx != 0)
-      {
-        Require(idx <= int(boost::size(PRESETS)));
-        clockRateValue->setText(QString::number(PRESETS[idx - 1]));
-      }
     }
 
     // QWidget
@@ -92,6 +70,30 @@ namespace
         OnClockRateChanged(clockRateValue->text());
       }
       UI::AYMSettingsWidget::changeEvent(event);
+    }
+
+  private:
+    void OnClockRateChanged(const QString& val)
+    {
+      const qlonglong num = val.toLongLong();
+      const uint64_t* const preset = std::find(PRESETS, std::end(PRESETS), num);
+      if (preset == std::end(PRESETS))
+      {
+        clockRatePresets->setCurrentIndex(0);  // custom
+      }
+      else
+      {
+        clockRatePresets->setCurrentIndex(1 + (preset - PRESETS));
+      }
+    }
+
+    void OnClockRatePresetChanged(int idx)
+    {
+      if (idx != 0)
+      {
+        Require(idx <= int(boost::size(PRESETS)));
+        clockRateValue->setText(QString::number(PRESETS[idx - 1]));
+      }
     }
 
   private:

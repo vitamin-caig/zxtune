@@ -349,8 +349,8 @@ namespace
         if (UI::ErrorsWidget* const errors = UI::ErrorsWidget::Create(*this))
         {
           layout->addWidget(errors);
-          Require(errors->connect(Controller->GetScanner(), SIGNAL(ErrorOccurred(const Error&)),
-                                  SLOT(AddError(const Error&))));
+          Require(connect(Controller->GetScanner(), &Playlist::Scanner::ErrorOccurred, errors,
+                          &UI::ErrorsWidget::AddError));
         }
         if (Playlist::UI::ScannerView* const scannerView =
                 Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
@@ -360,19 +360,22 @@ namespace
       }
       // setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-      Require(iter->connect(View, SIGNAL(TableRowActivated(unsigned)), SLOT(Reset(unsigned))));
-      Require(View->connect(iter, SIGNAL(ItemActivated(unsigned)), SLOT(MoveToTableRow(unsigned))));
+      Require(connect(View, &Playlist::UI::TableView::TableRowActivated, iter,
+                      qOverload<unsigned>(&Playlist::Item::Iterator::Reset)));
+      Require(connect(iter, qOverload<unsigned>(&Playlist::Item::Iterator::ItemActivated), View,
+                      &Playlist::UI::TableView::MoveToTableRow));
 
       // redirect signals to self
-      Require(connect(Controller.get(), SIGNAL(Renamed(const QString&)), SIGNAL(Renamed(const QString&))));
-      Require(connect(iter, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)),
-                      SIGNAL(ItemActivated(Playlist::Item::Data::Ptr))));
+      Require(connect(Controller.get(), &Playlist::Controller::Renamed, this, &Playlist::UI::View::Renamed));
+      Require(connect(iter, qOverload<Playlist::Item::Data::Ptr>(&Playlist::Item::Iterator::ItemActivated), this,
+                      &Playlist::UI::View::ItemActivated));
 
       const Playlist::Model::Ptr model = Controller->GetModel();
-      Require(connect(model, SIGNAL(OperationStarted()), SLOT(LongOperationStart())));
-      Require(OperationProgress->connect(model, SIGNAL(OperationProgressChanged(int)), SLOT(UpdateProgress(int))));
-      Require(connect(model, SIGNAL(OperationStopped()), SLOT(LongOperationStop())));
-      Require(connect(OperationProgress, SIGNAL(Canceled()), SLOT(LongOperationCancel())));
+      Require(connect(model, &Playlist::Model::OperationStarted, this, &ViewImpl::LongOperationStart));
+      Require(connect(model, &Playlist::Model::OperationProgressChanged, OperationProgress,
+                      &OverlayProgress::UpdateProgress));
+      Require(connect(model, &Playlist::Model::OperationStopped, this, &ViewImpl::LongOperationStop));
+      Require(connect(OperationProgress, &OverlayProgress::Canceled, this, &ViewImpl::LongOperationCancel));
 
       LayoutState->AddWidget(*View->horizontalHeader());
       Dbg("Created at {}", Self());
@@ -499,26 +502,6 @@ namespace
       }
     }
 
-    void LongOperationStart() override
-    {
-      View->setEnabled(false);
-      OperationProgress->UpdateProgress(0);
-      OperationProgress->setVisible(true);
-      OperationProgress->setEnabled(true);
-    }
-
-    void LongOperationStop() override
-    {
-      OperationProgress->setVisible(false);
-      View->setEnabled(true);
-    }
-
-    void LongOperationCancel() override
-    {
-      OperationProgress->setEnabled(false);
-      Controller->GetModel()->CancelLongOperation();
-    }
-
     // qwidget virtuals
     void keyPressEvent(QKeyEvent* event) override
     {
@@ -591,6 +574,26 @@ namespace
     }
 
   private:
+    void LongOperationStart()
+    {
+      View->setEnabled(false);
+      OperationProgress->UpdateProgress(0);
+      OperationProgress->setVisible(true);
+      OperationProgress->setEnabled(true);
+    }
+
+    void LongOperationStop()
+    {
+      OperationProgress->setVisible(false);
+      View->setEnabled(true);
+    }
+
+    void LongOperationCancel()
+    {
+      OperationProgress->setEnabled(false);
+      Controller->GetModel()->CancelLongOperation();
+    }
+
     const void* Self() const
     {
       return this;
@@ -617,8 +620,8 @@ namespace
         model->RemoveItems(items);
         if (1 == items->size())
         {
-          View->SelectItems(items);
           const Playlist::Model::IndexType itemToSelect = *items->begin();
+          View->SelectItems(std::move(items));
           // not last
           if (itemToSelect != itemsCount - 1)
           {
@@ -701,8 +704,8 @@ namespace
         // TODO: extract
         const Playlist::Model::Ptr model = Controller->GetModel();
         op->setParent(model);
-        Require(View->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)),
-                              SLOT(SelectItems(Playlist::Model::IndexSet::Ptr))));
+        Require(connect(op.get(), &Playlist::Item::SelectionOperation::ResultAcquired, View,
+                        &Playlist::UI::TableView::SelectItems));
         model->PerformOperation(op);
       }
     }

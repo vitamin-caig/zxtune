@@ -26,12 +26,6 @@ namespace UI
 
   public:
     static ErrorsWidget* Create(QWidget& parent);
-  public slots:
     virtual void AddError(const Error& err) = 0;
-  private slots:
-    virtual void Previous() = 0;
-    virtual void Next() = 0;
-    virtual void Dismiss() = 0;
-    virtual void DismissAll() = 0;
   };
 }  // namespace UI

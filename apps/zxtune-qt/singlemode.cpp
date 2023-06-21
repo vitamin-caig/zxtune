@@ -67,9 +67,6 @@ namespace
     }
 
   protected:
-    void SlaveStarted() override {}
-
-  protected:
     QStringList Cmdline;
   };
 
@@ -99,7 +96,7 @@ namespace
     }
 
   private:
-    void SlaveStarted() override
+    void SlaveStarted()
     {
       while (QLocalSocket* conn = Server->nextPendingConnection())
       {
@@ -200,7 +197,8 @@ namespace
     void StartLocalServer()
     {
       Server = std::make_unique<QLocalServer>(this);
-      Require(connect(Server.get(), SIGNAL(newConnection()), SLOT(SlaveStarted())));
+      Require(
+          connect(Server.get(), &QLocalServer::newConnection, this, &SocketBasedSingleModeDispatcher::SlaveStarted));
       while (!Server->listen(SERVER_NAME))
       {
         if (Server->serverError() == QAbstractSocket::AddressInUseError && QLocalServer::removeServer(SERVER_NAME))

@@ -34,42 +34,12 @@ namespace
       // setup self
       setupUi(this);
       setEnabled(false);
-      Require(connect(volumeLevel, SIGNAL(valueChanged(int)), SLOT(SetLevel(int))));
+      Require(connect(volumeLevel, &QSlider::valueChanged, this, &VolumeControlImpl::SetLevel));
 
-      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-                      SLOT(StartPlayback(Sound::Backend::Ptr))));
-      Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
-      Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(StopPlayback())));
+      Require(connect(&supp, &PlaybackSupport::OnStartModule, this, &VolumeControlImpl::StartPlayback));
+      Require(connect(&supp, &PlaybackSupport::OnUpdateState, this, &VolumeControlImpl::UpdateState));
+      Require(connect(&supp, &PlaybackSupport::OnStopModule, this, &VolumeControlImpl::StopPlayback));
       volumeLevel->setStyle(UI::GetStyle());
-    }
-
-    void StartPlayback(Sound::Backend::Ptr backend) override
-    {
-      Controller = backend->GetVolumeControl();
-      setEnabled(Controller != nullptr);
-    }
-
-    void UpdateState() override
-    {
-      if (isVisible() && Controller && !volumeLevel->isSliderDown())
-      {
-        UpdateVolumeSlider();
-      }
-    }
-
-    void StopPlayback() override
-    {
-      Controller = Sound::VolumeControl::Ptr();
-      setEnabled(false);
-    }
-
-    void SetLevel(int level) override
-    {
-      if (Controller)
-      {
-        const Sound::Gain::Type vol = Sound::Gain::Type(level, volumeLevel->maximum());
-        Controller->SetVolume(Sound::Gain(vol, vol));
-      }
     }
 
     // QWidget
@@ -83,6 +53,35 @@ namespace
     }
 
   private:
+    void StartPlayback(Sound::Backend::Ptr backend, Playlist::Item::Data::Ptr)
+    {
+      Controller = backend->GetVolumeControl();
+      setEnabled(Controller != nullptr);
+    }
+
+    void UpdateState()
+    {
+      if (isVisible() && Controller && !volumeLevel->isSliderDown())
+      {
+        UpdateVolumeSlider();
+      }
+    }
+
+    void StopPlayback()
+    {
+      Controller = Sound::VolumeControl::Ptr();
+      setEnabled(false);
+    }
+
+    void SetLevel(int level)
+    {
+      if (Controller)
+      {
+        const Sound::Gain::Type vol = Sound::Gain::Type(level, volumeLevel->maximum());
+        Controller->SetVolume(Sound::Gain(vol, vol));
+      }
+    }
+
     void UpdateVolumeSlider()
     {
       try

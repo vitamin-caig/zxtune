@@ -61,51 +61,17 @@ namespace
       IntType freq = FREQUENCY_DEFAULT;
       Options->FindValue(FREQUENCY, freq);
       SetFrequency(freq);
-      Require(connect(soundFrequencyValue, SIGNAL(currentIndexChanged(int)), SLOT(ChangeSoundFrequency(int))));
+      Require(connect(soundFrequencyValue, qOverload<int>(&QComboBox::currentIndexChanged), this,
+                      &SoundOptionsWidget::ChangeSoundFrequency));
       IntegerValue::Bind(*silenceLimitValue, *Options, SILENCE_LIMIT, SILENCE_LIMIT_DEFAULT);
       IntegerValue::Bind(*loopsCountLimitValue, *Options, LOOP_LIMIT, 0);
       IntegerValue::Bind(*fadeinValue, *Options, FADEIN, FADEIN_DEFAULT);
       IntegerValue::Bind(*fadeoutValue, *Options, FADEOUT, FADEOUT_DEFAULT);
       IntegerValue::Bind(*preampValue, *Options, GAIN, GAIN_DEFAULT);
 
-      Require(connect(backendsList, SIGNAL(currentRowChanged(int)), SLOT(SelectBackend(int))));
-      Require(connect(moveUp, SIGNAL(released()), SLOT(MoveBackendUp())));
-      Require(connect(moveDown, SIGNAL(released()), SLOT(MoveBackendDown())));
-    }
-
-    void ChangeSoundFrequency(int idx) override
-    {
-      const qlonglong val = FREQUENCES[idx];
-      Options->SetValue(Parameters::ZXTune::Sound::FREQUENCY, val);
-    }
-
-    void SelectBackend(int idx) override
-    {
-      const auto& id = Backends[idx];
-      for (const auto& page : SetupPages)
-      {
-        page.second->setVisible(page.first == id);
-      }
-      settingsHint->setVisible(0 == SetupPages.count(id));
-    }
-
-    void MoveBackendUp() override
-    {
-      if (const int row = backendsList->currentRow())
-      {
-        SwapItems(row, row - 1);
-        backendsList->setCurrentRow(row - 1);
-      }
-    }
-
-    void MoveBackendDown() override
-    {
-      const int row = backendsList->currentRow();
-      if (Math::InRange(row, 0, int(Backends.size() - 2)))
-      {
-        SwapItems(row, row + 1);
-        backendsList->setCurrentRow(row + 1);
-      }
+      Require(connect(backendsList, &QListWidget::currentRowChanged, this, &SoundOptionsWidget::SelectBackend));
+      Require(connect(moveUp, &QToolButton::released, this, &SoundOptionsWidget::MoveBackendUp));
+      Require(connect(moveDown, &QToolButton::released, this, &SoundOptionsWidget::MoveBackendDown));
     }
 
     // QWidget
@@ -161,18 +127,39 @@ namespace
       }
     }
 
-    void SaveBackendsOrder()
+    void ChangeSoundFrequency(int idx)
     {
-      String value;
-      for (const auto& id : Backends)
+      const qlonglong val = FREQUENCES[idx];
+      Options->SetValue(Parameters::ZXTune::Sound::FREQUENCY, val);
+    }
+
+    void SelectBackend(int idx)
+    {
+      const auto& id = Backends[idx];
+      for (const auto& page : SetupPages)
       {
-        if (!value.empty())
-        {
-          value += ';';
-        }
-        value.append(id);
+        page.second->setVisible(page.first == id);
       }
-      Options->SetValue(Parameters::ZXTune::Sound::Backends::ORDER, value);
+      settingsHint->setVisible(0 == SetupPages.count(id));
+    }
+
+    void MoveBackendUp()
+    {
+      if (const int row = backendsList->currentRow())
+      {
+        SwapItems(row, row - 1);
+        backendsList->setCurrentRow(row - 1);
+      }
+    }
+
+    void MoveBackendDown()
+    {
+      const int row = backendsList->currentRow();
+      if (Math::InRange(row, 0, int(Backends.size() - 2)))
+      {
+        SwapItems(row, row + 1);
+        backendsList->setCurrentRow(row + 1);
+      }
     }
 
     void SwapItems(int lh, int rh)
@@ -192,6 +179,20 @@ namespace
         std::swap(firstId, secondId);
         SaveBackendsOrder();
       }
+    }
+
+    void SaveBackendsOrder()
+    {
+      String value;
+      for (const auto& id : Backends)
+      {
+        if (!value.empty())
+        {
+          value += ';';
+        }
+        value.append(id);
+      }
+      Options->SetValue(Parameters::ZXTune::Sound::Backends::ORDER, value);
     }
 
   private:

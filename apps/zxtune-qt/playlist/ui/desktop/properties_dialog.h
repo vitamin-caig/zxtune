@@ -29,8 +29,6 @@ namespace Playlist::UI
     using Ptr = std::shared_ptr<PropertiesDialog>;
 
     static Ptr Create(QWidget& parent, const Item::Data& item);
-  private slots:
-    virtual void ButtonClicked(QAbstractButton* button) = 0;
   signals:
     void ResetToDefaults();
   };

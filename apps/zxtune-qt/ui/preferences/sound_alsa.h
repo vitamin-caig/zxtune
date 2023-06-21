@@ -23,8 +23,5 @@ namespace UI
 
   public:
     static BackendSettingsWidget* Create(QWidget& parent);
-  private slots:
-    virtual void DeviceChanged(const QString& name) = 0;
-    virtual void MixerChanged(const QString& name) = 0;
   };
 }  // namespace UI

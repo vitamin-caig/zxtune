@@ -151,10 +151,10 @@ namespace
       setupUi(this);
       horizontalLayout->insertWidget(1, Current);
 
-      Require(connect(prevError, SIGNAL(clicked(bool)), SLOT(Previous())));
-      Require(connect(nextError, SIGNAL(clicked(bool)), SLOT(Next())));
-      Require(connect(dismissCurrent, SIGNAL(clicked(bool)), SLOT(Dismiss())));
-      Require(connect(dismissAll, SIGNAL(clicked(bool)), SLOT(DismissAll())));
+      Require(connect(prevError, &QToolButton::clicked, this, [this](bool) { Previous(); }));
+      Require(connect(nextError, &QToolButton::clicked, this, [this](bool) { Next(); }));
+      Require(connect(dismissCurrent, &QToolButton::clicked, this, [this](bool) { Dismiss(); }));
+      Require(connect(dismissAll, &QToolButton::clicked, this, [this](bool) { DismissAll(); }));
 
       UpdateUI();
     }
@@ -162,30 +162,6 @@ namespace
     void AddError(const Error& err) override
     {
       Errors.Add(err);
-      UpdateUI();
-    }
-
-    void Previous() override
-    {
-      Errors.Backward();
-      UpdateUI();
-    }
-
-    void Next() override
-    {
-      Errors.Forward();
-      UpdateUI();
-    }
-
-    void Dismiss() override
-    {
-      Errors.Remove();
-      UpdateUI();
-    }
-
-    void DismissAll() override
-    {
-      Errors.Clear();
       UpdateUI();
     }
 
@@ -205,6 +181,30 @@ namespace
       {
         hide();
       }
+    }
+
+    void Previous()
+    {
+      Errors.Backward();
+      UpdateUI();
+    }
+
+    void Next()
+    {
+      Errors.Forward();
+      UpdateUI();
+    }
+
+    void Dismiss()
+    {
+      Errors.Remove();
+      UpdateUI();
+    }
+
+    void DismissAll()
+    {
+      Errors.Clear();
+      UpdateUI();
     }
 
   private:

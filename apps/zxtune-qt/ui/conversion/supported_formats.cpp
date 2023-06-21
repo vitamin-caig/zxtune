@@ -125,7 +125,7 @@ namespace
 
     void SetupButton(IdToButton::value_type but)
     {
-      Require(connect(but.second, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged())));
+      Require(connect(but.second, &QRadioButton::toggled, this, [this](bool) { emit SettingsChanged(); }));
       if (const Error status = Backends.GetStatus(but.first))
       {
         but.second->setEnabled(false);

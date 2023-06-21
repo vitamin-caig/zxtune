@@ -23,7 +23,5 @@ namespace UI
 
   public:
     static InterfaceSettingsWidget* Create(QWidget& parent);
-  private slots:
-    virtual void OnLanguageChanged(int idx) = 0;
   };
 }  // namespace UI

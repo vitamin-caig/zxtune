@@ -58,7 +58,7 @@ namespace
 
       using namespace Parameters::ZXTune::Sound::Backends::Win32;
       Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
-      Require(connect(devices, SIGNAL(currentIndexChanged(const QString&)), SLOT(DeviceChanged(const QString&))));
+      Require(connect(devices, &QComboBox::currentTextChanged, this, &Win32OptionsWidget::DeviceNameChanged));
     }
 
     String GetBackendId() const override
@@ -72,12 +72,6 @@ namespace
       return nameGroup->title();
     }
 
-    void DeviceChanged(const QString& name) override
-    {
-      Dbg("Selecting device '{}'", FromQString(name));
-      DeviceChanged([&name](const Device& dev) { return dev.Name == name; });
-    }
-
     // QWidget
     void changeEvent(QEvent* event) override
     {
@@ -89,6 +83,12 @@ namespace
     }
 
   private:
+    void DeviceNameChanged(const QString& name)
+    {
+      Dbg("Selecting device '{}'", FromQString(name));
+      DeviceChanged([&name](const Device& dev) { return dev.Name == name; });
+    }
+
     void SelectDevice()
     {
       using namespace Parameters::ZXTune::Sound::Backends::Win32;

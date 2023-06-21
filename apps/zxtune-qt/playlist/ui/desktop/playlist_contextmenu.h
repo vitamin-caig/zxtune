@@ -22,7 +22,8 @@ namespace Playlist::UI
     Q_OBJECT
   protected:
     explicit ItemsContextMenu(QObject& parent);
-  public slots:
+
+  public:
     virtual void PlaySelected() const = 0;
     virtual void RemoveSelected() const = 0;
     virtual void CropSelected() const = 0;

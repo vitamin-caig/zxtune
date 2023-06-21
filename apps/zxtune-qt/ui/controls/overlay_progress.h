@@ -22,7 +22,6 @@ protected:
 public:
   // creator
   static OverlayProgress* Create(QWidget& parent);
-public slots:
   virtual void UpdateProgress(int progress) = 0;
 signals:
   void Canceled();

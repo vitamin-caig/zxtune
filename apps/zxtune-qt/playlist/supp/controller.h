@@ -67,12 +67,10 @@ namespace Playlist
 
       // select item without activation
       virtual void Select(unsigned idx) = 0;
-    public slots:
+
       // navigate
       virtual void Reset() = 0;
       virtual void Reset(unsigned idx) = 0;
-    private slots:
-      virtual void UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr remapping) = 0;
     signals:
       void Activated(Playlist::Item::Data::Ptr);
       void ItemActivated(Playlist::Item::Data::Ptr);
@@ -107,7 +105,6 @@ namespace Playlist
     virtual Model::Ptr GetModel() const = 0;
     virtual Item::Iterator::Ptr GetIterator() const = 0;
     virtual void Shutdown() = 0;
-  public slots:
     virtual void ShowNotification(Playlist::TextNotification::Ptr notification) = 0;
   signals:
     void Renamed(const QString& name);

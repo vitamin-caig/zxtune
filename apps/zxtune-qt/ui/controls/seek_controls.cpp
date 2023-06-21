@@ -77,23 +77,33 @@ namespace
       // setup self
       setupUi(this);
       timePosition->setRange(0, 0);
-      Require(connect(timePosition, SIGNAL(sliderReleased()), SLOT(EndSeeking())));
+      Require(connect(timePosition, &QSlider::sliderReleased, this, &SeekControlsImpl::EndSeeking));
 
-      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-                      SLOT(InitState(Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));
-      Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
-      Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
-      Require(supp.connect(this, SIGNAL(OnSeeking(Time::AtMillisecond)), SLOT(Seek(Time::AtMillisecond))));
+      Require(connect(&supp, &PlaybackSupport::OnStartModule, this, &SeekControlsImpl::InitState));
+      Require(connect(&supp, &PlaybackSupport::OnUpdateState, this, &SeekControlsImpl::UpdateState));
+      Require(connect(&supp, &PlaybackSupport::OnStopModule, this, &SeekControlsImpl::CloseState));
+      Require(connect(this, &::SeekControls::OnSeeking, &supp, &PlaybackSupport::Seek));
       timePosition->setStyle(UI::GetStyle());
     }
 
-    void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item) override
+    // QWidget
+    void changeEvent(QEvent* event) override
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      ::SeekControls::changeEvent(event);
+    }
+
+  private:
+    void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item)
     {
       Scaler = std::make_unique<ScaledTime>(*item, player->GetState());
       timePosition->setRange(0, Scaler->GetSliderRange());
     }
 
-    void UpdateState() override
+    void UpdateState()
     {
       if (!isVisible())
       {
@@ -110,28 +120,17 @@ namespace
       timeDisplay->setText(ToQString(Time::ToString(Scaler->GetPlayed())));
     }
 
-    void CloseState() override
+    void CloseState()
     {
       timePosition->setRange(0, 0);
       timeDisplay->setText(QLatin1String("-:-.-"));
     }
 
-    void EndSeeking() override
+    void EndSeeking()
     {
       OnSeeking(Scaler->SliderPositionToSeekPosition(timePosition->value()));
     }
 
-    // QWidget
-    void changeEvent(QEvent* event) override
-    {
-      if (event && QEvent::LanguageChange == event->type())
-      {
-        retranslateUi(this);
-      }
-      ::SeekControls::changeEvent(event);
-    }
-
-  private:
     void ShowTooltip()
     {
       const uint_t sliderPos = timePosition->value();

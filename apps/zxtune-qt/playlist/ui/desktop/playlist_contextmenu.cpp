@@ -44,19 +44,21 @@ namespace
     , private Ui::NoItemsContextMenu
   {
   public:
-    NoItemsContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver)
+    NoItemsContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& menu)
       : QMenu(&parent)
     {
       // setup self
       setupUi(this);
 
-      Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates())));
-      Require(receiver.connect(DelUnavailableAction, SIGNAL(triggered()), SLOT(RemoveAllUnavailable())));
-      Require(receiver.connect(ShuffleAction, SIGNAL(triggered()), SLOT(ShuffleAll())));
-      Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs())));
-      Require(receiver.connect(SelFoundAction, SIGNAL(triggered()), SLOT(SelectFound())));
-      Require(receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowAllStatistic())));
-      Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportAll())));
+      Require(connect(DelDupsAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::RemoveAllDuplicates));
+      Require(connect(DelUnavailableAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::RemoveAllUnavailable));
+      Require(connect(ShuffleAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::ShuffleAll));
+      Require(connect(SelRipOffsAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::SelectAllRipOffs));
+      Require(connect(SelFoundAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::SelectFound));
+      Require(
+          connect(ShowStatisticAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::ShowAllStatistic));
+      Require(connect(ExportAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::ExportAll));
     }
   };
 
@@ -65,24 +67,30 @@ namespace
     , private Ui::SingleItemContextMenu
   {
   public:
-    SingleItemContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver)
+    SingleItemContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& menu)
       : QMenu(&parent)
     {
       // setup self
       setupUi(this);
 
-      Require(receiver.connect(PlayAction, SIGNAL(triggered()), SLOT(PlaySelected())));
-      Require(receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected())));
-      Require(receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected())));
-      Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected())));
-      Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected())));
-      Require(receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected())));
-      Require(receiver.connect(SelSameFilesAction, SIGNAL(triggered()), SLOT(SelectSameFilesOfSelected())));
-      Require(receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard())));
-      Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected())));
-      Require(receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected())));
-      Require(receiver.connect(SaveAsAction, SIGNAL(triggered()), SLOT(SaveAsSelected())));
-      Require(receiver.connect(PropertiesAction, SIGNAL(triggered()), SLOT(ShowPropertiesOfSelected())));
+      Require(connect(PlayAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::PlaySelected));
+      Require(connect(DeleteAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::RemoveSelected));
+      Require(connect(CropAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::CropSelected));
+      Require(connect(DelDupsAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::RemoveDuplicatesOfSelected));
+      Require(connect(SelRipOffsAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::SelectRipOffsOfSelected));
+      Require(connect(SelSameTypesAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::SelectSameTypesOfSelected));
+      Require(connect(SelSameFilesAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::SelectSameFilesOfSelected));
+      Require(connect(CopyToClipboardAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::CopyPathToClipboard));
+      Require(connect(ExportAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::ExportSelected));
+      Require(connect(ConvertAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::ConvertSelected));
+      Require(connect(SaveAsAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::SaveAsSelected));
+      Require(connect(PropertiesAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::ShowPropertiesOfSelected));
     }
   };
 
@@ -131,26 +139,34 @@ namespace
     , private Ui::MultipleItemsContextMenu
   {
   public:
-    MultipleItemsContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver, std::size_t count)
+    MultipleItemsContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& menu, std::size_t count)
       : QMenu(&parent)
     {
       // setup self
       setupUi(this);
       InfoAction->setText(ModulesCount(count));
 
-      Require(receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected())));
-      Require(receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected())));
-      Require(receiver.connect(GroupAction, SIGNAL(triggered()), SLOT(GroupSelected())));
-      Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected())));
-      Require(receiver.connect(DelUnavailableAction, SIGNAL(triggered()), SLOT(RemoveUnavailableInSelected())));
-      Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected())));
-      Require(receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected())));
-      Require(receiver.connect(SelSameFilesAction, SIGNAL(triggered()), SLOT(SelectSameFilesOfSelected())));
-      Require(receiver.connect(SelFoundAction, SIGNAL(triggered()), SLOT(SelectFoundInSelected())));
-      Require(receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard())));
-      Require(receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowStatisticOfSelected())));
-      Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected())));
-      Require(receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected())));
+      Require(connect(DeleteAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::RemoveSelected));
+      Require(connect(CropAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::CropSelected));
+      Require(connect(GroupAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::GroupSelected));
+      Require(connect(DelDupsAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::RemoveDuplicatesInSelected));
+      Require(connect(DelUnavailableAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::RemoveUnavailableInSelected));
+      Require(connect(SelRipOffsAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::SelectRipOffsInSelected));
+      Require(connect(SelSameTypesAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::SelectSameTypesOfSelected));
+      Require(connect(SelSameFilesAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::SelectSameFilesOfSelected));
+      Require(
+          connect(SelFoundAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::SelectFoundInSelected));
+      Require(connect(CopyToClipboardAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::CopyPathToClipboard));
+      Require(connect(ShowStatisticAction, &QAction::triggered, &menu,
+                      &Playlist::UI::ItemsContextMenu::ShowStatisticOfSelected));
+      Require(connect(ExportAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::ExportSelected));
+      Require(connect(ConvertAction, &QAction::triggered, &menu, &Playlist::UI::ItemsContextMenu::ConvertSelected));
     }
   };
 
@@ -338,12 +354,12 @@ namespace
       const Playlist::Model::Ptr model = Controller.GetModel();
       const unsigned moveTo = *SelectedItems->begin();
       model->MoveItems(*SelectedItems, moveTo);
-      Playlist::Model::IndexSet toSelect;
+      auto toSelect = MakeRWPtr<Playlist::Model::IndexSet>();
       for (unsigned idx = 0, lim = SelectedItems->size(); idx != lim; ++idx)
       {
-        toSelect.insert(moveTo + idx);
+        toSelect->insert(moveTo + idx);
       }
-      View.SelectItems(toSelect);
+      View.SelectItems(std::move(toSelect));
     }
 
     void RemoveAllDuplicates() const override
@@ -512,24 +528,24 @@ namespace
     void ExecuteRemoveOperation(Playlist::Item::SelectionOperation::Ptr op) const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)),
-                             SLOT(RemoveItems(Playlist::Model::IndexSet::Ptr))));
+      Require(
+          connect(op.get(), &Playlist::Item::SelectionOperation::ResultAcquired, model, &Playlist::Model::RemoveItems));
       model->PerformOperation(std::move(op));
     }
 
     void ExecuteSelectOperation(Playlist::Item::SelectionOperation::Ptr op) const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)),
-                           SLOT(SelectItems(Playlist::Model::IndexSet::Ptr))));
+      Require(connect(op.get(), &Playlist::Item::SelectionOperation::ResultAcquired, &View,
+                      &Playlist::UI::TableView::SelectItems));
       model->PerformOperation(std::move(op));
     }
 
     void ExecuteNotificationOperation(Playlist::Item::TextResultOperation::Ptr op) const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
-                                 SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
+      Require(connect(op.get(), &Playlist::Item::TextResultOperation::ResultAcquired, &Controller,
+                      &Playlist::Controller::ShowNotification));
       model->PerformOperation(std::move(op));
     }
 

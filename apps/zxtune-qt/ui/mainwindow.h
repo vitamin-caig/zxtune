@@ -19,6 +19,5 @@ class MainWindow : public QMainWindow
 public:
   using Ptr = QPointer<MainWindow>;
 
-public slots:
   virtual void SetCmdline(const QStringList& args) = 0;
 };

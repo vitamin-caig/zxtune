@@ -47,7 +47,7 @@ namespace
       if (mode->StartMaster())
       {
         const MainWindow::Ptr win = WidgetsFactory::Instance().CreateMainWindow(params);
-        Require(win->connect(mode, SIGNAL(OnSlaveStarted(const QStringList&)), SLOT(SetCmdline(const QStringList&))));
+        Require(win->connect(mode, &SingleModeDispatcher::OnSlaveStarted, win, &MainWindow::SetCmdline));
         win->SetCmdline(mode->GetCmdline());
         return qapp.exec();
       }

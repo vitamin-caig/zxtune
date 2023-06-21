@@ -45,7 +45,7 @@ namespace
 
       using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
       Parameters::IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
-      Require(connect(devices, SIGNAL(currentIndexChanged(const QString&)), SLOT(DeviceChanged(const QString&))));
+      Require(connect(devices, &QComboBox::currentTextChanged, this, &DirectSoundOptionsWidget::DeviceChanged));
     }
 
     String GetBackendId() const override
@@ -57,23 +57,6 @@ namespace
     QString GetDescription() const override
     {
       return nameGroup->title();
-    }
-
-    void DeviceChanged(const QString& name) override
-    {
-      const auto& id = FromQString(name);
-      Dbg("Selecting device '{}'", id);
-      const auto it = std::find_if(Devices.begin(), Devices.end(),
-                                   [&name, &id](const Device& dev) { return dev.Name == name || dev.Id == id; });
-      if (it != Devices.end())
-      {
-        devices->setCurrentIndex(it - Devices.begin());
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::DirectSound::DEVICE, it->Id);
-      }
-      else
-      {
-        devices->setCurrentIndex(-1);
-      }
     }
 
     // QWidget
@@ -98,12 +81,29 @@ namespace
     void FillDevices()
     {
       using namespace Sound;
-      for (const auto availableDevices = DirectSound::EnumerateDevices();
-           availableDevices->IsValid(); availableDevices->Next())
+      for (const auto availableDevices = DirectSound::EnumerateDevices(); availableDevices->IsValid();
+           availableDevices->Next())
       {
         const DirectSound::Device::Ptr cur = availableDevices->Get();
         Devices.emplace_back(*cur);
         devices->addItem(Devices.back().Name);
+      }
+    }
+
+    void DeviceChanged(const QString& name)
+    {
+      const auto& id = FromQString(name);
+      Dbg("Selecting device '{}'", id);
+      const auto it = std::find_if(Devices.begin(), Devices.end(),
+                                   [&name, &id](const Device& dev) { return dev.Name == name || dev.Id == id; });
+      if (it != Devices.end())
+      {
+        devices->setCurrentIndex(it - Devices.begin());
+        Options->SetValue(Parameters::ZXTune::Sound::Backends::DirectSound::DEVICE, it->Id);
+      }
+      else
+      {
+        devices->setCurrentIndex(-1);
       }
     }
 

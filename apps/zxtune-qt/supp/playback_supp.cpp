@@ -63,10 +63,10 @@ namespace
     {
       const unsigned UI_UPDATE_FPS = 5;
       Timer.setInterval(1000 / UI_UPDATE_FPS);
-      Require(
-          Timer.connect(this, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(start())));
-      Require(Timer.connect(this, SIGNAL(OnStopModule()), SLOT(stop())));
-      Require(connect(&Timer, SIGNAL(timeout()), SIGNAL(OnUpdateState())));
+      Require(connect(this, &PlaybackSupport::OnStartModule, &Timer,
+                      [timer = &Timer](Sound::Backend::Ptr, Playlist::Item::Data::Ptr) { timer->start(); }));
+      Require(connect(this, &PlaybackSupport::OnStopModule, &Timer, &QTimer::stop));
+      Require(connect(&Timer, &QTimer::timeout, this, &PlaybackSupport::OnUpdateState));
     }
 
     void SetDefaultItem(Playlist::Item::Data::Ptr item) override

@@ -136,7 +136,7 @@ namespace
       setModel(&model);
 
       // signals
-      Require(connect(this, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&))));
+      Require(connect(this, &QTableView::activated, this, &TableViewImpl::ActivateItem));
 
       Dbg("Created at {}", Self());
     }
@@ -158,13 +158,13 @@ namespace
       return result;
     }
 
-    void SelectItems(const Playlist::Model::IndexSet& indices) override
+    void SelectItems(Playlist::Model::IndexSet::Ptr indices) override
     {
       setEnabled(true);
       QAbstractItemModel* const curModel = model();
       QItemSelectionModel* const selectModel = selectionModel();
       QItemSelection selection;
-      for (auto index : indices)
+      for (auto index : *indices)
       {
         const QModelIndex left = curModel->index(index, 0);
         const QModelIndex right = curModel->index(index, Playlist::Model::COLUMNS_COUNT - 1);
@@ -172,9 +172,9 @@ namespace
         selection.merge(sel, QItemSelectionModel::Select);
       }
       selectModel->select(selection, QItemSelectionModel::ClearAndSelect);
-      if (!indices.empty())
+      if (!indices->empty())
       {
-        MoveToTableRow(*indices.rbegin());
+        MoveToTableRow(*indices->rbegin());
       }
     }
 
@@ -185,12 +185,7 @@ namespace
       scrollTo(idx, QAbstractItemView::EnsureVisible);
     }
 
-    void SelectItems(Playlist::Model::IndexSet::Ptr indices) override
-    {
-      return SelectItems(*indices);
-    }
-
-    void ActivateItem(const QModelIndex& index) override
+    void ActivateItem(const QModelIndex& index)
     {
       if (index.isValid())
       {

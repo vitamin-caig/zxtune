@@ -45,14 +45,7 @@ namespace
       , OneValue(oneValue)
     {
       BooleanValueImpl<Holder>::Reload();
-      Require(connect(&parent, SIGNAL(toggled(bool)), SLOT(Set(bool))));
-    }
-
-    void Set(bool value) override
-    {
-      const IntType val = value ? OneValue : 0;
-      Dbg("{}={}", static_cast<StringView>(Name), val);
-      Storage.SetValue(Name, val);
+      Require(connect(&parent, &Holder::toggled, this, &BooleanValueImpl::Set));
     }
 
     void Reset() override
@@ -68,6 +61,13 @@ namespace
     }
 
   private:
+    void Set(bool value)
+    {
+      const IntType val = value ? OneValue : 0;
+      Dbg("{}={}", static_cast<StringView>(Name), val);
+      Storage.SetValue(Name, val);
+    }
+
     bool GetValue() const
     {
       IntType val = Default ? OneValue : 0;
@@ -94,16 +94,7 @@ namespace
       , Value(value.to_string())
     {
       StringSetValue::Reload();
-      Require(connect(&parent, SIGNAL(toggled(bool)), SLOT(Set(bool))));
-    }
-
-    void Set(bool value) override
-    {
-      if (value)
-      {
-        Dbg("{}={}", static_cast<StringView>(Name), Value);
-        Storage.SetValue(Name, Value);
-      }
+      Require(connect(&parent, &QAbstractButton::toggled, this, &StringSetValue::Set));
     }
 
     void Reset() override
@@ -119,6 +110,15 @@ namespace
     }
 
   private:
+    void Set(bool value)
+    {
+      if (value)
+      {
+        Dbg("{}={}", static_cast<StringView>(Name), Value);
+        Storage.SetValue(Name, Value);
+      }
+    }
+
     StringType GetValue() const
     {
       StringType value;
@@ -142,7 +142,7 @@ namespace
   template<class Holder>
   void ConnectChanges(Holder& holder, IntegerValue& val)
   {
-    Require(val.connect(&holder, SIGNAL(valueChanged(int)), SLOT(Set(int))));
+    Require(QObject::connect(&holder, qOverload<int>(&Holder::valueChanged), &val, &IntegerValue::Set));
   }
 
   void SetWidgetValue(QComboBox& holder, int val)
@@ -152,7 +152,7 @@ namespace
 
   void ConnectChanges(QComboBox& holder, IntegerValue& val)
   {
-    Require(val.connect(&holder, SIGNAL(currentIndexChanged(int)), SLOT(Set(int))));
+    Require(QObject::connect(&holder, qOverload<int>(&QComboBox::currentIndexChanged), &val, &IntegerValue::Set));
   }
 
   template<class Holder>
@@ -248,18 +248,8 @@ namespace
       , Traits(traits)
     {
       BigIntegerValueImpl::Reload();
-      Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));
-      Require(connect(&parent, SIGNAL(editingFinished()), SLOT(Reload())));
-    }
-
-    void Set(const QString& value) override
-    {
-      const IntType val = value.toLongLong();
-      if (Math::InRange(val, Traits.Min, Traits.Max))
-      {
-        Dbg("{}={}", static_cast<StringView>(Traits.Name), val);
-        Storage.SetValue(Traits.Name, val);
-      }
+      Require(connect(&parent, &QLineEdit::textChanged, this, &BigIntegerValueImpl::Set));
+      Require(connect(&parent, &QLineEdit::editingFinished, this, &Value::Reload));
     }
 
     void Reset() override
@@ -283,6 +273,16 @@ namespace
     }
 
   private:
+    void Set(const QString& value)
+    {
+      const IntType val = value.toLongLong();
+      if (Math::InRange(val, Traits.Min, Traits.Max))
+      {
+        Dbg("{}={}", static_cast<StringView>(Traits.Name), val);
+        Storage.SetValue(Traits.Name, val);
+      }
+    }
+
     IntType GetValue() const
     {
       IntType value = Traits.Default;
@@ -307,14 +307,7 @@ namespace
       , Default(defValue.to_string())
     {
       StringValueImpl::Reload();
-      Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));
-    }
-
-    void Set(const QString& value) override
-    {
-      const auto val = FromQString(value);
-      Dbg("{}={}", static_cast<StringView>(Name), val);
-      Storage.SetValue(Name, val);
+      Require(connect(&parent, &QLineEdit::textChanged, this, &StringValueImpl::Set));
     }
 
     void Reset() override
@@ -330,6 +323,13 @@ namespace
     }
 
   private:
+    void Set(const QString& value)
+    {
+      const auto val = FromQString(value);
+      Dbg("{}={}", static_cast<StringView>(Name), val);
+      Storage.SetValue(Name, val);
+    }
+
     StringType GetValue() const
     {
       StringType value = Default;

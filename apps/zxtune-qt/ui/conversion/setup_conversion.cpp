@@ -78,11 +78,13 @@ namespace
       AddBackendSettingsWidget(&UI::CreateOGGSettingsWidget);
       AddBackendSettingsWidget(&UI::CreateFLACSettingsWidget);
 
-      Require(connect(TargetTemplate, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions())));
-      Require(connect(TargetFormat, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions())));
+      Require(connect(TargetTemplate, &UI::FilenameTemplateWidget::SettingsChanged, this,
+                      &SetupConversionDialogImpl::UpdateDescriptions));
+      Require(connect(TargetFormat, &UI::SupportedFormatsWidget::SettingsChanged, this,
+                      &SetupConversionDialogImpl::UpdateDescriptions));
 
-      Require(connect(buttonBox, SIGNAL(accepted()), SLOT(accept())));
-      Require(connect(buttonBox, SIGNAL(rejected()), SLOT(reject())));
+      Require(connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept));
+      Require(connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject));
 
       toolBox->setCurrentIndex(TEMPLATE_PAGE);
       useMultithreading->setEnabled(HasMultithreadEnvironment());
@@ -106,13 +108,6 @@ namespace
       }
     }
 
-    void UpdateDescriptions() override
-    {
-      UpdateTargetDescription();
-      UpdateFormatDescription();
-      UpdateSettingsDescription();
-    }
-
     // QWidgets virtuals
     void closeEvent(QCloseEvent* event) override
     {
@@ -121,12 +116,20 @@ namespace
     }
 
   private:
+    void UpdateDescriptions()
+    {
+      UpdateTargetDescription();
+      UpdateFormatDescription();
+      UpdateSettingsDescription();
+    }
+
     void AddBackendSettingsWidget(UI::BackendSettingsWidget* factory(QWidget&))
     {
       QWidget* const settingsWidget = toolBox->widget(SETTINGS_PAGE);
       UI::BackendSettingsWidget* const result = factory(*settingsWidget);
       formatSettingsLayout->addWidget(result);
-      Require(connect(result, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions())));
+      Require(connect(result, &UI::BackendSettingsWidget::SettingsChanged, this,
+                      &SetupConversionDialogImpl::UpdateDescriptions));
       BackendSettings[result->GetBackendId()] = result;
     }
 

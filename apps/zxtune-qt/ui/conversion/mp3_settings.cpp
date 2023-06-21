@@ -82,12 +82,13 @@ namespace
       // setup self
       setupUi(this);
 
-      Require(connect(selectCBR, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged())));
-      Require(connect(selectABR, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged())));
-      Require(connect(bitrateValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged())));
-      Require(connect(selectQuality, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged())));
-      Require(connect(qualityValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged())));
-      Require(connect(channelsMode, SIGNAL(currentIndexChanged(int)), SIGNAL(SettingsChanged())));
+      Require(connect(selectCBR, &QRadioButton::toggled, this, &UI::BackendSettingsWidget::SettingChanged<bool>));
+      Require(connect(selectABR, &QRadioButton::toggled, this, &UI::BackendSettingsWidget::SettingChanged<bool>));
+      Require(connect(bitrateValue, &QSlider::valueChanged, this, &UI::BackendSettingsWidget::SettingChanged<int>));
+      Require(connect(selectQuality, &QRadioButton::toggled, this, &UI::BackendSettingsWidget::SettingChanged<bool>));
+      Require(connect(qualityValue, &QSlider::valueChanged, this, &UI::BackendSettingsWidget::SettingChanged<int>));
+      Require(connect(channelsMode, qOverload<int>(&QComboBox::currentIndexChanged), this,
+                      &UI::BackendSettingsWidget::SettingChanged<int>));
 
       using namespace Parameters;
       ExclusiveValue::Bind(*selectCBR, *Options, ZXTune::Sound::Backends::Mp3::MODE,

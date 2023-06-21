@@ -88,7 +88,8 @@ namespace
       setupUi(this);
       SetupLanguages();
 
-      Require(connect(languageSelect, SIGNAL(currentIndexChanged(int)), SLOT(OnLanguageChanged(int))));
+      Require(connect(languageSelect, qOverload<int>(&QComboBox::currentIndexChanged), this,
+                      &InterfaceOptionsWidget::OnLanguageChanged));
       using namespace Parameters;
       IntegerValue::Bind(*playlistCachedFiles, *Options, ZXTuneQT::Playlist::Cache::FILES_LIMIT,
                          ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT);
@@ -100,13 +101,6 @@ namespace
       BooleanValue::Bind(*appSingleInstance, *Options, ZXTuneQT::SINGLE_INSTANCE, ZXTuneQT::SINGLE_INSTANCE_DEFAULT);
       CmdlineTarget = IntegerValue::Bind(*cmdlineTarget, *Options, ZXTuneQT::Playlist::CMDLINE_TARGET,
                                          ZXTuneQT::Playlist::CMDLINE_TARGET_DEFAULT);
-    }
-
-    void OnLanguageChanged(int idx) override
-    {
-      const QString lang = languageSelect->itemData(idx).toString();
-      Language->Set(lang);
-      Options->SetValue(Parameters::ZXTuneQT::UI::LANGUAGE, FromQString(lang));
     }
 
     // QWidget
@@ -139,6 +133,13 @@ namespace
       Parameters::StringType val = FromQString(Language->GetSystem());
       Options->FindValue(Parameters::ZXTuneQT::UI::LANGUAGE, val);
       return ToQString(val);
+    }
+
+    void OnLanguageChanged(int idx)
+    {
+      const QString lang = languageSelect->itemData(idx).toString();
+      Language->Set(lang);
+      Options->SetValue(Parameters::ZXTuneQT::UI::LANGUAGE, FromQString(lang));
     }
 
   private:

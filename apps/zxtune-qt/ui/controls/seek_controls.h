@@ -28,13 +28,6 @@ protected:
 public:
   // creator
   static SeekControls* Create(QWidget& parent, PlaybackSupport& supp);
-
-public slots:
-  virtual void InitState(Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
-  virtual void UpdateState() = 0;
-  virtual void CloseState() = 0;
-private slots:
-  virtual void EndSeeking() = 0;
 signals:
   void OnSeeking(Time::AtMillisecond);
 };

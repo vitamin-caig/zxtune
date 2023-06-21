@@ -106,7 +106,6 @@ namespace Playlist
     // modifiers
     virtual void Clear() = 0;
     virtual void MoveItems(const IndexSet& items, IndexType target) = 0;
-  public slots:
     virtual void AddItem(Playlist::Item::Data::Ptr item) = 0;
     virtual void AddItems(Playlist::Item::Collection::Ptr items) = 0;
     virtual void RemoveItems(Playlist::Model::IndexSet::Ptr items) = 0;

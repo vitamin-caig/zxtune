@@ -49,38 +49,9 @@ namespace
       Parameters::BooleanValue::Bind(*isDACInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION,
                                      Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT);
 
-      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-                      SLOT(InitState(Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));
-      Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
-      Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
-    }
-
-    void InitState(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item) override
-    {
-      const Playlist::Item::Capabilities& caps = item->GetCapabilities();
-      AYMOptions->setVisible(caps.IsAYM());
-      DACOptions->setVisible(caps.IsDAC());
-      SetEnabled(true);
-
-      ModuleProperties = item->GetModuleProperties();
-    }
-
-    void UpdateState() override
-    {
-      if (isVisible() && ModuleProperties)
-      {
-        // TODO: use walker?
-        Parameters::IntType val;
-        isYM->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::AYM::TYPE, val));
-        aymLayout->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, val));
-        isDACInterpolated->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val));
-      }
-    }
-
-    void CloseState() override
-    {
-      SetEnabled(false);
-      ModuleProperties = {};
+      Require(connect(&supp, &PlaybackSupport::OnStartModule, this, &PlaybackOptionsImpl::InitState));
+      Require(connect(&supp, &PlaybackSupport::OnUpdateState, this, &PlaybackOptionsImpl::UpdateState));
+      Require(connect(&supp, &PlaybackSupport::OnStopModule, this, &PlaybackOptionsImpl::CloseState));
     }
 
     // QWidget
@@ -94,6 +65,34 @@ namespace
     }
 
   private:
+    void InitState(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
+    {
+      const Playlist::Item::Capabilities& caps = item->GetCapabilities();
+      AYMOptions->setVisible(caps.IsAYM());
+      DACOptions->setVisible(caps.IsDAC());
+      SetEnabled(true);
+
+      ModuleProperties = item->GetModuleProperties();
+    }
+
+    void UpdateState()
+    {
+      if (isVisible() && ModuleProperties)
+      {
+        // TODO: use walker?
+        Parameters::IntType val;
+        isYM->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::AYM::TYPE, val));
+        aymLayout->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, val));
+        isDACInterpolated->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val));
+      }
+    }
+
+    void CloseState()
+    {
+      SetEnabled(false);
+      ModuleProperties = {};
+    }
+
     void SetEnabled(bool enabled)
     {
       AYMOptions->setEnabled(enabled);

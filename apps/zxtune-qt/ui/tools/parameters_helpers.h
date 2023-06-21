@@ -32,7 +32,8 @@ namespace Parameters
     Q_OBJECT
   protected:
     explicit Value(QObject& parent);
-  public slots:
+
+  public:
     virtual void Reset() = 0;
     virtual void Reload() = 0;
   };
@@ -64,8 +65,6 @@ namespace Parameters
     static Value* Bind(QAction& action, Container& ctr, Identifier name, bool defValue);
     static Value* Bind(QAbstractButton& button, Container& ctr, Identifier name, bool defValue, IntType oneValue = 1);
     static Value* Bind(QGroupBox& box, Container& ctr, Identifier name, bool defValue, IntType oneValue = 1);
-  private slots:
-    virtual void Set(bool value) = 0;
   };
 
   class ExclusiveValue : public Value
@@ -76,8 +75,6 @@ namespace Parameters
 
   public:
     static Value* Bind(QAbstractButton& button, Container& ctr, Identifier name, StringView value);
-  private slots:
-    virtual void Set(bool value) = 0;
   };
 
   class Integer
@@ -102,7 +99,7 @@ namespace Parameters
     static Value* Bind(QSlider& slider, Container& ctr, Identifier name, int defValue);
     static Value* Bind(QSpinBox& spinbox, Container& ctr, Identifier name, int defValue);
     static Value* Bind(QComboBox& combo, Integer::Ptr val);
-  private slots:
+
     virtual void Set(int value) = 0;
   };
 
@@ -114,8 +111,6 @@ namespace Parameters
 
   public:
     static Value* Bind(QLineEdit& edit, Container& ctr, const IntegerTraits& traits);
-  private slots:
-    virtual void Set(const QString& value) = 0;
   };
 
   class StringValue : public Value
@@ -126,8 +121,6 @@ namespace Parameters
 
   public:
     static Value* Bind(QLineEdit& edit, Container& ctr, Identifier name, StringView defValue);
-  private slots:
-    virtual void Set(const QString& value) = 0;
   };
 
   /*

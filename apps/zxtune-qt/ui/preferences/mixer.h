@@ -31,7 +31,7 @@ namespace UI
     };
 
     static MixerWidget* Create(QWidget& parent, Channel chan);
-  public slots:
+
     virtual void setValue(int val) = 0;
   signals:
     void valueChanged(int val);
@@ -48,7 +48,5 @@ namespace Parameters
 
   public:
     static void Bind(UI::MixerWidget& mix, Container& ctr, Identifier name, int defValue);
-  private slots:
-    virtual void SetValue(int value) = 0;
   };
 }  // namespace Parameters

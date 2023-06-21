@@ -34,13 +34,12 @@ namespace
       setupUi(this);
       hide();
       // make connections with scanner
-      Require(connect(Scanner, SIGNAL(ScanStarted(Playlist::ScanStatus::Ptr)), this,
-                      SLOT(ScanStart(Playlist::ScanStatus::Ptr))));
-      Require(connect(Scanner, SIGNAL(ScanStopped()), this, SLOT(ScanStop())));
-      Require(connect(Scanner, SIGNAL(ScanProgressChanged(unsigned)), SLOT(ShowProgress(unsigned))));
-      Require(connect(Scanner, SIGNAL(ScanMessageChanged(const QString&)), SLOT(ShowProgressMessage(const QString&))));
-      Require(Scanner->connect(scanCancel, SIGNAL(clicked()), SLOT(Stop())));
-      Require(Scanner->connect(scanPause, SIGNAL(toggled(bool)), SLOT(Pause(bool))));
+      Require(connect(Scanner, &Playlist::Scanner::ScanStarted, this, &ScannerViewImpl::ScanStart));
+      Require(connect(Scanner, &Playlist::Scanner::ScanStopped, this, &ScannerViewImpl::ScanStop));
+      Require(connect(Scanner, &Playlist::Scanner::ScanProgressChanged, this, &ScannerViewImpl::ShowProgress));
+      Require(connect(Scanner, &Playlist::Scanner::ScanMessageChanged, scanProgress, &QProgressBar::setToolTip));
+      Require(connect(scanCancel, &QToolButton::clicked, Scanner, &Playlist::Scanner::Stop));
+      Require(connect(scanPause, &QToolButton::toggled, Scanner, &Playlist::Scanner::Pause));
 
       Dbg("Created at {}", Self());
     }
@@ -50,21 +49,22 @@ namespace
       Dbg("Destroyed at {}", Self());
     }
 
-    void ScanStart(Playlist::ScanStatus::Ptr status) override
+  private:
+    void ScanStart(Playlist::ScanStatus::Ptr status)
     {
       Dbg("Scan started for {}", Self());
       Status = status;
       show();
     }
 
-    void ScanStop() override
+    void ScanStop()
     {
       Dbg("Scan stopped for {}", Self());
       hide();
       scanPause->setChecked(false);
     }
 
-    void ShowProgress(unsigned progress) override
+    void ShowProgress(unsigned progress)
     {
       // new file started
       if (progress == 0)
@@ -80,12 +80,6 @@ namespace
       CheckedShow();
     }
 
-    void ShowProgressMessage(const QString& message) override
-    {
-      scanProgress->setToolTip(message);
-    }
-
-  private:
     const void* Self() const
     {
       return this;

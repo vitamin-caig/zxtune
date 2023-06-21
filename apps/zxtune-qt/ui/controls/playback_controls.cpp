@@ -36,15 +36,15 @@ namespace
       SetupMenu();
 
       // connect actions with self signals
-      Require(connect(actionPlay, SIGNAL(triggered()), SIGNAL(OnPlay())));
-      Require(connect(actionPause, SIGNAL(triggered()), SIGNAL(OnPause())));
-      Require(connect(actionStop, SIGNAL(triggered()), SIGNAL(OnStop())));
-      Require(connect(actionPrevious, SIGNAL(triggered()), SIGNAL(OnPrevious())));
-      Require(connect(actionNext, SIGNAL(triggered()), SIGNAL(OnNext())));
+      Require(connect(actionPlay, &QAction::triggered, this, &::PlaybackControls::OnPlay));
+      Require(connect(actionPause, &QAction::triggered, this, &::PlaybackControls::OnPause));
+      Require(connect(actionStop, &QAction::triggered, this, &::PlaybackControls::OnStop));
+      Require(connect(actionPrevious, &QAction::triggered, this, &::PlaybackControls::OnPrevious));
+      Require(connect(actionNext, &QAction::triggered, this, &::PlaybackControls::OnNext));
 
-      Require(supp.connect(this, SIGNAL(OnPlay()), SLOT(Play())));
-      Require(supp.connect(this, SIGNAL(OnStop()), SLOT(Stop())));
-      Require(supp.connect(this, SIGNAL(OnPause()), SLOT(Pause())));
+      Require(connect(this, &::PlaybackControls::OnPlay, &supp, &PlaybackSupport::Play));
+      Require(connect(this, &::PlaybackControls::OnStop, &supp, &PlaybackSupport::Stop));
+      Require(connect(this, &::PlaybackControls::OnPause, &supp, &PlaybackSupport::Pause));
     }
 
     QMenu* GetActionsMenu() const override

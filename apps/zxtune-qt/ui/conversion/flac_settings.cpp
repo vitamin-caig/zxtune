@@ -40,7 +40,7 @@ namespace
       // setup self
       setupUi(this);
 
-      Require(connect(compressionValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged())));
+      Require(connect(compressionValue, &QSlider::valueChanged, this, &UI::BackendSettingsWidget::SettingChanged<int>));
 
       using namespace Parameters;
       IntegerValue::Bind(*compressionValue, *Options, ZXTune::Sound::Backends::Flac::COMPRESSION,

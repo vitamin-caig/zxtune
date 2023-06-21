@@ -34,7 +34,7 @@ namespace
       setupUi(this);
       LoadName();
 
-      Require(connect(channelValue, SIGNAL(valueChanged(int)), SIGNAL(valueChanged(int))));
+      Require(connect(channelValue, &QSlider::valueChanged, this, &UI::MixerWidget::valueChanged));
     }
 
     void setValue(int val) override
@@ -90,10 +90,11 @@ namespace
       IntType value = defValue;
       Storage.FindValue(Name, value);
       parent.setValue(value);
-      Require(connect(&parent, SIGNAL(valueChanged(int)), SLOT(SetValue(int))));
+      Require(connect(&parent, &UI::MixerWidget::valueChanged, this, &MixerValueImpl::SetValue));
     }
 
-    void SetValue(int value) override
+  private:
+    void SetValue(int value)
     {
       Storage.SetValue(Name, value);
     }

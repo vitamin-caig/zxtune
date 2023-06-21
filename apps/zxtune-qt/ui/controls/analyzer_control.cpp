@@ -81,44 +81,10 @@ namespace
 
       Timer.setInterval(1000 / UPDATE_FPS);
 
-      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-                      SLOT(InitState(Sound::Backend::Ptr))));
-      Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
-      Require(connect(&Timer, SIGNAL(timeout()), SLOT(UpdateState())));
+      Require(connect(&supp, &PlaybackSupport::OnStartModule, this, &AnalyzerControlImpl::InitState));
+      Require(connect(&supp, &PlaybackSupport::OnStopModule, this, &AnalyzerControlImpl::CloseState));
+      Require(connect(&Timer, &QTimer::timeout, this, &AnalyzerControlImpl::UpdateState));
     }
-
-    void InitState(Sound::Backend::Ptr player) override
-    {
-      Analyzer = player->GetAnalyzer();
-      CloseState();
-      Timer.start();
-    }
-
-    void UpdateState() override
-    {
-      if (isVisible())
-      {
-        for (auto& level : Levels)
-        {
-          level.Fall(LEVELS_FALLBACK);
-        }
-        std::array<Sound::Analyzer::LevelType, MAX_BANDS> spectrum;
-        Analyzer->GetSpectrum(spectrum.data(), spectrum.size());
-        for (uint_t idx = 0; idx < spectrum.size(); ++idx)
-        {
-          Levels[idx].Set(spectrum[idx].Raw());
-        }
-        repaint();
-      }
-    }
-
-    void CloseState() override
-    {
-      std::for_each(Levels.begin(), Levels.end(), [](BandLevel& level) { level.Set(0); });
-      DoRepaint();
-      Timer.stop();
-    }
-
     // QWidget
     void changeEvent(QEvent* event) override
     {
@@ -155,6 +121,38 @@ namespace
     }
 
   private:
+    void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr)
+    {
+      Analyzer = player->GetAnalyzer();
+      CloseState();
+      Timer.start();
+    }
+
+    void UpdateState()
+    {
+      if (isVisible())
+      {
+        for (auto& level : Levels)
+        {
+          level.Fall(LEVELS_FALLBACK);
+        }
+        std::array<Sound::Analyzer::LevelType, MAX_BANDS> spectrum;
+        Analyzer->GetSpectrum(spectrum.data(), spectrum.size());
+        for (uint_t idx = 0; idx < spectrum.size(); ++idx)
+        {
+          Levels[idx].Set(spectrum[idx].Raw());
+        }
+        repaint();
+      }
+    }
+
+    void CloseState()
+    {
+      std::for_each(Levels.begin(), Levels.end(), [](BandLevel& level) { level.Set(0); });
+      DoRepaint();
+      Timer.stop();
+    }
+
     void SetTitle()
     {
       setWindowTitle(AnalyzerControl::tr("Analyzer"));

@@ -372,7 +372,7 @@ namespace
       , Params(std::move(params))
     {
       setParent(&parent);
-      QTimer::singleShot(CHECK_UPDATE_DELAY * 1000, this, SLOT(ExecuteBackground()));
+      QTimer::singleShot(CHECK_UPDATE_DELAY * 1000, this, &UpdateCheckOperation::ExecuteBackground);
     }
 
     void Execute() override
@@ -396,31 +396,6 @@ namespace
       catch (const Error& e)
       {
         emit ErrorOccurred(e);
-      }
-    }
-
-    void ExecuteBackground() override
-    {
-      try
-      {
-        // If check was performed before
-        if (!CheckPeriodExpired())
-        {
-          return;
-        }
-        if (const Product::Update::Ptr update = GetAvailableUpdateSilent())
-        {
-          if (QMessageBox::Save == ShowUpdateDialog(*update))
-          {
-            ApplyUpdate(*update);
-          }
-        }
-      }
-      catch (const Canceled&)
-      {}
-      catch (const Error&)
-      {
-        // Do not bother with implicit check errors
       }
     }
 
@@ -508,6 +483,31 @@ namespace
       else
       {
         return false;
+      }
+    }
+
+    void ExecuteBackground()
+    {
+      try
+      {
+        // If check was performed before
+        if (!CheckPeriodExpired())
+        {
+          return;
+        }
+        if (const Product::Update::Ptr update = GetAvailableUpdateSilent())
+        {
+          if (QMessageBox::Save == ShowUpdateDialog(*update))
+          {
+            ApplyUpdate(*update);
+          }
+        }
+      }
+      catch (const Canceled&)
+      {}
+      catch (const Error&)
+      {
+        // Do not bother with implicit check errors
       }
     }
 

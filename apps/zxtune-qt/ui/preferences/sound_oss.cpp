@@ -36,8 +36,8 @@ namespace
       // setup self
       setupUi(this);
 
-      Require(connect(selectDevice, SIGNAL(clicked()), SLOT(DeviceSelected())));
-      Require(connect(selectMixer, SIGNAL(clicked()), SLOT(MixerSelected())));
+      Require(connect(selectDevice, &QToolButton::clicked, this, &OssOptionsWidget::DeviceSelected));
+      Require(connect(selectMixer, &QToolButton::clicked, this, &OssOptionsWidget::MixerSelected));
 
       using namespace Parameters::ZXTune::Sound::Backends::Oss;
       Parameters::StringValue::Bind(*device, *Options, DEVICE, DEVICE_DEFAULT);
@@ -55,24 +55,6 @@ namespace
       return nameGroup->title();
     }
 
-    void DeviceSelected() override
-    {
-      QString devFile = device->text();
-      if (OpenFileDialog(UI::OssSettingsWidget::tr("Select device"), devFile))
-      {
-        device->setText(devFile);
-      }
-    }
-
-    void MixerSelected() override
-    {
-      QString mixFile = mixer->text();
-      if (OpenFileDialog(UI::OssSettingsWidget::tr("Select mixer"), mixFile))
-      {
-        mixer->setText(mixFile);
-      }
-    }
-
     // QWidget
     void changeEvent(QEvent* event) override
     {
@@ -84,6 +66,24 @@ namespace
     }
 
   private:
+    void DeviceSelected()
+    {
+      QString devFile = device->text();
+      if (OpenFileDialog(UI::OssSettingsWidget::tr("Select device"), devFile))
+      {
+        device->setText(devFile);
+      }
+    }
+
+    void MixerSelected()
+    {
+      QString mixFile = mixer->text();
+      if (OpenFileDialog(UI::OssSettingsWidget::tr("Select mixer"), mixFile))
+      {
+        mixer->setText(mixFile);
+      }
+    }
+
     bool OpenFileDialog(const QString& title, QString& filename)
     {
       // do not use UI::OpenSingleFileDialog for keeping global settings intact

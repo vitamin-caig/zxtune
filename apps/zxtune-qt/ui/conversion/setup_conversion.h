@@ -30,8 +30,6 @@ namespace UI
     static Ptr Create(QWidget& parent);
 
     virtual Playlist::Item::Conversion::Options::Ptr Execute() = 0;
-  private slots:
-    virtual void UpdateDescriptions() = 0;
   };
 
   // raw format

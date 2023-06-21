@@ -59,8 +59,9 @@ namespace
       State->AddWidget(*DirectoryName);
       State->AddWidget(*FileTemplate);
 
-      Require(connect(DirectoryName, SIGNAL(editTextChanged(const QString&)), SIGNAL(SettingsChanged())));
-      Require(connect(FileTemplate, SIGNAL(editTextChanged(const QString&)), SIGNAL(SettingsChanged())));
+      auto onChangeSettings = [this](const QString&) { emit SettingsChanged(); };
+      Require(connect(DirectoryName, &QComboBox::editTextChanged, this, onChangeSettings));
+      Require(connect(FileTemplate, &QComboBox::editTextChanged, this, onChangeSettings));
 
       State->Load();
 
@@ -93,7 +94,8 @@ namespace
       return name;
     }
 
-    void OnBrowseDirectory() override
+  private:
+    void OnBrowseDirectory()
     {
       QString dir = DirectoryName->currentText();
       if (UI::OpenFolderDialog(dirSelectionGroup->title(), dir))
@@ -103,13 +105,12 @@ namespace
       }
     }
 
-    void OnClickHint(const QString& hint) override
+    void OnClickHint(const QString& hint)
     {
       QLineEdit* const editor = FileTemplate->lineEdit();
       editor->setText(editor->text() + hint);
     }
 
-  private:
     void UpdateRecentItemsLists() const
     {
       UpdateRecent(*FileTemplate);
@@ -129,8 +130,8 @@ namespace
     {
       TemplateBuilder = UI::FilenameTemplateWidget::Create(*this);
       auto* const buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
-      Require(connect(buttons, SIGNAL(accepted()), this, SLOT(accept())));
-      Require(connect(buttons, SIGNAL(rejected()), this, SLOT(reject())));
+      Require(connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept));
+      Require(connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject));
       auto* const layout = new QVBoxLayout(this);
       layout->setContentsMargins(4, 4, 4, 4);
       layout->setSpacing(4);

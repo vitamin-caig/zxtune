@@ -110,10 +110,11 @@ namespace
       itemsLayout->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding),
                            itemsLayout->rowCount(), 0);
 
-      Require(connect(buttons, SIGNAL(clicked(QAbstractButton*)), SLOT(ButtonClicked(QAbstractButton*))));
+      Require(connect(buttons, &QDialogButtonBox::clicked, this, &PropertiesDialogImpl::ButtonClicked));
     }
 
-    void ButtonClicked(QAbstractButton* button) override
+  private:
+    void ButtonClicked(QAbstractButton* button)
     {
       switch (buttons->buttonRole(button))
       {
@@ -124,7 +125,6 @@ namespace
       }
     }
 
-  private:
     void FillProperties(const Playlist::Item::Capabilities& caps)
     {
       AddStringProperty(Playlist::UI::PropertiesDialog::tr("Title"), Module::ATTR_TITLE);
@@ -209,8 +209,8 @@ namespace
       itemsLayout->addWidget(new QLabel(title, this), row, 0);
       itemsLayout->addWidget(widget, row, 1);
       itemsLayout->addWidget(resetButton, row, 2);
-      Require(value->connect(this, SIGNAL(ResetToDefaults()), SLOT(Reset())));
-      Require(value->connect(resetButton, SIGNAL(clicked()), SLOT(Reset())));
+      Require(connect(this, &Playlist::UI::PropertiesDialog::ResetToDefaults, value, &Parameters::Value::Reset));
+      Require(connect(resetButton, &QToolButton::clicked, value, &Parameters::Value::Reset));
     }
 
     void AddStrings(Parameters::Identifier name)
