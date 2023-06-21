@@ -84,7 +84,7 @@ namespace
 
     QDate Date() const override
     {
-      return QDate::fromString(ToQString(Platform::Version::GetBuildDate()), Qt::SystemLocaleShortDate);
+      return QDate::fromString(ToQString(Platform::Version::GetBuildDate()), "MMM d yyyy");
     }
   };
 

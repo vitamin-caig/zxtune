@@ -89,7 +89,7 @@ namespace
       // do not use UI::OpenSingleFileDialog for keeping global settings intact
       QFileDialog dialog(this, title, filename, QLatin1String("*"));
       dialog.setFileMode(QFileDialog::ExistingFile);
-      dialog.setReadOnly(true);
+      dialog.setOption(QFileDialog::ReadOnly, true);
       dialog.setOption(QFileDialog::DontUseNativeDialog, true);
       dialog.setOption(QFileDialog::HideNameFilterDetails, true);
       if (QDialog::Accepted == dialog.exec())

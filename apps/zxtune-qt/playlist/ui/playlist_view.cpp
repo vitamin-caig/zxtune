@@ -343,7 +343,7 @@ namespace
       if (auto* const layout = new QVBoxLayout(this))
       {
         layout->setSpacing(1);
-        layout->setMargin(1);
+        layout->setContentsMargins(1, 1, 1, 1);
         layout->addWidget(View);
         OperationProgress->setVisible(false);
         if (UI::ErrorsWidget* const errors = UI::ErrorsWidget::Create(*this))

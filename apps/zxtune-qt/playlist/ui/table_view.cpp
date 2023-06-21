@@ -19,6 +19,8 @@
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
+// std includes
+#include <algorithm>
 // qt includes
 #include <QtGui/QContextMenuEvent>
 #include <QtWidgets/QHeaderView>
@@ -53,16 +55,16 @@ namespace
       setSectionsMovable(true);
       setSectionsClickable(true);
       const QFontMetrics fontMetrics(font());
-      resizeSection(Playlist::Model::COLUMN_TYPE, fontMetrics.width(TYPE_TEXT));
+      resizeSection(Playlist::Model::COLUMN_TYPE, fontMetrics.horizontalAdvance(TYPE_TEXT));
       resizeSection(Playlist::Model::COLUMN_DISPLAY_NAME, DISPLAYNAME_WIDTH);
-      resizeSection(Playlist::Model::COLUMN_DURATION, fontMetrics.width(DURATION_TEXT));
+      resizeSection(Playlist::Model::COLUMN_DURATION, fontMetrics.horizontalAdvance(DURATION_TEXT));
       resizeSection(Playlist::Model::COLUMN_AUTHOR, AUTHOR_WIDTH);
       resizeSection(Playlist::Model::COLUMN_TITLE, TITLE_WIDTH);
       resizeSection(Playlist::Model::COLUMN_COMMENT, COMMENT_WIDTH);
       resizeSection(Playlist::Model::COLUMN_PATH, PATH_WIDTH);
-      resizeSection(Playlist::Model::COLUMN_SIZE, fontMetrics.width(SIZE_TEXT));
-      resizeSection(Playlist::Model::COLUMN_CRC, fontMetrics.width(CRC_TEXT));
-      resizeSection(Playlist::Model::COLUMN_FIXEDCRC, fontMetrics.width(CRC_TEXT));
+      resizeSection(Playlist::Model::COLUMN_SIZE, fontMetrics.horizontalAdvance(SIZE_TEXT));
+      resizeSection(Playlist::Model::COLUMN_CRC, fontMetrics.horizontalAdvance(CRC_TEXT));
+      resizeSection(Playlist::Model::COLUMN_FIXEDCRC, fontMetrics.horizontalAdvance(CRC_TEXT));
 
       // default view
       for (int idx = Playlist::Model::COLUMN_AUTHOR; idx != Playlist::Model::COLUMNS_COUNT; ++idx)
@@ -204,8 +206,7 @@ namespace
         // selection->currentIndex() does not work
         // items are orderen by selection, not by position
         QModelIndexList items = selection->selectedRows();
-        qSort(items);
-        scrollTo(items.first(), QAbstractItemView::EnsureVisible);
+        scrollTo(*std::min_element(items.begin(), items.end()), QAbstractItemView::EnsureVisible);
       }
     }
 
