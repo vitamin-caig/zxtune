@@ -15,9 +15,10 @@
 #include "playlist/supp/data_provider.h"
 // common includes
 #include <progress_callback.h>
+// qt includes
+#include <QtCore/QStringList>
 
 class QString;
-class QStringList;
 
 namespace Playlist::IO
 {

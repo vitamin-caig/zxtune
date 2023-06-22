@@ -44,7 +44,7 @@ namespace
     RSS::Entry res;
     while (xml.readNextStartElement())
     {
-      const QStringRef tag = xml.name();
+      const auto tag = xml.name();
       if (tag == RSS::UPDATED)
       {
         res.Updated = QDate::fromString(xml.readElementText(), Qt::ISODate);
@@ -52,8 +52,8 @@ namespace
       else if (tag == RSS::LINK)
       {
         const QXmlStreamAttributes attributes = xml.attributes();
-        const QStringRef rel = attributes.value(RSS::REL);
-        const QStringRef ref = attributes.value(RSS::HREF);
+        const auto rel = attributes.value(RSS::REL);
+        const auto ref = attributes.value(RSS::HREF);
         if (rel == RSS::DIRECT)
         {
           res.DirectLink = ref.toString();
@@ -99,7 +99,7 @@ namespace RSS
     }
     while (xml.readNextStartElement())
     {
-      const QStringRef tag = xml.name();
+      const auto tag = xml.name();
       if (tag == RSS::ENTRY)
       {
         const Entry entry = ParseEntry(xml);

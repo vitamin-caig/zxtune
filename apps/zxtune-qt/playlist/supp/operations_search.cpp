@@ -20,7 +20,7 @@
 // std includes
 #include <utility>
 // qt includes
-#include <QtCore/QRegExp>
+#include <QtCore/QRegularExpression>
 
 namespace
 {
@@ -163,7 +163,7 @@ namespace
   {
   public:
     RegexStringPredicate(const QString& val, bool caseSensitive)
-      : Pattern(val, caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive)
+      : Pattern(val, caseSensitive ? QRegularExpression::PatternOption::NoPatternOption : QRegularExpression::PatternOption::CaseInsensitiveOption)
     {}
 
     bool Match(StringView str) const override
@@ -172,7 +172,7 @@ namespace
     }
 
   private:
-    const QRegExp Pattern;
+    const QRegularExpression Pattern;
   };
 
   Predicate::Ptr CreatePredicate(const Playlist::Item::Search::Data& data)

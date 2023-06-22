@@ -64,22 +64,4 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>volumeLevel</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>volumeDisplay</receiver>
-   <slot>display(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>135</x>
-     <y>19</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>303</x>
-     <y>19</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
 </ui>

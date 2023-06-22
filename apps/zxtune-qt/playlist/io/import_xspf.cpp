@@ -127,7 +127,7 @@ namespace
           return false;
         }
         const QXmlStreamAttributes attributes = XML.attributes();
-        if (attributes.value(QLatin1String(XSPF::VERSION_ATTR)) != XSPF::VERSION_VALUE)
+        if (attributes.value(XSPF::VERSION_ATTR) != QString(XSPF::VERSION_VALUE))
         {
           Dbg("  unknown format version");
         }
@@ -149,10 +149,9 @@ namespace
   private:
     bool ParsePlaylist(Log::ProgressCallback& cb)
     {
-      assert(XML.isStartElement() && XML.name() == XSPF::ROOT_TAG);
       while (XML.readNextStartElement())
       {
-        const QStringRef& tagName = XML.name();
+        const auto& tagName = XML.name();
         if (tagName == XSPF::EXTENSION_TAG)
         {
           Dbg(" Parsing playlist extension");
@@ -183,7 +182,7 @@ namespace
       Log::PercentProgressCallback progress(File.size(), cb);
       for (uint_t count = 0; XML.readNextStartElement(); ++count)
       {
-        const QStringRef& tagName = XML.name();
+        const auto& tagName = XML.name();
         if (tagName == XSPF::ITEM_TAG)
         {
           if (!ParseTrackItem())
@@ -215,7 +214,7 @@ namespace
       const Parameters::Container::Ptr parameters = Parameters::Container::Create();
       while (XML.readNextStartElement())
       {
-        const QStringRef& tagName = XML.name();
+        const auto& tagName = XML.name();
         if (tagName == XSPF::ITEM_LOCATION_TAG)
         {
           item.Path = ParseTrackitemLocation();
@@ -245,7 +244,7 @@ namespace
       return FromQString(itemLocation);
     }
 
-    void ParseTrackitemParameters(const QStringRef& attr, Parameters::Visitor& props)
+    void ParseTrackitemParameters(const QStringView& attr, Parameters::Visitor& props)
     {
       assert(XML.isStartElement() && XML.name() == attr);
       if (attr == XSPF::ITEM_CREATOR_TAG)
@@ -292,13 +291,13 @@ namespace
       Strings::Map strings;
       while (XML.readNextStartElement())
       {
-        const QStringRef& tagName = XML.name();
+        const auto& tagName = XML.name();
         if (tagName != XSPF::EXTENDED_PROPERTY_TAG)
         {
           XML.skipCurrentElement();
         }
         const QXmlStreamAttributes attributes = XML.attributes();
-        const QStringRef& propName = attributes.value(QLatin1String(XSPF::EXTENDED_PROPERTY_NAME_ATTR));
+        const auto& propName = attributes.value(QLatin1String(XSPF::EXTENDED_PROPERTY_NAME_ATTR));
         const QString& propValue = XML.readElementText();
         const String propNameStr = FromQString(propName.toString());
         const String propValStr = ConvertString(propValue);

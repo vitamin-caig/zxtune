@@ -69,7 +69,7 @@ namespace
   // does not exists), but store only to actual.
   QDir GetOutdatedPlaylistsDir()
   {
-    return {QStandardPaths::locate(QStandardPaths::DataLocation, "", QStandardPaths::LocateDirectory) + "/"
+    return {QStandardPaths::locate(QStandardPaths::AppDataLocation, "", QStandardPaths::LocateDirectory) + "/"
             + QCoreApplication::applicationName() + "/Playlists"};
   }
 
@@ -82,7 +82,7 @@ namespace
   {
   public:
     FiledSession()
-      : TargetDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/Playlists")
+      : TargetDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Playlists")
       , SourceDir(TargetDir.exists() ? TargetDir : GetOutdatedPlaylistsDir())
     {
       Files = GetPlaylistFiles(SourceDir);

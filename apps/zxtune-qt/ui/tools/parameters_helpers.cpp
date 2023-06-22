@@ -18,8 +18,8 @@
 // std includes
 #include <utility>
 // qt includes
+#include <QtGui/QAction>
 #include <QtWidgets/QAbstractButton>
-#include <QtWidgets/QAction>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLineEdit>

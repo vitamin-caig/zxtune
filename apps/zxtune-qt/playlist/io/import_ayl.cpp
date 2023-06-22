@@ -36,8 +36,8 @@
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
-#include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
+#include <QtCore5Compat/QTextCodec>
 
 namespace
 {

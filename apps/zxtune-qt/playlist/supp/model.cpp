@@ -27,12 +27,13 @@
 // std includes
 #include <atomic>
 #include <mutex>
+#include <utility>
 // qt includes
 #include <QtCore/QDataStream>
+#include <QtCore/QIODevice>
 #include <QtCore/QMimeData>
 #include <QtCore/QSet>
 #include <QtCore/QStringList>
-#include <utility>
 
 namespace
 {

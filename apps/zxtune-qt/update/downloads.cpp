@@ -18,7 +18,7 @@
 // std includes
 #include <utility>
 // qt includes
-#include <QtCore/QRegExp>
+#include <QtCore/QRegularExpression>
 
 namespace
 {
@@ -185,18 +185,19 @@ namespace
     void OnEntry(const RSS::Entry& e) override
     {
       Dbg("Feed entry '{}'", FromQString(e.Title));
-      if (-1 == ContentMatch.indexIn(e.HtmlContent))
+      const auto match = ContentMatch.match(e.HtmlContent);
+      if (!match.hasMatch())
       {
         Dbg("Failed to parse html content");
         return;
       }
-      const QString project = ContentMatch.cap(CONTENT_PROJECT);
+      const auto project = match.capturedView(CONTENT_PROJECT);
       if (project != Project)
       {
         Dbg("Not supported project");
         return;
       }
-      const QString revision = ContentMatch.cap(CONTENT_REVISION);
+      const auto revision = match.captured(CONTENT_REVISION);
       const Product::Update::Ptr update = MakePtr<UpdateDownload>(e, revision);
       Delegate.OnDownload(update);
     }
@@ -204,7 +205,7 @@ namespace
   private:
     const QString Project;
     Downloads::Visitor& Delegate;
-    QRegExp ContentMatch;
+    QRegularExpression ContentMatch;
   };
 }  // namespace
 

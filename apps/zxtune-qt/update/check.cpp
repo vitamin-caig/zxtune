@@ -28,6 +28,7 @@
 #include <ctime>
 #include <utility>
 // qt includes
+#include <QtCore/QRegularExpression>
 #include <QtCore/QTimer>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFileDialog>
@@ -162,10 +163,11 @@ namespace
   unsigned short VersionToRevision(const QString& str)
   {
     static const QLatin1String REV_FORMAT(R"((?:r(?:ev)?)?(\d{4,5}).*)");
-    QRegExp expr(REV_FORMAT);
-    if (expr.exactMatch(str))
+    const QRegularExpression expr(REV_FORMAT);
+    const auto match = expr.match(str);
+    if (match.hasMatch())
     {
-      const QString rev = expr.cap(1);
+      const auto rev = match.capturedView(1);
       bool ok = false;
       const unsigned short val = rev.toShort(&ok);
       if (ok)

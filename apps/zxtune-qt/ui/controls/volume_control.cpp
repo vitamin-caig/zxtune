@@ -34,6 +34,7 @@ namespace
       // setup self
       setupUi(this);
       setEnabled(false);
+      Require(connect(volumeLevel, &QSlider::valueChanged, volumeDisplay, qOverload<int>(&QLCDNumber::display)));
       Require(connect(volumeLevel, &QSlider::valueChanged, this, &VolumeControlImpl::SetLevel));
 
       Require(connect(&supp, &PlaybackSupport::OnStartModule, this, &VolumeControlImpl::StartPlayback));

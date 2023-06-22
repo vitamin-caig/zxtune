@@ -56,10 +56,10 @@ namespace
   class ElementHelper
   {
   public:
-    ElementHelper(QXmlStreamWriter& xml, const Char* tagName)
+    ElementHelper(QXmlStreamWriter& xml, QLatin1StringView tagName)
       : Xml(xml)
     {
-      Xml.writeStartElement(QLatin1String(tagName));
+      Xml.writeStartElement(tagName);
     }
 
     ~ElementHelper()
@@ -67,9 +67,9 @@ namespace
       Xml.writeEndElement();
     }
 
-    ElementHelper& Attribute(const Char* name, const QString& value)
+    ElementHelper& Attribute(QLatin1StringView name, const QString& value)
     {
-      Xml.writeAttribute(QLatin1String(name), value);
+      Xml.writeAttribute(name, value);
       return *this;
     }
 
@@ -79,9 +79,9 @@ namespace
       return *this;
     }
 
-    ElementHelper& Text(const Char* name, const QString& str)
+    ElementHelper& Text(QLatin1StringView name, const QString& str)
     {
-      Xml.writeTextElement(QLatin1String(name), str);
+      Xml.writeTextElement(name, str);
       return *this;
     }
 
@@ -91,7 +91,7 @@ namespace
       return *this;
     }
 
-    ElementHelper Subtag(const Char* tagName)
+    ElementHelper Subtag(QLatin1StringView tagName)
     {
       return {Xml, tagName};
     }

@@ -16,10 +16,10 @@
 // library includes
 #include <parameters/container.h>
 // qt includes
+#include <QtCore/QStringList>
 #include <QtWidgets/QWidget>
 
 class QMenu;
-class QStringList;
 
 namespace Playlist::UI
 {

@@ -35,10 +35,10 @@ else
 qt.dir = $(prebuilt.dir)/qt-$(qt.version.merged)-$(platform)-$(arch)
 includes.dirs += $(qt.dir)/include
 libraries.dirs.$(platform) += $(qt.dir)/lib $(qt.dir)/plugins/platforms $(qt.dir)/plugins/styles
-qt.bin = $(qt.dir)/bin/
+qt.bin = $(qt.dir)/libexec/
 endif
 
-libraries += $(foreach lib,$(libraries.qt) $(libraries.qt.$(platform)),Qt5$(lib)) $(libraries.qt.system.$(platform))
+libraries += $(foreach lib,$(libraries.qt) $(libraries.qt.$(platform)),Qt6$(lib)) $(libraries.qt.system.$(platform))
 
 ifneq (,$(findstring Core,$(libraries.qt)))
 libraries.windows += Qtmain kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames
