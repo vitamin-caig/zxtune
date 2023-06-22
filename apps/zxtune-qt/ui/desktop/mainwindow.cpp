@@ -220,7 +220,9 @@ namespace
       for (const auto& toolbar : Toolbars)
       {
         toolbar.second->setWindowTitle(toolbar.first->windowTitle());
-        menuLayout->addAction(toolbar.second->toggleViewAction());
+        auto* action = toolbar.second->toggleViewAction();
+        action->setMenuRole(QAction::NoRole);
+        menuLayout->addAction(action);
       }
     }
 
