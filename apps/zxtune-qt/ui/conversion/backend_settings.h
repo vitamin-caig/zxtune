@@ -28,7 +28,6 @@ namespace UI
     virtual String GetBackendId() const = 0;
     virtual QString GetDescription() const = 0;
 
-  protected:
     template<class T>
     void SettingChanged(T)
     {
