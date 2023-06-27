@@ -1,13 +1,13 @@
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 ARG cores=12
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates wget xz-utils bzip2 git make zip nano less sudo \
-      g++ gcc python3-minimal \
+    apt-get install -y --no-install-recommends ca-certificates wget xz-utils bzip2 git make zip nano less sudo cmake \
+      g++ gcc python3-minimal ccache \
       libpulse-dev libclalsadrv-dev zlib1g-dev \
-      libfontconfig1-dev libfreetype6-dev libx11-dev libx11-xcb-dev libxext-dev libxfixes-dev libxi-dev libgl-dev \
-      libxrender-dev libxcb1-dev libxcb-glx0-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-shm0-dev libxcb-util0-dev \
-      libxcb-icccm4-dev libxcb-sync0-dev libxcb-xfixes0-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0-dev \
-      libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev && \
+      libfontconfig1-dev libfreetype6-dev libx11-dev libx11-xcb-dev libxext-dev libxfixes-dev libxi-dev \
+      libxrender-dev libxcb1-dev libxcb-glx0-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-shm0-dev \
+      libxcb-icccm4-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0-dev \
+      libxcb-util-dev libxcb-xinerama0-dev libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev && \
     rm -rf /var/lib/apt/lists/* && \
     useradd -m -s /bin/bash -U -G users,sudo -d /build build && \
     echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers
@@ -17,31 +17,30 @@ WORKDIR /build
 
 ENV prebuilt=/build/prebuilt
 
-ENV boost=1.82.0
-RUN bash -c "wget -q https://boostorg.jfrog.io/artifactory/main/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
-    cd boost_* && ./bootstrap.sh && \
+ARG boost=1.82.0
+RUN wget -q https://github.com/boostorg/boost/releases/download/boost-${boost}/boost-${boost}.tar.xz -O - | tar -xJ && \
+    (cd boost* && \
+    ./bootstrap.sh && \
     ./b2 toolset=gcc link=static threading=multi target-os=linux variant=release --layout=system \
       --with-locale --with-program_options -j${cores} \
-      --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-linux-x86_64/lib install && \
-    cd .. && rm -Rf boost_*
+      --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-linux-x86_64/lib install) && \
+    rm -Rf boost*
 
-ENV qt=5.15.2
+ARG qt=5.15.2
 RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" && \
-    cd qt5 && \
-     ./init-repository --module-subset=qtbase,qtimageformats,qtrepotools,qttools && \
+    (cd qt5 && \
+     ./init-repository --module-subset=qtbase,qtimageformats && \
+     (cd qtbase/src/corelib && sed -i '46i#include <limits>' global/qfloat16.h text/qbytearraymatcher.h global/qendian.h) && \
      ./configure -v -platform linux-g++-64 -prefix ${prebuilt}/qt-${qt}-linux-x86_64 -release -opensource -static -confirm-license -no-rpath \
       -no-opengl -no-openvg -no-sql-sqlite \
-      -no-ico -no-gif -no-libjpeg -no-openssl -no-cups -no-pch -no-glib \
+      -no-ico -no-gif -no-openssl -no-cups -no-pch -no-glib \
       -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms \
       -no-feature-testlib \
-      -qt-pcre -system-zlib -system-libpng -fontconfig \
-      -skip qt3d -skip qtactiveqt -skip qtandroidextras -skip qtcharts -skip qtconnectivity -skip qtdatavis3d -skip qtdeclarative -skip qtdoc -skip qtgamepad -skip qtgraphicaleffects -skip qtlocation \
-      -skip qtlottie -skip qtmacextras -skip qtmultimedia -skip qtnetworkauth -skip qtpurchasing -skip qtquick3d -skip qtquickcontrols -skip qtquickcontrols2 -skip qtquicktimeline -skip qtremoteobjects \
-      -skip qtscript -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtspeech -skip qtsvg -skip qttranslations -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel \
-      -skip qtwebengine -skip qtwebglplugin -skip qtwebsockets -skip qtwebview -skip qtwinextras -skip qtxmlpatterns \
+      -xcb \
+      -qt-pcre -system-zlib -qt-libpng -qt-libjpeg -fontconfig \
       -make libs && \
-     make -j${cores} install && \
-     cd .. && rm -Rf qt5*
+     make -j${cores} install) && \
+     rm -Rf qt5*
 
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
@@ -49,7 +48,7 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     echo "platform=linux\narch=x86_64\npackaging=any\ntools.python=python3\nsystem.zlib=1\n" \
          "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\ncxx_flags=-fPIC\n" \
          "qt.plugins=QXcbIntegrationPlugin\n" \
-         "libraries.qt.system.linux=qxcb qtpcre2 png16 qtharfbuzz fontconfig freetype xcb xcb-icccm xcb-image" \
+         "libraries.qt.system.linux=qxcb qtpcre2 qtlibpng qtharfbuzz fontconfig freetype xcb xcb-icccm xcb-image" \
             "xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama xcb-xkb xkbcommon xkbcommon-x11\n" \
          "libraries.qt.linux=XcbQpa XkbCommonSupport ThemeSupport DBus EdidSupport FontDatabaseSupport ServiceSupport" > variables.mak
 
