@@ -1,6 +1,6 @@
 FROM fedora:38
 RUN yum update -y && \
-    yum install -y git zip make gcc-c++ rpmdevtools \
+    yum install -y git zip make gcc-c++ rpmdevtools ccache \
         alsa-lib-devel pulseaudio-libs-devel \
         boost-devel \
         qt5-qtbase-devel && \
