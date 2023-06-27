@@ -111,8 +111,7 @@ namespace Formats::Chiptune
         const uint_t totalSamples = Stream.Read<le_uint32_t>();
         Stream.Skip(4);
         const uint_t loopSamples = Stream.Read<le_uint32_t>();
-        target.SetTimings(SamplesToTime(totalSamples),
-                          SamplesToTime(loopSamples && totalSamples >= loopSamples ? totalSamples - loopSamples : 0));
+        target.SetTimings(SamplesToTime(totalSamples), SamplesToTime(std::min(totalSamples, loopSamples)));
         const auto dataStart = GetDataOffset(ver);
         const uint_t NO_GD3 = 0x18;
         if (gd3Offset != NO_GD3 && gd3Offset < eof)
