@@ -1,11 +1,11 @@
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 
 #mkdir is fix for openjdk install on empty system
 RUN mkdir -p /usr/share/man/man1 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-            ca-certificates wget unzip python make git python python3-minimal bzip2 nano \
-            openjdk-11-jre-headless openjdk-11-jdk-headless libncurses5 ccache && \
+            ca-certificates wget unzip make git python3-minimal bzip2 nano \
+            default-jre-headless default-jdk-headless libncurses5 ccache && \
     rm -rf /var/lib/apt/lists/* && \
     useradd -m -s /bin/bash -U -G users -d /build build && \
     mkdir /ccache && chown build:users /ccache
@@ -15,12 +15,13 @@ WORKDIR /build
 
 ENV androidsdk=/build/android-sdk prebuilt=/build/prebuilt CCACHE_DIR=/ccache
 
-#Boost headers
-ENV boost=1.80.0
+#Boost headers. Do not use github release to avoid b2 building
+ENV boost=1.82.0
 RUN bash -c "wget -q https://boostorg.jfrog.io/artifactory/main/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
-    mkdir -p ${prebuilt}/boost-${boost}/include && \
-    mv boost_*/boost ${prebuilt}/boost-${boost}/include/ && \
-    rm -Rf boost_*
+    (cd boost* && \
+     mkdir -p ${prebuilt}/boost-${boost}/include && \
+     mv boost ${prebuilt}/boost-${boost}/include/) && \
+    rm -Rf boost*
 
 #Android SDK AGP=7.3.1
 #NDK is last supporting minSdk=16
