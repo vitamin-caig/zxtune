@@ -12,7 +12,6 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
@@ -93,18 +92,13 @@ class SeekControlFragment : Fragment() {
     }
 
     private class RepeatModeControl(view: View) {
-        private var button = view.findViewById<ImageView>(R.id.controls_track_mode)
+        private var button = view.findViewById<View>(R.id.controls_track_mode)
         private var repeatMode = PlaybackStateCompat.REPEAT_MODE_INVALID
             set(value) {
                 field = value
                 button.run {
                     isEnabled = value != PlaybackStateCompat.REPEAT_MODE_INVALID
-                    setImageResource(
-                        when (value) {
-                            PlaybackStateCompat.REPEAT_MODE_ONE -> R.drawable.ic_track_looped
-                            else -> R.drawable.ic_track_regular
-                        }
-                    )
+                    isActivated = value == PlaybackStateCompat.REPEAT_MODE_ONE
                 }
             }
 

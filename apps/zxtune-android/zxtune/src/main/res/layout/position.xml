@@ -1,42 +1,46 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" style="@style/block"
-  android:orientation="horizontal"
-  android:paddingLeft="@dimen/spacing_full"
-  android:paddingRight="@dimen/spacing_full"
-  >
-  <TextView
-    style="android:style/TextAppearance.Small"
-    android:id="@+id/position_time"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_weight="0"
-    android:layout_gravity="center_vertical"
-    android:text="@string/stub_time"
-    />
-  <SeekBar
-    android:id="@+id/position_seek"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:layout_gravity="center"
-    android:layout_marginLeft="@dimen/spacing_full"
-    android:layout_marginRight="@dimen/spacing_full"
-    />
-  <TextView
-    style="android:style/TextAppearance.Small"
-    android:id="@+id/position_duration"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_weight="0"
-    android:layout_gravity="center_vertical"
-    android:text="@string/stub_time"
-    />
-  <!-- TODO: merge seek view and controls view -->
-  <ImageView
-          android:id="@+id/controls_track_mode"
-          android:src="@drawable/ic_track_regular"
-          style="@style/Button"
-          android:layout_weight="0"
-          android:layout_marginLeft="@dimen/spacing_full"
-          android:scaleType="center"/>
-</LinearLayout>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        style="@style/block"
+        android:layout_margin="@dimen/spacing_full"
+        tools:ignore="RtlHardcoded">
+
+    <SeekBar
+            android:id="@+id/position_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/position_time"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="center"
+            android:layout_toLeftOf="@id/controls_track_mode" />
+
+    <TextView
+            android:id="@+id/position_time"
+            style="android:style/TextAppearance.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="@dimen/spacing_full"
+            android:text="@string/stub_time" />
+
+    <TextView
+            android:id="@+id/position_duration"
+            style="android:style/TextAppearance.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="@dimen/spacing_full"
+            android:layout_toLeftOf="@id/controls_track_mode"
+            android:text="@string/stub_time" />
+
+    <ImageButton
+            android:id="@+id/controls_track_mode"
+            style="@style/Button.Toggled"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_track_looped" />
+</RelativeLayout>

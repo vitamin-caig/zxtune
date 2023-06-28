@@ -85,19 +85,13 @@ class PlaybackControlsFragment : Fragment() {
     }
 
     private class ShuffleModeControl(view: View) {
-        private val button = view.findViewById<ImageButton>(R.id.controls_sequence_mode)
+        private val button = view.findViewById<View>(R.id.controls_sequence_mode)
         private var shuffleMode = PlaybackStateCompat.SHUFFLE_MODE_INVALID
             set(value) {
                 field = value
                 button.run {
                     isEnabled = value != PlaybackStateCompat.SHUFFLE_MODE_INVALID
-                    setImageResource(
-                        when (value) {
-                            PlaybackStateCompat.SHUFFLE_MODE_ALL -> R.drawable.ic_sequence_shuffle
-                            PlaybackStateCompat.SHUFFLE_MODE_GROUP -> R.drawable.ic_sequence_looped
-                            else -> R.drawable.ic_sequence_ordered
-                        }
-                    )
+                    isActivated = value == PlaybackStateCompat.SHUFFLE_MODE_ALL
                 }
             }
 
@@ -118,8 +112,7 @@ class PlaybackControlsFragment : Fragment() {
         }
 
         private fun getNextMode() = when (shuffleMode) {
-            PlaybackStateCompat.SHUFFLE_MODE_NONE -> PlaybackStateCompat.SHUFFLE_MODE_GROUP
-            PlaybackStateCompat.SHUFFLE_MODE_GROUP -> PlaybackStateCompat.SHUFFLE_MODE_ALL
+            PlaybackStateCompat.SHUFFLE_MODE_NONE -> PlaybackStateCompat.SHUFFLE_MODE_ALL
             PlaybackStateCompat.SHUFFLE_MODE_ALL -> PlaybackStateCompat.SHUFFLE_MODE_NONE
             else -> null
         }

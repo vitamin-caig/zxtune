@@ -8,10 +8,10 @@
 
     <ImageButton
             android:id="@+id/controls_sequence_mode"
-            style="@style/Button"
-            android:layout_marginRight="@dimen/spacing_full"
+            style="@style/Button.Toggled"
+            android:layout_margin="@dimen/spacing_full"
             android:layout_weight="0"
-            android:src="@drawable/ic_sequence_ordered" />
+            android:src="@drawable/ic_sequence_shuffle" />
 
     <ImageButton
             android:id="@+id/controls_prev"
@@ -35,7 +35,6 @@
             android:id="@+id/controls_track_menu"
             style="@style/Button"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="@dimen/spacing_full"
             android:layout_weight="0"
             android:src="@drawable/ic_track_menu" />
 </LinearLayout>
