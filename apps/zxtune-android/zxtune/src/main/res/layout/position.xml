@@ -13,7 +13,14 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:layout_gravity="center"
-            android:layout_toLeftOf="@id/controls_track_mode" />
+            android:layout_marginRight="@dimen/spacing_full"
+            android:layout_toLeftOf="@id/controls_track_mode"
+            android:maxHeight="@dimen/spacing_full"
+            android:paddingVertical="@dimen/spacing_full"
+            android:paddingHorizontal="0dp"
+            android:progressDrawable="@drawable/playback_position"
+            android:thumb="@color/transparent"
+            tools:progress="33" />
 
     <TextView
             android:id="@+id/position_time"
@@ -23,7 +30,6 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentBottom="true"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="@dimen/spacing_full"
             android:text="@string/stub_time" />
 
     <TextView
@@ -31,10 +37,9 @@
             style="android:style/TextAppearance.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignRight="@id/position_seek"
             android:layout_alignParentBottom="true"
             android:layout_gravity="center_vertical"
-            android:layout_marginRight="@dimen/spacing_full"
-            android:layout_toLeftOf="@id/controls_track_mode"
             android:text="@string/stub_time" />
 
     <ImageButton
@@ -42,5 +47,6 @@
             style="@style/Button.Toggled"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
+            android:layout_marginLeft="@dimen/spacing_full"
             android:src="@drawable/ic_track_looped" />
 </RelativeLayout>
