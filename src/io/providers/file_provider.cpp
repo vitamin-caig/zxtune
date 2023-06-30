@@ -234,7 +234,7 @@ namespace IO::File
 
   // since dingux platform does not support wide strings(???) that boost.filesystem v3 requires, specify adapters in
   // return-style
-  boost::uintmax_t FileSize(const std::filesystem::path& filePath, Error::LocationRef loc)
+  std::uintmax_t FileSize(const std::filesystem::path& filePath, Error::LocationRef loc)
   {
     try
     {

@@ -14,13 +14,11 @@
 #include <math/fixedpoint.h>
 #include <math/numeric.h>
 #include <sound/gainer.h>
-// boost includes
-#include <boost/integer/static_log2.hpp>
 
 namespace Sound
 {
-  const auto USED_GAIN_BITS = boost::static_log2<Gain::Type::PRECISION>::value + Sample::BITS;
-  const auto AVAIL_GAIN_BITS = 8 * sizeof(Gain::Type::ValueType);
+  constexpr const auto USED_GAIN_BITS = Math::Log2(Gain::Type::PRECISION) + Sample::BITS;
+  constexpr const auto AVAIL_GAIN_BITS = 8 * sizeof(Gain::Type::ValueType);
 
   static_assert(USED_GAIN_BITS < AVAIL_GAIN_BITS, "Not enough bits");
   const Gain::Type MAX_LEVEL(1 << (AVAIL_GAIN_BITS - USED_GAIN_BITS));

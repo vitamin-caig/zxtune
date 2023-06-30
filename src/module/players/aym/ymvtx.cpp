@@ -18,10 +18,9 @@
 // library includes
 #include <core/core_parameters.h>
 #include <module/players/properties_meta.h>
+#include <strings/conversion.h>
 // std includes
 #include <utility>
-// boost includes
-#include <boost/lexical_cast.hpp>
 
 namespace Module::YMVTX
 {
@@ -106,7 +105,7 @@ namespace Module::YMVTX
     {
       if (year)
       {
-        Properties.SetDate(boost::lexical_cast<String>(year));
+        Properties.SetDate(Strings::ConvertFrom(year));
       }
     }
 

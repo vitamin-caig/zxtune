@@ -27,8 +27,6 @@
 #include <QtWidgets/QRadioButton>
 // std includes
 #include <utility>
-// boost includes
-#include <boost/range/size.hpp>
 
 namespace
 {
@@ -59,7 +57,7 @@ namespace
 
     void Set(int val) override
     {
-      if (Math::InRange<int>(val, 0, boost::size(UPDATE_CHECK_PERIODS) - 1))
+      if (Math::InRange<int>(val, 0, std::size(UPDATE_CHECK_PERIODS) - 1))
       {
         Ctr->SetValue(Parameters::ZXTuneQT::Update::CHECK_PERIOD, UPDATE_CHECK_PERIODS[val]);
       }

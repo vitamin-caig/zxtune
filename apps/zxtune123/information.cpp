@@ -258,8 +258,7 @@ namespace
   inline void ShowProviders()
   {
     StdOut << "Supported IO providers:" << std::endl;
-    for (const auto providers = IO::EnumerateProviders(); providers->IsValid();
-         providers->Next())
+    for (const auto providers = IO::EnumerateProviders(); providers->IsValid(); providers->Next())
     {
       StdOut << DescribeProvider(*providers->Get());
     }

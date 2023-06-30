@@ -17,17 +17,15 @@
 #include <strings/optimize.h>
 // std includes
 #include <algorithm>
-// boost includes
-#include <boost/algorithm/string/classification.hpp>
 
 namespace TRDos
 {
   String GetEntryName(const char (&name)[8], const char (&type)[3])
   {
-    static const Char FORBIDDEN_SYMBOLS[] = {'\\', '/', '\?', '\0'};
     static const Char TRDOS_REPLACER('_');
     String fname = Strings::OptimizeAscii(StringView(name, sizeof(name)), TRDOS_REPLACER);
-    std::replace_if(fname.begin(), fname.end(), boost::algorithm::is_any_of(FORBIDDEN_SYMBOLS), TRDOS_REPLACER);
+    std::replace_if(
+        fname.begin(), fname.end(), [](Char c) { return c == '\\' || c == '/' || c == '\?'; }, TRDOS_REPLACER);
     if (IsAlNum(type[0]))
     {
       fname += '.';

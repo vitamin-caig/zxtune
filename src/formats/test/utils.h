@@ -15,7 +15,6 @@
 #include <types.h>
 // library includes
 #include <binary/data_builder.h>
-#include <boost/lexical_cast.hpp>
 #include <formats/archived/decoders.h>
 #include <formats/packed/decoders.h>
 #include <strings/split.h>
@@ -44,10 +43,10 @@ namespace Test
     {
       throw std::runtime_error("Failed to open " + name);
     }
-    const std::size_t offset = offsetStr.empty() ? 0 : boost::lexical_cast<std::size_t>(offsetStr);
+    const std::size_t offset = offsetStr.empty() ? 0 : Strings::ConvertTo<std::size_t>(offsetStr);
     stream.seekg(0, std::ios_base::end);
     const std::size_t fileSize = stream.tellg();
-    const std::size_t size = sizeStr.empty() ? fileSize - offset : boost::lexical_cast<std::size_t>(sizeStr);
+    const std::size_t size = sizeStr.empty() ? fileSize - offset : Strings::ConvertTo<std::size_t>(sizeStr);
     stream.seekg(offset);
     Binary::DataBuilder tmp(size);
     stream.read(static_cast<char*>(tmp.Allocate(size)), size);

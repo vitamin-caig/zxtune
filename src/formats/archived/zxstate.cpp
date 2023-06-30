@@ -30,8 +30,6 @@
 #include <list>
 #include <numeric>
 #include <sstream>
-// boost includes
-#include <boost/range/size.hpp>
 
 namespace Formats::Archived
 {
@@ -641,7 +639,7 @@ namespace Formats::Archived
         std::size_t GetOrderNum(uint_t idx) const
         {
           static const std::size_t RAMPAGES[] = {2, 3, 1, 4, 5, 0};
-          return Rampages && idx < boost::size(RAMPAGES) ? RAMPAGES[idx] : idx;
+          return Rampages && idx < std::size(RAMPAGES) ? RAMPAGES[idx] : idx;
         }
 
       private:

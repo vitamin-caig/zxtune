@@ -18,8 +18,7 @@
 #include <make_ptr.h>
 // library includes
 #include <binary/dump.h>
-// boost includes
-#include <boost/format.hpp>
+#include <strings/format.h>
 
 namespace Benchmark
 {
@@ -184,7 +183,7 @@ namespace Benchmark
 
       std::string Name() const override
       {
-        return (boost::format("%u-channels") % Channels).str();
+        return Strings::Format("{}-channels", Channels);
       }
 
       double Execute() const override

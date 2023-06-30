@@ -20,8 +20,6 @@
 // library includes
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
-// boost includes
-#include <boost/range/size.hpp>
 // std includes
 #include <utility>
 
@@ -55,7 +53,7 @@ namespace
 
     void Set(int val) override
     {
-      if (Math::InRange<int>(val, 0, boost::size(CHANNEL_MODES) - 1))
+      if (Math::InRange<int>(val, 0, std::size(CHANNEL_MODES) - 1))
       {
         Ctr->SetValue(Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS, CHANNEL_MODES[val]);
       }

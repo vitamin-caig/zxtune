@@ -27,8 +27,6 @@
 // std includes
 #include <thread>
 #include <utility>
-// boost includes
-#include <boost/range/size.hpp>
 
 namespace Sound::DirectSound
 {
@@ -71,7 +69,7 @@ namespace Sound::DirectSound
       return {};
     }
     OLECHAR strGuid[39] = {0};
-    if (const int chars = ::StringFromGUID2(*guid, strGuid, boost::size(strGuid)))
+    if (const int chars = ::StringFromGUID2(*guid, strGuid, std::size(strGuid)))
     {
       return String(strGuid, strGuid + chars - 1);
     }

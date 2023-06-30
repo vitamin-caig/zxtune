@@ -21,8 +21,6 @@
 #include <sound/sound_parameters.h>
 // std includes
 #include <utility>
-// boost includes
-#include <boost/range/size.hpp>
 
 namespace
 {
@@ -91,7 +89,7 @@ namespace
     {
       if (idx != 0)
       {
-        Require(idx <= int(boost::size(PRESETS)));
+        Require(idx <= int(std::size(PRESETS)));
         clockRateValue->setText(QString::number(PRESETS[idx - 1]));
       }
     }

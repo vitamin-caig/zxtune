@@ -28,12 +28,12 @@
         </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/update/check.cpp" line="443"/>
+        <location filename="../../apps/zxtune-qt/update/check.cpp" line="442"/>
         <source>Download manually</source>
         <translation>Загрузить вручную</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/update/check.cpp" line="464"/>
+        <location filename="../../apps/zxtune-qt/update/check.cpp" line="463"/>
         <source>Downloading file</source>
         <translation>Загрузка файла</translation>
     </message>
