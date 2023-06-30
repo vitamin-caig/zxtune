@@ -12,6 +12,7 @@
 #include <parameters/convert.h>
 #include <strings/conversion.h>
 // std includes
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 
