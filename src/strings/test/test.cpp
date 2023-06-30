@@ -14,6 +14,7 @@
 #include <strings/fields.h>
 #include <strings/fields_filter.h>
 #include <strings/format.h>
+#include <strings/join.h>
 #include <strings/map.h>
 #include <strings/optimize.h>
 #include <strings/prefixed_index.h>
@@ -150,6 +151,18 @@ namespace
     TestSplitImpl<StringView>(msg + " StringView", str, delimiter, reference);
     TestSplitImpl<String>(msg + " String", str, delimiter, reference);
   }
+
+  template<class T>
+  void TestJoin(const String& msg)
+  {
+    const auto delimiter = ","_sv;
+    std::vector<T> data;
+    TestEquals("", Strings::Join(data, delimiter), "Join empty vector of " + msg);
+    data.emplace_back("one");
+    TestEquals("one", Strings::Join(data, delimiter), "Join single element vector of " + msg);
+    data.emplace_back("two");
+    TestEquals("one,two", Strings::Join(data, delimiter), "Join several elements vector of " + msg);
+  }
 }  // namespace
 
 int main()
@@ -283,6 +296,11 @@ int main()
       TestSplit("Suffix", "str,,", ',', {"str", ""});
       TestSplit("MultiDelimiters", ":one,two/three;four.", ";/,.:"_sv, {"", "one", "two", "three", "four", ""});
       TestSplit("Predicate", "a1bc2;d5", [](Char c) { return !std::isalpha(c); }, {"a", "bc", "d", ""});
+    }
+    std::cout << "---- Test for join ----" << std::endl;
+    {
+      TestJoin<StringView>("StringView");
+      TestJoin<String>("String");
     }
     std::cout << "---- Test for ValueMap ----" << std::endl;
     {
