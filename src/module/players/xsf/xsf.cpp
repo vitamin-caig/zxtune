@@ -16,9 +16,8 @@
 // library includes
 #include <formats/chiptune/emulation/portablesoundformat.h>
 #include <strings/conversion.h>
+#include <strings/join.h>
 #include <strings/split.h>
-// boost includes
-#include <boost/algorithm/string/join.hpp>
 
 namespace Module::XSF
 {
@@ -61,8 +60,7 @@ namespace Module::XSF
 
     String ToString() const
     {
-      static const String DELIMITER(1, '/');
-      return boost::algorithm::join(Components, DELIMITER);
+      return Strings::Join(Components, "/"_sv);
     }
 
   private:

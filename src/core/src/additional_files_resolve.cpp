@@ -14,8 +14,7 @@
 #include <error_tools.h>
 // library includes
 #include <core/additional_files_resolve.h>
-// boost includes
-#include <boost/algorithm/string/join.hpp>
+#include <strings/join.h>
 
 namespace Module
 {
@@ -33,7 +32,7 @@ namespace Module
         if (newFilenames == filenames)
         {
           throw MakeFormattedError(THIS_LINE, translate("None of the additional files {} were resolved."),
-                                   boost::algorithm::join(filenames, ","));
+                                   Strings::Join(filenames, ","_sv));
         }
         filenames.swap(newFilenames);
       }

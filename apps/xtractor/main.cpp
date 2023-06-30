@@ -31,6 +31,7 @@
 #include <strings/array.h>
 #include <strings/fields.h>
 #include <strings/format.h>
+#include <strings/join.h>
 #include <strings/template.h>
 // std includes
 #include <iostream>
@@ -40,7 +41,6 @@
 #include <numeric>
 #include <set>
 // boost includes
-#include <boost/algorithm/string/join.hpp>
 #include <boost/program_options.hpp>
 
 namespace
@@ -713,8 +713,8 @@ namespace
 
     String GetFieldValue(StringView fieldName) const override
     {
-      static const Char SUBPATH_DELIMITER[] = {'/', 0};
-      static const Char FLATPATH_DELIMITER[] = {'_', 0};
+      static const auto SUBPATH_DELIMITER = "/"_sv;
+      static const auto FLATPATH_DELIMITER = "_"_sv;
 
       if (fieldName == TEMPLATE_FIELD_FILENAME)
       {
@@ -750,12 +750,12 @@ namespace
       else if (fieldName == TEMPLATE_FIELD_SUBPATH)
       {
         const auto& subPath = GetSubpath();
-        return boost::algorithm::join(subPath, SUBPATH_DELIMITER);
+        return Strings::Join(subPath, SUBPATH_DELIMITER);
       }
       else if (fieldName == TEMPLATE_FIELD_FLATSUBPATH)
       {
         const auto& subPath = GetSubpath();
-        return boost::algorithm::join(subPath, FLATPATH_DELIMITER);
+        return Strings::Join(subPath, FLATPATH_DELIMITER);
       }
       else
       {

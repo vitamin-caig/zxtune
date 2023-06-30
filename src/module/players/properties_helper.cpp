@@ -14,8 +14,8 @@
 #include <binary/crc.h>
 #include <module/attributes.h>
 #include <sound/sound_parameters.h>
+#include <strings/join.h>
 // boost includes
-#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
 
 namespace Module
@@ -72,7 +72,7 @@ namespace Module
 
   void PropertiesHelper::SetStrings(const Strings::Array& strings)
   {
-    String joined = boost::algorithm::join(strings, "\n");
+    auto joined = Strings::Join(strings, "\n"_sv);
     boost::algorithm::trim_all_if(joined, boost::algorithm::is_any_of("\n"));
     SetNonEmptyProperty(ATTR_STRINGS, joined);
   }

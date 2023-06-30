@@ -14,9 +14,8 @@
 // library includes
 #include <analysis/path.h>
 #include <strings/array.h>
+#include <strings/join.h>
 #include <strings/split.h>
-// boost includes
-#include <boost/algorithm/string/join.hpp>
 // std includes
 #include <functional>
 
@@ -33,8 +32,7 @@ namespace Analysis
 
   String JoinPath(const Strings::Array& arr, Char separator)
   {
-    const String delimiter(1, separator);
-    return boost::algorithm::join(arr, delimiter);
+    return Strings::Join(arr, StringView(&separator, 1));
   }
 
   template<class It>
