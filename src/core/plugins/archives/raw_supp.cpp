@@ -24,6 +24,7 @@
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
 #include <math/scale.h>
+#include <strings/conversion.h>
 #include <strings/prefixed_index.h>
 #include <time/duration.h>
 #include <time/serialize.h>
@@ -214,12 +215,12 @@ namespace ZXTune
     {
       std::array<String, 7> res;
       res[0] = item.Name;
-      res[1] = std::to_string(item.Missed);
-      res[2] = std::to_string(item.Aimed + item.Missed);
-      res[3] = std::to_string(Percent(item.Aimed, item.Missed));
-      res[4] = std::to_string(item.MissedTime.CastTo<Time::Millisecond>().Get());
-      res[5] = std::to_string((item.MissedTime + item.AimedTime).CastTo<Time::Millisecond>().Get());
-      res[6] = std::to_string(Percent(item.AimedTime.Get(), item.MissedTime.Get()));
+      res[1] = Strings::ConvertFrom(item.Missed);
+      res[2] = Strings::ConvertFrom(item.Aimed + item.Missed);
+      res[3] = Strings::ConvertFrom(Percent(item.Aimed, item.Missed));
+      res[4] = Strings::ConvertFrom(item.MissedTime.CastTo<Time::Millisecond>().Get());
+      res[5] = Strings::ConvertFrom((item.MissedTime + item.AimedTime).CastTo<Time::Millisecond>().Get());
+      res[6] = Strings::ConvertFrom(Percent(item.AimedTime.Get(), item.MissedTime.Get()));
       return res;
     }
 

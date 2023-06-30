@@ -63,30 +63,6 @@ namespace Strings
           return hasMinus ? -result : result;
         }
       }
-
-      static String Unparse(T val)
-      {
-        if (!val)
-        {
-          return "0";
-        }
-        else
-        {
-          const bool needMinus = std::is_signed<T>::value && val < 0;
-          String res;
-          res.reserve(std::numeric_limits<T>::digits10);
-          for (T dig = needMinus ? -val : val; dig; dig /= 10)
-          {
-            res += '0' + (dig % 10);
-          }
-          if (needMinus)
-          {
-            res += '-';
-          }
-          std::reverse(res.begin(), res.end());
-          return res;
-        }
-      }
     };
   }  // namespace Details
 
@@ -128,6 +104,6 @@ namespace Strings
   template<class T>
   inline String ConvertFrom(T val)
   {
-    return Details::ConversionTraits<T>::Unparse(val);
+    return std::to_string(val);
   }
 }  // namespace Strings
