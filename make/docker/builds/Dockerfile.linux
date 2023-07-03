@@ -46,7 +46,9 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo "platform=linux\narch=x86_64\npackaging=any\ntools.python=python3\nsystem.zlib=1\n" \
-         "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\ncxx_flags=-fPIC\n" \
+         "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n" \
+         "ld_flags=-static-libstdc++\n" \
+         "cxx_flags=-fPIC\n" \
          "qt.plugins=QXcbIntegrationPlugin\n" \
          "libraries.qt.system.linux=qxcb qtpcre2 qtlibpng qtharfbuzz fontconfig freetype xcb xcb-icccm xcb-image" \
             "xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama xcb-xkb xkbcommon xkbcommon-x11\n" \

@@ -76,6 +76,7 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo "platform=linux\narch=armhf\npackaging?=any\ntools.python=python3\n"\
          "prebuilt.dir=${prebuilt}\ntoolchains.root=${toolchains}\nboost.version=${boost}\nqt.version=${qt}\n"\
+         "ld_flags=-static-libstdc++\n"\
          "libraries.linux=dl pthread\n"\
          "system.zlib=1\nlibraries.dirs.linux+=\$(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf\n"\
          "qt.plugins=QXcbIntegrationPlugin\nlibraries.qt.system.linux=qxcb qtpcre2 qtlibpng qtharfbuzz fontconfig freetype"\
