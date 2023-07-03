@@ -6,8 +6,6 @@ makeobj_name = $(1).o
 host=linux
 compiler?=gcc
 
-libraries.linux += dl rt pthread stdc++
-
 ifneq ($($(platform).$(arch).crossroot),)
 libraries.dirs.linux += $($(platform).$(arch).crossroot)/usr/lib
 includes.dirs.linux += $($(platform).$(arch).crossroot)/usr/include
