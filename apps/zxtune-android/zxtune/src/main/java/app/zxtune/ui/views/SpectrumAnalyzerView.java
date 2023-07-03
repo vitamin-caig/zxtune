@@ -11,6 +11,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
@@ -24,11 +25,12 @@ import app.zxtune.playback.stubs.VisualizerStub;
 
 public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.Callback {
 
-  private static final int MAX_BANDS = 96;
+  private static final int MAX_BANDS = 48;
   private static final int MAX_LEVEL = 100;
   private static final int MIN_BAR_WIDTH = 3;
   private static final int BAR_PADDING = 1;
-  private static final int FALL_SPEED = 4;
+  private static final int FALL_SPEED = 2;
+  private static final int UPDATE_FPS = 30;
 
   @Nullable
   private SpectrumVisualizer visualizer;
@@ -57,7 +59,8 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
 
   private void init() {
     setZOrderOnTop(true);
-    getHolder().setFormat(PixelFormat.TRANSLUCENT);
+    setLayerType(LAYER_TYPE_HARDWARE, null);
+    getHolder().setFormat(PixelFormat.TRANSPARENT);
     visualizer = new SpectrumVisualizer();
     visibleRect = new Rect();
     getHolder().addCallback(this);
@@ -174,7 +177,7 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
     }
 
     private void sync() {
-      final long MILLIS_PER_FRAME = 40;
+      final long MILLIS_PER_FRAME = 1000 / UPDATE_FPS;
       final long now = SystemClock.elapsedRealtime();
       if (now <= scheduledFrameTime) {
         SystemClock.sleep(scheduledFrameTime - now);
@@ -187,10 +190,7 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
     }
 
     private synchronized void draw() throws InterruptedException {
-      while (holder == null) {
-        wait();
-      }
-      final Canvas canvas = holder.lockCanvas();
+      final Canvas canvas = lockCanvas();
       if (canvas != null) {
         try {
           canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
@@ -199,6 +199,13 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
           holder.unlockCanvasAndPost(canvas);
         }
       }
+    }
+
+    private Canvas lockCanvas() throws InterruptedException {
+      while (holder == null) {
+        wait();
+      }
+      return Build.VERSION.SDK_INT >= 26 ? holder.lockHardwareCanvas() : holder.lockCanvas();
     }
   }
 
