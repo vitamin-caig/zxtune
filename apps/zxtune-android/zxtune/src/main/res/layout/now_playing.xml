@@ -17,7 +17,9 @@
     <androidx.fragment.app.FragmentContainerView
             android:id="@+id/visualizer"
             android:name="app.zxtune.ui.VisualizerFragment"
-            style="@style/block"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@id/information"
             android:layout_below="@id/main_top_panel" />
 
     <androidx.fragment.app.FragmentContainerView
