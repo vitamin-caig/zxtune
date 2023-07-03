@@ -69,6 +69,7 @@
     <string name="vfs_joshw_psf2_name" translatable="false">PlayStation 2</string>
     <string name="vfs_joshw_psf3_name" translatable="false">PlayStation 3</string>
     <string name="vfs_joshw_psf4_name" translatable="false">PlayStation 4</string>
+    <string name="vfs_joshw_psf5_name" translatable="false">PlayStation 5</string>
     <string name="vfs_joshw_psp_name" translatable="false">PlayStation Portable</string>
     <string name="vfs_joshw_s98_name" translatable="false">NEC/Sharp PC</string>
     <string name="vfs_joshw_smd_name" translatable="false">Mega Drive/Sega CD</string>
