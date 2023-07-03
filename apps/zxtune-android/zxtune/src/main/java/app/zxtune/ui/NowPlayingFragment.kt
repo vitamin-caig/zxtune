@@ -28,8 +28,8 @@ class NowPlayingFragment : Fragment(), PagerTabListener {
             .addMenuProvider(ApplicationMenu(requireActivity()))
     }
 
-    override fun onTabVisibilityChanged(isVisible: Boolean) {
-        requireView().findViewById<View>(R.id.spectrum).visibility =
-            if (isVisible) View.VISIBLE else View.INVISIBLE
-    }
+    override fun onTabVisibilityChanged(isVisible: Boolean) =
+        (childFragmentManager.findFragmentById(R.id.visualizer) as VisualizerFragment).setIsVisible(
+            isVisible
+        )
 }
