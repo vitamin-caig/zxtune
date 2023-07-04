@@ -47,6 +47,7 @@ lib{asound2,pulse}-dev}:armhf" && \
     #echo "cd ${prebuilt}/root-linux-armhf && apt-get download \$1:armhf && dpkg -x \$1_*.deb . && echo \$1 >> packages.lst" > add_lib.sh
 
 ARG qt=5.15.2
+# fontconfig uses system libpng16, so reuse it
 RUN git clone --depth=1 --branch=v${qt} https://github.com/qt/qt5.git && \
     (cd qt5 && \
      ./init-repository --module-subset=qtbase,qtimageformats && \
@@ -61,11 +62,12 @@ RUN git clone --depth=1 --branch=v${qt} https://github.com/qt/qt5.git && \
     (cd qtbase/src/corelib && sed -i '/QT_BEGIN_NAMESPACE/i#include <limits>' global/qfloat16.h text/qbytearraymatcher.h global/qendian.h tools/qoffsetstringarray_p.h) && \
     ./configure -v -device linux-rasp-pi-g++ -prefix ${prebuilt}/qt-${qt}-linux-armhf -device-option CROSS_COMPILE=${toolchains}/armhf-linux/bin/arm-linux-gnueabihf- -device-option CROSS_ROOT=${prebuilt}/root-linux-armhf \
       -release -opensource -static -confirm-license \
-      -no-opengl -no-openvg -no-sql-sqlite -no-rpath \
+      -no-opengl -no-openvg -no-rpath \
       -no-ico -no-gif -no-openssl -no-cups -no-pch -no-glib \
-      -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms -qpa xcb \
-      -no-feature-testlib \
-      -qt-pcre -system-zlib -qt-libpng -qt-libjpeg -fontconfig \
+      -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms \
+      -qpa xcb \
+      -no-feature-testlib -no-feature-sql -no-feature-pdf -no-feature-printer \
+      -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig \
       -make libs && \
     make -j${cores} install) && \
     rm -Rf qt5
@@ -74,13 +76,14 @@ RUN git clone --depth=1 --branch=v${qt} https://github.com/qt/qt5.git && \
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=linux\narch=armhf\npackaging?=any\ntools.python=python3\n"\
-         "prebuilt.dir=${prebuilt}\ntoolchains.root=${toolchains}\nboost.version=${boost}\nqt.version=${qt}\n"\
-         "ld_flags=-static-libstdc++\n"\
-         "libraries.linux=dl pthread\n"\
-         "system.zlib=1\nlibraries.dirs.linux+=\$(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf\n"\
-         "qt.plugins=QXcbIntegrationPlugin\nlibraries.qt.system.linux=qxcb qtpcre2 qtlibpng qtharfbuzz fontconfig freetype"\
-           "xcb xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama xcb-xkb xkbcommon xkbcommon-x11\n"\
+    echo "platform=linux\narch=armhf\npackaging=any\ntools.python=python3\nsystem.zlib=1\n" \
+         "prebuilt.dir=${prebuilt}\ntoolchains.root=${toolchains}\nboost.version=${boost}\nqt.version=${qt}\n" \
+         "ld_flags=-static-libstdc++\n" \
+         "libraries.linux=dl pthread\n" \
+         "libraries.dirs.linux+=\$(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf\n" \
+         "qt.plugins=QXcbIntegrationPlugin\n" \
+         "libraries.qt.system.linux=qxcb qtpcre2 qtharfbuzz png16 fontconfig freetype" \
+           "xcb xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama xcb-xkb xkbcommon xkbcommon-x11\n" \
          "libraries.qt.linux=XcbQpa XkbCommonSupport ThemeSupport DBus EdidSupport FontDatabaseSupport ServiceSupport" > variables.mak
 
 WORKDIR /build/zxtune

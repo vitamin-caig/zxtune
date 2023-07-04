@@ -27,20 +27,21 @@ RUN wget -q https://github.com/boostorg/boost/releases/download/boost-${boost}/b
     rm -Rf boost*
 
 ARG qt=5.15.2
+# fontconfig uses system libpng16, so reuse it
 RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" && \
     (cd qt5 && \
      ./init-repository --module-subset=qtbase,qtimageformats && \
      (cd qtbase/src/corelib && sed -i '46i#include <limits>' global/qfloat16.h text/qbytearraymatcher.h global/qendian.h) && \
      ./configure -v -platform linux-g++-64 -prefix ${prebuilt}/qt-${qt}-linux-x86_64 -release -opensource -static -confirm-license -no-rpath \
-      -no-opengl -no-openvg -no-sql-sqlite \
+      -no-opengl -no-openvg \
       -no-ico -no-gif -no-openssl -no-cups -no-pch -no-glib \
       -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms \
-      -no-feature-testlib \
       -xcb \
-      -qt-pcre -system-zlib -qt-libpng -qt-libjpeg -fontconfig \
+      -no-feature-testlib -no-feature-sql -no-feature-pdf -no-feature-printer \
+      -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig \
       -make libs && \
      make -j${cores} install) && \
-     rm -Rf qt5*
+     rm -Rf qt5
 
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
@@ -50,8 +51,8 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
          "ld_flags=-static-libstdc++\n" \
          "cxx_flags=-fPIC\n" \
          "qt.plugins=QXcbIntegrationPlugin\n" \
-         "libraries.qt.system.linux=qxcb qtpcre2 qtlibpng qtharfbuzz fontconfig freetype xcb xcb-icccm xcb-image" \
-            "xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama xcb-xkb xkbcommon xkbcommon-x11\n" \
+         "libraries.qt.system.linux=qxcb qtpcre2 qtharfbuzz png16 fontconfig freetype" \
+           "xcb xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama xcb-xkb xkbcommon xkbcommon-x11\n" \
          "libraries.qt.linux=XcbQpa XkbCommonSupport ThemeSupport DBus EdidSupport FontDatabaseSupport ServiceSupport" > variables.mak
 
 WORKDIR /build/zxtune
