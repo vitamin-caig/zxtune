@@ -130,7 +130,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   private void restoreSession(Uri uri, TimeStamp position) throws Exception {
-    final Iterator iter = IteratorFactory.createIterator(context, uri);
+    final Iterator iter = IteratorFactory.createIterator(context, uri, playback.navigation);
     final PlayableItem newItem = iter.getItem();
     final Holder newHolder = new Holder(newItem, player.getSampleRate());
     newHolder.source.setPosition(position);
@@ -161,7 +161,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       for (; ; ) {
         final Uri uri = batch.get();
         try {
-          final Iterator iter = IteratorFactory.createIterator(context, uri);
+          final Iterator iter = IteratorFactory.createIterator(context, uri, playback.navigation);
           if (batch.compareAndSet(uri, null)) {
             iterator.set(iter);
             setNewItem(iter.getItem());

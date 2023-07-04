@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Implementation of Iterator based on playlist database
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.playback;
@@ -26,16 +22,16 @@ import app.zxtune.core.Scanner;
 import app.zxtune.playlist.DatabaseIterator;
 
 class PlaylistIterator implements Iterator {
-  
+
   private static final String TAG = PlaylistIterator.class.getName();
-  
+
   private final IteratorFactory.NavigationMode navigation;
   private DatabaseIterator delegate;
   @Nullable
   private PlayableItem item;
 
-  PlaylistIterator(Context context, Uri id) throws IOException {
-    this.navigation = new IteratorFactory.NavigationMode(context);
+  PlaylistIterator(Context context, Uri id, IteratorFactory.NavigationMode mode) throws IOException {
+    this.navigation = mode;
     this.delegate = new DatabaseIterator(context, id);
     if (!updateItem(delegate) && !next()) {
       throw new IOException(context.getString(R.string.no_tracks_found));
@@ -59,7 +55,7 @@ class PlaylistIterator implements Iterator {
     }
     return false;
   }
-  
+
   private DatabaseIterator getNext(DatabaseIterator it) {
     switch (navigation.get()) {
       case LOOPED:
@@ -94,20 +90,20 @@ class PlaylistIterator implements Iterator {
         return delegate.getPrev();
     }
   }
-  
+
   private boolean updateItem(DatabaseIterator iter) {
     final PlayableItem cur = item;
     loadItem(iter);
     return cur != item;
   }
-  
+
   private void loadItem(DatabaseIterator iter) {
     final app.zxtune.playlist.Item meta = iter.getItem();
     if (meta == null) {
       return;
     }
     Scanner.analyzeIdentifier(meta.getLocation(), new Scanner.Callback() {
-      
+
       @Override
       public void onModule(Identifier id, Module module) {
         final PlayableItem fileItem = new AsyncScanner.FileItem(id, module);
@@ -116,19 +112,19 @@ class PlaylistIterator implements Iterator {
         }
         item = new PlaylistItem(meta, fileItem);
       }
-      
+
       @Override
       public void onError(Identifier id, Exception e) {
         Log.w(TAG, e, "Ignore error for " + id);
       }
     });
   }
-  
+
   private static class PlaylistItem implements PlayableItem {
-    
+
     private final app.zxtune.playlist.Item meta;
     private final PlayableItem content;
-    
+
     PlaylistItem(app.zxtune.playlist.Item meta, PlayableItem content) {
       this.meta = meta;
       this.content = content;
@@ -153,7 +149,7 @@ class PlaylistIterator implements Iterator {
     public String getAuthor() {
       return meta.getAuthor();
     }
-    
+
     @Override
     public String getProgram() {
       return content.getProgram();
@@ -163,17 +159,17 @@ class PlaylistIterator implements Iterator {
     public String getComment() {
       return content.getComment();
     }
-    
+
     @Override
     public String getStrings() {
       return content.getStrings();
     }
-    
+
     @Override
     public TimeStamp getDuration() {
       return meta.getDuration();
     }
-    
+
     @Override
     public Module getModule() {
       return content.getModule();
