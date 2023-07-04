@@ -16,7 +16,7 @@ import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.ExecutorService
 
-private fun assertEquals(ref : State, test : State) {
+private fun assertEquals(ref: State, test: State) {
     assertEquals(ref.entries, test.entries)
     assertEquals(ref.filter, test.filter)
 }
@@ -124,6 +124,8 @@ class ModelTest {
         val entry1 = Entry(1, Identifier.EMPTY, "First entry", "Author1", TimeStamp.EMPTY)
         val entry2 = Entry(2, Identifier.EMPTY, "Second entry", "Author2", TimeStamp.EMPTY)
         val entry3 = Entry(3, Identifier.EMPTY, "Third entry", "second author", TimeStamp.EMPTY)
+        val entry4 =
+            Entry(4, Identifier.parse("schema://host/VisiblePath"), "", "aut", TimeStamp.EMPTY)
         val filled2 = initial.withContent(arrayListOf(entry1, entry2)).apply {
             assertNotNull(entries as? MutableList<Entry>)
             assertEquals("", filter)
@@ -143,7 +145,7 @@ class ModelTest {
             assertEquals(0, entries.size)
         }
 
-        val filtered3 = filtered2.withContent(arrayListOf(entry3, entry1, entry2)).apply {
+        val filtered3 = filtered2.withContent(arrayListOf(entry3, entry1, entry2, entry4)).apply {
             assertNull(entries as? MutableList<Entry>)
             assertEquals("second", filter)
             assertEquals(arrayListOf(entry3, entry2), entries)
@@ -152,7 +154,12 @@ class ModelTest {
         /*val filled3 = */filtered3.withFilter(" ").apply {
             assertNotNull(entries as? MutableList<Entry>)
             assertEquals("", filter)
-            assertEquals(arrayListOf(entry3, entry1, entry2), entries)
+            assertEquals(arrayListOf(entry3, entry1, entry2, entry4), entries)
+        }
+        /*val filled4 = */filtered3.withFilter("visible").apply {
+            assertNull(entries as? MutableList<Entry>)
+            assertEquals("visible", filter)
+            assertEquals(arrayListOf(entry4), entries)
         }
     }
 }

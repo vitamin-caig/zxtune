@@ -99,7 +99,9 @@ class Model @VisibleForTesting internal constructor(
 
         @VisibleForTesting
         fun createState() = State { entry, filter ->
-            entry.title.contains(filter, true) || entry.author.contains(filter, true)
+            val visibleTitle =
+                entry.title.takeIf { it.isNotEmpty() } ?: entry.location.displayFilename
+            visibleTitle.contains(filter, true) || entry.author.contains(filter, true)
         }
     }
 }
