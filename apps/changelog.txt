@@ -5,6 +5,22 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev5040 from 05.07.2023
+
+[+] Build for MacOSX arm64 (unnotarized)
+[*] Improved compatibility of generic linux/raspbian builds with older distributives
+[*] Reworked spectrum analyzer
+[*] Fixed crash on corrupted 7zip archives
+[*] Fixed fadeout processing
+[*] Fixed mp3 looped playback
+[*] Fixed vgm loop duration detection
+[*] Use default value for vgm tracks with zero duration
+[*] zxtune-qt: fixed crash on app close
+[*] zxtune123: fixed encoding problems on windows
+[*] zxtune-android: reworked UI
+[*] zxtune-android: playlist filtering operates on filename if module has no title
+[*] zxtune-android: fixed shuffle mode processing for currently playing queue
+
 --- Rev5030 from 03.04.2023
 
 [*] Fixed playback of some ogg files
