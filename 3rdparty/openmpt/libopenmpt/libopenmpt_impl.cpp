@@ -269,16 +269,22 @@ log_interface::~log_interface() {
 	return;
 }
 
-std_ostream_log::std_ostream_log( std::ostream & dst ) : destination(dst) {
+std_ostream_log::std_ostream_log( std::ostream & dst ) : destination(&dst) {
+	return;
+}
+std_ostream_log::std_ostream_log( std::ostream * dst ) : destination(dst) {
 	return;
 }
 std_ostream_log::~std_ostream_log() {
 	return;
 }
 void std_ostream_log::log( const std::string & message ) const {
-	destination.flush();
-	destination << message << '\n';
-	destination.flush();
+	if (!destination) {
+		return;
+	}
+	destination->flush();
+	*destination << message << '\n';
+	destination->flush();
 }
 
 class log_forwarder : public OpenMPT::ILog {

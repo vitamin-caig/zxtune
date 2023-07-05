@@ -470,7 +470,7 @@ public:
 	  \remarks The input data can be discarded after an openmpt::module has been constructed successfully.
 	  \sa \ref libopenmpt_cpp_fileio
 	*/
-	module( std::istream & stream, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( std::istream & stream, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	/*!
 	  \param data Data to load the module from.
 	  \param log Log where any warnings or errors are printed to. The lifetime of the reference has to be as long as the lifetime of the module instance.
@@ -480,7 +480,7 @@ public:
 	  \sa \ref libopenmpt_cpp_fileio
 	  \since 0.5.0
 	*/
-	module( const std::vector<std::byte> & data, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( const std::vector<std::byte> & data, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	/*!
 	  \param beg Begin of data to load the module from.
 	  \param end End of data to load the module from.
@@ -491,7 +491,7 @@ public:
 	  \sa \ref libopenmpt_cpp_fileio
 	  \since 0.5.0
 	*/
-	module( const std::byte * beg, const std::byte * end, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( const std::byte * beg, const std::byte * end, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	/*!
 	  \param data Data to load the module from.
 	  \param size Amount of data available.
@@ -502,7 +502,7 @@ public:
 	  \sa \ref libopenmpt_cpp_fileio
 	  \since 0.5.0
 	*/
-	module( const std::byte * data, std::size_t size, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( const std::byte * data, std::size_t size, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	/*!
 	  \param data Data to load the module from.
 	  \param log Log where any warnings or errors are printed to. The lifetime of the reference has to be as long as the lifetime of the module instance.
@@ -511,7 +511,7 @@ public:
 	  \remarks The input data can be discarded after an openmpt::module has been constructed successfully.
 	  \sa \ref libopenmpt_cpp_fileio
 	*/
-	module( const std::vector<std::uint8_t> & data, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( const std::vector<std::uint8_t> & data, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	/*!
 	  \param beg Begin of data to load the module from.
 	  \param end End of data to load the module from.
@@ -521,7 +521,7 @@ public:
 	  \remarks The input data can be discarded after an openmpt::module has been constructed successfully.
 	  \sa \ref libopenmpt_cpp_fileio
 	*/
-	module( const std::uint8_t * beg, const std::uint8_t * end, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( const std::uint8_t * beg, const std::uint8_t * end, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	/*!
 	  \param data Data to load the module from.
 	  \param size Amount of data available.
@@ -531,7 +531,7 @@ public:
 	  \remarks The input data can be discarded after an openmpt::module has been constructed successfully.
 	  \sa \ref libopenmpt_cpp_fileio
 	*/
-	module( const std::uint8_t * data, std::size_t size, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( const std::uint8_t * data, std::size_t size, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	/*!
 	  \param data Data to load the module from.
 	  \param log Log where any warnings or errors are printed to. The lifetime of the reference has to be as long as the lifetime of the module instance.
@@ -540,7 +540,7 @@ public:
 	  \remarks The input data can be discarded after an openmpt::module has been constructed successfully.
 	  \sa \ref libopenmpt_cpp_fileio
 	*/
-	module( const std::vector<char> & data, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( const std::vector<char> & data, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	/*!
 	  \param beg Begin of data to load the module from.
 	  \param end End of data to load the module from.
@@ -550,7 +550,7 @@ public:
 	  \remarks The input data can be discarded after an openmpt::module has been constructed successfully.
 	  \sa \ref libopenmpt_cpp_fileio
 	*/
-	module( const char * beg, const char * end, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( const char * beg, const char * end, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	/*!
 	  \param data Data to load the module from.
 	  \param size Amount of data available.
@@ -560,7 +560,7 @@ public:
 	  \remarks The input data can be discarded after an openmpt::module has been constructed successfully.
 	  \sa \ref libopenmpt_cpp_fileio
 	*/
-	module( const char * data, std::size_t size, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( const char * data, std::size_t size, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	/*!
 	  \param data Data to load the module from.
 	  \param size Amount of data available.
@@ -570,7 +570,7 @@ public:
 	  \remarks The input data can be discarded after an openmpt::module has been constructed successfully.
 	  \sa \ref libopenmpt_cpp_fileio
 	*/
-	module( const void * data, std::size_t size, std::ostream & log = std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
+	module( const void * data, std::size_t size, std::ostream * log = &std::clog, const std::map< std::string, std::string > & ctls = detail::initial_ctls_map() );
 	virtual ~module();
 public:
 

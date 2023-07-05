@@ -67,9 +67,10 @@ public:
 
 class std_ostream_log : public log_interface {
 private:
-	std::ostream & destination;
+	std::ostream * destination;
 public:
 	std_ostream_log( std::ostream & dst );
+	std_ostream_log( std::ostream * dst );
 	virtual ~std_ostream_log();
 	void log( const std::string & message ) const override;
 }; // class CSoundFileLog_std_ostream

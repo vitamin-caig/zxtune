@@ -180,47 +180,47 @@ void module::set_impl( module_impl * i ) {
 	impl = i;
 }
 
-module::module( std::istream & stream, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( std::istream & stream, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( stream, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
-module::module( const std::vector<std::byte> & data, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( const std::vector<std::byte> & data, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( data, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
-module::module( const std::byte * beg, const std::byte * end, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( const std::byte * beg, const std::byte * end, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( beg, end - beg, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
-module::module( const std::byte * data, std::size_t size, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( const std::byte * data, std::size_t size, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( data, size, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
-module::module( const std::vector<std::uint8_t> & data, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( const std::vector<std::uint8_t> & data, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( data, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
-module::module( const std::uint8_t * beg, const std::uint8_t * end, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( const std::uint8_t * beg, const std::uint8_t * end, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( beg, end - beg, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
-module::module( const std::uint8_t * data, std::size_t size, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( const std::uint8_t * data, std::size_t size, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( data, size, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
-module::module( const std::vector<char> & data, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( const std::vector<char> & data, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( data, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
-module::module( const char * beg, const char * end, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( const char * beg, const char * end, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( beg, end - beg, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
-module::module( const char * data, std::size_t size, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( const char * data, std::size_t size, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( data, size, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
-module::module( const void * data, std::size_t size, std::ostream & log, const std::map< std::string, std::string > & ctls ) : impl(0) {
+module::module( const void * data, std::size_t size, std::ostream * log, const std::map< std::string, std::string > & ctls ) : impl(0) {
 	impl = new module_impl( data, size, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 }
 
