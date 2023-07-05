@@ -27,8 +27,9 @@
 namespace
 {
   const uint_t UPDATE_FPS = 25;
-  const uint_t MAX_BANDS = 12 * 9;
-  const uint_t BAR_WIDTH = 3;
+  const uint_t MAX_BANDS = 256;
+  const uint_t BAR_WIDTH_MIN = 4;
+  const uint_t BAR_WIDTH_MAX = 10;
   const uint_t LEVELS_FALLBACK = 8;
 
   struct BandLevel
@@ -104,7 +105,8 @@ namespace
       const int curHeight = height();
       painter.setBrush(brush);
       painter.setPen(mask.color());
-      const uint_t bandsCount = std::min<uint_t>(curWidth / BAR_WIDTH, MAX_BANDS);
+      const auto bandsCount = std::min<uint_t>(curWidth / BAR_WIDTH_MIN, MAX_BANDS);
+      const auto barWidth = std::min(curWidth / bandsCount, BAR_WIDTH_MAX);
       for (uint_t band = 0; band < bandsCount; ++band)
       {
         const uint_t* const level = Levels[band].Get();
@@ -112,10 +114,10 @@ namespace
         {
           continue;
         }
-        const int xleft = band * (BAR_WIDTH + 1);
+        const int xleft = band * barWidth;
         if (const int scaledValue = *level * (curHeight - 1) / 100)
         {
-          painter.drawRect(xleft, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1);
+          painter.drawRect(xleft, curHeight - scaledValue - 1, barWidth, scaledValue + 1);
         }
       }
     }
