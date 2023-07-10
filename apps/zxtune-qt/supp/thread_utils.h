@@ -16,23 +16,17 @@
 #include <functional>
 // qt includes
 #include <QtCore/QMetaObject>
-#include <QtCore/QObject>
 #include <QtCore/QPointer>
+#include <QtCore/QThreadPool>
 
-class IOThread : public QObject
+class IOThread
 {
 public:
   template<class F>
   static void Execute(F&& func)
   {
-    Require(QMetaObject::invokeMethod(Instance(), std::forward<F>(func)));
+    QThreadPool::globalInstance()->start(std::forward<F>(func));
   }
-
-  static bool IsCurrent();
-
-private:
-  IOThread();
-  static IOThread* Instance();
 };
 
 class SelfThread
