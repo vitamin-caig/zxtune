@@ -20,9 +20,36 @@
 #include <module/holder.h>
 #include <parameters/container.h>
 #include <time/duration.h>
+// std includes
+#include <variant>
 
 namespace Playlist::Item
 {
+  class ModuleState
+  {
+  public:
+    static ModuleState Make();
+    static ModuleState MakeLoading();
+    static ModuleState MakeReady(Error err = Error());
+
+    ModuleState& operator = (const ModuleState&) = default;
+
+    bool IsLoading() const;
+    bool IsReady() const;
+    const Error* GetIfError() const;
+  private:
+    template<class T>
+    explicit ModuleState(T&& val)
+      : Container(std::move(val))
+    {
+    }
+  private:
+    struct Empty{};
+    struct Loading{};
+    struct Ready{};
+    std::variant<Empty, Loading, Ready, Error> Container;
+  };
+
   class Data
   {
   public:
@@ -30,7 +57,6 @@ namespace Playlist::Item
 
     virtual ~Data() = default;
 
-    virtual bool IsLoaded() const = 0;
     // common
     //  eager objects
     virtual Module::Holder::Ptr GetModule() const = 0;
@@ -40,7 +66,7 @@ namespace Playlist::Item
     virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
     virtual Capabilities GetCapabilities() const = 0;
     // playlist-related
-    virtual Error GetState() const = 0;
+    virtual ModuleState GetState() const = 0;
     virtual String GetFullPath() const = 0;
     virtual String GetFilePath() const = 0;
     virtual String GetType() const = 0;

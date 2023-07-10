@@ -253,7 +253,8 @@ namespace Playlist::UI
       return;
     }
     const Item::Data::Ptr item = model->GetItem(*scope.begin());
-    if (!item->GetState())
+    const auto& state = item->GetState();
+    if (state.IsReady() && !state.GetIfError())
     {
       const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(parent, *item);
       dialog->exec();

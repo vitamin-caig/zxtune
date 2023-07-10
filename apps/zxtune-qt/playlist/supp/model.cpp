@@ -266,7 +266,8 @@ namespace
   public:
     void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
-      if (!data->GetState())
+      const auto& state = data->GetState();
+      if (state.IsReady() && !state.GetIfError())
       {
         Paths.push_back(ToQString(data->GetFullPath()));
       }
@@ -608,7 +609,7 @@ namespace
       if (auto item = Container->GetItem(itemNum))
       {
         const auto& provider = Providers.GetProvider(role);
-        if (provider.IsLightweightField(fieldNum) || item->IsLoaded())
+        if (provider.IsLightweightField(fieldNum) || item->GetState().IsReady())
         {
           return provider.GetData(*item, fieldNum);
         }
@@ -642,7 +643,8 @@ namespace
       IOThread::Execute([weakItem = toWeak(std::move(item)), self = toWeak(const_cast<ModelImpl*>(this)), index]() {
         if (auto item = weakItem.lock())
         {
-          if (!item->IsLoaded())
+          const auto& state = item->GetState();
+          if (!state.IsLoading() && !state.IsReady())
           {
             item->GetModule();
             SelfThread::Execute(self, &ModelImpl::NotifyRowChanged, index);

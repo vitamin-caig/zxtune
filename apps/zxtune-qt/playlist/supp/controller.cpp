@@ -115,7 +115,12 @@ namespace
     {
       if (auto item = Model->GetItem(idx))
       {
-        if (!item->IsLoaded())
+        const auto& state = item->GetState();
+        if (state.IsReady())
+        {
+          SetItem(idx, std::move(item));
+        }
+        else if (!state.IsLoading())
         {
           IOThread::Execute([weakItem = toWeak(item), idx, self = toWeak(this)]() {
             if (auto item = weakItem.lock())
@@ -126,7 +131,6 @@ namespace
           });
           return true;
         }
-        SetItem(idx, std::move(item));
         return true;
       }
       return false;
@@ -134,9 +138,14 @@ namespace
 
     void SetItem(unsigned idx, Playlist::Item::Data::Ptr item)
     {
+      const auto& state = item->GetState();
+      if (!state.IsReady())
+      {
+        return;
+      }
       Dbg("Iterator: selected {}", idx);
       Index = idx;
-      if (item->GetState())
+      if (state.GetIfError())
       {
         State = Playlist::Item::ERROR;
       }

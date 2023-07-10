@@ -288,7 +288,8 @@ namespace UI
 
   Playlist::Item::Conversion::Options::Ptr GetSaveAsParameters(const Playlist::Item::Data& item)
   {
-    if (item.GetState())
+    const auto& state = item.GetState();
+    if (!state.IsReady() || state.GetIfError())
     {
       return {};
     }

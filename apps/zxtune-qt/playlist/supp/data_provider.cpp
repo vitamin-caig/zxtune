@@ -459,23 +459,21 @@ namespace
       , AdjustedParams(std::move(adjustedParams))
       , Properties(Parameters::CreateMergedAccessor(AdjustedParams, std::move(moduleProps)))
       , Duration(duration)
+      , CurrentState(Playlist::Item::ModuleState::MakeReady())
     {}
-
-    bool IsLoaded() const override
-    {
-      return true;
-    }
 
     Module::Holder::Ptr GetModule() const override
     {
       try
       {
-        State = Error();
-        return Source.GetModule(AdjustedParams);
+        CurrentState = Playlist::Item::ModuleState::MakeLoading();
+        auto res = Source.GetModule(AdjustedParams);
+        CurrentState = Playlist::Item::ModuleState::MakeReady();
+        return res;
       }
       catch (const Error& e)
       {
-        State = e;
+        CurrentState = Playlist::Item::ModuleState::MakeReady(e);
       }
       return {};
     }
@@ -501,9 +499,9 @@ namespace
     }
 
     // playlist-related properties
-    Error GetState() const override
+    Playlist::Item::ModuleState GetState() const override
     {
-      return State;
+      return CurrentState;
     }
 
     String GetFullPath() const override
@@ -568,7 +566,7 @@ namespace
     const Parameters::Container::Ptr AdjustedParams;
     const Parameters::Accessor::Ptr Properties;
     Time::Milliseconds Duration;
-    mutable Error State;
+    mutable Playlist::Item::ModuleState CurrentState;
   };
 
   class DetectCallback : public Module::DetectCallback
@@ -702,6 +700,36 @@ namespace
 
 namespace Playlist::Item
 {
+  ModuleState ModuleState::Make()
+  {
+    return ModuleState(Empty{});
+  }
+
+  ModuleState ModuleState::MakeLoading()
+  {
+    return ModuleState(Loading{});
+  }
+
+  ModuleState ModuleState::MakeReady(Error err)
+  {
+    return err ? ModuleState(std::move(err)) : ModuleState(Ready{});
+  }
+
+  bool ModuleState::IsLoading() const
+  {
+    return std::get_if<Loading>(&Container) != nullptr;
+  }
+
+  bool ModuleState::IsReady() const
+  {
+    return std::get_if<Ready>(&Container) != nullptr || GetIfError() != nullptr;
+  }
+
+  const Error* ModuleState::GetIfError() const
+  {
+    return std::get_if<Error>(&Container);
+  }
+
   DataProvider::Ptr DataProvider::Create(Parameters::Accessor::Ptr parameters)
   {
     return MakePtr<DataProviderImpl>(std::move(parameters));

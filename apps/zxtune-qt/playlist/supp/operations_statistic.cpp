@@ -42,9 +42,10 @@ namespace
   private:
     void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
+      data->GetModule();
       // check for the data first to define is data valid or not
       const String type = data->GetType();
-      if (data->GetState())
+      if (data->GetState().GetIfError())
       {
         Result->AddInvalid();
       }

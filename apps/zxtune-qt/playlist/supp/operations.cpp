@@ -55,7 +55,8 @@ namespace
 
     void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
     {
-      if (data->GetState())
+      data->GetModule();
+      if (data->GetState().GetIfError())
       {
         return;
       }
@@ -479,7 +480,7 @@ namespace
     void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
     {
       // check for the data first to define is data valid or not
-      if (data->GetState())
+      if (data->GetState().GetIfError())
       {
         Result->insert(index);
       }

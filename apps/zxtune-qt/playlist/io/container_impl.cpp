@@ -19,6 +19,7 @@
 #include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
 // std includes
+#include <mutex>
 #include <utility>
 
 namespace
@@ -69,11 +70,6 @@ namespace
       params.Process(*Params);
     }
 
-    bool IsLoaded() const override
-    {
-      return true;
-    }
-
     // common
     Module::Holder::Ptr GetModule() const override
     {
@@ -101,9 +97,9 @@ namespace
     }
 
     // playlist-related
-    Error GetState() const override
+    Playlist::Item::ModuleState GetState() const override
     {
-      return State;
+      return Playlist::Item::ModuleState::MakeReady(State);
     }
 
     String GetFullPath() const override
@@ -217,12 +213,8 @@ namespace
   public:
     explicit DelayLoadItemData(DelayLoadItemProvider::Ptr provider)
       : Provider(std::move(provider))
+      , CurrentState(Playlist::Item::ModuleState::Make())
     {}
-
-    bool IsLoaded() const override
-    {
-      return !Provider;
-    }
 
     // common
     Module::Holder::Ptr GetModule() const override
@@ -242,6 +234,7 @@ namespace
 
     Parameters::Container::Ptr GetAdjustedParameters() const override
     {
+      const std::scoped_lock lock(Guard);
       return Provider.get() ? Provider->GetParameters() : Delegate->GetAdjustedParameters();
     }
 
@@ -251,13 +244,22 @@ namespace
     }
 
     // playlist-related
-    Error GetState() const override
+    Playlist::Item::ModuleState GetState() const override
     {
-      return AcquireDelegate().GetState();
+      const std::scoped_lock lock(Guard);
+      if (Delegate)
+      {
+        return Delegate->GetState();
+      }
+      else
+      {
+        return CurrentState;
+      }
     }
 
     String GetFullPath() const override
     {
+      const std::scoped_lock lock(Guard);
       return Provider.get() ? Provider->GetPath() : Delegate->GetFullPath();
     }
 
@@ -314,16 +316,43 @@ namespace
   private:
     const Playlist::Item::Data& AcquireDelegate() const
     {
+      const std::scoped_lock lock(Guard);
       if (!Delegate)
       {
-        Delegate = Provider->OpenItem();
+        CurrentState = Playlist::Item::ModuleState::MakeLoading();
+        Delegate = LoadItemUnlocked();
         Provider.reset();
       }
       return *Delegate;
     }
 
+    Playlist::Item::Data::Ptr LoadItemUnlocked() const
+    {
+      const ScopedUnlock unlock(Guard);
+      return Provider->OpenItem();
+    }
+
+    class ScopedUnlock
+    {
+    public:
+      ScopedUnlock(std::mutex& mtx)
+        : Mtx(mtx)
+      {
+        Mtx.unlock();
+      }
+
+      ~ScopedUnlock()
+      {
+        Mtx.lock();
+      }
+    private:
+      std::mutex& Mtx;
+    };
+
   private:
+    mutable std::mutex Guard;
     mutable DelayLoadItemProvider::Ptr Provider;
+    mutable Playlist::Item::ModuleState CurrentState;
     mutable Playlist::Item::Data::Ptr Delegate;
   };
 

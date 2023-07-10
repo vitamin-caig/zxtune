@@ -75,10 +75,13 @@ namespace
           return Iterator.GetState();
         }
         // TODO: do not access item
-        const auto item = Model.GetItem(row);
-        if (item && (!item->IsLoaded() || !item->GetState()))
+        if (const auto item = Model.GetItem(row))
         {
-          return Playlist::Item::STOPPED;
+          const auto& state = item->GetState();
+          if (state.IsReady() && !state.GetIfError())
+          {
+            return Playlist::Item::STOPPED;
+          }
         }
       }
       return Playlist::Item::ERROR;
@@ -251,9 +254,15 @@ namespace
     {
       if (const auto item = Delegate.GetItem(itemNum))
       {
-        if (item->IsLoaded())
+        const auto& state = item->GetState();
+        if (const auto* err = state.GetIfError())
         {
-          return GetTooltip(*item);
+          return ToQString(err->ToString());
+        }
+        else if (state.IsReady())
+        {
+          const auto properties = item->GetModuleProperties();
+          return Tooltip.Get(*properties);
         }
         else
         {
@@ -263,19 +272,6 @@ namespace
         }
       }
       return {};
-    }
-
-    QVariant GetTooltip(const Playlist::Item::Data& item) const
-    {
-      if (const Error& err = item.GetState())
-      {
-        return ToQString(err.ToString());
-      }
-      else
-      {
-        const auto properties = item.GetModuleProperties();
-        return Tooltip.Get(*properties);
-      }
     }
 
     static QVariant GetHeaderText(unsigned column)
