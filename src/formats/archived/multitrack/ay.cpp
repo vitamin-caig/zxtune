@@ -77,7 +77,7 @@ namespace Formats::Archived
 
       File::Ptr FindFile(StringView name) const override
       {
-        const Strings::PrefixedIndex rawName("@"_sv, name);
+        const auto rawName = Strings::PrefixedIndex::Parse("@"_sv, name);
         const auto ayIndex = MultitrackArchives::ParseFilename(name);
         if (!rawName.IsValid() && !ayIndex)
         {

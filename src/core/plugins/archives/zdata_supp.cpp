@@ -246,7 +246,7 @@ namespace ZXTune
     hdr.ToRaw(builder.Get<Zdata::RawHeader>(0));
     auto data = Zdata::Convert(builder.GetView());
     return CreateLocation(std::move(data), Zdata::ID.to_string(),
-                          Strings::PrefixedIndex(Zdata::PLUGIN_PREFIX, hdr.Crc).ToString());
+                          Strings::PrefixedIndex::Create(Zdata::PLUGIN_PREFIX, hdr.Crc).ToString());
   }
 }  // namespace ZXTune
 
@@ -287,7 +287,7 @@ namespace ZXTune::Zdata
                               const Analysis::Path& inPath) const override
     {
       const auto& pathComp = inPath.GetIterator()->Get();
-      const Strings::PrefixedIndex pathIndex(PLUGIN_PREFIX, pathComp);
+      const auto pathIndex = Strings::PrefixedIndex::Parse(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {
         const auto rawData = location->GetData();

@@ -19,12 +19,12 @@ namespace Formats::Archived::MultitrackArchives
 
   String CreateFilename(std::size_t index)
   {
-    return Strings::PrefixedIndex(FILENAME_PREFIX, index).ToString();
+    return Strings::PrefixedIndex::Create(FILENAME_PREFIX, index).ToString();
   }
 
   std::optional<std::size_t> ParseFilename(StringView str)
   {
-    const auto parsed = Strings::PrefixedIndex(FILENAME_PREFIX, str);
+    const auto parsed = Strings::PrefixedIndex::Parse(FILENAME_PREFIX, str);
     std::optional<std::size_t> result;
     if (parsed.IsValid())
     {

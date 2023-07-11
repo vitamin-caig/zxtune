@@ -18,9 +18,9 @@ namespace Strings
   class PrefixedIndex
   {
   public:
-    PrefixedIndex(StringView prefix, StringView value);
-
-    PrefixedIndex(StringView prefix, std::size_t index);
+    static PrefixedIndex Parse(StringView prefix, StringView value);
+    static PrefixedIndex ParseNoCase(StringView prefix, StringView value);
+    static PrefixedIndex Create(StringView prefix, std::size_t index);
 
     bool IsValid() const
     {
@@ -38,8 +38,15 @@ namespace Strings
     }
 
   private:
+    PrefixedIndex(String str, bool isValid, std::size_t idx)
+      : Str(std::move(str))
+      , Valid(isValid)
+      , Index(idx)
+    {}
+
+  private:
     const String Str;
-    bool Valid;
-    std::size_t Index;
+    const bool Valid;
+    const std::size_t Index;
   };
 }  // namespace Strings

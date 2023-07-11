@@ -275,7 +275,7 @@ namespace ZXTune::Raw
   String CreateFilename(std::size_t offset)
   {
     assert(offset);
-    return Strings::PrefixedIndex(PLUGIN_PREFIX, offset).ToString();
+    return Strings::PrefixedIndex::Create(PLUGIN_PREFIX, offset).ToString();
   }
 
   class PluginParameters
@@ -822,7 +822,7 @@ namespace ZXTune::Raw
                               const Analysis::Path& inPath) const override
     {
       const auto& pathComp = inPath.GetIterator()->Get();
-      const Strings::PrefixedIndex pathIndex(PLUGIN_PREFIX, pathComp);
+      const auto pathIndex = Strings::PrefixedIndex::Parse(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {
         const auto offset = pathIndex.GetIndex();

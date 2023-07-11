@@ -259,7 +259,7 @@ namespace Formats::Chiptune::PortableSoundFormat
       }
       else
       {
-        const Strings::PrefixedIndex lib(Tags::LIB_PREFIX, tagName);
+        const auto lib = Strings::PrefixedIndex::Parse(Tags::LIB_PREFIX, tagName);
         const auto num = lib.IsValid() ? lib.GetIndex() : 0;
         Require(num != 1);
         return num;

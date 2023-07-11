@@ -234,34 +234,45 @@ int main()
     std::cout << "---- Test for prefixed index ----" << std::endl;
     {
       {
-        const Strings::PrefixedIndex composed("Prefix", 123);
+        const auto composed = Strings::PrefixedIndex::Create("Prefix", 123);
         Test(composed.IsValid(), "Composed IsValid");
         Test(composed.GetIndex() == 123, "Composed GetIndex");
         Test(composed.ToString() == "Prefix123", "Composed ToString");
       }
       {
-        const Strings::PrefixedIndex parsed("Prefix", "Prefix456");
+        const auto parsed = Strings::PrefixedIndex::Parse("Prefix", "Prefix456");
         Test(parsed.IsValid(), "Parsed IsValid");
         Test(parsed.GetIndex() == 456, "Parsed GetIndex");
         Test(parsed.ToString() == "Prefix456", "Parsed ToString");
       }
       {
-        const Strings::PrefixedIndex garbage("Prefix", "Prefix456sub");
+        const auto garbage = Strings::PrefixedIndex::Parse("Prefix", "Prefix456sub");
         Test(!garbage.IsValid(), "Garbage IsValid");
         Test(garbage.GetIndex() == 0, "Garbage GetIndex");
         Test(garbage.ToString() == "Prefix456sub", "Garbage ToString");
       }
       {
-        const Strings::PrefixedIndex invalid("Prefix", "SomeString");
+        const auto invalid = Strings::PrefixedIndex::Parse("Prefix", "SomeString");
         Test(!invalid.IsValid(), "Invalid IsValid");
         Test(invalid.GetIndex() == 0, "Invalid GetIndex");
         Test(invalid.ToString() == "SomeString", "Invalid ToString");
       }
       {
-        const Strings::PrefixedIndex empty("Prefix", "Prefix");
+        const auto empty = Strings::PrefixedIndex::Parse("Prefix", "Prefix");
         Test(!empty.IsValid(), "Empty IsValid");
         Test(empty.GetIndex() == 0, "Empty GetIndex");
         Test(empty.ToString() == "Prefix", "Empty ToString");
+      }
+      {
+        const auto caseInvalid = Strings::PrefixedIndex::Parse("prefix", "PREFIX123");
+        Test(!caseInvalid.IsValid(), "CaseInvalid IsValid");
+        Test(caseInvalid.GetIndex() == 0, "CaseInvalid GetIndex");
+        Test(caseInvalid.ToString() == "PREFIX123", "CaseInvalid ToString");
+
+        const auto caseValid = Strings::PrefixedIndex::ParseNoCase("prefix", "PREFIX123");
+        Test(caseValid.IsValid(), "CaseValid IsValid");
+        Test(caseValid.GetIndex() == 123, "CaseValid GetIndex");
+        Test(caseValid.ToString() == "PREFIX123", "CaseValid ToString");
       }
     }
     std::cout << "---- Test for conversion ----" << std::endl;
