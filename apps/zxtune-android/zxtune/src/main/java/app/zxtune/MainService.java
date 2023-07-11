@@ -33,6 +33,7 @@ import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.preferences.DataStore;
+import app.zxtune.preferences.Preferences;
 import app.zxtune.preferences.SharedPreferencesBridge;
 
 public class MainService extends MediaBrowserServiceCompat {

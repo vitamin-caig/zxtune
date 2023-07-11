@@ -7,7 +7,6 @@ import android.os.Looper
 import androidx.core.content.edit
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.zxtune.Preferences
 import app.zxtune.core.PropertiesModifier
 import app.zxtune.preferences.SharedPreferencesBridge.subscribe
 import app.zxtune.use

@@ -4,7 +4,6 @@ import android.content.ContentProvider
 import android.os.Bundle
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.core.content.edit
-import app.zxtune.Preferences
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
