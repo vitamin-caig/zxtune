@@ -56,7 +56,7 @@ namespace
   template<class... P>
   void Write(uint_t level, const char* msg, P&&... params)
   {
-    Write(level, Strings::Format(msg, std::forward<P>(params)...).c_str());
+    Write(level, Strings::Format(msg, std::forward<P>(params)...));
   }
 
   char ToHex(uint_t nib)
