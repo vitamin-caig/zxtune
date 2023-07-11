@@ -37,20 +37,14 @@ class ProviderClient(ctx: Context) {
         PreferenceLiveData(resolver, key, defaultValue) { k, def ->
             getInt(k, def)
         }
-
-    companion object {
-        fun create(ctx: Context) = ProviderClient(ctx)
-    }
 }
 
 private fun ContentResolver.list(prefix: String? = null) =
     call(Provider.URI, Provider.METHOD_LIST, prefix, null)
 
-private fun ContentResolver.get(key: String) =
-    call(Provider.URI, Provider.METHOD_GET, key, null)
+private fun ContentResolver.get(key: String) = call(Provider.URI, Provider.METHOD_GET, key, null)
 
-private fun ContentResolver.put(data: Bundle) =
-    call(Provider.URI, Provider.METHOD_PUT, null, data)
+private fun ContentResolver.put(data: Bundle) = call(Provider.URI, Provider.METHOD_PUT, null, data)
 
 // Do not use generic getters to avoid type check on each call.
 class PreferenceLiveData<T>(
