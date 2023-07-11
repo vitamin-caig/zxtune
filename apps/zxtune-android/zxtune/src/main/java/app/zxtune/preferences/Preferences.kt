@@ -14,6 +14,7 @@ import android.content.SharedPreferences
 object Preferences {
 
     private lateinit var providerClient: ProviderClient
+    private lateinit var dataStore: DataStore
 
     @JvmStatic
     fun getDefaultSharedPreferences(context: Context): SharedPreferences =
@@ -24,5 +25,13 @@ object Preferences {
             providerClient = ProviderClient(context.applicationContext)
         }
         return providerClient
+    }
+
+    @JvmStatic
+    fun getDataStore(context: Context): DataStore {
+        if (!this::dataStore.isInitialized) {
+            dataStore = DataStore(getProviderClient(context))
+        }
+        return dataStore
     }
 }

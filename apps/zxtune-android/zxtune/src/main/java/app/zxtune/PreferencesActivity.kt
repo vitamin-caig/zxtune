@@ -5,20 +5,15 @@
  */
 package app.zxtune
 
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.annotation.XmlRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.preference.Preference
-import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
 import app.zxtune.analytics.Analytics
-import app.zxtune.preferences.DataStore
+import app.zxtune.preferences.Preferences
 
 class PreferencesActivity : AppCompatActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
@@ -63,22 +58,8 @@ class PreferencesActivity : AppCompatActivity(),
 
     class PrefFragment(@XmlRes private val layout: Int) : PreferenceFragmentCompat() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            preferenceManager.preferenceDataStore = Model.of(this).store
+            preferenceManager.preferenceDataStore = Preferences.getDataStore(requireContext())
             setPreferencesFromResource(layout, rootKey)
-        }
-    }
-
-    // public for provider
-    class Model(app: Application) : AndroidViewModel(app) {
-        val store: PreferenceDataStore = DataStore(app)
-
-        companion object {
-            fun of(owner: Fragment) = owner.requireActivity().let { activity ->
-                ViewModelProvider(
-                    activity,
-                    ViewModelProvider.AndroidViewModelFactory.getInstance(activity.application)
-                )[Model::class.java]
-            }
         }
     }
 }

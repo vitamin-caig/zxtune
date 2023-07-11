@@ -10,14 +10,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import app.zxtune.R
 import app.zxtune.device.media.MediaModel
-import app.zxtune.preferences.DataStore
+import app.zxtune.preferences.Preferences
 import app.zxtune.ui.views.SpectrumAnalyzerView
 
 class VisualizerFragment : Fragment() {
     private val state by lazy {
         VisibilityState(requireContext())
     }
-    private lateinit var analyzer : SpectrumAnalyzerView
+    private lateinit var analyzer: SpectrumAnalyzerView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -43,12 +43,12 @@ class VisualizerFragment : Fragment() {
         setIsVisible(true)
     }
 
-    fun setIsVisible(isVisible : Boolean) {
+    fun setIsVisible(isVisible: Boolean) {
         analyzer.isVisible = isVisible && state.isEnabled
     }
 
     private class VisibilityState(ctx: Context) {
-        private val prefs = DataStore(ctx)
+        private val prefs = Preferences.getDataStore(ctx)
         private var value = prefs.getInt(PREF_KEY, SPECTRUM)
             set(value) {
                 field = value
