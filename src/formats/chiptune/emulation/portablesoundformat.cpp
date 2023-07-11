@@ -253,13 +253,13 @@ namespace Formats::Chiptune::PortableSoundFormat
 
     static uint_t FindLibraryNumber(StringView tagName)
     {
-      if (tagName == Tags::LIB_PREFIX)
+      if (Tags::Match(tagName, Tags::LIB_PREFIX))
       {
         return 1;
       }
       else
       {
-        const auto lib = Strings::PrefixedIndex::Parse(Tags::LIB_PREFIX, tagName);
+        const auto lib = Strings::PrefixedIndex::ParseNoCase(Tags::LIB_PREFIX, tagName);
         const auto num = lib.IsValid() ? lib.GetIndex() : 0;
         Require(num != 1);
         return num;
