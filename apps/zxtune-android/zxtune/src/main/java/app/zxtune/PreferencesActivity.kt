@@ -30,7 +30,7 @@ class PreferencesActivity : AppCompatActivity(),
         supportFragmentManager.run {
             if (findFragmentById(android.R.id.content) == null) {
                 beginTransaction()
-                    .add(android.R.id.content, makeMainFragment())
+                    .add(android.R.id.content, makeFragment(R.xml.preferences))
                     .disallowAddToBackStack()
                     .commit()
             }
@@ -45,7 +45,7 @@ class PreferencesActivity : AppCompatActivity(),
     ) = if ("zxtune.sound.mixer.3" == pref.key) {
         supportFragmentManager
             .beginTransaction()
-            .replace(android.R.id.content, makeMixer3Fragment())
+            .replace(android.R.id.content, makeFragment(R.xml.preferences_mixer3))
             .addToBackStack(null)
             .commit()
         true
@@ -53,10 +53,24 @@ class PreferencesActivity : AppCompatActivity(),
         false
     }
 
-    private fun makeMainFragment() = PrefFragment(R.xml.preferences)
-    private fun makeMixer3Fragment() = PrefFragment(R.xml.preferences_mixer3)
+    private fun makeFragment(@XmlRes layout: Int) = PrefFragment().apply {
+        this.layout = layout
+    }
 
-    class PrefFragment(@XmlRes private val layout: Int) : PreferenceFragmentCompat() {
+    class PrefFragment : PreferenceFragmentCompat() {
+
+        companion object {
+            private const val LAYOUT_KEY = "layout"
+        }
+
+        var layout
+            get() = requireArguments().getInt(LAYOUT_KEY)
+            set(value) {
+                arguments = Bundle().apply {
+                    putInt(LAYOUT_KEY, value)
+                }
+            }
+
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.preferenceDataStore = Preferences.getDataStore(requireContext())
             setPreferencesFromResource(layout, rootKey)
