@@ -6,6 +6,9 @@ ENV arch=x86_64 execprefix=x86_64-w64-mingw32- addressmodel=64
 FROM debian:bookworm-slim AS mingw-x86
 ENV arch=x86 execprefix=i686-w64-mingw32- addressmodel=32
 
+FROM debian:bookworm-slim AS mingw-arm64
+ENV arch=arm64 execprefix=aarch64-w64-mingw32- addressmodel=64
+
 FROM mingw-${arch}
 ARG cores=12
 RUN apt-get update && \
@@ -34,7 +37,7 @@ RUN wget -q https://github.com/boostorg/boost/releases/download/boost-${boost}/b
     ./bootstrap.sh clang && \
     echo "using gcc : windows : ${execprefix}g++ ;" > tools/build/src/user-config.jam && \
     ./b2 toolset=gcc-windows link=static threading=multi target-os=windows variant=release --layout=system \
-      address-model=${addressmodel} cxxflags=-mno-ms-bitfields cxxflags=-mmmx cxxflags=-msse cxxflags=-msse2 cxxflags=-ffunction-sections cxxflags=-fdata-sections \
+      address-model=${addressmodel} cxxflags=-mno-ms-bitfields cxxflags=-ffunction-sections cxxflags=-fdata-sections \
       --with-locale --with-program_options -j${cores} \
       --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-mingw-${arch}/lib install) && \
     rm -Rf boost*
