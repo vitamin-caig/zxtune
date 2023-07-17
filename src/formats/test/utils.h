@@ -17,6 +17,7 @@
 #include <binary/data_builder.h>
 #include <formats/archived/decoders.h>
 #include <formats/packed/decoders.h>
+#include <strings/conversion.h>
 #include <strings/split.h>
 // std includes
 #include <cstring>

@@ -403,14 +403,14 @@ namespace
       return {item.first, idx};
     }
 
-    class ComparerWrapper : public std::binary_function<ItemsContainer::value_type, ItemsContainer::value_type, bool>
+    class ComparerWrapper
     {
     public:
       explicit ComparerWrapper(const Item::Comparer& cmp)
         : Cmp(cmp)
       {}
 
-      result_type operator()(const first_argument_type& lh, const second_argument_type& rh) const
+      bool operator()(const ItemsContainer::value_type& lh, const ItemsContainer::value_type& rh) const
       {
         return Cmp.CompareItems(*lh.first, *rh.first);
       }

@@ -97,7 +97,7 @@ namespace Module::SQTracker
       }
     };
 
-    struct PositionHash : std::unary_function<HashedPosition, std::size_t>
+    struct PositionHash
     {
       std::size_t operator()(const HashedPosition& pos) const
       {
