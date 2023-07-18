@@ -19,6 +19,7 @@ import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playlist.ProviderClient;
+import kotlin.Pair;
 
 final class InternalSink implements Sink {
 
@@ -216,6 +217,30 @@ final class InternalSink implements Sink {
     builder.addParam("size", size);
     for (HashMap.Entry<String, Long> entry : tablesRows.entrySet()) {
       builder.addParam("rows_" + entry.getKey(), entry.getValue());
+    }
+
+    send(builder);
+  }
+
+  @Override
+  public void sendEvent(String id, Pair<String, ?>... arguments) {
+    final UrlsBuilder builder = new UrlsBuilder(id);
+    for (Pair<String, ?> arg : arguments) {
+      final String key = arg.getFirst();
+      final Object val = arg.getSecond();
+      if (val instanceof String) {
+        builder.addParam(key, (String) val);
+      } else if (val instanceof Long) {
+        builder.addParam(key, (Long) val);
+      } else if (val instanceof Integer) {
+        builder.addParam(key, (Integer) val);
+      } else if (val instanceof Boolean) {
+        builder.addParam(key, (Boolean) val ? 1 : 0);
+      } else if (val instanceof Uri) {
+        builder.addUri((Uri) val);
+      } else {
+        Log.d(TAG, "Unexpected event argument %s=%s", key, val);
+      }
     }
 
     send(builder);

@@ -21,6 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
 import app.zxtune.auth.Auth;
+import app.zxtune.device.PowerManagement;
 import app.zxtune.fs.api.Api;
 
 public final class Provider extends ContentProvider {
@@ -29,10 +30,7 @@ public final class Provider extends ContentProvider {
 
   static final String METHOD_PUSH = "push";
 
-  static final Uri URI = new Uri.Builder()
-      .scheme(ContentResolver.SCHEME_CONTENT)
-      .authority("app.zxtune.analytics.internal")
-      .build();
+  static final Uri URI = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority("app.zxtune.analytics.internal").build();
 
   private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(1024);
 
@@ -60,7 +58,7 @@ public final class Provider extends ContentProvider {
     thread.setDaemon(true);
     thread.start();
     sendSystemInfoEvent();
-    sendSystemConfigurationEvent(ctx.getResources());
+    sendSystemConfigurationEvent(ctx);
     if (auth.isInitial()) {
       sendInitialInstallationEvent();
     }
@@ -90,7 +88,8 @@ public final class Provider extends ContentProvider {
     doPush(builder.getResult());
   }
 
-  private void sendSystemConfigurationEvent(Resources res) {
+  private void sendSystemConfigurationEvent(Context ctx) {
+    final Resources res = ctx.getResources();
     final UrlsBuilder builder = new UrlsBuilder("system/config");
     final Configuration cfg = res.getConfiguration();
     final DisplayMetrics metrics = res.getDisplayMetrics();
@@ -108,6 +107,10 @@ public final class Provider extends ContentProvider {
     builder.addParam("width", cfg.screenWidthDp);
     builder.addParam("height", cfg.screenHeightDp);
     builder.addParam("sw", cfg.smallestScreenWidthDp);
+    final Boolean doze = PowerManagement.dozeEnabled(ctx);
+    if (doze != null) {
+      builder.addParam("doze", doze ? 1 : 0);
+    }
 
     doPush(builder.getResult());
   }
