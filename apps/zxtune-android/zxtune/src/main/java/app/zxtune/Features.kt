@@ -16,4 +16,10 @@ object Features {
         @JvmStatic
         fun isEnabled() = Build.VERSION.SDK_INT >= REQUIRED_SDK
     }
+
+    object DozeMode {
+        const val REQUIRED_SDK = 23
+
+        fun isAvailable() = Build.VERSION.SDK_INT >= REQUIRED_SDK
+    }
 }
