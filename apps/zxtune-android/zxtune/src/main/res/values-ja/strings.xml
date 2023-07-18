@@ -43,4 +43,10 @@
     <!-- notifications -->
     <string name="notification_channel_name_events">イベント</string>
     <string name="notification_channel_name_services">サービス</string>
+    <!-- problems -->
+    <string name="problems">問題が検出されました</string>
+    <string name="problem_power_management">
+        アプリケーションのバッテリー使用を最適化すると、バックグラウンドモードの再生が自発的に停止する可能性があります。
+    </string>
+    <string name="problem_power_management_fixit">最適化のセットアップ</string>
 </resources>

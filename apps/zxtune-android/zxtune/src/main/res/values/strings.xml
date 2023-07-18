@@ -46,4 +46,10 @@
     <!-- notifications -->
     <string name="notification_channel_name_events">Events</string>
     <string name="notification_channel_name_services">Services</string>
+    <!-- problems -->
+    <string name="problems">Detected problems</string>
+    <string name="problem_power_management">
+        Optimizing battery use for an application may lead to spontaneous stops while working in background mode.
+    </string>
+    <string name="problem_power_management_fixit">Set up optimization</string>
 </resources>

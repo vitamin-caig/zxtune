@@ -55,4 +55,10 @@
     <!-- notifications -->
     <string name="notification_channel_name_events">События</string>
     <string name="notification_channel_name_services">Сервисы</string>
+    <!-- problems -->
+    <string name="problems">Обнаруженные проблемы</string>
+    <string name="problem_power_management">
+        Оптимизация использования батареи приложением может привести к самопроизвольной остановке воспроизведения в фоновом режиме.
+    </string>
+    <string name="problem_power_management_fixit">Настройка оптимизации</string>
 </resources>

@@ -47,4 +47,10 @@
     <!-- notifications -->
     <string name="notification_channel_name_events">Události</string>
     <string name="notification_channel_name_services">Služby</string>
+    <!-- problems -->
+    <string name="problems">Zjištěné problémy</string>
+    <string name="problem_power_management">
+        Optimalizace využití baterie pro aplikaci může vést k spontánnímu zastavení přehrávání režimu na pozadí.
+    </string>
+    <string name="problem_power_management_fixit">Nastavení optimalizace</string>
 </resources>

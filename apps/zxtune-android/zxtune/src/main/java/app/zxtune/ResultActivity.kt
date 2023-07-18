@@ -7,9 +7,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree
+import app.zxtune.analytics.Analytics
 import app.zxtune.device.Permission
 import app.zxtune.device.PersistentStorage
+import app.zxtune.device.PowerManagement
 
 class ResultActivity : ComponentActivity() {
 
@@ -18,6 +21,7 @@ class ResultActivity : ComponentActivity() {
         private const val ACTION_REQUEST_PERSISTENT_STORAGE_LOCATION =
             "request_persistent_storage_location"
         private const val ACTION_START_SERVICE = "start_service"
+        private const val ACTION_SETUP_POWER_MANAGEMENT = "setup_power_management"
         private const val EXTRA_ORIGINAL_COMPONENT = "extra_original_component"
         private const val EXTRA_ORIGINAL_ACTION = "extra_original_action"
 
@@ -39,6 +43,11 @@ class ResultActivity : ComponentActivity() {
             putExtra(EXTRA_ORIGINAL_ACTION, act)
         }
 
+        fun createSetupPowerManagementIntent(ctx: Context) =
+            Intent(ctx, ResultActivity::class.java).apply {
+                action = ACTION_SETUP_POWER_MANAGEMENT
+            }
+
         private fun getNestedIntent(src: Intent) =
             Intent(requireNotNull(src.getStringExtra(EXTRA_ORIGINAL_ACTION)), src.data).apply {
                 component = requireNotNull(src.getParcelableExtra(EXTRA_ORIGINAL_COMPONENT))
@@ -59,6 +68,18 @@ class ResultActivity : ComponentActivity() {
             }
             finish()
         }
+    private val powerManagement by lazy {
+        PowerManagement.create(this)
+    }
+    private val powerManagementSetupRequest by lazy {
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            powerManagement.updateState()
+            Analytics.sendEvent("power_management",
+                "doze" to PowerManagement.dozeEnabled(this),
+                "problem" to powerManagement.hasProblem.value)
+            finish()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,6 +96,10 @@ class ResultActivity : ComponentActivity() {
 
             ACTION_REQUEST_PERSISTENT_STORAGE_LOCATION -> persistentStorageLocationRequest.launch(
                 requireNotNull(intent.data)
+            )
+
+            ACTION_SETUP_POWER_MANAGEMENT -> powerManagementSetupRequest.launch(
+                powerManagement.createFixitIntent()
             )
         }
     }
