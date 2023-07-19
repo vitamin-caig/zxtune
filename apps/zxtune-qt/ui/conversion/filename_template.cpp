@@ -34,14 +34,18 @@ namespace
 {
   void UpdateRecent(QComboBox& box)
   {
+    // Do not notify subscribers - called from dtor
+    const AutoBlockSignal blockstate(box);
     // emulate QComboBox::returnPressed
     const QString txt = box.currentText();
-    const int idx = box.findText(txt);
-    if (-1 != idx)
+    if (const int idx = box.findText(txt))
     {
-      box.removeItem(idx);
+      if (-1 != idx)
+      {
+        box.removeItem(idx);
+      }
+      box.insertItem(0, txt);
     }
-    box.insertItem(0, txt);
   }
 
   class FilenameTemplateWidgetImpl
@@ -62,6 +66,12 @@ namespace
       auto onChangeSettings = [this](const QString&) { emit SettingsChanged(); };
       Require(connect(DirectoryName, &QComboBox::editTextChanged, this, onChangeSettings));
       Require(connect(FileTemplate, &QComboBox::editTextChanged, this, onChangeSettings));
+      Require(connect(browseDirButton, &QToolButton::clicked, this, &FilenameTemplateWidgetImpl::OnBrowseDirectory));
+      for (auto* hint : {hintFullPath, hintPath, hintFilename, hintExtension, hintSubpath, hintContainer, hintType,
+                         hintSize, hintCRC, hintFixedCRC, hintTitle, hintAuthor, hintComment, hintProgram, hintVersion})
+      {
+        Require(connect(hint, &QLabel::linkActivated, this, &FilenameTemplateWidgetImpl::OnClickHint));
+      }
 
       State->Load();
 
