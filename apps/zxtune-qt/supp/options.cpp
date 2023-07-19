@@ -452,7 +452,7 @@ namespace
     static Accessor::Ptr Create(Accessor::Ptr stored, CompositeModifier& modifiers)
     {
       auto changed = Container::Create();
-      auto delegate = CreateMergedAccessor(std::move(changed), stored);
+      auto delegate = CreateMergedAccessor(changed, stored);
       auto callback = MakePtr<CopyOnWrite>(std::move(stored), std::move(changed));
       return MakePtr<SettingsSnapshot>(std::move(delegate), modifiers.Subscribe(std::move(callback)));
     }
