@@ -35,7 +35,7 @@ namespace Sound::Flac
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {};
+      return {"libFLAC.dll"_sv};
     }
   };
 
