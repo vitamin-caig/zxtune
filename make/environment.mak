@@ -34,14 +34,6 @@ android.arm64-v8a.execprefix = $(android.toolchain)/aarch64-linux-android-
 android.arm64-v8a.cxx.flags = -target aarch64-linux-android21
 android.arm64-v8a.ld.flags = -target aarch64-linux-android21
 
-#linux.i686
-linux.i686.cxx.flags = -march=i686 -m32 -mmmx
-linux.i686.ld.flags = -m32
-
-#linux.x86_64
-linux.x86_64.cxx.flags = -m64 -mmmx
-linux.x86_64.ld.flags = -m64
-
 #linux armhf
 linux.armhf.toolchain = $(toolchains.root)/armhf-linux
 linux.armhf.execprefix = $(linux.armhf.toolchain)/bin/arm-linux-gnueabihf-
