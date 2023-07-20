@@ -35,7 +35,7 @@ namespace Sound::Vorbis
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {};
+      return {"libvorbis-0.dll"_sv};
     }
   };
 

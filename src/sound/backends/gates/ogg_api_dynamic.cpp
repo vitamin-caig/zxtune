@@ -35,7 +35,7 @@ namespace Sound::Ogg
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {};
+      return {"libogg-0.dll"_sv};
     }
   };
 

@@ -52,16 +52,10 @@ linux.armhf.cxx.flags = -march=armv6 -mfpu=vfp -mfloat-abi=hard -Wa,--no-warn
 #mingw
 mingw.toolchain ?= $(toolchains.root)/MinGW
 mingw.execprefix ?= $(mingw.toolchain)/bin/
-mingw.cxx.flags = -mthreads -mwin32 -mno-ms-bitfields -mmmx -msse -msse2
-mingw.ld.flags = -mthreads -static -Wl,--allow-multiple-definition
-# x86
-mingw.x86.execprefix = $(mingw.execprefix)
-mingw.x86.cxx.flags = -m32
-mingw.x86.ld.flags = -m32
-# x86_64
-mingw.x86_64.execprefix = $(mingw.execprefix)
-mingw.x86_64.cxx.flags = -m64
-mingw.x86_64.ld.flags = -m64
+mingw.cxx.flags = -mno-ms-bitfields
+mingw.ld.flags = -static -Wl,--allow-multiple-definition
+mingw.$(arch).execprefix ?= $(mingw.execprefix)
+mingw.x86.cxx.flags = -mtune=i686
 
 #windows
 # x86

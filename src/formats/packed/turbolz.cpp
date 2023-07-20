@@ -85,7 +85,7 @@ namespace Formats::Packed
         //+0x44
       };
 
-      struct KeyFunc : public std::unary_function<void, uint8_t>
+      struct KeyFunc
       {
         KeyFunc(const uint8_t* /*data*/, std::size_t /*size*/) {}
 
@@ -159,7 +159,7 @@ namespace Formats::Packed
 
       static const std::size_t KeyOffset = offsetof(RawHeader, DepackerBody);
 
-      struct KeyFunc : public std::unary_function<void, uint8_t>
+      struct KeyFunc
       {
         KeyFunc(const uint8_t* data, std::size_t size)
           : Index(Key[offsetof(RawHeader, InitialCryptoKeyIndex) - KeyOffset])

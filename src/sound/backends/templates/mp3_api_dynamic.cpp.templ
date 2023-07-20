@@ -35,7 +35,7 @@ namespace Sound::Mp3
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libmp3lame.dll"_sv};
+      return {"libmp3lame.dll"_sv, "libmp3lame-0.dll"_sv};
     }
   };
 

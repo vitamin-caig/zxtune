@@ -6,8 +6,8 @@ tools.ar ?= $($(platform).$(arch).execprefix)ar
 tools.objcopy ?= $($(platform).$(arch).execprefix)objcopy
 tools.strip ?= $($(platform).$(arch).execprefix)strip
 
-LINKER_BEGIN_GROUP ?= -Wl,'-('
-LINKER_END_GROUP ?= -Wl,'-)'
+LINKER_BEGIN_GROUP ?= -Wl,--start-group
+LINKER_END_GROUP ?= -Wl,--end-group
 
 #set options according to mode
 ifdef release
