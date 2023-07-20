@@ -1,29 +1,42 @@
-FROM debian:bookworm-slim
+ARG arch=x86_64
+
+FROM debian:bookworm-slim as debian-x86_64
+ENV arch=x86_64 execprefix=x86_64-linux-gnu- debianarch=amd64 debiancompiler=g++
+
+FROM debian:bookworm-slim as debian-arm64
+ENV arch=arm64 execprefix=aarch64-linux-gnu- debianarch=arm64 debiancompiler=g++-aarch64-linux-gnu
+
+FROM debian:bookworm-slim as debian-x86
+ENV arch=x86 execprefix=i686-linux-gnu- debianarch=i386 debiancompiler=g++-i686-linux-gnu
+
+FROM debian-${arch}
 ARG cores=12
-RUN apt-get update && \
+RUN dpkg --add-architecture ${debianarch} && \
+    apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates wget xz-utils bzip2 git make zip nano less sudo cmake \
-      g++ gcc python3-minimal ccache \
-      libpulse-dev libclalsadrv-dev zlib1g-dev \
+      g++ gcc python3-minimal ccache ${debiancompiler} && \
+    bash -c "dependencies=(libpulse-dev libasound2-dev zlib1g-dev \
       libfontconfig1-dev libfreetype6-dev libx11-dev libx11-xcb-dev libxext-dev libxfixes-dev libxi-dev \
       libxrender-dev libxcb1-dev libxcb-glx0-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-shm0-dev \
       libxcb-icccm4-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0-dev \
-      libxcb-util-dev libxcb-xinerama0-dev libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev && \
-    rm -rf /var/lib/apt/lists/* && \
+      libxcb-util-dev libxcb-xinerama0-dev libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev); \
+     apt-get install -y --no-install-recommends \${dependencies[@]/%/:${debianarch}}" && \
     useradd -m -s /bin/bash -U -G users,sudo -d /build build && \
     echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers
 
 USER build
 WORKDIR /build
 
-ENV prebuilt=/build/prebuilt
+ARG prebuilt=/build/prebuilt
 
 ARG boost=1.82.0
 RUN wget -q https://github.com/boostorg/boost/releases/download/boost-${boost}/boost-${boost}.tar.xz -O - | tar -xJ && \
     (cd boost* && \
     ./bootstrap.sh && \
-    ./b2 toolset=gcc link=static threading=multi target-os=linux variant=release --layout=system \
+    echo "using gcc : current : ${execprefix}g++ ;" > tools/build/src/user-config.jam && \
+    ./b2 toolset=gcc-current link=static threading=multi target-os=linux variant=release --layout=system \
       --with-locale --with-program_options -j${cores} \
-      --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-linux-x86_64/lib install) && \
+      --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-linux-${arch}/lib install) && \
     rm -Rf boost*
 
 ARG qt=5.15.2
@@ -31,8 +44,9 @@ ARG qt=5.15.2
 RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" && \
     (cd qt5 && \
      ./init-repository --module-subset=qtbase,qtimageformats && \
-     (cd qtbase/src/corelib && sed -i '46i#include <limits>' global/qfloat16.h text/qbytearraymatcher.h global/qendian.h) && \
-     ./configure -v -platform linux-g++-64 -prefix ${prebuilt}/qt-${qt}-linux-x86_64 -release -opensource -static -confirm-license -no-rpath \
+     (cd qtbase/src/corelib && sed -i '/QT_BEGIN_NAMESPACE/i#include <limits>' global/qfloat16.h text/qbytearraymatcher.h global/qendian.h tools/qoffsetstringarray_p.h) && \
+     ./configure -v -device linux-generic-g++ -device-option CROSS_COMPILE=${execprefix} \
+      -prefix ${prebuilt}/qt-${qt}-linux-${arch} -release -opensource -static -confirm-license -no-rpath \
       -no-opengl -no-openvg \
       -no-ico -no-gif -no-openssl -no-cups -no-pch -no-glib \
       -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms \
@@ -46,13 +60,14 @@ RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" &
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=linux\narch=x86_64\npackaging=any\ntools.python=python3\nsystem.zlib=1\n" \
+    echo "platform=linux\narch=${arch}\nlinux.${arch}.execprefix=${execprefix}\npackaging=any\ntools.python=python3\nsystem.zlib=1\n" \
          "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n" \
          "ld_flags=-static-libstdc++\n" \
          "cxx_flags=-fPIC\n" \
          "qt.plugins=QXcbIntegrationPlugin\n" \
          "libraries.qt.system.linux=qxcb qtpcre2 qtharfbuzz png16 fontconfig freetype" \
-           "xcb xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama xcb-xkb xkbcommon xkbcommon-x11\n" \
+           "xcb xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama" \
+           "xcb-xkb xkbcommon xkbcommon-x11 X11 X11-xcb\n" \
          "libraries.qt.linux=XcbQpa XkbCommonSupport ThemeSupport DBus EdidSupport FontDatabaseSupport ServiceSupport" > variables.mak
 
 WORKDIR /build/zxtune
