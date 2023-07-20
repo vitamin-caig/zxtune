@@ -46,4 +46,10 @@
     <!-- notifications -->
   <string name="notification_channel_name_events">Eventos</string>
   <string name="notification_channel_name_services">Servicios</string>
+  <!-- problems -->
+  <string name="problems">Problemas detectados</string>
+  <string name="problem_power_management">
+        La optimización del uso de la batería para la aplicación puede provocar paradas espontáneas de la reproducción en modo de fondo.
+  </string>
+  <string name="problem_power_management_fixit">Configurar la optimización</string>
 </resources>

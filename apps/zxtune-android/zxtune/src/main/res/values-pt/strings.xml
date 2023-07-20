@@ -46,4 +46,10 @@
     <!-- notifications -->
     <string name="notification_channel_name_events">Eventos</string>
     <string name="notification_channel_name_services">Serviços</string>
+    <!-- problems -->
+    <string name="problems">Problemas detectados</string>
+    <string name="problem_power_management">
+        A optimização da utilização da bateria para a aplicação pode conduzir a paragens espontâneas da reprodução em segundo plano.
+    </string>
+    <string name="problem_power_management_fixit">Configurar otimização</string>
 </resources>

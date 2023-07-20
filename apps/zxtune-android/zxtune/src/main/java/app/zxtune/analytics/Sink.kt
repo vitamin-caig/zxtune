@@ -21,4 +21,6 @@ internal interface Sink {
     fun sendVfsEvent(id: String, scope: String, @Analytics.VfsAction action: Int, duration: Long)
     fun sendNoTracksFoundEvent(uri: Uri)
     fun sendDbMetrics(name: String, size: Long, tablesRows: HashMap<String, Long>)
+
+    fun sendEvent(id: String, vararg arguments: Pair<String, *>)
 }

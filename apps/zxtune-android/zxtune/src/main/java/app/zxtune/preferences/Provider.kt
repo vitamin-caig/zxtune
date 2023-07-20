@@ -10,7 +10,6 @@ import android.os.Bundle
 import androidx.core.content.edit
 import app.zxtune.Logger
 import app.zxtune.MainApplication
-import app.zxtune.Preferences
 
 private val LOG = Logger(Provider::class.java.name)
 

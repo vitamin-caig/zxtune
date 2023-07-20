@@ -21,11 +21,15 @@ import app.zxtune.MainApplication
 import app.zxtune.ResultActivity
 import app.zxtune.fs.local.Identifier
 import app.zxtune.fs.local.rootId
+import app.zxtune.preferences.Preferences
 import app.zxtune.preferences.ProviderClient
 import java.io.File
 
 // Location uses platform-dependent uri format to store (treeUri for SAF and file scheme for legacy)
-class PersistentStorage @VisibleForTesting constructor(private val ctx: Context) {
+class PersistentStorage @VisibleForTesting constructor(
+    private val ctx: Context,
+    private val client: ProviderClient
+) {
     interface State {
         val location: DocumentFile?
 
@@ -47,12 +51,9 @@ class PersistentStorage @VisibleForTesting constructor(private val ctx: Context)
 
         @JvmStatic
         val instance by lazy {
-            PersistentStorage(MainApplication.getGlobalContext())
+            val ctx = MainApplication.getGlobalContext()
+            PersistentStorage(ctx, Preferences.getProviderClient(ctx))
         }
-    }
-
-    private val client by lazy {
-        ProviderClient.create(ctx)
     }
 
     val state: LiveData<State> by lazy {
@@ -101,9 +102,11 @@ class PersistentStorage @VisibleForTesting constructor(private val ctx: Context)
                     existing != null -> existing.takeIf { it.isDirectory }?.also {
                         LOG.d { "Reuse dir ${it.uri}" }
                     }
+
                     createIfAbsent -> createDirectory(name)?.also {
                         LOG.d { "Create dir ${it.uri}" }
                     }
+
                     else -> null
                 }
             }?.also {

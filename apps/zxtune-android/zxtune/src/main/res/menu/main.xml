@@ -1,29 +1,36 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:sabd="http://schemas.android.com/apk/res-auto" >
-  <!-- icons are not visible since items are not actions and not submenus
-    ic_menu_preferences
-    ic_menu_info_details
-    btn_star
-    ic_menu_close_clear_cancel
-  -->
-  <item
-    android:id="@+id/action_prefs"
-    android:title="@string/prefs"
-    android:orderInCategory="100"
-    sabd:showAsAction="never" />
-  <item
-    android:id="@+id/action_about"
-    android:title="@string/about"
-    android:orderInCategory="101"
-    sabd:showAsAction="never" />
-  <item
-    android:id="@+id/action_rate"
-    android:title="@string/review"
-    android:orderInCategory="102"
-    sabd:showAsAction="never" />
-  <item
-    android:id="@+id/action_quit"
-    android:title="@string/quit"
-    android:orderInCategory="103"
-    sabd:showAsAction="never" />
+        xmlns:sabd="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+    <!-- icons are not visible since items are not actions and not submenus
+      ic_menu_preferences
+      ic_menu_info_details
+      btn_star
+      ic_menu_close_clear_cancel
+    -->
+    <item
+            android:id="@+id/action_problems"
+            android:icon="@drawable/ic_menu_problems"
+            android:title="@string/problems"
+            sabd:showAsAction="always"
+            tools:ignore="AlwaysShowAction" />
+    <item
+            android:id="@+id/action_prefs"
+            android:orderInCategory="100"
+            android:title="@string/prefs"
+            sabd:showAsAction="never" />
+    <item
+            android:id="@+id/action_about"
+            android:orderInCategory="101"
+            android:title="@string/about"
+            sabd:showAsAction="never" />
+    <item
+            android:id="@+id/action_rate"
+            android:orderInCategory="102"
+            android:title="@string/review"
+            sabd:showAsAction="never" />
+    <item
+            android:id="@+id/action_quit"
+            android:orderInCategory="103"
+            android:title="@string/quit"
+            sabd:showAsAction="never" />
 </menu>

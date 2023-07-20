@@ -1,11 +1,9 @@
 package app.zxtune.preferences
 
-import android.content.Context
 import android.os.Bundle
-import androidx.annotation.VisibleForTesting
 import androidx.preference.PreferenceDataStore
 
-class DataStore @VisibleForTesting constructor(val client: ProviderClient) : PreferenceDataStore() {
+class DataStore(val client: ProviderClient) : PreferenceDataStore() {
 
     private val cache by lazy {
         client.all.also {
@@ -13,8 +11,6 @@ class DataStore @VisibleForTesting constructor(val client: ProviderClient) : Pre
         }
     }
     private var cacheRef: Bundle? = null
-
-    constructor(ctx: Context) : this(ProviderClient(ctx))
 
     override fun putBoolean(key: String, value: Boolean) {
         client.set(key, value)

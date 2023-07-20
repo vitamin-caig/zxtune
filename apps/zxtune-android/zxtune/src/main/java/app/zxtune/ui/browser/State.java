@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import java.util.Locale;
 
 import app.zxtune.preferences.DataStore;
+import app.zxtune.preferences.Preferences;
 
 class State {
 
@@ -26,7 +27,7 @@ class State {
   private PathAndPosition current;
 
   private State(Context ctx) {
-    this.prefs = new DataStore(ctx);
+    this.prefs = Preferences.getDataStore(ctx);
     this.current = new PathAndPosition();
   }
 

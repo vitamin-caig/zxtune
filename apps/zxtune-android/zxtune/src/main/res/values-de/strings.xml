@@ -46,4 +46,10 @@
     <!-- notifications -->
     <string name="notification_channel_name_events">Veranstaltungen</string>
     <string name="notification_channel_name_services">Dienstleistungen</string>
+    <!-- problems -->
+    <string name="problems">Erkannte Probleme</string>
+    <string name="problem_power_management">
+        Die Optimierung des Akkuverbrauchs für die Anwendung kann zu spontanen Stopps der Wiedergabe im Hintergrundmodus führen.
+    </string>
+    <string name="problem_power_management_fixit">Optimierung einrichten</string>
 </resources>

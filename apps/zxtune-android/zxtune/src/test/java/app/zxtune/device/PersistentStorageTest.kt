@@ -28,7 +28,7 @@ import org.robolectric.annotation.Implements
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowProviderClient::class, ShadowDocumentFile::class], sdk = [30])
+@Config(shadows = [ShadowDocumentFile::class], sdk = [30])
 class PersistentStorageTest {
 
     @get:Rule
@@ -37,6 +37,7 @@ class PersistentStorageTest {
     private val SUBDIR = "subdir"
 
     private val ctx = mock<Context>()
+    private val client = mock<ProviderClient>()
     private lateinit var storage: File
     private lateinit var subdir: File
     private lateinit var underTest: PersistentStorage
@@ -48,7 +49,7 @@ class PersistentStorageTest {
             require(mkdirs())
         }
         subdir = File(storage, SUBDIR)
-        underTest = PersistentStorage(ctx)
+        underTest = PersistentStorage(ctx, client)
         assertEquals(true, storage.exists())
         assertEquals(false, subdir.exists())
     }
@@ -61,11 +62,8 @@ class PersistentStorageTest {
 
     @Test
     fun `nonexisting storage`() {
-        val client = mock<ProviderClient> {
+        client.stub {
             on { getLive(any(), anyString()) } doReturn MutableLiveData(subdir.absolutePath)
-        }
-        ShadowProviderClient.factory.stub {
-            on { invoke(any()) } doReturn client
         }
         underTest.state.observeForever(observer)
         requireNotNull(underTest.state.value).run {
@@ -83,11 +81,8 @@ class PersistentStorageTest {
 
     @Test
     fun `existing storage`() {
-        val client = mock<ProviderClient> {
+        client.stub {
             on { getLive(any(), anyString()) } doReturn MutableLiveData(storage.toUri().toString())
-        }
-        ShadowProviderClient.factory.stub {
-            on { invoke(any()) } doReturn client
         }
         underTest.state.observeForever(observer)
         requireNotNull(underTest.state.value).run {
@@ -107,16 +102,6 @@ class PersistentStorageTest {
             assertNotEquals(null, readwrite)
             assertNotEquals(null, readonly)*/
         }
-    }
-}
-
-@Implements(ProviderClient.Companion::class)
-class ShadowProviderClient {
-    @Implementation
-    fun create(ctx: Context) = factory(ctx)
-
-    companion object {
-        val factory = mock<(Context) -> ProviderClient>()
     }
 }
 

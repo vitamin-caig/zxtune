@@ -32,7 +32,7 @@ import app.zxtune.device.media.NoisyAudioConnection;
 import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
 import app.zxtune.playback.service.PlaybackServiceLocal;
-import app.zxtune.preferences.DataStore;
+import app.zxtune.preferences.Preferences;
 import app.zxtune.preferences.SharedPreferencesBridge;
 
 public class MainService extends MediaBrowserServiceCompat {
@@ -66,7 +66,7 @@ public class MainService extends MediaBrowserServiceCompat {
     Api.load(() -> runOnMainThread(() -> onJniReady(prefs)));
     TRACE.checkpoint("jni");
 
-    service = new PlaybackServiceLocal(ctx, new DataStore(ctx));
+    service = new PlaybackServiceLocal(ctx, Preferences.getDataStore(ctx));
     addHandle(service);
     TRACE.checkpoint("svc");
 
@@ -126,7 +126,7 @@ public class MainService extends MediaBrowserServiceCompat {
 
   private void handleCommand(Intent intent) {
     if (CUSTOM_ACTION_ADD_CURRENT.equals(intent.getAction())) {
-      session.getController().getTransportControls().sendCustomAction(CUSTOM_ACTION_ADD_CURRENT,null);
+      session.getController().getTransportControls().sendCustomAction(CUSTOM_ACTION_ADD_CURRENT, null);
     }
   }
 

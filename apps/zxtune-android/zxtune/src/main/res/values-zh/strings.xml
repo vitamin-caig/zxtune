@@ -43,4 +43,10 @@
     <!-- notifications -->
     <string name="notification_channel_name_events">事件</string>
     <string name="notification_channel_name_services">服务</string>
+    <!-- problems -->
+    <string name="problems">检测到的问题</string>
+    <string name="problem_power_management">
+        优化应用程序的电池使用可能会导致后台模式播放的自发停止。
+    </string>
+    <string name="problem_power_management_fixit">设置优化</string>
 </resources>

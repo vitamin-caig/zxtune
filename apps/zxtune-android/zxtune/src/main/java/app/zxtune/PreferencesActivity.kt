@@ -5,20 +5,15 @@
  */
 package app.zxtune
 
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.annotation.XmlRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.preference.Preference
-import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
 import app.zxtune.analytics.Analytics
-import app.zxtune.preferences.DataStore
+import app.zxtune.preferences.Preferences
 
 class PreferencesActivity : AppCompatActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
@@ -35,7 +30,7 @@ class PreferencesActivity : AppCompatActivity(),
         supportFragmentManager.run {
             if (findFragmentById(android.R.id.content) == null) {
                 beginTransaction()
-                    .add(android.R.id.content, makeMainFragment())
+                    .add(android.R.id.content, makeFragment(R.xml.preferences))
                     .disallowAddToBackStack()
                     .commit()
             }
@@ -50,7 +45,7 @@ class PreferencesActivity : AppCompatActivity(),
     ) = if ("zxtune.sound.mixer.3" == pref.key) {
         supportFragmentManager
             .beginTransaction()
-            .replace(android.R.id.content, makeMixer3Fragment())
+            .replace(android.R.id.content, makeFragment(R.xml.preferences_mixer3))
             .addToBackStack(null)
             .commit()
         true
@@ -58,27 +53,27 @@ class PreferencesActivity : AppCompatActivity(),
         false
     }
 
-    private fun makeMainFragment() = PrefFragment(R.xml.preferences)
-    private fun makeMixer3Fragment() = PrefFragment(R.xml.preferences_mixer3)
-
-    class PrefFragment(@XmlRes private val layout: Int) : PreferenceFragmentCompat() {
-        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            preferenceManager.preferenceDataStore = Model.of(this).store
-            setPreferencesFromResource(layout, rootKey)
-        }
+    private fun makeFragment(@XmlRes layout: Int) = PrefFragment().apply {
+        this.layout = layout
     }
 
-    // public for provider
-    class Model(app: Application) : AndroidViewModel(app) {
-        val store: PreferenceDataStore = DataStore(app)
+    class PrefFragment : PreferenceFragmentCompat() {
 
         companion object {
-            fun of(owner: Fragment) = owner.requireActivity().let { activity ->
-                ViewModelProvider(
-                    activity,
-                    ViewModelProvider.AndroidViewModelFactory.getInstance(activity.application)
-                )[Model::class.java]
+            private const val LAYOUT_KEY = "layout"
+        }
+
+        var layout
+            get() = requireArguments().getInt(LAYOUT_KEY)
+            set(value) {
+                arguments = Bundle().apply {
+                    putInt(LAYOUT_KEY, value)
+                }
             }
+
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            preferenceManager.preferenceDataStore = Preferences.getDataStore(requireContext())
+            setPreferencesFromResource(layout, rootKey)
         }
     }
 }
