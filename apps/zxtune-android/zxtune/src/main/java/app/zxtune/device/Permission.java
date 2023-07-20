@@ -27,12 +27,8 @@ public class Permission {
     }
   }
 
-  public static boolean requestSystemSettings(FragmentActivity act) {
-    if (Build.VERSION.SDK_INT >= 23) {
-      return requestSystemSettingsMarshmallow(act);
-    } else {
-      return true;
-    }
+  public static boolean canWriteSystemSettings(Context ctx) {
+    return Build.VERSION.SDK_INT < 23 || Settings.System.canWrite(ctx);
   }
 
   @RequiresApi(19)
@@ -42,8 +38,7 @@ public class Permission {
 
   @RequiresApi(19)
   public static void requestPersistentStorageAccess(Context ctx, Uri uri) {
-    ctx.getContentResolver().takePersistableUriPermission(uri,
-        Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+    ctx.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
   }
 
   @TargetApi(23)
@@ -51,16 +46,5 @@ public class Permission {
     if (ContextCompat.checkSelfPermission(act, id) != PackageManager.PERMISSION_GRANTED) {
       ActivityCompat.requestPermissions(act, new String[]{id}, id.hashCode() & 0xffff);
     }
-  }
-
-  @TargetApi(23)
-  private static boolean requestSystemSettingsMarshmallow(Context ctx) {
-    if (Settings.System.canWrite(ctx)) {
-      return true;
-    }
-    final Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-    intent.setData(Uri.parse("package:" + ctx.getPackageName()));
-    ctx.startActivity(intent);
-    return false;
   }
 }
