@@ -211,7 +211,8 @@ namespace Module
       {
         // assert(posBefore < posAfter)
         // to avoid absolute silence
-        return Fading.GetFadein(Preamp, posAfter);
+        const auto val = Fading.GetFadein(Preamp, posAfter);
+        return Fading.GetFadeout(val, posBefore);
       }
     }
 
