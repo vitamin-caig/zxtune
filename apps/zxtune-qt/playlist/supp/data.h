@@ -32,21 +32,25 @@ namespace Playlist::Item
     static ModuleState MakeLoading();
     static ModuleState MakeReady(Error err = Error());
 
-    ModuleState& operator = (const ModuleState&) = default;
+    ModuleState& operator=(const ModuleState&) = default;
 
     bool IsLoading() const;
     bool IsReady() const;
     const Error* GetIfError() const;
+
   private:
     template<class T>
     explicit ModuleState(T&& val)
       : Container(std::move(val))
-    {
-    }
+    {}
+
   private:
-    struct Empty{};
-    struct Loading{};
-    struct Ready{};
+    struct Empty
+    {};
+    struct Loading
+    {};
+    struct Ready
+    {};
     std::variant<Empty, Loading, Ready, Error> Container;
   };
 

@@ -345,6 +345,7 @@ namespace
       {
         Mtx.lock();
       }
+
     private:
       std::mutex& Mtx;
     };
