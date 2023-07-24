@@ -17,22 +17,6 @@ android.ld.flags = -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-unde
 #assume that all the platforms are little-endian
 #this required to use boost which doesn't know anything about __armel__ or __mipsel__
 defines.android += ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N LITTLE_ENDIAN
-# x86
-android.x86.execprefix = $(android.toolchain)/i686-linux-android-
-android.x86.cxx.flags = -m32 -target i686-linux-android16
-android.x86.ld.flags = -target i686-linux-android16
-# x86_64
-android.x86_64.execprefix = $(android.toolchain)/x86_64-linux-android-
-android.x86_64.cxx.flags = -m64 -target x86_64-linux-android21
-android.x86_64.ld.flags = -target x86_64-linux-android21
-# armeabi-v7a
-android.armeabi-v7a.execprefix = $(android.toolchain)/arm-linux-androideabi-
-android.armeabi-v7a.cxx.flags = -mthumb -target armv7a-linux-androideabi16
-android.armeabi-v7a.ld.flags = -mthumb -target armv7a-linux-androideabi16
-# arm64-v8a
-android.arm64-v8a.execprefix = $(android.toolchain)/aarch64-linux-android-
-android.arm64-v8a.cxx.flags = -target aarch64-linux-android21
-android.arm64-v8a.ld.flags = -target aarch64-linux-android21
 
 #linux armhf
 linux.armhf.toolchain = $(toolchains.root)/armhf-linux

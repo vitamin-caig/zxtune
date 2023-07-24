@@ -11,14 +11,20 @@ ifeq ($(arch),)
 $(error Architecture is not defined)
 endif
 
+android.target.x86 = i686-linux-android16
+android.target.x86_64 = x86_64-linux-android21
+android.target.armeabi-v7a = armv7a-linux-androideabi16 -mthumb
+android.target.arm64-v8a = aarch64-linux-android21
+
 host=linux
 compiler=clang
 android.toolchain = $(android.ndk)/toolchains/llvm/prebuilt/linux-x86_64/bin
-tools.cxx ?= $(tools.cxxwrapper) $(android.toolchain)/clang++
-tools.cc ?= $(tools.ccwrapper) $(android.toolchain)/clang
-tools.ld ?= $(android.toolchain)/clang++
+android.$(arch).execprefix = $(android.toolchain)/
 tools.ar ?= $(android.toolchain)/llvm-ar
 postlink_cmd = true
+
+android.cxx.flags += -target $(android.target.$(arch))
+android.ld.flags += -target $(android.target.$(arch))
 
 ifndef profile
 ifdef release
