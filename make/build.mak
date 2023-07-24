@@ -81,6 +81,11 @@ endif
 #main target
 all: $(target)
 
+# Support using the most generic prefixes with clarification for particular conditions:
+# platform.arch.execprefix > platform.execprefix > execprefix
+$(platform).execprefix ?= $(execprefix)
+$(platform).$(arch).execprefix ?= $($(platform).execprefix)
+
 #set compiler-specific parameters
 include $(dirs.root)/make/compilers/$(compiler).mak
 

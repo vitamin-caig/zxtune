@@ -61,7 +61,7 @@ RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" &
 RUN mkdir zxtune && sudo chmod o+w zxtune && cd zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=mingw\narch=${arch}\ntools.python=python3\nmingw.execprefix=${execprefix}\n" \
+    echo "platform=mingw\narch=${arch}\ntools.python=python3\n" \
       "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n"\
       "host=linux\ncompiler=clang\nembed_file_cmd=cat \$(embedded_files) >> \$@\nmakepkg_cmd=(cd \$(1) && zip -9rD \$(CURDIR)/\$(2) .)\npkg_suffix=zip\n" \
       "qt.plugins=QWindowsIntegrationPlugin QWindowsVistaStylePlugin\n" \

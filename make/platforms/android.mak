@@ -19,7 +19,7 @@ android.target.arm64-v8a = aarch64-linux-android21
 host=linux
 compiler=clang
 android.toolchain = $(android.ndk)/toolchains/llvm/prebuilt/linux-x86_64/bin
-android.$(arch).execprefix = $(android.toolchain)/
+android.execprefix = $(android.toolchain)/
 tools.ar ?= $(android.toolchain)/llvm-ar
 postlink_cmd = true
 

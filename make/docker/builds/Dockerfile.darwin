@@ -89,7 +89,6 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     echo "platform=darwin\narch=${arch}\npackaging=dmg\ntools.python=python3\n"\
          "prebuilt.dir=${prebuilt}\ntoolchains.root=${toolchains}\n"\
          "boost.version=${boost}\nqt.version=${qt}\n"\
-         "darwin.${arch}.execprefix=${execprefix}\n"\
          "cxx_flags=-mmacos-version-min=10.15\n"\
          "ld_flags=-mmacos-version-min=10.15 \$(addprefix -framework ,GSS IOKit AppKit Security SystemConfiguration Cocoa CoreVideo IOSurface Metal Carbon QuartzCore)\n"\
          "libraries.qt.system.darwin=qcocoa qmacstyle qtlibpng qtharfbuzz qtpcre2 qtfreetype gssapi_krb5 cups\n"\
