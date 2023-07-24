@@ -40,13 +40,23 @@ source_files := $(addsuffix .cpp,$(source_files))
 
 defines += LIBOPENMPT_BUILD NO_LOGGING NO_MPG123 NO_CONTAINERS_SUPPORT OPENMPT_VERSION_REVISION=0
 
-defines += MPT_WITH_MINIMP3 MPT_WITH_VORBISFILE
+defines += MPT_WITH_MINIMP3 MPT_WITH_VORBISFILE MPT_WITH_OPUSFILE
+
+opusfile_includes = $(dirs.root)/3rdparty/openmpt/include/opusfile/include $(dirs.root)/3rdparty/opus/include $(dirs.root)/3rdparty
 
 # force using 3rdparty externals
 includes.dirs.SampleFormatMP3.cpp = $(dirs.root)/3rdparty
 includes.dirs.SampleFormatVorbis.cpp = $(dirs.root)/3rdparty
+includes.dirs.SampleFormatOpus.cpp = $(opusfile_includes)
 includes.dirs.Load_mo3.cpp = $(dirs.root)/3rdparty
 includes.dirs.Load_xm.cpp = $(dirs.root)/3rdparty
+
+# TODO: remove if using external opusfilelibrary
+includes.dirs.opusfile.c = $(opusfile_includes)
+includes.dirs.stream.c = $(opusfile_includes)
+includes.dirs.info.c = $(opusfile_includes)
+includes.dirs.internal.c = $(opusfile_includes)
+source_files += $(addprefix include/opusfile/src/,opusfile.c stream.c info.c internal.c)
 
 # declare ASSERT macro as Require to avoid AssertHandler
 defines += MPT_FRAMEWORK_ASSERT_IS_DEFINED MPT_ASSERT_USE_FRAMEWORK=1 MPT_FRAMEWORK_ASSERT_IS_ACTIVE=1 "ASSERT(p)=(void)(p)" MPT_LOG_IS_DISABLED
