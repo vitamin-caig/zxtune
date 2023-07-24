@@ -820,14 +820,14 @@ static void compute_theta(struct band_ctx *ctx, struct split_ctx *sctx,
 
             if (fm < ((qn>>1)*((qn>>1) + 1)>>1))
             {
-               itheta = (isqrt32(8*(opus_uint32)fm + 1) - 1)>>1;
+               itheta = (celt_isqrt32(8*(opus_uint32)fm + 1) - 1)>>1;
                fs = itheta + 1;
                fl = itheta*(itheta + 1)>>1;
             }
             else
             {
                itheta = (2*(qn + 1)
-                - isqrt32(8*(opus_uint32)(ft - fm - 1) + 1))>>1;
+                - celt_isqrt32(8*(opus_uint32)(ft - fm - 1) + 1))>>1;
                fs = qn + 1 - itheta;
                fl = ft - ((qn + 1 - itheta)*(qn + 2 - itheta)>>1);
             }

@@ -110,7 +110,7 @@ static int validate_ambisonics(int nb_channels, int *nb_streams, int *nb_coupled
    if (nb_channels < 1 || nb_channels > 227)
       return 0;
 
-   order_plus_one = isqrt32(nb_channels);
+   order_plus_one = celt_isqrt32(nb_channels);
    acn_channels = order_plus_one * order_plus_one;
    nondiegetic_channels = nb_channels - acn_channels;
 

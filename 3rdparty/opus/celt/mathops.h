@@ -43,7 +43,7 @@
 /* Multiplies two 16-bit fractional values. Bit-exactness of this macro is important */
 #define FRAC_MUL16(a,b) ((16384+((opus_int32)(opus_int16)(a)*(opus_int16)(b)))>>15)
 
-unsigned isqrt32(opus_uint32 _val);
+unsigned celt_isqrt32(opus_uint32 _val);
 
 /* CELT doesn't need it for fixed-point, by analysis.c does. */
 #if !defined(FIXED_POINT) || defined(ANALYSIS_C)

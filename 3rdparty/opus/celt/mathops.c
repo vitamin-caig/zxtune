@@ -40,7 +40,7 @@
 /*Compute floor(sqrt(_val)) with exact arithmetic.
   _val must be greater than 0.
   This has been tested on all possible 32-bit inputs greater than 0.*/
-unsigned isqrt32(opus_uint32 _val){
+unsigned celt_isqrt32(opus_uint32 _val){
   unsigned b;
   unsigned g;
   int      bshift;

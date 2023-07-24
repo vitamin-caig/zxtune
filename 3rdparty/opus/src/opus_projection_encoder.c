@@ -87,7 +87,7 @@ static int get_order_plus_one_from_channels(int channels, int *order_plus_one)
   if (channels < 1 || channels > 227)
     return OPUS_BAD_ARG;
 
-  order_plus_one_ = isqrt32(channels);
+  order_plus_one_ = celt_isqrt32(channels);
   acn_channels = order_plus_one_ * order_plus_one_;
   nondiegetic_channels = channels - acn_channels;
   if (nondiegetic_channels != 0 && nondiegetic_channels != 2)
