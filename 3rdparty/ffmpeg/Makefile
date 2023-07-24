@@ -73,8 +73,9 @@ avcodec_sources += takdec tak takdsp audiodsp
 #xvm
 avformat_sources += xwma
 
-#opus
-avcodec_sources += opus opusdec opusdsp opustab opus_celt opus_pvq opus_rc opus_silk
+#libopus
+avcodec_sources += libopus libopusdec opus_parser opus opustab opus_rc
+includes.dirs += $(dirs.root)/3rdparty/opus/include
 
 #smacker
 avformat_sources += smacker
