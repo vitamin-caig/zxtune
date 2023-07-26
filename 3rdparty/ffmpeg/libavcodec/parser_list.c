@@ -48,5 +48,6 @@ static const AVCodecParser * const parser_list[] = {
 #else
     &ff_mpegaudio_parser,
     &ff_ac3_parser,
+    &ff_opus_parser,
 #endif
     NULL };

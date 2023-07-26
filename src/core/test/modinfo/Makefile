@@ -15,6 +15,6 @@ libraries.common = analysis \
                    tools
 
 #3rdparty
-libraries.3rdparty = asap atrac9 FLAC ffmpeg gme he ht hvl lazyusf2 lhasa lzma mgba mpg123 ogg openmpt sidplayfp sseqplayer snesspc unrar v2m vgm vgmstream vio2sf vorbis xmp z80ex zlib
+libraries.3rdparty = asap atrac9 FLAC ffmpeg gme he ht hvl lazyusf2 lhasa lzma mgba mpg123 ogg openmpt opus sidplayfp sseqplayer snesspc unrar v2m vgm vgmstream vio2sf vorbis xmp z80ex zlib
 
 include $(dirs.root)/makefile.mak

@@ -444,7 +444,6 @@ static const AVCodec * const codec_list[] = {
     &ff_wmav2_decoder,
     &ff_alac_decoder,
     &ff_tak_decoder,
-    &ff_opus_decoder,
     &ff_smackaud_decoder,
     &ff_atrac3_decoder,
     &ff_atrac3al_decoder,
@@ -453,5 +452,6 @@ static const AVCodec * const codec_list[] = {
     &ff_ac3_fixed_decoder,
     &ff_xma1_decoder,
     &ff_xma2_decoder,
+    &ff_libopus_decoder,
 #endif
     NULL };
