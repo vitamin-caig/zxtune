@@ -9,23 +9,25 @@
 
     <TextView
             android:id="@+id/brief_title"
-            style="@style/text_main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="middle"
             android:gravity="center"
             android:paddingHorizontal="@dimen/spacing_full"
+            android:singleLine="true"
             android:textAlignment="gravity"
+            android:textAppearance="?textAppearanceListItem"
             tools:text="Title" />
 
     <TextView
             android:id="@+id/brief_subtitle"
-            style="@style/text_aux"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="middle"
             android:gravity="center"
             android:paddingHorizontal="@dimen/spacing_full"
+            android:singleLine="true"
             android:textAlignment="gravity"
+            android:textAppearance="?textAppearanceListItemSecondary"
             tools:text="Author" />
 </LinearLayout>

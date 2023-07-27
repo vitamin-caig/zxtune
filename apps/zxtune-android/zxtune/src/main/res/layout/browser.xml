@@ -77,7 +77,6 @@
 
     <TextView
             android:id="@+id/browser_notification"
-            style="@style/text_main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/browser_notification"
@@ -86,6 +85,6 @@
             android:background="?android:attr/colorBackground"
             android:gravity="center_horizontal"
             android:padding="@dimen/spacing_full"
-            android:singleLine="false"
+            android:textAppearance="?textAppearanceListItem"
             tools:text="Notification with long message" />
 </RelativeLayout>

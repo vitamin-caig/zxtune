@@ -39,25 +39,26 @@
                 android:orientation="vertical">
 
             <TextView
-                    style="@style/text_main"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:maxLines="1"
                     android:text="@{entry.getTitle().isEmpty() ? entry.getLocation().getDisplayFilename() : entry.getTitle()}"
+                    android:textAppearance="?textAppearanceListItem"
                     tools:text="Title" />
 
             <TextView
                     android:id="@+id/list_item_text_aux"
-                    style="@style/text_aux"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:maxLines="1"
                     android:text="@{entry.getAuthor()}"
+                    android:textAppearance="?textAppearanceListItemSecondary"
                     android:visibility="@{entry.getAuthor().isEmpty() ? View.GONE : View.VISIBLE}"
                     tools:text="Author" />
         </LinearLayout>
 
         <TextView
                 android:id="@+id/playlist_entry_duration"
-                style="@style/text_main"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
@@ -66,6 +67,7 @@
                 android:layout_marginRight="@dimen/spacing_half"
                 android:drawablePadding="@dimen/spacing_half"
                 android:text="@{entry.getDuration().toString()}"
+                android:textAppearance="?textAppearanceListItemSmall"
                 tools:text="1:23" />
 
     </RelativeLayout>

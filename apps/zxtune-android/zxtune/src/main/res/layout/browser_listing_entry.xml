@@ -37,25 +37,26 @@
                 android:orientation="vertical">
 
             <TextView
-                    style="@style/text_main"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:maxLines="1"
                     android:text="@{entry.title}"
+                    android:textAppearance="?textAppearanceListItem"
                     tools:text="Title" />
 
             <TextView
                     android:id="@+id/list_item_text_aux"
-                    style="@style/text_aux"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:maxLines="1"
                     android:text="@{entry.description}"
+                    android:textAppearance="?textAppearanceListItemSecondary"
                     android:visibility="@{TextUtils.isEmpty(entry.description) ? View.GONE : View.VISIBLE}"
                     tools:text="Subtitle" />
         </LinearLayout>
 
         <TextView
                 android:id="@+id/browser_entry_details"
-                style="@style/text_main"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
@@ -63,6 +64,7 @@
                 android:layout_marginHorizontal="@dimen/spacing_half"
                 android:drawablePadding="@dimen/spacing_half"
                 android:text="@{entry.details}"
+                android:textAppearance="?textAppearanceListItemSmall"
                 android:visibility="@{TextUtils.isEmpty(entry.details) ? View.GONE : View.VISIBLE}"
                 tools:text="Details" />
     </RelativeLayout>
