@@ -160,7 +160,7 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
             ).withSelectionPredicate(SelectionPredicates.createSelectAnything())
                 .withOnItemActivatedListener { item, _ ->
                     item.selectionKey?.let { browse(it) }
-                    true
+                    false // for ripple
                 }.build().also {
                     adapter.setSelection(it.selection)
                     SelectionUtils.install(

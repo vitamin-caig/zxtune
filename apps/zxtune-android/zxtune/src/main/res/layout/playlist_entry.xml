@@ -16,9 +16,7 @@
                 type="boolean" />
     </data>
 
-    <RelativeLayout
-            style="@style/block"
-            android:background="@drawable/activable_background">
+    <RelativeLayout style="@style/ListItem">
 
         <ImageView
                 android:id="@+id/playlist_entry_state"

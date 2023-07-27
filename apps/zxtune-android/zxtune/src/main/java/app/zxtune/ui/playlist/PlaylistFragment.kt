@@ -105,7 +105,7 @@ class PlaylistFragment : Fragment() {
             ).withSelectionPredicate(SelectionPredicates.createSelectAnything())
                 .withOnItemActivatedListener { item, _ ->
                     item.selectionKey?.let { onItemClick(it) }
-                    true
+                    false // for ripple
                 }.build().also {
                     adapter.setSelection(it.selection)
                     SelectionUtils.install(panel, it, SelectionClient(adapter))

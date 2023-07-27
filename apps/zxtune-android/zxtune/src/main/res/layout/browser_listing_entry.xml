@@ -15,9 +15,7 @@
                 type="app.zxtune.ui.browser.ListingEntry" />
     </data>
 
-    <RelativeLayout
-            style="@style/block"
-            android:background="@drawable/activable_background">
+    <RelativeLayout style="@style/ListItem">
 
         <ImageView
                 android:id="@+id/browser_entry_icon"

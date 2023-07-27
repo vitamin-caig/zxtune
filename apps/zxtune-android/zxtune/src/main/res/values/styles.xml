@@ -20,6 +20,15 @@
         <item name="android:layout_height">@dimen/item_height</item>
     </style>
 
+    <style name="ListItem">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/item_height</item>
+        <item name="android:background">@drawable/activable_background</item>
+        <item name="android:foreground">?android:selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
     <style name="Button" parent="android:style/Widget.DeviceDefault.Button.Borderless">
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_width">wrap_content</item>
