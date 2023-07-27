@@ -12,9 +12,11 @@
 
     <style name="ListItem">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">@dimen/item_height</item>
+        <item name="android:layout_height">?android:listPreferredItemHeight</item>
         <item name="android:background">@drawable/activable_background</item>
         <item name="android:foreground">?android:selectableItemBackground</item>
+        <item name="android:paddingLeft">?android:listPreferredItemPaddingLeft</item>
+        <item name="android:paddingRight">?android:listPreferredItemPaddingRight</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
     </style>

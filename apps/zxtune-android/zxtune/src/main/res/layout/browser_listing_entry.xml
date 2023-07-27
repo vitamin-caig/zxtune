@@ -19,11 +19,11 @@
 
         <ImageView
                 android:id="@+id/browser_entry_icon"
-                android:layout_width="@dimen/item_height"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="@dimen/spacing_half"
+                android:layout_marginRight="?android:listPreferredItemPaddingLeft"
                 app:resource="@{entry.getDisplayIcon()}"
                 tools:src="@drawable/ic_browser_folder" />
 
@@ -31,7 +31,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_marginHorizontal="@dimen/spacing_half"
                 android:layout_toLeftOf="@+id/browser_entry_details"
                 android:layout_toRightOf="@+id/browser_entry_icon"
                 android:orientation="vertical">
@@ -41,7 +40,7 @@
                     android:layout_height="wrap_content"
                     android:maxLines="1"
                     android:text="@{entry.title}"
-                    android:textAppearance="?textAppearanceListItem"
+                    android:textAppearance="?android:textAppearanceListItem"
                     tools:text="Title" />
 
             <TextView
@@ -61,10 +60,9 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
-                android:layout_marginHorizontal="@dimen/spacing_half"
-                android:drawablePadding="@dimen/spacing_half"
+                android:layout_marginLeft="?android:listPreferredItemPaddingRight"
                 android:text="@{entry.details}"
-                android:textAppearance="?textAppearanceListItemSmall"
+                android:textAppearance="?android:textAppearanceListItemSmall"
                 android:visibility="@{TextUtils.isEmpty(entry.details) ? View.GONE : View.VISIBLE}"
                 tools:text="Details" />
     </RelativeLayout>
