@@ -41,9 +41,9 @@ internal class ControlCallback(
         }
     }
 
-    override fun onCustomAction(action: String, extra: Bundle) = when (action) {
+    override fun onCustomAction(action: String, extra: Bundle?) = when (action) {
         MainService.CUSTOM_ACTION_ADD_CURRENT -> addCurrent()
-        MainService.CUSTOM_ACTION_ADD -> extra.getParcelableArray("uris")?.let {
+        MainService.CUSTOM_ACTION_ADD -> extra?.getParcelableArray("uris")?.let {
             ScanService.add(ctx, Array(it.size) { idx -> it[idx] as Uri })
         } ?: Unit
 
