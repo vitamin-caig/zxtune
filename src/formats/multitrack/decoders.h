@@ -22,4 +22,5 @@ namespace Formats::Multitrack
   Decoder::Ptr CreateSAPDecoder();
   Decoder::Ptr CreateKSSXDecoder();
   Decoder::Ptr CreateHESDecoder();
+  Decoder::Ptr CreateSNDHDecoder();
 }  // namespace Formats::Multitrack
