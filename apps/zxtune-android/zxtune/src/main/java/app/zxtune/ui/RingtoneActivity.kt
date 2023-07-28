@@ -32,6 +32,7 @@ class RingtoneActivity : AppCompatActivity(R.layout.ringtone) {
     }
 
     private fun fillUi() {
+        title = getString(R.string.ringtone_create_title)
         val uri = requireNotNull(intent?.data)
         val listener = View.OnClickListener { v: View ->
             val tagValue = (v.tag as String).toInt()

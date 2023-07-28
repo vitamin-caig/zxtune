@@ -36,7 +36,7 @@ class AboutActivity : AppCompatActivity() {
 
         binding = DataBindingUtil.setContentView(this, app.zxtune.R.layout.about)
         binding.run {
-            aboutTitle.text = getAppInfo()
+            title = getAppInfo()
             aboutSystem.text = getSystemInfo()
             aboutPager.adapter = ViewPagerAdapter(aboutPager)
         }
@@ -141,7 +141,7 @@ private class InfoBuilder constructor(private val context: Context) {
         if (Build.VERSION.SDK_INT >= 21) {
             addString("${Build.MODEL} (${TextUtils.join("/", Build.SUPPORTED_ABIS)})")
         } else {
-            addString("${Build.MODEL} (${Build.CPU_ABI}/${Build.CPU_ABI2}")
+            addString("${Build.MODEL} (${Build.CPU_ABI}/${Build.CPU_ABI2})")
         }
     }
 
