@@ -8,12 +8,13 @@
 
     <FrameLayout
             android:id="@+id/browser_top_panel"
-            style="@style/block"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_alignParentTop="true">
 
         <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="?android:actionBarSize"
                 android:orientation="horizontal">
 
             <SearchView

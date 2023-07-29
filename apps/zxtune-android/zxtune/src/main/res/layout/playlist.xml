@@ -8,7 +8,8 @@
 
     <FrameLayout
             android:id="@+id/playlist_top_panel"
-            style="@style/block"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
             android:layout_alignParentTop="true">
 
         <androidx.appcompat.widget.Toolbar

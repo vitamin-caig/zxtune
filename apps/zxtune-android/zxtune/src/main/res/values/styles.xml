@@ -5,11 +5,6 @@
         <item name="dialogTheme">@style/CustomDialog</item>
     </style>
 
-    <style name="block">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">@dimen/item_height</item>
-    </style>
-
     <style name="ListItem">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">?android:listPreferredItemHeight</item>
@@ -37,11 +32,6 @@
         <item name="android:drawableRight">@drawable/breadcrumbs_delimiter</item>
         <item name="android:drawablePadding">1dp</item>
         <item name="android:padding">1dp</item>
-    </style>
-    <!-- buttons already has spacing_half margins -->
-    <style name="block_buttons" parent="block">
-        <item name="android:paddingLeft">@dimen/spacing_half</item>
-        <item name="android:paddingRight">@dimen/spacing_half</item>
     </style>
     <!-- http://stackoverflow.com/a/32711916/5758378 -->
     <!-- defaults to true on api >= 23 -->

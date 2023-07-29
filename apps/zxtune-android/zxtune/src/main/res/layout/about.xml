@@ -35,8 +35,6 @@
                             android:text="@string/about_author"
                             android:textAppearance="?android:attr/textAppearanceMedium" />
 
-                    <View style="@style/block" />
-
                     <TextView
                             android:id="@+id/about_system"
                             android:layout_width="wrap_content"
