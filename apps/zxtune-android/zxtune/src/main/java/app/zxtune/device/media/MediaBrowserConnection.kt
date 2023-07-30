@@ -30,14 +30,15 @@ class MediaBrowserConnection @VisibleForTesting constructor(
     private var connectionInProgress = AtomicBoolean(false)
 
     override fun onActive() {
-        if (connectionInProgress.compareAndSet(false, true)) {
+        if (value == null && connectionInProgress.compareAndSet(false, true)) {
             browser.connect()
         }
     }
 
     override fun onInactive() {
-        browser.disconnect()
-        disconnected()
+        if (connectionInProgress.compareAndSet(false, false)) {
+            browser.disconnect()
+        }
     }
 
     private fun connected(): Unit = publish(browser)
