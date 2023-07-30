@@ -35,6 +35,7 @@ import app.zxtune.MainActivity
 import app.zxtune.MainService
 import app.zxtune.R
 import app.zxtune.ui.utils.SelectionUtils
+import app.zxtune.utils.ifNotNulls
 
 class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
     private lateinit var model: Model
@@ -111,8 +112,10 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
     }
 
     private fun showError(msg: String) {
-        view?.post {
-            Toast.makeText(activity, msg, Toast.LENGTH_LONG).show()
+        ifNotNulls(view, activity) { view, activity ->
+            view.post {
+                Toast.makeText(activity, msg, Toast.LENGTH_LONG).show()
+            }
         }
     }
 
