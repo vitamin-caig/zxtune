@@ -14,6 +14,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import app.zxtune.analytics.Analytics
 import app.zxtune.preferences.Preferences
+import app.zxtune.ui.utils.FragmentIntProperty
 
 class PreferencesActivity : AppCompatActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
@@ -58,18 +59,7 @@ class PreferencesActivity : AppCompatActivity(),
     }
 
     class PrefFragment : PreferenceFragmentCompat() {
-
-        companion object {
-            private const val LAYOUT_KEY = "layout"
-        }
-
-        var layout
-            get() = requireArguments().getInt(LAYOUT_KEY)
-            set(value) {
-                arguments = Bundle().apply {
-                    putInt(LAYOUT_KEY, value)
-                }
-            }
+        var layout by FragmentIntProperty
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.preferenceDataStore = Preferences.getDataStore(requireContext())
