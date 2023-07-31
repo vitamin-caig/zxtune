@@ -36,9 +36,6 @@ class MainService : MediaBrowserServiceCompat() {
         LOG.d { "onStartCommand(${intent})" }
         when (intent?.action) {
             Intent.ACTION_MEDIA_BUTTON -> MediaButtonReceiver.handleIntent(delegate.session, intent)
-            CUSTOM_ACTION_ADD_CURRENT -> delegate.session.controller.transportControls.sendCustomAction(
-                CUSTOM_ACTION_ADD_CURRENT, null
-            )
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -70,7 +67,7 @@ class MainService : MediaBrowserServiceCompat() {
         stopSelf()
     }
 
-    private class Delegate(svc: Service, trace : Analytics.BaseTrace) {
+    private class Delegate(svc: Service, trace: Analytics.BaseTrace) {
 
         private val resources = ArrayList<Releaseable>()
         private val service: PlaybackServiceLocal

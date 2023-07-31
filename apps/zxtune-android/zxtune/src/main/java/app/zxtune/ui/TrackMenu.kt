@@ -30,8 +30,7 @@ class TrackMenu(private val fragment: Fragment) : MenuProvider {
             if (metadata == null) {
                 return@observe
             }
-            item(R.id.action_add).enableIf =
-                maybeCreateAddCurrentTrackIntent(activity, metadata)
+            item(R.id.action_add).isEnabled = false == isFromProvider(metadata)
             item(R.id.action_send).enableIf =
                 SharingActivity.maybeCreateSendIntent(activity, metadata)
             item(R.id.action_share).enableIf =
@@ -44,6 +43,14 @@ class TrackMenu(private val fragment: Fragment) : MenuProvider {
     }
 
     override fun onMenuItemSelected(menuItem: MenuItem) = when (menuItem.itemId) {
+        R.id.action_add -> {
+            model.controller.value?.transportControls?.sendCustomAction(
+                MainService.CUSTOM_ACTION_ADD_CURRENT,
+                null
+            )
+            true
+        }
+
         R.id.action_properties -> {
             model.metadata.value?.let {
                 showPropertiesDialog(it)
@@ -57,15 +64,6 @@ class TrackMenu(private val fragment: Fragment) : MenuProvider {
     private fun showPropertiesDialog(meta: MediaMetadataCompat) =
         InformationFragment.show(activity, meta)
 }
-
-private fun maybeCreateAddCurrentTrackIntent(ctx: Context, metadata: MediaMetadataCompat) =
-    if (false == isFromProvider(metadata)) {
-        ResultActivity.createStartServiceIntent(
-            ctx, MainService::class.java, MainService.CUSTOM_ACTION_ADD_CURRENT
-        )
-    } else {
-        null
-    }
 
 private fun isFromProvider(metadata: MediaMetadataCompat) =
     metadata.description.mediaId?.startsWith(ContentResolver.SCHEME_CONTENT)
