@@ -39,7 +39,7 @@ public class Analytics {
       this.id = id;
     }
 
-    public final void beginMethod(String name) {
+    public void beginMethod(String name) {
       points.clear();
       method = name;
       checkpoint("in");
@@ -49,7 +49,7 @@ public class Analytics {
       points.append(getMetric(), point);
     }
 
-    public final void endMethod() {
+    public void endMethod() {
       checkpoint("out");
       sendTrace(id + "." + method, points);
       method = "";
@@ -72,6 +72,43 @@ public class Analytics {
     @Override
     protected long getMetric() {
       return ((System.nanoTime() - start) / 1000);
+    }
+  }
+
+  public static class StageDurationTrace extends BaseTrace {
+
+    private final long createTime = System.nanoTime();
+    private long methodStart = 0;
+    private long stageStart = 0;
+
+    public static StageDurationTrace create(String id) {
+      return new StageDurationTrace(id);
+    }
+
+    private StageDurationTrace(String id) {
+      super(id);
+    }
+
+    // 'in' measures from create to beginMethod
+    @Override
+    public void beginMethod(String name) {
+      methodStart = createTime;
+      stageStart = methodStart;
+      super.beginMethod(name);
+    }
+
+    // 'out' measures from in to out
+    @Override
+    public void endMethod() {
+      stageStart = methodStart;
+      super.endMethod();
+    }
+
+    @Override
+    protected long getMetric() {
+      final long prev = stageStart;
+      stageStart = System.nanoTime();
+      return (stageStart - prev) / 1000;
     }
   }
 
