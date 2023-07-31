@@ -21,12 +21,15 @@ import androidx.media.session.MediaButtonReceiver;
 
 import app.zxtune.MainActivity;
 import app.zxtune.R;
+import app.zxtune.Releaseable;
 
 public class WidgetHandler extends AppWidgetProvider {
 
-  public static void connect(Context ctx, MediaSessionCompat session) {
+  public static Releaseable connect(Context ctx, MediaSessionCompat session) {
     final MediaControllerCompat controller = session.getController();
-    controller.registerCallback(new WidgetNotification(ctx));
+    final MediaControllerCompat.Callback cb = new WidgetNotification(ctx);
+    controller.registerCallback(cb);
+    return () -> controller.unregisterCallback(cb);
   }
 
   @Override
