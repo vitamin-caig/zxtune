@@ -30,6 +30,7 @@ namespace ZXTune
   void RegisterVGMPlugins(PlayerPluginsRegistrator& players);
   void RegisterMPTPlugins(PlayerPluginsRegistrator& players);
   void RegisterVGMStreamPlugins(PlayerPluginsRegistrator& players, ArchivePluginsRegistrator& archives);
+  void RegisterSNDHSupport(PlayerPluginsRegistrator& registrator, ArchivePluginsRegistrator& archives);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& players, ArchivePluginsRegistrator& archives)
   {
@@ -51,5 +52,6 @@ namespace ZXTune
     RegisterASAPPlugins(players, archives);
     RegisterVGMStreamPlugins(players, archives);
     RegisterWAVPlugin(players);  // wav after VGMStream
+    RegisterSNDHSupport(players, archives);
   }
 }  // namespace ZXTune
