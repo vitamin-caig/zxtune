@@ -55,7 +55,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/browser_loading"
-            android:layout_alignParentBottom="true"
             app:fastScrollEnabled="true"
             app:fastScrollHorizontalThumbDrawable="@drawable/scroll_thumb"
             app:fastScrollHorizontalTrackDrawable="@drawable/scroll_track"
@@ -70,22 +69,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/browser_loading"
-            android:layout_alignParentBottom="true"
-            android:layout_marginHorizontal="@dimen/spacing_full"
             android:gravity="center"
             android:text="@string/browser_empty"
             android:visibility="invisible" />
 
     <TextView
             android:id="@+id/browser_notification"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/browser_notification"
+            style="@style/ListItem"
             android:layout_alignParentBottom="true"
             android:layout_centerVertical="true"
-            android:background="?android:attr/colorBackground"
-            android:gravity="center_horizontal"
-            android:padding="@dimen/spacing_full"
+            android:background="?android:colorBackground"
+            android:gravity="center"
             android:textAppearance="?textAppearanceListItem"
             tools:text="Notification with long message" />
 </RelativeLayout>
