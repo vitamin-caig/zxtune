@@ -69,10 +69,6 @@
                 android:name=".ui.RingtoneActivity"
                 android:exported="false"
                 android:theme="@style/CustomDialog" />
-        <activity
-                android:name=".ui.AboutActivity"
-                android:exported="false"
-                android:theme="@style/CustomDialog" />
 
         <service
                 android:name=".MainService"

@@ -1,52 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+    <androidx.viewpager.widget.ViewPager
+            android:id="@+id/about_pager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/spacing_full">
 
-        <androidx.viewpager.widget.ViewPager
-                android:id="@+id/about_pager"
+        <androidx.viewpager.widget.PagerTabStrip
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top" />
+        <!-- credits page -->
+        <ScrollView
+                android:id="@+id/about_credits"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="@dimen/spacing_full">
+                android:scrollbars="vertical"
+                android:tag="@string/about_credits">
 
-            <androidx.viewpager.widget.PagerTabStrip
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="top" />
-            <!-- credits page -->
-            <ScrollView
-                    android:id="@+id/about_credits"
+            <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:scrollbars="vertical"
-                    android:tag="@string/about_credits">
+                    android:orientation="vertical">
 
-                <LinearLayout
+                <TextView
+                        android:textAppearance="?textAppearanceLargePopupMenu"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:text="@string/about_author" />
 
-                    <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/about_author"
-                            android:textAppearance="?android:attr/textAppearanceMedium" />
-
-                    <TextView
-                            android:id="@+id/about_system"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                </LinearLayout>
-            </ScrollView>
-            <!-- plugins page -->
-            <ExpandableListView
-                    android:id="@+id/about_plugins"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="@string/about_plugins" />
-        </androidx.viewpager.widget.ViewPager>
-    </LinearLayout>
+                <TextView
+                        android:id="@+id/about_system"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+            </LinearLayout>
+        </ScrollView>
+        <!-- plugins page -->
+        <ExpandableListView
+                android:id="@+id/about_plugins"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="@string/about_plugins" />
+    </androidx.viewpager.widget.ViewPager>
 </layout>

@@ -24,7 +24,6 @@ class ApplicationMenu(private val activity: FragmentActivity) : MenuProvider {
         menuInflater.inflate(R.menu.main, menu)
 
     override fun onPrepareMenu(menu: Menu) = menu.run {
-        item(R.id.action_about).intent = AboutActivity.createIntent(activity)
         item(R.id.action_prefs).intent = PreferencesActivity.createIntent(activity)
         item(R.id.action_problems).let { item ->
             PowerManagement.create(activity).hasProblem.observe(activity) {
@@ -36,6 +35,12 @@ class ApplicationMenu(private val activity: FragmentActivity) : MenuProvider {
     override fun onMenuItemSelected(menuItem: MenuItem) = when (menuItem.itemId) {
         R.id.action_problems -> {
             setupPowerManagement()
+            true
+        }
+
+        R.id.action_about -> {
+            AboutFragment.show(activity)
+            Analytics.sendUiEvent(Analytics.UI_ACTION_ABOUT)
             true
         }
 
