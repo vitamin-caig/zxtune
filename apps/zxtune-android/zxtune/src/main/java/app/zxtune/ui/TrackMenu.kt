@@ -1,7 +1,6 @@
 package app.zxtune.ui
 
 import android.content.ContentResolver
-import android.content.Context
 import android.support.v4.media.MediaMetadataCompat
 import android.view.Menu
 import android.view.MenuInflater
@@ -10,7 +9,6 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import app.zxtune.MainService
 import app.zxtune.R
-import app.zxtune.ResultActivity
 import app.zxtune.SharingActivity
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.utils.enableIf
@@ -35,10 +33,6 @@ class TrackMenu(private val fragment: Fragment) : MenuProvider {
                 SharingActivity.maybeCreateSendIntent(activity, metadata)
             item(R.id.action_share).enableIf =
                 SharingActivity.maybeCreateShareIntent(activity, metadata)
-            item(R.id.action_make_ringtone).enableIf =
-                metadata.description?.mediaUri?.let { fullId ->
-                    RingtoneActivity.createIntent(activity, fullId)
-                }
         }
     }
 
@@ -54,6 +48,13 @@ class TrackMenu(private val fragment: Fragment) : MenuProvider {
         R.id.action_properties -> {
             model.metadata.value?.let {
                 showPropertiesDialog(it)
+            }
+            true
+        }
+
+        R.id.action_make_ringtone -> {
+            model.metadata.value?.description?.mediaUri?.let { fullId ->
+                RingtoneFragment.show(activity, fullId)
             }
             true
         }

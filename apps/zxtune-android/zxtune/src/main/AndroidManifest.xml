@@ -65,10 +65,6 @@
                 android:name=".SharingActivity"
                 android:exported="false"
                 android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <activity
-                android:name=".ui.RingtoneActivity"
-                android:exported="false"
-                android:theme="@style/CustomDialog" />
 
         <service
                 android:name=".MainService"
