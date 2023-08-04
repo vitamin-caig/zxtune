@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         tools:ignore="RtlHardcoded">
 
@@ -26,6 +27,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginRight="?android:listPreferredItemPaddingLeft"
                 android:src="@{isPlaying ? @drawable/ic_playing : @drawable/ic_drag_handler}"
+                app:tint="?colorControlNormal"
                 tools:src="@drawable/ic_drag_handler" />
 
         <LinearLayout

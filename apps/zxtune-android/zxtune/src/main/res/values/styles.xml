@@ -20,6 +20,7 @@
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:minWidth">32dp</item>
+        <item name="tint">?colorControlNormal</item>
     </style>
 
     <style name="Button.Toggled">
@@ -33,6 +34,7 @@
         <item name="android:drawablePadding">1dp</item>
         <item name="android:padding">1dp</item>
     </style>
+
     <style name="CustomDialog" parent="@style/Theme.AppCompat.Dialog">
         <!-- strange bug with broken background -->
         <item name="android:background">?android:colorBackground</item>
