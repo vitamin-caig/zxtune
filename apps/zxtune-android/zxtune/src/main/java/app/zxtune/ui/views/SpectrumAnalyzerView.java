@@ -7,6 +7,7 @@
 package app.zxtune.ui.views;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
@@ -17,23 +18,22 @@ import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 
 import app.zxtune.Log;
+import app.zxtune.R;
 import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.stubs.VisualizerStub;
 
 public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.Callback {
 
-  private static final int MAX_BANDS = 48;
   private static final int MAX_LEVEL = 100;
-  private static final int MIN_BAR_WIDTH = 3;
   private static final int BAR_PADDING = 1;
   private static final int FALL_SPEED = 2;
   private static final int UPDATE_FPS = 30;
 
-  @Nullable
-  private SpectrumVisualizer visualizer;
+  private final SpectrumVisualizer visualizer;
   @Nullable
   private Rect visibleRect;
   @Nullable
@@ -43,25 +43,35 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
   private RenderThread thread;
 
   public SpectrumAnalyzerView(Context context) {
-    super(context);
-    init();
+    this(context, null);
   }
 
-  public SpectrumAnalyzerView(Context context, AttributeSet attrs) {
-    super(context, attrs);
-    init();
+  public SpectrumAnalyzerView(Context context, @Nullable AttributeSet attrs) {
+    this(context, attrs, 0);
   }
 
-  public SpectrumAnalyzerView(Context context, AttributeSet attrs, int defStyleAttr) {
+  public SpectrumAnalyzerView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    init();
+    final TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.AnalyzerView, defStyleAttr, 0);
+    try {
+      visualizer = createSpectrumVisualizer(a);
+      init();
+    } finally {
+      a.recycle();
+    }
+  }
+
+  private SpectrumVisualizer createSpectrumVisualizer(TypedArray a) {
+    final int barColor = a.getColor(R.styleable.AnalyzerView_spectrumBarsColor, 0xffffff);
+    final int maxBarsCount = a.getInteger(R.styleable.AnalyzerView_spectrumMaxBarsCount, 48);
+    final int minBarWidth = a.getDimensionPixelSize(R.styleable.AnalyzerView_spectrumMinBarWidth, 3);
+    return new SpectrumVisualizer(barColor, maxBarsCount, minBarWidth);
   }
 
   private void init() {
     setZOrderOnTop(true);
     setLayerType(LAYER_TYPE_HARDWARE, null);
     getHolder().setFormat(PixelFormat.TRANSPARENT);
-    visualizer = new SpectrumVisualizer();
     visibleRect = new Rect();
     getHolder().addCallback(this);
   }
@@ -146,7 +156,7 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
     @Override
     public void run() {
       try {
-        final byte[] levels = new byte[MAX_BANDS];
+        final byte[] levels = new byte[visualizer.maxBarsCount];
         for (; ; ) {
           if (isUpdating) {
             final int channels = source.getSpectrum(levels);
@@ -211,23 +221,27 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
 
   private final class SpectrumVisualizer {
 
+    private final int maxBarsCount;
+    private final int minBarWidth;
     private final Rect barRect;
     private final Paint paint;
     private int barWidth;
     private int[] values;
 
-    SpectrumVisualizer() {
+    SpectrumVisualizer(@ColorInt int barColor, int maxBarsCount, int minBarWidth) {
+      this.maxBarsCount = maxBarsCount;
+      this.minBarWidth = minBarWidth;
       this.barRect = new Rect();
       this.paint = new Paint();
-      this.paint.setColor(getResources().getColor(android.R.color.primary_text_dark));
-      this.barWidth = MIN_BAR_WIDTH;
+      this.paint.setColor(barColor);
+      this.barWidth = minBarWidth;
       this.values = new int[1];
     }
 
     void sizeChanged() {
       barRect.bottom = visibleRect.bottom;
       final int width = visibleRect.width();
-      barWidth = Math.max(width / MAX_BANDS, MIN_BAR_WIDTH);
+      barWidth = Math.max(width / maxBarsCount, minBarWidth);
       final int bars = Math.max(width / barWidth, 1);
       values = new int[bars];
     }

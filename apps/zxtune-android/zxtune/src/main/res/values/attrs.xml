@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="AnalyzerView">
+        <attr name="spectrumBarsColor" format="color" />
+        <attr name="spectrumMaxBarsCount" format="integer" />
+        <attr name="spectrumMinBarWidth" format="dimension" />
+    </declare-styleable>
+</resources>
