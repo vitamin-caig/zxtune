@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
 import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import app.zxtune.R
@@ -41,7 +42,7 @@ class PlaybackControlsFragment : Fragment() {
 
     private class Actions(view: View) {
         private val prev = view.findViewById<View>(R.id.controls_prev)
-        private val playPause = view.findViewById<ImageButton>(R.id.controls_play_pause)
+        private val playPause = view.findViewById<ImageView>(R.id.controls_play_pause)
         private val next = view.findViewById<View>(R.id.controls_next)
         private var state = PlaybackStateCompat.STATE_NONE
             set(value) {
