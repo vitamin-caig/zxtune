@@ -29,6 +29,7 @@ import app.zxtune.analytics.Analytics;
 import app.zxtune.device.Permission;
 import app.zxtune.device.media.MediaModel;
 import app.zxtune.ui.ViewPagerAdapter;
+import app.zxtune.ui.utils.ThemeUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -55,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
   @Nullable
   private ViewPager pager;
   public static final int PENDING_INTENT_FLAG = Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0;
+  @Nullable
+  private Releaseable themeSubscription;
 
   public static PendingIntent createPendingIntent(Context ctx) {
     final Intent intent = new Intent(ctx, MainActivity.class);
@@ -73,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     TRACE.checkpoint("super");
 
     fillPages();
+    themeSubscription = ThemeUtils.setupThemeChange(this);
     Permission.request(this, Manifest.permission.READ_EXTERNAL_STORAGE);
     Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
     TRACE.checkpoint("perm");
@@ -97,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   public void onDestroy() {
     super.onDestroy();
+    themeSubscription.release();
 
     Analytics.sendUiEvent(Analytics.UI_ACTION_CLOSE);
   }

@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- ui -->
-
+    <!-- ui -->
+    <string name="pref_zxtune_ui_title">Benutzeroberfläche</string>
+    <!-- ui.theme -->
+    <string name="pref_ui_theme_title">Thema</string>
+    <string-array name="pref_ui_theme_entries">
+        <item>Dunkles</item>
+        <item>Helles</item>
+        <item>Wie im System</item>
+    </string-array>
 </resources>

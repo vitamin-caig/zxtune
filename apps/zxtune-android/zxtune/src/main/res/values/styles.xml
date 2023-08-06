@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Dark" parent="Theme.AppCompat.NoActionBar">
+    <style name="CustomTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:dialogTheme">@style/CustomDialog</item>
     </style>
 
@@ -35,7 +35,7 @@
         <item name="android:padding">1dp</item>
     </style>
 
-    <style name="CustomDialog" parent="@style/Theme.AppCompat.Dialog">
+    <style name="CustomDialog" parent="Theme.AppCompat.DayNight.Dialog">
         <!-- strange bug with broken background -->
         <item name="android:background">?android:colorBackground</item>
         <item name="android:windowNoTitle">false</item>

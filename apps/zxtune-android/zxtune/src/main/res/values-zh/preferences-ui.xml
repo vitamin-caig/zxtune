@@ -1,5 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <!-- ui -->
-
+    <!-- ui -->
+    <string name="pref_zxtune_ui_title">用户界面</string>
+    <!-- ui.theme -->
+    <string name="pref_ui_theme_title">主题</string>
+    <string-array name="pref_ui_theme_entries">
+        <item>黑暗</item>
+        <item>浅色</item>
+        <item>与系统相同</item>
+    </string-array>
 </resources>

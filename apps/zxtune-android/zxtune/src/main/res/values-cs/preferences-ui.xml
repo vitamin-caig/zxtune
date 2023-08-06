@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- ui -->
-
+    <!-- ui -->
+    <string name="pref_zxtune_ui_title">Rozhraní</string>
+    <!-- ui.theme -->
+    <string name="pref_ui_theme_title">Téma</string>
+    <string-array name="pref_ui_theme_entries">
+        <item>Tmavé</item>
+        <item>Světlé</item>
+        <item>Jak v systému</item>
+    </string-array>
 </resources>
