@@ -8,7 +8,7 @@
     <style name="ListItem">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">?android:listPreferredItemHeight</item>
-        <item name="android:background">@drawable/activable_background</item>
+        <item name="android:background">@drawable/selectable_background</item>
         <item name="android:foreground">?android:selectableItemBackground</item>
         <item name="android:paddingLeft">?android:listPreferredItemPaddingLeft</item>
         <item name="android:paddingRight">?android:listPreferredItemPaddingRight</item>
