@@ -11,4 +11,6 @@
     <color name="secondary_text">#727272</color>
     <color name="divider">#b6b6b6</color>
     <color name="transparent">#00000000</color>
+
+    <color name="background">@android:color/background_light</color>
 </resources>
