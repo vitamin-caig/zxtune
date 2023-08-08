@@ -17,7 +17,7 @@
             android:paddingHorizontal="0dp"
             android:paddingVertical="@dimen/spacing_full"
             android:progressDrawable="@drawable/playback_position"
-            android:thumb="@color/transparent"
+            android:thumb="@null"
             tools:progress="33" />
 
     <TextView
