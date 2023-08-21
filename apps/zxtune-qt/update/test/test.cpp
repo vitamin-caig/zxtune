@@ -23,7 +23,7 @@ namespace
     {
       throw std::runtime_error("Failed to open " + name.to_string());
     }
-    return file.readAll();
+    return file.readAll().replace("\r\n", "\n");
   }
 
   void SaveFile(StringView name, const QByteArray& data)

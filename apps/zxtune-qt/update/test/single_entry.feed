@@ -26,7 +26,7 @@ Labels:
  Type-Package
  OpSys-Android
  Platform-any
- Compiler-gcc
+ Compiler-clang
 
 &lt;a href=&quot;http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120.apk&quot;&gt;Download&lt;/a&gt;
 &lt;/pre&gt;
@@ -141,6 +141,31 @@ Labels:
  </content>
 </entry>
 
+ <entry>
+ <updated>2014-10-27T13:30:00Z</updated>
+ <id>zxtune_r3120_mingw_arm64.zip</id>
+ <link rel="alternate" type="text/html" href="https://bitbucket.org/zxtune/zxtune/downloads" />
+ <link rel="direct" href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_mingw_arm64.zip" />
+ <title>
+ zxtune_r3120_mingw_arm64.zip (15.6 MB)
+ </title>
+ <author>
+ <name>vitamin....@gmail.com</name>
+ </author>
+ <content type="html">
+&lt;pre&gt;
+zxtune revision 3120
+
+Labels: 
+ Type-Archive
+ OpSys-Windows
+ Platform-arm64
+ Compiler-clang
+
+&lt;a href=&quot;http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_mingw_arm64.zip&quot;&gt;Download&lt;/a&gt;
+&lt;/pre&gt;
+ </content>
+</entry>
  
  <entry>
  <updated>2013-12-19T13:00:49Z</updated>
@@ -218,6 +243,32 @@ Labels:
  Compiler-gcc
 
 &lt;a href=&quot;http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_arm.tar.gz&quot;&gt;Download&lt;/a&gt;
+&lt;/pre&gt;
+ </content>
+</entry>
+
+ <entry>
+ <updated>2013-12-19T12:59:51Z</updated>
+ <id>zxtune_r2850_linux_arm64.tar.gz</id>
+ <link rel="alternate" type="text/html" href="https://bitbucket.org/zxtune/zxtune/downloads" />
+ <link rel="direct" href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_arm64.tar.gz" />
+ <title>
+ zxtune_r2850_linux_arm64.tar.gz (11.0 MB)
+ </title>
+ <author>
+ <name>vitamin....@gmail.com</name>
+ </author>
+ <content type="html">
+&lt;pre&gt;
+zxtune revision 2850
+
+Labels: 
+ Type-Archive
+ OpSys-Linux
+ Platform-arm64
+ Compiler-gcc
+
+&lt;a href=&quot;http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_arm64.tar.gz&quot;&gt;Download&lt;/a&gt;
 &lt;/pre&gt;
  </content>
 </entry>
@@ -360,11 +411,11 @@ Labels:
  
  <entry>
  <updated>2013-12-19T12:57:31Z</updated>
- <id>zxtune_r2850_amd64.deb</id>
+ <id>zxtune_r2850_amd64bookworm.deb</id>
  <link rel="alternate" type="text/html" href="https://bitbucket.org/zxtune/zxtune/downloads" />
- <link rel="direct" href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_amd64.deb" />
+ <link rel="direct" href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_amd64bookworm.deb" />
  <title>
- zxtune_r2850_amd64.deb (10.0 MB)
+ zxtune_r2850_amd64bookworm.deb (10.0 MB)
  </title>
  <author>
  <name>vitamin....@gmail.com</name>
@@ -379,7 +430,7 @@ Labels:
  Platform-x86_64
  Compiler-gcc
 
-&lt;a href=&quot;http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_amd64.deb&quot;&gt;Download&lt;/a&gt;
+&lt;a href=&quot;http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_amd64bookworm.deb&quot;&gt;Download&lt;/a&gt;
 &lt;/pre&gt;
  </content>
 </entry>
@@ -414,11 +465,11 @@ Labels:
  
  <entry>
  <updated>2013-12-19T12:56:37Z</updated>
- <id>zxtune-r2850-1.x86_64.rpm</id>
+ <id>zxtune-r2850-1.fedora.x86_64.rpm</id>
  <link rel="alternate" type="text/html" href="https://bitbucket.org/zxtune/zxtune/downloads" />
- <link rel="direct" href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.x86_64.rpm" />
+ <link rel="direct" href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.fedora.x86_64.rpm" />
  <title>
- zxtune-r2850-1.x86_64.rpm (7.2 MB)
+ zxtune-r2850-1.fedora.x86_64.rpm (7.2 MB)
  </title>
  <author>
  <name>vitamin....@gmail.com</name>
@@ -433,10 +484,55 @@ Labels:
  Platform-x86_64
  Compiler-gcc
 
-&lt;a href=&quot;http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.x86_64.rpm&quot;&gt;Download&lt;/a&gt;
+&lt;a href=&quot;http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.fedora.x86_64.rpm&quot;&gt;Download&lt;/a&gt;
 &lt;/pre&gt;
  </content>
 </entry>
 
- 
-</feed>
+ <entry>
+ <updated>2023-07-06T10:00:00Z</updated>
+ <id>zxtune-qt_r5040_darwin_x86_64.dmg</id>
+ <link rel="alternate" type="text/html" href="https://bitbucket.org/zxtune/zxtune/downloads" />
+ <link rel="direct" href="https://bitbucket.org/zxtune/zxtune/downloads/zxtune-qt_r5040_darwin_x86_64.dmg" />
+ <title>
+ zxtune-qt_r5040_darwin_x86_64.dmg (12.4 MB)
+ </title>
+ <content type="html">
+&lt;pre&gt;
+zxtune revision 5040
+
+Labels: 
+ Type-Package
+ OpSys-MacOs
+ Platform-x86_64
+ Compiler-clang
+
+&lt;a href=&quot;https://bitbucket.org/zxtune/zxtune/downloads/zxtune-qt_r5040_darwin_x86_64.dmg&quot;&gt;Download&lt;/a&gt;
+&lt;/pre&gt;
+ </content>
+</entry>
+
+ <entry>
+ <updated>2023-07-06T10:00:00Z</updated>
+ <id>zxtune-qt_r5040_darwin_arm64.dmg</id>
+ <link rel="alternate" type="text/html" href="https://bitbucket.org/zxtune/zxtune/downloads" />
+ <link rel="direct" href="https://bitbucket.org/zxtune/zxtune/downloads/zxtune-qt_r5040_darwin_arm64.dmg" />
+ <title>
+ zxtune-qt_r5040_darwin_arm64.dmg (11.6 MB)
+ </title>
+ <content type="html">
+&lt;pre&gt;
+zxtune revision 5040
+
+Labels: 
+ Type-Package
+ OpSys-MacOs
+ Platform-arm64
+ Compiler-clang
+
+&lt;a href=&quot;https://bitbucket.org/zxtune/zxtune/downloads/zxtune-qt_r5040_darwin_arm64.dmg&quot;&gt;Download&lt;/a&gt;
+&lt;/pre&gt;
+ </content>
+</entry>
+
+ </feed>

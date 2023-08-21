@@ -3,7 +3,7 @@ dirs.root := ../../../..
 source_dirs := .
 
 libraries.common = debug strings tools
-libraries.qt := Core Gui
+libraries.qt = Gui Core Widgets
 libraries.3rdparty = zlib
 
 libraries := check_update

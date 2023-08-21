@@ -42,6 +42,10 @@ namespace
       {
         return Product::Release::DINGUX;
       }
+      else if (txt == "darwin")
+      {
+        return Product::Release::MACOSX;
+      }
       else
       {
         return Product::Release::UNKNOWN_PLATFORM;
@@ -62,6 +66,10 @@ namespace
       else if (txt == "arm")
       {
         return Product::Release::ARM;
+      }
+      else if (txt == "aarch64")
+      {
+        return Product::Release::ARM64;
       }
       else if (txt == "armhf")
       {
@@ -128,6 +136,7 @@ namespace
       {Update::WINDOWS_X86_64, Release::WINDOWS, Release::X86_64, Update::ZIP},
       {Update::MINGW_X86, Release::MINGW, Release::X86, Update::ZIP},
       {Update::MINGW_X86_64, Release::MINGW, Release::X86_64, Update::ZIP},
+      {Update::MINGW_ARM64, Release::MINGW, Release::ARM64, Update::ZIP},
       {Update::LINUX_X86, Release::LINUX, Release::X86, Update::TARGZ},
       {Update::LINUX_X86_64, Release::LINUX, Release::X86_64, Update::TARGZ},
       {Update::LINUX_ARM, Release::LINUX, Release::ARM, Update::TARGZ},
@@ -139,6 +148,8 @@ namespace
       {Update::UBUNTU_X86_64, Release::LINUX, Release::X86_64, Update::DEB},
       {Update::REDHAT_X86, Release::LINUX, Release::X86, Update::RPM},
       {Update::REDHAT_X86_64, Release::LINUX, Release::X86_64, Update::RPM},
+      {Update::MACOSX_X86_64, Release::MACOSX, Release::X86_64, Update::DMG},
+      {Update::MACOSX_ARM64, Release::MACOSX, Release::ARM64, Update::DMG},
   };
 }  // namespace
 
@@ -192,6 +203,9 @@ namespace Product
     break;
     case Release::DINGUX:
       result.push_back(GetUpdateType(platform, architecture, Update::TARGZ));
+      break;
+    case Release::MACOSX:
+      result.push_back(GetUpdateType(platform, architecture, Update::DMG));
       break;
     default:
       break;

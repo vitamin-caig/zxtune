@@ -23,6 +23,11 @@ Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_mingw_x86_64.
  Platform: 2 2
  Description: https://bitbucket.org/zxtune/zxtune/downloads
 
+Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r3120_mingw_arm64.zip
+ Version: 3120 2014-10-27
+ Platform: 2 4
+ Description: https://bitbucket.org/zxtune/zxtune/downloads
+
 Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_i686.tar.gz
  Version: 2850 2013-12-19
  Platform: 3 1
@@ -38,14 +43,19 @@ Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_arm.tar
  Platform: 3 3
  Description: https://bitbucket.org/zxtune/zxtune/downloads
 
-Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_armhf.tar.gz
+Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_arm64.tar.gz
  Version: 2850 2013-12-19
  Platform: 3 4
  Description: https://bitbucket.org/zxtune/zxtune/downloads
 
+Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_armhf.tar.gz
+ Version: 2850 2013-12-19
+ Platform: 3 5
+ Description: https://bitbucket.org/zxtune/zxtune/downloads
+
 Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_dingux_mipsel.tar.gz
  Version: 2850 2013-12-19
- Platform: 4 5
+ Platform: 4 6
  Description: https://bitbucket.org/zxtune/zxtune/downloads
 
 Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1-i686.pkg.tar.xz
@@ -63,7 +73,7 @@ Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_i386.deb
  Platform: 3 1
  Description: https://bitbucket.org/zxtune/zxtune/downloads
 
-Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_amd64.deb
+Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_amd64bookworm.deb
  Version: 2850 2013-12-19
  Platform: 3 2
  Description: https://bitbucket.org/zxtune/zxtune/downloads
@@ -73,8 +83,18 @@ Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.i686.rpm
  Platform: 3 1
  Description: https://bitbucket.org/zxtune/zxtune/downloads
 
-Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.x86_64.rpm
+Download http://bitbucket.org/zxtune/zxtune/downloads/zxtune-r2850-1.fedora.x86_64.rpm
  Version: 2850 2013-12-19
  Platform: 3 2
+ Description: https://bitbucket.org/zxtune/zxtune/downloads
+
+Download https://bitbucket.org/zxtune/zxtune/downloads/zxtune-qt_r5040_darwin_x86_64.dmg
+ Version: 5040 2023-07-06
+ Platform: 5 2
+ Description: https://bitbucket.org/zxtune/zxtune/downloads
+
+Download https://bitbucket.org/zxtune/zxtune/downloads/zxtune-qt_r5040_darwin_arm64.dmg
+ Version: 5040 2023-07-06
+ Platform: 5 4
  Description: https://bitbucket.org/zxtune/zxtune/downloads
 

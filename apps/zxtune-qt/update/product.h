@@ -32,6 +32,7 @@ namespace Product
       MINGW,
       LINUX,
       DINGUX,
+      MACOSX,
     };
 
     enum ArchitectureTag
@@ -40,6 +41,7 @@ namespace Product
       X86,
       X86_64,
       ARM,
+      ARM64,
       ARMHF,
       MIPSEL,
     };
@@ -63,6 +65,7 @@ namespace Product
       TARXZ,
       DEB,
       RPM,
+      DMG,
     };
 
     enum TypeTag
@@ -72,9 +75,11 @@ namespace Product
       WINDOWS_X86_64,
       MINGW_X86,
       MINGW_X86_64,
+      MINGW_ARM64,
       LINUX_X86,
       LINUX_X86_64,
       LINUX_ARM,
+      LINUX_ARM64,
       LINUX_ARMHF,
       DINGUX_MIPSEL,
       ARCHLINUX_X86,
@@ -83,6 +88,8 @@ namespace Product
       UBUNTU_X86_64,
       REDHAT_X86,
       REDHAT_X86_64,
+      MACOSX_X86_64,
+      MACOSX_ARM64,
     };
 
     virtual PackagingTag Packaging() const = 0;
