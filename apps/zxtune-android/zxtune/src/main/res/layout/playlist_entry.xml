@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         tools:ignore="RtlHardcoded">
 
@@ -20,52 +21,51 @@
 
         <ImageView
                 android:id="@+id/playlist_entry_state"
-                android:layout_width="@dimen/item_height"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="@dimen/spacing_half"
+                android:layout_marginRight="?android:listPreferredItemPaddingLeft"
                 android:src="@{isPlaying ? @drawable/ic_playing : @drawable/ic_drag_handler}"
+                app:tint="?colorControlNormal"
                 tools:src="@drawable/ic_drag_handler" />
 
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="@dimen/spacing_half"
-                android:layout_marginRight="@dimen/spacing_half"
                 android:layout_toLeftOf="@+id/playlist_entry_duration"
                 android:layout_toRightOf="@+id/playlist_entry_state"
                 android:orientation="vertical">
 
             <TextView
-                    style="@style/text_main"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:maxLines="1"
                     android:text="@{entry.getTitle().isEmpty() ? entry.getLocation().getDisplayFilename() : entry.getTitle()}"
+                    android:textAppearance="?android:textAppearanceListItem"
                     tools:text="Title" />
 
             <TextView
                     android:id="@+id/list_item_text_aux"
-                    style="@style/text_aux"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:maxLines="1"
                     android:text="@{entry.getAuthor()}"
+                    android:textAppearance="?textAppearanceListItemSecondary"
                     android:visibility="@{entry.getAuthor().isEmpty() ? View.GONE : View.VISIBLE}"
                     tools:text="Author" />
         </LinearLayout>
 
         <TextView
                 android:id="@+id/playlist_entry_duration"
-                style="@style/text_main"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="@dimen/spacing_half"
-                android:layout_marginRight="@dimen/spacing_half"
-                android:drawablePadding="@dimen/spacing_half"
+                android:layout_marginLeft="?android:listPreferredItemPaddingRight"
                 android:text="@{entry.getDuration().toString()}"
+                android:textAppearance="?android:textAppearanceListItemSmall"
                 tools:text="1:23" />
 
     </RelativeLayout>

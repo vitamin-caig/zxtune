@@ -1,5 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <!-- ui -->
-
+    <!-- ui -->
+    <string name="pref_zxtune_ui_title">ユーザーインターフェース</string>
+    <!-- ui.theme -->
+    <string name="pref_ui_theme_title">テーマ</string>
+    <string-array name="pref_ui_theme_entries">
+        <item>暗い</item>
+        <item>明るい</item>
+        <item>システムのような</item>
+    </string-array>
 </resources>

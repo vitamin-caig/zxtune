@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- http://www.materialpalette.com/ -->
-    <color name="primary">#cfd8dc</color>
-    <color name="primary_dark">#455a64</color>
-    <color name="primary_light">#cfd8dc</color>
-    <color name="text">#ffffff</color>
     <color name="accent">#607d8b</color>
     <color name="accent_transparent">#c0607d8b</color>
-    <color name="primary_text">#212121</color>
-    <color name="secondary_text">#727272</color>
-    <color name="divider">#b6b6b6</color>
-    <color name="transparent">#00000000</color>
+
+    <color name="background">@android:color/background_light</color>
 </resources>

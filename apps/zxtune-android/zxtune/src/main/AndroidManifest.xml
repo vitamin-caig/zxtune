@@ -21,7 +21,7 @@
             android:icon="@drawable/ic_launcher"
             android:label="@string/app_name"
             android:requestLegacyExternalStorage="true"
-            android:theme="@style/Theme.Dark"
+            android:theme="@style/CustomTheme"
             android:usesCleartextTraffic="true">
         <activity
                 android:name=".MainActivity"
@@ -65,15 +65,6 @@
                 android:name=".SharingActivity"
                 android:exported="false"
                 android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <activity
-                android:name=".ui.RingtoneActivity"
-                android:exported="false"
-                android:label="@string/ringtone_create_title"
-                android:theme="@style/Theme.AppCompat.Dialog" />
-        <activity
-                android:name=".ui.AboutActivity"
-                android:exported="false"
-                android:theme="@style/CustomDialog.NoTitle" />
 
         <service
                 android:name=".MainService"

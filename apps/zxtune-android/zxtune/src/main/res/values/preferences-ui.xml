@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- ui -->
-
+    <!-- ui -->
+    <string name="pref_zxtune_ui_title">Interface</string>
+    <!-- ui.theme -->
+    <string name="pref_ui_theme_key" translatable="false">ui.theme</string>
+    <string name="pref_ui_theme_default" translatable="false">dark</string>
+    <string name="pref_ui_theme_title">Theme</string>
+    <string-array name="pref_ui_theme_entries">
+        <item>Dark</item>
+        <item>Light</item>
+        <item>As in the system</item>
+    </string-array>
+    <string-array name="pref_ui_theme_values" translatable="false">
+        <item>dark</item>
+        <item>light</item>
+        <item>system</item>
+    </string-array>
 </resources>

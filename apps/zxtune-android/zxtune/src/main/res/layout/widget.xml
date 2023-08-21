@@ -1,43 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/widget"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@android:drawable/screen_background_dark"
->
-    <TextView
-            android:id="@+id/widget_title"
-            android:layout_width="wrap_content"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@android:id/background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/spacing_full"
+        android:background="?android:colorBackground"
+        android:theme="@style/CustomTheme">
+
+    <LinearLayout
+            android:id="@+id/widget_info"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_above="@id/widget_ctrl_play_pause"
             android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_marginLeft="@dimen/spacing_half"
-            android:layout_marginRight="@dimen/spacing_half"
-            style="@style/text_main"
-    />
-    <ImageButton
+            android:gravity="center"
+            android:orientation="vertical">
+
+        <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:gravity="center"
+                android:paddingHorizontal="@dimen/spacing_full"
+                android:singleLine="true"
+                android:textAlignment="gravity"
+                android:textAppearance="?android:textAppearanceMedium"
+                tools:text="Title" />
+
+        <TextView
+                android:id="@+id/widget_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:gravity="center"
+                android:paddingHorizontal="@dimen/spacing_full"
+                android:singleLine="true"
+                android:textAlignment="gravity"
+                android:textAppearance="?android:textAppearanceSmall"
+                tools:text="Author" />
+    </LinearLayout>
+
+    <ImageView
             android:id="@+id/widget_ctrl_prev"
-            android:src="@drawable/ic_prev"
-            android:layout_toLeftOf="@id/widget_ctrl_play_pause"
-            android:layout_alignParentBottom="true"
-            android:layout_height="wrap_content"
             style="@style/Button"
-    />
-    <ImageButton
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:minWidth="80dp"
+            android:src="@drawable/ic_prev" />
+
+    <ImageView
             android:id="@+id/widget_ctrl_play_pause"
-            android:src="@drawable/ic_play"
-            android:layout_toLeftOf="@id/widget_ctrl_next"
-            android:layout_alignParentBottom="true"
-            android:layout_height="wrap_content"
             style="@style/Button"
-    />
-    <ImageButton
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_toLeftOf="@id/widget_ctrl_next"
+            android:layout_toRightOf="@id/widget_ctrl_prev"
+            android:src="@drawable/ic_play" />
+
+    <ImageView
             android:id="@+id/widget_ctrl_next"
-            android:src="@drawable/ic_next"
+            style="@style/Button"
+            android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="true"
-            android:layout_height="wrap_content"
-            style="@style/Button"
-    />
+            android:minWidth="80dp"
+            android:src="@drawable/ic_next" />
 </RelativeLayout>

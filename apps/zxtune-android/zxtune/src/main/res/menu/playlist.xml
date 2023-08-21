@@ -7,21 +7,25 @@
             android:id="@+id/action_statistics"
             android:icon="@drawable/ic_menu_statistics"
             android:title="@string/statistics"
+            app:iconTint="?colorControlNormal"
             app:showAsAction="always" />
     <item
             android:id="@+id/action_save"
             android:icon="@drawable/ic_menu_save"
             android:title="@string/save"
+            app:iconTint="?colorControlNormal"
             app:showAsAction="always" />
     <item
             android:id="@+id/action_clear"
             android:icon="@drawable/ic_menu_delete"
             android:title="@string/clear"
+            app:iconTint="?colorControlNormal"
             app:showAsAction="always" />
     <item
             android:id="@+id/action_sort"
             android:icon="@drawable/ic_menu_sort"
             android:title="@string/sort"
+            app:iconTint="?colorControlNormal"
             app:showAsAction="always">
         <menu />
     </item>

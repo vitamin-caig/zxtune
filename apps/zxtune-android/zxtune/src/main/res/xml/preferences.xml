@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- ui -->
+    <PreferenceCategory android:title="@string/pref_zxtune_ui_title">
+        <DropDownPreference
+                android:defaultValue="@string/pref_ui_theme_default"
+                android:entries="@array/pref_ui_theme_entries"
+                android:entryValues="@array/pref_ui_theme_values"
+                android:key="@string/pref_ui_theme_key"
+                android:title="@string/pref_ui_theme_title"
+                app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
     <!-- other -->
     <PreferenceCategory android:title="@string/pref_zxtune_other_title">
         <DropDownPreference

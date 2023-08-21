@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        style="@style/block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_margin="@dimen/spacing_full"
         tools:ignore="RtlHardcoded">
 
@@ -9,17 +10,14 @@
             android:id="@+id/position_seek"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@id/position_time"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
             android:layout_gravity="center"
             android:layout_marginRight="@dimen/spacing_full"
             android:layout_toLeftOf="@id/controls_track_mode"
-            android:maxHeight="@dimen/spacing_full"
-            android:paddingVertical="@dimen/spacing_full"
             android:paddingHorizontal="0dp"
+            android:paddingVertical="@dimen/spacing_full"
             android:progressDrawable="@drawable/playback_position"
-            android:thumb="@color/transparent"
+            android:thumb="@null"
             tools:progress="33" />
 
     <TextView
@@ -27,8 +25,8 @@
             style="android:style/TextAppearance.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentBottom="true"
+            android:layout_below="@id/position_seek"
+            android:layout_alignLeft="@id/position_seek"
             android:layout_gravity="center_vertical"
             android:text="@string/stub_time" />
 
@@ -37,8 +35,8 @@
             style="android:style/TextAppearance.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@id/position_seek"
             android:layout_alignRight="@id/position_seek"
-            android:layout_alignParentBottom="true"
             android:layout_gravity="center_vertical"
             android:text="@string/stub_time" />
 

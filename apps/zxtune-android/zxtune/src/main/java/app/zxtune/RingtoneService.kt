@@ -158,8 +158,7 @@ class RingtoneService : LifecycleService() {
         private const val EXTRA_DURATION_SECONDS = "duration"
         private const val DEFAULT_DURATION_SECONDS: Long = 30
 
-        @JvmStatic
-        fun execute(context: Context, module: Uri?, duration: TimeStamp) {
+        fun execute(context: Context, module: Uri, duration: TimeStamp) {
             val intent = Intent(context, RingtoneService::class.java).apply {
                 action = ACTION_MAKERINGTONE
                 putExtra(EXTRA_MODULE, module)
