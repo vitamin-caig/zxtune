@@ -11,6 +11,7 @@
 #include "module/players/aym/ayemul.h"
 
 #include "formats/chiptune/emulation/ay.h"
+#include "module/players/aym/ay_data_channel.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_parameters.h"
 #include "module/players/aym/aym_properties_helper.h"
@@ -34,80 +35,6 @@
 namespace Module::AYEMUL
 {
   const Debug::Stream Dbg("Core::AYSupp");
-
-  class AyDataChannel
-  {
-  public:
-    explicit AyDataChannel(Devices::AYM::Chip::Ptr chip)
-      : Chip(std::move(chip))
-    {}
-
-    void Reset()
-    {
-      Chip->Reset();
-      Register = 0;
-      State = Devices::AYM::DataChunk();
-      Blocked = false;
-    }
-
-    void SetBlocked(bool block)
-    {
-      Blocked = block;
-    }
-
-    bool SelectRegister(uint_t reg)
-    {
-      Register = reg;
-      return IsRegisterSelected();
-    }
-
-    bool SetValue(const Devices::AYM::Stamp& timeStamp, uint8_t val)
-    {
-      if (IsRegisterSelected())
-      {
-        const auto idx = static_cast<Devices::AYM::Registers::Index>(Register);
-        State.Data[idx] = val;
-        if (!Blocked)
-        {
-          Devices::AYM::DataChunk chunk;
-          chunk.TimeStamp = timeStamp;
-          chunk.Data[idx] = val;
-          Chip->RenderData(std::move(chunk));
-        }
-        return true;
-      }
-      return false;
-    }
-
-    uint8_t GetValue() const
-    {
-      if (IsRegisterSelected())
-      {
-        return State.Data[static_cast<Devices::AYM::Registers::Index>(Register)];
-      }
-      else
-      {
-        return 0xff;
-      }
-    }
-
-    Sound::Chunk RenderTill(const Devices::AYM::Stamp& till)
-    {
-      return Chip->RenderTill(till);
-    }
-
-  private:
-    bool IsRegisterSelected() const
-    {
-      return Register < Devices::AYM::Registers::TOTAL;
-    }
-
-  private:
-    const Devices::AYM::Chip::Ptr Chip;
-    uint_t Register = 0;
-    Devices::AYM::DataChunk State;
-    bool Blocked = false;
-  };
 
   class BeeperDataChannel
   {
