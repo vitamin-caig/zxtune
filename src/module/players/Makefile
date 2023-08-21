@@ -11,3 +11,7 @@ jumbo.excludes := dac/abysshighestexperience.cpp xsf/2sf.cpp xsf/ncsf.cpp
 
 include $(dirs.root)/makefile.mak
 
+ifdef tools.python
+aym/sc68_replayers.inc: $(wildcard aym/sc68_replayers/*)
+	$(tools.python) $(dirs.root)/make/tools/make_binaries.py $^ > $@
+endif
