@@ -5,6 +5,20 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev5050 from 22.08.2023
+
+[+] Supported OPUS format playback including modules' samples
+[+] ARM64 builds for Windows and generic Linux
+[*] Fixed some xSF tracks parsing
+[*] Fixed fadeout processing
+[*] zxtune-qt: better usage of multicore CPUs
+[*] zxtune-qt: fixed crashes in conversion dialog
+[+] zxtune-android: light theme
+[+] zxtune-android: detected possible power management issues
+[*] zxtune-android: fixed permission request for ringtone creation
+[*] zxtune-android: fixed found and reported crashes
+[*] zxtune-android: fixed unattended startup on Bluetooth enabling
+
 --- Rev5040 from 05.07.2023
 
 [+] Build for MacOSX arm64 (unnotarized)
