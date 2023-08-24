@@ -15,7 +15,7 @@ RUN dpkg --add-architecture ${debianarch} && \
     apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates wget xz-utils bzip2 git make zip nano less sudo cmake \
       g++ gcc python3-minimal ccache ${debiancompiler} && \
-    bash -c "dependencies=(libpulse-dev libasound2-dev zlib1g-dev \
+    bash -c "dependencies=(libpulse-dev libasound2-dev zlib1g-dev libssl-dev \
       libfontconfig1-dev libfreetype6-dev libx11-dev libx11-xcb-dev libxext-dev libxfixes-dev libxi-dev \
       libxrender-dev libxcb1-dev libxcb-glx0-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-shm0-dev \
       libxcb-icccm4-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0-dev \
@@ -48,11 +48,11 @@ RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" &
      ./configure -v -device linux-generic-g++ -device-option CROSS_COMPILE=${execprefix} \
       -prefix ${prebuilt}/qt-${qt}-linux-${arch} -release -opensource -static -confirm-license -no-rpath \
       -no-opengl -no-openvg \
-      -no-ico -no-gif -no-openssl -no-cups -no-pch -no-glib \
+      -no-ico -no-gif -no-cups -no-pch -no-glib \
       -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms \
       -xcb \
       -no-feature-testlib -no-feature-sql -no-feature-pdf -no-feature-printer \
-      -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig \
+      -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig -openssl \
       -make libs && \
      make -j${cores} install) && \
      rm -Rf qt5
