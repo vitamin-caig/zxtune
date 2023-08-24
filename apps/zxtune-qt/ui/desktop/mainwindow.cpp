@@ -109,7 +109,6 @@ namespace
       if (Update::CheckOperation* op = Update::CheckOperation::Create(*this))
       {
         Require(connect(actionCheckUpdates, &QAction::triggered, op, &Update::CheckOperation::Execute));
-        Require(connect(op, &Update::CheckOperation::ErrorOccurred, this, &DesktopMainWindowImpl::ShowError));
       }
       else
       {
