@@ -95,8 +95,10 @@ namespace Binary::Compression::Zlib
       {
         if (Delegate.avail_out == 0)
         {
-          const auto bufSize = Math::Align<std::size_t>(
-              Delegate.total_in ? uint64_t(Delegate.avail_in) * Delegate.total_out / Delegate.total_in : 1, 16384);
+          const auto restInput = uint64_t(Delegate.avail_in - Delegate.total_in);
+          const auto forecastOutput = Delegate.total_in ? restInput * Delegate.total_out / Delegate.total_in
+                                                        : restInput * 2;
+          const auto bufSize = Math::Align<std::size_t>(forecastOutput, 16384);
           SetOutput(output.Allocate(bufSize), bufSize);
         }
         const auto res = ::inflate(&Delegate, Z_SYNC_FLUSH);
