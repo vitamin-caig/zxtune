@@ -192,28 +192,16 @@ namespace Module
       {
         return Preamp;
       }
+      // Invariants:
+      // if doneLoops == 0 then always posAfter > posBefore
       const auto posAfter = State->At();
-      if (const auto doneLoops = State->LoopCount())
-      {
-        // if last iteration
-        if (!Loop(doneLoops + 1))
-        {
-          // allow possible fadeout - and only fadeout
-          // if loop happened just now, posBefore > posAfter
-          return Fading.GetFadeout(Preamp, std::min(posBefore, posAfter));
-        }
-        else
-        {
-          return Preamp;
-        }
-      }
-      else
-      {
-        // assert(posBefore < posAfter)
-        // to avoid absolute silence
-        const auto val = Fading.GetFadein(Preamp, posAfter);
-        return Fading.GetFadeout(val, posBefore);
-      }
+      const auto doneLoops = State->LoopCount();
+      const auto lastIteration = !Loop(doneLoops + 1);
+
+      // If looped, do not allow fadein
+      // to avoid absolute silence
+      const auto part1 = doneLoops ? Preamp : Fading.GetFadein(Preamp, posAfter);
+      return lastIteration ? Fading.GetFadeout(part1, std::min(posBefore, posAfter)) : part1;
     }
 
   private:
