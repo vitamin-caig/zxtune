@@ -27,10 +27,10 @@ class VisualizerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) =
         MediaModel.of(requireActivity()).run {
-            analyzer = view.findViewById<SpectrumAnalyzerView>(R.id.spectrum)
+            analyzer = view.findViewById(R.id.spectrum)
             visualizer.observe(viewLifecycleOwner, analyzer::setSource)
             playbackState.observe(viewLifecycleOwner) { state ->
-                analyzer.setIsUpdating(PlaybackStateCompat.STATE_PLAYING == state?.state)
+                analyzer.setIsPlaying(PlaybackStateCompat.STATE_PLAYING == state?.state)
             }
             view.setOnClickListener {
                 changeState()
@@ -44,7 +44,8 @@ class VisualizerFragment : Fragment() {
     }
 
     fun setIsVisible(isVisible: Boolean) {
-        analyzer.isVisible = isVisible && state.isEnabled
+        analyzer.isVisible = state.isEnabled
+        analyzer.setIsUpdating(isVisible)
     }
 
     private class VisibilityState(ctx: Context) {

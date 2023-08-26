@@ -67,10 +67,14 @@ class SpectrumAnalyzerView @JvmOverloads constructor(
         }
     }
 
-    fun setIsUpdating(updating: Boolean) {
-        if (source.setIsUpdating(updating)) {
+    fun setIsPlaying(playing: Boolean) {
+        if (source.setIsUpdating(playing)) {
             renderer.update()
         }
+    }
+
+    fun setIsUpdating(updating: Boolean) {
+        renderer.isActive = updating
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {
@@ -104,20 +108,32 @@ class SpectrumAnalyzerView @JvmOverloads constructor(
 
         private val buffer = ByteArray(dst.maxBarsCount)
         private var drawTask: DrawTask? = null
+        var isActive: Boolean = true
+            set(value) {
+                if (value != field) {
+                    field = value
+                    if (value) {
+                        drawTask?.schedule()
+                    } else {
+                        drawTask?.cancel()
+                    }
+                }
+            }
 
         fun setHolder(holder: SurfaceHolder?) {
             handler.postAtFrontOfQueue {
                 drawTask?.cancel()
                 drawTask = holder?.let {
-                    DrawTask(it).apply {
-                        schedule()
-                    }
+                    DrawTask(it)
                 }
+                update()
             }
         }
 
         fun update() {
-            drawTask?.schedule()
+            if (isActive) {
+                drawTask?.schedule()
+            }
         }
 
         private inner class DrawTask(private val holder: SurfaceHolder) : Runnable {
