@@ -25,7 +25,5 @@ namespace Update
     static CheckOperation* Create(QWidget& parent);
 
     virtual void Execute() = 0;
-  signals:
-    void ErrorOccurred(const Error&);
   };
 };  // namespace Update

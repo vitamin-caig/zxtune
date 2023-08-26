@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 RUN wget -q -O- https://archive.raspbian.org/raspbian.public.key | gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/raspbian.gpg --import && \
     chmod 644 /etc/apt/trusted.gpg.d/raspbian.gpg && \
-    echo "deb [arch=armhf] http://mirrordirector.raspbian.org/raspbian/ stretch main rpi" > /etc/apt/sources.list.d/raspbian.list && \
+    echo "deb [arch=armhf] http://mirrordirector.raspbian.org/raspbian/ buster main rpi" > /etc/apt/sources.list.d/raspbian.list && \
     apt-get update
 
 USER build
@@ -20,7 +20,7 @@ ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
 # Toolchain from https://github.com/abhiTronix/raspberry-pi-cross-compilers
 ARG gcc=10.3.0
 RUN mkdir -p ${toolchains} && cd ${toolchains} && \
-    wget -q https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Stretch/GCC%20${gcc}/Raspberry%20Pi%201%2C%20Zero/cross-gcc-${gcc}-pi_0-1.tar.gz -O - | tar -xz && \
+    wget -q https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Buster/GCC%20${gcc}/Raspberry%20Pi%201%2C%20Zero/cross-gcc-${gcc}-pi_0-1.tar.gz -O - | tar -xz && \
     mv cross-pi-gcc* armhf-linux
 
 ARG boost=1.82.0
@@ -38,7 +38,7 @@ RUN wget -q https://github.com/boostorg/boost/releases/download/boost-${boost}/b
 ENV crossroot=${prebuilt}/root-linux-armhf
 RUN mkdir -p ${crossroot} && cd ${crossroot} && \
     bash -c "apt-get download {libxcb{1,-icccm4,-image0,-keysyms1,-randr0,-render0,-render-util0,-shape0,-shm0,-util0,-xfixes0,-xinerama0}{,-dev},libxcb-{sync,xkb}{1,-dev},\
-libx11-dev,lib{fontconfig1,freetype6}{,-dev},libxkbcommon{0,-dev},libxkbcommon-x11-{0,dev},lib{bsd0,c6,expat1,xau6,xdmcp6},\
+libx11-dev,libssl-dev,lib{fontconfig1,freetype6}{,-dev},libuuid1,libxkbcommon{0,-dev},libxkbcommon-x11-{0,dev},lib{bsd0,c6,expat1,xau6,xdmcp6},\
 libpng{16-16,-dev},\
 zlib1g{,-dev},\
 lib{asound2,pulse}-dev}:armhf" && \
@@ -54,7 +54,7 @@ RUN git clone --depth=1 --branch=v${qt} https://github.com/qt/qt5.git && \
      echo "include(../common/linux_device_pre.conf)\n"\
         "QMAKE_CFLAGS = -march=armv6 -mfpu=vfp\n"\
         "DISTRO_OPTS += hard-float\n"\
-        "EXTRA_INCLUDEPATH += \$\${CROSS_ROOT}/usr/include\n"\
+        "EXTRA_INCLUDEPATH += \$\${CROSS_ROOT}/usr/include \$\${CROSS_ROOT}/usr/include/arm-linux-gnueabihf\n"\
         "EXTRA_LIBDIR += \$\${CROSS_ROOT}/usr/lib/arm-linux-gnueabihf\n"\
         "QMAKE_LFLAGS=-Wl,-rpath-link,\$\${CROSS_ROOT}/usr/lib/arm-linux-gnueabihf -Wl,-rpath-link,\$\${CROSS_ROOT}/lib/arm-linux-gnueabihf\n"\
         "include(../common/linux_arm_device_post.conf)\n"\
@@ -63,11 +63,11 @@ RUN git clone --depth=1 --branch=v${qt} https://github.com/qt/qt5.git && \
     ./configure -v -device linux-rasp-pi-g++ -prefix ${prebuilt}/qt-${qt}-linux-armhf -device-option CROSS_COMPILE=${toolchains}/armhf-linux/bin/arm-linux-gnueabihf- -device-option CROSS_ROOT=${prebuilt}/root-linux-armhf \
       -release -opensource -static -confirm-license \
       -no-opengl -no-openvg -no-rpath \
-      -no-ico -no-gif -no-openssl -no-cups -no-pch -no-glib \
+      -no-ico -no-gif -no-cups -no-pch -no-glib \
       -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms \
       -qpa xcb \
       -no-feature-testlib -no-feature-sql -no-feature-pdf -no-feature-printer \
-      -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig \
+      -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig -ssl \
       -make libs && \
     make -j${cores} install) && \
     rm -Rf qt5

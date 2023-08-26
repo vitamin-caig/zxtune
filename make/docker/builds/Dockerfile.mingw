@@ -50,10 +50,10 @@ RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" &
      ./configure -v -xplatform win32-clang-g++ -device-option CROSS_COMPILE=${execprefix} \
       -prefix ${prebuilt}/qt-${qt}-mingw-${arch} -release -opensource -static -confirm-license -no-rpath \
       -no-dbus -no-opengl -no-openvg -no-sql-sqlite \
-      -no-ico -no-gif -no-tiff -no-openssl -no-pch -no-glib \
+      -no-ico -no-gif -no-tiff -no-pch -no-glib \
       -no-directfb -no-evdev -no-tslib \
       -no-feature-testlib -no-feature-sql \
-      -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -qt-webp -qt-freetype -qt-harfbuzz \
+      -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -qt-webp -qt-freetype -qt-harfbuzz -schannel \
       -make libs && \
      make -j${cores} install) && \
      rm -Rf qt5*
@@ -65,7 +65,7 @@ RUN mkdir zxtune && sudo chmod o+w zxtune && cd zxtune && \
       "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n"\
       "host=linux\ncompiler=clang\nembed_file_cmd=cat \$(embedded_files) >> \$@\nmakepkg_cmd=(cd \$(1) && zip -9rD \$(CURDIR)/\$(2) .)\npkg_suffix=zip\n" \
       "qt.plugins=QWindowsIntegrationPlugin QWindowsVistaStylePlugin\n" \
-      "libraries.qt.system.mingw=qwindows qwindowsvistastyle qtfreetype qtlibpng qtpcre2 qtharfbuzz userenv netapi32 version winmm oleaut32 wtsapi32 dwmapi uxtheme\n" \
+      "libraries.qt.system.mingw=qwindows qwindowsvistastyle qtfreetype qtlibpng qtpcre2 qtharfbuzz userenv netapi32 version winmm oleaut32 wtsapi32 dwmapi uxtheme iphlpapi secur32 crypt32 bcrypt\n" \
       "libraries.qt.mingw=FontDatabaseSupport EventDispatcherSupport ThemeSupport WindowsUIAutomationSupport\n" > variables.mak
 
 WORKDIR /build/zxtune
