@@ -95,7 +95,7 @@ namespace Binary::Compression::Zlib
       {
         if (Delegate.avail_out == 0)
         {
-          const auto restInput = uint64_t(Delegate.avail_in - Delegate.total_in);
+          const auto restInput = uint64_t(Delegate.avail_in);
           const auto forecastOutput = Delegate.total_in ? restInput * Delegate.total_out / Delegate.total_in
                                                         : restInput * 2;
           const auto bufSize = Math::Align<std::size_t>(forecastOutput, 16384);
