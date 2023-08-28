@@ -12,7 +12,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 32
         //supported languages
-        resConfigs "en", "de", "ru", "es", "cs", "zh", "ja", "pt"
+        resourceConfigurations += ['en', 'de', 'ru', 'es', 'cs', 'zh', 'ja', 'pt']
         //supported densities for vector drawables rasterization
         vectorDrawables.generatedDensities  "mdpi", "hdpi", "xhdpi", "xxhdpi"
 
@@ -27,15 +27,20 @@ android {
         renderScript false
         shaders false
         dataBinding true
+        aidl true
+        buildConfig true
     }
 
     packagingOptions {
-        exclude 'META-INF/*.version'
-        //jsoup
-        exclude 'META-INF/CHANGES'
-        exclude 'META-INF/*.md'
-        //kotlin
-        exclude '**/*.kotlin_*'
+        resources {
+            excludes += [
+                'META-INF/*.version',
+                //jsoup
+                'META-INF/CHANGES', 'META-INF/*.md',
+                //kotlin
+                '**/*.kotlin_*', 'DebugProbesKt.bin', 'kotlin-tooling-metadata.json'
+            ]
+        }
     }
 }
 
