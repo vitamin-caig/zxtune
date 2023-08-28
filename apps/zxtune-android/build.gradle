@@ -24,13 +24,14 @@ allprojects {
 }
 
 ext {
-    appcompat_version = '1.5.1'
-    lifecycle_version = '2.5.1'
+    appcompat_version = '1.6.1'
+    lifecycle_version = '2.6.1'
     media_version = '1.6.0'
-    room_version = '2.4.3'
+    room_version = '2.5.2'
 
     junit_version = '4.13.2'
-    fragment_version = '1.5.5'
+    fragment_version = '1.6.1'
+    mockito_version = '5.1.0'
 }
 
 ext.path_step = "../.."
