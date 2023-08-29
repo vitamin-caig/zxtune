@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 
 android {
     compileSdk 33
@@ -16,10 +16,8 @@ android {
         //supported densities for vector drawables rasterization
         vectorDrawables.generatedDensities  "mdpi", "hdpi", "xhdpi", "xxhdpi"
 
-        javaCompileOptions {
-            annotationProcessorOptions.arguments += [
-                "room.schemaLocation": "${project.buildDir}/schemas".toString()
-            ]
+        ksp {
+            arg('room.schemaLocation', "${project.buildDir}/schemas")
         }
     }
 
@@ -42,6 +40,14 @@ android {
             ]
         }
     }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11
+    }
 }
 
 configurations {
@@ -62,7 +68,7 @@ dependencies {
     implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation "androidx.room:room-runtime:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
+    ksp "androidx.room:room-compiler:$room_version"
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation 'androidx.documentfile:documentfile:1.0.1'
 
@@ -97,7 +103,7 @@ dependencies {
     testImplementation "androidx.fragment:fragment-testing:$fragment_version"
     debugImplementation "androidx.fragment:fragment-testing:$fragment_version"
     developImplementation "androidx.fragment:fragment-testing:$fragment_version"
-    kaptTest "androidx.room:room-compiler:$room_version"
+    kspTest "androidx.room:room-compiler:$room_version"
 }
 
 android {
