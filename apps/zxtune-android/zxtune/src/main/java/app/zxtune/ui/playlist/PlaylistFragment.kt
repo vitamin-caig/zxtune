@@ -71,19 +71,20 @@ class PlaylistFragment : Fragment() {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) =
                 menuInflater.inflate(R.menu.playlist, menu)
 
-            override fun onPrepareMenu(menu: Menu) = menu.item(R.id.action_sort).subMenu.run {
-                for (sortBy in ProviderClient.SortBy.values()) {
-                    for (sortOrder in ProviderClient.SortOrder.values()) {
-                        add(getMenuTitle(sortBy)).run {
-                            setOnMenuItemClickListener {
-                                model.sort(sortBy, sortOrder)
-                                true
+            override fun onPrepareMenu(menu: Menu) =
+                requireNotNull(menu.item(R.id.action_sort).subMenu).run {
+                    for (sortBy in ProviderClient.SortBy.values()) {
+                        for (sortOrder in ProviderClient.SortOrder.values()) {
+                            add(getMenuTitle(sortBy)).run {
+                                setOnMenuItemClickListener {
+                                    model.sort(sortBy, sortOrder)
+                                    true
+                                }
+                                setIcon(getMenuIcon(sortOrder))
                             }
-                            setIcon(getMenuIcon(sortOrder))
                         }
                     }
                 }
-            }
 
             override fun onMenuItemSelected(menuItem: MenuItem) =
                 processMenuItem(menuItem.itemId, selectionTracker.selection)
