@@ -13,7 +13,7 @@ class PersistentStorageSetupFragment : DialogFragment() {
         AlertDialog.Builder(requireContext())
             .setPositiveButton(R.string.no_stored_playlists_access) { _, _ ->
                 dismiss()
-                val action = requireNotNull(arguments).getParcelable<Intent>(TAG_ACTION)
+                val action = requireNotNull(arguments?.getParcelable<Intent>(TAG_ACTION))
                 startActivity(action)
             }
             .create()
