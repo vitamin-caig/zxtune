@@ -77,8 +77,8 @@ public class MainActivity extends AppCompatActivity {
 
     fillPages();
     themeSubscription = ThemeUtils.setupThemeChange(this);
-    Permission.request(this, Manifest.permission.READ_EXTERNAL_STORAGE);
-    Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    // TODO: rework to on-demand permissions request for pre-saf devices
+    Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, Build.VERSION.SDK_INT >= 33 ? Manifest.permission.READ_MEDIA_AUDIO : Manifest.permission.READ_EXTERNAL_STORAGE);
     TRACE.checkpoint("perm");
 
     final LiveData<MediaControllerCompat> ctrl = MediaModel.of(this).getController();
