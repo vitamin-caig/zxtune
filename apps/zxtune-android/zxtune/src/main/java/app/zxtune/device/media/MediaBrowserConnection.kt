@@ -38,6 +38,7 @@ class MediaBrowserConnection @VisibleForTesting constructor(
     override fun onInactive() {
         if (connectionInProgress.compareAndSet(false, false)) {
             browser.disconnect()
+            value = null // callback is not called
         }
     }
 

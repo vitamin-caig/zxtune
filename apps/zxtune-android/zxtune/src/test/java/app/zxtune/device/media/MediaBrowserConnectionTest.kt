@@ -40,7 +40,7 @@ class MediaBrowserConnectionTest {
     }
 
     @Test
-    fun `ondemand connection`() {
+    fun `on demand connection`() {
         lateinit var callback: MediaBrowserCompat.ConnectionCallback
         factory.stub {
             on { invoke(any(), any(), any(), anyOrNull()) } doAnswer {
@@ -51,9 +51,6 @@ class MediaBrowserConnectionTest {
         browser.stub {
             on { connect() } doAnswer {
                 callback.onConnected()
-            }
-            on { disconnect() } doAnswer {
-                callback.onConnectionFailed()
             }
         }
         with(MediaBrowserConnection(ctx, factory)) {
@@ -105,7 +102,6 @@ class MediaBrowserConnectionTest {
                 observeForever(it)
                 assertEquals(browser, value)
                 removeObserver(it)
-                callback.onConnectionSuspended()
             }
             assertEquals(null, value)
         }
