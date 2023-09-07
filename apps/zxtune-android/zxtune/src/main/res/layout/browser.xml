@@ -22,7 +22,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:iconifiedByDefault="true"
-                    android:imeOptions="actionSearch|flagNoExtractUi|flagForceAscii"
+                    android:imeOptions="actionSearch|flagNoExtractUi"
                     android:queryHint="@string/browser_search_hint" />
 
             <Button
