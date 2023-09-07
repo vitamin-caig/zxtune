@@ -125,7 +125,7 @@ class ModelTest {
         val entry2 = Entry(2, Identifier.EMPTY, "Second entry", "Author2", TimeStamp.EMPTY)
         val entry3 = Entry(3, Identifier.EMPTY, "Third entry", "second author", TimeStamp.EMPTY)
         val entry4 =
-            Entry(4, Identifier.parse("schema://host/VisiblePath"), "", "aut", TimeStamp.EMPTY)
+            Entry(4, Identifier.parse("schema://host/VisiblePath"), "title", "aut", TimeStamp.EMPTY)
         val filled2 = initial.withContent(arrayListOf(entry1, entry2)).apply {
             assertNotNull(entries as? MutableList<Entry>)
             assertEquals("", filter)

@@ -20,9 +20,7 @@ typealias State = FilteredListState<Entry>
 
 // public for provider
 class Model @VisibleForTesting internal constructor(
-    application: Application,
-    private val client: ProviderClient,
-    private val async: ExecutorService
+    application: Application, private val client: ProviderClient, private val async: ExecutorService
 ) : AndroidViewModel(application) {
 
     private lateinit var mutableState: MutableLiveData<State>
@@ -36,9 +34,7 @@ class Model @VisibleForTesting internal constructor(
     }
 
     constructor(application: Application) : this(
-        application,
-        ProviderClient.create(application),
-        Executors.newSingleThreadExecutor()
+        application, ProviderClient.create(application), Executors.newSingleThreadExecutor()
     )
 
     public override fun onCleared() = client.unregisterObserver()
@@ -98,10 +94,11 @@ class Model @VisibleForTesting internal constructor(
         )
 
         @VisibleForTesting
-        fun createState() = State { entry, filter ->
-            val visibleTitle =
-                entry.title.takeIf { it.isNotEmpty() } ?: entry.location.displayFilename
-            visibleTitle.contains(filter, true) || entry.author.contains(filter, true)
-        }
+        fun createState() = State(::matchEntry)
+
+        private fun matchEntry(entry: Entry, filter: String) =
+            entry.title.contains(filter, true) || entry.author.contains(
+                filter, true
+            ) || entry.location.displayFilename.contains(filter, true)
     }
 }
