@@ -27,6 +27,10 @@ class Identifier private constructor(builder: Uri.Builder) {
             }
         }
 
+    val trackIndex: Int?
+        get() = subPath.substringAfterLast("${SUBPATH_DELIMITER}${TRACK_INDEX_PREFIX}", "")
+            .toIntOrNull()
+
     constructor(location: Uri) : this(
         if (location.path.isNullOrEmpty()) {
             Uri.EMPTY.buildUpon()
@@ -51,6 +55,7 @@ class Identifier private constructor(builder: Uri.Builder) {
 
     companion object {
         const val SUBPATH_DELIMITER = '/'
+        const val TRACK_INDEX_PREFIX = '#'
 
         @JvmField
         val EMPTY = Identifier(Uri.EMPTY)

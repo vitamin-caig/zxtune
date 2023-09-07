@@ -21,6 +21,7 @@ class IdentifierTest {
         assertEquals(Uri.EMPTY, dataLocation)
         assertEquals("", subPath)
         assertEquals("", displayFilename)
+        assertEquals(null, trackIndex)
 
         verifyEquals(this, Identifier.parse(""))
         verifyEquals(this, Identifier(Uri.EMPTY))
@@ -39,6 +40,7 @@ class IdentifierTest {
             assertEquals(path, dataLocation.toString())
             assertEquals("", subPath)
             assertEquals("file", displayFilename)
+            assertEquals(null, trackIndex)
 
             verifyEquals(this, Identifier.parse("${path}#"))
             verifyEquals(this, Identifier(Uri.parse(path)))
@@ -58,8 +60,28 @@ class IdentifierTest {
             assertEquals("${path}#${subPathEncoded}", toString())
             assertEquals("${path}#${subPathEncoded}", fullLocation.toString())
             assertEquals(path, dataLocation.toString())
-            assertEquals("nested/sub path", subPath)
+            assertEquals("nested/sub path", this.subPath)
             assertEquals("path > sub path", displayFilename)
+            assertEquals(null, trackIndex)
+
+            verifyEquals(this, Identifier(Uri.parse(path), subPath))
+        }
+    }
+
+    @Test
+    fun `test parsing full url with track index`() {
+        val path = "http://host/path?query"
+        val subPath = "nested/sub path/#123"
+        val subPathEncoded = Uri.encode(subPath)
+
+        with(Identifier.parse("${path}#${subPathEncoded}")) {
+
+            assertEquals("${path}#${subPathEncoded}", toString())
+            assertEquals("${path}#${subPathEncoded}", fullLocation.toString())
+            assertEquals(path, dataLocation.toString())
+            assertEquals("nested/sub path/#123", this.subPath)
+            assertEquals("path > #123", displayFilename)
+            assertEquals(123, trackIndex)
 
             verifyEquals(this, Identifier(Uri.parse(path), subPath))
         }
