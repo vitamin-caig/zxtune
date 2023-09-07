@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 import app.zxtune.Logger
 import app.zxtune.TimeStamp
+import app.zxtune.Util
 import app.zxtune.core.ModuleAttributes
 import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsExtensions
@@ -54,7 +55,7 @@ internal class StatusCallback private constructor(
     override fun onItemChanged(item: Item) = try {
         val dataId = item.dataId
         val builder = MediaMetadataCompat.Builder().apply {
-            val title = item.title.takeIf { it.isNotEmpty() } ?: dataId.displayFilename
+            val title = Util.formatTrackTitle(item.title, dataId)
             putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
             putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
             val author = item.author
