@@ -24,6 +24,7 @@ import app.zxtune.Logger
 import app.zxtune.R
 import app.zxtune.playback.Visualizer
 import app.zxtune.playback.stubs.VisualizerStub
+import java.lang.ref.WeakReference
 import kotlin.math.max
 import kotlin.math.min
 
@@ -124,7 +125,7 @@ class SpectrumAnalyzerView @JvmOverloads constructor(
             handler.postAtFrontOfQueue {
                 drawTask?.cancel()
                 drawTask = holder?.let {
-                    DrawTask(it)
+                    DrawTask(WeakReference(it))
                 }
                 update()
             }
@@ -136,11 +137,13 @@ class SpectrumAnalyzerView @JvmOverloads constructor(
             }
         }
 
-        private inner class DrawTask(private val holder: SurfaceHolder) : Runnable {
+        private inner class DrawTask(private val weakHolder: WeakReference<SurfaceHolder>) :
+            Runnable {
             override fun run() {
+                val holder = weakHolder.get() ?: return
                 schedule()
                 if (update()) {
-                    draw()
+                    draw(holder)
                 } else {
                     cancel()
                 }
@@ -162,7 +165,7 @@ class SpectrumAnalyzerView @JvmOverloads constructor(
                 }
             }
 
-            private fun draw() = holder.onCanvas { canvas ->
+            private fun draw(holder: SurfaceHolder) = holder.onCanvas { canvas ->
                 canvas.drawColor(0, PorterDuff.Mode.CLEAR)
                 dst.draw(canvas)
             }
