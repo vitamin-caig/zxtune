@@ -32,8 +32,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.OnChildAttachStateChangeListener
 import app.zxtune.MainActivity
-import app.zxtune.MainService
 import app.zxtune.R
+import app.zxtune.ResultActivity
 import app.zxtune.ui.utils.SelectionUtils
 import app.zxtune.utils.ifNotNulls
 
@@ -283,12 +283,12 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
         }
 
         //TODO: rework for PlaylistControl usage as a local iface
-        private fun addToPlaylist(selection: Selection<Uri>) = controller?.run {
-            val params = Bundle().apply {
-                putParcelableArray("uris", convertSelection(selection))
+        private fun addToPlaylist(selection: Selection<Uri>) =
+            ResultActivity.addToPlaylistOrCreateRequestPermissionIntent(
+                requireContext(), convertSelection(selection)
+            )?.let {
+                startActivity(it)
             }
-            transportControls.sendCustomAction(MainService.CUSTOM_ACTION_ADD, params)
-        }
     }
 
     override fun onSaveInstanceState(state: Bundle) {

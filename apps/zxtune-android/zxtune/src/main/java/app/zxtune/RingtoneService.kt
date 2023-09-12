@@ -187,6 +187,7 @@ class RingtoneService : LifecycleService() {
             put(MediaStore.Audio.Media.IS_NOTIFICATION, false)
             put(MediaStore.Audio.Media.IS_ALARM, false)
             put(MediaStore.Audio.Media.IS_MUSIC, false)
+            put(MediaStore.Audio.Media.MIME_TYPE, "audio/x-wav")
         }
     }
 }

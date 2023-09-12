@@ -23,11 +23,11 @@ RUN bash -c "wget -q https://boostorg.jfrog.io/artifactory/main/release/${boost}
      mv boost ${prebuilt}/boost-${boost}/include/) && \
     rm -Rf boost*
 
-#Android SDK AGP=7.3.1
+#Android SDK AGP=8.1.1
 #NDK is last supporting minSdk=16
-ENV build_tools=30.0.3 platform=32 ndk=23.2.8568313
+ENV build_tools=34.0.0 platform=33 ndk=23.2.8568313
 RUN mkdir -p ${androidsdk} && cd ${androidsdk} && \
-    wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip && \
     unzip -q *.zip && \
     (yes | cmdline-tools/bin/sdkmanager --sdk_root=${androidsdk} --install "build-tools;${build_tools}" "platform-tools" "platforms;android-${platform}" "ndk;${ndk}") && \
     rm -Rf *.zip cmdline-tools
