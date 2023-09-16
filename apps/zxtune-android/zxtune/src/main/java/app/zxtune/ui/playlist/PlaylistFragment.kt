@@ -68,10 +68,10 @@ class PlaylistFragment : Fragment() {
         require(panel.childCount == 1)
         val toolbar = panel.getChildAt(0) as Toolbar
         toolbar.addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) =
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.playlist, menu)
-
-            override fun onPrepareMenu(menu: Menu) =
+                // for some reason, onPrepareMenu is not called anymore if menu is shown via
+                // showAsAction for some items
                 requireNotNull(menu.item(R.id.action_sort).subMenu).run {
                     for (sortBy in ProviderClient.SortBy.values()) {
                         for (sortOrder in ProviderClient.SortOrder.values()) {
@@ -85,6 +85,7 @@ class PlaylistFragment : Fragment() {
                         }
                     }
                 }
+            }
 
             override fun onMenuItemSelected(menuItem: MenuItem) =
                 processMenuItem(menuItem.itemId, selectionTracker.selection)
