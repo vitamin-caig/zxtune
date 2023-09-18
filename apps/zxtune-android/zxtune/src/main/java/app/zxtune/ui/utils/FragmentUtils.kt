@@ -3,6 +3,12 @@ package app.zxtune.ui.utils
 import android.os.Bundle
 import android.os.Parcelable
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty
 
 object FragmentIntProperty {
@@ -38,5 +44,11 @@ class FragmentParcelableProperty<T : Parcelable> {
         owner.arguments = args.apply {
             putParcelable(property.name, value)
         }
+    }
+}
+
+fun LifecycleOwner.whenLifecycleStarted(block: suspend CoroutineScope.() -> Unit) {
+    lifecycleScope.launch {
+        repeatOnLifecycle(Lifecycle.State.STARTED, block)
     }
 }
