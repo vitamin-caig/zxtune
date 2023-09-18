@@ -38,6 +38,7 @@ import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.PersistentStorageSetupFragment
 import app.zxtune.ui.utils.SelectionUtils
 import app.zxtune.ui.utils.item
+import app.zxtune.ui.utils.whenLifecycleStarted
 
 class PlaylistFragment : Fragment() {
     private lateinit var listing: RecyclerView
@@ -112,14 +113,16 @@ class PlaylistFragment : Fragment() {
                     adapter.setSelection(it.selection)
                     SelectionUtils.install(panel, it, SelectionClient(adapter))
                 }
-            model.state.observe(viewLifecycleOwner) { state ->
-                adapter.submitList(state.entries) {
-                    if (0 == adapter.itemCount) {
-                        visibility = View.GONE
-                        stub.visibility = View.VISIBLE
-                    } else {
-                        visibility = View.VISIBLE
-                        stub.visibility = View.GONE
+            viewLifecycleOwner.whenLifecycleStarted {
+                model.state.collect { state ->
+                    adapter.submitList(state.entries) {
+                        if (0 == adapter.itemCount) {
+                            visibility = View.GONE
+                            stub.visibility = View.VISIBLE
+                        } else {
+                            visibility = View.VISIBLE
+                            stub.visibility = View.GONE
+                        }
                     }
                 }
             }
@@ -152,7 +155,7 @@ class PlaylistFragment : Fragment() {
         setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String) = true
             override fun onQueryTextChange(newText: String): Boolean {
-                model.filter(newText)
+                model.filter = newText
                 return true
             }
         })
@@ -168,15 +171,16 @@ class PlaylistFragment : Fragment() {
         savedInstanceState?.let { state ->
             selectionTracker.onRestoreInstanceState(state)
         }
-        model.state.value?.filter?.takeIf { it.isNotEmpty() }.let { query ->
+        model.filter.takeIf { it.isNotEmpty() }?.let { query ->
             search.post {
                 search.setQuery(query, false)
             }
         }
     }
 
-    private fun onItemClick(id: Long) =
-        mediaController?.transportControls?.playFromUri(ProviderClient.createUri(id), null) ?: Unit
+    private fun onItemClick(id: Long) = mediaController?.transportControls?.playFromUri(
+        ProviderClient.createUri(id), null
+    ) ?: Unit
 
     // ArchivesService for selection
     private inner class SelectionClient(private val adapter: ViewAdapter) :

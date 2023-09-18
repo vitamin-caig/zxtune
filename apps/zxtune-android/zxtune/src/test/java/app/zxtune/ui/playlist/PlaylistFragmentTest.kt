@@ -5,7 +5,6 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -14,10 +13,13 @@ import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
 import app.zxtune.TestUtils.construct
 import app.zxtune.TestUtils.constructedInstance
+import app.zxtune.TestUtils.flushEvents
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.AsyncDifferInMainThreadRule
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -27,17 +29,12 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class PlaylistFragmentTest {
-
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @get:Rule
     val mainThreadDiffer = AsyncDifferInMainThreadRule()
@@ -48,12 +45,14 @@ class PlaylistFragmentTest {
     )
 
     @Test
-    fun `initial state`() {
-        val testState = mock<LiveData<State>>()
+    fun `initial state`() = runTest {
+        val testState = Model.createState()
+        val testStateFlow = MutableStateFlow(testState)
         val testPlaybackState = mock<LiveData<PlaybackStateCompat?>>()
         val testMetadata = mock<LiveData<MediaMetadataCompat?>>()
         val modelConstruction = construct<Model> {
-            on { state } doReturn testState
+            on { state } doReturn testStateFlow
+            on { filter } doReturn ""
         }
         val mediaModelConstruction = construct<MediaModel> {
             on { playbackState } doReturn testPlaybackState
@@ -62,15 +61,15 @@ class PlaylistFragmentTest {
         modelConstruction.use {
             mediaModelConstruction.use {
                 startScenario().onFragment {
+                    flushEvents()
                     val model = modelConstruction.constructedInstance
                     val mediaModel = mediaModelConstruction.constructedInstance
-                    verify(model, times(2)).state
-                    verify(testState).observe(eq(it.viewLifecycleOwner), any())
+                    verify(model).state
                     verify(mediaModel).playbackState
                     verify(testPlaybackState).observe(eq(it.viewLifecycleOwner), any())
                     verify(mediaModel).metadata
                     verify(testMetadata).observe(eq(it.viewLifecycleOwner), any())
-                    verify(model).filter("")
+                    verify(model).filter
                     verifyNoMoreInteractions(model, mediaModel)
                 }.close()
                 verifyNoMoreInteractions(testPlaybackState, testMetadata)
@@ -79,7 +78,7 @@ class PlaylistFragmentTest {
     }
 
     @Test
-    fun `with state`() {
+    fun `with state`() = runTest {
         val content = MutableList(5) {
             Entry(
                 it.toLong(),
@@ -89,11 +88,12 @@ class PlaylistFragmentTest {
                 TimeStamp.fromSeconds(it + 10L)
             )
         }
-        val testState = MutableLiveData<State>()
+        val testStateFlow = MutableStateFlow(Model.createState())
         val testPlaybackState = MutableLiveData<PlaybackStateCompat>()
         val testMetadata = MutableLiveData<MediaMetadataCompat>()
         val modelConstruction = construct<Model> {
-            on { state } doReturn testState
+            on { state } doReturn testStateFlow
+            on { filter } doReturn ""
         }
         val mediaModelConstruction = construct<MediaModel> {
             on { playbackState } doReturn testPlaybackState
@@ -102,14 +102,14 @@ class PlaylistFragmentTest {
         modelConstruction.use {
             mediaModelConstruction.use {
                 startScenario().onFragment {
+                    flushEvents()
                     requireNotNull(it.view).run {
                         val listing = findViewById<RecyclerView>(R.id.playlist_content)
                         val stub = findViewById<TextView>(R.id.playlist_stub)
-                        testState.value = Model.createState()
                         assertEquals(View.GONE, listing.visibility)
                         assertEquals(View.VISIBLE, stub.visibility)
-                        testState.value = Model.createState().withContent(content)
-                        Robolectric.flushForegroundThreadScheduler()
+                        testStateFlow.value = Model.createState().withContent(content)
+                        flushEvents()
                         assertEquals(View.VISIBLE, listing.visibility)
                         assertEquals(View.GONE, stub.visibility)
                         assertEquals(content.size, listing.childCount)
@@ -120,19 +120,20 @@ class PlaylistFragmentTest {
     }
 
     @Test
-    fun `search filtering`() {
+    fun `search filtering`() = runTest {
         val content = arrayListOf(
             Entry(1, Identifier.EMPTY, "First entry", "Author1", TimeStamp.EMPTY),
             Entry(2, Identifier.EMPTY, "Second entry", "Author2", TimeStamp.EMPTY),
             Entry(3, Identifier.EMPTY, "Third entry", "second author", TimeStamp.EMPTY)
         )
-        val testState = MutableLiveData(Model.createState().withContent(content))
+        val testStateFlow = MutableStateFlow(Model.createState().withContent(content))
         val testPlaybackState = MutableLiveData<PlaybackStateCompat>()
         val testMetadata = MutableLiveData<MediaMetadataCompat>()
         val modelConstruction = construct<Model> {
-            on { state } doReturn testState
-            on { filter(any()) } doAnswer {
-                testState.value = requireNotNull(testState.value).withFilter(it.getArgument(0))
+            on { state } doReturn testStateFlow
+            on { filter } doReturn testStateFlow.value.filter
+            on { filter = any() } doAnswer {
+                testStateFlow.value = testStateFlow.value.withFilter(it.getArgument(0))
             }
         }
         val mediaModelConstruction = construct<MediaModel> {
@@ -146,15 +147,15 @@ class PlaylistFragmentTest {
                         val adapter =
                             requireNotNull(findViewById<RecyclerView>(R.id.playlist_content).adapter)
                         findViewById<SearchView>(R.id.playlist_search).let { view ->
-                            Robolectric.flushForegroundThreadScheduler()
+                            flushEvents()
                             assertEquals(3, adapter.itemCount)
 
                             view.setQuery("second", false)
-                            Robolectric.flushForegroundThreadScheduler()
+                            flushEvents()
                             assertEquals(2, adapter.itemCount)
 
                             view.setQuery("", false)
-                            Robolectric.flushForegroundThreadScheduler()
+                            flushEvents()
                             assertEquals(3, adapter.itemCount)
                         }
                     }
