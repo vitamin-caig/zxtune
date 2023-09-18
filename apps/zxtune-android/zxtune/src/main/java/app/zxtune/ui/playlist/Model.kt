@@ -4,79 +4,107 @@ import android.app.Application
 import android.database.Cursor
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import app.zxtune.Logger
 import app.zxtune.TimeStamp.Companion.fromMilliseconds
 import app.zxtune.core.Identifier.Companion.parse
 import app.zxtune.playlist.Database
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.utils.FilteredListState
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.runningFold
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 typealias State = FilteredListState<Entry>
 
 // public for provider
+@OptIn(FlowPreview::class)
 class Model @VisibleForTesting internal constructor(
-    application: Application, private val client: ProviderClient, private val async: ExecutorService
+    application: Application,
+    private val client: ProviderClient,
+    private val ioDispatcher: CoroutineDispatcher,
+    defaultDispatcher: CoroutineDispatcher
 ) : AndroidViewModel(application) {
 
-    private lateinit var mutableState: MutableLiveData<State>
-
-    init {
+    private val _filter = MutableStateFlow("")
+    private val _updates = callbackFlow {
+        LOG.d { "Subscribe for changes " }
         client.registerObserver {
-            if (this::mutableState.isInitialized) {
-                loadAsync()
-            }
+            trySend(Unit)
         }
-    }
+        trySend(Unit)
+        awaitClose {
+            LOG.d { "Unsubscribe from changes" }
+            client.unregisterObserver()
+        }
+    }.debounce(500)
+
+    private val _stateFlow = merge(_updates, _filter).runningFold(createState()) { state, update ->
+        if (update is String) {
+            LOG.d { "Filtering with '$update'" }
+            state.withFilter(update)
+        } else {
+            loadListing()?.let {
+                LOG.d { "Updating with ${it.size} elements" }
+                state.withContent(it)
+            } ?: state
+        }
+    }.flowOn(defaultDispatcher)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), createState())
 
     constructor(application: Application) : this(
-        application, ProviderClient.create(application), Executors.newSingleThreadExecutor()
+        application, ProviderClient.create(application), Dispatchers.IO, Dispatchers.Default
     )
 
-    public override fun onCleared() = client.unregisterObserver()
+    val state
+        get() = _stateFlow
 
-    val state: LiveData<State>
-        get() {
-            if (!this::mutableState.isInitialized) {
-                mutableState = MutableLiveData(createState())
-                loadAsync()
-            }
-            return mutableState
-        }
-
-    private fun loadAsync() = async.execute(this::load)
-
-    private fun load() = client.query(null)?.use { cursor ->
-        ArrayList<Entry>(cursor.count).apply {
-            while (cursor.moveToNext()) {
-                add(createItem(cursor))
-            }
-        }.let {
-            mutableState.postValue(requireNotNull(mutableState.value).withContent(it))
-        }
-    } ?: Unit
-
-    fun filter(rawFilter: String) = async.execute {
-        requireNotNull(mutableState.value).let { current ->
-            val filter = rawFilter.trim()
-            if (current.filter != filter) {
-                mutableState.postValue(current.withFilter(filter))
+    private suspend fun loadListing() = withContext(ioDispatcher) {
+        client.query(null)?.use { cursor ->
+            ArrayList<Entry>(cursor.count).apply {
+                while (cursor.moveToNext()) {
+                    add(createItem(cursor))
+                }
             }
         }
     }
 
+    var filter: String
+        get() = _filter.value
+        set(value) {
+            _filter.value = value.trim()
+        }
+
     fun sort(by: ProviderClient.SortBy, order: ProviderClient.SortOrder) =
-        async.execute { client.sort(by, order) }
+        runAsync { client.sort(by, order) }
 
-    fun move(id: Long, delta: Int) = async.execute { client.move(id, delta) }
+    fun move(id: Long, delta: Int) = runAsync { client.move(id, delta) }
 
-    fun deleteAll() = async.execute { client.deleteAll() }
+    fun deleteAll() = runAsync { client.deleteAll() }
 
-    fun delete(ids: LongArray) = async.execute { client.delete(ids) }
+    fun delete(ids: LongArray) = runAsync {
+        client.delete(ids)
+    }
+
+    private fun runAsync(task: () -> Unit) {
+        viewModelScope.launch(ioDispatcher) {
+            task()
+        }
+    }
 
     companion object {
+        private val LOG = Logger(Model::class.java.name)
         private fun createItem(cursor: Cursor) = Entry(
             cursor.getLong(Database.Tables.Playlist.Fields._id.ordinal),
             parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal)),

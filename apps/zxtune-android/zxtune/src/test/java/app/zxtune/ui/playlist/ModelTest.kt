@@ -1,11 +1,19 @@
 package app.zxtune.ui.playlist
 
 import android.database.MatrixCursor
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.viewModelScope
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
 import app.zxtune.playlist.Database
 import app.zxtune.playlist.ProviderClient
+import app.zxtune.ui.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -14,70 +22,43 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
-import java.util.concurrent.ExecutorService
 
 private fun assertEquals(ref: State, test: State) {
     assertEquals(ref.entries, test.entries)
     assertEquals(ref.filter, test.filter)
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class ModelTest {
 
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-
     private val client = mock<ProviderClient>()
-    private val async = mock<ExecutorService> {
-        on { execute(any()) } doAnswer {
-            it.getArgument<Runnable>(0).run()
-        }
-    }
+
+    private val dispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     @Before
-    fun setUp() {
-        reset(client)
-        clearInvocations(async)
-    }
+    fun setUp() = reset(client)
 
     @After
-    fun tearDown() {
-        verifyNoMoreInteractions(client, async)
-    }
+    fun tearDown() = verifyNoMoreInteractions(client)
 
     @Test
     fun `no state retrieval`() {
-        lateinit var observer: ProviderClient.ChangesObserver
-        client.stub {
-            on { registerObserver(any()) } doAnswer {
-                observer = it.getArgument(0)
-            }
-        }
-        val underTest = Model(mock(), client, async)
-        observer.onChange()
-        underTest.onCleared()
-
-        inOrder(client) {
-            verify(client).registerObserver(any())
-            verify(client).unregisterObserver()
-        }
+        Model(mock(), client, dispatcher, dispatcher)
     }
 
     @Test
-    fun `basic workflow`() {
+    fun `basic workflow`() = runTest {
         // _id, pos, location, author, title, duration, properties
         val columns = Database.Tables.Playlist.Fields.values().map { it.toString() }.toTypedArray()
         val emptyList = MatrixCursor(columns)
         val nonEmptyList = MatrixCursor(columns, 1).apply {
             addRow(
                 arrayOf(
-                    123,
-                    0,
-                    "scheme://host/path#fragment",
-                    "author",
-                    "title",
-                    123456L,
-                    byteArrayOf()
+                    123, 0, "scheme://host/path#fragment", "author", "title", 123456L, byteArrayOf()
                 )
             )
         }
@@ -86,30 +67,47 @@ class ModelTest {
             on { registerObserver(any()) } doAnswer {
                 observer = it.getArgument(0)
             }
-            on { query(null) }.doReturn(emptyList, nonEmptyList)
+            on { query(null) }.doReturn(nonEmptyList, emptyList)
         }
-        with(Model(mock(), client, async)) {
-            assertEquals(0, requireNotNull(state.value).entries.size)
-            observer.onChange()
-            requireNotNull(state.value).entries.run {
-                assertEquals(1, size)
-                get(0).run {
-                    assertEquals(123, id)
-                    assertEquals(Identifier.parse("scheme://host/path#fragment"), location)
-                    assertEquals("author", author)
-                    assertEquals("title", title)
-                    assertEquals(TimeStamp.fromMilliseconds(123456), duration)
+        with(Model(mock(), client, dispatcher, dispatcher)) {
+            val job = viewModelScope.launch {
+                state.collectIndexed { idx, state ->
+                    when (idx) {
+                        // initial value in stateIn, runningFold and initial filter
+                        0, 1, 2 -> state.entries.run {
+                            assertEquals(0, size)
+                        }
+                        // nonempty response
+                        3 -> state.entries.run {
+                            assertEquals(1, size)
+                            get(0).run {
+                                assertEquals(123, id)
+                                assertEquals(
+                                    Identifier.parse("scheme://host/path#fragment"), location
+                                )
+                                assertEquals("author", author)
+                                assertEquals("title", title)
+                                assertEquals(TimeStamp.fromMilliseconds(123456), duration)
+                            }
+                            observer.onChange()
+                        }
+                        // empty response
+                        4 -> state.entries.run {
+                            assertEquals(0, size)
+                            cancel()
+                        }
+
+                        else -> fail("Unexpected!")
+                    }
                 }
             }
-            onCleared()
+            job.join()
+            advanceUntilIdle()
         }
 
-        inOrder(client, async) {
+        inOrder(client) {
             verify(client).registerObserver(any())
-            verify(async).execute(any())
-            verify(client).query(null)
-            verify(async).execute(any())
-            verify(client).query(null)
+            verify(client, times(2)).query(null)
             verify(client).unregisterObserver()
         }
     }
@@ -124,8 +122,9 @@ class ModelTest {
         val entry1 = Entry(1, Identifier.EMPTY, "First entry", "Author1", TimeStamp.EMPTY)
         val entry2 = Entry(2, Identifier.EMPTY, "Second entry", "Author2", TimeStamp.EMPTY)
         val entry3 = Entry(3, Identifier.EMPTY, "Third entry", "second author", TimeStamp.EMPTY)
-        val entry4 =
-            Entry(4, Identifier.parse("schema://host/VisiblePath"), "title", "aut", TimeStamp.EMPTY)
+        val entry4 = Entry(
+            4, Identifier.parse("schema://host/VisiblePath"), "title", "aut", TimeStamp.EMPTY
+        )
         val filled2 = initial.withContent(arrayListOf(entry1, entry2)).apply {
             assertNotNull(entries as? MutableList<Entry>)
             assertEquals("", filter)
