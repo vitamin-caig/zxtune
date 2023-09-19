@@ -1,23 +1,18 @@
 package app.zxtune.ui.playlist
 
 import android.app.Application
-import android.database.Cursor
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.zxtune.Logger
-import app.zxtune.TimeStamp.Companion.fromMilliseconds
-import app.zxtune.core.Identifier.Companion.parse
-import app.zxtune.playlist.Database
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.utils.FilteredListState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
@@ -38,17 +33,7 @@ class Model @VisibleForTesting internal constructor(
 ) : AndroidViewModel(application) {
 
     private val _filter = MutableStateFlow("")
-    private val _updates = callbackFlow {
-        LOG.d { "Subscribe for changes " }
-        client.registerObserver {
-            trySend(Unit)
-        }
-        trySend(Unit)
-        awaitClose {
-            LOG.d { "Unsubscribe from changes" }
-            client.unregisterObserver()
-        }
-    }.debounce(500)
+    private val _updates = client.observeChanges().debounce(500)
 
     private val _stateFlow = merge(_updates, _filter).runningFold(createState()) { state, update ->
         if (update is String) {
@@ -67,17 +52,11 @@ class Model @VisibleForTesting internal constructor(
         application, ProviderClient.create(application), Dispatchers.IO, Dispatchers.Default
     )
 
-    val state
+    val state: Flow<State>
         get() = _stateFlow
 
     private suspend fun loadListing() = withContext(ioDispatcher) {
-        client.query(null)?.use { cursor ->
-            ArrayList<Entry>(cursor.count).apply {
-                while (cursor.moveToNext()) {
-                    add(createItem(cursor))
-                }
-            }
-        }
+        client.query(null)
     }
 
     var filter: String
@@ -105,13 +84,6 @@ class Model @VisibleForTesting internal constructor(
 
     companion object {
         private val LOG = Logger(Model::class.java.name)
-        private fun createItem(cursor: Cursor) = Entry(
-            cursor.getLong(Database.Tables.Playlist.Fields._id.ordinal),
-            parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal)),
-            cursor.getString(Database.Tables.Playlist.Fields.title.ordinal),
-            cursor.getString(Database.Tables.Playlist.Fields.author.ordinal),
-            fromMilliseconds(cursor.getLong(Database.Tables.Playlist.Fields.duration.ordinal))
-        )
 
         @VisibleForTesting
         fun createState() = State(::matchEntry)
