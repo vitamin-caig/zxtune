@@ -611,13 +611,16 @@ namespace
   class AnalysisTarget : public Analysis::NodeTransceiver
   {
   public:
-    AnalysisTarget()
+    explicit AnalysisTarget(bool skipChiptunes)
       : Scanner(Analysis::CreateScanner())
     {
       Formats::Archived::FillScanner(*Scanner);
       Formats::Packed::FillScanner(*Scanner);
       Formats::Image::FillScanner(*Scanner);
-      Formats::Chiptune::FillScanner(*Scanner);
+      if (!skipChiptunes)
+      {
+        Formats::Chiptune::FillScanner(*Scanner);
+      }
     }
 
     void ApplyData(Analysis::Node::Ptr node) override
@@ -947,6 +950,7 @@ namespace
 
     virtual std::size_t AnalysisThreads() const = 0;
     virtual std::size_t AnalysisDataQueueSize() const = 0;
+    virtual bool SkipChiptunes() const = 0;
   };
 
   class PipelineBuilder
@@ -1043,7 +1047,7 @@ namespace
 
   Analysis::NodeTransceiver::Ptr CreateAnalyser(const AnalysisOptions& opts)
   {
-    const Analysis::NodeTransceiver::Ptr analyser = MakePtr<AnalysisTarget>();
+    const Analysis::NodeTransceiver::Ptr analyser = MakePtr<AnalysisTarget>(opts.SkipChiptunes());
     const Analysis::NodeReceiver::Ptr input =
         AsyncWrap<Analysis::Node::Ptr>(opts.AnalysisThreads(), opts.AnalysisDataQueueSize(), analyser);
     return MakePtr<TransceivePipe<Analysis::Node::Ptr> >(input, analyser);
@@ -1077,6 +1081,7 @@ namespace
                           "Default is {}",
                           AnalysisDataQueueSizeValue)
               .c_str());
+      opt("skip-chiptunes", bool_switch(&SkipChiptunesValue), "do not parse chiptunes");
       opt("target-name-template", value<String>(&TargetNameTemplateValue),
           Strings::Format("target name template. Default is {0}. "
                           "Applicable fields: [{1}],[{2}],[{3}],[{4}],[{5}]",
@@ -1107,6 +1112,11 @@ namespace
     std::size_t AnalysisDataQueueSize() const override
     {
       return AnalysisDataQueueSizeValue;
+    }
+
+    bool SkipChiptunes() const override
+    {
+      return SkipChiptunesValue;
     }
 
     String TargetNameTemplate() const override
@@ -1152,6 +1162,7 @@ namespace
   private:
     std::size_t AnalysisThreadsValue = 1;
     std::size_t AnalysisDataQueueSizeValue = 10;
+    bool SkipChiptunesValue = false;
     String TargetNameTemplateValue;
     bool IgnoreEmptyDataValue = false;
     std::size_t MinDataSizeValue = 0;
