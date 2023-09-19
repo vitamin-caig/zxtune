@@ -405,6 +405,10 @@ namespace
 
     void ProcessUpdateSilent(Product::Update::Ptr update)
     {
+      if (!update)
+      {
+        return;
+      }
       if (QMessageBox::Save == ShowUpdateDialog(*update))
       {
         ApplyUpdate(*update);
