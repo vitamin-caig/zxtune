@@ -1,14 +1,13 @@
 package app.zxtune.ui.playlist
 
-import android.database.MatrixCursor
 import androidx.lifecycle.viewModelScope
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
-import app.zxtune.playlist.Database
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -48,25 +47,16 @@ class ModelTest {
     @Test
     fun `no state retrieval`() {
         Model(mock(), client, dispatcher, dispatcher)
+        verify(client).observeChanges()
     }
 
     @Test
     fun `basic workflow`() = runTest {
-        // _id, pos, location, author, title, duration, properties
-        val columns = Database.Tables.Playlist.Fields.values().map { it.toString() }.toTypedArray()
-        val emptyList = MatrixCursor(columns)
-        val nonEmptyList = MatrixCursor(columns, 1).apply {
-            addRow(
-                arrayOf(
-                    123, 0, "scheme://host/path#fragment", "author", "title", 123456L, byteArrayOf()
-                )
-            )
-        }
-        lateinit var observer: ProviderClient.ChangesObserver
+        val emptyList = arrayListOf<Entry>()
+        val nonEmptyList = arrayListOf(mock<Entry>())
+        val updatesFlow = MutableSharedFlow<Unit>()
         client.stub {
-            on { registerObserver(any()) } doAnswer {
-                observer = it.getArgument(0)
-            }
+            on { observeChanges() } doReturn updatesFlow
             on { query(null) }.doReturn(nonEmptyList, emptyList)
         }
         with(Model(mock(), client, dispatcher, dispatcher)) {
@@ -74,22 +64,15 @@ class ModelTest {
                 state.collectIndexed { idx, state ->
                     when (idx) {
                         // initial value in stateIn, runningFold and initial filter
-                        0, 1, 2 -> state.entries.run {
+                        0, 1 -> assertEquals(0, state.entries.size)
+                        2 -> state.entries.run {
                             assertEquals(0, size)
+                            updatesFlow.emit(Unit) // initial _stateFlow
                         }
                         // nonempty response
                         3 -> state.entries.run {
-                            assertEquals(1, size)
-                            get(0).run {
-                                assertEquals(123, id)
-                                assertEquals(
-                                    Identifier.parse("scheme://host/path#fragment"), location
-                                )
-                                assertEquals("author", author)
-                                assertEquals("title", title)
-                                assertEquals(TimeStamp.fromMilliseconds(123456), duration)
-                            }
-                            observer.onChange()
+                            assertEquals(nonEmptyList, this)
+                            updatesFlow.emit(Unit)
                         }
                         // empty response
                         4 -> state.entries.run {
@@ -106,9 +89,8 @@ class ModelTest {
         }
 
         inOrder(client) {
-            verify(client).registerObserver(any())
+            verify(client).observeChanges()
             verify(client, times(2)).query(null)
-            verify(client).unregisterObserver()
         }
     }
 

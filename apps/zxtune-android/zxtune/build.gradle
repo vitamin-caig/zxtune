@@ -76,6 +76,7 @@ dependencies {
     //noinspection GradleDependency minsdk=21
     implementation 'androidx.startup:startup-runtime:1.1.1'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
+    implementation 'androidx.tracing:tracing-ktx:1.2.0'
 
     developImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
 }
