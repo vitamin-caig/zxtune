@@ -1,11 +1,10 @@
 package app.zxtune.ui.playlist
 
-import android.content.Context
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.View
-import android.widget.SearchView
 import android.widget.TextView
+import androidx.appcompat.widget.SearchView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -18,7 +17,6 @@ import app.zxtune.R
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
 import app.zxtune.device.media.MediaModel
-import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.AsyncDifferInMainThreadRule
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -34,7 +32,7 @@ import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
 
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowProviderClient::class, ShadowModel::class, ShadowMediaModel::class])
+@Config(shadows = [ShadowModel::class, ShadowMediaModel::class])
 class PlaylistFragmentTest {
 
     @get:Rule
@@ -43,16 +41,14 @@ class PlaylistFragmentTest {
     @get:Rule
     val mainThreadDiffer = AsyncDifferInMainThreadRule()
 
-    private val client = mock<ProviderClient>()
     private val model = mock<Model>()
     private val mediaModel = mock<MediaModel>()
 
     private val mocks
-        get() = arrayOf(client, model, mediaModel)
+        get() = arrayOf(model, mediaModel)
 
     @Before
     fun setUp() {
-        ShadowProviderClient.instance = client
         ShadowModel.instance = model
         ShadowMediaModel.instance = mediaModel
         reset(*mocks)
@@ -61,7 +57,10 @@ class PlaylistFragmentTest {
     @After
     fun tearDown() = verifyNoMoreInteractions(*mocks)
 
-    private fun startScenario() = FragmentScenario.launchInContainer(PlaylistFragment::class.java)
+    private fun startScenario() = FragmentScenario.launchInContainer(
+        fragmentClass = PlaylistFragment::class.java,
+        themeResId = R.style.CustomTheme,
+    )
 
     @Test
     fun `initial state`() {
@@ -180,17 +179,6 @@ class PlaylistFragmentTest {
             assertEquals(2, size)
             assertEquals(5, get(1))
         }
-    }
-}
-
-@Implements(ProviderClient::class)
-class ShadowProviderClient {
-    companion object {
-        @JvmStatic
-        @Implementation
-        fun create(ctx: Context) = instance
-
-        internal lateinit var instance: ProviderClient
     }
 }
 
