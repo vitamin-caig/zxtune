@@ -15,6 +15,7 @@ import androidx.preference.PreferenceFragmentCompat
 import app.zxtune.analytics.Analytics
 import app.zxtune.preferences.Preferences
 import app.zxtune.ui.utils.FragmentIntProperty
+import app.zxtune.ui.utils.ThemeUtils
 
 class PreferencesActivity : AppCompatActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
@@ -26,6 +27,8 @@ class PreferencesActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        ThemeUtils.setupThemeChange(this, this)
 
         // Need to only create the first fragment
         supportFragmentManager.run {

@@ -72,6 +72,7 @@ dependencies {
     ksp "androidx.room:room-compiler:$room_version"
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation 'androidx.documentfile:documentfile:1.0.1'
+    implementation 'androidx.startup:startup-runtime:1.1.1'
 
     developImplementation 'com.squareup.leakcanary:leakcanary-android:2.10'
 }

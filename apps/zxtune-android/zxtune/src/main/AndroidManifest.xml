@@ -115,6 +115,15 @@
                 android:authorities="app.zxtune.preferences"
                 android:exported="false"
                 android:process=":service" />
+        <provider
+                android:name="androidx.startup.InitializationProvider"
+                android:authorities="app.zxtune.androidx-startup"
+                android:exported="false"
+                tools:node="merge">
+            <meta-data
+                    android:name="app.zxtune.ui.utils.ThemeInitializer"
+                    android:value="androidx.startup" />
+        </provider>
 
         <receiver
                 android:name=".device.ui.WidgetHandler"
