@@ -25,6 +25,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.selection.Selection
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
@@ -42,9 +43,7 @@ class PlaylistFragment : Fragment() {
     private lateinit var search: SearchView
     private lateinit var selectionTracker: SelectionTracker<Long>
 
-    private val model by lazy {
-        Model.of(this)
-    }
+    private val model by activityViewModels<Model>()
     private val mediaModel
         get() = MediaModel.of(requireActivity())
     private val mediaController

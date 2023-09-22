@@ -3,11 +3,9 @@ package app.zxtune.ui.playlist
 import android.app.Application
 import android.database.Cursor
 import androidx.annotation.VisibleForTesting
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
 import app.zxtune.TimeStamp.Companion.fromMilliseconds
 import app.zxtune.core.Identifier.Companion.parse
 import app.zxtune.playlist.Database
@@ -79,12 +77,6 @@ class Model @VisibleForTesting internal constructor(
     fun delete(ids: LongArray) = async.execute { client.delete(ids) }
 
     companion object {
-        @JvmStatic
-        fun of(owner: Fragment): Model = ViewModelProvider(
-            owner,
-            ViewModelProvider.AndroidViewModelFactory.getInstance(owner.requireActivity().application)
-        )[Model::class.java]
-
         private fun createItem(cursor: Cursor) = Entry(
             cursor.getLong(Database.Tables.Playlist.Fields._id.ordinal),
             parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal)),

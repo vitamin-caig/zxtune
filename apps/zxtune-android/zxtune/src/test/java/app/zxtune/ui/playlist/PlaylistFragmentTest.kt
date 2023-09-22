@@ -6,33 +6,27 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.selection.MutableSelection
 import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
+import app.zxtune.TestUtils.construct
+import app.zxtune.TestUtils.constructedInstance
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.AsyncDifferInMainThreadRule
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.*
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import org.robolectric.annotation.Implementation
-import org.robolectric.annotation.Implements
 
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowModel::class, ShadowMediaModel::class])
 class PlaylistFragmentTest {
 
     @get:Rule
@@ -40,22 +34,6 @@ class PlaylistFragmentTest {
 
     @get:Rule
     val mainThreadDiffer = AsyncDifferInMainThreadRule()
-
-    private val model = mock<Model>()
-    private val mediaModel = mock<MediaModel>()
-
-    private val mocks
-        get() = arrayOf(model, mediaModel)
-
-    @Before
-    fun setUp() {
-        ShadowModel.instance = model
-        ShadowMediaModel.instance = mediaModel
-        reset(*mocks)
-    }
-
-    @After
-    fun tearDown() = verifyNoMoreInteractions(*mocks)
 
     private fun startScenario() = FragmentScenario.launchInContainer(
         fragmentClass = PlaylistFragment::class.java,
@@ -67,23 +45,30 @@ class PlaylistFragmentTest {
         val testState = mock<LiveData<State>>()
         val testPlaybackState = mock<LiveData<PlaybackStateCompat?>>()
         val testMetadata = mock<LiveData<MediaMetadataCompat?>>()
-        model.stub {
+        val modelConstruction = construct<Model> {
             on { state } doReturn testState
         }
-        mediaModel.stub {
+        val mediaModelConstruction = construct<MediaModel> {
             on { playbackState } doReturn testPlaybackState
             on { metadata } doReturn testMetadata
         }
-        startScenario().onFragment {
-            verify(model, times(2)).state
-            verify(testState).observe(eq(it.viewLifecycleOwner), any())
-            verify(mediaModel).playbackState
-            verify(testPlaybackState).observe(eq(it.viewLifecycleOwner), any())
-            verify(mediaModel).metadata
-            verify(testMetadata).observe(eq(it.viewLifecycleOwner), any())
-            verify(model).filter("")
-        }.close()
-        verifyNoMoreInteractions(testPlaybackState, testMetadata)
+        modelConstruction.use {
+            mediaModelConstruction.use {
+                startScenario().onFragment {
+                    val model = modelConstruction.constructedInstance
+                    val mediaModel = mediaModelConstruction.constructedInstance
+                    verify(model, times(2)).state
+                    verify(testState).observe(eq(it.viewLifecycleOwner), any())
+                    verify(mediaModel).playbackState
+                    verify(testPlaybackState).observe(eq(it.viewLifecycleOwner), any())
+                    verify(mediaModel).metadata
+                    verify(testMetadata).observe(eq(it.viewLifecycleOwner), any())
+                    verify(model).filter("")
+                    verifyNoMoreInteractions(model, mediaModel)
+                }.close()
+                verifyNoMoreInteractions(testPlaybackState, testMetadata)
+            }
+        }
     }
 
     @Test
@@ -100,28 +85,31 @@ class PlaylistFragmentTest {
         val testState = MutableLiveData<State>()
         val testPlaybackState = MutableLiveData<PlaybackStateCompat>()
         val testMetadata = MutableLiveData<MediaMetadataCompat>()
-        model.stub {
+        val modelConstruction = construct<Model> {
             on { state } doReturn testState
         }
-        mediaModel.stub {
+        val mediaModelConstruction = construct<MediaModel> {
             on { playbackState } doReturn testPlaybackState
             on { metadata } doReturn testMetadata
         }
-        startScenario().onFragment {
-            requireNotNull(it.view).run {
-                val listing = findViewById<RecyclerView>(R.id.playlist_content)
-                val stub = findViewById<TextView>(R.id.playlist_stub)
-                testState.value = Model.createState()
-                assertEquals(View.GONE, listing.visibility)
-                assertEquals(View.VISIBLE, stub.visibility)
-                testState.value = Model.createState().withContent(content)
-                Robolectric.flushForegroundThreadScheduler()
-                assertEquals(View.VISIBLE, listing.visibility)
-                assertEquals(View.GONE, stub.visibility)
-                assertEquals(content.size, listing.childCount)
+        modelConstruction.use {
+            mediaModelConstruction.use {
+                startScenario().onFragment {
+                    requireNotNull(it.view).run {
+                        val listing = findViewById<RecyclerView>(R.id.playlist_content)
+                        val stub = findViewById<TextView>(R.id.playlist_stub)
+                        testState.value = Model.createState()
+                        assertEquals(View.GONE, listing.visibility)
+                        assertEquals(View.VISIBLE, stub.visibility)
+                        testState.value = Model.createState().withContent(content)
+                        Robolectric.flushForegroundThreadScheduler()
+                        assertEquals(View.VISIBLE, listing.visibility)
+                        assertEquals(View.GONE, stub.visibility)
+                        assertEquals(content.size, listing.childCount)
+                    }
+                }.close()
             }
-        }.close()
-        clearInvocations(model, mediaModel)
+        }
     }
 
     @Test
@@ -134,35 +122,38 @@ class PlaylistFragmentTest {
         val testState = MutableLiveData(Model.createState().withContent(content))
         val testPlaybackState = MutableLiveData<PlaybackStateCompat>()
         val testMetadata = MutableLiveData<MediaMetadataCompat>()
-        model.stub {
+        val modelConstruction = construct<Model> {
             on { state } doReturn testState
             on { filter(any()) } doAnswer {
                 testState.value = requireNotNull(testState.value).withFilter(it.getArgument(0))
             }
         }
-        mediaModel.stub {
+        val mediaModelConstruction = construct<MediaModel> {
             on { playbackState } doReturn testPlaybackState
             on { metadata } doReturn testMetadata
         }
-        startScenario().onFragment {
-            requireNotNull(it.view).run {
-                val adapter =
-                    requireNotNull(findViewById<RecyclerView>(R.id.playlist_content).adapter)
-                findViewById<SearchView>(R.id.playlist_search).let { view ->
-                    Robolectric.flushForegroundThreadScheduler()
-                    assertEquals(3, adapter.itemCount)
+        modelConstruction.use {
+            mediaModelConstruction.use {
+                startScenario().onFragment {
+                    requireNotNull(it.view).run {
+                        val adapter =
+                            requireNotNull(findViewById<RecyclerView>(R.id.playlist_content).adapter)
+                        findViewById<SearchView>(R.id.playlist_search).let { view ->
+                            Robolectric.flushForegroundThreadScheduler()
+                            assertEquals(3, adapter.itemCount)
 
-                    view.setQuery("second", false)
-                    Robolectric.flushForegroundThreadScheduler()
-                    assertEquals(2, adapter.itemCount)
+                            view.setQuery("second", false)
+                            Robolectric.flushForegroundThreadScheduler()
+                            assertEquals(2, adapter.itemCount)
 
-                    view.setQuery("", false)
-                    Robolectric.flushForegroundThreadScheduler()
-                    assertEquals(3, adapter.itemCount)
-                }
+                            view.setQuery("", false)
+                            Robolectric.flushForegroundThreadScheduler()
+                            assertEquals(3, adapter.itemCount)
+                        }
+                    }
+                }.close()
             }
-        }.close()
-        clearInvocations(model, mediaModel)
+        }
     }
 
     @Test
@@ -179,25 +170,5 @@ class PlaylistFragmentTest {
             assertEquals(2, size)
             assertEquals(5, get(1))
         }
-    }
-}
-
-@Implements(Model.Companion::class)
-class ShadowModel {
-    @Implementation
-    fun of(owner: Fragment): Model = instance
-
-    companion object {
-        internal lateinit var instance: Model
-    }
-}
-
-@Implements(MediaModel.Companion::class)
-class ShadowMediaModel {
-    @Implementation
-    fun of(owner: FragmentActivity) = instance
-
-    companion object {
-        internal lateinit var instance: MediaModel
     }
 }
