@@ -5,8 +5,9 @@
 
 #include <getopt.h>
 #include "../src/vgmstream.h"
-#include "../src/plugins.h"
+#include "../src/api.h"
 #include "../src/util.h"
+#include "../src/util/samples_ops.h"
 //todo use <>?
 #ifdef HAVE_JSON
 #include "jansson/jansson.h"
@@ -86,6 +87,7 @@ static void usage(const char* progname, int is_help) {
             "    -v: validate extensions (for extension testing)\n"
             "    -r: reset and output a second file (for reset testing)\n"
             "    -k N: kills (seeks) N samples before decoding (for seek testing)\n"
+            "       -2 seeks to loop start, -3 seeks to loop end\n"
             "    -K N: kills (seeks) again to N samples before decoding (for seek testing)\n"
             "    -t: print !tags found in !tags.m3u (for tag testing)\n"
             "    -T: print title (for title testing)\n"
@@ -523,7 +525,7 @@ static void replace_filename(char* dst, size_t dstsize, cli_config* cfg, VGMSTRE
         subsong = 0; /* for games without subsongs / bad config */
     }
 
-    if (vgmstream->stream_name && vgmstream->stream_name[0] != '\0') {
+    if (vgmstream->stream_name[0] != '\0') {
         snprintf(stream_name, sizeof(stream_name), "%s", vgmstream->stream_name);
         clean_filename(stream_name, 1); /* clean subsong name's subdirs */
     }
@@ -635,7 +637,7 @@ fail:
 }
 
 static int convert_subsongs(cli_config* cfg) {
-    int res, oks, kos;
+    int res, kos;
     int subsong;
     /* restore original values in case of multiple parsed files */
     int start_temp = cfg->subsong_index;
@@ -651,7 +653,6 @@ static int convert_subsongs(cli_config* cfg) {
     //;VGM_LOG("CLI: subsongs %i to %i\n", cfg->subsong_index, cfg->subsong_end + 1);
 
     /* convert subsong range */
-    oks = 0;
     kos = 0 ;
     for (subsong = cfg->subsong_index; subsong < cfg->subsong_end + 1; subsong++) {
         cfg->subsong_index = subsong; 
@@ -661,7 +662,7 @@ static int convert_subsongs(cli_config* cfg) {
     }
 
     if (kos) {
-        fprintf(stderr, "failed %i of %i subsongs\n", kos, oks);
+        fprintf(stderr, "failed %i subsongs\n", kos);
     }
 
     cfg->subsong_index = start_temp;
@@ -680,6 +681,8 @@ static int convert_file(cli_config* cfg) {
     int32_t len_samples;
 
 
+    vgmstream_set_log_stdout(VGM_LOG_LEVEL_ALL);
+
     /* for plugin testing */
     if (cfg->validate_extensions)  {
         int valid;
@@ -693,8 +696,6 @@ static int convert_file(cli_config* cfg) {
         valid = vgmstream_ctx_is_valid(cfg->infilename, &vcfg);
         if (!valid) goto fail;
     }
-
-    vgmstream_set_log_stdout(VGM_LOG_LEVEL_ALL);
 
     /* open streamfile and pass subsong */
     {
@@ -736,15 +737,24 @@ static int convert_file(cli_config* cfg) {
 
     /* get final play config */
     len_samples = vgmstream_get_samples(vgmstream);
-    if (len_samples <= 0)
+    if (len_samples <= 0) {
+        fprintf(stderr, "wrong time config\n");
         goto fail;
+    }
 
-    if (cfg->seek_samples1 < -1) /* ex value for loop testing */
+    /* special values for loop testing */
+    if (cfg->seek_samples1 == -2) { /* loop start...end */
         cfg->seek_samples1 = vgmstream->loop_start_sample;
-    if (cfg->seek_samples1 >= len_samples)
-        cfg->seek_samples1 = -1;
-    if (cfg->seek_samples2 >= len_samples)
-        cfg->seek_samples2 = -1;
+    }
+    if (cfg->seek_samples1 == -3) { /* loop end..end */
+        cfg->seek_samples1 = vgmstream->loop_end_sample;
+    }
+
+    /* would be ignored by seek code though (allowed for seek_samples2 to test this) */
+    if (cfg->seek_samples1 < -1 || cfg->seek_samples1 >= len_samples) {
+        fprintf(stderr, "wrong seek config\n");
+        goto fail;
+    }
 
     if (cfg->play_forever && !vgmstream_get_play_forever(vgmstream)) {
         fprintf(stderr, "file can't be played forever");

@@ -16,7 +16,7 @@
 
 extern "C" {
 #include "../src/vgmstream.h"
-#include "../src/plugins.h"
+#include "../src/api.h"
 }
 #include "plugin.h"
 #include "vfs.h"
@@ -80,17 +80,17 @@ const char VgmstreamPlugin::about[] =
 /* widget config: {min, max, step} */
 const PreferencesWidget VgmstreamPlugin::widgets[] = {
     WidgetLabel(N_("<b>vgmstream config</b>")),
-    WidgetCheck(N_("Loop forever:"), WidgetBool(settings.loop_forever)),
-    WidgetCheck(N_("Ignore loop:"), WidgetBool(settings.ignore_loop)),
+    WidgetCheck(N_("Loop forever"), WidgetBool(settings.loop_forever)),
+    WidgetCheck(N_("Ignore loop"), WidgetBool(settings.ignore_loop)),
     WidgetSpin(N_("Loop count:"), WidgetFloat(settings.loop_count), {1, 100, 1.0}),
     WidgetSpin(N_("Fade length:"), WidgetFloat(settings.fade_time), {0, 60, 0.1}),
     WidgetSpin(N_("Fade delay:"), WidgetFloat(settings.fade_delay), {0, 60, 0.1}),
     WidgetSpin(N_("Downmix:"), WidgetInt(settings.downmix_channels), {0, 8, 1}),
-    WidgetCheck(N_("Enable unknown exts:"), WidgetBool(settings.exts_unknown_on)),
+    WidgetCheck(N_("Enable unknown exts"), WidgetBool(settings.exts_unknown_on)),
     // Audacious 3.6 will only match one plugin so this option has no actual use
     // (ex. a fake .flac only gets to the FLAC plugin and never to vgmstream, even on error)
     //WidgetCheck(N_("Enable common exts"), WidgetBool(settings.exts_common_on)),
-    WidgetCheck(N_("Disable tagfile:"), WidgetBool(settings.tagfile_disable)),
+    WidgetCheck(N_("Disable tagfile"), WidgetBool(settings.tagfile_disable))
 };
 
 void vgmstream_settings_load() {
@@ -130,7 +130,25 @@ bool VgmstreamPlugin::is_our_file(const char * filename, VFSFile & file) {
 
     cfg.accept_unknown = settings.exts_unknown_on;
     cfg.accept_common = settings.exts_common_on;
-    return vgmstream_ctx_is_valid(filename, &cfg) > 0 ? true : false;
+
+    int ok = vgmstream_ctx_is_valid(filename, &cfg);
+    if (!ok) {
+        return false;
+    }
+
+    // just in case reject non-supported files, to avoid hijacking certain files like .vgm
+    // (other plugins should have higher priority though)
+    STREAMFILE* sf = open_vfs(filename);
+    if (!sf) return false;
+
+    VGMSTREAM* infostream = init_vgmstream_from_STREAMFILE(sf);
+    close_streamfile(sf);
+    if (!infostream) {
+        return false;
+    }
+    close_vgmstream(infostream);
+
+    return true;
 }
 
 
@@ -212,11 +230,10 @@ static bool read_info(const char* filename, Tuple & tuple) {
         sf->stream_index = subtune;
 
     VGMSTREAM* infostream = init_vgmstream_from_STREAMFILE(sf);
+    close_streamfile(sf);
     if (!infostream) {
-        close_streamfile(sf);
         return false;
     }
-
 
     int total_subtunes = infostream->num_streams;
 
@@ -228,7 +245,6 @@ static bool read_info(const char* filename, Tuple & tuple) {
         //set nullptr to leave subsong index linear (must add +1 to subtune)
         tuple.set_subtunes(total_subtunes, nullptr);
 
-        close_streamfile(sf);
         close_vgmstream(infostream);
         return true;
     }
@@ -322,11 +338,9 @@ static bool read_info(const char* filename, Tuple & tuple) {
 
             vgmstream_tags_close(tags);
             close_streamfile(sf_tags);
-        }        
+        }
     }
 
-
-    close_streamfile(sf);
     close_vgmstream(infostream);
 
     return true;
@@ -379,7 +393,6 @@ bool VgmstreamPlugin::play(const char * filename, VFSFile & file) {
 
     if (!vgmstream) {
         AUDINFO("filename %s is not a valid format\n", filename);
-        close_vgmstream(vgmstream);
         return false;
     }
 
@@ -387,7 +400,6 @@ bool VgmstreamPlugin::play(const char * filename, VFSFile & file) {
     set_stream_bitrate(bitrate);
 
     //todo apply config
-
 
     apply_config(vgmstream, &settings);
 

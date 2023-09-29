@@ -3,6 +3,7 @@
 #include "../coding/coding.h"
 #include "../util/chunks.h"
 #include "../util/endianness.h"
+#include "../util/channel_mappings.h"
 
 
 /* Wwise uses a custom RIFF/RIFX header, non-standard enough that it's parsed it here.
@@ -172,6 +173,7 @@ VGMSTREAM* init_vgmstream_wwise_bnk(STREAMFILE* sf, int* p_prefetch) {
             cfg.channels = ww.channels;
             cfg.sample_rate = ww.sample_rate;
             cfg.big_endian = ww.big_endian;
+            cfg.stream_end = ww.data_offset + ww.data_size;
 
             if (ww.block_size != 0 || ww.bits_per_sample != 0) goto fail; /* always 0 for Worbis */
 
@@ -237,7 +239,7 @@ VGMSTREAM* init_vgmstream_wwise_bnk(STREAMFILE* sf, int* p_prefetch) {
                     uint32_t setup_id = read_u32be(start_offset + setup_offset + 0x06, sf);
 
                     /* if the setup after header starts with "(data)BCV" it's an inline codebook) */
-                    if ((setup_id & 0x00FFFFFF) == 0x00424356) { /* 0"BCV" */
+                    if ((setup_id & 0x00FFFFFF) == get_id32be("\0BCV")) {
                         cfg.setup_type = WWV_FULL_SETUP;
                     }
                     /* if the setup is suspiciously big it's probably trimmed inline codebooks */
@@ -364,9 +366,6 @@ VGMSTREAM* init_vgmstream_wwise_bnk(STREAMFILE* sf, int* p_prefetch) {
 
 #ifdef VGM_USE_FFMPEG
         case XMA2: { /* X360/XBone */
-            uint8_t buf[0x100];
-            int bytes;
-
             /* endian check should be enough */
             //if (ww.fmt_size != ...) goto fail; /* XMA1 0x20, XMA2old: 0x34, XMA2new: 0x40, XMA2 Guitar Hero Live/padded: 0x64, etc */
 
@@ -374,14 +373,7 @@ VGMSTREAM* init_vgmstream_wwise_bnk(STREAMFILE* sf, int* p_prefetch) {
             if (!(ww.big_endian || (!ww.big_endian && check_extensions(sf,"wem,bnk"))))
                 goto fail;
 
-            if (ww.xma2_offset) { /* older */
-                bytes = ffmpeg_make_riff_xma2_from_xma2_chunk(buf, sizeof(buf), ww.xma2_offset, ww.xma2_size, ww.data_size, sf);
-            }
-            else { /* newer */
-                bytes = ffmpeg_make_riff_xma_from_fmt_chunk(buf, sizeof(buf), ww.fmt_offset, ww.fmt_size, ww.data_size, sf, ww.big_endian);
-            }
-
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf,bytes, ww.data_offset,ww.data_size);
+            vgmstream->codec_data = init_ffmpeg_xma_chunk(sf, ww.data_offset, ww.data_size, ww.xma2_offset ? ww.xma2_offset : ww.fmt_offset, ww.xma2_size ? ww.xma2_size : ww.fmt_size);
             if ( !vgmstream->codec_data ) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -532,15 +524,17 @@ VGMSTREAM* init_vgmstream_wwise_bnk(STREAMFILE* sf, int* p_prefetch) {
         }
 
         case OPUSWW: { /* updated Opus [Assassin's Creed Valhalla (PC)] */
-            int mapping;
+            int i, mapping;
             opus_config cfg = {0};
 
             if (ww.block_size != 0 || ww.bits_per_sample != 0) goto fail;
             if (!ww.seek_offset) goto fail;
-            if (ww.channels > 8) goto fail; /* mapping not defined */
+            if (ww.channels > 255) goto fail; /* opus limit */
 
             cfg.channels = ww.channels;
             cfg.table_offset = ww.seek_offset;
+
+            vgmstream->sample_rate = 48000; /* fixed in AK's code */
 
             /* extra: size 0x10 (though last 2 fields are beyond, AK plz) */
             /* 0x12: samples per frame */
@@ -549,6 +543,7 @@ VGMSTREAM* init_vgmstream_wwise_bnk(STREAMFILE* sf, int* p_prefetch) {
             cfg.skip = read_u16(ww.fmt_offset + 0x20, sf);
             /* 0x22: codec version */
             mapping = read_u8(ww.fmt_offset + 0x23, sf);
+            if (mapping == 1 && ww.channels > 8) goto fail; /* mapping not defined */
 
             if (read_u8(ww.fmt_offset + 0x22, sf) != 1)
                 goto fail;
@@ -560,9 +555,9 @@ VGMSTREAM* init_vgmstream_wwise_bnk(STREAMFILE* sf, int* p_prefetch) {
                 ww.data_size = ww.file_size - start_offset;
             }
 
-            /* AK does some wonky implicit config for multichannel */
-            if (mapping == 1 && ww.channel_type == 1) { /* only allowed values ATM, set when >2ch */
-                static const int8_t mapping_matrix[8][8] = {
+            /* AK does some wonky implicit config for multichannel (only accepted channel type is 1) */
+            if (ww.channel_type == 1 && mapping == 1) {
+                static const int8_t mapping_matrix[8][8] = { /* (DeinterleaveAndRemap)*/
                     { 0, 0, 0, 0, 0, 0, 0, 0, },
                     { 0, 1, 0, 0, 0, 0, 0, 0, },
                     { 0, 2, 1, 0, 0, 0, 0, 0, },
@@ -572,9 +567,11 @@ VGMSTREAM* init_vgmstream_wwise_bnk(STREAMFILE* sf, int* p_prefetch) {
                     { 0, 6, 1, 2, 3, 4, 5, 0, },
                     { 0, 6, 1, 2, 3, 4, 5, 7, },
                 };
-                int i;
 
-                /* find coupled OPUS streams (internal streams using 2ch) */
+                if (ww.channels > 8)
+                    goto fail; /* matrix limit */
+
+                /* find coupled (stereo) OPUS streams (simplification of ChannelConfigToMapping) */
                 switch(ww.channel_layout) {
                     case mapping_7POINT1_surround:  cfg.coupled_count = 3; break;   /* 2ch+2ch+2ch+1ch+1ch, 5 streams */
                     case mapping_5POINT1_surround:                                  /* 2ch+2ch+1ch+1ch, 4 streams */
@@ -582,16 +579,34 @@ VGMSTREAM* init_vgmstream_wwise_bnk(STREAMFILE* sf, int* p_prefetch) {
                     case mapping_2POINT1_xiph:                                      /* 2ch+1ch, 2 streams */
                     case mapping_STEREO:            cfg.coupled_count = 1; break;   /* 2ch, 1 stream */
                     default:                        cfg.coupled_count = 0; break;   /* 1ch, 1 stream */
-                    //TODO: AK OPUS doesn't seem to handles others mappings, though AK's .h imply they exist (uses 0 coupleds?)
+                    //TODO: AK OPUS doesn't seem to handle others mappings, though AK's .h imply they exist (uses 0 coupleds?)
                 }
 
                 /* total number internal OPUS streams (should be >0) */
                 cfg.stream_count = ww.channels - cfg.coupled_count;
 
-                /* channel assignments */
+                /* channel order */
                 for (i = 0; i < ww.channels; i++) {
                     cfg.channel_mapping[i] = mapping_matrix[ww.channels - 1][i];
                 }
+            }
+            else if (ww.channel_type == 1 && mapping == 255) { /* Overwatch 2 (PC) */
+
+                /* only seen 12ch, but seems to be what ChannelConfigToMapping would output with > 8 */
+                cfg.coupled_count = 0;
+
+                cfg.stream_count = ww.channels - cfg.coupled_count;
+
+                //TODO: mapping seems to be 0x2d63f / FL FR FC LFE BL BR SL SR TFL TFR TBL TBR
+                // while output order seems to swap FC and LFE? (not set in passed channel mapping but reordered later)
+                for (i = 0; i < ww.channels; i++) {
+                    cfg.channel_mapping[i] = i;
+                }
+            }
+            else {
+                /* mapping 0: standard opus (implicit mono/stereo)  */
+                if (ww.channels > 2)
+                    goto fail;
             }
 
             /* Wwise Opus saves all frame sizes in the seek table */
@@ -650,6 +665,11 @@ VGMSTREAM* init_vgmstream_wwise_bnk(STREAMFILE* sf, int* p_prefetch) {
             vgmstream->layout_type = layout_none;
 
             vgmstream->num_samples = read_s32(ww.fmt_offset + 0x1c, sf);
+
+            if (ww.prefetch) {
+                vgmstream->num_samples = atrac9_bytes_to_samples_cfg(ww.file_size - start_offset, cfg.config_data);
+            }
+
             break;
         }
 #endif
@@ -761,6 +781,7 @@ static int parse_wwise(STREAMFILE* sf, wwise_header* ww) {
     /* parse chunks (reads once linearly) */
     {
         chunk_t rc = {0};
+        uint32_t file_size = get_streamfile_size(sf);;
 
         /* chunks are even-aligned and don't need to add padding byte, unlike real RIFFs */
         rc.be_size = ww->big_endian;
@@ -813,6 +834,13 @@ static int parse_wwise(STREAMFILE* sf, wwise_header* ww) {
                 /* "JUNK": optional padding for aligment (0-size JUNK exists too) */
                 /* "akd ": extra info for Wwise? (wave peaks/loudness/HDR envelope?) */
                 default:
+                    /* mainly for incorrectly ripped wems, but should allow truncated wems
+                     * (could also check that fourcc is ASCII)  */
+                    if (rc.offset + rc.size > file_size) {
+                        vgm_logi("WWISE: broken .wem (bad extract?)\n");
+                        goto fail;
+                    }
+
                     break;
             }
         }
@@ -932,8 +960,8 @@ static int parse_wwise(STREAMFILE* sf, wwise_header* ww) {
         }
 
         if (ww->codec == PCM || ww->codec == IMA || ww->codec == VORBIS || ww->codec == DSP || ww->codec == XMA2 ||
-            ww->codec == OPUSNX || ww->codec == OPUS || ww->codec == OPUSWW || ww->codec == PTADPCM || ww->codec == XWMA) {
-            ww->prefetch = 1; /* only seen those, probably all exist (XWMA, AAC, HEVAG, ATRAC9?) */
+            ww->codec == OPUSNX || ww->codec == OPUS || ww->codec == OPUSWW || ww->codec == PTADPCM || ww->codec == XWMA || ww->codec == ATRAC9) {
+            ww->prefetch = 1; /* only seen those, probably all exist (missing XWMA, AAC, HEVAG) */
         } else {
             vgm_logi("WWISE: wrong expected size, maybe prefetch (report)\n");
             goto fail;
@@ -945,7 +973,7 @@ static int parse_wwise(STREAMFILE* sf, wwise_header* ww) {
      * From init bank and CAkSound's sources, those may be piped through their plugins. They come in
      * .opuspak (no names), have wrong riff/data sizes and only seem used for sfx (other audio is Vorbis). */
     if (ww->format == 0xFFFE && ww->prefetch) {
-        if (read_u32be(ww->data_offset + 0x00, sf) == 0x4F676753) {
+        if (is_id32be(ww->data_offset + 0x00, sf, "OggS")) {
             ww->codec = OPUSCPR;
         }
     }

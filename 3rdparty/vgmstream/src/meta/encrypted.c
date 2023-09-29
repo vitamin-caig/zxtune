@@ -1,5 +1,7 @@
 #include "meta.h"
 #include "../coding/coding.h"
+#include "../util/companion_files.h"
+#include "../util/chunks.h"
 #include "ogg_vorbis_streamfile.h"
 #include "encrypted_bgm_streamfile.h"
 #include "encrypted_mc161_streamfile.h"
@@ -152,8 +154,8 @@ static VGMSTREAM* init_vgmstream_encrypted_rpgmvo_riff(STREAMFILE* sf) {
     e.key_size = 0x10;
     load_key(&cfg, e.keybuf, e.key_size);
     cfg.start = 0x10;
-    cfg.max_offset = 0x10;
-    
+    cfg.max_offset = 0x20;
+
     e.temp_sf = setup_ogg_vorbis_streamfile(sf, &cfg);
     if (!e.temp_sf) goto fail;
 

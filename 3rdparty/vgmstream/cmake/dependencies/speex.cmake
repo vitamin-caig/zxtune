@@ -10,7 +10,7 @@ if(NOT WIN32 AND USE_SPEEX)
 		FetchDependency(SPEEX
 			DIR speex
 			GIT_REPOSITORY https://gitlab.xiph.org/xiph/speex
-			GIT_TAG 870ff845b32f314aec0036641ffe18aba4916887
+			GIT_TAG Speex-1.2.1
 		)
 		
 		if(SPEEX_PATH)
@@ -26,7 +26,7 @@ if(NOT WIN32 AND USE_SPEEX)
 			
 			file(MAKE_DIRECTORY ${SPEEX_BIN})
 			add_custom_target(SPEEX_CONFIGURE
-				COMMAND "${SPEEX_PATH}/configure" --enable-static --disable-shared --disable-binaries CC="${CMAKE_C_COMPILER}" AR="${CMAKE_AR}" RANLIB="${CMAKE_RANLIB}"
+				COMMAND "${SPEEX_PATH}/configure" --enable-static --disable-shared --disable-binaries --with-pic CC="${CMAKE_C_COMPILER}" AR="${CMAKE_AR}" RANLIB="${CMAKE_RANLIB}"
 				DEPENDS ${SPEEX_PATH}/configure
 				BYPRODUCTS ${SPEEX_BIN}/Makefile
 				WORKING_DIRECTORY ${SPEEX_BIN}

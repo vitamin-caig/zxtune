@@ -2,6 +2,8 @@
 #include "hca_keys.h"
 #include "../coding/coding.h"
 #include "../coding/hca_decoder_clhca.h"
+#include "../util/channel_mappings.h"
+#include "../util/companion_files.h"
 
 #ifdef VGM_DEBUG_OUTPUT
   //#define HCA_BRUTEFORCE
@@ -46,7 +48,7 @@ VGMSTREAM* init_vgmstream_hca_subkey(STREAMFILE* sf, uint16_t subkey) {
         uint8_t keybuf[0x08+0x02];
         size_t keysize;
 
-        keysize = read_key_file(keybuf, 0x08+0x04, sf);
+        keysize = read_key_file(keybuf, sizeof(keybuf), sf);
         if (keysize == 0x08) { /* standard */
             keycode = get_u64be(keybuf+0x00);
         }
@@ -99,18 +101,19 @@ VGMSTREAM* init_vgmstream_hca_subkey(STREAMFILE* sf, uint16_t subkey) {
     vgmstream->layout_type = layout_none;
     vgmstream->codec_data = hca_data;
 
-    /* assumed mappings */
+    /* Assumed mappings; seems correct vs Atom Viewer, that lists L/R/C/LFE/LS/RS and downmixes HCAs like that.
+     * USM HCA's seem to be L/R/SL/SR/C/LFE though (probably reordered at USM level, no detection done in Atom Viewer). */
     {
         static const uint32_t hca_mappings[] = {
                 0,
                 mapping_MONO,
                 mapping_STEREO,
                 mapping_2POINT1,
-                mapping_QUAD,
+                mapping_QUAD_side,
                 mapping_5POINT0,
-                mapping_5POINT1,
+                mapping_5POINT1_surround,
                 mapping_7POINT0,
-                mapping_7POINT1,
+                mapping_7POINT1_surround,
         };
 
         vgmstream->channel_layout = hca_mappings[vgmstream->channels];

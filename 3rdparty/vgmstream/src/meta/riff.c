@@ -3,6 +3,7 @@
 #include "../coding/coding.h"
 #include "../layout/layout.h"
 #include "../util.h"
+#include "../util/channel_mappings.h"
 #include "riff_ogg_streamfile.h"
 
 /* RIFF - Resource Interchange File Format, standard container used in many games */
@@ -95,7 +96,7 @@ typedef struct {
     int is_at9;
 } riff_fmt_chunk;
 
-static int read_fmt(int big_endian, STREAMFILE* sf, off_t offset, riff_fmt_chunk* fmt, int mwv) {
+static int read_fmt(int big_endian, STREAMFILE* sf, off_t offset, riff_fmt_chunk* fmt) {
     uint32_t (*read_u32)(off_t,STREAMFILE*) = big_endian ? read_u32be : read_u32le;
     uint16_t (*read_u16)(off_t,STREAMFILE*) = big_endian ? read_u16be : read_u16le;
 
@@ -145,6 +146,9 @@ static int read_fmt(int big_endian, STREAMFILE* sf, off_t offset, riff_fmt_chunk
 
         case 0x0001: /* PCM */
             switch (fmt->bps) {
+                case 32:
+                    fmt->coding_type = coding_PCM32LE;
+                    break;
                 case 24: /* Omori (PC) */
                     fmt->coding_type = coding_PCM24LE;
                     break;
@@ -165,6 +169,10 @@ static int read_fmt(int big_endian, STREAMFILE* sf, off_t offset, riff_fmt_chunk
 
         case 0x0002: /* MSADPCM */
             if (fmt->bps == 4) {
+                /* ADPCMWAVEFORMAT extra data:
+                 * - samples per frame (16b)
+                 * - num coefs (16b), always 7
+                 * - N x2 coefs (configurable but in practice fixed) */
                 fmt->coding_type = coding_MSADPCM;
                 if (!msadpcm_check_coefs(sf, fmt->offset + 0x08 + 0x14))
                     goto fail;
@@ -176,8 +184,18 @@ static int read_fmt(int big_endian, STREAMFILE* sf, off_t offset, riff_fmt_chunk
                 goto fail;
             }
             break;
+        case 0x0003: /* floating point PCM */
+            if (fmt->bps == 32) {
+              fmt->coding_type = coding_PCMFLOAT;
+            } else {
+              goto fail;
+            }
+            fmt->interleave = fmt->block_size / fmt->channels;
+            break;
 
         case 0x0011:  /* MS-IMA ADPCM [Layton Brothers: Mystery Room (iOS/Android)] */
+            /* IMAADPCMWAVEFORMAT extra data:
+             * - samples per frame (16b) */
             if (fmt->bps != 4) goto fail;
             fmt->coding_type = coding_MS_IMA;
             break;
@@ -190,11 +208,11 @@ static int read_fmt(int big_endian, STREAMFILE* sf, off_t offset, riff_fmt_chunk
             break;
 
 #ifdef VGM_USE_MPEG
-        case 0x0055: /* MP3 [Bear in the Big Blue House: Bear's Imagine That! (PC)] (official) */
+        case 0x0055: /* MP3 [Bear in the Big Blue House: Bear's Imagine That! (PC), Eclipse (PC)] (official) */
             fmt->coding_type = coding_MPEG_custom;
-            /* some oddities, unsure if part of standard: 
+            /* some oddities, unsure if part of standard:
              * - block size is 1 (in mono)
-             * - bps is 16
+             * - bps is 16 for some games
              * - extra size 0x0c, has channels? and (possibly) approx frame size */
             break;
 #endif
@@ -227,7 +245,6 @@ static int read_fmt(int big_endian, STREAMFILE* sf, off_t offset, riff_fmt_chunk
             break;
 
         case 0x0555: /* Level-5 0x555 ADPCM (unofficial) */
-            if (!mwv) goto fail;
             fmt->coding_type = coding_L5_555;
             fmt->interleave = 0x12;
             break;
@@ -276,13 +293,6 @@ static int read_fmt(int big_endian, STREAMFILE* sf, off_t offset, riff_fmt_chunk
             if (guid1 == 0xE923AABF && guid2 == 0xCB584471 && guid3 == 0xA119FFFA && guid4 == 0x01E4CE62) {
 #ifdef VGM_USE_FFMPEG
                 fmt->coding_type = coding_FFmpeg;
-                fmt->is_at3p = 1;
-                break;
-#elif defined(VGM_USE_MAIATRAC3PLUS)
-                uint16_t bztmp = read_u16(offset+0x32,sf);
-                bztmp = (bztmp >> 8) | (bztmp << 8);
-                fmt->coding_type = coding_AT3plus;
-                fmt->block_size = (bztmp & 0x3FF) * 8 + 8; /* should match fmt->block_size */
                 fmt->is_at3p = 1;
                 break;
 #else
@@ -337,14 +347,21 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
 
     int FormatChunkFound = 0, DataChunkFound = 0, JunkFound = 0;
 
-    int mwv = 0;
-    off_t mwv_pflt_offset = -1;
-    off_t mwv_ctrl_offset = -1;
+    off_t mwv_pflt_offset = 0;
+    off_t mwv_ctrl_offset = 0;
+    int ignore_riff_size = 0;
 
 
     /* checks*/
     if (!is_id32be(0x00,sf,"RIFF"))
         goto fail;
+
+    riff_size = read_u32le(0x04,sf);
+
+    if (!is_id32be(0x08,sf, "WAVE"))
+        goto fail;
+
+    file_size = get_streamfile_size(sf);
 
     /* .lwav: to avoid hijacking .wav
      * .xwav: fake for Xbox games (not needed anymore)
@@ -374,23 +391,16 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
      * .ima: Baja: Edge of Control (PS3/X360)
      * .nsa: Studio Ring games that uses NScripter [Hajimete no Otetsudai (PC)]
      * .pcm: Silent Hill Arcade (PC)
+     * .xvag: Uncharted Golden Abyss (Vita)[ATRAC9]
+     * .ogg/logg: Luftrausers (Vita)[ATRAC9]
+     * .p1d: Farming Simulator 15 (Vita)[ATRAC9]
+     * .xms: Ty the Tasmanian Tiger (Xbox)
+     * .mus: Burnout Legends/Dominator (PSP)
+     * .dat/ldat: RollerCoaster Tycoon 1/2 (PC)
      */
-    if ( check_extensions(sf, "wav,lwav,xwav,da,dax,cd,med,snd,adx,adp,xss,xsew,adpcm,adw,wd,,sbv,wvx,str,at3,rws,aud,at9,ckd,saf,ima,nsa,pcm") ) {
-        ;
-    }
-    else if ( check_extensions(sf, "mwv") ) {
-        mwv = 1;
-    }
-    else {
+    if (!check_extensions(sf, "wav,lwav,xwav,mwv,da,dax,cd,med,snd,adx,adp,xss,xsew,adpcm,adw,wd,,sbv,wvx,str,at3,rws,aud,at9,ckd,saf,ima,nsa,pcm,xvag,ogg,logg,p1d,xms,mus,dat,ldat")) {
         goto fail;
     }
-
-    riff_size = read_u32le(0x04,sf);
-
-    if (!is_id32be(0x08,sf, "WAVE"))
-        goto fail;
-
-    file_size = get_streamfile_size(sf);
 
     /* some games have wonky sizes, selectively fix to catch bad rips and new mutations */
     if (file_size != riff_size + 0x08) {
@@ -420,7 +430,7 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
         else if (codec == 0xFFFE && riff_size + 0x08 + 0x18 == file_size)
             riff_size += 0x18; /* [F1 2011 (Vita)] (adds a "pada" chunk but RIFF size wasn't updated) */
 
-        else if (mwv) {
+        else if (codec == 0x0555) {
             int channels = read_u16le(0x16, sf); /* [Dragon Quest VIII (PS2), Rogue Galaxy (PS2)] */
             size_t file_size_fixed = riff_size + 0x08 + 0x04 * (channels - 1);
 
@@ -445,10 +455,18 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
 
         else if (codec == 0x0002 && riff_size + 0x08 + 0x1c == file_size)
             riff_size += 0x1c; /* [Mega Man X Legacy Collection (PC)] (adds "ver /tIME/ver " chunks but RIFF size wasn't updated) */
+
+        else if (codec == 0x0001 && (
+                    riff_size + 0x08 + 0x08 == file_size || riff_size + 0x08 + 0x09 == file_size ||
+                    riff_size + 0x08 - 0x3E == file_size || riff_size + 0x08 - 0x02 == file_size))
+            ignore_riff_size = 1; /* [Cross Gate (PC)] (last info LIST chunk has wrong size) */
+
+        else if (codec == 0xFFFE && riff_size + 0x08 + 0x40 == file_size)
+            file_size -= 0x40; /* [Megami no Etsubo (PSP)] (has extra padding in all files) */
     }
 
     /* check for truncated RIFF */
-    if (file_size != riff_size + 0x08) {
+    if (file_size != riff_size + 0x08 && !ignore_riff_size) {
         vgm_logi("RIFF: wrong expected size (report/re-rip?)\n");
         VGM_LOG("riff: file_size = %x, riff_size+8 = %x\n", file_size, riff_size + 0x08); /* don't log to user */
         goto fail;
@@ -456,21 +474,24 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
 
     /* read through chunks to verify format and find metadata */
     {
-        off_t current_chunk = 0x0c; /* start with first chunk */
+        uint32_t current_chunk = 0x0c; /* start with first chunk */
 
         while (current_chunk < file_size) {
-            uint32_t chunk_id = read_32bitBE(current_chunk + 0x00,sf); /* FOURCC */
-            size_t chunk_size = read_32bitLE(current_chunk + 0x04,sf);
+            uint32_t chunk_id = read_u32be(current_chunk + 0x00,sf); /* FOURCC */
+            uint32_t chunk_size = read_u32le(current_chunk + 0x04,sf);
 
-            if (current_chunk + 0x08 + chunk_size > file_size)
-                goto fail;
+            /* allow broken last chunk [Cross Gate (PC)] */
+            if (current_chunk + 0x08 + chunk_size > file_size) {
+                VGM_LOG("RIFF: broken chunk at %x + 0x08 + %x > %x\n", current_chunk, chunk_size, file_size);
+                break; /* truncated */
+            }
 
             switch(chunk_id) {
                 case 0x666d7420:    /* "fmt " */
                     if (FormatChunkFound) goto fail; /* only one per file */
                     FormatChunkFound = 1;
 
-                    if (!read_fmt(0, sf, current_chunk, &fmt, mwv))
+                    if (!read_fmt(0, sf, current_chunk, &fmt))
                         goto fail;
 
                     /* some Dreamcast/Naomi games again [Headhunter (DC), Bomber hehhe (DC), Rayman 2 (DC)] */
@@ -490,7 +511,7 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
                     switch (read_32bitBE(current_chunk+0x08, sf)) {
                         case 0x6164746C:    /* "adtl" */
                             /* yay, atdl is its own little world */
-                            parse_adtl(current_chunk + 8, chunk_size,
+                            parse_adtl(current_chunk + 0x8, chunk_size,
                                     sf,
                                     &loop_start_ms,&loop_end_ms,&loop_flag);
                             break;
@@ -558,12 +579,10 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
                     goto fail; /* parsed elsewhere */
 
                 case 0x70666c74:    /* "pflt" (.mwv extension) */
-                    if (!mwv) break;    /* ignore if not in an mwv */
                     mwv_pflt_offset = current_chunk; /* predictor filters */
                     break;
 
                 case 0x6374726c:    /* "ctrl" (.mwv extension) */
-                    if (!mwv) break;
                     loop_flag = read_32bitLE(current_chunk+0x08, sf);
                     mwv_ctrl_offset = current_chunk;
                     break;
@@ -644,8 +663,8 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
             read_u32be(start_offset+0x3c, sf) == 0xFFFFFFFF)
         goto fail;
 
-    ///* MSADPCM .ckd are parsed elsewhere, though they are valid so no big deal if parsed here (just that loops should be ignored) */
-    if (!fmt.is_at9 && check_extensions(sf, "ckd"))
+    /* MSADPCM .ckd are parsed elsewhere, though they are valid so no big deal if parsed here (just that loops should be ignored) */
+    if (fmt.codec == 0x0002 && check_extensions(sf, "ckd"))
         goto fail;
 
     /* ignore Gitaroo Man Live! (PSP) multi-RIFF (to allow chunked TXTH) */
@@ -671,9 +690,6 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
         case coding_DVI_IMA:
 #ifdef VGM_USE_FFMPEG
         case coding_FFmpeg:
-#endif
-#ifdef VGM_USE_MAIATRAC3PLUS
-        case coding_AT3plus:
 #endif
 #ifdef VGM_USE_ATRAC9
         case coding_ATRAC9:
@@ -702,14 +718,15 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
 
     /* samples, codec init (after setting coding to ensure proper close on failure) */
     switch (fmt.coding_type) {
+        case coding_PCM32LE:
         case coding_PCM24LE:
         case coding_PCM16LE:
         case coding_PCM8_U:
+        case coding_PCMFLOAT:
             vgmstream->num_samples = pcm_bytes_to_samples(data_size, fmt.channels, fmt.bps);
             break;
 
         case coding_L5_555:
-            if (!mwv) goto fail;
             vgmstream->num_samples = data_size / 0x12 / fmt.channels * 32;
 
             /* coefs */
@@ -719,7 +736,7 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
                 int filter_count = read_32bitLE(mwv_pflt_offset+0x0c, sf);
                 if (filter_count > 0x20) goto fail;
 
-                if (mwv_pflt_offset == -1 ||
+                if (!mwv_pflt_offset ||
                         read_32bitLE(mwv_pflt_offset+0x08, sf) != filter_order ||
                         read_32bitLE(mwv_pflt_offset+0x04, sf) < 8 + filter_count * 4 * filter_order)
                     goto fail;
@@ -780,17 +797,6 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
                     vgmstream->num_samples = loop_end_smpl;
             }
 
-            break;
-        }
-#endif
-#ifdef VGM_USE_MAIATRAC3PLUS
-        case coding_AT3plus: {
-            vgmstream->codec_data = init_at3plus();
-
-            /* get rough total samples but favor fact_samples if available (skip isn't correctly handled for now) */
-            vgmstream->num_samples = atrac3plus_bytes_to_samples(data_size, fmt.block_size);
-            if (fact_sample_count > 0 && fact_sample_count + fact_sample_skip < vgmstream->num_samples)
-                vgmstream->num_samples = fact_sample_count + fact_sample_skip;
             break;
         }
 #endif
@@ -892,9 +898,10 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
             vgmstream->loop_end_sample = loop_end_wsmp;
             vgmstream->meta_type = meta_RIFF_WAVE_wsmp;
         }
-        else if (mwv && mwv_ctrl_offset != -1) {
-            vgmstream->loop_start_sample = read_32bitLE(mwv_ctrl_offset+12, sf);
+        else if (fmt.coding_type == coding_L5_555 && mwv_ctrl_offset) {
+            vgmstream->loop_start_sample = read_s32le(mwv_ctrl_offset + 0x0c, sf);
             vgmstream->loop_end_sample = vgmstream->num_samples;
+            vgmstream->meta_type = meta_RIFF_WAVE_MWV;
         }
         else if (loop_start_cue != -1) {
             vgmstream->loop_start_sample = loop_start_cue;
@@ -910,9 +917,6 @@ VGMSTREAM* init_vgmstream_riff(STREAMFILE* sf) {
                     break;
             }
         }
-    }
-    if (mwv) {
-        vgmstream->meta_type = meta_RIFF_WAVE_MWV;
     }
 
     if (!vgmstream_open_stream(vgmstream, sf, start_offset))
@@ -970,12 +974,16 @@ fail:
 }
 
 /* for maximum annoyance later UE4 versions (~v4.2x?) interleave single frames instead of
- * half interleave, but don't have flags to detect so we need some heuristics */
+ * half interleave, but don't have flags to detect so we need some heuristics. Most later
+ * games with 0x36 chunk size use v2_interleave but notably Travis Strikes Again doesn't  */
 static size_t get_ue4_msadpcm_interleave(STREAMFILE* sf, riff_fmt_chunk* fmt, off_t start, size_t size) {
     size_t v1_interleave = size / fmt->channels;
     size_t v2_interleave = fmt->block_size;
-    uint8_t nibbles1[0x08] = {0};
-    uint8_t nibbles2[0x08] = {0};
+    uint8_t nibbles_half[0x20] = {0};
+    uint8_t nibbles_full[0x20] = {0};
+    int nibbles_size = sizeof(nibbles_full);
+    uint8_t empty[0x20] = {0};
+    int is_blank_half, is_blank_full;
 
 
     /* old versions */
@@ -983,43 +991,54 @@ static size_t get_ue4_msadpcm_interleave(STREAMFILE* sf, riff_fmt_chunk* fmt, of
         return v1_interleave;
 
     /* 6ch only observed in later versions [Fortnite (PC)], not padded */
-    if (fmt->channels > 2)
+    if (fmt->channels > 2 || fmt->channels < 2)
         return v2_interleave;
 
-    read_streamfile(nibbles1, start + size - 0x08, sizeof(nibbles2), sf);
-    read_streamfile(nibbles2, start + v1_interleave - 0x08, sizeof(nibbles2), sf);
+    read_streamfile(nibbles_half, start + v1_interleave - nibbles_size, nibbles_size, sf);
+    is_blank_half = memcmp(nibbles_half, empty, nibbles_size) == 0;
+
+    read_streamfile(nibbles_full, start + size - nibbles_size, nibbles_size, sf);
+    is_blank_full = memcmp(nibbles_full, empty, nibbles_size) == 0;
 
     /* last frame is almost always padded, so should at half interleave */
-    if (get_u64be(nibbles1) == 0 && get_u64be(nibbles2) == 0)
+    if (!is_blank_half && !is_blank_full) {
         return v1_interleave;
+    }
+
+    /* last frame is padded, and half interleave is not: should be regular interleave*/
+    if (!is_blank_half && is_blank_full) {
+        return v2_interleave;
+    }
 
     /* last frame is silent-ish, so should at half interleave (TSA's SML_DarknessLoop_01, TSA_CAD_YAKATA)
      * this doesn't work too well b/c num_samples at 0x36 uses all data, may need adjustment */
     {
 
         int i;
-        int empty_nibbles1 = 1, empty_nibbles2 = 1;
+        int empty_nibbles_full = 1, empty_nibbles_half = 1;
 
-        for (i = 0; i < sizeof(nibbles1); i++) {
-            uint8_t n1 = ((nibbles1[i] >> 0) & 0x0f);
-            uint8_t n2 = ((nibbles1[i] >> 4) & 0x0f);
+        for (i = 0; i < sizeof(nibbles_full); i++) {
+            uint8_t n1 = ((nibbles_full[i] >> 0) & 0x0f);
+            uint8_t n2 = ((nibbles_full[i] >> 4) & 0x0f);
             if ((n1 != 0x0 && n1 != 0xf && n1 != 0x1) || (n2 != 0x0 && n2 != 0xf && n2 != 0x1)) {
-                empty_nibbles1 = 0;
+                empty_nibbles_full = 0;
                 break;
             }
         }
 
-        for (i = 0; i < sizeof(nibbles2); i++) {
-            uint8_t n1 = ((nibbles2[i] >> 0) & 0x0f);
-            uint8_t n2 = ((nibbles2[i] >> 4) & 0x0f);
+        for (i = 0; i < sizeof(nibbles_half); i++) {
+            uint8_t n1 = ((nibbles_half[i] >> 0) & 0x0f);
+            uint8_t n2 = ((nibbles_half[i] >> 4) & 0x0f);
             if ((n1 != 0x0 && n1 != 0xf && n1 != 0x1) || (n2 != 0x0 && n2 != 0xf && n2 != 0x1)) {
-                empty_nibbles2 = 0;
+                empty_nibbles_half = 0;
                 break;
             }
         }
 
-        if (empty_nibbles1 && empty_nibbles2)
+        if (empty_nibbles_full && empty_nibbles_half){
+            VGM_LOG("v1 b\n");
             return v1_interleave;
+        }
     }
 
     /* other tests? */
@@ -1074,7 +1093,7 @@ VGMSTREAM* init_vgmstream_rifx(STREAMFILE* sf) {
                     if (FormatChunkFound) goto fail;
                     FormatChunkFound = 1;
 
-                    if (!read_fmt(1, sf, current_chunk, &fmt, 0))
+                    if (!read_fmt(1, sf, current_chunk, &fmt))
                         goto fail;
 
                     break;

@@ -12,11 +12,12 @@ VGMSTREAM* init_vgmstream_xwav_new(STREAMFILE* sf) {
 
 
     /* checks */
+    if (!is_id32le(0x00,sf, "XWAV"))
+        goto fail;
+
     /* .xwv: actual extension [Moon Diver (PS3/X360)]
      * .vawx: header id */
     if (!check_extensions(sf, "xwv,vawx"))
-        goto fail;
-    if (read_u32be(0x00,sf) != 0x56415758) /* "VAWX" */
         goto fail;
 
     /* similar to older version but BE and a bit less complex */
@@ -29,7 +30,7 @@ VGMSTREAM* init_vgmstream_xwav_new(STREAMFILE* sf) {
      * 0x16: file number
      * 0x18: null
      * 0x1c: null
-     * 0x20: file name in some strange encoding/compression?
+     * 0x20: file name in a custom 40-char (RADIX style) encoding
     */
     start_offset = 0x800;
 
@@ -71,15 +72,12 @@ VGMSTREAM* init_vgmstream_xwav_new(STREAMFILE* sf) {
 
 #ifdef VGM_USE_FFMPEG
         case 1: { /* No Nore Heroes (X360), Moon Diver (X360), Ninety-Nine Nights 2 (X360) */
-            uint8_t buf[0x100];
-            int32_t bytes, block_size, block_count;
+            int block_size = 0x10000; /* XWAV new default */
+            int block_count = read_u16be(0x30 + 0x0A, sf); /* also at 0x56 */
 
             data_size = get_streamfile_size(sf) - start_offset;
-            block_size = 0x10000; /* XWAV new default */
-            block_count = read_u16be(0x30 + 0x0A, sf); /* also at 0x56 */
 
-            bytes = ffmpeg_make_riff_xma2(buf,0x100, vgmstream->num_samples, data_size, vgmstream->channels, vgmstream->sample_rate, block_count, block_size);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf,bytes, start_offset,data_size);
+            vgmstream->codec_data = init_ffmpeg_xma2_raw(sf, start_offset, data_size, vgmstream->num_samples, vgmstream->channels, vgmstream->sample_rate, block_size, block_count);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -93,15 +91,21 @@ VGMSTREAM* init_vgmstream_xwav_new(STREAMFILE* sf) {
             break;
         }
 
-        case 7: { /* Moon Diver (PS3) */
+        case 6:   /* (used? same as SDRH) */
+        case 7:   /* Moon Diver (PS3) */
+        case 8: { /* No More Heroes (PS3) */
             int block_align, encoder_delay;
 
-            data_size = read_u32be(0x54,sf);
-            block_align = 0x98 * vgmstream->channels;
+            /* fixed for all rates? doesn't happen with other codecs, some files are 48000 already */
+            vgmstream->sample_rate = 48000;
+
+            block_align = (codec == 8 ? 0xC0 : codec == 0x07 ? 0x98 : 0x60) * vgmstream->channels;
             encoder_delay = 1024 + 69*2; /* observed default, matches XMA (needed as many files start with garbage) */
+
+            data_size = read_u32be(0x54,sf);
             vgmstream->num_samples = atrac3_bytes_to_samples(data_size, block_align) - encoder_delay; /* original samples break looping in some files otherwise */
 
-            vgmstream->codec_data = init_ffmpeg_atrac3_raw(sf, start_offset,data_size, vgmstream->num_samples,vgmstream->channels,vgmstream->sample_rate, block_align, encoder_delay);
+            vgmstream->codec_data = init_ffmpeg_atrac3_raw(sf, start_offset, data_size, vgmstream->num_samples,vgmstream->channels,vgmstream->sample_rate, block_align, encoder_delay);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -136,10 +140,11 @@ VGMSTREAM* init_vgmstream_xwav_old(STREAMFILE* sf) {
 
 
     /* checks */
-    /* .xwv: actual extension [Bullet Witch (X360)] */
-    if (!check_extensions(sf, "xwv"))
+    if (!is_id32be(0x00,sf, "XWAV"))
         goto fail;
-    if (read_u32be(0x00,sf) != 0x58574156) /* "XWAV" */
+
+    /* .xwv: actual extension [Bullet Witch (X360), Lost Odyssey Demo (X360)] */
+    if (!check_extensions(sf, "xwv"))
         goto fail;
 
     /* similar to newer version but LE and a bit more complex */
@@ -224,15 +229,12 @@ VGMSTREAM* init_vgmstream_xwav_old(STREAMFILE* sf) {
 
 #ifdef VGM_USE_FFMPEG
         case 4: { /* Lost Odyssey (X360) */
-            uint8_t buf[0x100];
-            int32_t bytes, block_size, block_count;
+            int block_size = 0x8000; /* XWAV old default */
+            int block_count = read_u16be(0x30, sf);
 
             data_size = get_streamfile_size(sf) - start_offset;
-            block_size = 0x8000; /* XWAV old default */
-            block_count = read_u16be(0x30, sf);
 
-            bytes = ffmpeg_make_riff_xma2(buf,0x100, vgmstream->num_samples, data_size, vgmstream->channels, vgmstream->sample_rate, block_count, block_size);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf,bytes, start_offset,data_size);
+            vgmstream->codec_data = init_ffmpeg_xma2_raw(sf, start_offset, data_size, vgmstream->num_samples, vgmstream->channels, vgmstream->sample_rate, block_size, block_count);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -253,7 +255,6 @@ VGMSTREAM* init_vgmstream_xwav_old(STREAMFILE* sf) {
     if (!vgmstream_open_stream(vgmstream, sf, start_offset))
         goto fail;
     return vgmstream;
-
 fail:
     close_vgmstream(vgmstream);
     return NULL;

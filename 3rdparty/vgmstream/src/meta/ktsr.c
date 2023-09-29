@@ -2,7 +2,7 @@
 #include "../coding/coding.h"
 #include "../layout/layout.h"
 
-typedef enum { NONE, MSADPCM, DSP, GCADPCM, ATRAC9, KVS, /*KNS*/ } ktsr_codec;
+typedef enum { NONE, MSADPCM, DSP, GCADPCM, ATRAC9, RIFF_ATRAC9, KOVS, KTSS, } ktsr_codec;
 
 #define MAX_CHANNELS 8
 
@@ -33,9 +33,9 @@ typedef struct {
 
 static int parse_ktsr(ktsr_header* ktsr, STREAMFILE* sf);
 static layered_layout_data* build_layered_atrac9(ktsr_header* ktsr, STREAMFILE *sf, uint32_t config_data);
+static VGMSTREAM* init_vgmstream_ktsr_sub(STREAMFILE* sf_b, ktsr_header* ktsr, VGMSTREAM* (*init_vgmstream)(STREAMFILE* sf), const char* ext);
 
-
-/* KTSR - Koei Tecmo sound resource countainer */
+/* KTSR - Koei Tecmo sound resource container */
 VGMSTREAM* init_vgmstream_ktsr(STREAMFILE* sf) {
     VGMSTREAM* vgmstream = NULL;
     STREAMFILE* sf_b = NULL;
@@ -49,8 +49,9 @@ VGMSTREAM* init_vgmstream_ktsr(STREAMFILE* sf) {
         goto fail;
     if (read_u32be(0x04, sf) != 0x777B481A) /* hash(?) id: 0x777B481A=as, 0x0294DDFC=st, 0xC638E69E=gc */
         goto fail;
-    /* .ktsl2asbin: common [Atelier Ryza (PC/Switch), Nioh (PC)] */
-    if (!check_extensions(sf, "ktsl2asbin"))
+    /* .ktsl2asbin: common [Atelier Ryza (PC/Switch), Nioh (PC)] 
+     * .asbin: Warriors Orochi 4 (PC) */
+    if (!check_extensions(sf, "ktsl2asbin,asbin"))
         goto fail;
 
     /* KTSR can be a memory file (ktsl2asbin), streams (ktsl2stbin) and global config (ktsl2gcbin)
@@ -65,9 +66,10 @@ VGMSTREAM* init_vgmstream_ktsr(STREAMFILE* sf) {
 
     /* open companion body */
     if (ktsr.is_external) {
-        sf_b = open_streamfile_by_ext(sf, "ktsl2stbin");
+        const char* companion_ext = check_extensions(sf, "asbin") ? "stbin" : "ktsl2stbin";
+        sf_b = open_streamfile_by_ext(sf, companion_ext);
         if (!sf_b) {
-            vgm_logi("KTSR: companion file '*.ktsl2stbin' not found\n");
+            vgm_logi("KTSR: companion file '*.%s' not found\n", companion_ext);
             goto fail;
         }
     }
@@ -75,6 +77,26 @@ VGMSTREAM* init_vgmstream_ktsr(STREAMFILE* sf) {
         sf_b = sf;
     }
 
+
+    /* subfiles */
+    {
+        VGMSTREAM* (*init_vgmstream)(STREAMFILE* sf) = NULL;
+        const char* ext;
+        switch(ktsr.codec) {
+            case RIFF_ATRAC9:   init_vgmstream = init_vgmstream_riff; ext = "at9"; break;
+            case KOVS:          init_vgmstream = init_vgmstream_ogg_vorbis; ext = "kvs"; break;
+            case KTSS:          init_vgmstream = init_vgmstream_ktss; ext = "ktss"; break;
+            default: break;
+        }
+
+        if (init_vgmstream) {
+            vgmstream = init_vgmstream_ktsr_sub(sf_b, &ktsr, init_vgmstream, ext);
+            if (!vgmstream) goto fail;
+
+            if (sf_b != sf) close_streamfile(sf_b);
+            return vgmstream;
+        }
+    }
 
     /* build the VGMSTREAM */
     vgmstream = allocate_vgmstream(ktsr.channels, ktsr.loop_flag);
@@ -125,29 +147,6 @@ VGMSTREAM* init_vgmstream_ktsr(STREAMFILE* sf) {
             break;
         }
 #endif
-
-#ifdef VGM_USE_VORBIS
-        case KVS: {
-            VGMSTREAM* ogg_vgmstream = NULL; //TODO: meh
-            STREAMFILE* temp_sf = setup_subfile_streamfile(sf_b, ktsr.stream_offsets[0], ktsr.stream_sizes[0], "kvs");
-            if (!temp_sf) goto fail;
-
-            ogg_vgmstream = init_vgmstream_ogg_vorbis(temp_sf);
-            close_streamfile(temp_sf);
-            if (!ogg_vgmstream) goto fail;
-
-            ogg_vgmstream->stream_size = vgmstream->stream_size;
-            ogg_vgmstream->num_streams = vgmstream->num_streams;
-            ogg_vgmstream->channel_layout = vgmstream->channel_layout;
-            /* loops look shared */
-            strcpy(ogg_vgmstream->stream_name, vgmstream->stream_name);
-
-            close_vgmstream(vgmstream);
-            if (sf_b != sf) close_streamfile(sf_b);
-            return ogg_vgmstream;
-        }
-#endif
-
         default:
             goto fail;
     }
@@ -172,6 +171,26 @@ fail:
     close_vgmstream(vgmstream);
     return NULL;
 }
+
+// TODO improve, unity with other metas that do similar stuff
+static VGMSTREAM* init_vgmstream_ktsr_sub(STREAMFILE* sf_b, ktsr_header* ktsr, VGMSTREAM* (*init_vgmstream)(STREAMFILE* sf), const char* ext) {
+    VGMSTREAM* sub_vgmstream = NULL;
+    STREAMFILE* temp_sf = setup_subfile_streamfile(sf_b, ktsr->stream_offsets[0], ktsr->stream_sizes[0], ext);
+    if (!temp_sf) return NULL;
+
+    sub_vgmstream = init_vgmstream(temp_sf);
+    close_streamfile(temp_sf);
+    if (!sub_vgmstream) return NULL;
+
+    sub_vgmstream->stream_size = ktsr->stream_sizes[0];
+    sub_vgmstream->num_streams = ktsr->total_subsongs;
+    sub_vgmstream->channel_layout = ktsr->channel_layout;
+
+    strcpy(sub_vgmstream->stream_name, ktsr->name);
+
+    return sub_vgmstream;
+}
+
 
 static layered_layout_data* build_layered_atrac9(ktsr_header* ktsr, STREAMFILE* sf, uint32_t config_data) {
     STREAMFILE* temp_sf = NULL;
@@ -234,28 +253,42 @@ static int parse_codec(ktsr_header* ktsr) {
     /* platform + format to codec, simplified until more codec combos are found */
     switch(ktsr->platform) {
         case 0x01: /* PC */
-            if (ktsr->is_external)
-                ktsr->codec = KVS;
-            else if (ktsr->format == 0x00)
-                ktsr->codec = MSADPCM;
-            else
+            if (ktsr->is_external) {
+                if (ktsr->format == 0x0005)
+                    ktsr->codec = KOVS; // Atelier Ryza (PC)
+                else
+                    goto fail;
+            }
+            else if (ktsr->format == 0x0000) {
+                ktsr->codec = MSADPCM; // Warrior Orochi 4 (PC)
+            }
+            else {
                 goto fail;
+            }
             break;
 
-        case 0x03: /* VITA */
-            if (ktsr->is_external)
-                goto fail;
-            else if (ktsr->format == 0x01)
-                ktsr->codec = ATRAC9;
+        case 0x03: /* PS4/VITA */
+            if (ktsr->is_external) {
+                if (ktsr->format == 0x1001)
+                    ktsr->codec = RIFF_ATRAC9; // Nioh (PS4)
+                else
+                    goto fail;
+            }
+            else if (ktsr->format == 0x0001)
+                ktsr->codec = ATRAC9; // Attack on Titan: Wings of Freedom (Vita)
             else
                 goto fail;
             break;
 
         case 0x04: /* Switch */
-            if (ktsr->is_external)
-                goto fail; /* KTSS? */
-            else if (ktsr->format == 0x00)
-                ktsr->codec = DSP;
+            if (ktsr->is_external) {
+                if (ktsr->format == 0x0005)
+                    ktsr->codec = KTSS; // [Ultra Kaiju Monster Rancher (Switch)]
+                else
+                    goto fail;
+            }
+            else if (ktsr->format == 0x0000)
+                ktsr->codec = DSP; // Fire Emblem: Three Houses (Switch)
             else
                 goto fail;
             break;
@@ -266,7 +299,7 @@ static int parse_codec(ktsr_header* ktsr) {
 
     return 1;
 fail:
-    VGM_LOG("ktsr: unknown codec combo: ext=%x, fmt=%x, ptf=%x\n", ktsr->is_external, ktsr->format, ktsr->platform);
+    VGM_LOG("ktsr: unknown codec combo: external=%x, format=%x, platform=%x\n", ktsr->is_external, ktsr->format, ktsr->platform);
     return 0;
 }
 
@@ -281,14 +314,14 @@ static int parse_ktsr_subfile(ktsr_header* ktsr, STREAMFILE* sf, uint32_t offset
     /* probably could check the flag in sound header, but the format is kinda messy */
     switch(type) {
 
-        case 0x38D0437D: /* external [Nioh (PC), Atelier Ryza (PC)] */
-        case 0x3DEA478D: /* external [Nioh (PC)] */
+        case 0x38D0437D: /* external [Nioh (PC/PS4), Atelier Ryza (PC)] */
+        case 0x3DEA478D: /* external [Nioh (PC)] (smaller) */
         case 0xDF92529F: /* external [Atelier Ryza (PC)] */
         case 0x6422007C: /* external [Atelier Ryza (PC)] */
             /* 08 subtype? (ex. 0x522B86B9)
              * 0c channels
              * 10 ? (always 0x002706B8)
-             * 14 codec? (05=KVS)
+             * 14 external codec
              * 18 sample rate
              * 1c num samples
              * 20 null?
@@ -316,11 +349,6 @@ static int parse_ktsr_subfile(ktsr_header* ktsr, STREAMFILE* sf, uint32_t offset
                 ktsr->stream_sizes[0]   = read_u32le(offset + 0x38, sf);
             }
             ktsr->is_external = 1;
-
-            if (ktsr->format != 0x05) {
-                VGM_LOG("ktsr: unknown subcodec at %x\n", offset);
-                goto fail;
-            }
 
             break;
 

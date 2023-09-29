@@ -1,17 +1,16 @@
 # vgmstream build help
 This document explains how to build each of vgmstream's components and libraries.
 
-
 ## Compilation requirements
 vgmstream can be compiled using one of several build scripts that are available in this repository. Components are detailed below, but if you are new to development you probably want one of these:
-- **Windows**: [simple scripts](#simple-scripts-builds) + [Visual Studio](#microsofts-visual-c-msvc--visual-studio--msbuild-compiler)
+- **Windows**: [simple scripts](#simple-scripts-builds) + [Visual Studio 2019](#microsofts-visual-c-msvc--visual-studio--msbuild-compiler)
 - **Linux**: [CMake](#cmake-builds) + [GCC](#gcc--make-compiler)
 - **macOS**: [CMake](#cmake-builds) + [Clang](#clang-compiler)
 - **Web**: [CMake](#cmake-builds) + [Emscripten](#emscripten-compiler)
 
 Because each module has different quirks one can't use a single tool for everything. You should be able to build most using a standard *compiler* (GCC/MSVC/Clang) using common *build systems* (scripts/CMake/autotools) in any typical *OS* (Windows/Linux/macOS).
 
-64-bit support should work but hasn't been throughly tested (may have subtle decoding bugs in some codecs), since most used components are plugins for 32-bit players. Windows libraries for extra codecs are included for 32-bit only at the moment.
+64-bit support should work but hasn't been as throughly tested, since most used components are plugins for 32-bit players. Windows libraries for extra codecs are included for 32-bit only at the moment.
 
 Though it's rather flexible (like using Windows with GCC and autotools), some combos may be a bit more complex to get working depending on your system and other factors.
 
@@ -27,7 +26,7 @@ sudo apt-get install -y gcc g++ make cmake build-essential git
 # optional: for extra formats (can be ommited to build with static libs)
 sudo apt-get install -y libmpg123-dev libvorbis-dev libspeex-dev
 sudo apt-get install -y libavformat-dev libavcodec-dev libavutil-dev libswresample-dev
-sudo apt-get install -y yasm libopus-dev
+sudo apt-get install -y yasm libopus-dev pkg-config autoconf libtool-bin
 # optional: for vgmstream 123 and audacious
 sudo apt-get install -y libao-dev audacious-dev
 
@@ -50,8 +49,11 @@ make
 - May try https://formulae.brew.sh/formula/vgmstream instead (not part of this project)
 
 ### Windows
-- Install Visual Studio: https://www.visualstudio.com/downloads/ (for C/C++, with "MFC support" and "ATL support)
-- Make a file called `msvc-build.config.ps1` in vgmstream's root, with your installed toolset and SDK:
+- Install Visual Studio (VS): https://www.visualstudio.com/downloads/ (for C/C++, include "MFC support" and "ATL support")
+  - Currently defaults to VS 2019 and Win 10/11
+- If you don't have VS 2019 and Win 10/11 you'll need to change project's defaults
+  - Manually open .sln and change them in Visual Studio
+  - Or make a file called `msvc-build.config.ps1` in vgmstream's source root, with your installed toolset and SDK:
 ```ps1
 # - toolsets: "" (default), "v140" (VS 2015), "v141" (VS 2017), "v141_xp" (XP support), "v142" (VS 2019), etc
 # - sdks: "" (default), "7.0" (Win7 SDK), "8.1" (Win8 SDK), "10.0" (Win10 SDK), etc
@@ -68,13 +70,25 @@ This guide is mainly geared towards beginner devs, introducing concepts in steps
 ### GCC / Make (compiler)
 Common C compiler, most development is done with this.
 
-On **Windows** you need one of these somewhere in PATH:
-- MinGW-w64 (32bit version): https://sourceforge.net/projects/mingw-w64/
-  - Use this for easier standalone executables
-  - [Latest online MinGW installer](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/installer/mingw-w64-install.exe/download) with any config should work (for example: gcc-8.1.0, i686, win32, sjlj).
-  - Or download and unzip the [portable MinGW package](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/i686-8.1.0-release-win32-sjlj-rt_v6-rev0.7z/download)
-- MSYS2 with the MinGW-w64_shell (32bit) package: https://msys2.github.io/
-  - Resulting binaries may depend on `msys*.dll`.
+On **Windows** you need one of these:
+- Standalone MinGW-w64, with **MSVCRT** runtime:
+  - Example config: gcc-12.2.x, **i686**/x86_64 (32-bit), **win32**/posix (threads), **dward**/sehs
+    - UCRT runtime is better but only installed by default in Windows 10
+  - [Sourceforce project](https://sourceforge.net/projects/mingw-w64/) (max 8.x, outdated)
+  - [Alt builds](https://github.com/niXman/mingw-builds-binaries/) (12.x)
+  - [Various flavors plus Clang](https://winlibs.com/) (12.x)
+  - Despite the name and config used, works and creates files for 32 or 64-bit Windows as needed
+  - Also get Git for Windows (described later), as it includes program that make compiling with GCC easier.
+  - Make sure the following are on Windows' `PATH` variable:
+    - `C:\mingw-w64\i686-12.2.0-release-win32-sjlj-rt_v10-rev0\mingw32\bin` (path to GCC compiler)
+    - `C:\Git\usr\bin` (from Git, extra Linux utils for Windows)
+    - You can add temp PATH vars in CMD/.bat by typing `set PATH=%PATH%;C:\(path)\`) 
+- [MSYS2](https://www.msys2.org/) environment, with extra required packages
+  - Open the `msys2/mingw32.exe` (or `msys2/mingw64.exe`s) console
+    - using regular `msys2/msys2.exe` may create binaries that depend on `msys*.dll`?
+  - may need to install dependencies using:
+    - `pacman -S git gcc make autotools` (also mingw-w64-i686/mingw-w64-x86_64?)
+
 
 On **Linux** it should be included by default in the distribution, or can be easily installed using the distro's package manager (for example `sudo apt-get install gcc g++ make`).
 
@@ -84,13 +98,13 @@ Any versions that are not too ancient should work, since vgmstream uses standard
 
 ### Microsoft's Visual C++ (MSVC) / Visual Studio / MSBuild (compiler)
 Alt C compiler (**Windows** only), auto-generated builds for Windows use this. Bundled in:
-- Visual Studio (2015/2017/2019/latest): https://www.visualstudio.com/downloads/
+- Visual Studio (2017/2019/2022/latest): https://www.visualstudio.com/downloads/
 
 Visual Studio Community (free) should work, but you may need to register after a trial period. Even after trial you can still use *MSBuild*, command-line tool that actually does all the building, calling the *MSVC* compiler (Visual Studio itself is just an IDE for development and not actually needed).
 
 Instead of the full (usually huge) Visual Studio, you can also get "Build Tools for Visual Studio", variation that only installs *MSBuild* and necessary files without the IDE. Usually found in the above link, under "Tools for Visual Studio" (or google as MS's links tend to move around).
 
-When installing check the "Desktop development with C++" group, and optionally select "MFC support" and "ATL support" sub-options to build foobar2000 plugin (you can modify that or re-install IDE later, by running installed "Visual Studio Installer"). You could include MSVC v141 (2017) compatibility too just in case, since it's mainly tested with that.
+When installing check the "Desktop development with C++" group, and optionally select "MFC support" and "ATL support" sub-options to build foobar2000 plugin (you can modify that or re-install IDE later, by running installed "Visual Studio Installer"). You can include MSVC v142 (2019) toolset, too, just in case, since it's mainly tested with that. foobar2000 plugin needs MSVC v143 (2022), but other components work with earlier versions.
 
 Older versions of MSVC (2010 and earlier) have limited C support and may not work with latest commits, while reportedly beta/new versions aren't always very stable. Also, only projects (`.vcxproj`) for VS2015+ are included (CMake may be able to generate older `.vcproj` if you really need them). Some very odd issues affecting MSVC only have been found and fixed before. Keep in mind all of this if you run into problems.
 
@@ -181,7 +195,15 @@ chmod +x version-get.sh version-make.sh make-build.sh
 A tool used to generate common build files (for *make*, *VS/MSBuild*, etc), that in turn can be used to compile vgmstream's modules instead of using the existing scripts and files. Needs v3.6 or later:
 - https://cmake.org/download/
 
-On **Windows** you can use *cmake-gui*, that should be mostly self-explanatory. You need to set the *source dir*, *build dir*, *config options*, then hit *Configure* to set save options and build type (for example *Visual Studio* project files), then *Generate* to actually create files. If you want to change options, hit *Configure* and *Generate* again.
+On **Windows** you can use *cmake-gui*, that should be mostly self-explanatory but just in case:
+- select vgmstream's project root (vgmstream-master) in *where is the source code* (source dir)
+- select some path in *where to build binaries* (build dir), for example make a `/build` subdir
+- press *Configure* and select project "generator" type, for example *Visual Studio 16 2019*
+  - if you get an error check you have it installed and selected the correct project version
+- should show options in red; check what you need and uncheck what you don't
+- press *Generate*, this creates custom project files in "build binaries" path for your tools
+  - (if you are using *Visual Studio* there is a pre-made `vgmstream_full.sln` file)
+If you want to change options, hit *Configure* and *Generate* again. If you want to change project type, "delete cache" first then repeat steps.
 
 On **Linux**, the CMake script can automatically download and build the source code for dependencies that it requires. It is also capable of creating a statically linked binary for distribution purposes. See `./make-build-cmake.sh` (basically install desired deps then `mkdir -p build && cd build`, `cmake ..`, `make`).
 
@@ -253,7 +275,7 @@ With no extra libs (or only some) enabled vgmstream works fine, but some advance
 
 ## Compiling modules
 
-### CLI (test.exe/vgmstream-cli) / Winamp plugin (in_vgmstream) / XMPlay plugin (xmp-vgmstream)
+### CLI (vgmstream-cli) / Winamp plugin (in_vgmstream) / XMPlay plugin (xmp-vgmstream)
 
 **With GCC/Clang**: there are various ways to build it, each with some differences; you probably want CMake described below.
 
@@ -272,8 +294,9 @@ You may try CMake instead as it may be simpler and handle libs better. See the b
 **Windows** CMD .bat example (with some debugging on):
 ```bat
 prompt $P$G$_$S
-set PATH=C:\Program Files (x86)\Git\usr\bin;%PATH%
-set PATH=C:\Program Files (x86)\mingw-w64\i686-5.4.0-win32-sjlj-rt_v5-rev0\mingw32\bin;%PATH%
+
+set PATH=%PATH%;C:\mingw\i686-12.2.0-release-win32-sjlj-rt_v10-rev0\mingw32\bin
+set PATH=%PATH%;C:\Git\usr\bin
 
 cd vgmstream
 
@@ -292,26 +315,22 @@ If you get build errors, remember you need to adjust compiler/SDK in the `.sln`.
 
 CMake can also be used instead to create project files (no particular benefit).
 
-#### Notes
-While the official name for the CLI tool is `vgmstream-cli`, on **Windows**, `test.exe` is used instead for historical reasons. If you want to reuse it for your project, it's probably better to rename it to `vgmstream-cli.exe`.
-
 
 ### foobar2000 plugin (foo\_input\_vgmstream)
 Requires MSVC (foobar/SDK only links to MSVC C++ DLLs). To build in Visual Studio, run `./msvc-build-init.bat`, open `vgmstream_full.sln` and compile. To build from the command line, just run `./msvc-build.bat`.
 
 foobar has multiple dependencies. Build script downloads them automatically, but here they are:
-- foobar2000 SDK (2018), in *(vgmstream)/dependencies/foobar/*: http://www.foobar2000.org/SDK
+- foobar2000 SDK (2023-01-18), in *(vgmstream)/dependencies/foobar/*: http://www.foobar2000.org/SDK
+  - Needs visual studio 2022 (toolset v143)
 - WTL (if needed), in *(vgmstream)/dependencies/WTL/*: http://wtl.sourceforge.net/
 - (optional/disabled) FDK-AAC, in *(vgmstream)/dependencies/fdk-aac/*: https://github.com/kode54/fdk-aac
 - (optional/disabled) QAAC, in *(vgmstream)/dependencies/qaac/*: https://github.com/kode54/qaac
 - may need to install ATL and MFC libraries if not included by default (can be added from the Visual Studio installer)
 
 The following project modifications are required:
-- For *foobar2000_ATL_helpers* add *../../../WTL/Include* to the compilers's *additional includes*
+- For *foobar2000_sdk_helpers* and *libPPUI* add *../../../wtl/include* to the compilers's *additional includes*
 
 FDK-AAC/QAAC can be enabled adding *VGM_USE_MP4V2* and *VGM_USE_FDKAAC* in the compiler/linker options and the project dependencies, otherwise FFmpeg is used instead to support .mp4. FDK-AAC Support is limited so FFmpeg is recommended.
-
-In theory any foobar SDK should work, but there may be issues when using versions past *2018-02-05*. For those you need to change *RuntimeLibrary* from *MultiThreadedDebug* and *MultiThreaded* to *MultiThreadedDebugDLL* and *MultiThreadedDLL* (to match newer SDK settings). Mirror in case official site is down: https://github.com/vgmstream/vgmstream-deps/raw/master/foobar2000/SDK-2018-02-05.zip
 
 You can also manually use the command line to compile with MSBuild, if you don't want to touch the `.vcxproj` files, register VS after trial, get PowerShell dependencies for the build script, or only have VC++/MSBuild tools.
 
@@ -320,13 +339,13 @@ You can also manually use the command line to compile with MSBuild, if you don't
 prompt $P$G$_$S
 
 REM MSVC ~2015
-REM set PATH=%PATH%;C:\Program Files (x86)\MSBuild\14.0\Bin;%PATH%
-REM Latest(?) MSVC
+REM set PATH=%PATH%;C:\Program Files (x86)\MSBuild\14.0\Bin
+REM Latest(?) MSVC (may also open "Native Tools Command Prompt for VS 20xx" in Windows' start menu)
 set PATH=%PATH%;C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin
 
 cd vgmstream
 
-set CL=/I"C:\projects\WTL\Include"
+set CL=/I"C:\projects\wtl\include"
 set LINK="C:\projects\foobar\foobar2000\shared\shared.lib"
 
 msbuild fb2k/foo_input_vgmstream.vcxproj ^
@@ -342,7 +361,7 @@ msbuild fb2k/foo_input_vgmstream.vcxproj ^
  /p:PlatformToolset=v142 ^
  /p:WindowsTargetPlatformVersion=10.0 ^
  /p:Configuration=Release ^
- /p:DependenciesDir=../..
+ /p:VCmnDependenciesDir=../..
 ```
 
 ### Audacious plugin
@@ -464,149 +483,94 @@ Support for some codecs is done with external libs, instead of copying their cod
 - not all licenses used by libs may allow to copy their code
 - simplifies maintenance and updating
 
-They are compiled in their own sources, and the resulting binary is linked by vgmstream using a few of their symbols.
+They are compiled in their own sources, and the resulting binary is linked by vgmstream using a few of their symbols (see [BUILD-LIB](BUILD-LIB.md) doc).
 
-Currently repo contains pre-compiled external libraries for **Windows** (32-bit Windows DLLs), while other systems link to system libraries. Ideally vgmstream could use libs compiled as static code (thus eliminating the need of DLLs), but involves a bunch of changes.
+Currently vgmstream's repository contains pre-compiled external DLL libraries for **Windows**, while other systems link to system libraries or include static copies using CMake.
 
-Below is a quick explanation of each library and how to compile binaries from them (for **Windows**). Unless mentioned, their latest version should be ok to use, though included DLLs may be a bit older.
-
-MSVC needs a .lib helper to link .dll files, but libs below usually only create .dll (and maybe .def). Instead, those .lib are automatically generated during build step in `ext_libs.vcxproj` from .dll+.def, using lib.exe tool.
-
-
-### libvorbis
+### libvorbis/libogg
 Adds support for Vorbis, inside Ogg as `.ogg` (plain or encrypted) or custom variations like `.wem`, `.fsb`, `.ogl`, etc.
-- Source: http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.6.zip
-- DLL: `libvorbis.dll`
+- Sources:
+  - http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.zip (for base vorbis decoding)
+  - http://downloads.xiph.org/releases/ogg/libogg-1.3.5.zip (for ogg support)
+- Official Windows binaries: none
+  - Commonly used compilations: https://www.rarewares.org/ogg-libraries.php (32-bit only, fusing libogg+libvorbis+libvorbisfile)
+- Version: 1.3.7
+- DLL: `libvorbis.dll` (includes `libogg` + `libvorbis` + `libvorbisfile` for historical reasons)
 - lib: `-lvorbis -lvorbisfile`
-- licensed under the 3-clause BSD license.
-
-Should be buildable with MSVC (in /win32 dir are .sln files) or autotools (use `autogen.sh`).
-
+- licensed under the 3-clause BSD license
 
 ### mpg123
 Adds support for MPEG (MP1/MP2/MP3), used in formats that may have custom MPEG like `.ahx`, `.msf`, `.xvag`, `.scd`, etc.
-- Source: https://sourceforge.net/projects/mpg123/files/mpg123/1.25.10/
-- Builds: http://www.mpg123.de/download/win32/1.25.10/
+- Source: https://sourceforge.net/projects/mpg123/files/mpg123/1.31.1/mpg123-1.31.1.tar.bz2
+  - Git mirror: https://github.com/madebr/mpg123 (commit `aec901b7a636b6eb61e03a87ff3547c787e8c693`)
+  - SVN repository: svn://scm.orgis.org/mpg123/trunk (version: ?)
+- Official Windows binaries:
+  - https://www.mpg123.de/download/win32/1.31.0/mpg123-1.31.0-x86.zip (32-bit)
+  - https://www.mpg123.de/download/win64/1.31.0/mpg123-1.31.0-x86-64.zip (64-bit)
+- Version: 1.32.0 / 1.31.1
 - DLL: `libmpg123-0.dll`
 - lib: `-lmpg123`
 - licensed under the LGPL v2.1
 
-Must use autotools (sh configure, make, make install), though some scripts simplify the process: `makedll.sh`, `windows-builds.sh`.
-
-
 ### libg719_decode
 Adds support for ITU-T G.719 (standardization of Polycom Siren 22), used in a few Namco `.bnsf` games.
-- Source: https://github.com/kode54/libg719_decode
+- Source: https://github.com/kode54/libg719_decode (commit `da90ad8a676876c6c47889bcea6a753f9bbf7a73`)
+- Official Windows binaries: none
+- Version: latest
 - DLL: `libg719_decode.dll`
 - lib: ---
-- unknown license (possibly invalid and Polycom's)
-
-Use MSVC (use `g719.sln`). It can be built with GCC too, for example, using [the CMake script from this repository](../ext_libs/libg719_decode/CMakeLists.txt).
-
+- unknown license (reference decoder, possibly not valid/Polycom's)
 
 ### FFmpeg
-Adds support for multiple codecs: ATRAC3 (`.at3`), ATRAC3plus (`.at3`), XMA1/2 (`.xma`), WMA v1 (`.wma`), WMA v2 (`.wma`), WMAPro (`.xwma`), AAC (`.mp4`, `.aac`), Bink (`.bik`), AC3/SPDIF (`.ac3`), Opus (`.opus`), Musepack (`.mpc`), FLAC (`.flac`), etc.
-- Source: https://github.com/FFmpeg/FFmpeg/
-- DLLs: `avcodec-vgmstream-58.dll`, `avformat-vgmstream-58.dll`, `avutil-vgmstream-56.dll`, `swresample-vgmstream-3.dll`
+Adds support for multiple codecs: ATRAC3 (`.at3`), ATRAC3plus (`.at3`), XMA1/2 (`.xma`), WMA v1 (`.wma`), WMA v2 (`.wma`), WMAPro (`.xwma`), AAC (`.mp4`, `.aac`), Bink (`.bik`), Smacker (`.smk`), AC3/SPDIF (`.ac3`), Opus (`.opus`), Musepack (`.mpc`), FLAC (`.flac`), etc. Vorbis, MPEG and PCM and a few others are also included for rare cases.
+- Source: https://git.ffmpeg.org/ffmpeg.git (tag `n5.1.2`)
+  - Git mirror: https://github.com/FFmpeg/FFmpeg/ (tag `n5.1.2`)
+- Official Windows binaries: none
+- Version: n5.1.2
+- DLLs: `avcodec-vgmstream-59.dll`, `avformat-vgmstream-59.dll`, `avutil-vgmstream-57.dll`, `swresample-vgmstream-4.dll`
 - lib: `-lavcodec -lavformat -lavutil -lswresample`
 - primarily licensed under the LGPL v2.1 or later, with portions licensed under the GPL v2
 
-vgmstream's FFmpeg builds for **Windows** and static builds for **Linux** remove many unnecessary parts of FFmpeg to trim down its gigantic size, and, on Windows, are also built with the "vgmstream-" prefix to avoid clashing with other plugins. Current options can be seen in `ffmpeg_options.txt`. Shared **Linux** builds usually link to system FFmpeg without issues.
-
-Note that the options above use *libopus*, but you can use FFmpeg's *Opus* by removing `--enable-libopus` and changing `--enable-decoder`'s `libopus` to `opus`. libopus is preferable since FFmpeg's Opus decoding is buggy in some files.
-
-For GCC simply use [autotools](#autotools-builds), passing to `./configure` the above options.
-
-For MSCV it can be done through a helper: https://github.com/jb-alvarado/media-autobuild_suite
-
-Both may need yasm somewhere in PATH to properly compile: https://yasm.tortall.net
-
+### libopus
+Indirectly used by FFmpeg for improved Opus (`.opus` and variants) support.
+- Source:  https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz
+  - Git mirror: https://github.com/xiph/opus (tag `v1.3.1`)
+- Official Windows binaries: none
+- Version: v1.3.1
+- DLLs: (part of FFmpeg)
+- lib: (part of FFmpeg)
+- licensed under a variant of the BSD license: https://opus-codec.org/license/
 
 ### LibAtrac9
 Adds support for ATRAC9, used in `.at9` and other formats for the PS4 and Vita.
-- Source: https://github.com/Thealexbarney/LibAtrac9
+- Source: https://github.com/Thealexbarney/LibAtrac9 (commit `6a9e00f6c7abd74d037fd210b6670d3cdb313049`)
+- Official Windows binaries:
+  - https://github.com/Thealexbarney/LibAtrac9/releases (32-bit only, outdated)
+- Version: latest
 - DLL: `libatrac9.dll`
 - lib: `-latrac9` / `-l:libatrac9.a`
 - licensed under the MIT license
 
-Use MSCV and `libatrac9.sln`, or GCC and the Makefile included.
-
-
 ### libcelt
 Adds support for FSB CELT versions 0.6.1 and 0.11.0, used in a handful of older `.fsb`.
 - Source (0.6.1): http://downloads.us.xiph.org/releases/celt/celt-0.6.1.tar.gz
+  - Git mirror: https://gitlab.xiph.org/xiph/celt (tag `v0.6.1`)
 - Source (0.11.0): http://downloads.xiph.org/releases/celt/celt-0.11.0.tar.gz
+  - Git mirror: https://gitlab.xiph.org/xiph/celt (tag `v0.11`)
+- Official Windows binaries: none
+- Versions: 0.6.1, 0.11.0
 - DLL: `libcelt-0061.dll`, `libcelt-0110.dll`
 - lib: `-lcelt-0061` `-lcelt-0110` / `-l:libcelt-0110.a` `-l:libcelt-0061.a`
 - licensed under the MIT license
 
-FSB uses two incompatible, older libcelt versions. Both libraries export the same symbols so normally can't coexist together. To get them working we need to make sure symbols are renamed first. This may be solved in various ways:
-- using dynamic loading (LoadLibrary) but for portability it isn't an option
-- It may be possible to link+rename using .def files
-- Linux/Mingw's objcopy to (supposedly) rename DLL symbols
-- Use GCC's preprocessor to rename functions on compile
-- Rename functions in the source code directly.
-
-To compile we'll use autotools with GCC preprocessor renaming:
-- in the celt-0.6.1 dir:
-  ```bat
-  # creates Makefiles with Automake
-  sh.exe ./configure --build=mingw32 --prefix=/c/celt0.6.1/bin/  --exec-prefix=/c/celt-0.6.1/bin/
-
-  # LDFLAGS are needed to create the .dll (Automake whining)
-  # CFLAGS rename a few CELT functions (we don't import the rest so they won't clash)
-  mingw32-make.exe clean
-  mingw32-make.exe LDFLAGS="-no-undefined" AM_CFLAGS="-Dcelt_decode=celt_0061_decode -Dcelt_decoder_create=celt_0061_decoder_create -Dcelt_decoder_destroy=celt_0061_decoder_destroy -Dcelt_mode_create=celt_0061_mode_create -Dcelt_mode_destroy=celt_0061_mode_destroy -Dcelt_mode_info=celt_0061_mode_info"
-  ```
-- in the celt-0.11.0 dir:
-  ```bat
-  # creates Makefiles with Automake
-  sh.exe ./configure --build=mingw32 --prefix=/c/celt-0.11.0/bin/  --exec-prefix=/c/celt-0.11.0/bin/
-
-  # LDFLAGS are needed to create the .dll (Automake whining)
-  # CFLAGS rename a few CELT functions (notice one is different vs 0.6.1), CUSTOM_MODES is also a must.
-  mingw32-make.exe clean
-  mingw32-make.exe LDFLAGS="-no-undefined" AM_CFLAGS="-DCUSTOM_MODES=1 -Dcelt_decode=celt_0110_decode -Dcelt_decoder_create_custom=celt_0110_decoder_create_custom -Dcelt_decoder_destroy=celt_0110_decoder_destroy -Dcelt_mode_create=celt_0110_mode_create -Dcelt_mode_destroy=celt_0110_mode_destroy -Dcelt_mode_info=celt_0110_mode_info"
-  ```
-- take the .dlls from ./bin/bin, and rename libcelt.dll to libcelt-0061.dll and libcelt-0110.dll respectively.
-- you need to create a .def file for those DLL with the renamed simbol names above
-- finally the includes. libcelt gives "celt.h" "celt_types.h" "celt_header.h", but since we renamed a few functions we have a simpler custom .h with minimal renamed symbols.
-
-For **Linux**, you can use CMake that similarly patch celt libs automatically.
-
-You can also get them from the official git (https://gitlab.xiph.org/xiph/celt) call `./autogen.sh` first, then pass call configure/make with renames (see `./make-build.sh`).
-
-Instead of passing `-DCUSTOM_MODES=1` to `make` you can pass `--enable-custom-codes` to *./configure*. There is also `--disable-oggtests`, `--disable-static/shared` and typical config. Note that if *./configure* finds Ogg in your system it'll try to build encoder/decoder test `tools` (that depend on libogg). There is no official way disable that or compile `libcelt` only, but you can force it by calling `make SUBDIRS=libcelt DIST_SUBDIRS=libcelt`, in case you have dependency issues.
-
 ### libspeex
 Adds support for Speex (inside custom containers), used in a few *EA* formats (`.sns`, `.sps`) for voices.
-- Source: http://downloads.us.xiph.org/releases/speex/speex-1.2.0.tar.gz
-- DLL: `libspeex.dll`
+- Source: http://downloads.us.xiph.org/releases/speex/speex-1.2.1.tar.gz
+  - Git: https://gitlab.xiph.org/xiph/speex (tag `Speex-1.2.1`)
+  - Github: https://github.com/xiph/speex/releases/tag/Speex-1.2.1
+- Official Windows binaries:
+  - http://downloads.xiph.org/releases/speex/speex-1.2beta3-win32.zip (32-bit only, outdated)
+- Version: Speex-1.2.1 (latest)
+- DLL: `libspeex-1.dll`
 - lib: `-lspeex`
-- licensed under the Xiph.Org variant of the BSD license.
-  https://www.xiph.org/licenses/bsd/speex/
-
-Should be buildable with MSVC (in /win32 dir are .sln files, but not up to date and may need to convert .vcproj to vcxproj) or autotools (use `autogen.sh`, or script below).
-
-You can also find a release on Github (https://github.com/xiph/speex/releases/tag/Speex-1.2.0). It has newer timestamps and some different helper files vs Xiph's release, but actual lib should be the same. Notably, Github's release *needs* `autogen.sh` that calls `autoreconf` to generate a base `configure` script, while Xiph's pre-includes `configure`. Since getting autoreconf working on **Windows** can be quite involved, Xiph's release is recommended on that platform.
-
-**Windows** CMD example:
-```bat
-set PATH=%PATH%;C:\mingw\i686-8.1.0-release-win32-sjlj-rt_v6-rev0\mingw32\bin
-set PATH=%PATH%;C:\Git\usr\bin
-
-sh ./configure --host=mingw32 --prefix=/c/celt-0.11.0/bin/  --exec-prefix=/c/celt-0.11.0/bin/
-mingw32-make.exe LDFLAGS="-no-undefined -static-libgcc" MAKE=mingw32-make.exe
-mingw32-make.exe MAKE=mingw32-make.exe install
-```
-If all goes well, use generated .DLL in ./bin/bin (may need to rename to libspeex.dll) and ./win32/libspeex.def, and speex folder with .h in bin/include.
-
-
-### maiatrac3plus
-This lib was used as an alternate for ATRAC3PLUS decoding. Now this is handled by FFmpeg, though some code remains for now.
-
-It was a straight-up decompilation from Sony's libs (presumably those found in SoundForge), without any clean-up or actual reverse engineering, thus legally and morally dubious.
-
-It doesn't do encoder delay properly, but on the other hand decoding is 100% accurate unlike FFmpeg (probably inaudible though).
-
-So, don't use it unless you have a very good reason.
+- licensed under the Xiph.Org variant of the BSD license: https://www.xiph.org/licenses/bsd/speex/

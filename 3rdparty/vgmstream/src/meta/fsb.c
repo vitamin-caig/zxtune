@@ -112,15 +112,20 @@ VGMSTREAM* init_vgmstream_fsb(STREAMFILE* sf) {
     fsb_header fsb = {0};
 
 
-    /* checks
-     * .fsb: standard
-     * .bnk: Hard Corps Uprising (PS3) */
-    if ( !check_extensions(sf, "fsb,bnk") )
+    /* checks */
+    if ((read_u32be(0x00,sf) & 0xFFFFFF00) != get_id32be("FSB\0"))
         goto fail;
 
-    /* check header */
-    fsb.id = read_32bitBE(0x00,sf);
-    if (fsb.id == 0x46534231) { /* "FSB1" (somewhat different from other fsbs) */
+    /* .fsb: standard
+     * .bnk: Hard Corps Uprising (PS3)
+     * .sfx: Geon Cube (Wii)
+     * .ps3: Neversoft games (PS3)     
+     * .xen: Neversoft games (X360/PC) */
+    if ( !check_extensions(sf, "fsb,bnk,sfx,ps3,xen") )
+        goto fail;
+
+    fsb.id = read_u32be(0x00,sf);
+    if (fsb.id == get_id32be("FSB1")) {
         fsb.meta_type = meta_FSB1;
         fsb.base_header_size = 0x10;
         fsb.sample_header_min = 0x40;
@@ -132,7 +137,8 @@ VGMSTREAM* init_vgmstream_fsb(STREAMFILE* sf) {
         fsb.version = 0;
         fsb.flags = 0;
 
-        if (fsb.total_subsongs > 1) goto fail;
+        if (fsb.total_subsongs > 1)
+            goto fail;
 
         /* sample header (first stream only, not sure if there are multi-FSB1) */
         {
@@ -159,16 +165,16 @@ VGMSTREAM* init_vgmstream_fsb(STREAMFILE* sf) {
             fsb.stream_offset = fsb.base_header_size + fsb.sample_headers_size;
         }
     }
-    else { /* other FSBs (common/extended format) */
-        if (fsb.id == 0x46534232) { /* "FSB2" */
+    else {
+        if (fsb.id == get_id32be("FSB2")) {
             fsb.meta_type = meta_FSB2;
             fsb.base_header_size  = 0x10;
             fsb.sample_header_min = 0x40; /* guessed */
-        } else if (fsb.id == 0x46534233) { /* "FSB3" */
+        } else if (fsb.id == get_id32be("FSB3")) {
             fsb.meta_type = meta_FSB3;
             fsb.base_header_size  = 0x18;
             fsb.sample_header_min = 0x40;
-        } else if (fsb.id == 0x46534234) { /* "FSB4" */
+        } else if (fsb.id == get_id32be("FSB4")) {
             fsb.meta_type = meta_FSB4;
             fsb.base_header_size  = 0x30;
             fsb.sample_header_min = 0x50;
@@ -183,7 +189,7 @@ VGMSTREAM* init_vgmstream_fsb(STREAMFILE* sf) {
         if (fsb.base_header_size > 0x10) {
             fsb.version = read_32bitLE(0x10,sf);
             fsb.flags   = read_32bitLE(0x14,sf);
-            /* FSB4: 0x18(8):hash  0x20(10):guid */
+            /* FSB4: 0x18(8):hash, 0x20(10):guid */
         } else {
             fsb.version = 0;
             fsb.flags   = 0;
@@ -289,7 +295,7 @@ VGMSTREAM* init_vgmstream_fsb(STREAMFILE* sf) {
     /* sometimes there is garbage at the end or missing bytes due to improper ripping */
     vgm_asserti(fsb.base_header_size + fsb.sample_headers_size + fsb.sample_data_size != get_streamfile_size(sf),
                "FSB wrong head/data_size found (expected 0x%x vs 0x%x)\n",
-               fsb.base_header_size + fsb.sample_headers_size + fsb.sample_data_size, get_streamfile_size(sf));
+               fsb.base_header_size + fsb.sample_headers_size + fsb.sample_data_size, (uint32_t)get_streamfile_size(sf));
 
     /* autodetect unwanted loops */
     {
@@ -383,19 +389,15 @@ VGMSTREAM* init_vgmstream_fsb(STREAMFILE* sf) {
 
 #ifdef VGM_USE_FFMPEG
         case XMA: { /* FSB3: The Bourne Conspiracy 2008 (X360), FSB4: Armored Core V (X360), Hard Corps (X360) */
-            uint8_t buf[0x100];
-            size_t bytes, block_size, block_count;
+            int block_size = 0x8000; /* FSB default */
 
-            if (fsb.version != FMOD_FSB_VERSION_4_0) { /* 3.x, though no actual output changes [ex. Guitar Hero III (X360)] */
-                bytes = ffmpeg_make_riff_xma1(buf, sizeof(buf), fsb.num_samples, fsb.stream_size, fsb.channels, fsb.sample_rate, 0);
+            if (fsb.version != FMOD_FSB_VERSION_4_0) {
+                /* 3.x, though no actual output changes [ex. Guitar Hero III (X360), The Bourne Conspiracy (X360)] */
+                vgmstream->codec_data = init_ffmpeg_xma1_raw(sf, fsb.stream_offset, fsb.stream_size, fsb.channels, fsb.sample_rate, 0);
             }
             else {
-                block_size = 0x8000; /* FSB default */
-                block_count = fsb.stream_size / block_size; /* not accurate but not needed (custom_data_offset+0x14 -1?) */
-
-                bytes = ffmpeg_make_riff_xma2(buf, sizeof(buf), fsb.num_samples, fsb.stream_size, fsb.channels, fsb.sample_rate, block_count, block_size);
+                vgmstream->codec_data = init_ffmpeg_xma2_raw(sf, fsb.stream_offset, fsb.stream_size, fsb.num_samples, fsb.channels, fsb.sample_rate, block_size, 0);
             }
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf,bytes, fsb.stream_offset,fsb.stream_size);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;

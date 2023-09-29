@@ -24,7 +24,8 @@ VGMSTREAM * init_vgmstream_2dx9(STREAMFILE *streamFile) {
     if (read_32bitBE(0x6a,streamFile) != 0x64617461) /* data */
         goto fail;
 
-    loop_flag = 0;
+    /* Some data loop from beginning to the end by hardcoded flag so cannot be recognized from sound file */
+    loop_flag = (read_32bitLE(0x14,streamFile) > 0);
     channel_count = read_16bitLE(0x2e,streamFile);
     start_offset = 0x72;
     
@@ -35,6 +36,11 @@ VGMSTREAM * init_vgmstream_2dx9(STREAMFILE *streamFile) {
     vgmstream->meta_type = meta_2DX9;
     vgmstream->sample_rate = read_32bitLE(0x30,streamFile);
     vgmstream->num_samples = read_32bitLE(0x66,streamFile);
+    if (loop_flag) {
+        vgmstream->loop_start_sample = read_32bitLE(0x14,streamFile) / 2 / channel_count;
+        vgmstream->loop_end_sample = vgmstream->num_samples;
+    }
+
     vgmstream->coding_type = coding_MSADPCM;
     vgmstream->layout_type = layout_none;
     vgmstream->frame_size  = read_16bitLE(0x38,streamFile);

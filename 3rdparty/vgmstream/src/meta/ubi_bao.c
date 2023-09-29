@@ -1,6 +1,7 @@
 #include "meta.h"
 #include "../layout/layout.h"
 #include "../coding/coding.h"
+#include "../util/endianness.h"
 #include "ubi_bao_streamfile.h"
 
 #define BAO_MIN_VERSION 0x1B
@@ -275,7 +276,7 @@ static VGMSTREAM* init_vgmstream_ubi_bao_base(ubi_bao_header* bao, STREAMFILE* s
             vgmstream->coding_type = coding_NGC_DSP;
             vgmstream->layout_type = layout_interleave;
             vgmstream->interleave_block_size = bao->stream_size / bao->channels;
-VGM_LOG("dsp=%x, %x, %x\n", bao->header_offset, bao->header_size, bao->extra_size);
+
             /* mini DSP header (first 0x10 seem to contain DSP header fields like nibbles and format) */
             dsp_read_coefs_be(vgmstream, streamHead, bao->header_offset + bao->header_size + bao->extra_size + 0x10, 0x40);
             dsp_read_hist_be (vgmstream, streamHead, bao->header_offset + bao->header_size + bao->extra_size + 0x34, 0x40); /* after gain/initial ps */
@@ -286,10 +287,9 @@ VGM_LOG("dsp=%x, %x, %x\n", bao->header_offset, bao->header_size, bao->extra_siz
         case RAW_XMA1:
         case RAW_XMA2_OLD:
         case RAW_XMA2_NEW: {
-            uint8_t buf[0x100];
-            size_t bytes, chunk_size, data_size;
+            size_t chunk_size, data_size;
             off_t chunk_offset;
-            STREAMFILE* streamXMA;
+            STREAMFILE* sf_xma;
 
             switch(bao->codec) {
                 case RAW_XMA1:      chunk_size = 0x20; break;
@@ -339,26 +339,19 @@ VGM_LOG("dsp=%x, %x, %x\n", bao->header_offset, bao->header_size, bao->extra_siz
                 header_size += align_size_to_block(sec2_num * bits_per_frame, 32) / 8; /* bitstream seek table? */
                 header_size += sec3_num * 0x08;
 
-                streamXMA = streamData;
+                sf_xma = streamData;
                 chunk_offset = 0x00;
                 start_offset += header_size;
                 data_size = sec2_num * frame_size;
             }
             else {
-                streamXMA = streamHead;
+                sf_xma = streamHead;
                 chunk_offset = bao->header_offset + bao->header_size;
                 start_offset = 0x00;
                 data_size = bao->stream_size;
             }
 
-            if (bao->codec == RAW_XMA2_OLD) {
-                bytes = ffmpeg_make_riff_xma2_from_xma2_chunk(buf,0x100, chunk_offset, chunk_size, data_size, streamXMA);
-            }
-            else {
-                bytes = ffmpeg_make_riff_xma_from_fmt_chunk(buf,0x100, chunk_offset, chunk_size, data_size, streamXMA, 1);
-            }
-
-            vgmstream->codec_data = init_ffmpeg_header_offset(streamData, buf, bytes, start_offset, data_size);
+            vgmstream->codec_data = init_ffmpeg_xma_chunk(sf_xma, start_offset, data_size, chunk_offset, chunk_size);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -1368,7 +1361,7 @@ static STREAMFILE* open_atomic_bao(ubi_bao_file file_type, uint32_t file_id, int
                     snprintf(buf,buf_size, "%08x.bao", file_id);
                     sf_bao = open_streamfile_by_filename(sf, buf);
                     if (sf_bao) return sf_bao;
-				}
+                }
                 else {
                     /* %08x.sbao nomenclature (in addition to %08x.bao) present in Shaun White Snowboarding (Windows Vista) exe. */
                     snprintf(buf,buf_size, "%08x.sbao", file_id);
@@ -1578,7 +1571,7 @@ static void config_bao_endian(ubi_bao_header* bao, off_t offset, STREAMFILE* sf)
      * This could be done once as all BAOs share endianness */
 
     /* negate as fields looks like LE (0xN0000000) */
-    bao->big_endian = !guess_endianness32bit(offset+bao->cfg.bao_class, sf);
+    bao->big_endian = !guess_endian32(offset+bao->cfg.bao_class, sf);
 }
 
 
@@ -1722,7 +1715,7 @@ static int config_bao_version(ubi_bao_header* bao, STREAMFILE* sf) {
 
         /* next BAO uses machine endianness, entry should always exist
          * (maybe should use project BAO to detect?) */
-        if (guess_endianness32bit(header_size + 0x04, sf)) {
+        if (guess_endian32(header_size + 0x04, sf)) {
             version |= 0xFF00; /* signal Wii=BE, but don't modify original */
         }
     }

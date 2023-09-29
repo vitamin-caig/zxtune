@@ -183,7 +183,11 @@ class TxtpInfo(object):
             return str_cut.split()[0].strip()
 
     def _get_text(self, str):
-        return self._get_string(str, full=True)
+        text = self._get_string(str, full=True)
+        # stream names in CLI is printed as UTF-8 using '\xNN', so detect and transform
+        if text and '\\' in text:
+            return text.encode('ascii').decode('unicode-escape').encode('iso-8859-1').decode('utf-8')
+        return text
 
     def _get_value(self, str):
         res = self._get_string(str)
@@ -422,7 +426,7 @@ class TxtpMaker(object):
             if cfg.layers and cfg.layers < self.info.channels:
                 done = 0
                 for layer in range(0, self.info.channels, cfg.layers):
-                    sub = chr(ord('a') + done)
+                    sub = '_' + chr(ord('a') + done)
                     done += 1
                     mask = self._get_stream_mask(layer)
                     self._add(outname + sub, line + mask)
@@ -504,8 +508,8 @@ class App(object):
         if self.cfg.cli:
             clis.append(self.cfg.cli)
         else:
-            clis.append('vgmstream_cli')
-            clis.append('test.exe')
+            clis.append('vgmstream-cli')
+            clis.append('test.exe') #for old CLIs
 
         for cli in clis:
             try:

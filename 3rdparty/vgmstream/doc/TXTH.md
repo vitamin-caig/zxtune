@@ -34,6 +34,7 @@ Extension must be accepted/added to vgmstream (plugins like foobar2000 only load
 
 Note that TXTH has *lower* priority than most (not all) vgmstream formats, by design. This means your `.txth` may be ignored if vgmstream thinks it can play your file better. If vgmstream plays your file somewhat off, rather renaming to force a `.txth`, report the bug so that and similar cases can be fixed. TXTH isn't meant to be a replacement of vgmstream's parsers, but a way to play cases that aren't a good fit be added directly to vgmstream.
 
+If you put `debug = 1` on top of the TXTP, vgmstream will ouput to the plugin/CLI's console some info about values being read, useful while testing more complex cases.
 
 ## Available commands
 The file is made of lines with `key = value` commands describing a header. Commands are all case sensitive and spaces are optional: `key=value`, `key  =   value`, and so on are all ok, while `Key = VaLuE` is not. Comments start with `#` and can be inlined.
@@ -52,8 +53,7 @@ The following can be used in place of `(value)` for `(key) = (value)` commands.
   * `:LE|BE`: value is little/big endian (optional, defaults to LE)
   * `$1|2|3|4`: value has size of 8/16/24/32 bit (optional, defaults to 4)
   * Example: `@0x10:BE$2` means `get big endian 16b value at 0x10`
-- `(field)`: uses current value of some fields. Accepted strings:
-  - `interleave, interleave_last, channels, sample_rate, start_offset, data_size, num_samples, loop_start_sample, loop_end_sample, subsong_count, subsong_spacing, subfile_offset, subfile_size, base_offset, name_valueX`
+- `(field)`: uses current value of some fields (`interleave`, `channels`, `start_offset`, `data_size`, `num_samples`, `subsong_count`, `subfile_size`, `base_offset`, `name_valueX`, etc)
   - `subsong` is a special field for current subsong
 - `(other)`: other special values for certain keys, described per key
 
@@ -69,10 +69,11 @@ as explained below, but often will use default values. Accepted codec strings:
 #   * For many PS1/PS2/PS3 games
 #   * Interleave is multiple of 0x10 (default), often +0x1000
 # - PSX_bf         PlayStation ADPCM with bad flags
-#   * Variation with garbage data, for rare PS2 games
-# - XBOX           Xbox IMA ADPCM (mono/stereo)
-#   * For many XBOX games, and some PC games
-#   * Special interleave is multiple of 0x24 (mono) or 0x48 (stereo)
+#   * Variation with garbage data, for rare PS2 games [Fatal Frame (PS2), namCollection: Tekken (PS2)]
+# - HEVAG          Vita/PS4 ADPCM
+#   * For some Vita/PS4 games
+#   * Interleave is multiple of 0x10 (default)
+#
 # - DSP|NGC_DSP    Nintendo GameCube ADPCM
 #   * For many GC/Wii/3DS/Switch games
 #   * Interleave is multiple of 0x08 (default), often +0x1000
@@ -80,6 +81,7 @@ as explained below, but often will use default values. Accepted codec strings:
 #   * Should set ADPCM state (hist_offset/spacing/etc)
 # - DTK|NGC_DTK    Nintendo ADP/DTK ADPCM
 #   * For rare GC games
+#
 # - PCM16LE        PCM 16-bit little endian
 #   * For many games (usually on PC)
 #   * Interleave is multiple of 0x2 (default)
@@ -92,27 +94,62 @@ as explained below, but often will use default values. Accepted codec strings:
 #   * Variation with modified encoding
 # - PCM8_U_int     PCM 8-bit unsigned (interleave block)
 #   * Variation with modified encoding
+# - PCM8_SB        PCM 8-bit with sign bit
+#   * Variation with modified encoding
+#   * For few rare games [Sonic CD (SCD)]
+# - PCM24LE        PCM 24-bit little endian
+#   * For few rare games [100% Orange Juice (PC)-sfx]
+#   * Interleave is multiple of 0x3 (default)
+# - PCM24BE        PCM 24-bit little endian
+#   * For few rare games [Deadly Premonition (PS3)]
+#   * Interleave is multiple of 0x3 (default)
+# - PCM_FLOAT_LE   PCM 32-bit float little endian
+#   * For few rare games [Ikinari Maou (Switch)]
+#   * Interleave is multiple of 0x4 (default)
+#
+# - ULAW           mu-Law 8-bit PCM
+#   * For few rare games [Burnout (GC)]
+#   * Interleave is multiple of 0x1 (default)
+# - ALAW           A-Law 8-bit PCM
+#   * For few rare games [Illwinter Game Design games: Conquest of Elysium 3 (PC), Dominions 3/4 (PC)]
+#   * Interleave is multiple of 0x1 (default)
+#
 # - IMA            IMA ADPCM (mono/stereo)
 #   * For some PC games, and rarely consoles
 #   * Special interleave is multiple of 0x1, often +0x80
 # - DVI_IMA        IMA ADPCM (DVI order)
 #   * Variation with modified encoding
-# - AICA           Yamaha AICA ADPCM (mono/stereo)
-#   * For some Dreamcast games, and some arcade (Naomi) games
-#   * Special interleave is multiple of 0x1
-# - APPLE_IMA4     Apple Quicktime IMA ADPCM
-#   * For some Mac/iOS games
+# - XBOX           Xbox IMA ADPCM (mono/stereo)
+#   * For many XBOX games, and some PC games
+#   * Special interleave is multiple of 0x24 (mono) or 0x48 (stereo)
 # - MS_IMA         Microsoft IMA ADPCM
 #   * For some PC games
 #   * Interleave (frame size) varies, often multiple of 0x100 [required]
+# - APPLE_IMA4     Apple Quicktime IMA ADPCM
+#   * For some Mac/iOS games
+# - IMA_HV         High Voltage's IMA ADPCM
+#   * For some High Voltage Software PC games [NBA Hangtime (PC), NHL Open Ice (PC)]
+#
 # - MSADPCM        Microsoft ADPCM (mono/stereo)
 #   * For some PC games
-#   * Interleave (frame size) varies, often multiple of 0x100 [required]
+#   * Interleave (frame size) varies, often 0x2c/0x8c/0x100/0x400 and max 0x800 [required]
+
+# - AICA           Yamaha AICA ADPCM (mono/stereo)
+#   * For some Dreamcast games, and some arcade (Naomi) games
+#   * Special interleave is multiple of 0x1
+# - YMZ           Yamaha YMZ263B/YMZ280B ADPCM (mono/stereo)
+#   * Variation of AICA
+#   * For rare arcade games [VJ: Visual & Music Slap (AC)]
+# - CP_YM          Capcom's Yamaha ADPCM
+#   * For rare Saturn games [Marvel Super Heroes vs Street Fighter (SAT)]
+#
 # - SDX2           Squareroot-delta-exact 8-bit DPCM
 #   * For many 3DO games
+#
 # - MPEG           MPEG Audio Layer file (MP1/2/3)
 #   * For some games (usually PC/PS3)
-#   * May set skip_samples
+#   * May set skip_samples (MP2: around 240 or 480, MP3: around 1152)
+#
 # - ATRAC3         Sony ATRAC3
 #   * For some PS2 and PS3 games
 #   * Interleave (frame size) can be 0x60/0x98/0xC0 * channels [required]
@@ -124,43 +161,45 @@ as explained below, but often will use default values. Accepted codec strings:
 #     Stereo: 0x0118|0178|0230|02E8|03A8|0460|05D0|0748|0800
 #     6/8 channels: multiple of one of the above
 #   * Should set skip_samples (around 2048+184 but varies)
+#
 # - XMA1           Microsoft XMA1
 #   * For early X360 games
 # - XMA2           Microsoft XMA2
 #   * For later X360 games
-# - FFMPEG         Any headered FFmpeg format
-#   * For uncommon games
-#   * May set skip_samples
+#
 # - AC3            AC3/SPDIF
 #   * For few PS2 games
 #   * Should set skip_samples (around 256 but varies)
+# - AAC            Advanced Audio Coding (raw outside .mp4)
+#   * For some 3DS games and many iOS games
+#   * Should set skip_samples (typically 1024 but varies, 2112 is also common)
+# - FFMPEG         Any headered FFmpeg format
+#   * For uncommon games
+#   * May set skip_samples
+#
+# - OKI16          OKI ADPCM with 16-bit output (not VOX/Dialogic 12-bit)
+#   * For rare PS2 games [Sweet Legacy (PS2), Hooligan (PS2)]
+# - OKI4S          OKI ADPCM with 16-bit output and adjusted tables
+#   * For later Konami arcade games [Gitadora (AC), Metal Gear Arcade (AC)]
 # - PCFX           PC-FX ADPCM
 #   * For many PC-FX games
 #   * Interleave is multiple of 0x1, often +0x8000
 #   * Sample rate may be ~31468/~15734/~10489/~7867
+#
 # - PCM4           PCM 4-bit signed
 #   * For early consoles
 # - PCM4_U         PCM 4-bit unsigned
 #   * Variation with modified encoding
-# - OKI16          OKI ADPCM with 16-bit output (not VOX/Dialogic 12-bit)
-#   * For rare PS2 games [Sweet Legacy (PS2), Hooligan (PS2)]
-# - OKI4S          OKI ADPCM with 16-bit output and adjusted tables
-#   * For later Konami rhythm games
-# - AAC            Advanced Audio Coding (raw outside .mp4)
-#   * For some 3DS games and many iOS games
-#   * Should set skip_samples (typically 1024 but varies, 2112 is also common)
 # - TGC            Tiger Game.com 4-bit ADPCM
 #   * For Tiger Game.com games
 # - ASF            Argonaut ASF ADPCM
 #   * For rare Argonaut games [Croc (SAT)]
 # - EAXA           Electronic Arts EA-XA ADPCM
 #   * For rare EA games [Harry Potter and the Chamber of Secrets (PC)]
-# - XA             CD-XA ADPCM (ISO 2048 mode1/data streams without subchannels)
+# - XA             CD-XA ADPCM (ISO 2048 mode1 streams without subchannel data)
 #   * For rare Saturn and PS2 games [Phantasy Star Collection (SAT), Fantavision (PS2), EA SAT videos]
 # - XA_EA         Electronic Arts XA ADPCM variation
 #   * For rare Saturn games [EA SAT videos]
-# - CP_YM          Capcom's Yamaha ADPCM
-#   * For rare Saturn games [Marvel Super Heroes vs Street Fighter (SAT)]
 codec = (codec string)
 ```
 
@@ -305,7 +344,7 @@ Special values:
 Sometimes games give loop flags different meaning, so behavior can be tweaked by defining `loop_behavior` before `loop_flag`:
 - `default`: values 0 or 0xFFFF/0xFFFFFFFF (-1) disable looping, but not 0xFF (loop endlessly)
 - `negative`: values 0xFF/0xFFFF/0xFFFFFFFF (-1) enable looping
-- `positive`: values 0xFF/0xFFFF/0xFFFFFFFF (-1) disable looping
+- `positive`: values 0xFF/0xFFFF/0xFFFFFFFF (-1) disable looping (0 also enables it)
 - `inverted`: values not 0 disable looping
 
 ```
@@ -333,9 +372,10 @@ skip_samples = (value)
 #### DSP DECODING COEFFICIENTS [REQUIRED for DSP]
 DSP needs a "coefs" list to decode correctly. These are 8*2 16-bit values per channel, starting from `coef_offset`.
 
-Usually each channel uses its own list, so we may need to set separation per channel, usually 0x20 (16 values * 2 bytes). So channel N coefs are read at `coef_offset + coef_spacing * N`
 
-Those 16-bit coefs can be little or big endian (usually BE), set `coef_endianness` directly or in an offset value where `0=LE, >0=BE`.
+They typically look like positive-negative values one after other (0x0nnn 0xFnnn 0x...). Usually each channel uses its own list, so we may need to set `coef_spacing` (separation per channel), often 0x20 (16 values * 2 bytes). Channel N coefs are read at offset `coef_offset + coef_spacing * ch`.
+
+Those 16-bit coefs can be little or big endian (BE in GC/Wii, LE in 3DS/Switch). Set `coef_endianness` directly or in an offset value where `0=LE, >0=BE`. This also allows adding a `_split` suffix, that means coefs are divided into 8 positive then 8 negatives (instead of the usual 1 positive, 1 negative up to 16), as found in a few Capcom games.
 
 While the coef table is almost always included per-file, some games have their coef table in the executable or precalculated somehow. You can set inline coefs instead of coef_offset. Format is a long string of bytes (optionally space-separated) like `coef_table = 0x1E02DE01 3C0C0EFA ...`. You still need to set `coef_spacing` and `coef_endianness` though.
 
@@ -343,7 +383,7 @@ While the coef table is almost always included per-file, some games have their c
 ```
 coef_offset = (value)
 coef_spacing = (value)
-coef_endianness = BE|LE|(value)
+coef_endianness = BE|LE|BE_split|LE_split\(value)
 coef_table = (string)
 ```
 
@@ -385,11 +425,13 @@ Sets the number of subsongs in the file, adjusting reads per subsong N: `value =
 
 Instead of `subsong_spacing` you can use `subsong_offset` (older alias).
 
-Mainly for bigfiles with consecutive headers per subsong, set subsong_offset to 0 when done as it affects any reads. The current subsong number is handled externally by plugins or TXTP.
+Mainly for bigfiles with consecutive headers per subsong, set `subsong_offset` to 0 when done as it affects any reads. The current subsong number is handled externally by plugins or TXTP.
 ```
 subsong_count = (value)
 subsong_spacing = (value)
 ```
+
+A experimental field is `subsong_sum = (value)`, that sums all subsong values up to current subsong. Mainly meant when offsets are the sum of subsong sizes: if you have a table of sizes at 0x10 for 3 subsongs, each of size 0x1000, then `subsong_sum = @0x10` for first subsong sums 0x0000, 0x1000 for second, 0x2000 for third (can be used later as `start_offset = subsong_sum`).
 
 #### NAMES
 Sets the name of the stream, most useful when used with subsongs. TXTH will read a string at `name_offset`, with `name_size characters`.
@@ -434,24 +476,29 @@ Optional settings (set before main):
   - If size is 0x1000 and data_size 0x800 last 0x200 is ignored padding. 
 
 Dynamic settings (set before main, requires `chunk_header_size`):
-- `chunk_value`: ignores chunks that don't match this value at chunk offset 0x00 (32-bit, in `chunk_endianness`)
-- `chunk_size_offset`: reads chunk size at this offset, in header (32-bit in `chunk_endianness`). 
-- `chunk_endianness`: sets endianness of the above values
+- `chunk_value`: ignores chunks that don't match this value at chunk offset 0x00 (32-bit, in `chunk_endianness`). Can be used to ignore video chunks in movie files, for example.
+- `chunk_size_offset`: reads chunk size at this offset, in header (32-bit in `chunk_endianness`). For chunks of dynamic sizes (no need to set `chunk_size` as will be ignored). Includes header size.
+- `chunk_data_size_offset`: same, for data sizes (not including headers). Note that you can use header+data+size configs to handle padding between blocks.
+- `chunk_endianness`: sets endianness of the above two settings.
 
-For technical reasons, "dechunking" activates when setting all main settings, so set optional config first. Note that config is static (not per-chunk), so `chunk_size = @0x10` is read from the beginning of the file once, not every time a new chunk is found.
+For technical reasons, "dechunking" activates when setting all main settings, so set optional config first. Note that `chunk_size` is static (read once from a fixed offset) while `chunk_size_offset` is dynamic (read on every chunk).
 
 ```
-chunk_count = (value)
-chunk_start = (value)
-chunk_size = (value)
-
+# optional - fixed
 chunk_number = (value)
 chunk_header_size = (value)
 chunk_data_size = (value)
 
+# optional - dynamic
 chunk_value = (value)
 chunk_size_offset = (value)
-chunk_endian = LE|BE
+chunk_data_size_offset = (value)
+chunk_endianness = LE|BE
+
+# main
+chunk_count = (value)
+chunk_start = (value)
+chunk_size = (value)
 ```
 
 #### NAME TABLE
@@ -587,10 +634,10 @@ data_size = @0x100          # useless as num_samples is already transformed
 ### Redefining values
 Some commands alter the function of all next commands and can be redefined as needed:
 ```
-samples_type = bytes
+sample_type = bytes
 num_samples = @0x10
 
-samples_type = sample
+sample_type = sample
 loop_end_sample = @0x14
 ```
 
@@ -1068,6 +1115,21 @@ channels = 2
 #loops are in MM.BIN, table at 0x80700 + id*4 - 0x06018B00
 ```
 
+#### Sonic CD (SCD) .stm.txth
+```
+#-- for files with video, remove if demuxed
+chunk_count     = 1
+chunk_start     = 0x00
+chunk_data_size = 0x8000
+chunk_size      = 0x25800
+#--
+
+codec = PCM8_SB
+channels = 1
+sample_rate = 32768 #32500?
+num_samples = data_size
+```
+
 #### Sega Rally 3 (SAT) ALL_SOUND.txth
 ```
 codec             = PCM16LE
@@ -1232,7 +1294,7 @@ loop_start = @0x28:BE
 loop_flag = @0x2c:BE
 ```
 
-#### Grand Theft Auto: San Andreas .vgmstream.txth
+#### Grand Theft Auto: San Andreas (PS2) .vgmstream.txth
 ```
 # once extracted from bigfiles there are 2 types of files with hardcoded settings,
 # so we need 2 .txth
@@ -1301,4 +1363,24 @@ num_samples = data_size
 # base_offset, interleave, chunk_header_size, chunk_data_size
 #1: 0x1F40, 0x800,   0x00,   0x1000
 #2: 0x1F50, 0x10000, 0x1000, 0x20000
+```
+
+#### LEGO Batman 2 (Wii) .fmv.txth
+```
+# "dechunks" videos with dynamic chunks realtime and plays audio only
+
+codec = IMA
+channels = 2
+sample_rate = @0x20
+
+# each chunk is 0x00: ID + 0x04 data size (not including header)
+chunk_number = 1
+chunk_header_size = 0x08
+chunk_value = 0x00414D46 #"FMA\0" LE
+chunk_data_size_offset = 0x04
+
+chunk_count = 1
+chunk_start = 0x28 #first chunk after header
+
+num_samples = data_size
 ```

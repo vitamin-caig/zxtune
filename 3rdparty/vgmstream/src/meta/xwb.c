@@ -32,24 +32,24 @@ typedef struct {
     int version;
 
     /* segments */
-    off_t base_offset;
-    size_t base_size;
-    off_t entry_offset;
-    size_t entry_size;
-    off_t names_offset;
-    size_t names_size;
-    size_t names_entry_size;
-    off_t extra_offset;
-    size_t extra_size;
-    off_t data_offset;
-    size_t data_size;
+    uint32_t base_offset;
+    uint32_t base_size;
+    uint32_t entry_offset;
+    uint32_t entry_size;
+    uint32_t names_offset;
+    uint32_t names_size;
+    uint32_t names_entry_size;
+    uint32_t extra_offset;
+    uint32_t extra_size;
+    uint32_t data_offset;
+    uint32_t data_size;
 
-    off_t stream_offset;
-    size_t stream_size;
+    uint32_t stream_offset;
+    uint32_t stream_size;
 
     uint32_t base_flags;
-    size_t entry_elem_size;
-    size_t entry_alignment;
+    uint32_t entry_elem_size;
+    uint32_t entry_alignment;
     int total_subsongs;
 
     uint32_t entry_flags;
@@ -89,16 +89,19 @@ VGMSTREAM* init_vgmstream_xwb(STREAMFILE* sf) {
 
 
     /* checks */
-    /* .xwb: standard
-     * .xna: Touhou Makukasai ~ Fantasy Danmaku Festival (PC)
-     * (extensionless): Ikaruga (X360/PC), Grabbed by the Ghoulies (Xbox) */
-    if (!check_extensions(sf,"xwb,xna,"))
-        goto fail;
-    if ((read_u32be(0x00,sf) != 0x57424E44) &&    /* "WBND" (LE) */
-        (read_u32be(0x00,sf) != 0x444E4257))      /* "DNBW" (BE) */
+    if (!is_id32be(0x00,sf, "WBND") &&
+        !is_id32le(0x00,sf, "WBND")) /* X360 */
         goto fail;
 
-    xwb.little_endian = read_u32be(0x00,sf) == 0x57424E44; /* WBND */
+    /* .xwb: standard
+     * .xna: Touhou Makukasai ~ Fantasy Danmaku Festival (PC)
+     * (extensionless): Ikaruga (X360/PC), Grabbed by the Ghoulies (Xbox)
+     * .hwb: Burnout Revenge (X360)
+     * .bd: Fatal Frame 2 (Xbox) */
+    if (!check_extensions(sf,"xwb,xna,hwb,bd,"))
+        goto fail;
+
+    xwb.little_endian = is_id32be(0x00,sf, "WBND"); /* Xbox/PC */
     if (xwb.little_endian) {
         read_u32 = read_u32le;
         read_s32 = read_s32le;
@@ -360,6 +363,11 @@ VGMSTREAM* init_vgmstream_xwb(STREAMFILE* sf) {
         /* Stardew Valley (Vita), Owlboy (PS4): standard RIFF with ATRAC9 */
         xwb.codec = ATRAC9_RIFF;
     }
+    else if (xwb.version == XACT1_1_MAX && xwb.codec == WMA
+        && read_u32be(xwb.stream_offset, sf) != 0x3026B275) { /* WMA/asf tag */
+        /* Jumper: Griffin's Story (X360): partial hijack (LE on X360 and early version + XMA2) */
+        xwb.codec = XMA2;
+    }
 
 
     /* test loop after the above fixes */
@@ -482,11 +490,7 @@ VGMSTREAM* init_vgmstream_xwb(STREAMFILE* sf) {
 
 #ifdef VGM_USE_FFMPEG
         case XMA1: { /* Kameo (X360), Table Tennis (X360) */
-            uint8_t buf[0x100];
-            int bytes;
-
-            bytes = ffmpeg_make_riff_xma1(buf, sizeof(buf), vgmstream->num_samples, xwb.stream_size, vgmstream->channels, vgmstream->sample_rate, 0);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf, bytes, xwb.stream_offset,xwb.stream_size);
+            vgmstream->codec_data = init_ffmpeg_xma1_raw(sf, xwb.stream_offset, xwb.stream_size, vgmstream->channels, vgmstream->sample_rate, 0);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -503,14 +507,9 @@ VGMSTREAM* init_vgmstream_xwb(STREAMFILE* sf) {
         }
 
         case XMA2: { /* Blue Dragon (X360) */
-            uint8_t buf[0x100];
-            int bytes, block_size, block_count;
+            int block_size = 0x10000; /* XACT default */
 
-            block_size = 0x10000; /* XACT default */
-            block_count = xwb.stream_size / block_size + (xwb.stream_size % block_size ? 1 : 0);
-
-            bytes = ffmpeg_make_riff_xma2(buf, sizeof(buf), vgmstream->num_samples, xwb.stream_size, vgmstream->channels, vgmstream->sample_rate, block_count, block_size);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf, bytes, xwb.stream_offset,xwb.stream_size);
+            vgmstream->codec_data = init_ffmpeg_xma2_raw(sf, xwb.stream_offset, xwb.stream_size, vgmstream->num_samples, vgmstream->channels, vgmstream->sample_rate, block_size, 0);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -535,8 +534,7 @@ VGMSTREAM* init_vgmstream_xwb(STREAMFILE* sf) {
         }
 
         case XWMA: { /* WMAudio2 (WMA v2): BlazBlue (X360), WMAudio3 (WMA Pro): Bullet Witch (PC) voices */
-            uint8_t buf[0x100];
-            int bytes, bps_index, block_align, block_index, avg_bps, wma_codec;
+            int bps_index, block_align, block_index, avg_bps, wma_codec;
 
             bps_index = (xwb.block_align >> 5);  /* upper 3b bytes-per-second index (docs say 2b+6b but are wrong) */
             block_index =  (xwb.block_align) & 0x1F; /*lower 5b block alignment index */
@@ -547,8 +545,7 @@ VGMSTREAM* init_vgmstream_xwb(STREAMFILE* sf) {
             block_align = wma_block_align_index[block_index];
             wma_codec = xwb.bits_per_sample ? 0x162 : 0x161; /* 0=WMAudio2, 1=WMAudio3 */
 
-            bytes = ffmpeg_make_riff_xwma(buf, sizeof(buf), wma_codec, xwb.stream_size, vgmstream->channels, vgmstream->sample_rate, avg_bps, block_align);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf, bytes, xwb.stream_offset,xwb.stream_size);
+            vgmstream->codec_data = init_ffmpeg_xwma(sf, xwb.stream_offset, xwb.stream_size, wma_codec, vgmstream->channels, vgmstream->sample_rate, avg_bps, block_align);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;

@@ -1,18 +1,18 @@
 #include "meta.h"
 #include "../coding/coding.h"
 #include "../util/chunks.h"
+#include "../util/endianness.h"
 
 
 /* BKHD - Wwise soundbank container */
 VGMSTREAM* init_vgmstream_bkhd(STREAMFILE* sf) {
     VGMSTREAM* vgmstream = NULL;
     STREAMFILE* temp_sf = NULL;
-    off_t subfile_offset, base_offset = 0;
-    size_t subfile_size;
-    uint32_t subfile_id;
-    int big_endian, version, is_riff = 0, is_dummy = 0, is_wmid = 0;
-    uint32_t (*read_u32)(off_t,STREAMFILE*);
-    float (*read_f32)(off_t,STREAMFILE*);
+    uint32_t subfile_offset, subfile_size, base_offset = 0;
+    uint32_t subfile_id, version;
+    int big_endian, is_dummy = 0, is_wmid = 0;
+    read_u32_t read_u32;
+    read_f32_t read_f32;
     int total_subsongs, target_subsong = sf->stream_index;
     int prefetch = 0;
 
@@ -25,7 +25,7 @@ VGMSTREAM* init_vgmstream_bkhd(STREAMFILE* sf) {
         base_offset = 0x0c;
     if (!is_id32be(base_offset + 0x00, sf, "BKHD"))
         goto fail;
-    big_endian = guess_endianness32bit(base_offset + 0x04, sf);
+    big_endian = guess_endian32(base_offset + 0x04, sf);
     read_u32 = big_endian ? read_u32be : read_u32le;
     read_f32 = big_endian ? read_f32be : read_f32le;
 
@@ -36,16 +36,18 @@ VGMSTREAM* init_vgmstream_bkhd(STREAMFILE* sf) {
      * complex and better handled with TXTP (some info from Nicknine's script).
      * Use this to explore HIRC and covert to .txtp: https://github.com/bnnm/wwiser */
 
-    version = read_u32(base_offset + 0x08, sf);
+    version = read_u32(base_offset + 0x08, sf); /* rarely version can be encrypted, but ok as u32 [Tamarin (PC)] */
     if (version == 0 || version == 1) { /* early games */
         version = read_u32(base_offset + 0x10, sf);
     }
 
     /* first chunk also follows standard chunk sizes unlike RIFF */
     if (version <= 26) {
-        off_t data_offset, data_start, offset;
-        if (!find_chunk(sf, 0x44415441, base_offset, 0, &data_offset, NULL, big_endian, 0)) /* "DATA" */
+        off_t data_offset_off;
+        uint32_t data_offset, data_start, offset;
+        if (!find_chunk(sf, 0x44415441, base_offset, 0, &data_offset_off, NULL, big_endian, 0)) /* "DATA" */
             goto fail;
+        data_offset = data_offset_off;
 
         /* index:
          * 00: entries
@@ -79,11 +81,11 @@ VGMSTREAM* init_vgmstream_bkhd(STREAMFILE* sf) {
         subfile_size    = read_u32(offset + 0x14, sf);
     }
     else {
-        enum { 
+        enum {
             CHUNK_DIDX = 0x44494458, /* "DIDX" */
             CHUNK_DATA = 0x44415441, /* "DATA" */
         };
-        off_t didx_offset = 0, data_offset = 0, didx_size = 0, offset;
+        uint32_t didx_offset = 0, data_offset = 0, didx_size = 0, offset;
         chunk_t rc = {0};
 
         rc.be_size = big_endian;
@@ -120,47 +122,41 @@ VGMSTREAM* init_vgmstream_bkhd(STREAMFILE* sf) {
         subfile_offset  = read_u32(offset + 0x04, sf) + data_offset;
         subfile_size    = read_u32(offset + 0x08, sf);
     }
-    
-    //;VGM_LOG("BKHD: %lx, %x\n", subfile_offset, subfile_size);
+
+    //;VGM_LOG("BKHD: %x, %x\n", subfile_offset, subfile_size);
 
     /* detect format */
     if (subfile_offset <= 0 || subfile_size <= 0) {
-        /* some indexes don't have data */
         is_dummy = 1;
-    }
-    else if (read_u32be(subfile_offset + 0x00, sf) == 0x52494646 || /* "RIFF" */
-             read_u32be(subfile_offset + 0x00, sf) == 0x52494658) { /* "RIFX" */
-        is_riff = 1;
-    }
-    else if (read_f32(subfile_offset + 0x02, sf) >= 30.0 && 
-             read_f32(subfile_offset + 0x02, sf) <= 250.0) {
-        /* ignore Wwise's custom .wmid (similar to a regular midi but with simplified
-         *  chunks and custom fields: 0x00=MThd's division, 0x02: bpm (new), etc) */
-        is_wmid = 1;
-    }
-    /* default is sfx */
-
-
-    if (is_dummy || is_wmid) {
-        /* for now leave a dummy song for easier .bnk index-to-subsong mapping */
+        /* rarely some indexes don't have data (early bnk)
+         * for now leave a dummy song for easier .bnk index-to-subsong mapping */
         vgmstream = init_vgmstream_silence(0, 0, 0);
         if (!vgmstream) goto fail;
     }
     else {
-        /* could pass .wem but few files need memory .wem detection */
+        /* could pass .wem extension but few files need memory .wem detection */
         temp_sf = setup_subfile_streamfile(sf, subfile_offset, subfile_size, NULL);
         if (!temp_sf) goto fail;
 
-        if (is_riff) {
+        /* read using temp_sf in case of >2GB .bnk */
+        if (is_id32be(0x00, temp_sf, "RIFF") || is_id32be(0x00, temp_sf, "RIFX")) {
             vgmstream = init_vgmstream_wwise_bnk(temp_sf, &prefetch);
             if (!vgmstream) goto fail;
         }
+        else if (read_f32(subfile_offset + 0x02, temp_sf) >= 30.0 &&
+                 read_f32(subfile_offset + 0x02, temp_sf) <= 250.0) {
+            is_wmid = 1;
+            /* ignore Wwise's custom .wmid (similar to a regular midi but with simplified
+             *  chunks and custom fields: 0x00=MThd's division, 0x02: bpm (new), etc) */
+            vgmstream = init_vgmstream_silence(0, 0, 0);
+            if (!vgmstream) goto fail;
+        }
         else {
+            /* may fail if not an actual wfx */
             vgmstream = init_vgmstream_bkhd_fx(temp_sf);
             if (!vgmstream) goto fail;
         }
     }
-
 
     vgmstream->num_streams = total_subsongs;
 
@@ -196,7 +192,7 @@ fail:
 /* BKHD mini format, for FX plugins [Borderlands 2 (X360), Warhammer 40000 (PC)] */
 VGMSTREAM* init_vgmstream_bkhd_fx(STREAMFILE* sf) {
     VGMSTREAM* vgmstream = NULL;
-    off_t start_offset, data_size;
+    uint32_t start_offset, data_size;
     int big_endian, loop_flag, channels, sample_rate, entries;
     uint32_t (*read_u32)(off_t,STREAMFILE*);
 
@@ -205,16 +201,19 @@ VGMSTREAM* init_vgmstream_bkhd_fx(STREAMFILE* sf) {
     /* .wem: used when (rarely) external */
     if (!check_extensions(sf,"wem,bnk"))
         goto fail;
-    big_endian = guess_endianness32bit(0x00, sf);
+    big_endian = guess_endian32(0x00, sf);
     read_u32 = big_endian ? read_u32be : read_u32le;
 
     /* Not an actual stream but typically convolution reverb models and other FX plugin helpers.
      * Useless but to avoid "subsong not playing" complaints. */
 
-    if (read_u32(0x00, sf) == 0x0400 &&
+    /* Wwise Convolution Reverb */
+    if ((read_u32(0x00, sf) == 0x00000400 ||    /* common */
+         read_u32(0x00, sf) == 0x00020400 ) &&  /* Elden Ring */
         read_u32(0x04, sf) == 0x0800) {
         sample_rate = read_u32(0x08, sf);
         channels    = read_u32(0x0c, sf) & 0xFF; /* 0x31 at 0x0d in PC, field is 32b vs X360 */
+
         /* 0x10: some id or small size? (related to entries?) */
         /* 0x14/18: some float? */
         entries     = read_u32(0x1c, sf);

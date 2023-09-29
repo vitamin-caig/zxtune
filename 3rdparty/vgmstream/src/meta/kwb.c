@@ -1,5 +1,6 @@
 #include "meta.h"
 #include "../coding/coding.h"
+#include "../util/endianness.h"
 
 typedef enum { PCM16, MSADPCM, DSP_HEAD, DSP_BODY, AT9, MSF_APEX, XMA2 } kwb_codec;
 
@@ -39,7 +40,13 @@ VGMSTREAM* init_vgmstream_kwb(STREAMFILE* sf) {
 
 
     /* checks */
+    if (!is_id32be(0x00, sf, "WBD_") &&
+        !is_id32le(0x00, sf, "WBD_") &&
+        !is_id32be(0x00, sf, "WHD1"))
+        goto fail;
+
     /* .wbd+wbh: common [Bladestorm Nightmare (PC)]
+     * .wbd+whd: uncommon [Nights of Azure 2 (PS4)]
      * .wb2+wh2: newer [Nights of Azure 2 (PC)]
      * .sed: mixed header+data [Dissidia NT (PC)] */
     if (!check_extensions(sf, "wbd,wb2,sed"))
@@ -47,16 +54,18 @@ VGMSTREAM* init_vgmstream_kwb(STREAMFILE* sf) {
 
 
     /* open companion header */
-    if (check_extensions(sf, "wbd")) {
+    if (is_id32be(0x00, sf, "WHD1")) { /* .sed */
+        sf_h = sf;
+        sf_b = sf;
+    }
+    else if (check_extensions(sf, "wbd")) {
         sf_h = open_streamfile_by_ext(sf, "wbh");
+        if (!sf_h)
+            sf_h = open_streamfile_by_ext(sf, "whd");
         sf_b = sf;
     }
     else if (check_extensions(sf, "wb2")) {
         sf_h = open_streamfile_by_ext(sf, "wh2");
-        sf_b = sf;
-    }
-    else if (check_extensions(sf, "sed")) {
-        sf_h = sf;
         sf_b = sf;
     }
     else {
@@ -145,7 +154,7 @@ static VGMSTREAM* init_vgmstream_koei_wavebank(kwb_header* kwb, STREAMFILE* sf_h
                 init_vgmstream = init_vgmstream_dsp_apex;
             }
             else {
-                vgm_logi("KWB: unknown type %x at %x\n", id, kwb->stream_offset);
+                vgm_logi("KWB: unknown type id=%x at offset=%x\n", id, kwb->stream_offset);
                 goto fail;
             }
 
@@ -207,16 +216,11 @@ static VGMSTREAM* init_vgmstream_koei_wavebank(kwb_header* kwb, STREAMFILE* sf_h
 
 #ifdef VGM_USE_FFMPEG
         case XMA2: {
-            uint8_t buf[0x100];
-            size_t bytes, block_size, block_count;
+            int block_size = 0x800; /* ? */
 
             if (kwb->channels > 1) goto fail;
 
-            block_size = 0x800; /* ? */
-            block_count = kwb->stream_size / block_size;
-
-            bytes = ffmpeg_make_riff_xma2(buf, sizeof(buf), vgmstream->num_samples, kwb->stream_size, kwb->channels, kwb->sample_rate, block_count, block_size);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf_b, buf,bytes, kwb->stream_offset, kwb->stream_size);
+            vgmstream->codec_data = init_ffmpeg_xma2_raw(sf_b, kwb->stream_offset, kwb->stream_size, vgmstream->num_samples, kwb->channels, kwb->sample_rate, block_size, 0);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -378,14 +382,14 @@ fail:
     return 0;
 }
 
-static int parse_type_k4hd(kwb_header* kwb, off_t offset, off_t body_offset, STREAMFILE* sf_h) {
+static int parse_type_k4hd_pvhd(kwb_header* kwb, off_t offset, off_t body_offset, STREAMFILE* sf_h) {
     off_t ppva_offset, header_offset;
     int entries, current_subsongs, relative_subsong;
     size_t entry_size;
 
 
     /* a format mimicking PSVita's hd4+bd4 format */
-    /* 00: K4HD id */
+    /* 00: K4HD/PVHD id */
     /* 04: chunk size */
     /* 08: ? */
     /* 0c: ? */
@@ -565,7 +569,7 @@ static int parse_kwb(kwb_header* kwb, STREAMFILE* sf_h, STREAMFILE* sf_b) {
     uint32_t (*read_u32)(off_t,STREAMFILE*) = NULL;
 
 
-    if (read_u32be(0x00, sf_h) == 0x57484431) { /* "WHD1" */
+    if (is_id32be(0x00, sf_h, "WHD1")) {
         /* container of fused .wbh+wbd */
         /* 0x04: fixed value? */
         kwb->big_endian = read_u8(0x08, sf_h) == 0xFF;
@@ -591,7 +595,7 @@ static int parse_kwb(kwb_header* kwb, STREAMFILE* sf_h, STREAMFILE* sf_b) {
         head_offset = 0x00;
         body_offset = 0x00;
 
-        kwb->big_endian = guess_endianness32bit(head_offset + 0x08, sf_h);
+        kwb->big_endian = guess_endian32(head_offset + 0x08, sf_h);
 
         read_u32 = kwb->big_endian ? read_u32be : read_u32le;
     }
@@ -617,7 +621,8 @@ static int parse_kwb(kwb_header* kwb, STREAMFILE* sf_h, STREAMFILE* sf_b) {
             break;
 
         case 0x4B344844: /* "K4HD" [Dissidia NT (PS4), (Vita) */
-            if (!parse_type_k4hd(kwb, head_offset, body_offset, sf_h))
+        case 0x50564844: /* "PVHD" [Nights of Azure 2 (PS4)] */
+            if (!parse_type_k4hd_pvhd(kwb, head_offset, body_offset, sf_h))
                 goto fail;
             break;
 
@@ -632,6 +637,7 @@ static int parse_kwb(kwb_header* kwb, STREAMFILE* sf_h, STREAMFILE* sf_b) {
             break;
 
         default:
+            vgm_logi("KWB: unknown type\n");
             goto fail;
     }
 
@@ -647,7 +653,7 @@ static int parse_type_msfbank(kwb_header* kwb, off_t offset, STREAMFILE* sf) {
     /* this is just like XWSF, abridged: */
     int entries, current_subsongs, relative_subsong;
     off_t header_offset;
-    
+
     entries = read_u32be(offset + 0x14, sf);
 
     current_subsongs = kwb->total_subsongs;
@@ -670,18 +676,18 @@ static int parse_type_msfbank(kwb_header* kwb, off_t offset, STREAMFILE* sf) {
 //    return 0;
 }
 
-static int parse_type_xwsfile(kwb_header* kwb, off_t offset, STREAMFILE* sf) {
-    off_t table1_offset, table2_offset;
+static int parse_type_xwsfile(kwb_header* kwb, uint32_t offset, STREAMFILE* sf) {
+    uint32_t table1_offset, table2_offset;
     int i, chunks, chunks2;
     uint32_t (*read_u32)(off_t,STREAMFILE*) = NULL;
 
 
-    if (!(is_id32be(offset + 0x00, sf, "XWSF") && is_id32be(offset + 0x04, sf, "ILE\0")) &&
-        !(is_id32be(offset + 0x00, sf, "tdpa") && is_id32be(offset + 0x04, sf, "ck\0\0")))
+    if (!(is_id64be(offset + 0x00, sf, "XWSFILE\0")) &&
+        !(is_id64be(offset + 0x00, sf, "tdpack\0\0")))
         goto fail;
 
     kwb->big_endian = read_u8(offset + 0x08, sf) == 0xFF;
-    /* 0x0a: version? (0100: NG2/NG3 PS3, 0101: DoA LR PC) */
+    /* 0x0a: version? (0100: NG2/NG3 PS3, 0101: DoA LR PC, NG2/3 PC) */
 
     read_u32 = kwb->big_endian ? read_u32be : read_u32le;
 
@@ -701,52 +707,56 @@ static int parse_type_xwsfile(kwb_header* kwb, off_t offset, STREAMFILE* sf) {
 
     i = 0;
     while (i < chunks) {
-        uint32_t entry_type, head_offset, body_offset, head_size;
+        uint32_t entry_type, head_offset, head_size;
         //;VGM_LOG("XWS: entry %i/%i\n", i, chunks);
 
-        /* NG2/NG3 PS3 have table1+2, DoA LR PC removes table2 and includes body offset in entries */
+        /* NG2/NG3 PS3/PC have table1+2, DoA LR PC doesn't (not very useful) */
         if (table2_offset) {
-            head_offset = read_u32(offset + table1_offset + i * 0x04 + 0x00, sf);
-            head_size   = read_u32(offset + table2_offset + i * 0x04 + 0x00, sf);
-            body_offset = head_offset;
-            i += 1;
-
-            /* sometimes has file end offset as entry with no size*/
-            if (!head_size)
+            head_offset = read_u32(offset + table1_offset + i * 0x04, sf);
+            head_size   = read_u32(offset + table2_offset + i * 0x04, sf);
+            if (!head_size)  { /* sometimes has file end offset as entry with no size (NG PS3)*/
+                i += 1;
                 continue;
+            }
         }
         else {
-            head_offset = read_u32(offset + table1_offset + i * 0x04 + 0x00, sf);
-            body_offset = read_u32(offset + table1_offset + i * 0x04 + 0x04, sf);
-            i += 2;
+            head_offset = read_u32(offset + table1_offset + i * 0x04, sf);
         }
 
-        if (!head_offset) /* just in case */
+        if (!head_offset) { /* just in case */
+            i += 1;
             continue;
-
+        }
 
         head_offset += offset;
-        body_offset += offset;
         entry_type = read_u32be(head_offset + 0x00, sf);
-        //;VGM_LOG("XWS: head=%x, body=%x\n", head_offset, body_offset);
+        //;VGM_LOG("XWS: head=%x\n", head_offset);
 
         if (entry_type == get_id32be("XWSF")) { /* + "ILE\0" */
+            i += 1;
             if (!parse_type_xwsfile(kwb, head_offset, sf))
                 goto fail;
         }
         else if (entry_type == get_id32be("CUEB") || entry_type < 0x100) {
-            ; /* CUE-like info (may start with 0 or a low number instead) */
+            i += 1;
+            /* CUE-like info (may start with 0 or a low number instead) */
         }
         else if (entry_type == get_id32be("MSFB")) { /* + "ANK\0" */
+            i += 1;
             if (!parse_type_msfbank(kwb, head_offset, sf))
                 goto fail;
         }
         else if (entry_type == get_id32be("KWB2")) {
+            /* NG2/3 PC, DoA LR PC goes head,body,... */
+            uint32_t body_offset = read_u32(offset + table1_offset + i * 0x04 + 0x04, sf);
+            body_offset += offset;
+            i += 2;
+
             if (!parse_type_kwb2(kwb, head_offset, body_offset, sf))
                 goto fail;
         }
         else {
-            vgm_logi("XWS: unknown type %x at head=%x, body=%x\n", entry_type, head_offset, body_offset);
+            vgm_logi("XWS: unknown chunk %i (%x) with head=%x at %x\n", i, entry_type, head_offset, offset);
             goto fail;
         }
     }
