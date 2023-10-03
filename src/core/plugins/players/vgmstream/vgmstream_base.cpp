@@ -1909,6 +1909,10 @@ namespace Module::VGMStream
       ANY32 +                  // +8
       CHANNELS32BE             // +c be channels count
     },
+    {
+      "BANK"_id, "FSB5 FEV", ".bank",
+      "'R'I'F'F ???? 'F'E'V' "_ss
+    },
     // MUSC, ~850
     {
       "MUSC"_id, "Krome MUSC", ".musc",
