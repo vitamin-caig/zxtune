@@ -41,7 +41,7 @@ extern "C"
 // clang-format off
 #include <3rdparty/vgmstream/config.h>
 #include <3rdparty/vgmstream/src/vgmstream.h>
-#include <3rdparty/vgmstream/src/plugins.h>
+#include <3rdparty/vgmstream/src/base/plugins.h>
   // clang-format on
 }
 // std includes
