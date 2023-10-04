@@ -5,7 +5,6 @@
  */
 package app.zxtune.ui.browser
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -22,6 +21,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.selection.Selection
@@ -38,7 +38,7 @@ import app.zxtune.ui.utils.SelectionUtils
 import app.zxtune.utils.ifNotNulls
 
 class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
-    private lateinit var model: Model
+    private val model by activityViewModels<Model>()
     private val stateStorage by lazy {
         State.create(requireContext())
     }
@@ -79,11 +79,6 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
 
     override fun onTabVisibilityChanged(isVisible: Boolean) {
         backHandler.isEnabled = isVisible
-    }
-
-    override fun onAttach(ctx: Context) {
-        super.onAttach(ctx)
-        model = Model.of(this)
     }
 
     override fun onCreateView(

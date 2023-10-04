@@ -6,11 +6,9 @@ import android.net.Uri
 import android.os.CancellationSignal
 import android.os.OperationCanceledException
 import androidx.annotation.VisibleForTesting
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
 import app.zxtune.Logger
 import app.zxtune.Releaseable
 import app.zxtune.analytics.Analytics
@@ -356,11 +354,6 @@ class Model @VisibleForTesting internal constructor(
 
     companion object {
         private val LOG = Logger(Model::class.java.name)
-
-        fun of(owner: Fragment): Model = ViewModelProvider(
-            owner,
-            ViewModelProvider.AndroidViewModelFactory.getInstance(owner.requireActivity().application)
-        )[Model::class.java]
 
         private fun matchEntry(entry: ListingEntry, filter: String) =
             entry.title.contains(filter, true) || entry.description.contains(filter, true)
