@@ -188,7 +188,7 @@ namespace Formats
 
   namespace Packed
   {
-    void FillScanner(Analysis::Scanner& scanner)
+    void FillScanner(bool skipChiptunes, Analysis::Scanner& scanner)
     {
       scanner.AddDecoder(CreateCodeCruncher3Decoder());
       scanner.AddDecoder(CreateCompressorCode4Decoder());
@@ -224,14 +224,17 @@ namespace Formats
       scanner.AddDecoder(CreateDSKDecoder());
       scanner.AddDecoder(CreateGzipDecoder());
       // players
-      scanner.AddDecoder(CreateCompiledASC0Decoder());
-      scanner.AddDecoder(CreateCompiledASC1Decoder());
-      scanner.AddDecoder(CreateCompiledASC2Decoder());
-      scanner.AddDecoder(CreateCompiledST3Decoder());
-      scanner.AddDecoder(CreateCompiledSTP1Decoder());
-      scanner.AddDecoder(CreateCompiledSTP2Decoder());
-      scanner.AddDecoder(CreateCompiledPT24Decoder());
-      scanner.AddDecoder(CreateCompiledPTU13Decoder());
+      if (!skipChiptunes)
+      {
+        scanner.AddDecoder(CreateCompiledASC0Decoder());
+        scanner.AddDecoder(CreateCompiledASC1Decoder());
+        scanner.AddDecoder(CreateCompiledASC2Decoder());
+        scanner.AddDecoder(CreateCompiledST3Decoder());
+        scanner.AddDecoder(CreateCompiledSTP1Decoder());
+        scanner.AddDecoder(CreateCompiledSTP2Decoder());
+        scanner.AddDecoder(CreateCompiledPT24Decoder());
+        scanner.AddDecoder(CreateCompiledPTU13Decoder());
+      }
     }
   }  // namespace Packed
 
@@ -615,7 +618,7 @@ namespace
       : Scanner(Analysis::CreateScanner())
     {
       Formats::Archived::FillScanner(*Scanner);
-      Formats::Packed::FillScanner(*Scanner);
+      Formats::Packed::FillScanner(skipChiptunes, *Scanner);
       Formats::Image::FillScanner(*Scanner);
       if (!skipChiptunes)
       {
