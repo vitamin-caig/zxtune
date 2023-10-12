@@ -20,15 +20,15 @@ import app.zxtune.Logger
 import app.zxtune.MainApplication
 import app.zxtune.ResultActivity
 import app.zxtune.fs.local.Identifier
-import app.zxtune.fs.local.rootId
+import app.zxtune.fs.local.Utils.rootId
+import app.zxtune.fs.local.Utils.isMounted
 import app.zxtune.preferences.Preferences
 import app.zxtune.preferences.ProviderClient
 import java.io.File
 
 // Location uses platform-dependent uri format to store (treeUri for SAF and file scheme for legacy)
 class PersistentStorage @VisibleForTesting constructor(
-    private val ctx: Context,
-    private val client: ProviderClient
+    private val ctx: Context, private val client: ProviderClient
 ) {
     interface State {
         val location: DocumentFile?
@@ -70,8 +70,7 @@ class PersistentStorage @VisibleForTesting constructor(
         state.map {
             if (true != it.location?.isDirectory) {
                 ResultActivity.createPersistentStorageLocationRequestIntent(
-                    ctx,
-                    it.defaultLocationHint
+                    ctx, it.defaultLocationHint
                 )
             } else {
                 null
@@ -133,11 +132,14 @@ class PersistentStorage @VisibleForTesting constructor(
                 runCatching { DocumentFile.fromTreeUri(ctx, Uri.parse(it)) }.getOrNull()
             }
         }
-        override val defaultLocationHint by lazy {
-            Identifier(
-                requireNotNull(ctx.getSystemService<StorageManager>()).primaryStorageVolume.rootId(),
-                DIR_NAME
-            ).documentUri
+        override val defaultLocationHint: Uri by lazy {
+            val primaryStorage =
+                requireNotNull(ctx.getSystemService<StorageManager>()).storageVolumes.firstOrNull {
+                    it.isPrimary && it.isMounted()
+                }
+            primaryStorage?.run {
+                Identifier(rootId(), DIR_NAME).documentUri
+            } ?: Uri.EMPTY
         }
     }
 
