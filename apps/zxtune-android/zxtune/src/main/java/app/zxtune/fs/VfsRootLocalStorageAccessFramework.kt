@@ -7,6 +7,7 @@ import android.provider.DocumentsContract
 import androidx.annotation.RequiresApi
 import androidx.core.content.getSystemService
 import androidx.core.database.getStringOrNull
+import androidx.documentfile.provider.DocumentFile
 import app.zxtune.R
 import app.zxtune.Util
 import app.zxtune.fs.local.Document
@@ -45,9 +46,8 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
         else -> super.getExtension(id)
     }
 
-    override fun enumerate(visitor: VfsDir.Visitor) = manager.storageVolumes
-        .also { visitor.onItemsCount(it.size) }
-        .forEach {
+    override fun enumerate(visitor: VfsDir.Visitor) =
+        manager.storageVolumes.also { visitor.onItemsCount(it.size) }.forEach {
             if (it.isMounted()) {
                 StorageRoot(Identifier.fromRoot(it.rootId()), it.getDescription(context)).run {
                     visitor.onDir(this)
@@ -65,11 +65,17 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
         id.root.isEmpty() -> convertLegacyIdentifier(id)?.let {
             resolve(it)
         }
+
         id.path.isEmpty() -> StorageRoot(id)
-        else -> when (resolver.getType(id.documentUri)) {
-            null -> null
-            DocumentsContract.Document.MIME_TYPE_DIR -> LocalDir(id)
-            else -> LocalFile(id)
+        else -> accessibleDirectories.findAncestor(id)?.let { treeId ->
+            DocumentFile.fromTreeUri(context, id.getDocumentUriUsingTree(treeId))?.run {
+                if (isDirectory) LocalDir(id, treeId) else LocalFile(id, treeId)
+            }
+        } ?: if (accessibleDirectories.getDirectChildrenOf(id.parent).contains(id)) {
+            // Phantom dir
+            LocalDir(id)
+        } else {
+            null
         }
     }
 
@@ -103,9 +109,7 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
     }
 
     private inner class LocalDir(
-        id: Identifier,
-        treeId: Identifier? = null,
-        override val description: String = ""
+        id: Identifier, treeId: Identifier? = null, override val description: String = ""
     ) : BaseObject(id), VfsDir {
 
         private val treeId by lazy {
@@ -147,8 +151,7 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
     }
 
     private fun getPhantomDirs(id: Identifier, visitor: VfsDir.Visitor) =
-        accessibleDirectories.getDirectChildrenOf(id)
-            .also { visitor.onItemsCount(it.size) }
+        accessibleDirectories.getDirectChildrenOf(id).also { visitor.onItemsCount(it.size) }
             .forEach {
                 visitor.onDir(LocalDir(it))
             }
@@ -166,9 +169,9 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
 
         override fun getExtension(id: String) = when (id) {
             VfsExtensions.FILE_DESCRIPTOR -> resolver.openFileDescriptor(
-                fileUri,
-                "r"
+                fileUri, "r"
             )?.fileDescriptor
+
             else -> super.getExtension(id)
         }
 

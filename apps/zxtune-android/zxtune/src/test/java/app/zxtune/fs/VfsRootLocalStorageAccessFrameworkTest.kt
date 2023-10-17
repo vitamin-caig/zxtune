@@ -35,6 +35,7 @@ class VfsRootLocalStorageAccessFrameworkTest {
         on { contentResolver } doReturn resolver
         on { getSystemService(StorageManager::class.java) } doReturn storageManager
     }
+    private val documentFile = mock<DocumentFile>()
 
     private val underTest = VfsRootLocalStorageAccessFramework(context)
 
@@ -42,12 +43,13 @@ class VfsRootLocalStorageAccessFrameworkTest {
 
     @Before
     fun setUp() {
-        reset(resolver, storageManager, visitor)
-        ShadowDocumentFile.document = null
+        reset(resolver, storageManager, documentFile, visitor)
+        ShadowDocumentFile.document = documentFile
     }
 
     @After
-    fun tearDown() = verifyNoMoreInteractions(resolver, storageManager, context, visitor)
+    fun tearDown() =
+        verifyNoMoreInteractions(resolver, storageManager, context, visitor)
 
     @Test
     fun `no storages`() {
@@ -68,7 +70,6 @@ class VfsRootLocalStorageAccessFrameworkTest {
         val permittedId1 = Identifier("storage", "path/subpath/dir/accessible")
         val permittedId2 = Identifier("storage", "path/subpath/access")
         resolver.stub {
-            on { getType(any()) } doReturn DocumentsContract.Document.MIME_TYPE_DIR
             on { query(any(), any(), anyOrNull(), anyOrNull()) } doThrow SecurityException()
             on { persistedUriPermissions } doAnswer {
                 arrayOf(permittedId1, permittedId2).map { permId ->
@@ -87,10 +88,8 @@ class VfsRootLocalStorageAccessFrameworkTest {
         val captor = argumentCaptor<VfsDir>()
         inOrder(context, resolver, visitor) {
             verify(context).contentResolver
-            // resolve
-            verify(resolver).getType(id.documentUri)
-            // permission query uri + enumerate
-            verify(resolver, times(2)).persistedUriPermissions
+            // resolve(try real, try phantom) + permission query uri + enumerate
+            verify(resolver, times(4)).persistedUriPermissions
             verify(visitor).onItemsCount(2)
             verify(visitor, times(2)).onDir(captor.capture())
         }
@@ -150,7 +149,7 @@ class VfsRootLocalStorageAccessFrameworkTest {
             // subpath
             verify(storageManager).storageVolumes
             verify(context).contentResolver
-            verify(resolver).getType(id2.copy(path = "sub/path").documentUri)
+            verify(resolver, times(2)).persistedUriPermissions
             // unknown + volume root
             verify(storageManager, times(2)).storageVolumes
         }
@@ -162,20 +161,20 @@ class VfsRootLocalStorageAccessFrameworkTest {
         val id = Identifier("stor", "path/to/file")
         val descriptor = FileDescriptor()
         resolver.stub {
-            on { getType(any()) } doReturn "binary/type"
             on { persistedUriPermissions } doAnswer {
-                listOf(
-                    mock {
-                        on { uri } doReturn permId.treeDocumentUri
-                        on { isReadPermission } doReturn true
-                    }
-                )
+                listOf(mock {
+                    on { uri } doReturn permId.treeDocumentUri
+                    on { isReadPermission } doReturn true
+                })
             }
             on { openFileDescriptor(any(), any()) } doAnswer {
                 mock {
                     on { fileDescriptor } doReturn descriptor
                 }
             }
+        }
+        documentFile.stub {
+            on { uri } doReturn id.getDocumentUriUsingTree(permId)
         }
         (underTest.resolve(id.fsUri) as VfsFile).run {
             assertEquals("file", name)
@@ -184,7 +183,7 @@ class VfsRootLocalStorageAccessFrameworkTest {
         }
         inOrder(context, resolver) {
             verify(context).contentResolver
-            verify(resolver).getType(id.documentUri)
+            // findAncestor
             verify(resolver).persistedUriPermissions
             verify(resolver).openFileDescriptor(id.getDocumentUriUsingTree(permId), "r")
         }
@@ -255,7 +254,6 @@ class VfsRootLocalStorageAccessFrameworkTest {
         val subDir = Identifier("root", "dir/subdir")
         val subFile = Identifier("root", "dir/subfile")
         resolver.stub {
-            on { getType(any()) } doReturn DocumentsContract.Document.MIME_TYPE_DIR
             on { query(any(), any(), anyOrNull(), anyOrNull()) } doAnswer {
                 MatrixCursor(it.getArgument<Array<String>>(1)).apply {
                     newRow().apply {
@@ -275,13 +273,15 @@ class VfsRootLocalStorageAccessFrameworkTest {
                 }
             }
             on { persistedUriPermissions } doAnswer {
-                listOf(
-                    mock {
-                        on { uri } doReturn permId.treeDocumentUri
-                        on { isReadPermission } doReturn true
-                    }
-                )
+                listOf(mock {
+                    on { uri } doReturn permId.treeDocumentUri
+                    on { isReadPermission } doReturn true
+                })
             }
+        }
+        documentFile.stub {
+            on { uri } doReturn id.getDocumentUriUsingTree(permId)
+            on { isDirectory } doReturn true
         }
         (underTest.resolve(id.fsUri) as VfsDir).run {
             assertEquals("dir", name)
@@ -291,15 +291,10 @@ class VfsRootLocalStorageAccessFrameworkTest {
         inOrder(context, resolver, visitor) {
             verify(context).contentResolver
             // resolve
-            verify(resolver).getType(id.documentUri)
-            // permission query uri
             verify(resolver).persistedUriPermissions
             // enumerate
             verify(resolver).query(
-                eq(id.getTreeChildDocumentUri(permId)),
-                any(),
-                eq(null),
-                eq(null)
+                eq(id.getTreeChildDocumentUri(permId)), any(), eq(null), eq(null)
             )
             verify(visitor).onItemsCount(2)
             verify(visitor).onDir(argThat {

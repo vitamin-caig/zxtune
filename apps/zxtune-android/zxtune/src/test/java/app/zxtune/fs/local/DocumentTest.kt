@@ -118,6 +118,10 @@ class ShadowDocumentFile {
         @Implementation
         @JvmStatic
         fun fromSingleUri(ctx: Context, uri: Uri) = document?.takeIf { uri == it.uri }
+
+        @Implementation
+        @JvmStatic
+        fun fromTreeUri(ctx: Context, uri: Uri) = document?.takeIf { uri == it.uri }
     }
 }
 
