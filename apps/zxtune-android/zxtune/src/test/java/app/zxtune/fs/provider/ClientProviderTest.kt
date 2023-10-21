@@ -2,6 +2,7 @@ package app.zxtune.fs.provider
 
 import android.content.ContentProvider
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.CancellationSignal
 import android.os.OperationCanceledException
@@ -30,7 +31,9 @@ import java.io.IOException
 
 // tests both Provider and VfsClient
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowNetworkManager::class], sdk = [Features.StorageAccessFramework.REQUIRED_SDK])
+@Config(
+    shadows = [ShadowNetworkManager::class], sdk = [Features.StorageAccessFramework.REQUIRED_SDK]
+)
 class ClientProviderTest {
 
     private val fastDirContent = Array(10) { TestDir(2 + it) }
@@ -99,13 +102,9 @@ class ClientProviderTest {
             when (val arg = it.getArgument<VfsObject>(0)) {
                 is VfsDir -> Schema.Listing.Dir(arg.uri, arg.name, arg.description, null, false)
                 is VfsFile -> Schema.Listing.File(
-                    arg.uri,
-                    arg.name,
-                    arg.description,
-                    arg.size,
-                    null,
-                    null
+                    arg.uri, arg.name, arg.description, arg.size, null, null
                 )
+
                 else -> null
             }
         }
@@ -164,11 +163,7 @@ class ClientProviderTest {
             // dump progress first
             verify(listingCallback, times(5)).onProgress(any(), eq(50))
             verify(listingCallback).onDir(
-                slowDir.uri,
-                slowDir.name,
-                slowDir.description,
-                null,
-                false
+                slowDir.uri, slowDir.name, slowDir.description, null, false
             )
         }
     }
@@ -277,13 +272,14 @@ class ClientProviderTest {
     @Test
     fun `storage notification`() {
         val noPermissionsUri = Uri.parse("file://root/path/to/dir")
-        var permissionQueryUri: Uri? = null
+        val noPermissionsIntent = Intent("action", noPermissionsUri)
+        var permissionQueryIntent: Intent? = null
         val noPermissionsDir = object : TestDir(20000) {
             override val uri: Uri
                 get() = noPermissionsUri
 
             override fun getExtension(id: String) = when (id) {
-                VfsExtensions.PERMISSION_QUERY_URI -> permissionQueryUri
+                VfsExtensions.PERMISSION_QUERY_INTENT -> permissionQueryIntent
                 else -> super.getExtension(id)
             }
         }
@@ -291,15 +287,15 @@ class ClientProviderTest {
             on { resolve(noPermissionsUri) } doReturn noPermissionsDir
         }
 
-        permissionQueryUri = noPermissionsUri
+        permissionQueryIntent = noPermissionsIntent
         client.subscribeForNotifications(noPermissionsUri) { notification ->
             assertEquals("Tap to give access permission", notification!!.message)
-            assertEquals(
-                "request_storage_permission",
-                notification.action!!.action
-            )
+            notification.action!!.run {
+                assertEquals(noPermissionsIntent.action, action)
+                assertEquals(noPermissionsIntent.data, data)
+            }
         }.release()
-        permissionQueryUri = null
+        permissionQueryIntent = null
         client.subscribeForNotifications(noPermissionsUri) { notification ->
             assertEquals(null, notification)
         }.release()

@@ -11,6 +11,7 @@ import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.VfsObject
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -92,28 +93,28 @@ class NotificationsSourceTest {
         }
         val uri1 = Uri.parse("file:")
         val uri2 = Uri.parse("file://authority")
-        val uri2Permission = Uri.parse("permission://authority")
+        val uri2PermissionIntent = Intent("request", Uri.parse("permission://authority"))
         val uri3 = Uri.parse("file://authority/path")
 
         var objUri = uri1
-        var permissionUri: Uri? = null
+        var permissionIntent: Intent? = null
         val dir = mock<VfsObject> {
             on { uri }.doAnswer {
                 objUri
             }
-            on { getExtension(VfsExtensions.PERMISSION_QUERY_URI) } doAnswer {
-                permissionUri
+            on { getExtension(VfsExtensions.PERMISSION_QUERY_INTENT) } doAnswer {
+                permissionIntent
             }
         }
         assertEquals(null, underTest.getNotification(dir))
         objUri = uri2
-        permissionUri = uri2Permission
+        permissionIntent = uri2PermissionIntent
         underTest.getNotification(dir)!!.run {
             assertEquals(storageNotificationMessage, message)
-            assertEquals(uri2Permission, action?.data)
+            assertSame(uri2PermissionIntent, action)
         }
         objUri = uri3
-        permissionUri = null
+        permissionIntent = null
         assertEquals(null, underTest.getNotification(dir))
     }
 

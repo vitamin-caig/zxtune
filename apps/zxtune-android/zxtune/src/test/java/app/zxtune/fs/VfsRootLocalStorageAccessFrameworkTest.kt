@@ -48,8 +48,7 @@ class VfsRootLocalStorageAccessFrameworkTest {
     }
 
     @After
-    fun tearDown() =
-        verifyNoMoreInteractions(resolver, storageManager, context, visitor)
+    fun tearDown() = verifyNoMoreInteractions(resolver, storageManager, context, visitor)
 
     @Test
     fun `no storages`() {
@@ -82,7 +81,7 @@ class VfsRootLocalStorageAccessFrameworkTest {
         }
         (underTest.resolve(id.fsUri) as VfsDir).run {
             assertEquals("subpath", name)
-            assertEquals(id.documentUri, permissionQueryUri)
+            assertEquals(id.documentUri, permissionQueryIntent!!.data)
             enumerate(visitor)
         }
         val captor = argumentCaptor<VfsDir>()
@@ -93,21 +92,24 @@ class VfsRootLocalStorageAccessFrameworkTest {
             verify(visitor).onItemsCount(2)
             verify(visitor, times(2)).onDir(captor.capture())
         }
-        verifyNoMoreInteractions(resolver)
-        clearInvocations(resolver)
+        verify(context).packageName //intent, somewhere in the middle of uri permissions requests
+        verifyNoMoreInteractions(resolver, context)
+        clearInvocations(resolver, context)
 
         assertEquals(2, captor.allValues.size)
         captor.firstValue.run {
             assertEquals("dir", name)
             assertEquals(permittedId1.parent.fsUri, uri)
-            assertEquals(permittedId1.parent.documentUri, permissionQueryUri)
+            assertEquals(permittedId1.parent.documentUri, permissionQueryIntent!!.data)
         }
         captor.secondValue.run {
             assertEquals("access", name)
             assertEquals(permittedId2.fsUri, uri)
-            assertEquals(null, permissionQueryUri)
+            assertEquals(null, permissionQueryIntent)
         }
         verify(resolver, times(2)).persistedUriPermissions
+        // intent creating
+        verify(context).packageName
     }
 
     @Test
@@ -236,15 +238,17 @@ class VfsRootLocalStorageAccessFrameworkTest {
             assertEquals("Root", description)
             assertEquals(underTest, parent)
             assertEquals(id1.fsUri, uri)
-            assertEquals(id1.rootUri, permissionQueryUri)
+            assertEquals(id1.rootUri, permissionQueryIntent!!.data)
         }
         captor.secondValue.run {
             assertEquals(underTest, parent)
             assertEquals(id2.fsUri, uri)
             assertEquals("readonly", name)
             assertEquals("ReadOnly", description)
-            assertEquals(id2.rootUri, permissionQueryUri)
+            assertEquals(id2.rootUri, permissionQueryIntent!!.data)
         }
+        // intent creating
+        verify(context, times(2)).packageName
     }
 
     @Test
@@ -285,7 +289,7 @@ class VfsRootLocalStorageAccessFrameworkTest {
         }
         (underTest.resolve(id.fsUri) as VfsDir).run {
             assertEquals("dir", name)
-            assertEquals(null, permissionQueryUri)
+            assertEquals(null, permissionQueryIntent)
             enumerate(visitor)
         }
         inOrder(context, resolver, visitor) {
@@ -301,7 +305,7 @@ class VfsRootLocalStorageAccessFrameworkTest {
                 assertEquals("subdir", name)
                 assertEquals("Directory", description)
                 assertEquals(subDir.fsUri, uri)
-                assertEquals(null, permissionQueryUri)
+                assertEquals(null, permissionQueryIntent)
                 true
             })
             verify(visitor).onFile(argThat {

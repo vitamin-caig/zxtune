@@ -9,6 +9,7 @@ import androidx.core.content.getSystemService
 import androidx.core.database.getStringOrNull
 import androidx.documentfile.provider.DocumentFile
 import app.zxtune.R
+import app.zxtune.ResultActivity
 import app.zxtune.Util
 import app.zxtune.fs.local.Document
 import app.zxtune.fs.local.Identifier
@@ -103,7 +104,10 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
         override val parent = this@VfsRootLocalStorageAccessFramework
 
         override fun getExtension(id: String) = when (id) {
-            VfsExtensions.PERMISSION_QUERY_URI -> this.id.rootUri
+            VfsExtensions.PERMISSION_QUERY_INTENT -> ResultActivity.createStoragePermissionRequestIntent(
+                context, this.id.rootUri
+            )
+
             else -> super.getExtension(id)
         }
     }
@@ -121,7 +125,11 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
         } ?: getPhantomDirs(id, visitor)
 
         override fun getExtension(id: String) = when (id) {
-            VfsExtensions.PERMISSION_QUERY_URI -> this.id.documentUri.takeIf { treeId == null }
+            VfsExtensions.PERMISSION_QUERY_INTENT -> this.id.documentUri.takeIf { treeId == null }
+                ?.let { uri ->
+                    ResultActivity.createStoragePermissionRequestIntent(context, uri)
+                }
+
             else -> super.getExtension(id)
         }
 

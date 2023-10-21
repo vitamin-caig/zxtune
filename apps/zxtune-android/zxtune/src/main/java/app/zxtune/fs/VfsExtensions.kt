@@ -5,6 +5,7 @@
  */
 package app.zxtune.fs
 
+import android.content.Intent
 import android.net.Uri
 import androidx.annotation.DrawableRes
 import java.io.File
@@ -35,8 +36,8 @@ object VfsExtensions {
     // @DrawableRes
     const val ICON = "ICON"
 
-    // Uri[]
-    const val PERMISSION_QUERY_URI = "PERMISSION_QUERY_URI"
+    // Intent
+    const val PERMISSION_QUERY_INTENT = "PERMISSION_QUERY_INTENT"
 
     // InputStream
     const val INPUT_STREAM = "INPUT_STREAM"
@@ -76,8 +77,8 @@ val VfsFile.file
 val VfsObject.icon
     get() = getExtension(VfsExtensions.ICON) as? Int
 
-val VfsObject.permissionQueryUri
-    get() = getExtension(VfsExtensions.PERMISSION_QUERY_URI) as? Uri
+val VfsObject.permissionQueryIntent
+    get() = getExtension(VfsExtensions.PERMISSION_QUERY_INTENT) as? Intent
 
 val VfsFile.inputStream
     get() = getExtension(VfsExtensions.INPUT_STREAM) as? InputStream

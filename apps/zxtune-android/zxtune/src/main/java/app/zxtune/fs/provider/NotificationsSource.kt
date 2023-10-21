@@ -10,10 +10,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import app.zxtune.Features
 import app.zxtune.R
-import app.zxtune.ResultActivity
 import app.zxtune.device.PersistentStorage
 import app.zxtune.fs.VfsObject
-import app.zxtune.fs.permissionQueryUri
+import app.zxtune.fs.permissionQueryIntent
 import app.zxtune.net.NetworkManager
 
 internal class NotificationsSource @VisibleForTesting constructor(
@@ -34,9 +33,7 @@ internal class NotificationsSource @VisibleForTesting constructor(
     }
 
     constructor(ctx: Context) : this(
-        ctx,
-        getNetworkState(ctx),
-        PersistentStorage.instance.setupIntent
+        ctx, getNetworkState(ctx), PersistentStorage.instance.setupIntent
     )
 
     fun getFor(obj: VfsObject) = getNotification(obj)?.let { notification ->
@@ -69,10 +66,9 @@ internal class NotificationsSource @VisibleForTesting constructor(
         }
     }
 
-    private fun getStorageNotification(obj: VfsObject) = obj.permissionQueryUri?.let { uri ->
+    private fun getStorageNotification(obj: VfsObject) = obj.permissionQueryIntent?.let {
         Schema.Notifications.Object(
-            ctx.getString(R.string.limited_storage_access),
-            ResultActivity.createStoragePermissionRequestIntent(ctx, uri)
+            ctx.getString(R.string.limited_storage_access), it
         )
     }
 
