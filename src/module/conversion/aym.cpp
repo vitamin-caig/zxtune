@@ -21,8 +21,6 @@
 #include <module/attributes.h>
 #include <module/conversion/types.h>
 #include <module/players/aym/aym_base.h>
-// boost includes
-#include <boost/algorithm/string.hpp>
 // std includes
 #include <utility>
 

@@ -35,8 +35,6 @@
 #include <strings/optimize.h>
 // std includes
 #include <map>
-// boost includes
-#include <boost/algorithm/string/predicate.hpp>
 // 3rdparty includes
 #include <3rdparty/gme/gme/Gbs_Emu.h>
 #include <3rdparty/gme/gme/Gym_Emu.h>
