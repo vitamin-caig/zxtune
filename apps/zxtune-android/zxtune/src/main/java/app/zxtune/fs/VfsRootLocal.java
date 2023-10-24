@@ -6,8 +6,10 @@
 
 package app.zxtune.fs;
 
+import android.Manifest;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
@@ -16,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 
 import app.zxtune.R;
+import app.zxtune.ResultActivity;
 import app.zxtune.Util;
 import app.zxtune.fs.local.Document;
 import app.zxtune.fs.local.StoragesSource;
@@ -59,6 +62,8 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
   public Object getExtension(String id) {
     if (VfsExtensions.ICON.equals(id)) {
       return R.drawable.ic_browser_vfs_local;
+    } else if (Build.VERSION.SDK_INT >= 23 && VfsExtensions.PERMISSION_QUERY_INTENT.equals(id)) {
+      return ResultActivity.Companion.createPermissionsRequestIntent(context, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE);
     } else {
       return super.getExtension(id);
     }
@@ -140,9 +145,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
     @Override
     public VfsObject getParent() {
       final File parent = object.getParentFile();
-      return parent != null
-          ? new LocalDir(parent)
-          : VfsRootLocal.this;
+      return parent != null ? new LocalDir(parent) : VfsRootLocal.this;
     }
   }
 

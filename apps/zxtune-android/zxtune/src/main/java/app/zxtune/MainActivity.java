@@ -6,7 +6,6 @@
 
 package app.zxtune;
 
-import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -26,10 +25,8 @@ import androidx.lifecycle.Observer;
 import androidx.viewpager.widget.ViewPager;
 
 import app.zxtune.analytics.Analytics;
-import app.zxtune.device.Permission;
 import app.zxtune.device.media.MediaModel;
 import app.zxtune.ui.ViewPagerAdapter;
-import app.zxtune.ui.utils.ThemeUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
   }
 
-  private static final Analytics.Trace TRACE = Analytics.Trace.create("MainActivity");
   @Nullable
   private ViewPager pager;
   public static final int PENDING_INTENT_FLAG = Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0;
@@ -69,14 +65,9 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
-    TRACE.beginMethod(savedInstanceState == null ? "onCreate" : "onRecreate");
     super.onCreate(savedInstanceState);
-    TRACE.checkpoint("super");
 
     fillPages();
-    // TODO: rework to on-demand permissions request for pre-saf devices
-    Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, Build.VERSION.SDK_INT >= 33 ? Manifest.permission.READ_MEDIA_AUDIO : Manifest.permission.READ_EXTERNAL_STORAGE);
-    TRACE.checkpoint("perm");
 
     final LiveData<MediaControllerCompat> ctrl = MediaModel.of(this).getController();
     ctrl.observe(this, (@Nullable MediaControllerCompat update) -> {
@@ -92,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
       StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().build());
       StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().build());
     }
-    TRACE.endMethod();
   }
 
   @Override
