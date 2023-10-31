@@ -11,64 +11,50 @@ import android.view.View
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import app.zxtune.R
 import app.zxtune.core.ModuleAttributes
+import app.zxtune.ui.utils.FragmentParcelableProperty
 
 class InformationFragment : DialogFragment(R.layout.information) {
 
     companion object {
         fun show(activity: FragmentActivity, metadata: MediaMetadataCompat) =
             InformationFragment().apply {
-                Model.of(activity).fill(metadata)
+                this.metadata = metadata
             }.show(activity.supportFragmentManager, "information")
     }
 
+    private var metadata by FragmentParcelableProperty<MediaMetadataCompat>()
+
+    private val content by lazy {
+        buildContent()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) =
-        Model.of(requireActivity()).showTo(view.findViewById(R.id.information_content))
+        view.findViewById<TextView>(R.id.information_content).run {
+            text = content
+            movementMethod = ScrollingMovementMethod.getInstance()
+            scrollTo(0, 0)
+        }
 
     override fun onCreateDialog(savedInstanceState: Bundle?) =
         super.onCreateDialog(savedInstanceState).also {
             it.setTitle(R.string.properties)
         }
 
-    class Model : ViewModel() {
-        companion object {
-            fun of(owner: FragmentActivity) = ViewModelProvider(owner)[Model::class.java]
+    private fun buildContent() = StringBuilder().apply {
+        with(metadata) {
+            addField(
+                getString(R.string.information_location),
+                Uri.decode(description.mediaUri?.toString() ?: "")
+            )
+            addField(getString(R.string.information_title), getString(ModuleAttributes.TITLE))
+            addField(getString(R.string.information_author), getString(ModuleAttributes.AUTHOR))
+            addField(getString(R.string.information_program), getString(ModuleAttributes.PROGRAM))
+            addField(getString(R.string.information_comment), getString(ModuleAttributes.COMMENT))
+            addRawField(getString(ModuleAttributes.STRINGS))
         }
-
-        private lateinit var content: List<Pair<Int, String>>
-
-        fun fill(metadata: MediaMetadataCompat) = with(metadata) {
-            content = mutableListOf<Pair<Int, String>>().apply {
-                val location = Uri.decode(description.mediaUri?.toString() ?: "")
-                add(R.string.information_location to location)
-                add(R.string.information_title to getString(ModuleAttributes.TITLE))
-                add(R.string.information_author to getString(ModuleAttributes.AUTHOR))
-                add(R.string.information_program to getString(ModuleAttributes.PROGRAM))
-                add(R.string.information_comment to getString(ModuleAttributes.COMMENT))
-                add(0 to getString(ModuleAttributes.STRINGS))
-            }
-        }
-
-        fun showTo(view: TextView) = StringBuilder().apply {
-            val res = view.resources
-            for ((key, value) in content) {
-                if (key != 0) {
-                    addField(res.getString(key), value)
-                } else {
-                    addRawField(value)
-                }
-            }
-        }.let { content ->
-            view.run {
-                text = content.asHtml()
-                movementMethod = ScrollingMovementMethod.getInstance()
-                scrollTo(0, 0)
-            }
-        }
-    }
+    }.asHtml()
 }
 
 private const val LINEBREAK = "<br>"
