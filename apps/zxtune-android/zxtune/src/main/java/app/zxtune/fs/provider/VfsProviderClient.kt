@@ -20,25 +20,14 @@ import app.zxtune.use
  *
  */
 class VfsProviderClient(ctx: Context) {
-    // TODO: use Schema objects?
-    interface StatusCallback {
-        fun onProgress(done: Int, total: Int)
+    interface ListingCallback {
+        fun onProgress(status: Schema.Status.Progress)
+        fun onDir(dir: Schema.Listing.Dir)
+        fun onFile(file: Schema.Listing.File)
     }
 
-    interface ListingCallback : StatusCallback {
-        fun onDir(uri: Uri, name: String, description: String, icon: Int?, hasFeed: Boolean)
-        fun onFile(
-            uri: Uri,
-            name: String,
-            description: String,
-            details: String,
-            tracks: Int?,
-            cached: Boolean?
-        )
-    }
-
-    interface ParentsCallback : StatusCallback {
-        fun onObject(uri: Uri, name: String, icon: Int?)
+    interface ParentsCallback {
+        fun onObject(obj: Schema.Parents.Object)
     }
 
     private val resolver = ctx.contentResolver
@@ -48,9 +37,7 @@ class VfsProviderClient(ctx: Context) {
         queryListing(Query.resolveUriFor(uri), cb, signal)
 
     private fun queryListing(
-        resolverUri: Uri,
-        cb: ListingCallback,
-        userSignal: CancellationSignal?
+        resolverUri: Uri, cb: ListingCallback, userSignal: CancellationSignal?
     ) {
         val signal = userSignal ?: CancellationSignal()
         val notification = subscribeForChanges(resolverUri) {
@@ -85,8 +72,7 @@ class VfsProviderClient(ctx: Context) {
         queryListing(Query.searchUriFor(uri, query), cb, signal)
 
     fun subscribeForNotifications(
-        uri: Uri,
-        cb: (Schema.Notifications.Object?) -> Unit
+        uri: Uri, cb: (Schema.Notifications.Object?) -> Unit
     ): Releaseable = Query.notificationUriFor(uri).let { resolverUri ->
         subscribeForChanges(resolverUri) {
             cb(getNotification(resolverUri))
@@ -117,16 +103,10 @@ class VfsProviderClient(ctx: Context) {
         private fun getListing(cursor: Cursor, cb: ListingCallback) {
             while (cursor.moveToNext()) {
                 when (val obj = Schema.Object.parse(cursor)) {
-                    is Schema.Listing.Dir -> obj.run {
-                        cb.onDir(uri, name, description, icon, hasFeed)
-                    }
-                    is Schema.Listing.File -> obj.run {
-                        cb.onFile(uri, name, description, details, tracks, isCached)
-                    }
+                    is Schema.Listing.Dir -> cb.onDir(obj)
+                    is Schema.Listing.File -> cb.onFile(obj)
                     is Schema.Status.Error -> throw Exception(obj.error)
-                    is Schema.Status.Progress -> obj.run {
-                        cb.onProgress(done, total)
-                    }
+                    is Schema.Status.Progress -> cb.onProgress(obj)
                     else -> Unit
                 }
             }
@@ -136,7 +116,7 @@ class VfsProviderClient(ctx: Context) {
             while (cursor.moveToNext()) {
                 when (val obj = Schema.Parents.Object.parse(cursor)) {
                     is Schema.Status.Error -> throw Exception(obj.error)
-                    is Schema.Parents.Object -> obj.run { cb.onObject(uri, name, icon) }
+                    is Schema.Parents.Object -> cb.onObject(obj)
                     else -> return false
                 }
             }

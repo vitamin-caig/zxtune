@@ -100,18 +100,13 @@ class ClientProviderTest {
     private val schema = mock<SchemaSource> {
         on { resolved(any()) } doAnswer {
             when (val arg = it.getArgument<VfsObject>(0)) {
-                is VfsDir -> Schema.Listing.Dir(arg.uri, arg.name, arg.description, null, false)
-                is VfsFile -> Schema.Listing.File(
-                    arg.uri, arg.name, arg.description, arg.size, null, null
-                )
-
+                is VfsDir -> convert(arg)
+                is VfsFile -> convert(arg)
                 else -> null
             }
         }
         on { parents(any()) } doAnswer {
-            it.getArgument<List<VfsObject>>(0).map { obj ->
-                Schema.Parents.Object(obj.uri, obj.name, null)
-            }
+            it.getArgument<List<VfsObject>>(0).map(::convertParent)
         }
         on { directories(any()) } doAnswer {
             it.getArgument<List<VfsDir>>(0).map { dir -> mock.resolved(dir) as Schema.Listing.Dir }
@@ -126,6 +121,14 @@ class ClientProviderTest {
     private lateinit var client: VfsProviderClient
     private val listingCallback = mock<VfsProviderClient.ListingCallback>()
     private val parentsCallback = mock<VfsProviderClient.ParentsCallback>()
+
+    private fun convert(arg: VfsDir) =
+        Schema.Listing.Dir(arg.uri, arg.name, arg.description, null, false)
+
+    private fun convert(arg: VfsFile) =
+        Schema.Listing.File(arg.uri, arg.name, arg.description, arg.size, null, null)
+
+    private fun convertParent(obj: VfsObject) = Schema.Parents.Object(obj.uri, obj.name, null)
 
     @Before
     fun setUp() {
@@ -153,7 +156,7 @@ class ClientProviderTest {
     @Test
     fun `resolve fast`() {
         client.resolve(fastUri, listingCallback)
-        verify(listingCallback).onDir(fastDir.uri, fastDir.name, fastDir.description, null, false)
+        verify(listingCallback).onDir(convert(fastDir))
     }
 
     @Test
@@ -161,10 +164,8 @@ class ClientProviderTest {
         client.resolve(slowUri, listingCallback)
         inOrder(listingCallback) {
             // dump progress first
-            verify(listingCallback, times(5)).onProgress(any(), eq(50))
-            verify(listingCallback).onDir(
-                slowDir.uri, slowDir.name, slowDir.description, null, false
-            )
+            verify(listingCallback, times(5)).onProgress(argThat { total == 50 })
+            verify(listingCallback).onDir(convert(slowDir))
         }
     }
 
@@ -185,7 +186,7 @@ class ClientProviderTest {
     fun `list fast`() {
         client.list(fastUri, listingCallback)
         fastDirContent.forEach {
-            verify(listingCallback).onDir(it.uri, it.name, it.description, null, false)
+            verify(listingCallback).onDir(convert(it))
         }
     }
 
@@ -196,10 +197,10 @@ class ClientProviderTest {
         inOrder(listingCallback) {
             // dump progress first
             for (done in 1..elements) {
-                verify(listingCallback).onProgress(done, elements)
+                verify(listingCallback).onProgress(Schema.Status.Progress(done, elements))
             }
             slowDirContent.forEach {
-                verify(listingCallback).onFile(it.uri, it.name, it.description, it.size, null, null)
+                verify(listingCallback).onFile(convert(it))
             }
         }
     }
@@ -213,23 +214,23 @@ class ClientProviderTest {
     fun `parents chain`() {
         client.parents(deepUri, parentsCallback)
         inOrder(parentsCallback) {
-            verify(parentsCallback).onObject(fastDir.uri, fastDir.name, null)
-            verify(parentsCallback).onObject(slowDir.uri, slowDir.name, null)
-            verify(parentsCallback).onObject(deepDir.uri, deepDir.name, null)
+            verify(parentsCallback).onObject(convertParent(fastDir))
+            verify(parentsCallback).onObject(convertParent(slowDir))
+            verify(parentsCallback).onObject(convertParent(deepDir))
         }
     }
 
     @Test
     fun `parents empty`() {
         client.parents(fastUri, parentsCallback)
-        verify(parentsCallback).onObject(fastDir.uri, fastDir.name, null)
+        verify(parentsCallback).onObject(convertParent(fastDir))
     }
 
     @Test
     fun `search slow`() {
         client.search(slowUri, "object", listingCallback)
         slowDirContent.forEach {
-            verify(listingCallback).onFile(it.uri, it.name, it.description, it.size, null, null)
+            verify(listingCallback).onFile(convert(it))
         }
     }
 
@@ -304,20 +305,20 @@ class ClientProviderTest {
     @Test
     fun `client exception`() {
         listingCallback.stub {
-            on { onProgress(any(), any()) } doThrow Error("Client cancellation")
+            on { onProgress(any()) } doThrow Error("Client cancellation")
         }
         val ex = assertThrows<Exception> {
             client.list(slowUri, listingCallback)
         }
         assertEquals(OperationCanceledException().message, ex.message)
-        verify(listingCallback).onProgress(any(), any())
+        verify(listingCallback).onProgress(any())
     }
 
     @Test
     fun `client cancellation`() {
         val signal = CancellationSignal()
         listingCallback.stub {
-            on { onProgress(any(), any()) } doAnswer {
+            on { onProgress(any()) } doAnswer {
                 signal.cancel()
             }
         }
@@ -325,7 +326,7 @@ class ClientProviderTest {
             client.list(slowUri, listingCallback, signal)
         }
         assertEquals(OperationCanceledException().message, ex.message)
-        verify(listingCallback).onProgress(any(), any())
+        verify(listingCallback).onProgress(any())
     }
 
     @Test

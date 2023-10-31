@@ -12,6 +12,7 @@ import androidx.lifecycle.MutableLiveData
 import app.zxtune.Logger
 import app.zxtune.Releaseable
 import app.zxtune.analytics.Analytics
+import app.zxtune.fs.provider.Schema
 import app.zxtune.fs.provider.VfsProviderClient
 import app.zxtune.fs.provider.VfsProviderClient.ParentsCallback
 import app.zxtune.ui.browser.ListingEntry.Companion.makeFile
@@ -55,8 +56,7 @@ class Model @VisibleForTesting internal constructor(
             get() = listing.filter
 
         fun withContent(
-            breadcrumbs: List<BreadcrumbsEntry>,
-            entries: List<ListingEntry>
+            breadcrumbs: List<BreadcrumbsEntry>, entries: List<ListingEntry>
         ) = State(breadcrumbs, listing.withContent(entries))
 
         fun withEntries(entries: List<ListingEntry>) =
@@ -97,9 +97,7 @@ class Model @VisibleForTesting internal constructor(
 
     @Suppress("UNUSED")
     constructor(application: Application) : this(
-        application,
-        VfsProviderClient(application),
-        Executors.newSingleThreadExecutor()
+        application, VfsProviderClient(application), Executors.newSingleThreadExecutor()
     )
 
     override fun onCleared() = mutableNotification.release()
@@ -219,11 +217,9 @@ class Model @VisibleForTesting internal constructor(
 
         private fun getParents() = ArrayList<BreadcrumbsEntry>().apply {
             providerClient.parents(uri, object : ParentsCallback {
-                override fun onObject(uri: Uri, name: String, icon: Int?) {
-                    add(BreadcrumbsEntry(uri, name, icon))
+                override fun onObject(obj: Schema.Parents.Object) {
+                    add(BreadcrumbsEntry(obj.uri, obj.name, obj.icon))
                 }
-
-                override fun onProgress(done: Int, total: Int) = updateProgress(done, total)
             })
         }
     }
@@ -270,27 +266,12 @@ class Model @VisibleForTesting internal constructor(
             publishState()
             // assume already resolved
             providerClient.search(uri, query, object : VfsProviderClient.ListingCallback {
-                override fun onDir(
-                    uri: Uri,
-                    name: String,
-                    description: String,
-                    icon: Int?,
-                    hasFeed: Boolean
-                ) = Unit
-
-                override fun onFile(
-                    uri: Uri,
-                    name: String,
-                    description: String,
-                    details: String,
-                    tracks: Int?,
-                    cached: Boolean?
-                ) {
-                    content.add(makeFile(uri, name, description, details, tracks, cached))
+                override fun onProgress(status: Schema.Status.Progress) = Unit
+                override fun onDir(dir: Schema.Listing.Dir) = Unit
+                override fun onFile(file: Schema.Listing.File) {
+                    content.add(makeFile(file))
                     publishState()
                 }
-
-                override fun onProgress(done: Int, total: Int) = Unit
             }, signal)
         }
 
@@ -306,49 +287,32 @@ class Model @VisibleForTesting internal constructor(
     private fun resolve(uri: Uri, signal: CancellationSignal): ObjectType? {
         var result: ObjectType? = null
         providerClient.resolve(uri, object : VfsProviderClient.ListingCallback {
-            override fun onDir(
-                uri: Uri, name: String, description: String, icon: Int?,
-                hasFeed: Boolean
-            ) {
-                result = if (hasFeed) ObjectType.DIR_WITH_FEED else ObjectType.DIR
+            override fun onProgress(status: Schema.Status.Progress) =
+                updateProgress(status.done, status.total)
+
+            override fun onDir(dir: Schema.Listing.Dir) {
+                result = if (dir.hasFeed) ObjectType.DIR_WITH_FEED else ObjectType.DIR
             }
 
-            override fun onFile(
-                uri: Uri, name: String, description: String, details: String, tracks: Int?,
-                cached: Boolean?
-            ) {
+            override fun onFile(file: Schema.Listing.File) {
                 result = ObjectType.FILE
             }
-
-            override fun onProgress(done: Int, total: Int) = updateProgress(done, total)
         }, signal)
         return result
     }
 
     private fun getEntries(uri: Uri, signal: CancellationSignal) = ArrayList<ListingEntry>().apply {
         providerClient.list(uri, object : VfsProviderClient.ListingCallback {
-            override fun onDir(
-                uri: Uri,
-                name: String,
-                description: String,
-                icon: Int?,
-                hasFeed: Boolean
-            ) {
-                add(makeFolder(uri, name, description, icon))
+            override fun onProgress(status: Schema.Status.Progress) =
+                updateProgress(status.done, status.total)
+
+            override fun onDir(dir: Schema.Listing.Dir) {
+                add(makeFolder(dir))
             }
 
-            override fun onFile(
-                uri: Uri,
-                name: String,
-                description: String,
-                details: String,
-                tracks: Int?,
-                cached: Boolean?
-            ) {
-                add(makeFile(uri, name, description, details, tracks, cached))
+            override fun onFile(file: Schema.Listing.File) {
+                add(makeFile(file))
             }
-
-            override fun onProgress(done: Int, total: Int) = updateProgress(done, total)
         }, signal)
     }
 
@@ -357,5 +321,13 @@ class Model @VisibleForTesting internal constructor(
 
         private fun matchEntry(entry: ListingEntry, filter: String) =
             entry.title.contains(filter, true) || entry.description.contains(filter, true)
+
+        private fun makeFolder(dir: Schema.Listing.Dir) = dir.run {
+            makeFolder(uri, name, description, icon)
+        }
+
+        private fun makeFile(file: Schema.Listing.File) = file.run {
+            makeFile(uri, name, description, details, tracks, isCached)
+        }
     }
 }

@@ -58,7 +58,7 @@ object Schema {
         }
     }
 
-    internal object Listing {
+    object Listing {
         val COLUMNS = arrayOf(
             COLUMN_TYPE,
             COLUMN_URI,
@@ -139,7 +139,7 @@ object Schema {
         }
     }
 
-    internal object Status {
+    object Status {
         val COLUMNS = arrayOf(COLUMN_DONE, COLUMN_TOTAL, COLUMN_ERROR)
 
         internal fun isStatus(cursor: Cursor) = Arrays.equals(cursor.columnNames, COLUMNS)
@@ -168,7 +168,7 @@ object Schema {
         }
     }
 
-    internal object Parents {
+    object Parents {
         val COLUMNS = arrayOf(COLUMN_URI, COLUMN_NAME, COLUMN_ICON)
 
         data class Object(val uri: Uri, val name: String, val icon: Int?) : Schema.Object {

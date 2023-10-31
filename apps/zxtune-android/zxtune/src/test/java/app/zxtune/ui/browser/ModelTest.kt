@@ -147,9 +147,13 @@ class ModelTest {
         vfsClient.stub {
             on { resolve(any(), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
-                    onProgress(1, 2)
-                    onProgress(2, 2)
-                    onFile(it.getArgument(0), "unused", "unused", "unused", null, null)
+                    onProgress(Schema.Status.Progress(1, 2))
+                    onProgress(Schema.Status.Progress(2, 2))
+                    onFile(
+                        Schema.Listing.File(
+                            it.getArgument(0), "unused", "unused", "unused", null, null
+                        )
+                    )
                 }
             }
         }
@@ -171,9 +175,9 @@ class ModelTest {
         vfsClient.stub {
             on { resolve(any(), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
-                    onProgress(1, 200)
-                    onProgress(100, 200)
-                    onDir(it.getArgument(0), "unused", "unused", null, true)
+                    onProgress(Schema.Status.Progress(1, 200))
+                    onProgress(Schema.Status.Progress(100, 200))
+                    onDir(Schema.Listing.Dir(it.getArgument(0), "unused", "unused", null, true))
                 }
             }
         }
@@ -195,8 +199,8 @@ class ModelTest {
         vfsClient.stub {
             on { resolve(any(), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
-                    onProgress(5, 10)
-                    onDir(it.getArgument(0), "unused", "unused", null, false)
+                    onProgress(Schema.Status.Progress(5, 10))
+                    onDir(Schema.Listing.Dir(it.getArgument(0), "unused", "unused", null, false))
                 }
             }
             on { parents(any(), any()) } doAnswer {
@@ -206,7 +210,7 @@ class ModelTest {
             }
             on { list(any(), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
-                    onProgress(2, 10)
+                    onProgress(Schema.Status.Progress(2, 10))
                     testContent.forEach(this::feed)
                 }
             }
@@ -271,7 +275,7 @@ class ModelTest {
         vfsClient.stub {
             on { resolve(any(), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
-                    onDir(it.getArgument(0), "unused", "unused", null, false)
+                    onDir(Schema.Listing.Dir(it.getArgument(0), "unused", "unused", null, false))
                 }
             }
             on { subscribeForNotifications(any(), any()) } doAnswer {
@@ -495,11 +499,16 @@ private fun matchState(
 
 private fun VfsProviderClient.ListingCallback.feed(entry: ListingEntry) = with(entry) {
     when (type) {
-        ListingEntry.FILE -> onFile(uri, title, description, details.orEmpty(), tracks, cached)
-        ListingEntry.FOLDER -> onDir(uri, title, description, icon, false)
+        ListingEntry.FILE -> onFile(
+            Schema.Listing.File(
+                uri, title, description, details.orEmpty(), tracks, cached
+            )
+        )
+
+        ListingEntry.FOLDER -> onDir(Schema.Listing.Dir(uri, title, description, icon, false))
     }
 }
 
 private fun VfsProviderClient.ParentsCallback.feed(entry: BreadcrumbsEntry) = with(entry) {
-    onObject(uri, title, icon)
+    onObject(Schema.Parents.Object(uri, title, icon))
 }
