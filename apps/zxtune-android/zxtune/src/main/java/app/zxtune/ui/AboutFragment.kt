@@ -8,6 +8,7 @@ import androidx.collection.SparseArrayCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.activityViewModels
 import app.zxtune.BuildConfig
 import app.zxtune.PluginsProvider
 import app.zxtune.R
@@ -21,6 +22,7 @@ class AboutFragment : DialogFragment(R.layout.about) {
             AboutFragment().show(activity.supportFragmentManager, null)
     }
 
+    private val model by activityViewModels<Model>()
     private lateinit var binding: AboutBinding
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -31,7 +33,7 @@ class AboutFragment : DialogFragment(R.layout.about) {
             aboutPager.adapter = ViewPagerAdapter(aboutPager)
         }
 
-        Model.of(requireActivity()).data.observe(this, this::fillPlugins)
+        model.data.observe(this, this::fillPlugins)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?) =

@@ -38,12 +38,6 @@ class Model(app: Application) : AndroidViewModel(app) {
             }
         }
     }
-
-    companion object {
-        fun of(owner: FragmentActivity) = ViewModelProvider(
-            owner, ViewModelProvider.AndroidViewModelFactory.getInstance(owner.application)
-        )[Model::class.java]
-    }
 }
 
 private fun <T> SparseArrayCompat<T>.getOrPut(key: Int, default: T) =
