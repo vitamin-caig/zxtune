@@ -1,5 +1,6 @@
 #include "meta.h"
 #include "../coding/coding.h"
+#include "../util/endianness.h"
 
 typedef enum { MFX, MFX_BANK, SFX_BANK, SBNK, FORM } musx_form;
 typedef enum { PSX, DSP, XBOX, IMA, DAT, NGCA, PCM } musx_codec;
@@ -187,15 +188,23 @@ static int parse_musx_stream(STREAMFILE* sf, musx_header* musx) {
             musx->platform = get_id32be("GC02"); /* (fake) */
         }
         else {
+            int channels = musx->channels;
             off_t offset = musx->stream_offset;
             size_t max = 0x5000;
             if (max > musx->stream_size)
                 max = musx->stream_size;
+            if (!channels)
+                channels = 2;
 
+            /* since engine seems to hardcode codecs no apparent way to detect in some cases
+             * [Sphinx and the Cursed Mummy (multi), Buffy the Vampire Slayer: Chaos Bleeds (multi)] */
             if (ps_check_format(sf, offset, max)) {
                 musx->platform = get_id32be("PS2_");
-            } else {
+            } else if (xbox_check_format(sf, offset, max, channels)) {
                 musx->platform = get_id32be("XB02"); /* (fake) */
+            }
+            else {
+                musx->platform = get_id32be("PC02"); /* (fake) */
             }
         }
     }
@@ -226,6 +235,7 @@ static int parse_musx_stream(STREAMFILE* sf, musx_header* musx) {
             break;
 
         case 0x58425F5F: /* "XB__" */
+        case 0x5842315F: /* "XB1_" */
             default_channels = 2;
             default_sample_rate = 44100;
             musx->codec = DAT;
@@ -245,7 +255,7 @@ static int parse_musx_stream(STREAMFILE* sf, musx_header* musx) {
 
         case 0x5749495F: /* "WII_" */
             default_channels = 2;
-            default_sample_rate = 44100;
+            default_sample_rate = 32000;
             musx->codec = DAT;
             break;
 
@@ -265,6 +275,12 @@ static int parse_musx_stream(STREAMFILE* sf, musx_header* musx) {
             default_channels = 2;
             default_sample_rate = 44100;
             musx->codec = DAT;
+            break;
+
+        case 0x50433032: /* "PC02" */
+            default_channels = 2;
+            default_sample_rate = 32000;
+            musx->codec = IMA;
             break;
 
         default:
@@ -307,7 +323,7 @@ static int parse_musx_stream(STREAMFILE* sf, musx_header* musx) {
             }
 
             /* other types (0x0a, 0x09) look like section/end markers, 0x06/07 only seems to exist once */
-            if (type == 0x06 || type == 0x07) {
+            if (type == 0x06 || type == 0x07) { /* loop / goto */
                 musx->loop_start = offset2;
                 musx->loop_end = offset1;
                 musx->loop_flag = 1;
@@ -361,6 +377,8 @@ fail:
     return 0;
 }
 
+//TODO: check possible info here:
+// https://sphinxandthecursedmummy.fandom.com/wiki/SFX
 static int parse_musx(STREAMFILE* sf, musx_header* musx) {
     int32_t (*read_s32)(off_t,STREAMFILE*) = NULL;
     uint32_t (*read_u32)(off_t,STREAMFILE*) = NULL;
@@ -378,7 +396,7 @@ static int parse_musx(STREAMFILE* sf, musx_header* musx) {
         case 1:     /* Athens 2004 (PS2) */
             musx->platform = 0; /* guess later */
             musx->tables_offset = 0x10;
-            musx->big_endian = guess_endianness32bit(0x10, sf);
+            musx->big_endian = guess_endian32(0x10, sf);
             musx->is_old = 1;
             break;
 
@@ -501,7 +519,8 @@ static int parse_musx(STREAMFILE* sf, musx_header* musx) {
                         case 0x44415434: /* "DAT4" */
                         case 0x44415435: /* "DAT5" */
                         case 0x44415438: /* "DAT8" */
-                            /* found on PS3/Wii (but not always?) */
+                        case 0x44415439: /* "DAT9" [Disney Infinity (X360)] */
+                            /* found on PS3/Wii/X360 (but not always?) */
                             musx->stream_size = read_u32le(0x44, sf);
                             musx->channels    = read_u32le(0x48, sf);
                             musx->sample_rate = read_u32le(0x4c, sf);
@@ -670,7 +689,7 @@ static int parse_musx(STREAMFILE* sf, musx_header* musx) {
                 data_offset = read_u32(musx->tables_offset+0x3c, sf);
 
                 target_offset = head_offset + (target_subsong - 1) * 0x1c;
-                ;VGM_LOG("MUSX: ho=%lx, do=%lx, to=%lx\n", head_offset, data_offset, target_offset);
+                //;VGM_LOG("MUSX: ho=%lx, do=%lx, to=%lx\n", head_offset, data_offset, target_offset);
 
                 /* 0x00: subfile ID */
                 musx->num_samples       = read_s32(target_offset + 0x04, sf);

@@ -1,5 +1,6 @@
 #include "meta.h"
 #include "../coding/coding.h"
+#include "../util/chunks.h"
 
 
 static int get_subsongs(STREAMFILE* sf, off_t fsb5_offset, size_t fsb5_size);
@@ -16,13 +17,14 @@ VGMSTREAM* init_vgmstream_fsb5_fev_bank(STREAMFILE* sf) {
 
 
     /* checks */
-    if (!check_extensions(sf, "bank"))
-        goto fail;
+    if (!is_id32be(0x00,sf, "RIFF"))
+        return NULL;
+    if (!is_id32be(0x08,sf, "FEV "))
+        return NULL;
 
-    if (read_u32be(0x00,sf) != 0x52494646) /* "RIFF" */
-        goto fail;
-    if (read_u32be(0x08,sf) != 0x46455620) /* "FEV " */
-        goto fail;
+    if (!check_extensions(sf, "bank"))
+        return NULL;
+
     version = read_u32le(0x14,sf); /* newer FEV have some kind of sub-version at 0x18 */
 
     /* .fev is an event format referencing various external .fsb, but FMOD can bake .fev and .fsb to
@@ -100,8 +102,10 @@ VGMSTREAM* init_vgmstream_fsb5_fev_bank(STREAMFILE* sf) {
             off_t fsb5_offset  = read_u32le(bank_offset + 0x04 + entry_size*i + 0x00,sf);
             size_t fsb5_size   = read_u32le(bank_offset+0x08 + entry_size*i,sf);
             int fsb5_subsongs = get_subsongs(sf, fsb5_offset, fsb5_size);
-            if (!fsb5_subsongs)
+            if (!fsb5_subsongs) {
+                vgm_logi("FSB: couldn't load bank (encrypted?)\n");
                 goto fail;
+            }
 
             /* target in range */
             if (target_subsong >= total_subsongs + 1 && target_subsong < total_subsongs + 1 + fsb5_subsongs) {
@@ -138,7 +142,10 @@ VGMSTREAM* init_vgmstream_fsb5_fev_bank(STREAMFILE* sf) {
     vgmstream = (read_u32be(0x00, temp_sf) == 0x46534235) ? /* "FSB5" (better flag?)*/
         init_vgmstream_fsb5(temp_sf) :
         init_vgmstream_fsb_encrypted(temp_sf);
-    if (!vgmstream) goto fail;
+    if (!vgmstream) {
+        vgm_logi("FSB: couldn't load bank (encrypted?)\n");
+        goto fail;
+    }
 
     vgmstream->stream_index = sf->stream_index; //target_subsong; /* 0-index matters */
     vgmstream->num_streams = total_subsongs;

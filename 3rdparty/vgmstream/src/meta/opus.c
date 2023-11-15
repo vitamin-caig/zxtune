@@ -103,8 +103,10 @@ static VGMSTREAM* init_vgmstream_opus(STREAMFILE* sf, meta_t meta_type, off_t of
         vgmstream->layout_type = layout_none;
         vgmstream->channel_layout = ffmpeg_get_channel_layout(vgmstream->codec_data);
 
-        if (vgmstream->num_samples == 0) {
+        if (vgmstream->num_samples <= 0) {
             vgmstream->num_samples = switch_opus_get_samples(start_offset, data_size, sf) - skip;
+            if (num_samples < 0 && vgmstream->loop_end_sample > vgmstream->num_samples) /* special flag for weird cases */
+                vgmstream->loop_end_sample = vgmstream->num_samples;
         }
     }
 #else
@@ -131,9 +133,10 @@ VGMSTREAM* init_vgmstream_opus_std(STREAMFILE* sf) {
     if (read_u32le(0x00,sf) != 0x80000001) /* 'basic info' chunk */
         goto fail;
 
-    /* .opus: standard
-     * .bgm: Cotton Reboot (Switch) */
-    if (!check_extensions(sf,"opus,lopus,bgm"))
+    /* .opus: standard / .lopus: for plugins
+     * .bgm: Cotton Reboot (Switch)
+     * .opu: Ys Memoire: The Oath in Felghana (Switch) */
+    if (!check_extensions(sf,"opus,lopus,bgm,opu"))
         goto fail;
 
     offset = 0x00;
@@ -293,18 +296,21 @@ VGMSTREAM* init_vgmstream_opus_shinen(STREAMFILE* sf) {
     /* checks */
     if (read_u32be(0x08,sf) != 0x01000080)
         goto fail;
-    if ( !check_extensions(sf,"opus,lopus"))
+    if (!check_extensions(sf,"opus,lopus"))
         goto fail;
 
     offset = 0x08;
-    num_samples = 0;
-    loop_start = read_32bitLE(0x00,sf);
-    loop_end = read_32bitLE(0x04,sf); /* 0 if no loop */
+    loop_start = read_s32le(0x00,sf);
+    loop_end = read_s32le(0x04,sf); /* 0 if no loop */
+
+    /* tepaneca.opus has loop_end slightly bigger than samples, but doesn't seem an encoder delay thing since
+     * several tracks do full loops to 0 and sound ok. Mark with a special flag to allow this case. */
+    num_samples = -1;
 
     if (loop_start > loop_end)
         goto fail; /* just in case */
 
-    return init_vgmstream_opus(sf, meta_OPUS, offset, num_samples,loop_start,loop_end);
+    return init_vgmstream_opus(sf, meta_OPUS, offset, num_samples, loop_start, loop_end);
 fail:
     return NULL;
 }
@@ -347,10 +353,12 @@ VGMSTREAM* init_vgmstream_opus_sps_n1(STREAMFILE* sf) {
     /* checks */
     if (read_u32be(0x00, sf) != 0x09000000) /* file type (see other N1 SPS) */
         goto fail;
+
     /* .sps: Labyrinth of Refrain: Coven of Dusk (Switch)
      * .nlsd: Disgaea Refine (Switch), Ys VIII (Switch)
-     * .at9: void tRrLM(); //Void Terrarium (Switch) */
-    if (!check_extensions(sf, "sps,nlsd,at9"))
+     * .at9: void tRrLM(); //Void Terrarium (Switch)
+     * .opus: Asatsugutori (Switch) */
+    if (!check_extensions(sf, "sps,nlsd,at9,opus,lopus"))
         goto fail;
 
     num_samples = read_32bitLE(0x0C, sf);
@@ -506,6 +514,35 @@ VGMSTREAM* init_vgmstream_opus_sqex(STREAMFILE* sf) {
         loop_start = read_32bitLE(0x14, sf);
         loop_end = read_32bitLE(0x18, sf);
     }
+
+    return init_vgmstream_opus(sf, meta_OPUS, offset, num_samples, loop_start, loop_end);
+fail:
+    return NULL;
+}
+
+
+/* Idea Factory(?) variation [Birushana: Ichijuu no Kaze (Switch)] */
+VGMSTREAM* init_vgmstream_opus_rsnd(STREAMFILE* sf) {
+    off_t offset = 0;
+    int num_samples = 0, loop_start = 0, loop_end = 0, loop_flag;
+
+    /* checks */
+    if (!is_id32be(0x00, sf,"RSND"))
+        goto fail;
+    if (!check_extensions(sf, "rsnd"))
+        goto fail;
+    /* 0x04: 00? (16b)*/
+    /* 0x06: 00? (8b)*/
+    loop_flag = read_u8(0x07, sf);
+    if (loop_flag) { /* not really needed as both will be 0 */
+        loop_start = read_s32le(0x08, sf);
+        loop_end = read_s32le(0x0c, sf);
+    }
+    offset = read_u32le(0x10, sf); /* always 0x40 */
+    /* 0x14: offset again? */
+    /* 0x18+: null? (unknown numbers in bgm050) */
+    num_samples = 0; /* not loop_end as it isn't set when looping is disabled */
+
 
     return init_vgmstream_opus(sf, meta_OPUS, offset, num_samples, loop_start, loop_end);
 fail:

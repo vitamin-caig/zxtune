@@ -7,14 +7,13 @@
 #endif
 #include <stdio.h>
 #include <io.h>
+#include <locale.h>
 
-#include <foobar2000.h>
-#include <ATLHelpers/ATLHelpersLean.h>
-#include <shared.h>
+#include <foobar2000/SDK/foobar2000.h>
 
 extern "C" {
 #include "../src/vgmstream.h"
-#include "../src/plugins.h"
+#include "../src/api.h"
 }
 #include "foo_vgmstream.h"
 #include "foo_filetypes.h"
@@ -100,6 +99,9 @@ void input_vgmstream::open(service_ptr_t<file> p_filehint, const char * p_path, 
         if ( p_filehint.is_empty() )
             input_open_file_helper( p_filehint, filename, p_reason, p_abort );
         stats = p_filehint->get_stats( p_abort );
+
+        uint32_t flags = stats2_legacy; //foobar2000_io.stats2_xxx, not sure about the implications
+        stats2 = p_filehint->get_stats2_(flags, p_abort); // ???
     }
 
     switch(p_reason) {
@@ -223,7 +225,7 @@ void input_vgmstream::get_info(t_uint32 p_subsong, file_info & p_info, abort_cal
     if (total_samples > 0)
         p_info.info_set_int("stream_total_samples", total_samples);
     if (loop_start >= 0 && loop_end > loop_start) {
-        if (loop_flag <= 0) p_info.info_set("looping", "disabled");
+        if (!loop_flag) p_info.info_set("looping", "disabled");
         p_info.info_set_int("loop_start", loop_start);
         p_info.info_set_int("loop_end", loop_end);
     }
@@ -248,6 +250,10 @@ void input_vgmstream::get_info(t_uint32 p_subsong, file_info & p_info, abort_cal
 
 t_filestats input_vgmstream::get_file_stats(abort_callback & p_abort) {
     return stats;
+}
+
+t_filestats2 input_vgmstream::get_stats2(uint32_t f, abort_callback & p_abort) {
+    return stats2;
 }
 
 // called right before actually playing (decoding) a song/subsong
@@ -329,6 +335,7 @@ void input_vgmstream::decode_on_idle(abort_callback & p_abort) {/*m_file->on_idl
 
 void input_vgmstream::retag_set_info(t_uint32 p_subsong, const file_info & p_info, abort_callback & p_abort) { /*throw exception_io_data();*/ }
 void input_vgmstream::retag_commit(abort_callback & p_abort) { /*throw exception_io_data();*/ }
+void input_vgmstream::remove_tags(abort_callback & p_abort) { /*throw exception_io_data();*/ }
 
 bool input_vgmstream::g_is_our_content_type(const char * p_content_type) { return false; }
 
@@ -345,12 +352,22 @@ bool input_vgmstream::g_is_our_path(const char * p_path, const char * p_extensio
 VGMSTREAM* input_vgmstream::init_vgmstream_foo(t_uint32 p_subsong, const char * const filename, abort_callback & p_abort) {
     VGMSTREAM* vgmstream = NULL;
 
+    /* Workaround for a foobar bug (mainly for complex TXTP):
+     * When converting to .ogg foobar calls oggenc, that calls setlocale(LC_ALL, "") to use system's locale.
+     * After that, text parsing using sscanf that expects US locale for "N.N" decimals fails in some locales,
+     * so reset it here just in case
+     * (maybe should be done on lib and/or restore original locale but it's not common to change it in C) */
+    //const char* original_locale = setlocale(LC_ALL, NULL);
+    setlocale(LC_ALL, "C");
+
     STREAMFILE* sf = open_foo_streamfile(filename, &p_abort, &stats);
     if (sf) {
         sf->stream_index = p_subsong;
         vgmstream = init_vgmstream_from_STREAMFILE(sf);
         close_streamfile(sf);
     }
+
+    //setlocale(LC_ALL, original_locale);
     return vgmstream;
 }
 

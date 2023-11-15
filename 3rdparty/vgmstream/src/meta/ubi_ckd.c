@@ -1,6 +1,7 @@
 #include "meta.h"
 #include "../coding/coding.h"
-#include "../coding/coding.h"
+#include "../util/endianness.h"
+#include "../util/chunks.h"
 
 
 typedef enum { MSADPCM, DSP, MP3, XMA2 } ckd_codec;
@@ -30,7 +31,7 @@ VGMSTREAM* init_vgmstream_ubi_ckd(STREAMFILE* sf) {
     if (!is_id32be(0x0c,sf, "fmt "))
         goto fail;
 
-    big_endian = guess_endianness32bit(0x04, sf);
+    big_endian = guess_endian32(0x04, sf);
     read_u32 = big_endian ? read_u32be : read_u32le;
     read_u16 = big_endian ? read_u16be : read_u16le;
 
@@ -56,6 +57,10 @@ VGMSTREAM* init_vgmstream_ubi_ckd(STREAMFILE* sf) {
                 } else if (find_chunk_be(sf, 0x6461744C,first_offset,0, &chunk_offset,&chunk_size)) { /* "datL" */
                     /* mono "datL" or full interleave with a "datR" after the "datL" (no check, pretend it exists) */
                     start_offset = chunk_offset;
+
+                    /* chunks follow RIFF's spec of "odd sizes treated as even" [Rayman Origins (Wii)-420_hud~sfx_endofmap_discoloop.wav.ckd] */
+                    if (chunk_size % 0x02 != 0) 
+                        chunk_size += 0x01;
                     data_size = chunk_size * channels;
                     interleave = (0x4+0x4) + chunk_size; /* don't forget to skip the "datR"+size chunk */
                 } else {
@@ -148,11 +153,7 @@ VGMSTREAM* init_vgmstream_ubi_ckd(STREAMFILE* sf) {
 
 #ifdef VGM_USE_FFMPEG
         case XMA2: {
-            uint8_t buf[0x100];
-            int bytes;
-
-            bytes = ffmpeg_make_riff_xma_from_fmt_chunk(buf, sizeof(buf), 0x14, 0x34, data_size, sf, 1);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf,bytes, start_offset,data_size);
+            vgmstream->codec_data = init_ffmpeg_xma_chunk(sf, start_offset, data_size, 0x14, 0x34);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;

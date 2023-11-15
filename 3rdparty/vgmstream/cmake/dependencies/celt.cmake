@@ -7,7 +7,7 @@ if(NOT WIN32 AND USE_CELT)
 		FILE_SUBDIR celt-0.6.1
 		
 		GIT_REPOSITORY https://gitlab.xiph.org/xiph/celt
-		GIT_TAG 8ccf148573277b983692e15d5f0753081f806bea
+		GIT_TAG v0.6.1
 	)
 	FetchDependency(CELT_0110
 		DIR celt-0110
@@ -17,14 +17,14 @@ if(NOT WIN32 AND USE_CELT)
 		FILE_SUBDIR celt-0.11.0
 		
 		GIT_REPOSITORY https://gitlab.xiph.org/xiph/celt
-		GIT_TAG 0b405d1170122c859faab435405666506d52fa2e
+		GIT_TAG v0.11
 	)
 	if(CELT_0061_PATH AND CELT_0110_PATH)
 		set(CELT_0061_LINK_PATH ${CELT_0061_BIN}/libcelt/.libs/libcelt.a)
 		set(CELT_0110_LINK_PATH ${CELT_0110_BIN}/libcelt/.libs/libcelt0.a)
 		
 		configure_file(
-			${VGM_SOURCE_DIR}/ext_libs/celt-0110/ecintrin.h
+			${VGM_SOURCE_DIR}/ext_libs/extra/celt-0110/ecintrin.h
 			${CELT_0110_PATH}/libcelt/ecintrin.h
 		COPYONLY)
 		
@@ -96,15 +96,14 @@ if(NOT WIN32 AND USE_CELT)
 			mdct_backward
 			mdct_init
 			mdct_clear
+			clt_mdct_init
+			clt_mdct_clear
+			compute_pulse_cache
 		)
 		
 		foreach(ver 0061 0110)
 			foreach(source ${CELT_CFLAGS})
-				string(REGEX REPLACE "^([^_]+)" "\\1_${ver}" target ${source})
-				if(source STREQUAL ${target})
-					set(target "${source}_${ver}")
-				endif()
-				list(APPEND CELT_${ver}_CFLAGS "-D${source}=${target}")
+				list(APPEND CELT_${ver}_CFLAGS "-D${source}=${source}_${ver}")
 			endforeach()
 			list(APPEND CELT_${ver}_CFLAGS "-fPIC")
 			

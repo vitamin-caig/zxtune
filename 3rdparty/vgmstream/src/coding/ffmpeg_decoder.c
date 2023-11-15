@@ -34,7 +34,7 @@ struct ffmpeg_codec_data {
     int bad_init;
 
     // FFmpeg context used for metadata
-    AVCodec* codec;
+    const AVCodec* codec;
 
     /* FFmpeg decoder state */
     unsigned char* buffer;
@@ -369,7 +369,7 @@ ffmpeg_codec_data* init_ffmpeg_header_offset_subsong(STREAMFILE* sf, uint8_t* he
 #if 0
         /* derive info */
         data->sampleRate = data->codecCtx->sample_rate;
-        data->channels = data->codecCtx->channels;
+        data->channels = data->codecCtx->ch_layout.nb_channels; //data->codecCtx->channels;
         data->bitrate = (int)(data->codecCtx->bit_rate);
         data->blockAlign = data->codecCtx->block_align;
         data->frameSize = data->codecCtx->frame_size;
@@ -389,7 +389,8 @@ ffmpeg_codec_data* init_ffmpeg_header_offset_subsong(STREAMFILE* sf, uint8_t* he
         if (data->skip_samples < 0)
             data->skip_samples = 0;
 
-#if 0 //LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(58, 64, 100)
+#if 0
+        //LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(58, 64, 100)
         /* exposed before but not too reliable either */
         else if (stream->start_skip_samples) /* samples to skip in the first packet */
             data->skip_samples = stream->start_skip_samples;
@@ -404,7 +405,8 @@ ffmpeg_codec_data* init_ffmpeg_header_offset_subsong(STREAMFILE* sf, uint8_t* he
         VGM_ASSERT(stream->codecpar->trailing_padding > 0, "FFMPEG: trailing_padding %i\n", (int)stream->codecpar->trailing_padding);
         VGM_ASSERT(stream->codecpar->seek_preroll > 0, "FFMPEG: seek_preroll %i\n", (int)stream->codecpar->seek_preroll);//seek delay: OPUS
         VGM_ASSERT(stream->start_time > 0, "FFMPEG: start_time %i\n", (int)stream->start_time); //delay
-#if 0 //LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(58, 64, 100)
+#if 0
+        //LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(58, 64, 100)
         VGM_ASSERT(stream->first_discard_sample > 0, "FFMPEG: first_discard_sample %i\n", (int)stream->first_discard_sample); //padding: MP3
         VGM_ASSERT(stream->last_discard_sample > 0, "FFMPEG: last_discard_sample %i\n", (int)stream->last_discard_sample); //padding: MP3
         VGM_ASSERT(stream->skip_samples > 0, "FFMPEG: skip_samples %i\n", (int)stream->skip_samples); //delay: MP4
@@ -737,7 +739,11 @@ static void samples_dblp_to_s16(sample_t* obuf, double** inbuf, int ichs, int sa
 }
 
 static void copy_samples(ffmpeg_codec_data* data, sample_t* outbuf, int samples_to_do) {
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59, 24, 100)
     int channels = data->codecCtx->channels;
+#else
+    int channels = data->codecCtx->ch_layout.nb_channels;
+#endif
     int is_planar = av_sample_fmt_is_planar(data->codecCtx->sample_fmt) && (channels > 1);
     void* ibuf;
 
@@ -974,19 +980,39 @@ void ffmpeg_set_skip_samples(ffmpeg_codec_data* data, int skip_samples) {
 /* returns channel layout if set */
 uint32_t ffmpeg_get_channel_layout(ffmpeg_codec_data* data) {
     if (!data || !data->codecCtx) return 0;
-    return (uint32_t)data->codecCtx->channel_layout; /* uint64 but there ain't so many speaker mappings */
+
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59, 24, 100)
+    /* uint64 but there aren't so many speaker mappings */
+    return (uint32_t)data->codecCtx->channel_layout;
+#else
+    /* new API is not very clear so maybe there is a better way */
+    if (data->codecCtx->ch_layout.order == AV_CHANNEL_ORDER_UNSPEC)
+        return 0;
+    if (data->codecCtx->ch_layout.order == AV_CHANNEL_ORDER_NATIVE) {
+        return (uint32_t)data->codecCtx->ch_layout.u.mask;
+    }
+
+    /* other options: not handled for now */
+    return 0;
+#endif
 }
+
 
 /* yet another hack to fix codecs that encode channels in different order and reorder on decoder
  * but FFmpeg doesn't do it automatically
  * (maybe should be done via mixing, but could clash with other stuff?) */
 void ffmpeg_set_channel_remapping(ffmpeg_codec_data* data, int *channel_remap) {
     int i;
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59, 24, 100)
+    int channels = data->codecCtx->channels;
+#else
+    int channels = data->codecCtx->ch_layout.nb_channels;
+#endif
 
-    if (data->codecCtx->channels > 32)
+    if (channels > 32)
         return;
 
-    for (i = 0; i < data->codecCtx->channels; i++) {
+    for (i = 0; i < channels; i++) {
         data->channel_remap[i] = channel_remap[i];
     }
     data->channel_remap_set = 1;
@@ -1054,7 +1080,13 @@ int ffmpeg_get_sample_rate(ffmpeg_codec_data* data) {
 int ffmpeg_get_channels(ffmpeg_codec_data* data) {
     if (!data || !data->codecCtx)
         return 0;
-    return data->codecCtx->channels;
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59, 24, 100)
+    int channels = data->codecCtx->channels;
+#else
+    int channels = data->codecCtx->ch_layout.nb_channels;
+#endif
+
+    return channels;
 }
 
 int ffmpeg_get_subsong_count(ffmpeg_codec_data* data) {

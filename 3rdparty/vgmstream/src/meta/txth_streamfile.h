@@ -14,8 +14,11 @@ typedef struct {
     int chunk_number;
 
     uint32_t chunk_value;
-    uint32_t chunk_size_offset;
+    uint32_t chunk_bsize_offset;
+    uint32_t chunk_dsize_offset;
     int chunk_be;
+    int chunk_bsize_set;
+    int chunk_dsize_set;
 } txth_io_config_data;
 
 typedef struct {
@@ -71,11 +74,26 @@ static size_t txth_io_read(STREAMFILE* sf, uint8_t* dest, off_t offset, size_t l
             }
 
             /* chunk size reader (overwrites the above) */
-            if (data->cfg.chunk_header_size && data->cfg.chunk_size_offset) {
+            if (data->cfg.chunk_header_size && (data->cfg.chunk_bsize_set || data->cfg.chunk_dsize_set)) {
                 read_u32_t read_u32 = data->cfg.chunk_be ? read_u32be : read_u32le;
 
-                data->block_size = read_u32(data->physical_offset + data->cfg.chunk_size_offset, sf);
-                data->data_size = data->block_size - data->cfg.chunk_header_size;
+                data->block_size = 0;
+                data->data_size = 0;
+
+                if (data->cfg.chunk_bsize_set)
+                    data->block_size = read_u32(data->physical_offset + data->cfg.chunk_bsize_offset, sf);
+                if (data->cfg.chunk_dsize_set)
+                    data->data_size = read_u32(data->physical_offset + data->cfg.chunk_dsize_offset, sf);
+
+                if (!data->block_size && !data->data_size) { /* bad read? */
+                    data->block_size = data->cfg.chunk_header_size;
+                    data->data_size = data->cfg.chunk_header_size;
+                }
+
+                if (!data->block_size)
+                    data->block_size = data->data_size + data->cfg.chunk_header_size;
+                if (!data->data_size)
+                    data->data_size = data->block_size - data->cfg.chunk_header_size; /* may be 0 */
 
                 /* skip chunk if doesn't match expected header value */
                 if (data->cfg.chunk_value) {

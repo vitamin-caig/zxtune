@@ -3,6 +3,7 @@
 
 #include "../streamtypes.h"
 #include "../vgmstream.h"
+#include "../util/reader_sf.h"
 
 /* blocked layouts */
 void render_vgmstream_blocked(sample_t* buffer, int32_t sample_count, VGMSTREAM* vgmstream);
@@ -19,7 +20,6 @@ void block_update_caf(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_wsi(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_str_snds(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_ws_aud(off_t block_offset, VGMSTREAM* vgmstream);
-void block_update_matx(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_dec(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_vs(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_mul(off_t block_offset, VGMSTREAM* vgmstream);
@@ -30,8 +30,6 @@ void block_update_filp(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_ivaud(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_ea_swvr(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_adm(off_t block_offset, VGMSTREAM* vgmstream);
-void block_update_bdsp(off_t block_offset, VGMSTREAM* vgmstream);
-void block_update_tra(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_ps2_iab(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_vs_str(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_rws(off_t block_offset, VGMSTREAM* vgmstream);
@@ -49,6 +47,7 @@ void block_update_xa_aiff(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_vs_square(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_vid1(off_t block_offset, VGMSTREAM* vgmstream);
 void block_update_ubi_sce(off_t block_offset, VGMSTREAM* vgmstream);
+void block_update_tt_ad(off_t block_offset, VGMSTREAM* vgmstream);
 
 /* other layouts */
 void render_vgmstream_interleave(sample_t* buffer, int32_t sample_count, VGMSTREAM* vgmstream);

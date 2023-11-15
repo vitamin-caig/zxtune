@@ -41,7 +41,7 @@ extern "C"
 // clang-format off
 #include <3rdparty/vgmstream/config.h>
 #include <3rdparty/vgmstream/src/vgmstream.h>
-#include <3rdparty/vgmstream/src/plugins.h>
+#include <3rdparty/vgmstream/src/base/plugins.h>
   // clang-format on
 }
 // std includes
@@ -1908,6 +1908,10 @@ namespace Module::VGMStream
       "' 'H'A'L'P'S'T 00"_ss + // +0 signature
       ANY32 +                  // +8
       CHANNELS32BE             // +c be channels count
+    },
+    {
+      "BANK"_id, "FSB5 FEV", ".bank",
+      "'R'I'F'F ???? 'F'E'V' "_ss
     },
     // MUSC, ~850
     {

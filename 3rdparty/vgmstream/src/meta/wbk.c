@@ -1,5 +1,7 @@
 #include "meta.h"
 #include "../coding/coding.h"
+#include "../util/chunks.h"
+//#include <ctype.h>
 
 /* .WBK - seen in some Treyarch games [Spider-Man 2, Ultimate Spider-Man, Call of Duty 2: Big Red One] */
 VGMSTREAM* init_vgmstream_wbk(STREAMFILE* sf) {
@@ -154,6 +156,19 @@ fail:
     return NULL;
 }
 
+/* Ultimate Spider-Man string hashing algorithm, for reference */
+#if 0
+static uint32_t wbk_hasher(const char* input) {
+    uint32_t hash = 0;
+
+    for (const char* ch = input; *ch; ch++) {
+        hash += hash*32 + tolower(*ch);
+    }
+
+    return hash;
+}
+#endif
+
 /* .WBK - evolution of the above Treyarch bank format [Call of Duty 3] */
 VGMSTREAM* init_vgmstream_wbk_nslb(STREAMFILE* sf) {
     VGMSTREAM* vgmstream = NULL;
@@ -237,7 +252,7 @@ VGMSTREAM* init_vgmstream_wbk_nslb(STREAMFILE* sf) {
 
         case 0x22: { /* DSP */
             int i, j;
-            off_t table_offset;
+            off_t coef_table_offset;
 
             vgmstream->coding_type = coding_NGC_DSP;
             vgmstream->layout_type = layout_interleave;
@@ -245,14 +260,14 @@ VGMSTREAM* init_vgmstream_wbk_nslb(STREAMFILE* sf) {
 
             /* check info entry variation */
             if (read_u32le(info_entry_offset + 0x44 + 0x30*channels, sf) != 0x00)
-                table_offset = 0x4c; /* Call of Duty 3 */
+                coef_table_offset = 0x4c; /* Call of Duty 3 */
             else
-                table_offset = 0x44; /* Kung Fu Panda */
+                coef_table_offset = 0x44; /* Kung Fu Panda */
 
             /* It looks like the table is re-interpreted as 8 32-bit integers and stored with little endian byte order
              * like the rest of the data. Fun times. */
             for (i = 0; i < vgmstream->channels; i++) {
-                off_t coef_offset = info_entry_offset + table_offset + 0x30*i;
+                off_t coef_offset = info_entry_offset + coef_table_offset + 0x30*i;
                 for (j = 0; j < 8; j++) {
                     vgmstream->ch[i].adpcm_coef[j*2]   = read_s16le(coef_offset + j*0x04 + 0x02, sf);
                     vgmstream->ch[i].adpcm_coef[j*2+1] = read_s16le(coef_offset + j*0x04 + 0x00, sf);
@@ -287,21 +302,23 @@ VGMSTREAM* init_vgmstream_wbk_nslb(STREAMFILE* sf) {
 
 #ifdef VGM_USE_FFMPEG
         case 0x30: { /* RIFF XMA */
-            uint8_t buf[0x100];
             off_t riff_fmt_offset, riff_data_offset;
-            size_t bytes, riff_fmt_size, riff_data_size;
+            size_t riff_fmt_size, riff_data_size;
+
+            sound_offset += 0x0c;
+            sound_size -= 0x0c;
 
             /* find "fmt" chunk */
-            if (!find_chunk_riff_le(sf, 0x666d7420, sound_offset + 0x0c, sound_size - 0x0c, &riff_fmt_offset, &riff_fmt_size))
+            if (!find_chunk_riff_le(sf, 0x666d7420, sound_offset, sound_size, &riff_fmt_offset, &riff_fmt_size))
                 goto fail;
 
             /* find "data" chunk */
-            if (!find_chunk_riff_le(sf, 0x64617461, sound_offset + 0x0c, sound_size - 0x0c, &riff_data_offset, &riff_data_size))
+            if (!find_chunk_riff_le(sf, 0x64617461, sound_offset, sound_size, &riff_data_offset, &riff_data_size))
                 goto fail;
 
-            bytes = ffmpeg_make_riff_xma_from_fmt_chunk(buf, 0x100, riff_fmt_offset, riff_fmt_size, riff_data_size, sf, 0);
+            sound_offset = riff_data_offset;
 
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf, bytes, riff_data_offset, riff_data_size);
+            vgmstream->codec_data = init_ffmpeg_xma_chunk(sf, riff_data_offset, riff_data_size, riff_fmt_offset, riff_fmt_size);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;

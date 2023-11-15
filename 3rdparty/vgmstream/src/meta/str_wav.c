@@ -160,16 +160,10 @@ VGMSTREAM* init_vgmstream_str_wav(STREAMFILE* sf) {
 
 #ifdef VGM_USE_FFMPEG
         case XMA2: {
-            uint8_t buf[0x100];
-            size_t stream_size;
-            size_t bytes, block_size, block_count;
+            uint32_t stream_size = get_streamfile_size(sf);
+            int block_size = 0x10000;
 
-            stream_size = get_streamfile_size(sf);
-            block_size = 0x10000;
-            block_count = stream_size / block_size; /* not accurate? */
-
-            bytes = ffmpeg_make_riff_xma2(buf,0x100, strwav.num_samples, stream_size, strwav.channels, strwav.sample_rate, block_count, block_size);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf,bytes, 0x00,stream_size);
+            vgmstream->codec_data = init_ffmpeg_xma2_raw(sf, 0x00, stream_size, strwav.num_samples, strwav.channels, strwav.sample_rate, block_size, 0);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -589,11 +583,17 @@ static int parse_header(STREAMFILE* sf_h, STREAMFILE* sf_b, strwav_header* strwa
         return 1;
     }
 
+    /* Bad Boys II (PC)[2004] */
     /* Pac-Man World 3 (PC)[2005] */
     if ((read_u32be(0x04,sf_h) == 0x00000800 ||
          read_u32be(0x04,sf_h) == 0x01000800) &&  /* rare, mu_spectral1_explore_2 */
          read_u32le(0x24,sf_h) == read_u32le(0x114,sf_h) && /* sample rate repeat */
-         read_u32le(0x130,sf_h) + read_u32le(0x134,sf_h) * 0x40 == header_size /* ~0x140 + cues */
+         (
+           // check if the header ends at table1 (Bad Boys)
+           read_u32le(0x128,sf_h) * 0x4 + read_u32le(0x12c, sf_h) == header_size ||
+           // otherwise it ends at table2
+           read_u32le(0x130,sf_h) + read_u32le(0x134,sf_h) * 0x40 == header_size /* ~0x140 + cues */
+           )
          ) {
         /* 0x08: null */
         /* 0x0c: hashname */
@@ -645,6 +645,7 @@ static int parse_header(STREAMFILE* sf_h, STREAMFILE* sf_b, strwav_header* strwa
     }
 
     /* SpongeBob SquarePants: Creature from the Krusty Krab (PS2)[2006] */
+    /* Big Bumpin' (Xbox)[2006] */
     /* Sneak King (Xbox)[2006] */
     if ( read_u32be(0x04,sf_h) == 0x00000800 &&
          read_u32le(0x08,sf_h) == 0x00000000 &&
@@ -679,9 +680,9 @@ static int parse_header(STREAMFILE* sf_h, STREAMFILE* sf_b, strwav_header* strwa
         }
         else {
             strwav->codec = XBOX;
-            strwav->interleave  = strwav->tracks > 1 ? 0xD800/2 : 0xD800; /* assumed for multitrack */
+            strwav->interleave  = strwav->tracks > 1 ? 0x9000 : 0xD800;
         }
-        ;VGM_LOG("STR+WAV: header SBCKK/SK (PS2)\n");
+        ;VGM_LOG("STR+WAV: header SBCKK/BB/SK (PS2/Xbox)\n");
         return 1;
     }
 

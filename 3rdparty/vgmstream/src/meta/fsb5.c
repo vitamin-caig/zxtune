@@ -367,14 +367,9 @@ VGMSTREAM* init_vgmstream_fsb5(STREAMFILE* sf) {
 
 #ifdef VGM_USE_FFMPEG
         case 0x0A: {/* FMOD_SOUND_FORMAT_XMA  [Minecraft Story Mode (X360)] */
-            uint8_t buf[0x100];
-            int bytes, block_size, block_count;
+            int block_size = 0x8000; /* FSB default */
 
-            block_size = 0x8000; /* FSB default */
-            block_count = fsb5.stream_size / block_size + (fsb5.stream_size % block_size ? 1 : 0);
-
-            bytes = ffmpeg_make_riff_xma2(buf, 0x100, vgmstream->num_samples, fsb5.stream_size, vgmstream->channels, vgmstream->sample_rate, block_count, block_size);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sb, buf,bytes, fsb5.stream_offset, fsb5.stream_size);
+            vgmstream->codec_data = init_ffmpeg_xma2_raw(sf, fsb5.stream_offset, fsb5.stream_size, fsb5.num_samples, fsb5.channels, fsb5.sample_rate, block_size, 0);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -477,6 +472,7 @@ VGMSTREAM* init_vgmstream_fsb5(STREAMFILE* sf) {
             cfg.channels = fsb5.channels;
             cfg.sample_rate = fsb5.sample_rate;
             cfg.setup_id = read_u32le(fsb5.extradata_offset,sf);
+            cfg.stream_end = fsb5.stream_offset + fsb5.stream_size;
 
             vgmstream->codec_data = init_vorbis_custom(sb, fsb5.stream_offset, VORBIS_FSB, &cfg);
             if (!vgmstream->codec_data) goto fail;
@@ -492,10 +488,9 @@ VGMSTREAM* init_vgmstream_fsb5(STREAMFILE* sf) {
             vgmstream->interleave_block_size = 0x8c;
             break;
 
-#if 0 //disabled until some game is found, can be created in the GUI tool
 #ifdef VGM_USE_FFMPEG
-        case 0x11: { /* FMOD_SOUND_FORMAT_OPUS */
-            int skip = 312; //fsb_opus_get_encoder_delay(fsb5.stream_offset, sb); /* returns 120 but this seems correct */
+        case 0x11: { /* FMOD_SOUND_FORMAT_OPUS  [LEGO 2K Drive (Switch)] */
+            int skip = 312; //fsb_opus_get_encoder_delay(fsb5.stream_offset, sb); /* returns 120 but this seems correct in test files */
             //vgmstream->num_samples -= skip;
 
             vgmstream->codec_data = init_ffmpeg_fsb_opus(sb, fsb5.stream_offset, fsb5.stream_size, vgmstream->channels, skip, vgmstream->sample_rate);
@@ -504,7 +499,6 @@ VGMSTREAM* init_vgmstream_fsb5(STREAMFILE* sf) {
             vgmstream->layout_type = layout_none;
             break;
         }
-#endif
 #endif
         default:
             vgm_logi("FSB5: unknown codec 0x%x (report)\n", fsb5.codec);

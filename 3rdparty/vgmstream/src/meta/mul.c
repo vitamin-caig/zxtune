@@ -1,6 +1,7 @@
 #include "meta.h"
 #include "../layout/layout.h"
 #include "../coding/coding.h"
+#include "../util/endianness.h"
 #include "mul_streamfile.h"
 
 typedef enum { PSX, DSP, IMA, XMA1, FSB4 } mul_codec;
@@ -16,15 +17,15 @@ VGMSTREAM* init_vgmstream_mul(STREAMFILE* sf) {
     int loop_flag, channel_count, sample_rate, num_samples, loop_start;
     int big_endian;
     mul_codec codec;
-    uint32_t (*read_u32)(off_t,STREAMFILE*) = NULL;
+    read_u32_t read_u32;
+    read_f32_t read_f32;
 
 
     /* checks */
-    /* .mul: found in the exe, used by the bigfile extractor (Gibbed.TombRaider)
+    /* .mul: found in the exe/reversed names, used by the bigfile extractor (Gibbed.TombRaider)
      *       (some files have companion .mus/sam files but seem to be sequences/control stuff)
-     * .(extensionless): filenames as found in the bigfile
      * .emff: fake extension ('Eidos Music File Format') */
-    if (!check_extensions(sf, "mul,,emff"))
+    if (!check_extensions(sf, "mul,emff"))
         goto fail;
     if (read_u32be(0x10,sf) != 0 ||
         read_u32be(0x14,sf) != 0 ||
@@ -32,8 +33,9 @@ VGMSTREAM* init_vgmstream_mul(STREAMFILE* sf) {
         read_u32be(0x1c,sf) != 0)
         goto fail;
 
-    big_endian = guess_endianness32bit(0x00, sf);
+    big_endian = guess_endian32(0x00, sf);
     read_u32 = big_endian ? read_u32be : read_u32le;
+    read_f32 = big_endian ? read_f32be : read_f32le;
 
     sample_rate   = read_u32(0x00,sf);
     loop_start    = read_u32(0x04,sf);
@@ -46,13 +48,15 @@ VGMSTREAM* init_vgmstream_mul(STREAMFILE* sf) {
     /* 0x28: loop offset within audio data (not file offset) */
     /* 0x2c: some value related to loop? */
     /* 0x34: id? */
-    /* 0x38+: channel config until ~0x100? (multiple 0x3F800000 / 1.0f depending on the number of channels) */
+    /* 0x38+: channel config until ~0x100? (multiple 1.0f depending on the number of channels) */
 
-    /* test known "version" (some float) later versions start from 0x24 instead of 0x20 */
-    if (!(read_u32(0x38,sf) == 0x3F800000 ||    /* common */
-          read_u32(0x38,sf) == 0x4530F000 ||    /* Avengers */
-          read_u32(0x3c,sf) == 0x3F800000))     /* Tomb Raider Underworld */
-        goto fail;
+    /* extra tests just in case (1.0=common, varies but goes around ~2800.0) */
+    {
+        float check1 = read_f32(0x38,sf);
+        float check2 = read_f32(0x3c,sf);
+        if (!(check1 >= 1.0 && check1 <= 3000.0) && check2 != 1.0)
+            goto fail;
+    }
 
     loop_flag = (loop_start >= 0); /* 0xFFFFFFFF when not looping */
 
@@ -115,13 +119,20 @@ fail:
     return NULL;
 }
 
+/* find first block with header info (probably hardcoded) */
 static off_t get_start_offset(STREAMFILE* sf) {
+    uint32_t test1, test2;
 
-    /* find first block with header info */
-    if (read_u32be(0x0800,sf) != 0 || read_u32be(0x0804,sf) != 0) /* earlier games */
+    /* earlier games */
+    test1 = read_u32be(0x0800,sf);
+    test2 = read_u32be(0x0804,sf);
+    if ((test1 != 0 && test1 != 0xFFFFFFFF) || (test2 != 0 && test2 != 0xFFFFFFFF))
         return 0x800;
 
-    if (read_u32be(0x2000,sf) != 0 || read_u32be(0x2004,sf) != 0) /* later games */
+    /* later games */
+    test1 = read_u32be(0x2000,sf);
+    test2 = read_u32be(0x2004,sf);
+    if ((test1 != 0 && test1 != 0xFFFFFFFF) || (test2 != 0 && test2 != 0xFFFFFFFF))
         return 0x2000;
 
     return 0;
@@ -167,13 +178,16 @@ static int guess_codec(STREAMFILE* sf, off_t start_offset, int big_endian, int c
             uint32_t block_size = read_u32(offset+0x04, sf);
             uint32_t data_size  = read_u32(offset+0x10, sf);
 
+            if (block_type == 0xFFFFFFFF || block_size == 0xFFFFFFFF || data_size == 0xFFFFFFFF)
+                return 0;
+
             if (block_type != 0x00) {
                 offset += 0x10 + block_size;
                 continue; /* not audio */
             }
 
             /* test FSB4 header */
-            if (read_u32be(offset + 0x10, sf) == 0x46534234 || read_u32be(offset + 0x20, sf) == 0x46534234) {
+            if (is_id32be(offset + 0x10, sf, "FSB4") || is_id32be(offset + 0x20, sf, "FSB4")) {
                 *p_codec = FSB4;
                 return 1;
             }
@@ -238,8 +252,6 @@ static layered_layout_data* build_layered_mul(STREAMFILE* sf, off_t offset, int 
         switch(codec) {
 #ifdef VGM_USE_FFMPEG
             case XMA1: {
-                uint8_t buf[0x100];
-                int bytes;
                 size_t stream_size;
                 int layer_channels = 1;
 
@@ -255,12 +267,11 @@ static layered_layout_data* build_layered_mul(STREAMFILE* sf, off_t offset, int 
                 data->layers[i]->sample_rate = vgmstream->sample_rate;
                 data->layers[i]->num_samples = vgmstream->num_samples;
 
-                bytes = ffmpeg_make_riff_xma1(buf, 0x100, data->layers[i]->num_samples, stream_size, data->layers[i]->channels, data->layers[i]->sample_rate, 0);
-                data->layers[i]->codec_data = init_ffmpeg_header_offset(temp_sf, buf,bytes, 0x00, stream_size);
+                data->layers[i]->codec_data = init_ffmpeg_xma1_raw(temp_sf, 0x00, stream_size, data->layers[i]->channels, data->layers[i]->sample_rate, 0);
                 if (!data->layers[i]->codec_data) goto fail;
-
                 data->layers[i]->coding_type = coding_FFmpeg;
                 data->layers[i]->layout_type = layout_none;
+
                 data->layers[i]->stream_size = stream_size;
 
                 xma_fix_raw_samples(data->layers[i], temp_sf, 0x00,stream_size, 0, 0,0); /* ? */

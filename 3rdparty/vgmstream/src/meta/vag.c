@@ -5,8 +5,7 @@
 /* VAGp - Sony SDK format, created by various official tools */
 VGMSTREAM* init_vgmstream_vag(STREAMFILE* sf) {
     VGMSTREAM* vgmstream = NULL;
-    off_t start_offset;
-    size_t file_size, channel_size, interleave, interleave_first = 0, interleave_first_skip = 0;
+    uint32_t start_offset, file_size, channel_size, interleave, interleave_first = 0, interleave_first_skip = 0;
     meta_t meta_type;
     int channels = 0, loop_flag, sample_rate;
     uint32_t vag_id, version, reserved;
@@ -15,18 +14,20 @@ VGMSTREAM* init_vgmstream_vag(STREAMFILE* sf) {
 
 
     /* checks */
+    if (((read_u32be(0x00,sf) & 0xFFFFFF00) != get_id32be("VAG\0")) &&
+        ((read_u32le(0x00,sf) & 0xFFFFFF00) != get_id32be("VAG\0")))
+        return NULL;
+
     /* .vag: standard
      * .swag: Frantix (PSP)
      * .str: Ben10 Galactic Racing
      * .vig: MX vs. ATV Untamed (PS2)
      * .l/r: Crash Nitro Kart (PS2), Gradius V (PS2)
-     * .vas: Kingdom Hearts II (PS2) */
-    if ( !check_extensions(sf,"vag,swag,str,vig,l,r,vas") )
-        goto fail;
-
-    if (((read_u32be(0x00,sf) & 0xFFFFFF00) != 0x56414700) && /* "VAG" */
-        ((read_u32le(0x00,sf) & 0xFFFFFF00) != 0x56414700))
-        goto fail;
+     * .vas: Kingdom Hearts II (PS2)
+     * .xa2: Shikigami no Shiro (PS2)
+     * .snd: Alien Breed (Vita) */
+    if (!check_extensions(sf,"vag,swag,str,vig,l,r,vas,xa2,snd"))
+        return NULL;
 
     file_size = get_streamfile_size(sf);
 
@@ -52,16 +53,20 @@ VGMSTREAM* init_vgmstream_vag(STREAMFILE* sf) {
     /* check variation */
     switch(vag_id) {
 
-        case 0x56414731: /* "VAG1" (1 channel) [Metal Gear Solid 3 (PS2)] */
-            meta_type = meta_PS2_VAG1;
+        case 0x56414731: /* "VAG1" [Metal Gear Solid 3 (PS2), Cabela's African Safari (PSP), Shamu's Deep Sea Adventures (PS2)] */
+            meta_type = meta_VAG_custom; //TODO not always Konami (Sand Grain Studios)
             start_offset = 0x40; /* 0x30 is extra data in VAG1 */
-            channels = 1;
-            interleave = 0;
+            interleave = 0x10;
             loop_flag = 0;
+
+            /* MGS3 is 0 while Cabela's has this, plus description is 0x10 " " then 0x10 "-" */
+            channels = read_u8(0x1e, sf);
+            if (channels == 0)
+                channels = 1;
             break;
 
         case 0x56414732: /* "VAG2" (2 channels) [Metal Gear Solid 3 (PS2)] */
-            meta_type = meta_PS2_VAG2;
+            meta_type = meta_VAG_custom;
             start_offset = 0x40; /* 0x30 is extra data in VAG2 */
             channels = 2;
             interleave = 0x800;
@@ -69,32 +74,31 @@ VGMSTREAM* init_vgmstream_vag(STREAMFILE* sf) {
             break;
 
         case 0x56414769: /* "VAGi" (interleaved) */
-            meta_type = meta_PS2_VAGi;
+            meta_type = meta_VAG_custom;
             start_offset = 0x800;
             channels = 2;
             interleave = read_u32le(0x08,sf);
             loop_flag = 0;
             break;
 
-        case 0x70474156: /* pGAV (little endian / stereo) [Jak 3 (PS2), Jak X (PS2)] */
-            meta_type = meta_PS2_pGAV;
+        case 0x70474156: /* pGAV (little endian / stereo) [Jak II, Jak 3, Jak X (PS2)] */
+            meta_type = meta_VAG_custom;
             start_offset = 0x30;
 
-            if (is_id32be(0x20,sf, "Ster")) {
-                channels = 2;
+            if (is_id32be(0x2000,sf, "pGAV"))
+                interleave = 0x2000; /* Jak II & Jak 3 interleave, includes header */
+            else if (is_id32be(0x1000,sf, "pGAV"))
+                interleave = 0x1000; /* Jak X interleave, includes header */
+            else
+                interleave = 0;
 
-                if (is_id32be(0x2000,sf, "pGAV"))
-                    interleave = 0x2000; /* Jak 3 interleave, includes header */
-                else if (is_id32be(0x1000,sf, "pGAV"))
-                    interleave = 0x1000; /* Jak X interleave, includes header */
-                else
-                    interleave = 0x2000; /* Jak 3 interleave in rare files, no header */
+            if (interleave) {
+                channels = 2;
                 interleave_first = interleave - start_offset; /* interleave includes header */
                 interleave_first_skip = start_offset;
             }
             else {
                 channels = 1;
-                interleave = 0;
             }
 
             channel_size = read_u32le(0x0C,sf) / channels;
@@ -104,7 +108,7 @@ VGMSTREAM* init_vgmstream_vag(STREAMFILE* sf) {
             break;
 
         case 0x56414770: /* "VAGp" (standard and variations) */
-            meta_type = meta_PS2_VAGp;
+            meta_type = meta_VAG;
 
             if (check_extensions(sf,"vig")) {
                 /* MX vs. ATV Untamed (PS2) */
@@ -240,12 +244,19 @@ VGMSTREAM* init_vgmstream_vag(STREAMFILE* sf) {
                 channel_size = channel_size / channels;
             }
             else if (version == 0x00000020 && reserved == 0x01010101) {
-                /* Gift (PS2) */
+                /* Eko Software */
                 start_offset = 0x800;
                 channels = 2; /* mono VAGs in this game are standard, without reserved value */ 
-                interleave = 0x2000;
-                if (read_u32be(0x4800,sf) == 0x00000000) /* one file has bigger interleave, detectable with ch2's null frame */
+                
+                /* detect interleave with ch2's null frame */
+                if (read_u32be(0x800 + 0x400,sf) == 0x00000000) /* Woody Woodpecker: Escape from Buzz Buzzard Park (PS2) */
+                    interleave = 0x400;
+                else if (read_u32be(0x800 + 0x4000,sf) == 0x00000000) /* Gift (PS2), one file */
                     interleave = 0x4000;
+                else if (read_u32be(0x800 + 0x2000,sf) == 0x00000000)  /* Gift (PS2) */
+                    interleave = 0x2000;
+                else 
+                    goto fail;
 
                 channel_size = channel_size / channels;
                 has_interleave_last = 1;
@@ -274,6 +285,15 @@ VGMSTREAM* init_vgmstream_vag(STREAMFILE* sf) {
 
         default:
             goto fail;
+    }
+
+    /* ignore bigfiles and bad extractions (approximate) */
+    /* padding is set to 2 MiB to avoid breaking Jak series' VAGs */
+    if (channel_size * channels + interleave * channels + start_offset * channels + 0x200000 < get_streamfile_size(sf) ||
+        channel_size * channels > get_streamfile_size(sf)) {
+        vgm_logi("VAG: wrong expected (incorrect extraction? %x * %i + %x + %x + ~ vs %x)\n", 
+            channel_size, channels, interleave * channels, start_offset * channels, (uint32_t)get_streamfile_size(sf));
+        goto fail;
     }
 
 
@@ -319,12 +339,12 @@ VGMSTREAM* init_vgmstream_vag_aaap(STREAMFILE* sf) {
     int loop_flag;
 
     /* checks */
+    if (!is_id32be(0x00, sf, "AAAp"))
+        return NULL;
+
     /* .vag - assumed, we don't know the original filenames */
     if (!check_extensions(sf, "vag"))
-        goto fail;
-
-    if (read_u32be(0x00, sf) != 0x41414170) /* "AAAp" */
-        goto fail;
+        return NULL;
 
     interleave = read_u16le(0x04, sf);
     channels = read_u16le(0x06, sf);
@@ -349,7 +369,7 @@ VGMSTREAM* init_vgmstream_vag_aaap(STREAMFILE* sf) {
     vgmstream = allocate_vgmstream(channels, loop_flag);
     if (!vgmstream) goto fail;
 
-    vgmstream->meta_type = meta_PS2_VAGp_AAAP;
+    vgmstream->meta_type = meta_AAAP;
     vgmstream->sample_rate = sample_rate;
     vgmstream->num_samples = ps_bytes_to_samples(channel_size, 1);
     vgmstream->coding_type = coding_PSX;

@@ -21,14 +21,14 @@ def parse():
         '- find all .ogg in files including those that end with 0.ogg or 1.ogg\n'
         '%(prog)s files/*.ogg -fe .+(a|all)[.]ogg$\n'
         '- find all .ogg in files excluding those that end with a.ogg or all.ogg\n'
-        '%(prog)s files/*.* -fi "(.+)(_intro|_loop)([.].+)$" -n "\\1)_full" -cfa\n'
+        '%(prog)s files/*.* -fi "(.+)(_intro|_loop)([.].+)$" -n "\\1_full" -cla\n'
         '- makes intro+loop .txtp named (first part without _intro/_loop)_full.txtp + loops\n'
         '%(prog)s files/*.* -fe "(.+)(_intro|_loop)([.].+)$" -s\n'
         '- makes single .txtp for files that don\'t have intro+loop pairs\n'
     )
 
     parser = argparse.ArgumentParser(description=description, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("files", help="files to match")
+    parser.add_argument("files", help="files to match", nargs="+")
     parser.add_argument("-n","--name", help="generated txtp name (auto from 'files' by default)\nMay use regex groups like '\\1.ogg' when used with filter-include")
     parser.add_argument("-fi","--filter-include", help="include files matched with regex and ignore rest")
     parser.add_argument("-fe","--filter-exclude", help="exclude files matched with regex and keep rest")
@@ -40,6 +40,8 @@ def parse():
     parser.add_argument("-cle","--command-loop-end", help="sets loop end segment")
     parser.add_argument("-cv","--command-volume", help="sets volume")
     parser.add_argument("-c","--command", help="sets any command (free text)")
+    parser.add_argument("-ci","--command-inline", help="sets any inline command (free text)")
+    parser.add_argument("-m","--multi", help="only write txtp that have multiple results", action='store_true')
 
     return parser.parse_args()
 
@@ -76,7 +78,7 @@ def get_txtp_name(args, file):
         txtp_name = os.path.splitext(os.path.basename(file))[0]
 
     else:
-        txtp_name = os.path.splitext(os.path.basename(args.files))[0]
+        txtp_name = os.path.splitext(os.path.basename(file))[0]
 
         txtp_name = txtp_name.replace('*', '')
         txtp_name = txtp_name.replace('?', '')
@@ -96,12 +98,15 @@ def main():
     args = parse()
 
     if args.filter_include:
-        args.p_include = re.compile(args.filter_include)
+        args.p_include = re.compile(args.filter_include, re.IGNORECASE)
     if args.filter_exclude:
-        args.p_exclude = re.compile(args.filter_exclude)
+        args.p_exclude = re.compile(args.filter_exclude, re.IGNORECASE)
 
     # get target files
-    files = glob.glob(args.files)
+    files = []
+    for file in args.files:
+        print(file)
+        files += glob.glob(file)
 
     # process matches and add to output list
     txtps = {}
@@ -122,6 +127,8 @@ def main():
 
     # list info
     for name, segments in txtps.items():
+        if args.multi and len(segments) <= 1:
+            continue
         print("file: " + name)
         for segment in segments:
             print("  " + segment)
@@ -132,12 +139,19 @@ def main():
     # write resulting files
     for name, segments in txtps.items():
         len_segments = len(segments)
+        if args.multi and len_segments <= 1:
+            continue
         with open(name,"w+") as ftxtp:
             for i, segment in enumerate(segments):
+                command_inline = ''
+                if args.command_inline:
+                    command_inline = args.command_inline.replace("\\n", "\n")
+            
                 if args.command_loop_force and len_segments == 1:
-                    ftxtp.write(segment + " #e\n")
+                    txtp_line = "%s #e%s\n" % (segment, command_inline)
                 else:
-                    ftxtp.write(segment + "\n")
+                    txtp_line = "%s%s\n" % (segment, command_inline)
+                ftxtp.write(txtp_line)
 
             if args.command_loop_auto or args.command_loop_force and len_segments > 1:
                 ftxtp.write("loop_mode = auto\n")

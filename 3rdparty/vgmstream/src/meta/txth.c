@@ -2,8 +2,13 @@
 #include "../coding/coding.h"
 #include "../layout/layout.h"
 #include "txth_streamfile.h"
+#include "../util/text_reader.h"
+#include "../util/endianness.h"
+#include "../util/paths.h"
 
-#define TXT_LINE_MAX 0x2000
+#define TXT_LINE_MAX 2048 /* probably ~1000 would be ok */
+#define TXT_LINE_KEY_MAX 128
+#define TXT_LINE_VAL_MAX (TXT_LINE_MAX - TXT_LINE_KEY_MAX)
 
 /* known TXTH types */
 typedef enum {
@@ -40,11 +45,20 @@ typedef enum {
     ASF = 30,           /* Argonaut ASF 4-bit ADPCM */
     EAXA = 31,          /* Electronic Arts EA-XA 4-bit ADPCM v1 */
     OKI4S = 32,         /* OKI ADPCM with 16-bit output (unlike OKI/VOX/Dialogic ADPCM's 12-bit) */
+    PCM24LE = 33,       /* 24-bit Little Endian PCM */
+    PCM24BE = 34,       /* 24-bit Big Endian PCM */
     XA,
     XA_EA,
     CP_YM,
+    PCM_FLOAT_LE,
+    IMA_HV,
+    PCM8_SB,
+    HEVAG,
+    YMZ,
+    ULAW,
+    ALAW,
 
-    UNKNOWN = 99,
+    UNKNOWN = 255,
 } txth_codec_t;
 
 typedef enum { DEFAULT, NEGATIVE, POSITIVE, INVERTED } txth_loop_t;
@@ -104,6 +118,7 @@ typedef struct {
     int target_subsong;
     uint32_t subsong_count;
     uint32_t subsong_spacing;
+    uint32_t subsong_sum;
 
     uint32_t name_offset_set;
     uint32_t name_offset;
@@ -112,7 +127,7 @@ typedef struct {
     int subfile_set;
     uint32_t subfile_offset;
     uint32_t subfile_size;
-    char subfile_extension[32];
+    char subfile_extension[16];
 
     uint32_t chunk_number;
     uint32_t chunk_start;
@@ -121,11 +136,14 @@ typedef struct {
     uint32_t chunk_header_size;
     uint32_t chunk_data_size;
     uint32_t chunk_value;
-    uint32_t chunk_size_offset;
-    uint32_t chunk_be;
+    uint32_t chunk_bsize_offset;
+    uint32_t chunk_dsize_offset;
+    uint32_t chunk_big_endian;
     int chunk_start_set;
     int chunk_size_set;
     int chunk_count_set;
+    int chunk_bsize_set;
+    int chunk_dsize_set;
 
     uint32_t base_offset;
     uint32_t is_offset_absolute;
@@ -146,6 +164,8 @@ typedef struct {
     int sf_text_opened;
     int sf_head_opened;
     int sf_body_opened;
+
+    int debug;
 
 } txth_header;
 
@@ -210,13 +230,20 @@ VGMSTREAM* init_vgmstream_txth(STREAMFILE* sf) {
     if (txth.interleave == 0) {
         uint32_t interleave  = 0;
         switch(txth.codec) {
-            case PSX:       interleave = 0x10; break;
-            case PSX_bf:    interleave = 0x10; break;
-            case NGC_DSP:   interleave = 0x08; break;
-            case PCM16LE:   interleave = 0x02; break;
-            case PCM16BE:   interleave = 0x02; break;
-            case PCM8:      interleave = 0x01; break;
-            case PCM8_U:    interleave = 0x01; break;
+            case PSX:
+            case PSX_bf:        
+            case HEVAG:         interleave = 0x10; break;
+            case NGC_DSP:       interleave = 0x08; break;
+            case PCM24LE:       interleave = 0x03; break;
+            case PCM24BE:       interleave = 0x03; break;
+            case PCM16LE:
+            case PCM16BE:       interleave = 0x02; break;
+            case PCM8:
+            case PCM8_U:
+            case PCM8_SB:       interleave = 0x01; break;
+            case PCM_FLOAT_LE:  interleave = 0x04; break;
+            case ULAW:
+            case ALAW:          interleave = 0x01; break;
             default:
                  break;
         }
@@ -226,26 +253,35 @@ VGMSTREAM* init_vgmstream_txth(STREAMFILE* sf) {
 
     /* type to coding conversion */
     switch (txth.codec) {
-        case PSX:        coding = coding_PSX; break;
-        case XBOX:       coding = coding_XBOX_IMA; break;
-        case NGC_DTK:    coding = coding_NGC_DTK; break;
-        case PCM16BE:    coding = coding_PCM16BE; break;
-        case PCM16LE:    coding = coding_PCM16LE; break;
-        case PCM8:       coding = coding_PCM8; break;
-        case SDX2:       coding = coding_SDX2; break;
-        case DVI_IMA:    coding = coding_DVI_IMA; break;
+        case PSX:           coding = coding_PSX; break;
+        case PSX_bf:        coding = coding_PSX_badflags; break;
+        case HEVAG:         coding = coding_HEVAG; break;
+        case XBOX:          coding = coding_XBOX_IMA; break;
+        case NGC_DTK:       coding = coding_NGC_DTK; break;
+        case PCM24LE:       coding = coding_PCM24LE; break;
+        case PCM24BE:       coding = coding_PCM24BE; break;
+        case PCM16LE:       coding = coding_PCM16LE; break;
+        case PCM16BE:       coding = coding_PCM16BE; break;
+        case PCM8:          coding = coding_PCM8; break;
+        case PCM8_U:        coding = coding_PCM8_U; break;
+        case PCM8_U_int:    coding = coding_PCM8_U_int; break;
+        case PCM8_SB:       coding = coding_PCM8_SB; break;
+        case ULAW:          coding = coding_ULAW; break;
+        case ALAW:          coding = coding_ALAW; break;
+        case PCM_FLOAT_LE:  coding = coding_PCMFLOAT; break;
+        case SDX2:          coding = coding_SDX2; break;
+        case DVI_IMA:       coding = coding_DVI_IMA; break;
+        case IMA_HV:        coding = coding_HV_IMA; break;
 #ifdef VGM_USE_MPEG
-        case MPEG:       coding = coding_MPEG_layer3; break; /* we later find out exactly which */
+        case MPEG:          coding = coding_MPEG_layer3; break; /* we later find out exactly which */
 #endif
-        case IMA:        coding = coding_IMA; break;
-        case AICA:       coding = coding_AICA; break;
-        case MSADPCM:    coding = coding_MSADPCM; break;
-        case NGC_DSP:    coding = coding_NGC_DSP; break;
-        case PCM8_U_int: coding = coding_PCM8_U_int; break;
-        case PSX_bf:     coding = coding_PSX_badflags; break;
-        case MS_IMA:     coding = coding_MS_IMA; break;
-        case PCM8_U:     coding = coding_PCM8_U; break;
-        case APPLE_IMA4: coding = coding_APPLE_IMA4; break;
+        case IMA:           coding = coding_IMA; break;
+        case YMZ:
+        case AICA:          coding = coding_AICA; break;
+        case MSADPCM:       coding = coding_MSADPCM; break;
+        case NGC_DSP:       coding = coding_NGC_DSP; break;
+        case MS_IMA:        coding = coding_MS_IMA; break;
+        case APPLE_IMA4:    coding = coding_APPLE_IMA4; break;
 #ifdef VGM_USE_FFMPEG
         case ATRAC3:
         case ATRAC3PLUS:
@@ -253,19 +289,19 @@ VGMSTREAM* init_vgmstream_txth(STREAMFILE* sf) {
         case XMA2:
         case AC3:
         case AAC:
-        case FFMPEG:     coding = coding_FFmpeg; break;
+        case FFMPEG:        coding = coding_FFmpeg; break;
 #endif
-        case PCFX:       coding = coding_PCFX; break;
-        case PCM4:       coding = coding_PCM4; break;
-        case PCM4_U:     coding = coding_PCM4_U; break;
-        case OKI16:      coding = coding_OKI16; break;
-        case OKI4S:      coding = coding_OKI4S; break;
-        case TGC:        coding = coding_TGC; break;
-        case ASF:        coding = coding_ASF; break;
-        case EAXA:       coding = coding_EA_XA; break;
-        case XA:         coding = coding_XA; break;
-        case XA_EA:      coding = coding_XA_EA; break;
-        case CP_YM:      coding = coding_CP_YM; break;
+        case PCFX:          coding = coding_PCFX; break;
+        case PCM4:          coding = coding_PCM4; break;
+        case PCM4_U:        coding = coding_PCM4_U; break;
+        case OKI16:         coding = coding_OKI16; break;
+        case OKI4S:         coding = coding_OKI4S; break;
+        case TGC:           coding = coding_TGC; break;
+        case ASF:           coding = coding_ASF; break;
+        case EAXA:          coding = coding_EA_XA; break;
+        case XA:            coding = coding_XA; break;
+        case XA_EA:         coding = coding_XA_EA; break;
+        case CP_YM:         coding = coding_CP_YM; break;
         default:
             goto fail;
     }
@@ -275,6 +311,10 @@ VGMSTREAM* init_vgmstream_txth(STREAMFILE* sf) {
     if (txth.loop_flag_auto && coding == coding_PSX) {
         txth.loop_flag = ps_find_loop_offsets(txth.sf_body, txth.start_offset, txth.data_size, txth.channels, txth.interleave,
                 (int32_t*)&txth.loop_start_sample, (int32_t*)&txth.loop_end_sample);
+    }
+
+    if (txth.debug) {
+        vgm_logi("TXTH: offset=%x, size=%x, coefs=%x + %x\n", txth.start_offset, txth.data_size, txth.coef_offset, txth.coef_spacing);
     }
 
 
@@ -298,17 +338,25 @@ VGMSTREAM* init_vgmstream_txth(STREAMFILE* sf) {
         case coding_PCM8_U_int:
             vgmstream->layout_type = layout_none;
             break;
+        case coding_PCM24LE:
+        case coding_PCM24BE:
         case coding_PCM16LE:
         case coding_PCM16BE:
         case coding_PCM8:
         case coding_PCM8_U:
+        case coding_PCM8_SB:
+        case coding_ULAW:
+        case coding_ALAW:
+        case coding_PCMFLOAT:
         case coding_PCM4:
         case coding_PCM4_U:
         case coding_SDX2:
         case coding_PSX:
         case coding_PSX_badflags:
+        case coding_HEVAG:
         case coding_DVI_IMA:
         case coding_IMA:
+        case coding_HV_IMA:
         case coding_AICA:
         case coding_APPLE_IMA4:
         case coding_TGC:
@@ -337,6 +385,7 @@ VGMSTREAM* init_vgmstream_txth(STREAMFILE* sf) {
                 if (!txth.interleave && (
                         coding == coding_PSX ||
                         coding == coding_PSX_badflags ||
+                        coding == coding_HEVAG ||
                         coding == coding_IMA_int ||
                         coding == coding_DVI_IMA_int ||
                         coding == coding_SDX2_int ||
@@ -364,7 +413,12 @@ VGMSTREAM* init_vgmstream_txth(STREAMFILE* sf) {
                 vgmstream->codec_config = txth.codec_mode;
             }
 
-            vgmstream->allow_dual_stereo = 1; /* AICA and PSX */
+            if (txth.codec == YMZ) {
+                vgmstream->codec_config = 1; /* CONFIG_HIGH_NIBBLE */
+            }
+
+            //TODO recheck and use only for needed cases
+            vgmstream->allow_dual_stereo = 1; /* known to be used in: PSX, AICA, YMZ */
             break;
 
         case coding_PCFX:
@@ -459,40 +513,37 @@ VGMSTREAM* init_vgmstream_txth(STREAMFILE* sf) {
 
             /* get coefs */
             {
-                int16_t (*read_16bit)(off_t, STREAMFILE*) = txth.coef_big_endian ? read_16bitBE : read_16bitLE;
-                int16_t (*get_16bit)(const uint8_t* p) = txth.coef_big_endian ? get_16bitBE : get_16bitLE;
+                read_s16_t read_s16 = txth.coef_big_endian ? read_s16be : read_s16le;
+                get_s16_t get_s16 =txth.coef_big_endian ? get_s16be : get_s16le;
 
                 for (i = 0; i < vgmstream->channels; i++) {
                     if (txth.coef_mode == 0) { /* normal coefs */
                         for (j = 0; j < 16; j++) {
                             int16_t coef;
                             if (txth.coef_table_set)
-                                coef =  get_16bit(txth.coef_table  + i*txth.coef_spacing  + j*2);
+                                coef =  get_s16(txth.coef_table  + i*txth.coef_spacing  + j*2);
                             else
-                                coef = read_16bit(txth.coef_offset + i*txth.coef_spacing  + j*2, txth.sf_head);
+                                coef = read_s16(txth.coef_offset + i*txth.coef_spacing  + j*2, txth.sf_head);
                             vgmstream->ch[i].adpcm_coef[j] = coef;
                         }
                     }
-                    else { /* split coefs */
-                        goto fail; //IDK what is this
-                        /*
+                    else { /* split coefs (first all 8 positive, then all 8 negative [P.N.03 (GC), Viewtiful Joe (GC)] */
                         for (j = 0; j < 8; j++) {
-                            vgmstream->ch[i].adpcm_coef[j*2] = read_16bit(genh.coef_offset + i*genh.coef_spacing + j*2, txth.sf_head);
-                            vgmstream->ch[i].adpcm_coef[j*2+1] = read_16bit(genh.coef_split_offset + i*genh.coef_split_spacing + j*2, txth.sf_head);
+                            vgmstream->ch[i].adpcm_coef[j*2+0] = read_s16(txth.coef_offset + i*txth.coef_spacing + j*2 + 0x00, txth.sf_head);
+                            vgmstream->ch[i].adpcm_coef[j*2+1] = read_s16(txth.coef_offset + i*txth.coef_spacing + j*2 + 0x10, txth.sf_head);
                         }
-                        */
                     }
                 }
             }
 
             /* get hist */
             if (txth.hist_set) {
-                int16_t (*read_16bit)(off_t , STREAMFILE*) = txth.hist_big_endian ? read_16bitBE : read_16bitLE;
+                read_s16_t read_s16 = txth.coef_big_endian ? read_s16be : read_s16le;
 
                 for (i = 0; i < vgmstream->channels; i++) {
                     off_t offset = txth.hist_offset + i*txth.hist_spacing;
-                    vgmstream->ch[i].adpcm_history1_16 = read_16bit(offset + 0x00, txth.sf_head);
-                    vgmstream->ch[i].adpcm_history2_16 = read_16bit(offset + 0x02, txth.sf_head);
+                    vgmstream->ch[i].adpcm_history1_16 = read_s16(offset + 0x00, txth.sf_head);
+                    vgmstream->ch[i].adpcm_history2_16 = read_s16(offset + 0x02, txth.sf_head);
                 }
             }
 
@@ -523,47 +574,35 @@ VGMSTREAM* init_vgmstream_txth(STREAMFILE* sf) {
                 ffmpeg_data = init_ffmpeg_aac(txth.sf_body, txth.start_offset, txth.data_size, 0);
                 if (!ffmpeg_data) goto fail;
             }
+            else if (txth.codec == ATRAC3) {
+                int block_align, encoder_delay;
+
+                block_align = txth.interleave;
+                encoder_delay = txth.skip_samples;
+
+                ffmpeg_data = init_ffmpeg_atrac3_raw(txth.sf_body, txth.start_offset,txth.data_size, vgmstream->num_samples,vgmstream->channels,vgmstream->sample_rate, block_align, encoder_delay);
+                if (!ffmpeg_data) goto fail;
+            }
+            else if (txth.codec == ATRAC3PLUS) {
+                int block_size = txth.interleave;
+
+                ffmpeg_data = init_ffmpeg_atrac3plus_raw(txth.sf_body, txth.start_offset, txth.data_size, vgmstream->num_samples, vgmstream->channels, vgmstream->sample_rate, block_size, txth.skip_samples);
+                if (!ffmpeg_data) goto fail;
+            }
+            else if (txth.codec == XMA1) {
+                int xma_stream_mode = txth.codec_mode == 1 ? 1 : 0;
+
+                ffmpeg_data = init_ffmpeg_xma1_raw(txth.sf_body, txth.start_offset, txth.data_size, vgmstream->channels, vgmstream->sample_rate, xma_stream_mode);
+                if (!ffmpeg_data) goto fail;
+            }
+            else if (txth.codec == XMA2) {
+                int block_size = txth.interleave;
+
+                ffmpeg_data = init_ffmpeg_xma2_raw(sf, txth.start_offset, txth.data_size, vgmstream->num_samples, vgmstream->channels, vgmstream->sample_rate, block_size, 0);
+                if (!ffmpeg_data) goto fail;
+            }
             else {
-                /* fake header FFmpeg */
-                uint8_t buf[0x100];
-                int32_t bytes;
-
-                if (txth.codec == ATRAC3) {
-                    int block_align, encoder_delay;
-
-                    block_align = txth.interleave;
-                    encoder_delay = txth.skip_samples;
-
-                    ffmpeg_data = init_ffmpeg_atrac3_raw(txth.sf_body, txth.start_offset,txth.data_size, vgmstream->num_samples,vgmstream->channels,vgmstream->sample_rate, block_align, encoder_delay);
-                    if (!ffmpeg_data) goto fail;
-                }
-                else if (txth.codec == ATRAC3PLUS) {
-                    int block_size = txth.interleave;
-
-                    bytes = ffmpeg_make_riff_atrac3plus(buf, sizeof(buf), vgmstream->num_samples, txth.data_size, vgmstream->channels, vgmstream->sample_rate, block_size, txth.skip_samples);
-                    ffmpeg_data = init_ffmpeg_header_offset(txth.sf_body, buf,bytes, txth.start_offset,txth.data_size);
-                    if ( !ffmpeg_data ) goto fail;
-                }
-                else if (txth.codec == XMA1) {
-                    int xma_stream_mode = txth.codec_mode == 1 ? 1 : 0;
-
-                    bytes = ffmpeg_make_riff_xma1(buf, sizeof(buf), vgmstream->num_samples, txth.data_size, vgmstream->channels, vgmstream->sample_rate, xma_stream_mode);
-                    ffmpeg_data = init_ffmpeg_header_offset(txth.sf_body, buf,bytes, txth.start_offset,txth.data_size);
-                    if ( !ffmpeg_data ) goto fail;
-                }
-                else if (txth.codec == XMA2) {
-                    int block_count, block_size;
-
-                    block_size = txth.interleave ? txth.interleave : 2048;
-                    block_count = txth.data_size / block_size;
-
-                    bytes = ffmpeg_make_riff_xma2(buf, sizeof(buf), vgmstream->num_samples, txth.data_size, vgmstream->channels, vgmstream->sample_rate, block_count, block_size);
-                    ffmpeg_data = init_ffmpeg_header_offset(txth.sf_body, buf,bytes, txth.start_offset,txth.data_size);
-                    if ( !ffmpeg_data ) goto fail;
-                }
-                else {
-                    goto fail;
-                }
+                goto fail;
             }
 
             vgmstream->codec_data = ffmpeg_data;
@@ -571,7 +610,7 @@ VGMSTREAM* init_vgmstream_txth(STREAMFILE* sf) {
 
             if (txth.codec == XMA1 || txth.codec == XMA2) {
                 xma_fix_raw_samples(vgmstream, txth.sf_body, txth.start_offset,txth.data_size, 0, 0,0);
-            } else if (txth.skip_samples_set && txth.codec != ATRAC3) { /* force encoder delay */
+            } else if (txth.skip_samples_set && txth.codec != ATRAC3 && txth.codec != ATRAC3PLUS) { /* force encoder delay */
                 ffmpeg_set_skip_samples(ffmpeg_data, txth.skip_samples);
             }
 
@@ -794,14 +833,15 @@ static void set_body_chunk(txth_header* txth) {
     //todo maybe should only be done once, or have some count to retrigger to simplify?
     if (!txth->chunk_start_set || !txth->chunk_size_set || !txth->chunk_count_set)
         return;
-    if ((txth->chunk_size == 0 && ! txth->chunk_size_offset) ||
-         txth->chunk_start > txth->data_size ||
-         txth->chunk_count == 0)
+
+    if (txth->chunk_size == 0 && !(txth->chunk_bsize_set || txth->chunk_dsize_set))
+        return;
+    if (txth->chunk_start > txth->data_size || txth->chunk_count == 0)
         return;
     if (!txth->sf_body)
         return;
 
-    /* treat chunks as subsongs */
+    /* treat chunks as subsongs (less subsongs than chunks could be allowed to ignore some chunks but it's kinda odd) */
     if (txth->subsong_count > 1 && txth->subsong_count == txth->chunk_count)
         txth->chunk_number = txth->target_subsong;
     if (txth->chunk_number == 0)
@@ -817,8 +857,11 @@ static void set_body_chunk(txth_header* txth) {
         cfg.chunk_data_size = txth->chunk_data_size;
 
         cfg.chunk_value = txth->chunk_value;
-        cfg.chunk_size_offset = txth->chunk_size_offset;
-        cfg.chunk_be = txth->chunk_be;
+        cfg.chunk_bsize_offset = txth->chunk_bsize_offset;
+        cfg.chunk_dsize_offset = txth->chunk_dsize_offset;
+        cfg.chunk_be = txth->chunk_big_endian;
+        cfg.chunk_bsize_set = txth->chunk_bsize_set;
+        cfg.chunk_dsize_set = txth->chunk_dsize_set;
 
         cfg.chunk_start = txth->chunk_start;
         cfg.chunk_size = txth->chunk_size;
@@ -851,7 +894,7 @@ static void set_body_chunk(txth_header* txth) {
 
 static int parse_keyval(STREAMFILE* sf, txth_header* txth, const char* key, char* val);
 static int parse_num(STREAMFILE* sf, txth_header* txth, const char* val, uint32_t* out_value);
-static int parse_string(STREAMFILE* sf, txth_header* txth, const char* val, char* str);
+static int parse_string(STREAMFILE* sf, txth_header* txth, const char* val, char* str, int str_len);
 static int parse_coef_table(STREAMFILE* sf, txth_header* txth, const char* val, uint8_t* out_value, size_t out_size);
 static int parse_name_table(txth_header* txth, char* val);
 static int parse_multi_txth(txth_header* txth, char* val);
@@ -862,7 +905,7 @@ static int get_padding_size(txth_header* txth, int discard_empty);
 /* Simple text parser of "key = value" lines.
  * The code is meh and error handling not exactly the best. */
 static int parse_txth(txth_header* txth) {
-    off_t txt_offset, file_size;
+    uint32_t txt_offset;
 
     /* setup txth defaults */
     if (txth->sf_body)
@@ -872,23 +915,28 @@ static int parse_txth(txth_header* txth) {
 
 
     txt_offset = read_bom(txth->sf_text);
-    file_size = get_streamfile_size(txth->sf_text);
 
     /* read lines */
     {
-        char line[TXT_LINE_MAX];
-        char key[TXT_LINE_MAX];
-        char val[TXT_LINE_MAX];
-        /* at least as big as a line to avoid overflows (I hope) */
+        text_reader_t tr;
+        uint8_t buf[TXT_LINE_MAX + 1];
+        char key[TXT_LINE_KEY_MAX];
+        char val[TXT_LINE_VAL_MAX];
+        int ok, line_len;
+        char* line;
 
-        while (txt_offset < file_size) {
-            int ok, bytes_read, line_ok;
+        if (!text_reader_init(&tr, buf, sizeof(buf), txth->sf_text, txt_offset, 0))
+            goto fail;
 
-            bytes_read = read_line(line, sizeof(line), txt_offset, txth->sf_text, &line_ok);
-            if (!line_ok) goto fail;
-            //;VGM_LOG("TXTH: line=%s\n",line);
+        do {
+            line_len = text_reader_get_line(&tr, &line);
+            if (line_len < 0) goto fail; /* too big for buf (maybe not text)) */
 
-            txt_offset += bytes_read;
+            if (line == NULL) /* EOF */
+                break;
+
+            if (line_len == 0) /* empty */
+                continue;
 
             /* get key/val (ignores lead spaces, stops at space/comment/separator) */
             ok = sscanf(line, " %[^ \t#=] = %[^\t#\r\n] ", key,val);
@@ -897,7 +945,8 @@ static int parse_txth(txth_header* txth) {
 
             if (!parse_keyval(txth->sf, txth, key, val)) /* read key/val */
                 goto fail;
-        }
+
+        } while (line_len >= 0);
     }
 
     if (!txth->loop_flag_set)
@@ -919,21 +968,25 @@ static txth_codec_t parse_codec(txth_header* txth, const char* val) {
     else if (is_string(val,"XBOX"))         return XBOX;
     else if (is_string(val,"NGC_DTK"))      return NGC_DTK;
     else if (is_string(val,"DTK"))          return NGC_DTK;
+    else if (is_string(val,"PCM24BE"))      return PCM24BE;
+    else if (is_string(val,"PCM24LE"))      return PCM24LE;
     else if (is_string(val,"PCM16BE"))      return PCM16BE;
     else if (is_string(val,"PCM16LE"))      return PCM16LE;
     else if (is_string(val,"PCM8"))         return PCM8;
+    else if (is_string(val,"PCM8_U"))       return PCM8_U;
+    else if (is_string(val,"PCM8_U_int"))   return PCM8_U_int;
+    else if (is_string(val,"PCM8_SB"))      return PCM8_SB;
     else if (is_string(val,"SDX2"))         return SDX2;
     else if (is_string(val,"DVI_IMA"))      return DVI_IMA;
     else if (is_string(val,"MPEG"))         return MPEG;
     else if (is_string(val,"IMA"))          return IMA;
     else if (is_string(val,"AICA"))         return AICA;
+    else if (is_string(val,"YMZ"))          return YMZ;
     else if (is_string(val,"MSADPCM"))      return MSADPCM;
     else if (is_string(val,"NGC_DSP"))      return NGC_DSP;
     else if (is_string(val,"DSP"))          return NGC_DSP;
-    else if (is_string(val,"PCM8_U_int"))   return PCM8_U_int;
     else if (is_string(val,"PSX_bf"))       return PSX_bf;
     else if (is_string(val,"MS_IMA"))       return MS_IMA;
-    else if (is_string(val,"PCM8_U"))       return PCM8_U;
     else if (is_string(val,"APPLE_IMA4"))   return APPLE_IMA4;
     else if (is_string(val,"ATRAC3"))       return ATRAC3;
     else if (is_string(val,"ATRAC3PLUS"))   return ATRAC3PLUS;
@@ -954,6 +1007,11 @@ static txth_codec_t parse_codec(txth_header* txth, const char* val) {
     else if (is_string(val,"XA"))           return XA;
     else if (is_string(val,"XA_EA"))        return XA_EA;
     else if (is_string(val,"CP_YM"))        return CP_YM;
+    else if (is_string(val,"PCM_FLOAT_LE")) return PCM_FLOAT_LE;
+    else if (is_string(val,"IMA_HV"))       return IMA_HV;
+    else if (is_string(val,"HEVAG"))        return HEVAG;
+    else if (is_string(val,"ULAW"))         return ULAW;
+    else if (is_string(val,"ALAW"))         return ALAW;
     /* special handling */
     else if (is_string(val,"name_value"))   return txth->name_values[0];
     else if (is_string(val,"name_value1"))  return txth->name_values[0];
@@ -964,21 +1022,37 @@ static txth_codec_t parse_codec(txth_header* txth, const char* val) {
     return UNKNOWN;
 }
 
-static int parse_be(txth_header* txth, const char* val, uint32_t* p_value) {
-    if (is_string(val, "BE"))
+static int parse_endianness(txth_header* txth, const char* val, uint32_t* p_value, uint32_t* mode) {
+    if (is_string(val, "BE")) {
         *p_value = 1;
-    else if (is_string(val, "LE"))
+        if (mode) *mode = 0;
+    }
+    else if (is_string(val, "LE")) {
         *p_value = 0;
-    else
+        if (mode) *mode = 0;
+    }
+    else if (is_string(val, "BE_split")) {
+        *p_value = 1;
+        if (mode) *mode = 1;
+    }
+    else if (is_string(val, "LE_split")) {
+        *p_value = 0;
+        if (mode) *mode = 1;
+    }
+    else {
         if (!parse_num(txth->sf_head,txth,val, p_value))
              goto fail;
+    }
     return 1;
 fail:
     return 0;
 }
 
 static int parse_keyval(STREAMFILE* sf_, txth_header* txth, const char* key, char* val) {
-    //;VGM_LOG("TXTH: key=%s, val=%s\n", key, val);
+
+    if (txth->debug)
+        vgm_logi("TXTH: reading key=%s, val=%s\n", key, val);
+
 
     /* CODEC */
     if (is_string(key,"codec")) {
@@ -1179,6 +1253,8 @@ static int parse_keyval(STREAMFILE* sf_, txth_header* txth, const char* key, cha
             else if (txth->loop_behavior == POSITIVE) {
                 if (txth->loop_flag == 0xFF || txth->loop_flag == 0xFFFF || txth->loop_flag == 0xFFFFFFFF)
                     txth->loop_flag = 0;
+                else if (txth->loop_flag == 0)
+                    txth->loop_flag = 1;
             }
             else if (txth->loop_behavior == INVERTED) {
                 txth->loop_flag = (txth->loop_flag == 0);
@@ -1214,10 +1290,7 @@ static int parse_keyval(STREAMFILE* sf_, txth_header* txth, const char* key, cha
         if (!parse_num(txth->sf_head,txth,val, &txth->coef_spacing)) goto fail;
     }
     else if (is_string(key,"coef_endianness")) {
-        if (!parse_be(txth, val, &txth->coef_big_endian)) goto fail;
-    }
-    else if (is_string(key,"coef_mode")) {
-        if (!parse_num(txth->sf_head,txth,val, &txth->coef_mode)) goto fail;
+        if (!parse_endianness(txth, val, &txth->coef_big_endian, &txth->coef_mode)) goto fail;
     }
     else if (is_string(key,"coef_table")) {
         if (!parse_coef_table(txth->sf_head,txth,val, txth->coef_table, sizeof(txth->coef_table))) goto fail;
@@ -1237,7 +1310,7 @@ static int parse_keyval(STREAMFILE* sf_, txth_header* txth, const char* key, cha
         if (!parse_num(txth->sf_head,txth,val, &txth->hist_spacing)) goto fail;
     }
     else if (is_string(key,"hist_endianness")) {
-        if (!parse_be(txth, val, &txth->hist_big_endian)) goto fail;
+        if (!parse_endianness(txth, val, &txth->hist_big_endian, NULL)) goto fail;
     }
 
     /* SUBSONGS */
@@ -1247,6 +1320,23 @@ static int parse_keyval(STREAMFILE* sf_, txth_header* txth, const char* key, cha
     else if (is_string(key,"subsong_spacing") || is_string(key,"subsong_offset")) {
         if (!parse_num(txth->sf_head,txth,val, &txth->subsong_spacing)) goto fail;
     }
+    else if (is_string(key,"subsong_sum")) {
+        /* add all values up to current subsong (for example, to add all sizes to get current offset, so get start_offset) 
+         * doesn't include current (that is, reading size from fist subsong doesn't add anything) */
+        int default_subsong = txth->target_subsong;
+        uint32_t subsong_sum = 0;
+
+        for (int i = 0; i < default_subsong - 1; i++) {
+            txth->target_subsong = i + 1;
+
+            if (!parse_num(txth->sf_head,txth,val, &subsong_sum)) goto fail;
+
+            txth->subsong_sum += subsong_sum;
+        }
+
+        txth->target_subsong = default_subsong;
+    }
+    
     else if (is_string(key,"name_offset")) {
         if (!parse_num(txth->sf_head,txth,val, &txth->name_offset)) goto fail;
         txth->name_offset_set = 1;
@@ -1276,7 +1366,7 @@ static int parse_keyval(STREAMFILE* sf_, txth_header* txth, const char* key, cha
         txth->subfile_set = 1;
     }
     else if (is_string(key,"subfile_extension")) {
-        if (!parse_string(txth->sf_head,txth,val, txth->subfile_extension)) goto fail;
+        if (!parse_string(txth->sf_head,txth,val, txth->subfile_extension, sizeof(txth->subfile_extension))) goto fail;
         txth->subfile_set = 1;
     }
 
@@ -1390,10 +1480,17 @@ static int parse_keyval(STREAMFILE* sf_, txth_header* txth, const char* key, cha
         if (!parse_num(txth->sf_head,txth,val, &txth->chunk_value)) goto fail;
     }
     else if (is_string(key,"chunk_size_offset")) {
-        if (!parse_num(txth->sf_head,txth,val, &txth->chunk_size_offset)) goto fail;
+        if (!parse_num(txth->sf_head,txth,val, &txth->chunk_bsize_offset)) goto fail;
+        txth->chunk_size_set = 1;
+        txth->chunk_bsize_set = 1;
+    }
+    else if (is_string(key,"chunk_data_size_offset")) {
+        if (!parse_num(txth->sf_head,txth,val, &txth->chunk_dsize_offset)) goto fail;
+        txth->chunk_size_set = 1;
+        txth->chunk_dsize_set = 1;
     }
     else if (is_string(key,"chunk_endianness")) {
-        if (!parse_be(txth, val, &txth->chunk_be)) goto fail;
+        if (!parse_endianness(txth, val, &txth->chunk_big_endian, NULL)) goto fail;
     }
 
 
@@ -1412,6 +1509,10 @@ static int parse_keyval(STREAMFILE* sf_, txth_header* txth, const char* key, cha
         if (!parse_multi_txth(txth,val)) goto fail;
     }
 
+    /* DEBUG */
+    else if (is_string(key,"debug")) {
+        txth->debug = 1;
+    }
 
     /* DEFAULT */
     else {
@@ -1559,8 +1660,12 @@ static int is_string_match(const char* text, const char* pattern) {
     /* either all chars consumed/matched and both pos point to null, or one didn't so string didn't match */
     return text[t_pos] == '\0' && pattern[p_pos] == '\0';
 }
-static int parse_string(STREAMFILE* sf, txth_header* txth, const char* val, char* str) {
+
+static int parse_string(STREAMFILE* sf, txth_header* txth, const char* val, char* str, int str_len) {
     int n = 0;
+
+    if (strlen(val) >= str_len)
+        return 0;
 
     /* read string without trailing spaces */
     if (sscanf(val, " %s%n[^ ]%n", str, &n, &n) != 1)
@@ -1882,7 +1987,7 @@ static int parse_num(STREAMFILE* sf, txth_header* txth, const char* val, uint32_
             offset += txth->base_offset;
 
             if (/*offset < 0 ||*/ offset > get_streamfile_size(sf)) {
-                vgm_logi("TXTH: wrong offset over file size (%x + %x)\n", offset - txth->base_offset, txth->base_offset);
+                vgm_logi("TXTH:  wrong offset over file size (%x + %x)\n", offset - txth->base_offset, txth->base_offset);
                 goto fail;
             }
 
@@ -1894,7 +1999,9 @@ static int parse_num(STREAMFILE* sf, txth_header* txth, const char* val, uint32_
             if (subsong_spacing)
                 offset = offset + subsong_spacing * (txth->target_subsong - 1);
 
-            //;VGM_LOG("TXTH: read at offset %x + %x\n", offset - txth->base_offset, txth->base_offset);
+            if (txth->debug)
+                vgm_logi("TXTH:  use value at 0x%x (%s %ib)\n", offset, big_endian ? "BE" : "LE", size * 8);
+
             switch(size) {
                 case 1: value = read_u8(offset,sf); break;
                 case 2: value = big_endian ? read_u16be(offset,sf) : read_u16le(offset,sf); break;
@@ -1910,6 +2017,9 @@ static int parse_num(STREAMFILE* sf, txth_header* txth, const char* val, uint32_
             if (sscanf(val, hex ? "%x%n" : "%u%n", &value, &n) != 1)
                 goto fail;
             value_read = 1;
+
+            if (txth->debug)
+                vgm_logi(hex ? "TXTH:  use constant 0x%x\n" : "TXTH:  use constant %i\n", value);
         }
         else { /* known field */
             if      ((n = is_string_field(val,"interleave")))           value = txth->interleave;
@@ -1930,6 +2040,7 @@ static int parse_num(STREAMFILE* sf, txth_header* txth, const char* val, uint32_
             else if ((n = is_string_field(val,"subsong_count")))        value = txth->subsong_count;
             else if ((n = is_string_field(val,"subsong_spacing")))      value = txth->subsong_spacing;
             else if ((n = is_string_field(val,"subsong_offset")))       value = txth->subsong_spacing;
+            else if ((n = is_string_field(val,"subsong_sum")))          value = txth->subsong_sum;
             else if ((n = is_string_field(val,"subfile_offset")))       value = txth->subfile_offset;
             else if ((n = is_string_field(val,"subfile_size")))         value = txth->subfile_size;
             else if ((n = is_string_field(val,"base_offset")))          value = txth->base_offset;
@@ -1940,7 +2051,8 @@ static int parse_num(STREAMFILE* sf, txth_header* txth, const char* val, uint32_
             else if ((n = is_string_field(val,"chunk_count")))          value = txth->chunk_count;
             else if ((n = is_string_field(val,"chunk_start")))          value = txth->chunk_start;
             else if ((n = is_string_field(val,"chunk_size")))           value = txth->chunk_size;
-            else if ((n = is_string_field(val,"chunk_size_offset")))    value = txth->chunk_size_offset;
+            else if ((n = is_string_field(val,"chunk_size_offset")))    value = txth->chunk_bsize_offset;
+            else if ((n = is_string_field(val,"chunk_data_size_offset")))value = txth->chunk_dsize_offset;
             else if ((n = is_string_field(val,"chunk_number")))         value = txth->chunk_number;
             else if ((n = is_string_field(val,"chunk_data_size")))      value = txth->chunk_data_size;
             else if ((n = is_string_field(val,"chunk_header_size")))    value = txth->chunk_header_size;
@@ -1964,6 +2076,9 @@ static int parse_num(STREAMFILE* sf, txth_header* txth, const char* val, uint32_
             else if ((n = is_string_field(val,"name_value16")))         value = txth->name_values[15];
             else goto fail;
             value_read = 1;
+
+            if (txth->debug)
+                vgm_logi("TXTH:  use field value 0x%x\n", value);
         }
 
         /* apply simple left-to-right math though, for now "(" ")" are counted and validated
@@ -2005,10 +2120,13 @@ static int parse_num(STREAMFILE* sf, txth_header* txth, const char* val, uint32_
 
     *out_value = result;
 
-    //;VGM_LOG("TXTH: final result %u (0x%x)\n", result, result);
+    if (txth->debug)
+        vgm_logi("TXTH:  final value: %u (0x%x)\n", result, result);
+
     return 1;
 fail:
-    //VGM_LOG("TXTH: error parsing num '%s'\n", val);
+    if (txth->debug)
+        vgm_logi("TXTH: error parsing num '%s'\n", val);
     return 0;
 }
 
@@ -2022,14 +2140,24 @@ static int get_bytes_to_samples(txth_header* txth, uint32_t bytes) {
             return dsp_bytes_to_samples(bytes, txth->channels);
         case PSX:
         case PSX_bf:
+        case HEVAG:
             return ps_bytes_to_samples(bytes, txth->channels);
+        case PCM24BE:
+            return pcm24_bytes_to_samples(bytes, txth->channels);
+        case PCM24LE:
+            return pcm24_bytes_to_samples(bytes, txth->channels);
         case PCM16BE:
         case PCM16LE:
-            return pcm_bytes_to_samples(bytes, txth->channels, 16);
+            return pcm16_bytes_to_samples(bytes, txth->channels);
         case PCM8:
         case PCM8_U_int:
         case PCM8_U:
-            return pcm_bytes_to_samples(bytes, txth->channels, 8);
+        case PCM8_SB:
+        case ULAW:
+        case ALAW:
+            return pcm8_bytes_to_samples(bytes, txth->channels);
+        case PCM_FLOAT_LE:
+            return pcm_bytes_to_samples(bytes, txth->channels, 32);
         case PCM4:
         case PCM4_U:
         case TGC:
@@ -2063,8 +2191,10 @@ static int get_bytes_to_samples(txth_header* txth, uint32_t bytes) {
 
         case IMA:
         case DVI_IMA:
+        case IMA_HV:
             return ima_bytes_to_samples(bytes, txth->channels);
         case AICA:
+        case YMZ:
         case CP_YM:
             return yamaha_bytes_to_samples(bytes, txth->channels);
         case PCFX:

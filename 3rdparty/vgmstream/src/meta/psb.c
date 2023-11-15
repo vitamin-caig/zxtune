@@ -16,6 +16,7 @@ typedef struct {
     const char* uniq; /* unique name, typically same as file without extension (optional)  */
     const char* wav; /* same as file (optional) */
 } psb_temp_t;
+
 typedef struct {
     psb_temp_t* tmp;
     psb_codec_t codec;
@@ -49,9 +50,10 @@ typedef struct {
     int32_t intro_samples;
     int32_t skip_samples;
     int loop_flag;
+    int loop_range;
     int32_t loop_start;
     int32_t loop_end;
-    int duration_test;
+    int loop_test;
 
 } psb_header_t;
 
@@ -155,8 +157,6 @@ VGMSTREAM* init_vgmstream_psb(STREAMFILE* sf) {
                 default: goto fail;
             }
 
-            if (psb.duration_test && psb.loop_start + psb.loop_end <= vgmstream->num_samples)
-                vgmstream->loop_end_sample += psb.loop_start;
             break;
 
         case MSADPCM: /* [Senxin Aleste (AC)] */
@@ -168,7 +168,7 @@ VGMSTREAM* init_vgmstream_psb(STREAMFILE* sf) {
             break;
 
 #ifdef VGM_USE_FFMPEG
-        case XWMA: { /* [Senxin Aleste (AC)] */
+        case XWMA: { /* Senxin Aleste (AC) */
             vgmstream->codec_data = init_ffmpeg_xwma(sf, psb.stream_offset[0], psb.stream_size[0], psb.format, psb.channels, psb.sample_rate, psb.avg_bitrate, psb.block_size);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
@@ -182,11 +182,7 @@ VGMSTREAM* init_vgmstream_psb(STREAMFILE* sf) {
         }
 
         case XMA2: { /* Sega Vintage Collection (X360) */
-            uint8_t buf[0x100];
-            size_t bytes;
-
-            bytes = ffmpeg_make_riff_xma_from_fmt_chunk(buf, sizeof(buf), psb.fmt_offset, psb.fmt_size, psb.stream_size[0], sf, 1);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sf, buf, bytes, psb.stream_offset[0], psb.stream_size[0]);
+            vgmstream->codec_data = init_ffmpeg_xma_chunk(sf, psb.stream_offset[0], psb.stream_size[0], psb.fmt_offset, psb.fmt_size);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -222,12 +218,23 @@ VGMSTREAM* init_vgmstream_psb(STREAMFILE* sf) {
             }
 
             vgmstream->num_samples = read_u32le(psb.stream_offset[0] + 0x00, sf);
-            if (psb.duration_test && psb.loop_start + psb.loop_end < vgmstream->num_samples)
-                vgmstream->loop_end_sample += psb.loop_start;
             break;
 
         default:
             goto fail;
+    }
+
+    /* loop meaning varies, no apparent flags, seen in PCM/DSP/MSADPCM/WMAv2:
+     * - loop_start + loop_length [LoM (PC), Namco Museum V1 (PC), Senxin Aleste (PC)]
+     * - loop_start + loop_end [G-Darius (Sw)]
+     * (only in some cases of "loop" field so shouldn't happen to often) */
+    if (psb.loop_test) {
+        if (psb.loop_start + psb.loop_end <= vgmstream->num_samples) {
+            vgmstream->loop_end_sample += psb.loop_start;
+            /* assumed, matches num_samples in LoM and Namco but not in Senjin Aleste (unknown in G-Darius) */
+            if (vgmstream->loop_end_sample < vgmstream->num_samples)
+                vgmstream->loop_end_sample += 1;
+        }
     }
 
     strncpy(vgmstream->stream_name, psb.readable_name, STREAM_NAME_SIZE);
@@ -254,7 +261,7 @@ static segmented_layout_data* build_segmented_psb_opus(STREAMFILE* sf, psb_heade
     uint32_t skips[] = {0, psb->skip_samples};
 
     /* intro + body (looped songs) or just body (standard songs)
-       in full loops intro is 0 samples with a micro 1-frame opus [Nekopara (Switch)] */
+     * In full loops intro is 0 samples with a micro 1-frame opus [Nekopara (Switch)] */
     if (offsets[0] && samples[0])
         segment_count++;
     if (offsets[1] && samples[1])
@@ -449,6 +456,16 @@ static int prepare_codec(STREAMFILE* sf, psb_header_t* psb) {
             psb->codec = OPUSNX;
 
             psb->body_samples -= psb->skip_samples;
+
+            /* When setting loopstr="range:N,M", doesn't seem to transition properly (clicks) unless aligned (not always?)
+             * > N=intro's sampleCount, M=intro+body's sampleCount - skipSamples - default_skip, but not always
+             * [Anonymous;Code (Switch)-bgm08, B-Project: Ryuusei Fantasia (Switch)-bgm27] */
+            if (psb->loop_range) {
+                //TODO read actual default skip
+                psb->intro_samples -= 120;
+                psb->body_samples -= 120; 
+            }
+
             if (!psb->loop_flag)
                 psb->loop_flag = psb->intro_samples > 0;
             psb->loop_start = psb->intro_samples;
@@ -495,25 +512,29 @@ fail:
 
 
 static int prepare_name(psb_header_t* psb) {
-    char* buf = psb->readable_name;
-    int buf_size = sizeof(psb->readable_name);
     const char* main_name = psb->tmp->voice;
     const char* sub_name = psb->tmp->uniq;
-    int main_len;
+    char* buf = psb->readable_name;
+    int buf_size = sizeof(psb->readable_name);
+
+    if (!main_name) /* shouldn't happen */
+        return 1;
 
     if (!sub_name)
         sub_name = psb->tmp->wav;
     if (!sub_name)
         sub_name = psb->tmp->file;
 
-    if (!main_name) /* shouldn't happen */
-        return 1;
 
     /* sometimes we have main="bgm01", sub="bgm01.wav" = detect and ignore */
-    main_len = strlen(main_name);
-    if (sub_name && strncmp(main_name, sub_name, main_len) == 0) {
-        if (sub_name[main_len] == '\0' || strcmp(sub_name + main_len, ".wav") == 0)
-            sub_name = NULL;
+    if (sub_name) {
+        int main_len = strlen(main_name);
+        int sub_len = strlen(sub_name);
+
+        if (main_len > sub_len && strncmp(main_name, sub_name, main_len) == 0) {
+            if (sub_name[main_len] == '\0' || strcmp(sub_name + main_len, ".wav") == 0)
+                sub_name = NULL;
+        }
     }
 
     if (sub_name) {
@@ -598,9 +619,9 @@ static int parse_psb_channels(psb_header_t* psb, psb_node_t* nchans) {
                         psb->loop_start = psb_node_get_result(&nsub).num;
 
                         psb_node_by_index(&node, 1, &nsub);
-                        psb->loop_end = psb_node_get_result(&nsub).num + 1; /* assumed, matches num_samples */
-                        /* duration [LoM (PC), Namco Museum V1 (PC)] or standard [G-Darius (Sw)] (no apparent flags) */
-                        psb->duration_test = 1;
+                        psb->loop_end = psb_node_get_result(&nsub).num;
+
+                        psb->loop_test = 1; /* loop end meaning varies*/
                     }
                 }
 
@@ -609,7 +630,7 @@ static int parse_psb_channels(psb_header_t* psb, psb_node_t* nchans) {
                     psb->body_offset = data.offset;
                     psb->body_size = data.size;
                     psb->body_samples = psb_node_get_integer(&node, "sampleCount");
-                    psb->skip_samples = psb_node_get_integer(&node, "skipSampleCount");
+                    psb->skip_samples = psb_node_get_integer(&node, "skipSampleCount"); /* fixed to seek_preroll? (80ms) */
                 }
 
                 if (psb_node_by_key(&narch, "intro", &node)) {
@@ -689,9 +710,14 @@ static int parse_psb_voice(psb_header_t* psb, psb_node_t* nvoice) {
 
     /* optional loop flag (loop points go in channels, or implicit in fmt/RIFF) */
     if (!psb->loop_flag) {
+        const char* loopstr = psb_node_get_string(&nsong, "loopstr");
         psb->loop_flag = psb_node_get_integer(&nsong, "loop") > 1;
-        /* There is also loopstr/loopStr = "all" when "loop"=2 and "none" when "loop"=0
-         * SFX set loop=0, and sometimes songs that look like they could do full loops do too */
+
+        /* loopstr values:
+         * - "none", w/ loop=0
+         * - "all", w/ loop = 2 [Legend of Mana (multi)]
+         * - "range:N,M", w/ loop = 2 [Anonymous;Code (Switch)] */
+        psb->loop_range = loopstr && strncmp(loopstr, "range:", 6) == 0; /* slightly different in rare cases */
     }
 
     /* other optional keys:
@@ -724,7 +750,7 @@ fail:
  * Keys are (seemingly) stored in text order.
  */
 static int parse_psb(STREAMFILE* sf, psb_header_t* psb) {
-    psb_temp_t tmp;
+    psb_temp_t tmp = {0};
     psb_context_t* ctx = NULL;
     psb_node_t nroot, nvoice;
     float version;

@@ -1,7 +1,7 @@
 #ifndef _HCA_KEYS_H_
 #define _HCA_KEYS_H_
-
-#include "hca_keys_awb.h"
+#include <stdint.h>
+//#include "hca_keys_awb.h"
 
 typedef struct {
     uint64_t key;               /* hca key or seed ('user') key */
@@ -13,8 +13,8 @@ typedef struct {
 
 
 /**
- * List of known keys, extracted from the game files (several found in 2ch.net, others from data analisys).
- * CRI's tools expect an unsigned 64 bit number string, but keys are commonly found online in hex form.
+ * List of known keys, extracted from the game files (most from data analisys, some from 2ch.net/forums).
+ * CRI's tools expect an unsigned 64 bit numberic string, but keys are commonly found online in hex form.
  * Keys only use 56 bits though, so the upper 8 bits can be ignored.
  *
  * Some ACB+AWB after mid 2018 use a user seed key + a scramble subkey in the AWB (normally 16b LE at 0x0e)
@@ -95,6 +95,8 @@ static const hcakey_info hcakey_list[] = {
         {9001712656335836006},      // 7CEC81F7C3091366
 
         // Ikemen Vampire - Ijin-tachi to Koi no Yuuwaku (iOS/Android)
+        // Ikemen Villains (Android)
+        // Ikemen Prince (Android)
         {45152594117267709},        // 00A06A0B8D0C10FD
 
         // Super Robot Wars X-Omega (iOS/Android)
@@ -419,6 +421,12 @@ static const hcakey_info hcakey_list[] = {
         /* D4DJ Groovy Mix (Android) [music_* files, per-song later mixed with subkey] */
         {0x59f449354d063308},	//music_0000001
         {0xf19d4cb84172f7ab},	//music_0000004
+        {0xc4276ffaee4aadec},	//music_0000005
+        {0x683d739be9679e61},	//music_0000006
+        {0xa3adc531c32bb128},	//music_0000007
+        {0xbb8f42a806d1fa6},	//music_0000008
+        {0xfd6e5a721921d936},	//music_0000009
+        {0x7749847207a5f0da},	//music_0000010
         {0x52d065d9ccdb8696},	//music_0110001
         {0xba26e58923a5da5d},	//music_0110002
         {0x5b877af6e52af19b},	//music_0110003
@@ -439,6 +447,17 @@ static const hcakey_info hcakey_list[] = {
         {0x9f7a0810034669fe},	//music_0110020
         {0xe8333d53d2779e38},	//music_0110021
         {0x2cdcac4f44f67075},	//music_0110022
+        {0x670c738c8171210b},	//music_0110023
+        {0xd7359fa9ec49e2c2},	//music_0110024
+        {0xd91127e6c2f22539},	//music_0110025
+        {0x120db58e6c835175},	//music_0110026
+        {0x3613e2a7fdfc0784},	//music_0110027
+        {0xc239d244b6d3b722},	//music_0110028
+        {0x2575c136a260e723},	//music_0110029
+        {0x22c6b455883b1c28},	//music_0110030
+        {0xff2ae68fa067f80a},	//music_0110031
+        {0x422ca19b0fa5c7c0},	//music_0110032
+        {0x3b11592a696da747},	//music_0110033
         {0xfb647d074e53fab6},	//music_0120001
         {0xc24049b9f7ed3105},	//music_0120002
         {0xdc128f2fd48bf4b},	//music_0120003
@@ -458,6 +477,8 @@ static const hcakey_info hcakey_list[] = {
         {0xadfecfaf25cfe2ce},	//music_0120017
         {0x3674aba8da7bc84b},	//music_0120018
         {0xfd61f2c3b89f3888},	//music_0120019
+        {0x514fa9879fd07278},	//music_0120021
+        {0x3841dd3467659916},	//music_0120022
         {0x4fffee4065d22bec},	//music_0210001
         {0x7678588b0adf59df},	//music_0210002
         {0xa0316b536c8b7540},	//music_0210003
@@ -470,6 +491,15 @@ static const hcakey_info hcakey_list[] = {
         {0x5ef795cdbcdcba91},	//music_0210010
         {0x868acc0102c59a38},	//music_0210011
         {0x6dc5ff77263450a5},	//music_0210012
+        {0x1dca436afdd18d9},	//music_0210013
+        {0xaecee65d0f181d3b},	//music_0210014
+        {0x2822bba0a5c4f18c},	//music_0210015
+        {0xff579d3fcfa8453a},	//music_0210016
+        {0x3caa61e8b958f6d8},	//music_0210017
+        {0xe38b758bcadfc621},	//music_0210018
+        {0x3399e970670db2ba},	//music_0210019
+        {0x1cb76530af356c05},	//music_0210020
+        {0x2ae40b627c7125d7},	//music_0210021
         {0x15bb78c31db0a0b6},	//music_0220001
         {0x59b1257242c40109},	//music_0220002
         {0xdb402bd08d522f34},	//music_0220003
@@ -488,6 +518,9 @@ static const hcakey_info hcakey_list[] = {
         {0xe6d1fd6effa46736},	//music_0220017
         {0xd23bdacd616fc4c9},	//music_0220018
         {0xfceaa73248868ec5},	//music_0220019
+        {0x3b6b0023a2dd8c3d},	//music_0220020
+        {0x318f65f564daa549},	//music_0220021
+        {0x3dac12b26997f628},	//music_0220022
         {0x6a15a9610d10d210},	//music_0310001
         {0x57111c24801b44a1},	//music_0310002
         {0x40443974a0a86b8b},	//music_0310003
@@ -502,6 +535,13 @@ static const hcakey_info hcakey_list[] = {
         {0xcc5610c09f472ce9},	//music_0310012
         {0xd447a497c5547a1c},	//music_0310013
         {0x227b85948bb3d899},	//music_0310014
+        {0xfff671f0ddb660b1},	//music_0310015
+        {0x22e33db9b5625a96},	//music_0310016
+        {0xb78070802414de7a},	//music_0310017
+        {0x572aeeed86655119},	//music_0310018
+        {0x86ca86794400f49d},	//music_0310019
+        {0x7a2bbc195b9bfac1},	//music_0310020
+        {0x1c1f029bb47594b1},	//music_0310021
         {0xb921c3992807dadd},	//music_0320001
         {0x38ad99a045dc971f},	//music_0320002
         {0xf616642579ba5850},	//music_0320003
@@ -518,6 +558,9 @@ static const hcakey_info hcakey_list[] = {
         {0x26ee13598091b548},	//music_0320014
         {0xf06a6bfdd00c8286},	//music_0320015
         {0x2df608ef06aca41c},	//music_0320016
+        {0x641af19c287d4a2e},	//music_0320017
+        {0x82de7b71b30d7bc2},	//music_0320019
+        {0x100b7ca3075996fe},	//music_0320020
         {0x776c4aded0bca5d1},	//music_0410001
         {0xb7bff4fbf66be43f},	//music_0410002
         {0x904f50c5ce8ec6e4},	//music_0410003
@@ -530,6 +573,15 @@ static const hcakey_info hcakey_list[] = {
         {0x75859a7a2b1ed37d},	//music_0410010
         {0x2e5f57a6c6e9c97f},	//music_0410011
         {0xa144f6d7de02e000},	//music_0410012
+        {0x1da4370c9c20319c},	//music_0410013
+        {0xd8cdd53589ad3634},	//music_0410014
+        {0x88007190e0bfa1ce},	//music_0410015
+        {0x6fccdd5c3d0d6e3e},	//music_0410016
+        {0x9d8037d7bfb3fc1d},	//music_0410017
+        {0x685b5601a43b6c60},	//music_0410018
+        {0x75927596a180f3e3},	//music_0410019
+        {0xc3d36676d54255c5},	//music_0410020
+        {0x41283c6f06db3cdd},	//music_0410021
         {0x5d1f3fdbbb036f8d},	//music_0420001
         {0xc04264e8f34ad5c0},	//music_0420002
         {0x8f0e96b4f71f724f},	//music_0420003
@@ -546,6 +598,8 @@ static const hcakey_info hcakey_list[] = {
         {0x35f2d3cec84aba1},	//music_0420014
         {0xdad11fe0e397ede},	//music_0420015
         {0xc94236c936f50cc},	//music_0420016
+        {0xbf8a2d951bc01dff},	//music_0420017
+        {0xb945505638f972e4},	//music_0420018
         {0xdf31e26a7b036a2},	//music_0510001
         {0xb2770dced3cfd9a7},	//music_0510002
         {0x6c6c1fd51e28a1e7},	//music_0510003
@@ -561,6 +615,14 @@ static const hcakey_info hcakey_list[] = {
         {0x75c5bd4e3a01a8a4},	//music_0510013
         {0xec5f5fbe92bbb771},	//music_0510014
         {0xb8c3233338ad8e0},	//music_0510015
+        {0xda4ce04dbda1bd7e},	//music_0510016
+        {0x7878df60f0549c4},	//music_0510017
+        {0x8e5b7068022828e0},	//music_0510018
+        {0xb069a5c5e2d93edf},	//music_0510019
+        {0x30f9dcefa450733a},	//music_0510020
+        {0xf85695960e2dcb7f},	//music_0510021
+        {0x212604f36a4ddb0c},	//music_0510022
+        {0xef7ee9169b194770},	//music_0510023
         {0x15f82c1617013c36},	//music_0520001
         {0xc7da8e6f0e2fe399},	//music_0520002
         {0xe350bffcdc9cb686},	//music_0520003
@@ -576,6 +638,8 @@ static const hcakey_info hcakey_list[] = {
         {0x2e8d1134ce415f8c},	//music_0520013
         {0x1bf43def1e4b103a},	//music_0520014
         {0x6721ad5109e4840d},	//music_0520015
+        {0xc488dd62fc89090},	//music_0520016
+        {0xd3d24f1db0b74363},	//music_0520019
         {0xd2ce91dbfc209b10},	//music_0610001
         {0xa662be1601e49476},	//music_0610002
         {0xe5e83d31e64273f8},	//music_0610003
@@ -589,6 +653,18 @@ static const hcakey_info hcakey_list[] = {
         {0x6492e7708204838},	//music_0610011
         {0x957e4d3948427952},	//music_0610012
         {0x7081f083ac3d6f0a},	//music_0610013
+        {0xfcfa4dbd1ec6cfcb},	//music_0610014
+        {0x750ab11487f9d6e8},	//music_0610015
+        {0xd22171fda74c5615},	//music_0610016
+        {0x3aa02e0a37543b5c},	//music_0610017
+        {0xc451f1deddae08ca},	//music_0610018
+        {0xc0fa6669d9904919},	//music_0610019
+        {0x4ad7fd8dafaa58a9},	//music_0610020
+        {0x7aece54359beac21},	//music_0610021
+        {0x7c9332be25e5c95a},	//music_0610022
+        {0x415eef25f84e8c2e},	//music_0610023
+        {0xfd2237157af70152},	//music_0610024
+        {0xf6c91cba66c3fe68},	//music_0610025
         {0x8258ddd6a1d0849b},	//music_0620001
         {0x1dd21a1244ca12f1},	//music_0620002
         {0xfdec74b23d8b494b},	//music_0620003
@@ -603,7 +679,28 @@ static const hcakey_info hcakey_list[] = {
         {0xfab3596f11cc4d7a},	//music_0620012
         {0xe35d52b6d2c094fb},	//music_0620013
         {0xcdb9bc2ad7024ca2},	//music_0620014
+        {0xcf27380a5a949dc1},	//music_0620015
         {0x5de2b0a34eee1c89},	//music_0620016
+        {0x5c1195d8afcb1901},	//music_0620017
+        {0x1ad8db767d9ba4a7},	//music_0620018
+        {0x9bc820aa161b0f08},	//music_0620019
+        {0x85f26fa7befc2b5a},	//music_0810000
+        {0xd1df27a57399613e},	//music_0810001
+        {0xd37ec4cb304e16ae},	//music_0810002
+        {0x4582fedda6a62aa8},	//music_0810003
+        {0xb31ea911ea8aba81},	//music_0810004
+        {0x1e99d14d97ab82c5},	//music_0820001
+        {0x5bf7cefecda8bcb2},	//music_0820002
+        {0x9cf7ab0ccafa374e},	//music_0820003
+        {0x7a9e4b710716a8e2},	//music_0910000
+        {0x972b52f3dfaa387a},	//music_0910001
+        {0x407a4b6c3dcf2509},	//music_0910002
+        {0x838be1aa4dc372bb},	//music_0910003
+        {0xc03bac003c24471d},	//music_0910004
+        {0xf864df0abe22ec49},	//music_0910005
+        {0x4683c57919dbdeee},	//music_0920001
+        {0x126d0d20ad7f0401},	//music_0920002
+        {0x1652eb8bf3cea8f5},	//music_0920003
         {0x2a47feac8dc3ca9c},	//music_3010001
         {0x9ebbaf63ffe9d9ef},	//music_3010002
         {0xe553dba6592293d8},	//music_3010003
@@ -617,6 +714,20 @@ static const hcakey_info hcakey_list[] = {
         {0x7555feeaa2a8fac4},	//music_3010011
         {0xa42de67a89fb3175},	//music_3010012
         {0xbdd0c58062c675d4},	//music_3010014
+        {0xef257f41a265a0af},	//music_3010015
+        {0x5e23d8a2488bc715},	//music_3010016
+        {0x198cc607e20dd264},	//music_3010017
+        {0x31a9ab25b5dff424},	//music_3010018
+        {0x86e823895bb0bec6},	//music_3010019
+        {0x17f53cfa841f41b5},	//music_3010020
+        {0x4992a33be3ba81dd},	//music_3010021
+        {0x86d0ab836f09a599},	//music_3010022
+        {0x2a5eefc1987bf7fb},	//music_3010023
+        {0x157f20b466d75228},	//music_3010024
+        {0x13cada13f45f432b},	//music_3010025
+        {0xe0f08378be17633b},	//music_3010026
+        {0xaf81e107cd20ba90},	//music_3010027
+        {0x4efe51d362dcb6b1},	//music_3010028
         {0xfd3ea450350d666f},	//music_3020001
         {0x5e91a3790c32e2b3},	//music_3020002
         {0x358adfd1bbd3a95e},	//music_3020003
@@ -626,6 +737,24 @@ static const hcakey_info hcakey_list[] = {
         {0x402b13df5481d4e6},	//music_3020007
         {0x729efd67aede1a40},	//music_3020008
         {0xb7b9a143742fa51e},	//music_3020009
+        {0xc7750328bcd329f},	//music_3020010
+        {0x5761fe7462b17a3b},	//music_3020012
+        {0x98c7a1d1c45df640},	//music_3020013
+        {0x3d01826fe053ddda},	//music_3020014
+        {0xa6a6426caed68f7c},	//music_3020015
+        {0x34cc16f635101f02},	//music_3020016
+        {0xc92c94fdc988b8fa},	//music_3020017
+        {0x4429ed54ca45a36d},	//music_3020018
+        {0xcc935f3ebbb7bb94},	//music_3020019
+        {0x4a1d57f0db140c12},	//music_3020020
+        {0x8ddea25a12f93099},	//music_3020022
+        {0xf754248dcd46287e},	//music_3020023
+        {0xa3c06ffa7775a274},	//music_3020024
+        {0x427be43aa233382c},	//music_3020025
+        {0x4ec96dd7db2adfd7},	//music_3020026
+        {0x9f12a5003f112aaa},	//music_3020028
+        {0x38edf73f19401e1c},	//music_3020030
+        {0xfa2c72797fa3e388},	//music_3020031
         {0xdfad847a86a126bb},	//music_5030001
         {0x711ef85045b8c26e},	//music_5030002
         {0xff7640b46d72b337},	//music_5030003
@@ -676,11 +805,57 @@ static const hcakey_info hcakey_list[] = {
         {0x458b73844ed5219e},	//music_5030048
         {0x7d83b8da9023ef26},	//music_5030049
         {0x32cb728ddab4d956},	//music_5030050
+        {0xbd128c4a4d1f565b},	//music_5030051
+        {0x363aa084f3bf7af1},	//music_5030052
+        {0xdfe954b617357381},	//music_5030053
         {0x52c5dfb61fe4c87a},	//music_5030054
         {0x3ebbccab07c9a9ba},	//music_5030055
+        {0x50a0167818f4d51b},	//music_5030056
+        {0xceaed3996196281b},	//music_5030057
+        {0xe0590c04ec4906f1},	//music_5030058
+        {0x400b11e930008a58},	//music_5030059
+        {0x15aaecc4725a5f70},	//music_5030060
         {0x7a5e0865ba8cafa7},	//music_5030061
         {0x7679587f7292b057},	//music_5030062
         {0xc9c804e6fed3387c},	//music_5030063
+        {0xc72eb23bcdc43f42},	//music_5030064
+        {0xf7cedd212a06307},	//music_5030065
+        {0x850ad05f415d6018},	//music_5030066
+        {0x36f62d41aa4203c9},	//music_5030067
+        {0x2174d57bfeafc637},	//music_5030068
+        {0x143a7405ef56e4df},	//music_5030069
+        {0x4a193ed26d1d10f3},	//music_5030070
+        {0x884385ad03f2bd62},	//music_5030071
+        {0x9c220b56ab1d56b1},	//music_5030072
+        {0x5ed84aea8ad0d05b},	//music_5030073
+        {0xf5074d6db1cec319},	//music_5030074
+        {0xae83f69d4d7ff064},	//music_5030075
+        {0x29a3d7b03fe66d8f},	//music_5030076
+        {0xb30288656e565401},	//music_5030077
+        {0x5a420864cd1fa3fb},	//music_5030078
+        {0xe1c992cc05d8a203},	//music_5030079
+        {0x79ad5329b9b46034},	//music_5030080
+        {0x1dd99ac6f1a07f00},	//music_5030081
+        {0x2fd298ade03f7f0f},	//music_5030082
+        {0xbeb0df818f88b99c},	//music_5030083
+        {0x886df2bdcc645cc},	//music_5030084
+        {0x6420fc8d2d67ef1},	//music_5030085
+        {0x29d61d19434b640b},	//music_5030086
+        {0xf4d7569bb4fa06ab},	//music_5030087
+        {0x1de64ce0c1054a5a},	//music_5030088
+        {0xd51e8d88fff1aa5c},	//music_5030089
+        {0xa2ea81812297bf73},	//music_5030090
+        {0x276f1e23c97cf8d},	//music_5030091
+        {0xb59a0df1213c36c9},	//music_5030092
+        {0xebf7bfebb82a4411},	//music_5030093
+        {0xb991fcb8b74f46d7},	//music_5030094
+        {0x435e2e064bd48ad5},	//music_5030095
+        {0xa9824e9baaa354e2},	//music_5030096
+        {0xc3a72539b831ea6e},	//music_5030097
+        {0x8bc6b7b7a2d2bba3},	//music_5030098
+        {0xdbb0f41e90b30452},	//music_5030099
+        {0x2eb141954bb3bd25},	//music_5030101
+        {0xaee2837e71b2bb97},	//music_5030102
         {0x444dda6d55d76095},	//music_5040001
         {0xcbf4f1324081e0a6},	//music_5040002
         {0xf1db3c1d9542063a},	//music_5040003
@@ -802,12 +977,133 @@ static const hcakey_info hcakey_list[] = {
         {0x79c1f27fa0f8c937},	//music_5050103
         {0xe1e4f9125646aa8a},	//music_5050104
         {0xd5cf3ce581c59e40},	//music_5050105
+        {0x5509e33bc008bf09},	//music_5050106
         {0x5ecb21ac94aa4b8f},	//music_5050107
         {0x3786b3940e98628a},	//music_5050108
+        {0x54de39434bfe4f07},	//music_5050109
+        {0x919d24cc51244387},	//music_5050110
+        {0x9d020e395e34dc9d},	//music_5050111
+        {0x35cd0df418d118d7},	//music_5050112
+        {0xf8c3ee3e6a9034f1},	//music_5050113
+        {0x77878d37ce7af3de},	//music_5050114
+        {0xc017329b350ece41},	//music_5050115
+        {0xf593a4edff474f67},	//music_5050116
+        {0xe1972fbb1f007ddb},	//music_5050117
+        {0xfed8de6081bb79a4},	//music_5050118
+        {0x4877977d05b312f3},	//music_5050119
+        {0x7eaa69de94e0eff1},	//music_5050120
+        {0xee1270b0ecf19fa9},	//music_5050121
+        {0x194e2cf79077c167},	//music_5050122
+        {0x9dbfafd78a550632},	//music_5050123
+        {0xf95b5bbf7e04f6f7},	//music_5050124
+        {0x72eab426f4800cdf},	//music_5050125
+        {0xfbaaa063a92e3fa},	//music_5050126
+        {0x1b837c9a98b7d123},	//music_5050127
+        {0x94f28e181640e219},	//music_5050128
+        {0x5d931d29d1432b4c},	//music_5050129
+        {0xc50b5e9a5adcaae4},	//music_5050130
+        {0xeb7796684409adfa},	//music_5050131
+        {0x13ef11289cf31dad},	//music_5050132
+        {0xd446d0ea96dfdf76},	//music_5050133
+        {0x4c56ec4e341a717},	//music_5050134
+        {0x82523f6386d6a38a},	//music_5050135
+        {0x520868bafa84e471},	//music_5050136
+        {0x7aab43829c6be9be},	//music_5050137
+        {0xa00273b3d953e84d},	//music_5050138
+        {0x6b3eeb4debf6a39c},	//music_5050139
+        {0xa679e86ed8e96691},	//music_5050140
+        {0x399025390570ea40},	//music_5050141
+        {0xb8489d1921c79d9e},	//music_5050142
+        {0xb47249ccc6c7528b},	//music_5050143
+        {0xec5880daa44d87ce},	//music_5050145
+        {0xbda2730cb81e55e1},	//music_5050146
+        {0x1be3e8255dde31e3},	//music_5050147
+        {0x58b735f1a68c9a81},	//music_5050148
+        {0x5b3cb281d89019db},	//music_5050149
+        {0x74f39448d2b75d4d},	//music_5050150
+        {0x2b1a0269a3d890d4},	//music_5050151
+        {0x74e058fd628364c9},	//music_5050152
+        {0x3ade68d4857395c0},	//music_5050153
+        {0x68f7f556af1c2fc6},	//music_5050154
+        {0xaf67059daac6c89d},	//music_5050155
+        {0xc557fa24c5c887e8},	//music_5050156
+        {0xbad0b0f6dc3b004c},	//music_5050157
+        {0x1838300a8bb9b8ff},	//music_5050158
+        {0xffb4afe38bb4a3dd},	//music_5050159
+        {0x22cfb3e29832a25a},	//music_5050160
+        {0xa86bbfe35949b53e},	//music_5050161
+        {0x6f321adde08396e3},	//music_5050163
+        {0x58afa6381eeb1425},	//music_5050164
+        {0x751daf7d1a5401cb},	//music_5050165
+        {0xff2ea77b81c3ff6},	//music_5050166
+        {0xbd6b66823f854f68},	//music_5050167
+        {0xceb902b93eba45d8},	//music_5050168
+        {0x2550e145b93723ae},	//music_5050169
+        {0xb512188a55b8b698},	//music_5050170
+        {0x26e5bf2c66a9898d},	//music_5050171
+        {0xd93d0a1764e85d4d},	//music_5050176
+        {0xff8c5c13833b1049},	//music_5050177
+        {0x59efd868058a402e},	//music_5050178
+        {0x93075c0fbb31f463},	//music_5050179
+        {0xdedb6ae518faac3d},	//music_5050180
+        {0xe997edae32a5fa3d},	//music_5050181
+        {0xe19e00aebc8b309b},	//music_5050182
+        {0x10574a2abfe8ab99},	//music_5050183
+        {0xbd2f4b5ab481d300},	//music_5050184
+        {0x1a253c2f40a38917},	//music_5050185
+        {0xc735e9f28243ea8a},	//music_5050186
+        {0x8137f876a1a8850b},	//music_5050187
+        {0x82bd2fef6ad49c01},	//music_5050188
+        {0xe77f67dd5b7aed71},	//music_5050189
+        {0x2896fe0212b06d81},	//music_5050190
+        {0xe60abdb973ad274a},	//music_5050191
+        {0xe84e1005c5eeab22},	//music_5050192
+        {0x1374b00b87c43440},	//music_5050193
+        {0xf9b45750656b28bd},	//music_5050194
+        {0x32f55efe2bd0a4fd},	//music_5050195
+        {0x9092a8ef4ebacb7f},	//music_5050196
+        {0x39a04e2ebc026177},	//music_5050197
+        {0x1c848089b2d1a7b6},	//music_5050198
+        {0x24feeee9ce287093},	//music_5050199
+        {0x4226eb6f52ad4637},	//music_5050200
+        {0x59ab358c5cded7c4},	//music_5050201
+        {0x29ca209dae13020a},	//music_5050202
+        {0x7fe1bc7cbda4a457},	//music_5050203
+        {0x928964b93fce5bc9},	//music_5050204
+        {0x58a46c0179f0d6ff},	//music_5050205
+        {0x929ca6a5e8e0445},	//music_5050206
+        {0xf0de6097ea78513c},	//music_5050207
+        {0xcde0de0e1216bdea},	//music_5050208
+        {0xb496e9301bfc57c4},	//music_5050209
+        {0xff4db63086831e8f},	//music_5050210
+        {0x21cd7a36d33daae9},	//music_5050211
+        {0x88fe1d5592979a66},	//music_5050212
+        {0x1782668d98097f3b},	//music_5050213
+        {0xb174215f3ed746e3},	//music_5050214
+        {0x445aa44e5029d76b},	//music_5050215
+        {0x39b3d29fc04211ed},	//music_5050216
+        {0x6856a8773f3e7712},	//music_5050217
+        {0x7f08330d7d971292},	//music_5050218
+        {0x6ac19245cd7e8de0},	//music_5050219
+        {0x7a0ed12fd8b5a9e8},	//music_5050220
+        {0xc13b8037e2be01bf},	//music_5050221
+        {0x5856576aa5c0a59f},	//music_5050222
+        {0xe8286a95b8f38dd1},	//music_5050223
+        {0x48015b291de44ff3},	//music_5050224
+        {0x4521644fd1682bc0},	//music_5050226
+        {0x808e307ec28b9ef0},	//music_5050227
+        {0x6a4493f6e7dcce6c},	//music_5050228
+        {0xd6bc23de632b00e0},	//music_5050229
+        {0x7268ea33e33cbcfa},	//music_5050230
+        {0x2de61d98bc2cea48},	//music_5050231
+        {0xd8bdb31ab72c355b},	//music_5050242
         {0x52c250eade92393b},	//music_9010001
         {0xf66e6bb5b0599b07},	//music_9010002
+        {0x8582b5a60dbbf948},	//music_9010003
+        {0x5bb84b8a5677046f},	//music_9010004
         {0xfea0d6adff136868},	//music_9050001
-
+        {0x19480b946279507a},	//music_9050002
+    
         // Mini 4WD Hyper Dash Grand Prix (Android)
         {7957824642808300098},  // 6E6FDF59AB704242
 
@@ -858,6 +1154,9 @@ static const hcakey_info hcakey_list[] = {
         {0x0a5d0fc8cc5c4502},   // Sng018
         {0x198ea1a17416050b},   // Sng019
         {0x2aa3b8abad207a1e},   // Sng020
+        {0x4ee10a3e3bb19e57},   // Sng021
+        {0x08ad2fe12c79bca9},   // Sng022
+        {0x18488992b1632ef5},   // Sng023
         {0x1175edbbacc1fc18},   // Sng024
         {0x0e14d06d7f7a6c8c},   // Sng025
         {0x33d98a3a9f9bfdef},   // Sng026
@@ -879,6 +1178,84 @@ static const hcakey_info hcakey_list[] = {
 
         // Shaman King: Funbari Chronicle (Android)
         {1620612098671},        // 0000017954022A6F
+
+        // Heaven Burns Red (Android)
+        {7355875239102698567},  // 6615518E8ECED447
+
+        // Digimon ReArise (Android)
+        {34810080072368384},    // 007BAB9559510100
+    
+        // ANNO: Mutationem (PC)
+        {351185040111633400},   // 04DFA8EEEE4903F8
+    
+        // Priconne! Grand Masters (iOS/Android)
+        {185705658241},         // 0000002B3CEB7781
+
+        // Sonic Origins (multi)
+        {1991062320220623},     // 000712DC525289CF
+
+        // Pachislot Gyakuten Saiban (iOS/Android)
+        {2220022040477322},     // 0007E319291DBE8A
+
+        // Alice Fiction (Android)
+        {112089817},            // 0000000006AE5AD9
+    
+        // Taiko no Tatsujin: Rhythm Festival (Switch)
+        {52539816150204134},    // 00baa8af36327ee6
+
+        // Fairy Fencer F: Refrain Chord (multi)
+        {348693553056839375},   // 04D6CEF0656BF6CF
+
+        // Echoes of Mana (Android)
+        {1090221945250803295},  // 0F213F153D026E5F
+
+        // Persona 5 Royal (Switch)
+        {9923540143823782},     // 002341683D2FDBA6
+
+        // P Sengoku Otome 6 ~Akatsuki no Sekigahara~ (Android)
+        {97648135},             // 0000000005d1fe07
+
+        // CHUNITHM International Version (AC)
+        {33426922444908636},    // 0076C19BDE43685C
+
+        // Star Ocean: The Divine Force (PC)
+        {68308868861462528},    // 00f2ae8de77f0800
+
+        // Sin Chronicle (Android)
+        {4385672148314579020},  // 3CDD0995259D604C
+
+        // The Eminence in Shadow: Master of Garden (Android)
+        {8115775984160473168},  // 70A1074224880050
+
+        // Punishing: Gray Raven (Android)-newer assets
+        {62855594017927612},    // 00DF4ED46995B1BC 
+
+        // Dragon Quest The Adventure of Dai: A Hero's Bonds (Android)
+        {503876638109847402},   // 06FE2121F927CF6A (in criware decryptor init code, xor of 2 strings)
+
+        // Love Live! School Idol Festival 2 MIRACLE LIVE (Android)
+        {5067530812966687744},  // 46537c6ceb39d400
+
+        // 404 Game RE:SET (Android)
+        {21588207721978971},    // 004CB25C4C9B1C5B
+
+        // Disney Star Smash (Android)
+        {3941111674189632},     // 000E006B915C3740
+
+        // Final Fantasy VII: Ever Crisis (beta) (Android)
+        {19629307353822},       // 000011DA4DE45ADE
+
+        // Tower of Sky (Android)
+        {5893902754391672},     // 0014F0792C042678
+
+        // The Irregular at Magic High School: Reloaded Memory (Android)
+        {7181280307767738368},  // 63A9086451010000
+
+        // BlazBlue Entropy Effect (Early Access) (PC)
+        {29814655674508831},    // 0069EC457894661F
+
+        // Star Ocean: The Second Story R Demo (PC, Switch)
+        {533948357975462459},   // 0768F733DD87D23B
 
 };
 

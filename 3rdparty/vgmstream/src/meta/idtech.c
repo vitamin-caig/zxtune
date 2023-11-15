@@ -13,14 +13,14 @@ VGMSTREAM* init_vgmstream_mzrt_v0(STREAMFILE* sf) {
 
 
     /* checks */
+    if (!is_id32be(0x00,sf, "mzrt"))
+        goto fail;
+    if (read_u32be(0x04, sf) != 0) /* version */
+        goto fail;
+
     if (!check_extensions(sf, "idwav,idmsf,idxma"))
         goto fail;
 
-    if (!is_id32be(0x00,sf, "mzrt"))
-        goto fail;
-
-    if (read_u32be(0x04, sf) != 0) /* version */
-        goto fail;
 
     /* this format is bizarrely mis-aligned (and mis-designed too) */
 
@@ -111,12 +111,9 @@ VGMSTREAM* init_vgmstream_mzrt_v0(STREAMFILE* sf) {
 
 #ifdef VGM_USE_FFMPEG
         case 0x0166: {
-            uint8_t buf[0x100];
-            int bytes;
             size_t stream_size = get_streamfile_size(temp_sf);
 
-            bytes = ffmpeg_make_riff_xma_from_fmt_chunk(buf,sizeof(buf), 0x15,0x34, stream_size, sf, 0);
-            vgmstream->codec_data = init_ffmpeg_header_offset(temp_sf, buf,bytes, 0x00,stream_size);
+            vgmstream->codec_data = init_ffmpeg_xma_chunk_split(sf, temp_sf, 0x00, stream_size, 0x15, 0x34);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
@@ -167,12 +164,12 @@ VGMSTREAM* init_vgmstream_mzrt_v1(STREAMFILE* sf) {
 
 
     /* checks */
-    if (!check_extensions(sf, "idmsf")) //idmsa: untested
-        goto fail;
-
     if (!is_id32be(0x00,sf, "mzrt"))
         goto fail;
     if (read_u32be(0x04, sf) != 1) /* version */
+        goto fail;
+
+    if (!check_extensions(sf, "idmsf")) //idmsa: untested
         goto fail;
 
     type = read_s32be(0x09,sf);
@@ -306,98 +303,94 @@ VGMSTREAM* init_vgmstream_bsnf(STREAMFILE* sf) {
     VGMSTREAM* vgmstream = NULL;
     off_t start_offset, offset, extra_offset;
     size_t stream_size;
-    int loop_flag, channels, codec, sample_rate; //, block_size = 0, bps = 0;
+    int target_subsong = sf->stream_index, num_languages,
+        loop_flag, channels, codec, sample_rate; //, block_size = 0, bps = 0;
     int32_t num_samples, loop_start = 0;
+    char language[0x10];
     STREAMFILE* sb = NULL;
-    const char* suffix = NULL;
-    const char* extension = NULL;
 
 
     /* checks */
+    if (!is_id32be(0x00, sf, "bsnf"))
+        goto fail;
+
     if (!check_extensions(sf, "bsnd"))
         goto fail;
 
-    if (!is_id32be(0x00,sf, "bsnf")) /* null-terminated string */
-        goto fail;
-    if (read_u32be(0x05, sf) != 0x00000100) /* version */
+    num_languages = read_u32be(0x04, sf);
+    if (target_subsong == 0) target_subsong = 1;
+    if (target_subsong < 0 || target_subsong > num_languages || num_languages < 1)
         goto fail;
 
-    offset = 0x18;
+    offset = 0x08 + (target_subsong - 1) * 0x18;
 
-    stream_size = read_u32be(offset + 0x00,sf);
-    offset = read_u32be(offset + 0x04,sf); /* absolute but typically right after this */
+    read_string(language, 0x10, offset + 0x00, sf);
+    stream_size = read_u32be(offset + 0x10, sf);
+    offset = read_u32be(offset + 0x14, sf); /* absolute but typically right after this */
 
     /* 0x00: crc? */
     /* 0x04: CBR samples or 0 if VBR */
-    num_samples = read_s32be(offset + 0x08,sf);
-    loop_start  = read_s32be(offset + 0x0c,sf);
+    num_samples = read_s32be(offset + 0x08, sf);
+    loop_start  = read_s32be(offset + 0x0c, sf);
     /* 0x10: stream size? */
     
-    codec       = read_u16le(offset + 0x14,sf);
+    codec       = read_u16le(offset + 0x14, sf);
     channels    = read_u16le(offset + 0x16, sf);
     sample_rate = read_u32le(offset + 0x18, sf);
   //block_size  = read_u16le(offset + 0x20, sf);
   //bps         = read_u16le(offset + 0x22, sf);
 
     extra_offset = offset + 0x24;
-    extension = "ogg"; /* same for all codecs */
-    switch(codec) {
-        case 0x0055: /* msf */
-            /* 0x00: table entries */
-            /* 0x04: seek table, format: frame size (16b) + frame samples (16b) */
-            suffix = "_msf.bsnd";
-            break;
 
-        case 0x0166: /* xma */
-            /* 0x00: extra size */
-            /* 0x02: xma config and block table */
-            suffix = "_xma.bsnd";
-            break;
-
-        case 0x674F: /* vorbis */
-            /* 0x00: extra size */
-            /* 0x02: num samples */
-            suffix = "_vorbis.bsnd";
-            goto fail; //untested
-            //break;
-
-        case 0x42D2: /* at9 */
-            /* 0x00: extra size */
-            /* 0x02: encoder delay */
-            /* 0x04: channel config */
-            /* 0x08: ATRAC9 GUID */
-            /* 0x1c: ATRAC9 config */
-            suffix = "_at9.bsnd";
-            break;
-
-        default:
-            goto fail;
-    }
+    /* extra data per codec */
+    /* 0x0055 - msf */
+    /*   0x00: table entries */
+    /*   0x04: seek table, format: frame size (16b) + frame samples (16b) */
+    /* 0x0166 - xma */
+    /*   0x00: extra size */
+    /*   0x02: xma config and block table */
+    /* 0x674F - vorbis */
+    /*   0x00: extra size */
+    /*   0x02: num samples */
+    /* 0x42D2 - at9 */
+    /*   0x00: extra size */
+    /*   0x02: encoder delay */
+    /*   0x04: channel config */
+    /*   0x08: ATRAC9 GUID */
+    /*   0x1c: ATRAC9 config */
 
     {
-        int suffix_len = strlen(suffix);
-        int filename_len;
         char filename[PATH_LIMIT];
+        get_streamfile_basename(sf, filename, sizeof(filename));
 
-        get_streamfile_filename(sf, filename, sizeof(filename));
-        filename_len = strlen(filename);
-
-        if (filename_len < suffix_len)
-            goto fail;
-        filename[filename_len - suffix_len + 0] = '.';
-        filename[filename_len - suffix_len + 1] = '\0';
-        strcat(filename, extension);
+        if (language[0] != '\0') {
+            strcat(filename, "_");
+            strcat(filename, language);
+        }
 
         sb = open_streamfile_by_filename(sf, filename);
-        if (!sb) goto fail;
+        if (!sb) {
+            if (language[0] != '\0') {
+                // fill missing languages with blanks
+                vgmstream = init_vgmstream_silence(channels, sample_rate, num_samples);
+                if (!vgmstream) goto fail;
+
+                vgmstream->meta_type = meta_BSNF;
+                vgmstream->num_streams = num_languages;
+                snprintf(vgmstream->stream_name, STREAM_NAME_SIZE, "%s (missing)", language);
+
+                return vgmstream;
+            }
+
+            goto fail;
+        }
     }
 
     if (stream_size != get_streamfile_size(sb))
         goto fail;
 
-    loop_flag = (loop_start > 0);
+    loop_flag = (loop_start > 0); /* loops from 0 on some codecs aren't detectable though */
     start_offset = 0x00;
-
 
     /* build the VGMSTREAM */
     vgmstream = allocate_vgmstream(channels, loop_flag);
@@ -408,14 +401,21 @@ VGMSTREAM* init_vgmstream_bsnf(STREAMFILE* sf) {
     vgmstream->num_samples = num_samples;
     vgmstream->loop_start_sample = loop_start;
     vgmstream->loop_end_sample = num_samples;
+    vgmstream->num_streams = num_languages;
+    strncpy(vgmstream->stream_name, language, STREAM_NAME_SIZE);
 
-    switch(codec) {
+    /* for codecs with explicit encoder delay (mp3/at9/etc) num_samples includes it
+     * ex. mus_c05_dream_doorloop_* does full loops; with some codecs loop start is encoder delay and num_samples
+     * has extra delay samples compared to codecs with implicit delay (ex. mp3 1152 to 101152 vs ogg 0 to 100000),
+     * but there is no header value for encoder delay, maybe engine hardcodes it? */
+
+    switch (codec) {
 
 #ifdef VGM_USE_MPEG
         case 0x0055: {
-            mpeg_custom_config cfg = {0};
+            mpeg_custom_config cfg = { 0 };
 
-            cfg.skip_samples = 1152; /* seems ok */
+            //cfg.skip_samples = 1152; /* observed default */
 
             vgmstream->codec_data = init_mpeg_custom(sb, start_offset, &vgmstream->coding_type, vgmstream->channels, MPEG_STANDARD, &cfg);
             if (!vgmstream->codec_data) goto fail;
@@ -430,19 +430,14 @@ VGMSTREAM* init_vgmstream_bsnf(STREAMFILE* sf) {
 
 #ifdef VGM_USE_FFMPEG
         case 0x0166: {
-            uint8_t buf[0x100];
-            size_t bytes, block_size, block_count;
+            int block_size = 0x800;
 
-            block_size  = 0x800;
-            block_count = stream_size / block_size;
-
-            bytes = ffmpeg_make_riff_xma2(buf, sizeof(buf), num_samples, stream_size, channels, sample_rate, block_count, block_size);
-            vgmstream->codec_data = init_ffmpeg_header_offset(sb, buf, bytes, start_offset, stream_size);
+            vgmstream->codec_data = init_ffmpeg_xma2_raw(sb, start_offset, stream_size, num_samples, channels, sample_rate, block_size, 0);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_FFmpeg;
             vgmstream->layout_type = layout_none;
 
-            xma_fix_raw_samples(vgmstream, sb, start_offset, stream_size, 0x00, 1,1);
+            xma_fix_raw_samples(vgmstream, sb, start_offset, stream_size, 0x00, 1, 1);
             break;
         }
 #endif
@@ -459,16 +454,22 @@ VGMSTREAM* init_vgmstream_bsnf(STREAMFILE* sf) {
 
 #ifdef VGM_USE_ATRAC9
         case 0x42D2: {
-            atrac9_config cfg = {0};
+            atrac9_config cfg = { 0 };
+
+            /* extra offset: RIFF fmt extra data (extra size, frame size, GUID, etc), no fact samples/delay */
 
             cfg.channels = vgmstream->channels;
-            cfg.encoder_delay = read_u16le(extra_offset + 0x02,sf);
-            cfg.config_data = read_u32be(extra_offset + 0x1c,sf);
+            //cfg.encoder_delay = read_u16le(extra_offset + 0x02, sf) / 4; /* seemingly one subframe = 256 */
+            cfg.config_data = read_u32be(extra_offset + 0x1c, sf);
 
             vgmstream->codec_data = init_atrac9(&cfg);
             if (!vgmstream->codec_data) goto fail;
             vgmstream->coding_type = coding_ATRAC9;
             vgmstream->layout_type = layout_none;
+
+            vgmstream->num_samples -= cfg.encoder_delay;
+            vgmstream->loop_start_sample -= cfg.encoder_delay;
+            vgmstream->loop_end_sample -= cfg.encoder_delay;
             break;
         }
 #endif
