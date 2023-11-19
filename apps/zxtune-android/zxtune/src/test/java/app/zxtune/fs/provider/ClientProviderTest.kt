@@ -10,18 +10,40 @@ import android.provider.Settings
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import app.zxtune.Features
-import app.zxtune.fs.*
+import app.zxtune.TestUtils.flushEvents
+import app.zxtune.TestUtils.mockCollectorOf
+import app.zxtune.fs.TestDir
+import app.zxtune.fs.TestFile
+import app.zxtune.fs.VfsDir
+import app.zxtune.fs.VfsExtensions
+import app.zxtune.fs.VfsFile
+import app.zxtune.fs.VfsObject
 import app.zxtune.net.NetworkManager
-import app.zxtune.use
+import app.zxtune.ui.MainDispatcherRule
 import app.zxtune.utils.AsyncWorker
 import app.zxtune.utils.ProgressCallback
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
-import org.robolectric.Robolectric
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.android.controller.ContentProviderController
 import org.robolectric.annotation.Config
@@ -35,6 +57,11 @@ import java.io.IOException
     shadows = [ShadowNetworkManager::class], sdk = [Features.StorageAccessFramework.REQUIRED_SDK]
 )
 class ClientProviderTest {
+
+    private val dispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val fastDirContent = Array(10) { TestDir(2 + it) }
     private val fastDir = object : TestDir(1) {
@@ -118,7 +145,7 @@ class ClientProviderTest {
     }
 
     private lateinit var provider: ContentProvider
-    private lateinit var client: VfsProviderClient
+    private lateinit var underTest: VfsProviderClient
     private val listingCallback = mock<VfsProviderClient.ListingCallback>()
     private val parentsCallback = mock<VfsProviderClient.ParentsCallback>()
 
@@ -133,7 +160,7 @@ class ClientProviderTest {
     @Before
     fun setUp() {
         provider = ContentProviderController.of(Provider(resolver, schema)).create().get()
-        client = VfsProviderClient(provider.context!!)
+        underTest = VfsProviderClient(provider.context!!)
         reset(listingCallback, parentsCallback)
     }
 
@@ -142,26 +169,26 @@ class ClientProviderTest {
 
     @Test
     fun `resolve unknown`() {
-        client.resolve(unknownUri, listingCallback)
+        underTest.resolve(unknownUri, listingCallback)
     }
 
     @Test
     fun `resolve failed`() {
         val ex = assertThrows<Exception> {
-            client.resolve(failedUri, listingCallback)
+            underTest.resolve(failedUri, listingCallback)
         }
         assertEquals("Failed to resolve", ex.message)
     }
 
     @Test
     fun `resolve fast`() {
-        client.resolve(fastUri, listingCallback)
+        underTest.resolve(fastUri, listingCallback)
         verify(listingCallback).onDir(convert(fastDir))
     }
 
     @Test
     fun `resolve slow`() {
-        client.resolve(slowUri, listingCallback)
+        underTest.resolve(slowUri, listingCallback)
         inOrder(listingCallback) {
             // dump progress first
             verify(listingCallback, times(5)).onProgress(argThat { total == 50 })
@@ -171,20 +198,20 @@ class ClientProviderTest {
 
     @Test
     fun `list unknown`() {
-        client.list(unknownUri, listingCallback)
+        underTest.list(unknownUri, listingCallback)
     }
 
     @Test
     fun `list failed`() {
         val ex = assertThrows<Exception> {
-            client.list(failedUri, listingCallback)
+            underTest.list(failedUri, listingCallback)
         }
         assertEquals("Failed to enumerate", ex.message)
     }
 
     @Test
     fun `list fast`() {
-        client.list(fastUri, listingCallback)
+        underTest.list(fastUri, listingCallback)
         fastDirContent.forEach {
             verify(listingCallback).onDir(convert(it))
         }
@@ -192,7 +219,7 @@ class ClientProviderTest {
 
     @Test
     fun `list slow`() {
-        client.list(slowUri, listingCallback)
+        underTest.list(slowUri, listingCallback)
         val elements = slowDirContent.size
         inOrder(listingCallback) {
             // dump progress first
@@ -207,12 +234,12 @@ class ClientProviderTest {
 
     @Test
     fun `list empty`() {
-        client.list(deepUri, listingCallback)
+        underTest.list(deepUri, listingCallback)
     }
 
     @Test
     fun `parents chain`() {
-        client.parents(deepUri, parentsCallback)
+        underTest.parents(deepUri, parentsCallback)
         inOrder(parentsCallback) {
             verify(parentsCallback).onObject(convertParent(fastDir))
             verify(parentsCallback).onObject(convertParent(slowDir))
@@ -222,13 +249,13 @@ class ClientProviderTest {
 
     @Test
     fun `parents empty`() {
-        client.parents(fastUri, parentsCallback)
+        underTest.parents(fastUri, parentsCallback)
         verify(parentsCallback).onObject(convertParent(fastDir))
     }
 
     @Test
     fun `search slow`() {
-        client.search(slowUri, "object", listingCallback)
+        underTest.search(slowUri, "object", listingCallback)
         slowDirContent.forEach {
             verify(listingCallback).onFile(convert(it))
         }
@@ -236,11 +263,11 @@ class ClientProviderTest {
 
     @Test
     fun `search empty`() {
-        client.search(deepUri, "object", listingCallback)
+        underTest.search(deepUri, "object", listingCallback)
     }
 
     @Test
-    fun `network state notification`() {
+    fun `network state notification`() = runTest {
         val networkUri = Uri.parse("radio:/")
         resolver.stub {
             on { resolve(networkUri) } doAnswer {
@@ -249,25 +276,17 @@ class ClientProviderTest {
                 }
             }
         }
-        val notifications = ArrayList<Schema.Notifications.Object?>()
-        // First notification is delivered immediately
-        client.subscribeForNotifications(networkUri, notifications::add).use {
-            ShadowNetworkManager.state.value = false
-            while (notifications.size != 2) {
-                Robolectric.flushForegroundThreadScheduler()
-            }
-            ShadowNetworkManager.state.value = true
-            while (notifications.size != 3) {
-                Robolectric.flushForegroundThreadScheduler()
-            }
-        }
-        assertEquals(3, notifications.size)
-        assertEquals(null, notifications[0])
-        notifications[1]!!.run {
+        val mockNotifications = mockCollectorOf(underTest.observeNotifications(networkUri))
+        verifyNoInteractions(mockNotifications)
+        ShadowNetworkManager.state.value = false
+        verify(mockNotifications).invoke(argThat {
             assertEquals("Network is not accessible", message)
             assertEquals(Settings.ACTION_WIRELESS_SETTINGS, action!!.action)
-        }
-        assertEquals(null, notifications[2])
+            true
+        })
+        ShadowNetworkManager.state.value = true
+        flushEvents()
+        verify(mockNotifications).invoke(null)
     }
 
     @Test
@@ -289,17 +308,26 @@ class ClientProviderTest {
         }
 
         permissionQueryIntent = noPermissionsIntent
-        client.subscribeForNotifications(noPermissionsUri) { notification ->
-            assertEquals("Tap to give access permission", notification!!.message)
-            notification.action!!.run {
-                assertEquals(noPermissionsIntent.action, action)
-                assertEquals(noPermissionsIntent.data, data)
-            }
-        }.release()
+        runTest {
+            val mockNotifications =
+                mockCollectorOf(underTest.observeNotifications(noPermissionsUri))
+            verify(mockNotifications).invoke(argThat {
+                assertEquals("Tap to give access permission", message)
+                requireNotNull(action).run {
+                    assertEquals(noPermissionsIntent.action, action)
+                    assertEquals(noPermissionsIntent.data, data)
+                }
+                true
+            })
+            verifyNoMoreInteractions(mockNotifications)
+        }
+
         permissionQueryIntent = null
-        client.subscribeForNotifications(noPermissionsUri) { notification ->
-            assertEquals(null, notification)
-        }.release()
+        runTest {
+            val mockNotifications =
+                mockCollectorOf(underTest.observeNotifications(noPermissionsUri))
+            verifyNoMoreInteractions(mockNotifications)
+        }
     }
 
     @Test
@@ -308,7 +336,7 @@ class ClientProviderTest {
             on { onProgress(any()) } doThrow Error("Client cancellation")
         }
         val ex = assertThrows<Exception> {
-            client.list(slowUri, listingCallback)
+            underTest.list(slowUri, listingCallback)
         }
         assertEquals(OperationCanceledException().message, ex.message)
         verify(listingCallback).onProgress(any())
@@ -323,7 +351,7 @@ class ClientProviderTest {
             }
         }
         val ex = assertThrows<Exception> {
-            client.list(slowUri, listingCallback, signal)
+            underTest.list(slowUri, listingCallback, signal)
         }
         assertEquals(OperationCanceledException().message, ex.message)
         verify(listingCallback).onProgress(any())
@@ -337,7 +365,7 @@ class ClientProviderTest {
             signal.cancel()
         }
         val ex = assertThrows<Exception> {
-            client.list(hangingUri, listingCallback, signal)
+            underTest.list(hangingUri, listingCallback, signal)
         }
         assertEquals("sleep interrupted", ex.message)
     }

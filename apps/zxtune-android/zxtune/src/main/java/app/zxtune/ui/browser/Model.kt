@@ -7,10 +7,8 @@ import android.os.CancellationSignal
 import android.os.OperationCanceledException
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import app.zxtune.Logger
-import app.zxtune.Releaseable
 import app.zxtune.analytics.Analytics
 import app.zxtune.fs.provider.Schema
 import app.zxtune.fs.provider.VfsProviderClient
@@ -18,8 +16,32 @@ import app.zxtune.fs.provider.VfsProviderClient.ParentsCallback
 import app.zxtune.ui.browser.ListingEntry.Companion.makeFile
 import app.zxtune.ui.browser.ListingEntry.Companion.makeFolder
 import app.zxtune.ui.utils.FilteredListState
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.runningFold
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import java.util.concurrent.atomic.AtomicReference
 
 /*
@@ -32,12 +54,16 @@ TODO:
 class Model @VisibleForTesting internal constructor(
     application: Application,
     private val providerClient: VfsProviderClient,
-    private val async: ExecutorService,
+    private val ioDispatcher: CoroutineDispatcher,
+    defaultDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(application) {
 
-    interface Client {
-        fun onFileBrowse(uri: Uri)
-        fun onError(msg: String)
+    data class Content(
+        val breadcrumbs: List<BreadcrumbsEntry>,
+        val entries: List<ListingEntry>,
+    ) {
+        val uri: Uri
+            get() = breadcrumbs.lastOrNull()?.uri ?: Uri.EMPTY
     }
 
     class State private constructor(
@@ -55,14 +81,19 @@ class Model @VisibleForTesting internal constructor(
         val filter
             get() = listing.filter
 
-        fun withContent(
-            breadcrumbs: List<BreadcrumbsEntry>, entries: List<ListingEntry>
-        ) = State(breadcrumbs, listing.withContent(entries))
+        fun withContent(content: Content) =
+            State(content.breadcrumbs, listing.withContent(content.entries))
 
         fun withEntries(entries: List<ListingEntry>) =
             State(breadcrumbs, listing.withContent(entries))
 
-        fun withFilter(filter: String) = State(breadcrumbs, listing.withFilter(filter))
+        fun withFilter(filter: String) = listing.withFilter(filter).let {
+            if (listing == it) {
+                this
+            } else {
+                State(breadcrumbs, it)
+            }
+        }
     }
 
     data class Notification(
@@ -70,49 +101,87 @@ class Model @VisibleForTesting internal constructor(
         val action: Intent?,
     )
 
-    @VisibleForTesting
-    val mutableState = MutableLiveData<State>()
-    private val mutableProgress = MutableLiveData<Int?>()
-    private val mutableNotification = object : MutableLiveData<Notification?>() {
-        private var uri: Uri? = null
-        private var handle: Releaseable? = null
+    // Use SharedFlow(replay=1) to support initial value absence - no redundant data in _state
+    // Current directory content snapshot. Use SharedFlow to support re-sending in cancelSearch
+    private val _content =
+        MutableSharedFlow<Content>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-        fun release() = handle?.release() ?: Unit
+    // Fast filter. Should be state to get scheduled value instead of delayed real from _state
+    private val _filter =
+        MutableSharedFlow<String>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-        fun watch(uri: Uri) {
-            // TODO: track onActive/onInactive
-            this.uri = uri
-            release()
-            handle = providerClient.subscribeForNotifications(uri) {
-                LOG.d { "Notification ${it?.message ?: "<none>"}" }
-                postValue(it?.run { Notification(message, action) })
+    // Dynamic search content
+    private val _searchContent = MutableSharedFlow<List<ListingEntry>>(
+        extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
+    // Mixin. Should be state in order to get latest content
+    @OptIn(FlowPreview::class)
+    private val _state = merge(
+        _content, _filter.debounce(500), _searchContent
+    ).runningFold(EMPTY_STATE) { state, update ->
+        when (update) {
+            is String -> {
+                LOG.d { "Filtering with '$update'" }
+                state.withFilter(update)
             }
+
+            is Content -> state.withContent(update)
+            is List<*> -> state.withEntries(update.filterIsInstance<ListingEntry>())
+            else -> state
         }
+    }.flowOn(defaultDispatcher).stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5000), EMPTY_STATE
+    )
+
+    // Notifications. Should be state to get latest value
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val _notifications =
+        _content.map { it.uri }.distinctUntilChanged().flatMapLatest { uri ->
+            providerClient.observeNotifications(uri).map {
+                it?.run {
+                    Notification(message, action)
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // Operation progress. Should be state to get current value
+    private val _progress = MutableStateFlow<Int?>(null)
+
+    // Possible errors
+    private val _errors = Channel<String>(capacity = Channel.CONFLATED) {
+        LOG.d { "Ignored error '$it'" }
     }
+    private val _toPlay = Channel<Uri>(capacity = Channel.CONFLATED) {
+        LOG.d { "Ignored playback of $it" }
+    }
+
     private val activeTaskSignal = AtomicReference<CancellationSignal>()
-    private var client: Client = object : Client {
-        override fun onFileBrowse(uri: Uri) = Unit
-        override fun onError(msg: String) = Unit
-    }
 
     @Suppress("UNUSED")
     constructor(application: Application) : this(
-        application, VfsProviderClient(application), Executors.newSingleThreadExecutor()
+        application, VfsProviderClient(application), Dispatchers.IO, Dispatchers.Default
     )
 
-    override fun onCleared() = mutableNotification.release()
+    val state: Flow<State>
+        get() = _state
 
-    val state: LiveData<State>
-        get() = mutableState
+    val progress: Flow<Int?>
+        get() = _progress
 
-    val progress: LiveData<Int?>
-        get() = mutableProgress
+    val notification: Flow<Notification?>
+        get() = _notifications
 
-    val notification: LiveData<Notification?>
-        get() = mutableNotification
+    val errors
+        get() = _errors.receiveAsFlow()
 
-    fun setClient(client: Client) {
-        this.client = client
+    val playbackEvents
+        get() = _toPlay.receiveAsFlow()
+
+    fun initialize(uri: Lazy<Uri>) {
+        if (_state.value.uri == Uri.EMPTY) {
+            executeAsync(BrowseTask(uri))
+        }
     }
 
     fun browse(uri: Uri) {
@@ -120,9 +189,7 @@ class Model @VisibleForTesting internal constructor(
         executeAsync(BrowseTask(lazyOf(uri)))
     }
 
-    fun browse(uri: Lazy<Uri>) = executeAsync(BrowseTask(uri))
-
-    fun browseParent() = state.value?.takeIf { it.breadcrumbs.size > 1 }?.run {
+    fun browseParent() = _state.value.takeIf { it.breadcrumbs.size > 1 }?.run {
         Analytics.sendBrowserEvent(uri, Analytics.BrowserAction.BROWSE_PARENT)
         executeAsync(BrowseParentTask(breadcrumbs))
     } ?: run {
@@ -130,76 +197,73 @@ class Model @VisibleForTesting internal constructor(
         browse(Uri.EMPTY)
     }
 
-    fun reload() = state.value?.run {
-        browse(uri)
-    } ?: Unit
-
-    fun search(query: String) = state.value?.run {
+    fun search(query: String) = _state.value.run {
         Analytics.sendBrowserEvent(uri, Analytics.BrowserAction.SEARCH)
         executeAsync(
             SearchTask(this, query)
         )
-    } ?: Unit
-
-    fun filter(rawFilter: String) = state.value?.run {
-        async.execute {
-            val newFilter = rawFilter.trim()
-            if (filter != newFilter) {
-                updateState {
-                    withFilter(newFilter)
-                }
-            }
-        }
     }
+
+    fun cancelSearch() {
+        activeTaskSignal.getAndSet(null)?.cancel()
+        _progress.value = null
+        val content = _content.replayCache.lastOrNull() ?: Content(emptyList(), emptyList())
+        _content.tryEmit(content)
+    }
+
+    var filter: String
+        get() = _filter.replayCache.lastOrNull() ?: ""
+        set(value) {
+            _filter.tryEmit(value.trim())
+        }
 
     private interface AsyncOperation {
         val description: String
-        fun execute(signal: CancellationSignal)
+        suspend fun execute(signal: CancellationSignal)
+    }
+
+    private val exceptionHandler = CoroutineExceptionHandler { ctx, e ->
+        LOG.w(e) { "Failed ${ctx[CoroutineName]?.name}" }
+        _progress.value = null
+        if (e is OperationCanceledException) {
+            ctx.job.cancel()
+        } else {
+            with((e.cause ?: e).message ?: e.javaClass.name) {
+                _errors.trySend(this)
+            }
+        }
     }
 
     private fun executeAsync(op: AsyncOperation) {
-        val signal = CancellationSignal().apply {
-            activeTaskSignal.getAndSet(this)?.cancel()
-        }
-        async.execute {
-            LOG.d { "Started ${op.description}" }
-            mutableProgress.postValue(-1)
-            op.runCatching {
-                execute(signal)
-            }.onFailure {
-                if (it is OperationCanceledException) {
-                    LOG.d { "Canceled ${op.description}" }
-                } else {
-                    reportError(it)
+        viewModelScope.launch {
+            val signal = CancellationSignal().apply {
+                activeTaskSignal.getAndSet(this)?.cancel()
+            }
+            supervisorScope {
+                val job = launch(ioDispatcher + exceptionHandler + CoroutineName(op.description)) {
+                    LOG.d { "Started ${op.description}" }
+                    _progress.value = -1
+                    op.execute(signal)
+                    if (activeTaskSignal.compareAndSet(signal, null)) {
+                        _progress.value = null
+                        LOG.d { "Finished ${op.description}" }
+                    }
+                }
+                signal.setOnCancelListener {
+                    job.cancel()
                 }
             }
-            if (activeTaskSignal.compareAndSet(signal, null)) {
-                mutableProgress.postValue(null)
-                LOG.d { "Finished ${op.description}" }
-            }
         }
     }
 
-    private fun updateState(block: State.() -> State) = block(mutableState.value ?: State()).also {
-        mutableState.postValue(it)
+    private fun updateProgress(done: Int, total: Int) {
+        _progress.value = if (done == -1 || total == 0) done else 100 * done / total
     }
 
-    private fun commitState(
-        breadcrumbs: List<BreadcrumbsEntry>,
-        entries: List<ListingEntry>,
-    ) {
-        val newState = updateState {
-            withContent(breadcrumbs, entries)
-        }
-        mutableNotification.watch(newState.uri)
-    }
-
-    private fun updateProgress(done: Int, total: Int) =
-        mutableProgress.postValue(if (done == -1 || total == 0) done else 100 * done / total)
-
-    private fun reportError(e: Throwable) = with((e.cause ?: e).message ?: e.javaClass.name) {
-        client.onError(this)
-    }
+    @VisibleForTesting
+    suspend fun updateContent(
+        breadcrumbs: List<BreadcrumbsEntry>, entries: List<ListingEntry>
+    ) = _content.emit(Content(breadcrumbs, entries))
 
     private inner class BrowseTask(private val uriSource: Lazy<Uri>) : AsyncOperation {
 
@@ -209,9 +273,14 @@ class Model @VisibleForTesting internal constructor(
         override val description
             get() = "browse ${uri.takeUnless { it == Uri.EMPTY }?.toString() ?: "root"}"
 
-        override fun execute(signal: CancellationSignal) = when (resolve(uri, signal)) {
-            ObjectType.FILE, ObjectType.DIR_WITH_FEED -> client.onFileBrowse(uri)
-            ObjectType.DIR -> commitState(getParents(), getEntries(uri, signal))
+        override suspend fun execute(signal: CancellationSignal) = when (resolve(uri, signal)) {
+            ObjectType.FILE, ObjectType.DIR_WITH_FEED -> coroutineScope { _toPlay.send(uri) }
+            ObjectType.DIR -> coroutineScope {
+                val entries = async { getEntries(uri, signal) }
+                val parents = getParents()
+                updateContent(parents, entries.await())
+            }
+
             else -> Unit
         }
 
@@ -230,7 +299,7 @@ class Model @VisibleForTesting internal constructor(
         override val description
             get() = "browse parent"
 
-        override fun execute(signal: CancellationSignal) {
+        override suspend fun execute(signal: CancellationSignal) {
             for (idx in items.size - 2 downTo 0) {
                 if (tryBrowseAt(idx, signal)) {
                     break
@@ -238,12 +307,12 @@ class Model @VisibleForTesting internal constructor(
             }
         }
 
-        private fun tryBrowseAt(idx: Int, signal: CancellationSignal): Boolean {
+        private suspend fun tryBrowseAt(idx: Int, signal: CancellationSignal): Boolean {
             val uri = items[idx].uri
             try {
                 val type = resolve(uri, signal)
                 if (ObjectType.DIR == type || ObjectType.DIR_WITH_FEED == type) {
-                    commitState(items.subList(0, idx + 1), getEntries(uri, signal))
+                    updateContent(items.subList(0, idx + 1), getEntries(uri, signal))
                     return true
                 }
             } catch (e: OperationCanceledException) {
@@ -262,21 +331,27 @@ class Model @VisibleForTesting internal constructor(
         override val description
             get() = "search for $query at $uri"
 
-        override fun execute(signal: CancellationSignal) {
+        override suspend fun execute(signal: CancellationSignal) = try {
             publishState()
+
             // assume already resolved
             providerClient.search(uri, query, object : VfsProviderClient.ListingCallback {
                 override fun onProgress(status: Schema.Status.Progress) = Unit
                 override fun onDir(dir: Schema.Listing.Dir) = Unit
                 override fun onFile(file: Schema.Listing.File) {
                     content.add(makeFile(file))
-                    publishState()
+                    if (!signal.isCanceled) {
+                        publishState()
+                    }
                 }
             }, signal)
+        } catch (e: Throwable) {
+            cancelSearch()
+            throw e
         }
 
-        private fun publishState() = updateState {
-            withEntries(content)
+        private fun publishState() {
+            _searchContent.tryEmit(content)
         }
     }
 
@@ -318,6 +393,8 @@ class Model @VisibleForTesting internal constructor(
 
     companion object {
         private val LOG = Logger(Model::class.java.name)
+
+        private val EMPTY_STATE = State()
 
         private fun matchEntry(entry: ListingEntry, filter: String) =
             entry.title.contains(filter, true) || entry.description.contains(filter, true)

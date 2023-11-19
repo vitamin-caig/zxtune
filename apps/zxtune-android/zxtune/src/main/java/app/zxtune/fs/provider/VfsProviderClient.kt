@@ -5,8 +5,13 @@ import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.CancellationSignal
+import androidx.tracing.trace
+import app.zxtune.Logger
 import app.zxtune.Releaseable
 import app.zxtune.use
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.callbackFlow
 
 /**
  * Threads scheme
@@ -32,15 +37,16 @@ class VfsProviderClient(ctx: Context) {
 
     private val resolver = ctx.contentResolver
 
-    @Throws(Exception::class)
     fun resolve(uri: Uri, cb: ListingCallback, signal: CancellationSignal? = null) =
-        queryListing(Query.resolveUriFor(uri), cb, signal)
+        trace("Browser.resolve($uri)") {
+            queryListing(Query.resolveUriFor(uri), cb, signal)
+        }
 
     private fun queryListing(
         resolverUri: Uri, cb: ListingCallback, userSignal: CancellationSignal?
     ) {
         val signal = userSignal ?: CancellationSignal()
-        val notification = subscribeForChanges(resolverUri) {
+        val notification = subscribeForChanges(resolverUri, false) {
             query(resolverUri)?.use {
                 runCatching { getListing(it, cb) }.onFailure {
                     signal.cancel()
@@ -55,29 +61,36 @@ class VfsProviderClient(ctx: Context) {
         }
     }
 
-    @Throws(Exception::class)
     fun list(uri: Uri, cb: ListingCallback, signal: CancellationSignal? = null) =
-        queryListing(Query.listingUriFor(uri), cb, signal)
+        trace("Browser.list($uri)") {
+            queryListing(Query.listingUriFor(uri), cb, signal)
+        }
 
-    @Throws(Exception::class)
-    fun parents(uri: Uri, cb: ParentsCallback) {
+    fun parents(uri: Uri, cb: ParentsCallback) = trace("Browser.parents($uri)") {
         val resolverUri = Query.parentsUriFor(uri)
         query(resolverUri)?.use {
             getParents(it, cb)
         }
+        Unit
     }
 
-    @Throws(Exception::class)
     fun search(uri: Uri, query: String, cb: ListingCallback, signal: CancellationSignal? = null) =
-        queryListing(Query.searchUriFor(uri, query), cb, signal)
+        trace("Browser.search($uri, $query)") {
+            queryListing(Query.searchUriFor(uri, query), cb, signal)
+        }
 
-    fun subscribeForNotifications(
-        uri: Uri, cb: (Schema.Notifications.Object?) -> Unit
-    ): Releaseable = Query.notificationUriFor(uri).let { resolverUri ->
-        subscribeForChanges(resolverUri) {
-            cb(getNotification(resolverUri))
-        }.also {
-            cb(getNotification(resolverUri))
+    fun observeNotifications(uri: Uri) = callbackFlow {
+        val resolverUri = Query.notificationUriFor(uri)
+        val subscription = subscribeForChanges(resolverUri, true) {
+            // Send updates as is
+            trySendBlocking(getNotification(resolverUri))
+        }
+        // Send first only if there's notification
+        getNotification(resolverUri)?.let {
+            trySendBlocking(it)
+        }
+        awaitClose {
+            subscription.release()
         }
     }
 
@@ -88,15 +101,23 @@ class VfsProviderClient(ctx: Context) {
     private fun query(uri: Uri, signal: CancellationSignal? = null) =
         resolver.query(uri, null, null, null, null, signal)
 
-    private fun subscribeForChanges(uri: Uri, cb: () -> Unit): Releaseable {
+    private fun subscribeForChanges(
+        uri: Uri, notifyForDescendants: Boolean, cb: () -> Unit
+    ): Releaseable {
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) = cb()
         }
-        resolver.registerContentObserver(uri, false, observer)
-        return Releaseable { resolver.unregisterContentObserver(observer) }
+        LOG.d { "Subscribe to $uri" }
+        resolver.registerContentObserver(uri, notifyForDescendants, observer)
+        return Releaseable {
+            LOG.d { "Unsubscribe from $uri" }
+            resolver.unregisterContentObserver(observer)
+        }
     }
 
     companion object {
+        private val LOG = Logger(VfsProviderClient::class.java.name)
+
         @JvmStatic
         fun getFileUriFor(uri: Uri, size: Long) = Query.fileUriFor(uri, size)
 
