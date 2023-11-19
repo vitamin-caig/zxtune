@@ -5,8 +5,14 @@ import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.CancellationSignal
+import androidx.tracing.trace
+import app.zxtune.Logger
 import app.zxtune.Releaseable
 import app.zxtune.use
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 
 /**
  * Threads scheme
@@ -32,9 +38,10 @@ class VfsProviderClient(ctx: Context) {
 
     private val resolver = ctx.contentResolver
 
-    @Throws(Exception::class)
     fun resolve(uri: Uri, cb: ListingCallback, signal: CancellationSignal? = null) =
-        queryListing(Query.resolveUriFor(uri), cb, signal)
+        trace("Browser.resolve($uri)") {
+            queryListing(Query.resolveUriFor(uri), cb, signal)
+        }
 
     private fun queryListing(
         resolverUri: Uri, cb: ListingCallback, userSignal: CancellationSignal?
@@ -55,30 +62,25 @@ class VfsProviderClient(ctx: Context) {
         }
     }
 
-    @Throws(Exception::class)
     fun list(uri: Uri, cb: ListingCallback, signal: CancellationSignal? = null) =
-        queryListing(Query.listingUriFor(uri), cb, signal)
+        trace("Browser.list($uri)") {
+            queryListing(Query.listingUriFor(uri), cb, signal)
+        }
 
-    @Throws(Exception::class)
-    fun parents(uri: Uri, cb: ParentsCallback) {
+    fun parents(uri: Uri, cb: ParentsCallback) = trace("Browser.parents($uri)") {
         val resolverUri = Query.parentsUriFor(uri)
         query(resolverUri)?.use {
             getParents(it, cb)
         }
     }
 
-    @Throws(Exception::class)
     fun search(uri: Uri, query: String, cb: ListingCallback, signal: CancellationSignal? = null) =
-        queryListing(Query.searchUriFor(uri, query), cb, signal)
-
-    fun subscribeForNotifications(
-        uri: Uri, cb: (Schema.Notifications.Object?) -> Unit
-    ): Releaseable = Query.notificationUriFor(uri).let { resolverUri ->
-        subscribeForChanges(resolverUri) {
-            cb(getNotification(resolverUri))
-        }.also {
-            cb(getNotification(resolverUri))
+        trace("Browser.search($uri, $query)") {
+            queryListing(Query.searchUriFor(uri, query), cb, signal)
         }
+
+    fun observeNotifications(uri: Uri) = Query.notificationUriFor(uri).let { resolverUri ->
+        observe(resolverUri).map(this::getNotification)
     }
 
     private fun getNotification(resolverUri: Uri) = query(resolverUri)?.use {
@@ -88,6 +90,22 @@ class VfsProviderClient(ctx: Context) {
     private fun query(uri: Uri, signal: CancellationSignal? = null) =
         resolver.query(uri, null, null, null, null, signal)
 
+    private fun observe(resolverUri: Uri) = callbackFlow {
+        val observer = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                trySendBlocking(resolverUri)
+            }
+        }
+        LOG.d { "Subscribe to $resolverUri" }
+        resolver.registerContentObserver(resolverUri, true, observer)
+        send(resolverUri)
+        awaitClose {
+            LOG.d { "Unsubscribe from $resolverUri" }
+            resolver.unregisterContentObserver(observer)
+        }
+    }
+
+    // TODO: use observe
     private fun subscribeForChanges(uri: Uri, cb: () -> Unit): Releaseable {
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) = cb()
@@ -97,6 +115,8 @@ class VfsProviderClient(ctx: Context) {
     }
 
     companion object {
+        private val LOG = Logger(VfsProviderClient::class.java.name)
+
         @JvmStatic
         fun getFileUriFor(uri: Uri, size: Long) = Query.fileUriFor(uri, size)
 

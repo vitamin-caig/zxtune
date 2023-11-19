@@ -10,18 +10,41 @@ import android.provider.Settings
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import app.zxtune.Features
-import app.zxtune.fs.*
+import app.zxtune.TestUtils.flushEvents
+import app.zxtune.fs.TestDir
+import app.zxtune.fs.TestFile
+import app.zxtune.fs.VfsDir
+import app.zxtune.fs.VfsExtensions
+import app.zxtune.fs.VfsFile
+import app.zxtune.fs.VfsObject
 import app.zxtune.net.NetworkManager
-import app.zxtune.use
+import app.zxtune.ui.MainDispatcherRule
 import app.zxtune.utils.AsyncWorker
 import app.zxtune.utils.ProgressCallback
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
-import org.robolectric.Robolectric
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.android.controller.ContentProviderController
 import org.robolectric.annotation.Config
@@ -35,6 +58,11 @@ import java.io.IOException
     shadows = [ShadowNetworkManager::class], sdk = [Features.StorageAccessFramework.REQUIRED_SDK]
 )
 class ClientProviderTest {
+
+    private val dispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val fastDirContent = Array(10) { TestDir(2 + it) }
     private val fastDir = object : TestDir(1) {
@@ -240,7 +268,7 @@ class ClientProviderTest {
     }
 
     @Test
-    fun `network state notification`() {
+    fun `network state notification`() = runTest {
         val networkUri = Uri.parse("radio:/")
         resolver.stub {
             on { resolve(networkUri) } doAnswer {
@@ -251,16 +279,21 @@ class ClientProviderTest {
         }
         val notifications = ArrayList<Schema.Notifications.Object?>()
         // First notification is delivered immediately
-        client.subscribeForNotifications(networkUri, notifications::add).use {
-            ShadowNetworkManager.state.value = false
-            while (notifications.size != 2) {
-                Robolectric.flushForegroundThreadScheduler()
-            }
-            ShadowNetworkManager.state.value = true
-            while (notifications.size != 3) {
-                Robolectric.flushForegroundThreadScheduler()
-            }
+        val job = launch {
+            client.observeNotifications(networkUri).collect(notifications::add)
         }
+        while (notifications.size != 1) {
+            flushEvents()
+        }
+        ShadowNetworkManager.state.value = false
+        while (notifications.size != 2) {
+            flushEvents()
+        }
+        ShadowNetworkManager.state.value = true
+        while (notifications.size != 3) {
+            flushEvents()
+        }
+        job.cancelAndJoin()
         assertEquals(3, notifications.size)
         assertEquals(null, notifications[0])
         notifications[1]!!.run {
@@ -271,7 +304,7 @@ class ClientProviderTest {
     }
 
     @Test
-    fun `storage notification`() {
+    fun `storage notification`() = runTest {
         val noPermissionsUri = Uri.parse("file://root/path/to/dir")
         val noPermissionsIntent = Intent("action", noPermissionsUri)
         var permissionQueryIntent: Intent? = null
@@ -289,17 +322,23 @@ class ClientProviderTest {
         }
 
         permissionQueryIntent = noPermissionsIntent
-        client.subscribeForNotifications(noPermissionsUri) { notification ->
-            assertEquals("Tap to give access permission", notification!!.message)
-            notification.action!!.run {
-                assertEquals(noPermissionsIntent.action, action)
-                assertEquals(noPermissionsIntent.data, data)
+        launch {
+            client.observeNotifications(noPermissionsUri).collect { notification ->
+                assertEquals("Tap to give access permission", notification!!.message)
+                notification.action!!.run {
+                    assertEquals(noPermissionsIntent.action, action)
+                    assertEquals(noPermissionsIntent.data, data)
+                }
+                cancel()
             }
-        }.release()
+        }.join()
         permissionQueryIntent = null
-        client.subscribeForNotifications(noPermissionsUri) { notification ->
-            assertEquals(null, notification)
-        }.release()
+        launch {
+            client.observeNotifications(noPermissionsUri).collect { notification ->
+                assertEquals(null, notification)
+                cancel()
+            }
+        }.join()
     }
 
     @Test
