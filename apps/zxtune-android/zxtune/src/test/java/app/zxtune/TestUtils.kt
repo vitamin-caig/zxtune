@@ -8,8 +8,8 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.mockito.MockedConstruction
 import org.mockito.Mockito
-import org.mockito.Mockito.mock
 import org.mockito.kotlin.KStubbing
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
 import org.robolectric.Robolectric
 

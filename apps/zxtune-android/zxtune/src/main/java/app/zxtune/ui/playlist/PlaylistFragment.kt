@@ -26,6 +26,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.selection.Selection
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
@@ -39,6 +40,7 @@ import app.zxtune.ui.PersistentStorageSetupFragment
 import app.zxtune.ui.utils.SelectionUtils
 import app.zxtune.ui.utils.item
 import app.zxtune.ui.utils.whenLifecycleStarted
+import kotlinx.coroutines.launch
 
 class PlaylistFragment : Fragment() {
     private lateinit var listing: RecyclerView
@@ -224,7 +226,7 @@ class PlaylistFragment : Fragment() {
                 action()
             }.show()
 
-    private fun savePlaylist(ids: LongArray?) {
+    private fun savePlaylist(ids: LongArray?) = lifecycleScope.launch {
         val persistentStorageSetupAction =
             VfsProviderClient(requireContext()).getNotification(Uri.parse("playlists:/"))?.action
         val fragment = persistentStorageSetupAction?.let {

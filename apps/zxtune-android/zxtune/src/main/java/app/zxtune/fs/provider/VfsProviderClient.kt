@@ -4,9 +4,13 @@ import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
-import android.os.CancellationSignal
-import app.zxtune.Releaseable
-import app.zxtune.use
+import app.zxtune.ui.utils.observeChanges
+import app.zxtune.ui.utils.query
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
  * Threads scheme
@@ -32,68 +36,49 @@ class VfsProviderClient(ctx: Context) {
 
     private val resolver = ctx.contentResolver
 
-    @Throws(Exception::class)
-    fun resolve(uri: Uri, cb: ListingCallback, signal: CancellationSignal? = null) =
-        queryListing(Query.resolveUriFor(uri), cb, signal)
+    suspend fun resolve(uri: Uri, cb: ListingCallback) = fetchListing(Query.resolveUriFor(uri), cb)
 
-    private fun queryListing(
-        resolverUri: Uri, cb: ListingCallback, userSignal: CancellationSignal?
-    ) {
-        val signal = userSignal ?: CancellationSignal()
-        val notification = subscribeForChanges(resolverUri) {
-            query(resolverUri)?.use {
-                runCatching { getListing(it, cb) }.onFailure {
-                    signal.cancel()
-                    // Do not throw anything!!!
-                }
-            }
-        }
-        notification.use {
-            query(resolverUri, signal)?.use {
-                getListing(it, cb)
-            }
-        }
+    suspend fun list(uri: Uri, cb: ListingCallback) = fetchListing(Query.listingUriFor(uri), cb)
+
+    suspend fun parents(uri: Uri, cb: ParentsCallback) = resolver.query(Query.parentsUriFor(uri)) {
+        getParents(it, cb)
+        Unit
     }
 
-    @Throws(Exception::class)
-    fun list(uri: Uri, cb: ListingCallback, signal: CancellationSignal? = null) =
-        queryListing(Query.listingUriFor(uri), cb, signal)
+    suspend fun search(uri: Uri, query: String, cb: ListingCallback) = fetchListing(
+        Query.searchUriFor(uri, query), cb
+    )
 
-    @Throws(Exception::class)
-    fun parents(uri: Uri, cb: ParentsCallback) {
-        val resolverUri = Query.parentsUriFor(uri)
-        query(resolverUri)?.use {
-            getParents(it, cb)
-        }
-    }
-
-    @Throws(Exception::class)
-    fun search(uri: Uri, query: String, cb: ListingCallback, signal: CancellationSignal? = null) =
-        queryListing(Query.searchUriFor(uri, query), cb, signal)
-
-    // Notifications are propagated down-up, but since they sent to the root notifications
-    // url, subscribe to it
-    fun subscribeForNotifications(
-        uri: Uri, cb: (Schema.Notifications.Object?) -> Unit
-    ) = subscribeForChanges(Query.notificationUriFor(Uri.EMPTY)) {
-        cb(getNotification(uri))
-    }.also {
-        cb(getNotification(uri))
-    }
-
-    fun getNotification(uri: Uri) = query(Query.notificationUriFor(uri))?.use {
-        getNotification(it)
-    }
-
-    private fun query(uri: Uri, signal: CancellationSignal? = null) =
-        resolver.query(uri, null, null, null, null, signal)
-
-    private fun subscribeForChanges(uri: Uri, cb: () -> Unit): Releaseable {
+    private suspend fun fetchListing(resolverUri: Uri, cb: ListingCallback) = coroutineScope {
+        // onChange called in separate thread while main is blocked in primary call
         val observer = object : ContentObserver(null) {
-            override fun onChange(selfChange: Boolean) = cb()
+            override fun onChange(selfChange: Boolean) = runBlocking {
+                fetchListingPortion(resolverUri, cb)
+                Unit
+            }
         }
-        resolver.registerContentObserver(uri, false, observer)
-        return Releaseable { resolver.unregisterContentObserver(observer) }
+        resolver.registerContentObserver(resolverUri, false, observer)
+        coroutineContext.job.invokeOnCompletion {
+            resolver.unregisterContentObserver(observer)
+        }
+        launch {
+            fetchListingPortion(resolverUri, cb)
+        }.join()
+    }
+
+    private suspend fun fetchListingPortion(resolverUri: Uri, cb: ListingCallback) =
+        resolver.query(resolverUri) {
+            getListing(it, cb)
+        }
+
+    fun observeNotifications(uri: Uri) =
+        // For some reason, notifyChange for root uri is not propagated to descendant subscribers
+        resolver.observeChanges(Query.notificationUriFor(Uri.EMPTY)).map {
+            getNotification(uri)
+        }
+
+    suspend fun getNotification(uri: Uri) = resolver.query(Query.notificationUriFor(uri)) {
+        getNotification(it)
     }
 
     companion object {

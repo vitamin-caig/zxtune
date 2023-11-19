@@ -12,8 +12,7 @@ import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
 
 class Provider @VisibleForTesting internal constructor(
-    private val resolver: Resolver,
-    private val schema: SchemaSource
+    private val resolver: Resolver, private val schema: SchemaSource
 ) : ContentProvider() {
     private val operations = ConcurrentHashMap<Uri, Operation>()
 
@@ -98,9 +97,7 @@ class Provider @VisibleForTesting internal constructor(
     }
 
     private fun createOperation(
-        uri: Uri,
-        projection: Array<String>?,
-        callback: AsyncQueryOperation.Callback
+        uri: Uri, projection: Array<String>?, callback: AsyncQueryOperation.Callback
     ): AsyncQueryOperation {
         val path = Query.getPathFrom(uri)
         return when (Query.getUriType(uri)) {
@@ -108,11 +105,7 @@ class Provider @VisibleForTesting internal constructor(
             Query.TYPE_LISTING -> ListingOperation(path, resolver, schema, callback)
             Query.TYPE_PARENTS -> ParentsOperation(path, resolver, schema)
             Query.TYPE_SEARCH -> SearchOperation(
-                path,
-                resolver,
-                schema,
-                callback,
-                Query.getQueryFrom(uri)
+                path, resolver, schema, callback, Query.getQueryFrom(uri)
             )
 
             Query.TYPE_FILE -> FileOperation(path, Query.getSizeFrom(uri), resolver, projection)
@@ -127,10 +120,7 @@ class Provider @VisibleForTesting internal constructor(
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?) = 0
 
     override fun update(
-        uri: Uri,
-        values: ContentValues?,
-        selection: String?,
-        selectionArgs: Array<String>?
+        uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?
     ): Int = 0
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
@@ -139,10 +129,7 @@ class Provider @VisibleForTesting internal constructor(
         val path = Query.getPathFrom(uri)
         val size = Query.getSizeFrom(uri)
         return openPipeHelper(
-            path,
-            "application/octet",
-            null,
-            null
+            path, "application/octet", null, null
         ) { out, _, _, _, _ ->
             runCatching {
                 FileOutputStream(out.fileDescriptor).use {
