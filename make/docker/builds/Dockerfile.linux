@@ -52,7 +52,7 @@ RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" &
       -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms \
       -xcb -qpa xcb \
       -no-feature-testlib -no-feature-sql -no-feature-pdf -no-feature-printer \
-      -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig -openssl \
+      -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig -openssl-linked \
       -make libs && \
      make -j${cores} install) && \
      rm -Rf qt5
@@ -65,7 +65,7 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
          "ld_flags=-static-libstdc++\n" \
          "cxx_flags=-fPIC\n" \
          "qt.plugins=QXcbIntegrationPlugin\n" \
-         "libraries.qt.system.linux=qxcb qtpcre2 qtharfbuzz png16 fontconfig freetype" \
+         "libraries.qt.system.linux=qxcb qtpcre2 qtharfbuzz png16 fontconfig freetype ssl crypto" \
            "xcb xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama" \
            "xcb-xkb xkbcommon xkbcommon-x11 X11 X11-xcb\n" \
          "libraries.qt.linux=XcbQpa XkbCommonSupport ThemeSupport DBus EdidSupport FontDatabaseSupport ServiceSupport" > variables.mak
