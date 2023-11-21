@@ -50,7 +50,7 @@ RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" &
       -no-opengl -no-openvg \
       -no-ico -no-gif -no-cups -no-pch -no-glib \
       -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms \
-      -xcb \
+      -xcb -qpa xcb \
       -no-feature-testlib -no-feature-sql -no-feature-pdf -no-feature-printer \
       -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig -openssl \
       -make libs && \
