@@ -118,9 +118,12 @@ static int dxa_read_header(AVFormatContext *s)
             if(tag == MKTAG('d', 'a', 't', 'a')) break;
             avio_skip(pb, fsize);
         }
-        c->bpc = (fsize + c->frames - 1) / c->frames;
-        if(ast->codecpar->block_align)
+        c->bpc = (fsize + (int64_t)c->frames - 1) / c->frames;
+        if(ast->codecpar->block_align) {
+            if (c->bpc > INT_MAX - ast->codecpar->block_align + 1)
+                return AVERROR_INVALIDDATA;
             c->bpc = ((c->bpc + ast->codecpar->block_align - 1) / ast->codecpar->block_align) * ast->codecpar->block_align;
+        }
         c->bytes_left = fsize;
         c->wavpos = avio_tell(pb);
         avio_seek(pb, c->vidpos, SEEK_SET);
@@ -226,7 +229,7 @@ static int dxa_read_packet(AVFormatContext *s, AVPacket *pkt)
     return AVERROR_EOF;
 }
 
-AVInputFormat ff_dxa_demuxer = {
+const AVInputFormat ff_dxa_demuxer = {
     .name           = "dxa",
     .long_name      = NULL_IF_CONFIG_SMALL("DXA"),
     .priv_data_size = sizeof(DXAContext),

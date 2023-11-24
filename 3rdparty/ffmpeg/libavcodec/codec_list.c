@@ -1,4 +1,4 @@
-static const AVCodec * const codec_list[] = {
+static const FFCodec * const codec_list[] = {
 #if 0
     &ff_aasc_decoder,
     &ff_aic_decoder,

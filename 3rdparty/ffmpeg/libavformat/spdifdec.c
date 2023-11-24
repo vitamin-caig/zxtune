@@ -27,7 +27,7 @@
 
 #include "libavutil/bswap.h"
 
-#include "libavcodec/ac3.h"
+#include "libavcodec/ac3defs.h"
 #include "libavcodec/adts_parser.h"
 
 #include "avformat.h"
@@ -226,12 +226,12 @@ int ff_spdif_read_packet(AVFormatContext *s, AVPacket *pkt)
     if (!s->bit_rate && s->streams[0]->codecpar->sample_rate)
         /* stream bitrate matches 16-bit stereo PCM bitrate for currently
            supported codecs */
-        s->bit_rate = 2 * 16 * s->streams[0]->codecpar->sample_rate;
+        s->bit_rate = 2 * 16LL * s->streams[0]->codecpar->sample_rate;
 
     return 0;
 }
 
-AVInputFormat ff_spdif_demuxer = {
+const AVInputFormat ff_spdif_demuxer = {
     .name           = "spdif",
     .long_name      = NULL_IF_CONFIG_SMALL("IEC 61937 (compressed data in S/PDIF)"),
     .read_probe     = spdif_probe,

@@ -28,8 +28,8 @@
 #define AVUTIL_AVASSERT_H
 
 #include <stdlib.h>
-#include "avutil.h"
 #include "log.h"
+#include "macros.h"
 
 /**
  * assert() equivalent, that is always enabled.
@@ -38,6 +38,7 @@
     if (!(cond)) {                                                      \
         av_log(NULL, AV_LOG_PANIC, "Assertion %s failed at %s:%d\n",    \
                AV_STRINGIFY(cond), __FILE__, __LINE__);                 \
+        abort();                                                        \
     }                                                                   \
 } while (0)
 
