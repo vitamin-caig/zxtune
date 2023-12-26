@@ -19,8 +19,7 @@ class XspfStorage @VisibleForTesting constructor(
     private val storage: PersistentStorage.Subdirectory,
 ) {
     constructor(ctx: Context) : this(
-        ctx.contentResolver,
-        PersistentStorage.instance.subdirectory(PLAYLISTS_DIR)
+        ctx.contentResolver, PersistentStorage.instance.subdirectory(PLAYLISTS_DIR)
     )
 
     fun enumeratePlaylists() = ArrayList<String>().apply {
@@ -38,21 +37,23 @@ class XspfStorage @VisibleForTesting constructor(
 
     @Throws(IOException::class)
     fun createPlaylist(name: String, cursor: Cursor) {
+        val targetName = name + EXTENSION
+        val dir = storage.tryGet(createIfAbsent = true)
+        // TODO: transactional
         val doc = checkNotNull(
-            storage.tryGet(createIfAbsent = true)?.createFile("", name + EXTENSION)
+            dir?.findFile(targetName) ?: dir?.createFile("", targetName)
         ) {
             "cannot create file $name"
         }
-        LOG.d { "Created playlist $name at ${doc.uri}" }
-        checkNotNull(resolver.openOutputStream(doc.uri)) { "cannot open output stream ${doc.uri}" }
-            .use { stream ->
-                Builder(stream).apply {
-                    writePlaylistProperties(name, cursor.count)
-                    while (cursor.moveToNext()) {
-                        writeTrack(Item(cursor))
-                    }
-                }.finish()
-            }
+        LOG.d { "Playlist $name at ${doc.uri}" }
+        checkNotNull(resolver.openOutputStream(doc.uri)) { "cannot open output stream ${doc.uri}" }.use { stream ->
+            Builder(stream).apply {
+                writePlaylistProperties(name, cursor.count)
+                while (cursor.moveToNext()) {
+                    writeTrack(Item(cursor))
+                }
+            }.finish()
+        }
     }
 
     companion object {
