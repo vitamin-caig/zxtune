@@ -2,32 +2,63 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/item_height"
-        android:gravity="center_vertical"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         tools:ignore="RtlHardcoded">
 
     <TextView
-            android:id="@+id/brief_title"
+            android:id="@+id/brief_details"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="middle"
-            android:gravity="center"
+            android:fontFamily="monospace"
             android:paddingHorizontal="@dimen/spacing_full"
-            android:singleLine="true"
-            android:textAlignment="gravity"
-            android:textAppearance="?textAppearanceListItem"
-            tools:text="Title" />
+            android:scrollbars="vertical"
+            tools:text="Some\nmultiline\ntext\nwith\nmany\nlines" />
 
-    <TextView
-            android:id="@+id/brief_subtitle"
+    <RelativeLayout
+            android:id="@+id/brief_main"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="middle"
-            android:gravity="center"
-            android:paddingHorizontal="@dimen/spacing_full"
-            android:singleLine="true"
-            android:textAlignment="gravity"
-            android:textAppearance="?textAppearanceListItemSecondary"
-            tools:text="Author" />
+            android:layout_height="@dimen/item_height"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/spacing_full">
+
+        <TextView
+                android:id="@+id/brief_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignWithParentIfMissing="true"
+                android:layout_above="@id/brief_subtitle"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_toLeftOf="@id/brief_details_toggle"
+                android:ellipsize="middle"
+                android:gravity="center"
+                android:singleLine="true"
+                android:textAlignment="gravity"
+                android:textAppearance="?textAppearanceListItem"
+                tools:text="Title" />
+
+        <TextView
+                android:id="@+id/brief_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentBottom="true"
+                android:layout_toLeftOf="@id/brief_details_toggle"
+                android:ellipsize="middle"
+                android:gravity="center"
+                android:singleLine="true"
+                android:textAlignment="gravity"
+                android:textAppearance="?textAppearanceListItemSecondary"
+                tools:text="Author" />
+
+        <ImageButton
+                android:id="@+id/brief_details_toggle"
+                style="@style/Button.Toggled"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:src="@drawable/ic_menu_info" />
+    </RelativeLayout>
 </LinearLayout>

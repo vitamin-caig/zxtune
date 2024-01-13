@@ -18,7 +18,7 @@
             android:id="@+id/visualizer"
             android:name="app.zxtune.ui.VisualizerFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_above="@id/information"
             android:layout_below="@id/main_top_panel" />
 
@@ -27,12 +27,14 @@
             android:name="app.zxtune.ui.BriefFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@id/seek_controls" />
+            android:layout_above="@id/seek_controls"
+            tools:layout_height="@dimen/item_height" />
 
     <androidx.fragment.app.FragmentContainerView
             android:id="@+id/seek_controls"
             android:name="app.zxtune.ui.SeekControlFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true" />
+            android:layout_alignParentBottom="true"
+            tools:layout_height="@dimen/item_height" />
 </RelativeLayout>
