@@ -113,13 +113,13 @@ namespace ZXTune
     RegisterMP3Plugin(players);
     RegisterOGGPlugin(players);
     RegisterFLACPlugin(players);
-    RegisterV2MSupport(players);
     RegisterVGMPlugins(players);
     RegisterMPTPlugins(players);
     RegisterSIDPlugins(players, archives);
     RegisterGMEPlugins(players, archives);
     RegisterASAPPlugins(players, archives);
     RegisterVGMStreamPlugins(players, archives);
+    RegisterV2MSupport(players);
     RegisterWAVPlugin(players);  // wav after VGMStream
   }
 }  // namespace ZXTune
