@@ -97,7 +97,7 @@ namespace Module
       }
       else
       {
-        return CreateStreamInfo(Tune->GetFrameDuration(), Tune->FindStreamModel());
+        return CreateStreamInfo(Tune->GetFrameDuration(), *Tune->FindStreamModel());
       }
     }
 

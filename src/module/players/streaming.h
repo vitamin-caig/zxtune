@@ -12,15 +12,15 @@
 
 // local includes
 #include "module/players/iterator.h"
-#include "module/players/stream_model.h"
 // library includes
 #include <module/information.h>
 #include <time/duration.h>
 
 namespace Module
 {
-  Information::Ptr CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel::Ptr& model);
-  StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, const StreamModel::Ptr& model);
+  class StreamModel;
+  Information::Ptr CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel& model);
+  StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, const StreamModel& model);
 
   Information::Ptr CreateTimedInfo(Time::Milliseconds duration);
   Information::Ptr CreateTimedInfo(Time::Milliseconds duration, Time::Milliseconds loopDuration);

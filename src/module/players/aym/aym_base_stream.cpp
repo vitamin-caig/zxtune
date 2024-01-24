@@ -85,7 +85,7 @@ namespace Module::AYM
 
     DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr /*trackParams*/) const override
     {
-      auto iter = CreateStreamStateIterator(FrameDuration, Data);
+      auto iter = CreateStreamStateIterator(FrameDuration, *Data);
       return MakePtr<StreamDataIterator>(std::move(iter), Data);
     }
 

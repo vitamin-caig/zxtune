@@ -69,7 +69,7 @@ namespace Module::TFM
 
     Information::Ptr GetInformation() const override
     {
-      return CreateStreamInfo(FrameDuration, Data);
+      return CreateStreamInfo(FrameDuration, *Data);
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -79,7 +79,7 @@ namespace Module::TFM
 
     TFM::DataIterator::Ptr CreateDataIterator() const override
     {
-      auto iter = CreateStreamStateIterator(FrameDuration, Data);
+      auto iter = CreateStreamStateIterator(FrameDuration, *Data);
       return MakePtr<StreamDataIterator>(std::move(iter), Data);
     }
 
