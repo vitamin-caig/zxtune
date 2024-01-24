@@ -22,6 +22,14 @@ namespace Module
     uint_t TotalFrames = 0;
     uint_t LoopFrame = 0;
     Time::Microseconds FrameDuration;
+
+    void Sanitize()
+    {
+      if (LoopFrame >= TotalFrames)
+      {
+        LoopFrame = 0;
+      }
+    }
   };
 
   class FramedStreamStateCursor : public State
@@ -154,6 +162,7 @@ namespace Module
     stream.FrameDuration = frameDuration;
     stream.TotalFrames = model->GetTotalFrames();
     stream.LoopFrame = model->GetLoopFrame();
+    stream.Sanitize();
     return MakePtr<FramedStreamInfo>(stream);
   }
 
@@ -163,6 +172,7 @@ namespace Module
     stream.FrameDuration = frameDuration;
     stream.TotalFrames = model->GetTotalFrames();
     stream.LoopFrame = model->GetLoopFrame();
+    stream.Sanitize();
     return MakePtr<FramedStreamStateIterator>(stream);
   }
 
