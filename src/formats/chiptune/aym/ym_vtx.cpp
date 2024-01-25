@@ -313,8 +313,8 @@ namespace Formats::Chiptune
           ParseTransponedMatrix(src, lines, columns, target);
           if (Ver3b::FastCheck(data, size))
           {
-            const uint_t loop = stream.Read<be_uint32_t>();
-            target.SetLoop(loop);
+            const uint32_t loop = stream.Read<be_uint32_t>();
+            target.SetLoop(std::min(loop, swapBytes(loop)));
           }
           return CreateCalculatingCrcContainer(stream.GetReadContainer(), dumpOffset, matrixSize);
         }
