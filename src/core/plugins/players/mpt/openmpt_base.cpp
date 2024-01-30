@@ -20,6 +20,7 @@
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/container.h>
+#include <math/numeric.h>
 #include <module/players/properties_helper.h>
 #include <module/track_information.h>
 #include <module/track_state.h>
@@ -93,17 +94,18 @@ namespace Module::Mpt
       : Track(std::move(track))
       , TotalDuration(Track->get_duration_seconds())
       , FirstPlayed(Track->get_num_orders())
-    {}
+    {
+      Reset();
+    }
 
     Time::AtMillisecond At() const override
     {
-      return Time::AtMillisecond()
-             + ToDuration(std::min(TotalDuration, Track->get_position_seconds() - AllLoopsDuration));
+      return Time::AtMillisecond() + ToDuration(std::min(TotalDuration, Current.Time - AllLoopsDuration));
     }
 
     Time::Milliseconds Total() const override
     {
-      return ToDuration(Track->get_position_seconds());
+      return ToDuration(Current.Time);
     }
 
     uint_t LoopCount() const override
@@ -123,7 +125,7 @@ namespace Module::Mpt
 
     uint_t Line() const override
     {
-      return Current.Row;
+      return Track->get_current_row();
     }
 
     uint_t Tempo() const override
@@ -143,47 +145,31 @@ namespace Module::Mpt
 
     void Update()
     {
-      const auto prev = Current;
-      Current = PositionIndex{static_cast<uint_t>(Track->get_current_order()),
-                              static_cast<uint_t>(Track->get_current_row()), Track->get_position_seconds()};
-      if (Current.Position > prev.Position)
+      Current.Position = static_cast<uint_t>(Track->get_current_order());
+      Current.Time = Track->get_position_seconds();
+      auto& first = FirstPlayed[Current.Position];
+      if (first < 0.0)
       {
-        if (!Loopings)
-        {
-          FirstPlayed[Current.Position] = Current.Time;
-        }
+        first = Current.Time;
       }
-      else if (Current.Position < prev.Position || Current.Row < prev.Row)
+      else if (Current.Time - AllLoopsDuration > TotalDuration)
       {
-        Looped();
+        ++Loopings;
+        AllLoopsDuration = Current.Time - first;
       }
-      else if (Current.Row == prev.Row)
-      {
-        const double STUCK_THRESHOLD = 5.0;
-        if (Current.Time - prev.Time > STUCK_THRESHOLD)
-        {
-          Looped();
-        }
-        else
-        {
-          Current.Time = prev.Time;
-        }
-      }
+    }
+
+    void ForcedLoop()
+    {
+      ++Loopings;
     }
 
     void Reset()
     {
       Loopings = 0;
       AllLoopsDuration = 0.0;
-      std::fill(FirstPlayed.begin(), FirstPlayed.end(), double{});
+      std::fill(FirstPlayed.begin(), FirstPlayed.end(), -1.0);
       Current = {};
-    }
-
-  private:
-    void Looped()
-    {
-      ++Loopings;
-      AllLoopsDuration = Current.Time - FirstPlayed[Current.Position];
     }
 
   private:
@@ -195,7 +181,6 @@ namespace Module::Mpt
     struct PositionIndex
     {
       uint_t Position = 0;
-      uint_t Row = 0;
       double Time;
     };
 
@@ -240,6 +225,7 @@ namespace Module::Mpt
         {
           // see XM.cheapchoon%20II%20%20%203-30.gz @ AMP
           Track->set_position_seconds(0);
+          State->ForcedLoop();
         }
         else
         {
@@ -391,6 +377,7 @@ namespace Module::Mpt
   }
 
   const double MIN_DURATION = 0.1;
+  const double MAX_DURATION = 3600;  // 1 hour
 
   class Factory : public Module::ExternalParsingFactory
   {
@@ -418,7 +405,7 @@ namespace Module::Mpt
         // use external repeats control
         track->set_repeat_count(-1);
 
-        if (!track->get_num_orders() || track->get_duration_seconds() < MIN_DURATION)
+        if (!track->get_num_orders() || !Math::InRange(track->get_duration_seconds(), MIN_DURATION, MAX_DURATION))
         {
           return {};
         }
