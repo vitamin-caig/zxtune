@@ -288,8 +288,9 @@ namespace
         }
         const auto real = timer.Elapsed<>();
         const auto relSpeed = total.Divide<double>(real);
-        Display.Message("x{2:.2f}\t({1})\t{0}\t[0x{3:08x}]\t{{{4}..{5}}}", path, type, relSpeed, receiver.GetHash(),
-                        receiver.GetMinSample(), receiver.GetMaxSample());
+        Display.Message("x{2:.2f}\t({1})\t{0}\t[0x{3:08x}]\t{{{4}..{5}, {6}}}", path, type, relSpeed,
+                        receiver.GetHash(), receiver.GetMinSample(), receiver.GetMaxSample(),
+                        receiver.GetTotalSamples());
       }
       catch (const std::exception& e)
       {
@@ -325,6 +326,7 @@ namespace
       void ApplyData(Sound::Chunk data)
       {
         Crc32 = Binary::Crc32(data, Crc32);
+        TotalSamples += data.size();
         for (const auto smp : data)
         {
           MinMax(smp.Left());
@@ -335,6 +337,11 @@ namespace
       uint32_t GetHash() const
       {
         return Crc32;
+      }
+
+      uint64_t GetTotalSamples() const
+      {
+        return TotalSamples;
       }
 
       Sound::Sample::Type GetMinSample() const
@@ -356,6 +363,7 @@ namespace
 
     private:
       uint32_t Crc32 = 0;
+      uint64_t TotalSamples = 0;
       Sound::Sample::Type MinSample = Sound::Sample::MAX;
       Sound::Sample::Type MaxSample = Sound::Sample::MIN;
     };
