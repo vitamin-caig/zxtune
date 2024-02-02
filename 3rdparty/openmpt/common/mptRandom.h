@@ -92,7 +92,7 @@ public:
 };
 
 
-#ifdef MPT_BUILD_FUZZER
+#if defined(MPT_BUILD_FUZZER) || defined(MPT_DETERMINISTIC_RANDOM)
 
 //  Use deterministic seeding
 using random_device = deterministc_random_device;
@@ -105,7 +105,7 @@ using random_device = mpt::sane_random_device;
 #endif // MPT_BUILD_FUZZER
 
 
-#ifdef MPT_BUILD_FUZZER
+#if defined(MPT_BUILD_FUZZER) || defined(MPT_DETERMINISTIC_RANDOM)
 
 // Use fast PRNGs in order to not waste time fuzzing more complex PRNG
 // implementations.

@@ -59,6 +59,7 @@ includes.dirs.internal.c = $(opusfile_includes)
 source_files += $(addprefix include/opusfile/src/,opusfile.c stream.c info.c internal.c)
 
 # declare ASSERT macro as Require to avoid AssertHandler
-defines += MPT_FRAMEWORK_ASSERT_IS_DEFINED MPT_ASSERT_USE_FRAMEWORK=1 MPT_FRAMEWORK_ASSERT_IS_ACTIVE=1 "ASSERT(p)=(void)(p)" MPT_LOG_IS_DISABLED
+defines += MPT_FRAMEWORK_ASSERT_IS_DEFINED MPT_ASSERT_USE_FRAMEWORK=1 MPT_FRAMEWORK_ASSERT_IS_ACTIVE=1 "ASSERT(p)=(void)(p)" MPT_LOG_IS_DISABLED \
+           MPT_DETERMINISTIC_RANDOM
 
 include $(dirs.root)/makefile.mak
