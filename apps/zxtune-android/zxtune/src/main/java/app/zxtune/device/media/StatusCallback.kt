@@ -1,9 +1,6 @@
 package app.zxtune.device.media
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
@@ -12,15 +9,16 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.TextUtils
 import android.widget.Toast
-import androidx.core.content.res.ResourcesCompat
 import app.zxtune.Logger
 import app.zxtune.TimeStamp
 import app.zxtune.Util
+import app.zxtune.core.Identifier
 import app.zxtune.core.ModuleAttributes
+import app.zxtune.coverart.CoverartProviderClient
+import app.zxtune.coverart.CoverartService
 import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.VfsFile
-import app.zxtune.fs.icon
 import app.zxtune.fs.provider.VfsProviderClient.Companion.getFileUriFor
 import app.zxtune.fs.shareUrl
 import app.zxtune.playback.Callback
@@ -72,13 +70,10 @@ internal class StatusCallback private constructor(
             putNonEmptyString(ModuleAttributes.PROGRAM, item.program)
             putNonEmptyString(ModuleAttributes.STRINGS, item.strings)
             putLong(MediaMetadataCompat.METADATA_KEY_DURATION, item.duration.toMilliseconds())
-            putBitmap(
-                MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, getLocationIcon(dataId.dataLocation)
-            )
             putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, dataId.toString())
             putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, item.id.toString())
         }
-        fillObjectUrls(dataId.dataLocation, dataId.subPath, builder)
+        fillObjectUrls(dataId, builder)
         session.setMetadata(builder.build())
     } catch (e: Exception) {
         LOG.w(e) { "onItemChanged()" }
@@ -86,24 +81,6 @@ internal class StatusCallback private constructor(
 
     override fun onError(e: String) {
         handler.post { Toast.makeText(ctx, e, Toast.LENGTH_SHORT).show() }
-    }
-
-    private fun getLocationIcon(location: Uri) = try {
-        val drawable = getLocationIconResource(location)?.let {
-            ResourcesCompat.getDrawableForDensity(ctx.resources, it, 320 /*XHDPI*/, null)
-        }
-        when (drawable) {
-            is BitmapDrawable -> drawable.bitmap
-            null -> null
-            else -> Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888).apply {
-                val canvas = Canvas(this)
-                drawable.setBounds(0, 0, canvas.width, canvas.height)
-                drawable.draw(canvas)
-            }
-        }
-    } catch (e: Exception) {
-        LOG.w(e) { "Failed to get location icon" }
-        null
     }
 
     companion object {
@@ -120,30 +97,45 @@ internal class StatusCallback private constructor(
         })
 
         private fun fillObjectUrls(
-            location: Uri, subpath: String, builder: MediaMetadataCompat.Builder
-        ) {
+            dataId: Identifier, builder: MediaMetadataCompat.Builder
+        ) = with(builder) {
             try {
+                val location = dataId.dataLocation
                 val obj = Vfs.resolve(location)
-                builder.putNonEmptyString(VfsExtensions.SHARE_URL, obj.shareUrl)
-                if (subpath.isEmpty() && obj is VfsFile) {
+                putNonEmptyString(VfsExtensions.SHARE_URL, obj.shareUrl)
+                if (dataId.subPath.isEmpty() && obj is VfsFile) {
                     if (null != Vfs.getCacheOrFile(obj)) {
-                        builder.putNonEmptyString(
+                        putNonEmptyString(
                             VfsExtensions.FILE, getFileUriFor(location).toString()
                         )
                     }
+                }
+                with(CoverartService.get()) {
+                    maybeAddImageUri(
+                        MediaMetadataCompat.METADATA_KEY_ART_URI, coverArtOf(dataId)
+                    )
+                    maybeAddImageUri(
+                        MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, albumArtOf(dataId, obj)
+                    )
+                    maybeAddImageUri(
+                        MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconOf(dataId)
+                    )
                 }
             } catch (e: Exception) {
                 LOG.w(e) { "Failed to get object urls" }
             }
         }
-
-        private fun getLocationIconResource(location: Uri) =
-            Vfs.resolve(Uri.Builder().scheme(location.scheme).build()).icon
     }
 }
 
 private fun MediaMetadataCompat.Builder.putNonEmptyString(key: String, value: String?) = apply {
     if (!TextUtils.isEmpty(value)) {
         putString(key, value)
+    }
+}
+
+private fun MediaMetadataCompat.Builder.maybeAddImageUri(key: String, value: Uri?) = apply {
+    if (value != null) {
+        putString(key, CoverartProviderClient.getUriFor(value).toString())
     }
 }
