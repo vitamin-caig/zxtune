@@ -45,6 +45,9 @@ object VfsExtensions {
     // FileDescriptor
     const val FILE_DESCRIPTOR = "FILE_DESCRIPTOR"
 
+    // String
+    const val COVER_ART_URI = "COVER_ART_URI"
+
     // Separate interface for fast searching
     interface SearchEngine {
         fun interface Visitor {
@@ -63,12 +66,10 @@ val VfsDir.searchEngine
     get() = getExtension(VfsExtensions.SEARCH_ENGINE) as? VfsExtensions.SearchEngine
 
 val VfsDir.comparator
-    @Suppress("UNCHECKED_CAST")
-    get() = getExtension(VfsExtensions.COMPARATOR) as? Comparator<VfsObject>
+    @Suppress("UNCHECKED_CAST") get() = getExtension(VfsExtensions.COMPARATOR) as? Comparator<VfsObject>
 
 val VfsDir.feed
-    @Suppress("UNCHECKED_CAST")
-    get() = getExtension(VfsExtensions.FEED) as? Iterator<VfsFile>
+    @Suppress("UNCHECKED_CAST") get() = getExtension(VfsExtensions.FEED) as? Iterator<VfsFile>
 
 val VfsFile.file
     get() = getExtension(VfsExtensions.FILE) as? File
@@ -85,3 +86,6 @@ val VfsFile.inputStream
 
 val VfsFile.fileDescriptor
     get() = getExtension(VfsExtensions.FILE_DESCRIPTOR) as? FileDescriptor
+
+val VfsObject.coverArtUri
+    get() = getExtension(VfsExtensions.COVER_ART_URI) as? Uri
