@@ -72,6 +72,17 @@ class IdentifierTest {
     }
 
     @Test
+    fun `test pack images`() {
+        testParseImage("vgmrips:/Images", pack = null)
+        testParseImage("vgmrips:/Images/Pak?pack=pak", pack = Pack("pak", "Pak"))
+        testParseImage(
+            "vgmrips:/Images/Pak?pack=pak&location=image%2Flocation", pack = Pack(
+                "pak", "Pak", imageLocation = "image/location"
+            )
+        )
+    }
+
+    @Test
     fun `test errors`() {
         // Scheme validity is checked at another level
         testAnalyze(
@@ -137,4 +148,21 @@ private fun testAnalyze(
     assertEquals("findGroup", group, Identifier.findGroup(url, path))
     assertEquals("findPack", pack, Identifier.findPack(url, path))
     assertEquals("findTrack", track, Identifier.findTrack(url, path))
+}
+
+private fun testParseImage(
+    uri: String,
+    pack: Pack? = null,
+) {
+    testAnalyzeImages(uri, pack = pack)
+    pack?.let {
+        assertEquals("uri", uri, Identifier.forImageOf(it).toString())
+    }
+}
+
+private fun testAnalyzeImages(uri: String, pack: Pack? = null) = Uri.parse(uri).let { url ->
+    val path = url.pathSegments
+    assertEquals("isFromRoot", true, Identifier.isFromRoot(url))
+    assertEquals("findCategory", Identifier.CATEGORY_IMAGES, Identifier.findCategory(path))
+    assertEquals("findPackForImage", pack, Identifier.findPackForImage(url, path))
 }

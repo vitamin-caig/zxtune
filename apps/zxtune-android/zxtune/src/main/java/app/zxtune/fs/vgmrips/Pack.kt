@@ -6,5 +6,7 @@ data class Pack(
     val title: String,
     var songs: Int = 0,
     var score: Int = 0,
-    var ratings: Int = 0
+    var ratings: Int = 0,
+    //unescaped path after /packs/images/large/ and before .png
+    var imageLocation: String? = null,
 )

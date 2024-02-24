@@ -3,7 +3,17 @@ package app.zxtune.fs.vgmrips
 import android.content.Context
 import androidx.annotation.IntDef
 import androidx.annotation.VisibleForTesting
-import androidx.room.*
+import androidx.room.ColumnInfo
+import androidx.room.Dao
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 import app.zxtune.TimeStamp
 import app.zxtune.fs.dbhelpers.Timestamps.DAO
 import app.zxtune.fs.dbhelpers.Utils
@@ -12,10 +22,11 @@ import app.zxtune.fs.vgmrips.Database.Type
 /**
  * Version 1 - initial version from java
  * Version 2 - all fields are not null (track.title, track.duration, track.location in 'tracks' table)
+ * Version 3 - added Pack.coverArtLocation
  */
 
 const val NAME = "vgmrips"
-const val VERSION = 2
+const val VERSION = 3
 
 internal open class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) {
     @IntDef(
@@ -30,7 +41,8 @@ internal open class Database @VisibleForTesting constructor(private val db: Data
     }
 
     constructor(ctx: Context) : this(
-        Room.databaseBuilder(ctx, DatabaseDelegate::class.java, NAME).fallbackToDestructiveMigration().build()
+        Room.databaseBuilder(ctx, DatabaseDelegate::class.java, NAME)
+            .fallbackToDestructiveMigration().build()
     ) {
         Utils.sendStatistics(db.openHelper)
     }
@@ -72,33 +84,23 @@ internal open class Database @VisibleForTesting constructor(private val db: Data
 // Groups are queried by type, so type is the first element of key
 @Entity(primaryKeys = ["type", "id"], tableName = "groups")
 class GroupEntity internal constructor(
-    @Type
-    val type: Int,
-    @Embedded
-    val group: Group
+    @Type val type: Int, @Embedded val group: Group
 )
 
 // Cross-reference entity
 @Entity(primaryKeys = ["id", "pack"], tableName = "group_packs")
 class GroupPacksRef internal constructor(
-    @ColumnInfo(name = "id")
-    val id: String,
-    @ColumnInfo(name = "pack")
-    val packId: String
+    @ColumnInfo(name = "id") val id: String, @ColumnInfo(name = "pack") val packId: String
 )
 
 @Entity(primaryKeys = ["id"], tableName = "packs")
 class PackEntity internal constructor(
-    @Embedded
-    val pack: Pack
+    @Embedded val pack: Pack
 )
 
 @Entity(primaryKeys = ["pack_id", "number"], tableName = "tracks")
 class TrackEntity internal constructor(
-    @ColumnInfo(name = "pack_id")
-    val packId: String,
-    @Embedded
-    val track: Track
+    @ColumnInfo(name = "pack_id") val packId: String, @Embedded val track: Track
 )
 
 object TimeStampConverter {
@@ -118,8 +120,8 @@ abstract class CatalogDao {
     abstract fun insertGroup(entity: GroupEntity)
 
     @Query(
-        "SELECT packs.id, packs.title, packs.songs, packs.score, packs.ratings FROM packs, " +
-                "group_packs WHERE group_packs.id = :groupId AND packs.id = group_packs.pack"
+        "SELECT p.id, p.title, p.songs, p.score, p.ratings, p.imageLocation FROM packs AS p, " +
+                "group_packs WHERE group_packs.id = :groupId AND p.id = group_packs.pack"
     )
     abstract fun queryGroupPacks(groupId: String): Array<Pack>
 

@@ -38,7 +38,7 @@ class RemoteCatalogTest {
     @Test
     fun `test company packs`() {
         val checkpoints = arrayOf( // first
-            makePack("solitaire-nes", "Solitaire", 4, 25, 3)
+            makePack("solitaire-nes", "Solitaire", 4, 25, 3, "NES/Solitaire_(NES)")
         )
         with(PacksChecker()) {
             catalog.companies().queryPacks("odyssey-software", this, this)
@@ -68,13 +68,14 @@ class RemoteCatalogTest {
                 "Street Fighter II: Champion Edition",
                 47,
                 45,
-                13
+                13,
+                "Arcade/Capcom/Street_Fighter_II_-_Champion_Edition_(CP_System)"
             )
         )
         with(PacksChecker()) {
             catalog.composers().queryPacks("yoko-shimomura", this, this)
             check(15, checkpoints)
-            checkProgress(15, 15)
+            checkProgress(17, 17)
         }
     }
 
@@ -98,7 +99,8 @@ class RemoteCatalogTest {
                 "Sound Blaster Series Demo Songs",
                 17,
                 30,
-                4
+                4,
+                "Computers/IBM_PC/Sound_Blaster_Series_Demo_Songs_(IBM_PC_XT_AT)_D1"
             )
         )
         with(PacksChecker()) {
@@ -112,10 +114,8 @@ class RemoteCatalogTest {
     fun `test systems`() {
         val checkpoins = arrayOf( //first
             Group(
-                "nintendo/family-computer", "Family Computer",
-                333
-            ),
-            Group("ascii/msx", "MSX", 89) //last
+                "nintendo/family-computer", "Family Computer", 333
+            ), Group("ascii/msx", "MSX", 89) //last
             //checkpoins.append(182, new System("snk/neo-geo-pocket", "Neo Geo Pocket", 1));
         )
         with(GroupsChecker()) {
@@ -128,18 +128,26 @@ class RemoteCatalogTest {
     fun `test system packs`() {
         val checkpoints = arrayOf( //first
             makePack(
-                "the-ninja-warriors-zx-spectrum-128", "The Ninja Warriors",
-                1, 45, 8
+                "the-ninja-warriors-zx-spectrum-128",
+                "The Ninja Warriors",
+                1,
+                45,
+                8,
+                "Computers/ZX_Spectrum/The_Ninja_Warriors_(ZX_Spectrum_128)"
             ),  //last
             makePack(
-                "altered-beast-zx-spectrum-128", "Altered Beast",
-                5, 15, 4
+                "altered-beast-zx-spectrum-128",
+                "Altered Beast",
+                5,
+                15,
+                4,
+                "Computers/ZX_Spectrum/Altered_Beast_(ZX_Spectrum_128)"
             )
         )
         with(PacksChecker()) {
             catalog.systems().queryPacks("sinclair/zx-spectrum-128", this, this)
-            check(32, checkpoints)
-            checkProgress(32, 32)
+            check(34, checkpoints)
+            checkProgress(34, 34)
         }
     }
 
@@ -163,8 +171,14 @@ class RemoteCatalogTest {
             val pack = catalog.findPack("the-scheme-nec-pc-8801-opna", this)
             assertTrue(
                 matches(
-                    makePack("the-scheme-nec-pc-8801-opna", "The Scheme", 17, 45, 34),
-                    pack
+                    makePack(
+                        "the-scheme-nec-pc-8801-opna",
+                        "The Scheme",
+                        17,
+                        45,
+                        34,
+                        "Computers/NEC/The_Scheme_(NEC_PC-8801,_OPNA)"
+                    ), pack
                 )
             )
             check(17, checkpoints)
@@ -175,20 +189,49 @@ class RemoteCatalogTest {
     fun `test getTrackUris`() = with(
         RemoteCatalog.getRemoteUris(
             Track(
-                123,
-                "Unused",
-                TimeStamp.EMPTY,
-                "track/location/file.gz"
+                123, "Unused", TimeStamp.EMPTY, "track/location/file.gz"
             )
         )
     ) {
         assertEquals(2L, size.toLong())
         assertEquals(
-            "${BuildConfig.CDN_ROOT}/download/vgmrips/track/location/file.gz",
+            "${BuildConfig.CDN_ROOT}/download/vgmrips/track/location/file.gz", get(0).toString()
+        )
+        assertEquals(
+            "https://vgmrips.net/packs/vgm/track/location/file.gz", get(1).toString()
+        )
+    }
+
+    @Test
+    fun `test getImageRemoteUris with platform`() = with(
+        RemoteCatalog.getImageRemoteUris(Pack("unused", "unused").apply {
+            imageLocation = "pic/dir/some_name_(platform)"
+        })
+    ) {
+        assertEquals(2L, size.toLong())
+        assertEquals(
+            "${BuildConfig.CDN_ROOT}/download/vgmrips/pic/dir/some_name_(platform)/some%20name.png",
             get(0).toString()
         )
         assertEquals(
-            "https://vgmrips.net/packs/vgm/track/location/file.gz",
+            "https://vgmrips.net/packs/images/large/pic/dir/some_name_(platform).png",
+            get(1).toString()
+        )
+    }
+
+    @Test
+    fun `test getImageRemoteUris without platform`() = with(
+        RemoteCatalog.getImageRemoteUris(Pack("unused", "unused").apply {
+            imageLocation = "dir/name"
+        })
+    ) {
+        assertEquals(2L, size.toLong())
+        assertEquals(
+            "${BuildConfig.CDN_ROOT}/download/vgmrips/dir/name/name.png",
+            get(0).toString()
+        )
+        assertEquals(
+            "https://vgmrips.net/packs/images/large/dir/name.png",
             get(1).toString()
         )
     }
@@ -272,39 +315,39 @@ private fun <T> matches(expected: T, actual: T) = when (expected) {
 }
 
 // Match only visible in UI attributes
-private fun matches(expected: Group, actual: Group) =
-    if (expected.id == actual.id) {
-        assertEquals(expected.id, expected.title, actual.title)
-        assertTrue(expected.id, actual.packs >= expected.packs)
-        true
-    } else {
-        false
-    }
+private fun matches(expected: Group, actual: Group) = if (expected.id == actual.id) {
+    assertEquals(expected.id, expected.title, actual.title)
+    assertTrue(expected.id, actual.packs >= expected.packs)
+    true
+} else {
+    false
+}
 
-private fun matches(expected: Pack, actual: Pack?) =
-    if (expected.id == actual!!.id) {
-        assertEquals(expected.id, expected.title, actual.title)
-        //assertEquals(expected.id, expected.ratings, actual.ratings);
-        //assertEquals(expected.id, expected.score, actual.score);
-        assertEquals(expected.id, expected.songs.toLong(), actual.songs.toLong())
-        true
-    } else {
-        false
-    }
+private fun matches(expected: Pack, actual: Pack?) = if (expected.id == actual!!.id) {
+    assertEquals(expected.id, expected.title, actual.title)
+    //assertEquals(expected.id, expected.ratings, actual.ratings);
+    //assertEquals(expected.id, expected.score, actual.score);
+    assertEquals(expected.id, expected.songs.toLong(), actual.songs.toLong())
+    assertEquals(expected.id, expected.imageLocation, actual.imageLocation)
+    true
+} else {
+    false
+}
 
-private fun matches(expected: Track, actual: Track) =
-    if (expected.location == actual.location) {
-        assertEquals(expected.location, expected.title, actual.title)
-        assertEquals(expected.location, expected.number, actual.number)
-        assertEquals(expected.location, expected.duration, actual.duration)
-        true
-    } else {
-        false
-    }
+private fun matches(expected: Track, actual: Track) = if (expected.location == actual.location) {
+    assertEquals(expected.location, expected.title, actual.title)
+    assertEquals(expected.location, expected.number, actual.number)
+    assertEquals(expected.location, expected.duration, actual.duration)
+    true
+} else {
+    false
+}
 
-private fun makePack(id: String, title: String, songs: Int, score: Int, ratings: Int) =
-    Pack(id, title).apply {
-        this.songs = songs
-        this.score = score
-        this.ratings = ratings
-    }
+private fun makePack(
+    id: String, title: String, songs: Int, score: Int, ratings: Int, imageLocation: String
+) = Pack(id, title).apply {
+    this.songs = songs
+    this.score = score
+    this.ratings = ratings
+    this.imageLocation = imageLocation
+}

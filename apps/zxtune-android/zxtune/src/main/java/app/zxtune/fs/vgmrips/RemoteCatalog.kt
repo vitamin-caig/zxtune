@@ -51,6 +51,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
             val title = doc.findFirstText("div.row>section>h1") ?: ""
             tryMakePack(id, title)?.apply {
                 updateRating(this, doc)
+                updateImage(this, doc, "/packs/images/large/")
                 parsePackTracks(this, visitor, doc)
             }
         }
@@ -64,6 +65,15 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
                 Cdn.vgmrips(track.location),
                 buildBaseUri("packs/vgm/${track.location}").build()
             )
+
+        @JvmStatic
+        fun getImageRemoteUris(pack: Pack) = requireNotNull(pack.imageLocation).run {
+            arrayOf(
+                substringAfterLast('/').substringBeforeLast("_(").replace('_', ' ').let { stem ->
+                    Cdn.vgmrips("${this}/${stem}.png")
+                }, buildBaseUri("packs/images/large/${this}.png").build()
+            )
+        }
     }
 
     private fun readDoc(uri: Uri): Document = HtmlUtils.parseDoc(http.getInputStream(uri))
@@ -224,6 +234,7 @@ private fun parsePack(el: Element) =
     }?.also { pack ->
         el.findFirst("div.image:has(>a:has(>img))")?.let {
             updateRating(pack, it)
+            updateImage(pack, it, "/packs/images/small/")
         }
     }
 
@@ -256,6 +267,12 @@ private fun updateRating(pack: Pack, el: Element) = el.findFirst("div.stars")?.r
     pack.score = parsePackScore(classNames())
     pack.ratings = nextElementSibling?.run { tryParseIntPrefix(text()) } ?: 0
 }
+
+private fun updateImage(pack: Pack, el: Element, imagePathPart: String) =
+    el.findFirst("div.image>a>img[src*=packs/images/]")?.let { img ->
+        pack.imageLocation = Uri.decode(getSuffix(img.attr("src"), imagePathPart))
+            .removeSuffix(".png").removeSuffix(".PNG")
+    }
 
 private fun parsePackScore(classNames: Iterable<String>) = classNames
     .asSequence()
