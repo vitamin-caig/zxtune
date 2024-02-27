@@ -76,6 +76,7 @@ namespace Formats::Chiptune
             break;
           }
           Binary::DataInputStream payload(Stream.ReadData(payloadSize));
+          // See FLAC/format.h for FLAC_METADATA_TYPE_* enum
           if (type == 0)
           {
             ParseStreamInfo(payload, target);
@@ -83,6 +84,10 @@ namespace Formats::Chiptune
           else if (type == 4)
           {
             Vorbis::ParseComment(payload, target.GetMetaBuilder());
+          }
+          else if (type == 6)
+          {
+            ParsePicture(payload, target.GetMetaBuilder());
           }
           if (isLast)
           {
@@ -110,6 +115,18 @@ namespace Formats::Chiptune
         Require(sampleRate != 0);
         target.SetStreamParameters(sampleRate, channels, bitsPerSample);
         target.SetTotalSamples(totalSamples);
+      }
+
+      static void ParsePicture(Binary::DataInputStream& input, MetaBuilder& target)
+      {
+        input.Skip(4);  // type
+        const auto typeSize = input.Read<be_uint32_t>();
+        input.Skip(typeSize);
+        const auto descriptionSize = input.Read<be_uint32_t>();
+        input.Skip(descriptionSize);
+        input.Skip(4 * 4);  // width, height, depth, colors count
+        const auto dataSize = input.Read<be_uint32_t>();
+        target.SetPicture(input.ReadData(dataSize));
       }
 
       bool ParseFrames(Builder& target)
