@@ -286,7 +286,7 @@ namespace
           // skip existing properties
           name != Module::ATTR_AUTHOR && name != Module::ATTR_TITLE && name != Module::ATTR_COMMENT &&
           // skip redundand properties
-          name != Module::ATTR_STRINGS &&
+          name != Module::ATTR_STRINGS && name != Module::ATTR_PICTURE &&
           // skip all the parameters
           !name.IsPath();
     }

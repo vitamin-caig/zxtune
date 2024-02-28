@@ -18,6 +18,7 @@
 #include "ui/utils.h"
 // common includes
 #include <contract.h>
+#include <debug/log.h>
 #include <error.h>
 #include <make_ptr.h>
 // library includes
@@ -34,6 +35,41 @@
 
 namespace
 {
+  const Debug::Stream Dbg("Playlist::UI::PropertiesDialog");
+
+  class QImageView : public QLabel
+  {
+  public:
+    QImageView(QWidget* parent)
+      : QLabel(parent)
+    {
+      setScaledContents(false);
+      setMinimumSize(200, 200);
+      setAlignment(Qt::AlignCenter);
+    }
+
+    void LoadImage(Binary::View pic)
+    {
+      // TODO: move load/resize/convert to another thread
+      if (!Image.loadFromData(pic.As<uchar>(), pic.Size()))
+      {
+        Dbg("Failed to load image!");
+        return;
+      }
+    }
+
+    void resizeEvent(QResizeEvent*) override
+    {
+      if (!Image.isNull())
+      {
+        setPixmap(Image.scaled(size(), Qt::KeepAspectRatio));
+      }
+    }
+
+  private:
+    QPixmap Image;
+  };
+
   class ItemPropertiesContainer : public Parameters::Container
   {
   public:
@@ -107,8 +143,10 @@ namespace
       Properties = MakePtr<ItemPropertiesContainer>(item.GetAdjustedParameters(), item.GetModuleProperties());
 
       FillProperties(item.GetCapabilities());
-      itemsLayout->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding),
-                           itemsLayout->rowCount(), 0);
+
+      auto* filler = new QImageView(this);
+      itemsLayout->addWidget(filler, itemsLayout->rowCount(), 0, 1, itemsLayout->columnCount());
+      LoadPicture(filler);
 
       Require(connect(buttons, &QDialogButtonBox::clicked, this, &PropertiesDialogImpl::ButtonClicked));
     }
@@ -218,16 +256,44 @@ namespace
       Parameters::StringType value;
       if (Properties->FindValue(name, value))
       {
-        auto* const strings = new QTextBrowser(this);
+        auto* const strings = new QTextEdit(this);
         QFont font;
         font.setFamily(QString::fromLatin1("Courier New"));
         strings->setFont(font);
         strings->setLineWrapMode(QTextEdit::NoWrap);
+        strings->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Maximum);
 
         const int row = itemsLayout->rowCount();
         itemsLayout->addWidget(strings, row, 0, 1, itemsLayout->columnCount());
         strings->setText(ToQString(value));
       }
+    }
+
+    void LoadPicture(QImageView* target)
+    {
+      // TODO: think about another way to avoid copying
+      class PicturesVisitor : public Parameters::Visitor
+      {
+      public:
+        explicit PicturesVisitor(QImageView* target)
+          : Target(target)
+        {}
+        void SetValue(Parameters::Identifier, Parameters::IntType) override {}
+        void SetValue(Parameters::Identifier, StringView) override {}
+        void SetValue(Parameters::Identifier name, Binary::View pic) override
+        {
+          if (name == Module::ATTR_PICTURE)
+          {
+            Target->LoadImage(pic);
+          }
+        }
+
+      private:
+        QImageView* const Target;
+      };
+
+      PicturesVisitor visitor(target);
+      Properties->Process(visitor);
     }
 
   private:

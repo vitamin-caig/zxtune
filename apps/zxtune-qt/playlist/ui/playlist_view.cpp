@@ -31,7 +31,9 @@
 #include <contract.h>
 #include <error.h>
 // library includes
+#include <binary/base64.h>
 #include <debug/log.h>
+#include <module/attributes.h>
 #include <parameters/template.h>
 #include <strings/template.h>
 // boost includes
@@ -40,6 +42,7 @@
 // std includes
 #include <utility>
 // qt includes
+#include <QtCore/QBuffer>
 #include <QtCore/QIdentityProxyModel>
 #include <QtCore/QMimeData>
 #include <QtCore/QUrl>
@@ -119,10 +122,15 @@ namespace
   public:
     explicit TooltipFieldsSourceAdapter(const Parameters::Accessor& props)
       : Parent(props)
+      , Props(props)
     {}
 
     String GetFieldValue(StringView fieldName) const override
     {
+      if (fieldName == Module::ATTR_PICTURE)
+      {
+        return GetPicture();
+      }
       static const Char AMPERSAND[] = {'&', 0};
       static const Char AMPERSAND_ESCAPED[] = {'&', 'a', 'm', 'p', ';', 0};
       static const Char LBRACKET[] = {'<', 0};
@@ -142,6 +150,78 @@ namespace
     }
 
   private:
+    String GetPicture() const
+    {
+      // TODO: think about another way to avoid copying
+      class ImageConvertor : public Parameters::Visitor
+      {
+      public:
+        void SetValue(Parameters::Identifier, Parameters::IntType) override {}
+        void SetValue(Parameters::Identifier, StringView) override {}
+        void SetValue(Parameters::Identifier name, Binary::View pic) override
+        {
+          if (name == Module::ATTR_PICTURE)
+          {
+            SetOriginalImageData(pic);
+          }
+        }
+
+        String CaptureResult()
+        {
+          return std::move(Result);
+        }
+
+      private:
+        void SetOriginalImageData(Binary::View pic)
+        {
+          // TODO: move load/resize/convert to another thread
+          QPixmap image;
+          if (!image.loadFromData(pic.As<uchar>(), pic.Size()))
+          {
+            Dbg("Failed to load image!");
+            return;
+          }
+          const auto originalSize = image.size();
+          image = image.scaled(200, 200, Qt::KeepAspectRatio);
+          QByteArray bytes;
+          {
+            QBuffer buffer(&bytes);
+            buffer.open(QIODevice::WriteOnly);
+            if (!image.save(&buffer, "PNG"))
+            {
+              Dbg("Failed to convert resized image!");
+              return;
+            }
+          }
+          const auto scaledSize = image.size();
+          Dbg("Resized image {}x{} ({} bytes) -> {}x{} ({} bytes)", originalSize.width(), originalSize.height(),
+              pic.Size(), scaledSize.width(), scaledSize.height(), bytes.size());
+          SetImageData({bytes.constData(), static_cast<std::size_t>(bytes.size())});
+        }
+
+        void SetImageData(Binary::View val)
+        {
+          static const char PREFIX[] = R"(<br/><img src="data:image/png;base64,)";
+          static const char SUFFIX[] = R"("/>)";
+          Result.clear();
+          const auto encodedSize = Binary::Base64::CalculateConvertedSize(val.Size());
+          Result.reserve(std::size(PREFIX) + encodedSize + std::size(SUFFIX));
+          Result += PREFIX;
+          const auto* in = val.As<uint8_t>();
+          auto* out = Result.data() + Result.size();
+          Result.resize(Result.size() + encodedSize);
+          Binary::Base64::Encode(in, in + val.Size(), out, out + encodedSize);
+          Result += SUFFIX;
+        }
+
+      private:
+        String Result;
+      };
+      ImageConvertor convertor;
+      Props.Process(convertor);
+      return convertor.CaptureResult();
+    }
+
     static void TrimLongMultiline(String& result, int maxLines)
     {
       static const Char NEWLINE[] = {'\n', 0};
@@ -154,6 +234,9 @@ namespace
         boost::algorithm::replace_range(result, Range(head.begin(), tail.begin()), ELLIPSIS);
       }
     }
+
+  private:
+    const Parameters::Accessor& Props;
   };
 
   class TooltipSource
@@ -178,6 +261,7 @@ namespace
           "<b>Program:</b> [Program]<br/>"
           "[Comment]"
           "<pre>[Strings]</pre>"
+          "[Picture]"
           "</html>");
       return GetTemplate(view);
     }
