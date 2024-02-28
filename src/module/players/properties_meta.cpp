@@ -10,6 +10,7 @@
 
 // local includes
 #include "module/players/properties_meta.h"
+#include "module/attributes.h"
 
 namespace Module
 {
@@ -36,5 +37,14 @@ namespace Module
   void MetaProperties::SetComment(StringView comment)
   {
     Delegate.SetComment(comment);
+  }
+
+  void MetaProperties::SetPicture(Binary::View picture)
+  {
+    if (picture.Size() > PictureSize)
+    {
+      PictureSize = picture.Size();
+      Delegate.SetBinaryProperty(ATTR_PICTURE, picture);
+    }
   }
 }  // namespace Module

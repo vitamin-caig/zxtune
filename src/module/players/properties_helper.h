@@ -27,6 +27,7 @@ namespace Module
 
     // Generic
     void SetNonEmptyProperty(StringView name, StringView value);
+    void SetBinaryProperty(StringView name, Binary::View value);
 
     // Common
     void SetType(StringView type);

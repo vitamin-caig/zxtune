@@ -29,8 +29,10 @@ namespace Module
     void SetAuthor(StringView author) override;
     void SetStrings(const Strings::Array& strings) override;
     void SetComment(StringView comment) override;
+    void SetPicture(Binary::View picture) override;
 
   private:
     PropertiesHelper& Delegate;
+    std::size_t PictureSize = 0;
   };
 }  // namespace Module
