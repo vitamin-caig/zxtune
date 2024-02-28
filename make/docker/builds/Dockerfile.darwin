@@ -91,9 +91,9 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
          "boost.version=${boost}\nqt.version=${qt}\n"\
          "cxx_flags=-mmacos-version-min=10.15\n"\
          "ld_flags=-mmacos-version-min=10.15 \$(addprefix -framework ,GSS IOKit AppKit Security SystemConfiguration Cocoa CoreVideo IOSurface Metal Carbon QuartzCore)\n"\
-         "libraries.qt.system.darwin=qcocoa qmacstyle qtlibpng qtharfbuzz qtpcre2 qtfreetype gssapi_krb5 cups\n"\
+         "libraries.qt.system.darwin=qcocoa qmacstyle qjpeg qtlibpng qtharfbuzz qtpcre2 qtfreetype gssapi_krb5 cups\n"\
          "libraries.qt.darwin=ClipboardSupport PrintSupport AccessibilitySupport GraphicsSupport ThemeSupport FontDatabaseSupport\n"\
-         "qt.plugins=QMacStylePlugin QCocoaIntegrationPlugin" > variables.mak
+         "qt.plugins=QMacStylePlugin QCocoaIntegrationPlugin QJpegPlugin" > variables.mak
 
 WORKDIR /build/zxtune
 COPY entrypoint.sh .

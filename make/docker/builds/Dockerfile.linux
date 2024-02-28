@@ -64,8 +64,8 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
          "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n" \
          "ld_flags=-static-libstdc++\n" \
          "cxx_flags=-fPIC\n" \
-         "qt.plugins=QXcbIntegrationPlugin\n" \
-         "libraries.qt.system.linux=qxcb qtpcre2 qtharfbuzz png16 fontconfig freetype ssl crypto" \
+         "qt.plugins=QXcbIntegrationPlugin QJpegPlugin\n" \
+         "libraries.qt.system.linux=qxcb qtpcre2 qtharfbuzz qjpeg png16 fontconfig freetype ssl crypto" \
            "xcb xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama" \
            "xcb-xkb xkbcommon xkbcommon-x11 X11 X11-xcb\n" \
          "libraries.qt.linux=XcbQpa XkbCommonSupport ThemeSupport DBus EdidSupport FontDatabaseSupport ServiceSupport" > variables.mak

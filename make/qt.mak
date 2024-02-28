@@ -34,7 +34,7 @@ includes.dirs += $(qt.includes)
 else
 qt.dir = $(prebuilt.dir)/qt-$(qt.version.merged)-$(platform)-$(arch)
 includes.dirs += $(qt.dir)/include
-libraries.dirs.$(platform) += $(qt.dir)/lib $(qt.dir)/plugins/platforms $(qt.dir)/plugins/styles
+libraries.dirs.$(platform) += $(qt.dir)/lib $(qt.dir)/plugins/platforms $(qt.dir)/plugins/styles $(qt.dir)/plugins/imageformats
 qt.bin = $(qt.dir)/bin/
 endif
 

@@ -64,8 +64,8 @@ RUN mkdir zxtune && sudo chmod o+w zxtune && cd zxtune && \
     echo "platform=mingw\narch=${arch}\ntools.python=python3\n" \
       "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n"\
       "host=linux\ncompiler=clang\nembed_file_cmd=cat \$(embedded_files) >> \$@\nmakepkg_cmd=(cd \$(1) && zip -9rD \$(CURDIR)/\$(2) .)\npkg_suffix=zip\n" \
-      "qt.plugins=QWindowsIntegrationPlugin QWindowsVistaStylePlugin\n" \
-      "libraries.qt.system.mingw=qwindows qwindowsvistastyle qtfreetype qtlibpng qtpcre2 qtharfbuzz userenv netapi32 version winmm oleaut32 wtsapi32 dwmapi uxtheme iphlpapi secur32 crypt32 bcrypt\n" \
+      "qt.plugins=QWindowsIntegrationPlugin QWindowsVistaStylePlugin QJpegPlugin\n" \
+      "libraries.qt.system.mingw=qwindows qwindowsvistastyle qtfreetype qjpeg qtlibpng qtpcre2 qtharfbuzz userenv netapi32 version winmm oleaut32 wtsapi32 dwmapi uxtheme iphlpapi secur32 crypt32 bcrypt\n" \
       "libraries.qt.mingw=FontDatabaseSupport EventDispatcherSupport ThemeSupport WindowsUIAutomationSupport\n" > variables.mak
 
 WORKDIR /build/zxtune
