@@ -271,29 +271,10 @@ namespace
 
     void LoadPicture(QImageView* target)
     {
-      // TODO: think about another way to avoid copying
-      class PicturesVisitor : public Parameters::Visitor
+      if (const auto pic = Properties->FindData(Module::ATTR_PICTURE))
       {
-      public:
-        explicit PicturesVisitor(QImageView* target)
-          : Target(target)
-        {}
-        void SetValue(Parameters::Identifier, Parameters::IntType) override {}
-        void SetValue(Parameters::Identifier, StringView) override {}
-        void SetValue(Parameters::Identifier name, Binary::View pic) override
-        {
-          if (name == Module::ATTR_PICTURE)
-          {
-            Target->LoadImage(pic);
-          }
-        }
-
-      private:
-        QImageView* const Target;
-      };
-
-      PicturesVisitor visitor(target);
-      Properties->Process(visitor);
+        target->LoadImage(*pic);
+      }
     }
 
   private:

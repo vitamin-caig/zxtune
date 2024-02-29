@@ -152,74 +152,54 @@ namespace
   private:
     String GetPicture() const
     {
-      // TODO: think about another way to avoid copying
-      class ImageConvertor : public Parameters::Visitor
+      if (const auto pic = Props.FindData(Module::ATTR_PICTURE))
       {
-      public:
-        void SetValue(Parameters::Identifier, Parameters::IntType) override {}
-        void SetValue(Parameters::Identifier, StringView) override {}
-        void SetValue(Parameters::Identifier name, Binary::View pic) override
-        {
-          if (name == Module::ATTR_PICTURE)
-          {
-            SetOriginalImageData(pic);
-          }
-        }
+        return CreateThumbnail(*pic);
+      }
+      return "";
+    }
 
-        String CaptureResult()
+    static String CreateThumbnail(Binary::View pic)
+    {
+      // TODO: move load/resize/convert to another thread
+      QPixmap image;
+      if (!image.loadFromData(pic.As<uchar>(), pic.Size()))
+      {
+        Dbg("Failed to load image!");
+        return "";
+      }
+      const auto originalSize = image.size();
+      image = image.scaled(200, 200, Qt::KeepAspectRatio);
+      QByteArray bytes;
+      {
+        QBuffer buffer(&bytes);
+        buffer.open(QIODevice::WriteOnly);
+        if (!image.save(&buffer, "PNG"))
         {
-          return std::move(Result);
+          Dbg("Failed to convert resized image!");
+          return "";
         }
+      }
+      const auto scaledSize = image.size();
+      Dbg("Resized image {}x{} ({} bytes) -> {}x{} ({} bytes)", originalSize.width(), originalSize.height(), pic.Size(),
+          scaledSize.width(), scaledSize.height(), bytes.size());
+      return CreateImageTag({bytes.constData(), static_cast<std::size_t>(bytes.size())});
+    }
 
-      private:
-        void SetOriginalImageData(Binary::View pic)
-        {
-          // TODO: move load/resize/convert to another thread
-          QPixmap image;
-          if (!image.loadFromData(pic.As<uchar>(), pic.Size()))
-          {
-            Dbg("Failed to load image!");
-            return;
-          }
-          const auto originalSize = image.size();
-          image = image.scaled(200, 200, Qt::KeepAspectRatio);
-          QByteArray bytes;
-          {
-            QBuffer buffer(&bytes);
-            buffer.open(QIODevice::WriteOnly);
-            if (!image.save(&buffer, "PNG"))
-            {
-              Dbg("Failed to convert resized image!");
-              return;
-            }
-          }
-          const auto scaledSize = image.size();
-          Dbg("Resized image {}x{} ({} bytes) -> {}x{} ({} bytes)", originalSize.width(), originalSize.height(),
-              pic.Size(), scaledSize.width(), scaledSize.height(), bytes.size());
-          SetImageData({bytes.constData(), static_cast<std::size_t>(bytes.size())});
-        }
-
-        void SetImageData(Binary::View val)
-        {
-          static const char PREFIX[] = R"(<br/><img src="data:image/png;base64,)";
-          static const char SUFFIX[] = R"("/>)";
-          Result.clear();
-          const auto encodedSize = Binary::Base64::CalculateConvertedSize(val.Size());
-          Result.reserve(std::size(PREFIX) + encodedSize + std::size(SUFFIX));
-          Result += PREFIX;
-          const auto* in = val.As<uint8_t>();
-          auto* out = Result.data() + Result.size();
-          Result.resize(Result.size() + encodedSize);
-          Binary::Base64::Encode(in, in + val.Size(), out, out + encodedSize);
-          Result += SUFFIX;
-        }
-
-      private:
-        String Result;
-      };
-      ImageConvertor convertor;
-      Props.Process(convertor);
-      return convertor.CaptureResult();
+    static String CreateImageTag(Binary::View val)
+    {
+      static const char PREFIX[] = R"(<br/><img src="data:image/png;base64,)";
+      static const char SUFFIX[] = R"("/>)";
+      const auto encodedSize = Binary::Base64::CalculateConvertedSize(val.Size());
+      String res;
+      res.reserve(std::size(PREFIX) + encodedSize + std::size(SUFFIX));
+      res += PREFIX;
+      const auto* in = val.As<uint8_t>();
+      auto* out = res.data() + res.size();
+      res.resize(res.size() + encodedSize);
+      Binary::Base64::Encode(in, in + val.Size(), out, out + encodedSize);
+      res += SUFFIX;
+      return res;
     }
 
     static void TrimLongMultiline(String& result, int maxLines)
