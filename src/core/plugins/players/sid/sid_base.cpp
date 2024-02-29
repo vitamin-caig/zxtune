@@ -80,9 +80,9 @@ namespace Module::Sid
     Time::Milliseconds Duration;
   };
 
-  inline const uint8_t* GetData(const Parameters::DataType& dump, const uint8_t* defVal)
+  inline const uint8_t* GetData(const Binary::Data::Ptr& data, const uint8_t* defVal)
   {
-    return dump.empty() ? defVal : dump.data();
+    return !data || !data->Size() ? defVal : static_cast<const uint8_t*>(data->Start());
   }
 
   /*
@@ -148,12 +148,9 @@ namespace Module::Sid
 
     void Init(uint_t samplerate, const Parameters::Accessor& params)
     {
-      Parameters::DataType kernal;
-      Parameters::DataType basic;
-      Parameters::DataType chargen;
-      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::KERNAL, kernal);
-      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::BASIC, basic);
-      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::CHARGEN, chargen);
+      const auto kernal = params.FindData(Parameters::ZXTune::Core::Plugins::SID::KERNAL);
+      const auto basic = params.FindData(Parameters::ZXTune::Core::Plugins::SID::BASIC);
+      const auto chargen = params.FindData(Parameters::ZXTune::Core::Plugins::SID::CHARGEN);
       Player.setRoms(GetData(kernal, GetKernalROM()), GetData(basic, GetBasicROM()), GetData(chargen, GetChargenROM()));
       const uint_t chipsCount = Player.info().maxsids();
       Builder.create(chipsCount);

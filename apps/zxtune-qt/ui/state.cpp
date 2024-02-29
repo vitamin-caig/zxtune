@@ -91,11 +91,6 @@ namespace
       return Delegate->FindValue(Prefix.Append(name), val);
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::DataType& val) const override
-    {
-      return Delegate->FindValue(Prefix.Append(name), val);
-    }
-
     Binary::Data::Ptr FindData(Parameters::Identifier name) const override
     {
       return Delegate->FindData(Prefix.Append(name));
@@ -157,9 +152,7 @@ namespace
   {
     if (const int size = blob.size())
     {
-      const auto* const rawData = safe_ptr_cast<const uint8_t*>(blob.data());
-      const Parameters::DataType data(rawData, rawData + size);
-      options.SetValue(name, data);
+      options.SetValue(name, Binary::View{blob.data(), static_cast<std::size_t>(size)});
     }
     else
     {
@@ -169,10 +162,9 @@ namespace
 
   QByteArray LoadBlob(const Parameters::Accessor& options, StringView name)
   {
-    Binary::Dump val;
-    if (options.FindValue(name, val) && !val.empty())
+    if (const auto data = options.FindData(name))
     {
-      return {safe_ptr_cast<const char*>(val.data()), static_cast<int>(val.size())};
+      return {static_cast<const char*>(data->Start()), static_cast<int>(data->Size())};
     }
     return {};
   }

@@ -25,4 +25,12 @@ namespace Parameters
       dst.SetValue(name, val);
     }
   }
+
+  inline void CopyExistingData(const Accessor& src, Visitor& dst, StringView name)
+  {
+    if (const auto val = src.FindData(name))
+    {
+      dst.SetValue(name, *val);
+    }
+  }
 }  // namespace Parameters

@@ -11,7 +11,6 @@
 #pragma once
 
 // library includes
-#include <binary/data.h>
 #include <parameters/identifier.h>
 #include <parameters/types.h>
 // std includes
@@ -36,8 +35,6 @@ namespace Parameters
     virtual bool FindValue(Identifier name, IntType& val) const = 0;
     //! Accessing string parameters
     virtual bool FindValue(Identifier name, StringType& val) const = 0;
-    //! Accessing data parameters
-    virtual bool FindValue(Identifier name, DataType& val) const = 0;
 
     //! Captures snapshot of currently stored data
     virtual Binary::Data::Ptr FindData(Identifier name) const = 0;

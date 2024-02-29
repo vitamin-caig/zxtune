@@ -47,11 +47,6 @@ namespace Module
       return false;
     }
 
-    bool FindValue(Parameters::Identifier /*name*/, Parameters::DataType& /*val*/) const override
-    {
-      return false;
-    }
-
     Binary::Data::Ptr FindData(Parameters::Identifier /*name*/) const override
     {
       return {};
@@ -110,11 +105,6 @@ namespace Module
         val = Id->Full();
         return true;
       }
-      return false;
-    }
-
-    bool FindValue(Parameters::Identifier /*name*/, Parameters::DataType& /*val*/) const override
-    {
       return false;
     }
 

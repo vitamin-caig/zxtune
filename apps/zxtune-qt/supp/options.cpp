@@ -82,23 +82,6 @@ namespace
       return false;
     }
 
-    bool FindValue(Identifier name, DataType& val) const override
-    {
-      const Value value(Storage, name);
-      if (!value.IsValid())
-      {
-        return false;
-      }
-      const QVariant& var = value.Get();
-      if (var.type() == QVariant::ByteArray)
-      {
-        const QByteArray& arr = var.toByteArray();
-        val.assign(arr.data(), arr.data() + arr.size());
-        return true;
-      }
-      return false;
-    }
-
     Binary::Data::Ptr FindData(Identifier name) const override
     {
       const Value value(Storage, name);
@@ -282,24 +265,6 @@ namespace
       return false;
     }
 
-    bool FindValue(Identifier name, DataType& val) const override
-    {
-      if (Temporary->FindValue(name, val))
-      {
-        return true;
-      }
-      else if (Removed.Has(name))
-      {
-        return false;
-      }
-      else if (Persistent->FindValue(name, val))
-      {
-        Temporary->SetValue(name, val);
-        return true;
-      }
-      return false;
-    }
-
     Binary::Data::Ptr FindData(Identifier name) const override
     {
       if (auto res = Temporary->FindData(name))
@@ -441,7 +406,7 @@ namespace
 
     void SetValue(Identifier name, Binary::View /*val*/) override
     {
-      CopyExistingValue<DataType>(*Stored, *Changed, name);
+      CopyExistingData(*Stored, *Changed, name);
     }
 
     void RemoveValue(Identifier /*name*/) override {}
@@ -470,11 +435,6 @@ namespace
     }
 
     bool FindValue(Identifier name, StringType& val) const override
-    {
-      return Delegate->FindValue(name, val);
-    }
-
-    bool FindValue(Identifier name, DataType& val) const override
     {
       return Delegate->FindValue(name, val);
     }

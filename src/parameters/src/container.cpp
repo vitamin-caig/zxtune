@@ -58,18 +58,6 @@ namespace Parameters
       return false;
     }
 
-    bool FindValue(Identifier name, DataType& val) const override
-    {
-      if (const auto* ptr = Datas.Find(name))
-      {
-        const Binary::View view(**ptr);
-        const auto* start = view.As<uint8_t>();
-        val.assign(start, start + view.Size());
-        return true;
-      }
-      return false;
-    }
-
     Binary::Data::Ptr FindData(Identifier name) const override
     {
       if (const auto* ptr = Datas.Find(name))
@@ -240,11 +228,6 @@ namespace Parameters
     }
 
     bool FindValue(Identifier name, StringType& val) const override
-    {
-      return AccessDelegate->FindValue(name, val);
-    }
-
-    bool FindValue(Identifier name, DataType& val) const override
     {
       return AccessDelegate->FindValue(name, val);
     }

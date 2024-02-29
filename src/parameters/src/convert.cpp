@@ -9,6 +9,7 @@
  **/
 
 // library includes
+#include <binary/data_builder.h>
 #include <parameters/convert.h>
 #include <strings/conversion.h>
 // std includes
@@ -19,8 +20,6 @@
 namespace
 {
   using namespace Parameters;
-
-  static_assert(1 == sizeof(DataType::value_type), "Invalid DataType::value_type");
 
   template<class It>
   inline bool DoTest(const It it, const It lim, int (*fun)(int))
@@ -40,16 +39,18 @@ namespace
     return val >= 'A' ? val - 'A' + 10 : val - '0';
   }
 
-  inline void DataFromString(StringView val, DataType& res)
+  inline Binary::Data::Ptr DataFromString(StringView val)
   {
-    res.resize((val.size() - 1) / 2);
+    const auto size = (val.size() - 1) / 2;
+    Binary::DataBuilder builder(size);
     const auto* src = val.begin();
-    for (auto& re : res)
+    for (std::size_t i = 0; i < size; ++i)
     {
       const auto highNibble = FromHex(*++src);
       const auto lowNibble = FromHex(*++src);
-      re = highNibble * 16 | lowNibble;
+      builder.AddByte(highNibble * 16 | lowNibble);
     }
+    return builder.CaptureResult();
   }
 
   inline Char ToHex(uint_t val)
@@ -151,13 +152,12 @@ namespace Parameters
     return false;
   }
 
-  bool ConvertFromString(StringView str, DataType& res)
+  Binary::Data::Ptr ConvertDataFromString(StringView str)
   {
     if (IsData(str))
     {
-      DataFromString(str, res);
-      return true;
+      return DataFromString(str);
     }
-    return false;
+    return {};
   }
 }  // namespace Parameters

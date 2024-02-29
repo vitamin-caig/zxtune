@@ -8,7 +8,9 @@
  *
  **/
 
+#include <binary/container_factories.h>
 #include <parameters/container.h>
+#include <parameters/convert.h>
 #include <parameters/types.h>
 
 #include <iostream>
@@ -126,15 +128,24 @@ namespace
     void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       Names.emplace_back(name.AsString());
-      const auto* raw = val.As<uint8_t>();
-      Datas.emplace_back(raw, raw + val.Size());
+      Datas.emplace_back(Binary::CreateContainer(val));
     }
 
     std::vector<String> Names;
     std::vector<Parameters::IntType> Integers;
     std::vector<Parameters::StringType> Strings;
-    std::vector<Parameters::DataType> Datas;
+    std::vector<Binary::Data::Ptr> Datas;
   };
+
+  void TestFind(const Parameters::Accessor& src, StringView name, const Binary::Dump* ref)
+  {
+    const auto out = src.FindData(name);
+    Test("find", !!out, !!ref);
+    if (ref)
+    {
+      Test("value", Parameters::ConvertToString(*out), Parameters::ConvertToString(*ref));
+    }
+  }
 
   template<class T>
   void TestFind(const Parameters::Accessor& src, StringView name, const T* ref)
@@ -169,8 +180,8 @@ namespace
     const Parameters::StringType str3 = "c";
     const Parameters::StringType str4 = "d";
     const Parameters::StringType* noString = nullptr;
-    const Parameters::DataType data = {};
-    const Parameters::DataType* noData = nullptr;
+    const Binary::Dump data = {};
+    const Binary::Dump* noData = nullptr;
 
     std::cout << "3 inseters" << std::endl;
     cont->SetValue("int", int1);

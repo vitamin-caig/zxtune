@@ -207,15 +207,15 @@ namespace Module::AYM
       }
       else
       {
-        Parameters::DataType newData;
+        const auto newData = Params->FindData(Parameters::ZXTune::Core::AYM::TABLE);
         // frequency table is mandatory!!!
-        Require(Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newData));
+        Require(!!newData);
         // as dump
-        if (newData.size() != table.size() * sizeof(table.front()))
+        if (newData->Size() != table.size() * sizeof(table.front()))
         {
-          throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table size ({})."), newData.size());
+          throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table size ({})."), newData->Size());
         }
-        std::memcpy(table.data(), newData.data(), newData.size());
+        std::memcpy(table.data(), newData->Start(), newData->Size());
       }
     }
 

@@ -124,11 +124,6 @@ namespace Module::TurboSound
       return res1 || res2;
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::DataType& val) const override
-    {
-      return First->FindValue(name, val) || Second->FindValue(name, val);
-    }
-
     Binary::Data::Ptr FindData(Parameters::Identifier name) const override
     {
       if (auto first = First->FindData(name))

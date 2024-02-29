@@ -13,7 +13,7 @@
 // common includes
 #include <types.h>
 // library includes
-#include <binary/dump.h>
+#include <binary/data.h>
 #include <binary/view.h>
 
 //! @brief Namespace is used to keep parameters-working related types and functions
@@ -26,8 +26,6 @@ namespace Parameters
   using IntType = int64_t;
   //! @brief String parameters type
   using StringType = String;
-  //! @brief Data parameters type
-  using DataType = Binary::Dump;
   //@}
 
   //@{

@@ -84,11 +84,6 @@ namespace Sound
       return Params->FindValue(name, val);
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::DataType& val) const override
-    {
-      return Params->FindValue(name, val);
-    }
-
     Binary::Data::Ptr FindData(Parameters::Identifier name) const override
     {
       return Params->FindData(name);

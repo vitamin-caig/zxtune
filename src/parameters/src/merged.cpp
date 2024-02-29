@@ -83,11 +83,6 @@ namespace Parameters
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
-    bool FindValue(Identifier name, DataType& val) const override
-    {
-      return First->FindValue(name, val) || Second->FindValue(name, val);
-    }
-
     Binary::Data::Ptr FindData(Identifier name) const override
     {
       if (auto first = First->FindData(name))
@@ -129,11 +124,6 @@ namespace Parameters
     }
 
     bool FindValue(Identifier name, StringType& val) const override
-    {
-      return First->FindValue(name, val) || Second->FindValue(name, val) || Third->FindValue(name, val);
-    }
-
-    bool FindValue(Identifier name, DataType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val) || Third->FindValue(name, val);
     }

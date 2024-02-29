@@ -77,16 +77,15 @@ namespace Module::MTC
     void SetProperty(StringView name, StringView value) override
     {
       Parameters::IntType asInt = 0;
-      Parameters::DataType asData;
       Parameters::StringType asString;
       auto& out = GetCurrentProperties();
       if (Parameters::ConvertFromString(value, asInt))
       {
         out.SetValue(name, asInt);
       }
-      else if (Parameters::ConvertFromString(value, asData))
+      else if (const auto asData = Parameters::ConvertDataFromString(value))
       {
-        out.SetValue(name, asData);
+        out.SetValue(name, *asData);
       }
       else if (Parameters::ConvertFromString(value, asString))
       {

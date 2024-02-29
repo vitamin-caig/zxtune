@@ -44,15 +44,14 @@ namespace
   void SetValue(Visitor& visitor, StringView name, StringView val)
   {
     IntType asInt;
-    DataType asData;
     StringType asString;
     if (ConvertFromString(val, asInt))
     {
       visitor.SetValue(name, asInt);
     }
-    else if (ConvertFromString(val, asData))
+    else if (const auto asData = ConvertDataFromString(val))
     {
-      visitor.SetValue(name, asData);
+      visitor.SetValue(name, *asData);
     }
     else if (ConvertFromString(val, asString))
     {

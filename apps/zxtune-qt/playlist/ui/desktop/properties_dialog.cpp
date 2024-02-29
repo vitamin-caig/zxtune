@@ -93,11 +93,6 @@ namespace
       return Merged->FindValue(name, val);
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::DataType& val) const override
-    {
-      return Merged->FindValue(name, val);
-    }
-
     Binary::Data::Ptr FindData(Parameters::Identifier name) const override
     {
       return Merged->FindData(name);

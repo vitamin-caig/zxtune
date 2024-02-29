@@ -23,5 +23,5 @@ namespace Parameters
   //! @brief Converting parameter value from string
   bool ConvertFromString(StringView str, IntType& res);
   bool ConvertFromString(StringView str, StringType& res);
-  bool ConvertFromString(StringView str, DataType& res);
+  Binary::Data::Ptr ConvertDataFromString(StringView str);
 }  // namespace Parameters
