@@ -1,5 +1,7 @@
 package app.zxtune.core.jni;
 
+import androidx.annotation.Nullable;
+
 import app.zxtune.core.PropertiesContainer;
 
 final class JniOptions implements PropertiesContainer {
@@ -18,6 +20,12 @@ final class JniOptions implements PropertiesContainer {
 
   @Override
   public native String getProperty(String name, String defVal);
+
+  @Override
+  @Nullable
+  public byte[] getProperty(String name, @Nullable byte[] defVal) {
+    return defVal;
+  }
 
   @SuppressWarnings("SameReturnValue")
   static PropertiesContainer instance() {

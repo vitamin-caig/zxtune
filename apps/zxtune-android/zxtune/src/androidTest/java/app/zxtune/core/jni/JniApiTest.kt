@@ -4,8 +4,11 @@ import android.content.res.Resources
 import androidx.annotation.RawRes
 import androidx.test.platform.app.InstrumentationRegistry
 import app.zxtune.core.Module
+import app.zxtune.core.ModuleAttributes
 import app.zxtune.io.Io
 import app.zxtune.test.R
+import app.zxtune.use
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.argThat
@@ -37,5 +40,18 @@ class JniApiTest {
         verify(cb).onPicture(eq("in/folder.png"), argThat { size == 5873 })
         verify(cb).onPicture(eq("simple.jpg"), argThat { size == 46835 })
         verifyNoMoreInteractions(cb)
+    }
+
+    @Test
+    fun testPictureInModules() {
+        checkHasPicture(api.loadModule(readFile(R.raw.coverart_ogg), ""), 5873)
+        checkHasPicture(api.loadModule(readFile(R.raw.coverart_mp3), ""), 5873)
+        checkHasPicture(api.loadModule(readFile(R.raw.coverart_flac), ""), 46835)
+    }
+
+    private fun checkHasPicture(module: Module, size: Int) = module.use {
+        requireNotNull(module.getProperty(ModuleAttributes.PICTURE, null)).run {
+            Assert.assertEquals(size, size)
+        }
     }
 }

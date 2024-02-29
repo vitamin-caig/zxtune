@@ -1,5 +1,7 @@
 package app.zxtune.core.jni;
 
+import androidx.annotation.Nullable;
+
 import java.lang.annotation.Native;
 import java.nio.ByteBuffer;
 
@@ -39,6 +41,10 @@ final class JniModule implements Module {
 
   @Override
   public native String getProperty(String name, String defVal);
+
+  @Override
+  @Nullable
+  public native byte[] getProperty(String name, @Nullable byte[] defVal);
 
   @Override
   public native String[] getAdditionalFiles();

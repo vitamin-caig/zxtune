@@ -309,7 +309,7 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_la
                                                                                              jstring propName,
                                                                                              jlong defVal)
 {
-  return Jni::Call(env, [=]() {
+  return Jni::Call(env, [=] {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
     const auto module = Module::Storage::Instance().Get(moduleHandle);
     const auto& params = module->GetModuleProperties();
@@ -321,7 +321,21 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_la
 JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2Ljava_lang_String_2(
     JNIEnv* env, jobject self, jstring propName, jstring defVal)
 {
-  return Jni::Call(env, [=]() {
+  return Jni::Call(env, [=] {
+    const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
+    const auto module = Module::Storage::Instance().Get(moduleHandle);
+    const auto& params = module->GetModuleProperties();
+    const Jni::PropertiesReadHelper props(env, *params);
+    return props.Get(propName, defVal);
+  });
+}
+
+JNIEXPORT jbyteArray JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2_3B(JNIEnv* env,
+                                                                                                    jobject self,
+                                                                                                    jstring propName,
+                                                                                                    jbyteArray defVal)
+{
+  return Jni::Call(env, [=] {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
     const auto module = Module::Storage::Instance().Get(moduleHandle);
     const auto& params = module->GetModuleProperties();
