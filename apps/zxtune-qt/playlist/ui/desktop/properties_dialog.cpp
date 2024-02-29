@@ -98,6 +98,11 @@ namespace
       return Merged->FindValue(name, val);
     }
 
+    Binary::Data::Ptr FindData(Parameters::Identifier name) const override
+    {
+      return Merged->FindData(name);
+    }
+
     void Process(Parameters::Visitor& visitor) const override
     {
       return Merged->Process(visitor);

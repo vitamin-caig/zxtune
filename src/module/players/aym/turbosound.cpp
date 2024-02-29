@@ -129,6 +129,15 @@ namespace Module::TurboSound
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
+    Binary::Data::Ptr FindData(Parameters::Identifier name) const override
+    {
+      if (auto first = First->FindData(name))
+      {
+        return first;
+      }
+      return Second->FindData(name);
+    }
+
     void Process(Parameters::Visitor& visitor) const override
     {
       MergedStringsVisitor mergedVisitor(visitor);

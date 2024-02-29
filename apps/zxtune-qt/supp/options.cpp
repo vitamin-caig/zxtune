@@ -16,6 +16,7 @@
 #include <make_ptr.h>
 #include <pointers.h>
 // library includes
+#include <binary/container_factories.h>
 #include <parameters/convert.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/src/names_set.h>
@@ -96,6 +97,22 @@ namespace
         return true;
       }
       return false;
+    }
+
+    Binary::Data::Ptr FindData(Identifier name) const override
+    {
+      const Value value(Storage, name);
+      if (!value.IsValid())
+      {
+        return {};
+      }
+      const QVariant& var = value.Get();
+      if (var.type() == QVariant::ByteArray)
+      {
+        const QByteArray& arr = var.toByteArray();
+        return Binary::CreateContainer(Binary::View(arr.data(), arr.size()));
+      }
+      return {};
     }
 
     void Process(Visitor& /*visitor*/) const override
@@ -283,6 +300,24 @@ namespace
       return false;
     }
 
+    Binary::Data::Ptr FindData(Identifier name) const override
+    {
+      if (auto res = Temporary->FindData(name))
+      {
+        return res;
+      }
+      else if (Removed.Has(name))
+      {
+        return {};
+      }
+      auto res = Persistent->FindData(name);
+      if (res)
+      {
+        Temporary->SetValue(name, *res);
+      }
+      return res;
+    }
+
     void Process(Visitor& visitor) const override
     {
       Persistent->Process(visitor);
@@ -442,6 +477,11 @@ namespace
     bool FindValue(Identifier name, DataType& val) const override
     {
       return Delegate->FindValue(name, val);
+    }
+
+    Binary::Data::Ptr FindData(Identifier name) const override
+    {
+      return Delegate->FindData(name);
     }
 
     void Process(Visitor& visitor) const override

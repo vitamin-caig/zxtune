@@ -88,6 +88,15 @@ namespace Parameters
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
+    Binary::Data::Ptr FindData(Identifier name) const override
+    {
+      if (auto first = First->FindData(name))
+      {
+        return first;
+      }
+      return Second->FindData(name);
+    }
+
     void Process(Visitor& visitor) const override
     {
       MergedVisitor mergedVisitor(visitor);
@@ -127,6 +136,19 @@ namespace Parameters
     bool FindValue(Identifier name, DataType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val) || Third->FindValue(name, val);
+    }
+
+    Binary::Data::Ptr FindData(Identifier name) const override
+    {
+      if (auto first = First->FindData(name))
+      {
+        return first;
+      }
+      if (auto second = Second->FindData(name))
+      {
+        return second;
+      }
+      return Third->FindData(name);
     }
 
     void Process(Visitor& visitor) const override

@@ -195,78 +195,78 @@
 <context>
     <name>Playlist::UI::PropertiesDialog</name>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="168"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="173"/>
         <source>Title</source>
         <translation>Название</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="169"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="174"/>
         <source>Author</source>
         <translation>Автор</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="170"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="175"/>
         <source>Comment</source>
         <translation>Комментарий</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="173"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="178"/>
         <source>Off</source>
         <translation>Выкл</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="173"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="178"/>
         <source>On</source>
         <translation>Вкл</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="190"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="195"/>
         <source>Samples frequency</source>
         <translation>Частота семплов, Гц</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="199"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="204"/>
         <source>Chip type</source>
         <translation>Тип микросхемы</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="206"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="211"/>
         <source>Mono</source>
         <translation>Моно</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="207"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="212"/>
         <source>Layout</source>
         <translation>Раскладка каналов</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="187"/>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="215"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="192"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="220"/>
         <source>Interpolation</source>
         <translation>Интерполяция</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="182"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="187"/>
         <source>Clockrate, Hz</source>
         <translation>Тактовая частота, Гц</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="213"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="218"/>
         <source>None</source>
         <translation>Нет</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="213"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="218"/>
         <source>Performance</source>
         <translation>Скорость</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="214"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="219"/>
         <source>Quality</source>
         <translation>Качество</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="245"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="250"/>
         <source>Reset value</source>
         <translation>Сбросить значение</translation>
     </message>

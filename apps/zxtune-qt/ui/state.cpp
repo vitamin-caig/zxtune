@@ -96,6 +96,11 @@ namespace
       return Delegate->FindValue(Prefix.Append(name), val);
     }
 
+    Binary::Data::Ptr FindData(Parameters::Identifier name) const override
+    {
+      return Delegate->FindData(Prefix.Append(name));
+    }
+
     void Process(Parameters::Visitor& visitor) const override
     {
       NamespacedVisitor namedVisitor(Prefix, visitor);

@@ -52,6 +52,11 @@ namespace Module
       return false;
     }
 
+    Binary::Data::Ptr FindData(Parameters::Identifier /*name*/) const override
+    {
+      return {};
+    }
+
     void Process(Parameters::Visitor& visitor) const override
     {
       visitor.SetValue(ATTR_FULLPATH, Uri);
@@ -111,6 +116,11 @@ namespace Module
     bool FindValue(Parameters::Identifier /*name*/, Parameters::DataType& /*val*/) const override
     {
       return false;
+    }
+
+    Binary::Data::Ptr FindData(Parameters::Identifier /*name*/) const override
+    {
+      return {};
     }
 
     void Process(Parameters::Visitor& visitor) const override
