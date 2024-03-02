@@ -39,6 +39,11 @@ class IdentifierTest {
             date = 2013,
             track = Track(123, "track.pt3", "", null, 2013)
         )
+        testParse(
+            "zxtunes:/Images/Fivth?author=78",
+            category = Identifier.CATEGORY_IMAGES,
+            author = Author(78, "Fivth")
+        )
     }
 
     @Test
@@ -85,9 +90,11 @@ private fun testParse(
     )
     var builder = when {
         author != null && date != null && track == null -> Identifier.forAuthor(author, date)
-        author != null -> Identifier.forAuthor(author)
         category != null -> Identifier.forCategory(category)
         else -> Identifier.forRoot()
+    }
+    if (author != null && (date == null || track != null)) {
+        builder = Identifier.addAuthor(builder, author)
     }
     if (track != null) {
         builder = Identifier.forTrack(builder, track)

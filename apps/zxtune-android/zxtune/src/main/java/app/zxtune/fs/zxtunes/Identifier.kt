@@ -6,6 +6,7 @@
 package app.zxtune.fs.zxtunes
 
 import android.net.Uri
+import androidx.annotation.VisibleForTesting
 import androidx.core.text.isDigitsOnly
 
 /**
@@ -18,6 +19,7 @@ import androidx.core.text.isDigitsOnly
  * 4) zxtune:/${authors_folder}/${author_name}/${date}?author=${author_id}
  * 5) zxtune:/${authors_folder}/${author_name}/${Filename}?author=${author_id}&track=${track_id}
  * 6) zxtune:/${authors_folder}/${author_name}/${date}/${Filename}?author=${author_id}&track=${track_id}
+ * 7) zxtune:/Images/${entity_name}?author=${author_id}
  *
  *
  * means
@@ -29,11 +31,13 @@ import androidx.core.text.isDigitsOnly
  * 4) author's modules by date:
  * 5) author's module without date:
  * 6) author's module with date
- *
+ * 7) author's photo
  *
  * resolving executed sequentally in despite of explicit parameters. E.g.
  * author=${author_id} parameter is not analyzed for cases 1 and 2,
  * track=${track_id} parameter is not analyzed for cases 1, 2, 3 and 4
+ *
+ * TODO: rework for better hierarchy
  */
 object Identifier {
     private const val SCHEME = "zxtunes"
@@ -45,6 +49,7 @@ object Identifier {
     private const val PARAM_AUTHOR_ID = "author"
     private const val PARAM_TRACK_ID = "track"
     const val CATEGORY_AUTHORS = "Authors"
+    const val CATEGORY_IMAGES = "Images"
 
     // Root
     @JvmStatic
@@ -62,15 +67,16 @@ object Identifier {
 
     // Authors
     @JvmStatic
-    fun forAuthor(author: Author): Uri.Builder = forCategory(CATEGORY_AUTHORS)
-        .appendPath(author.nickname)
-        .appendQueryParameter(PARAM_AUTHOR_ID, author.id.toString())
+    fun forAuthor(author: Author): Uri.Builder = addAuthor(forCategory(CATEGORY_AUTHORS), author)
+
+    @VisibleForTesting
+    fun addAuthor(parent: Uri.Builder, author: Author): Uri.Builder =
+        parent.appendPath(author.nickname)
+            .appendQueryParameter(PARAM_AUTHOR_ID, author.id.toString())
 
     @JvmStatic
-    fun forAuthor(author: Author, date: Int): Uri.Builder = forCategory(CATEGORY_AUTHORS)
-        .appendPath(author.nickname)
-        .appendPath(date.toString())
-        .appendQueryParameter(PARAM_AUTHOR_ID, author.id.toString())
+    fun forAuthor(author: Author, date: Int): Uri.Builder =
+        forAuthor(author).appendPath(date.toString())
 
     @JvmStatic
     fun findAuthor(uri: Uri, path: List<String>) = path.getOrNull(POS_AUTHOR_NICK)?.let { nick ->
@@ -84,6 +90,9 @@ object Identifier {
         path.getOrNull(POS_AUTHOR_DATE)?.takeIf { isDate(it) }?.toInt()
 
     private fun isDate(str: String) = str.length == 4 && str.isDigitsOnly()
+
+    @JvmStatic
+    fun forPhotoOf(author: Author): Uri = addAuthor(forCategory(CATEGORY_IMAGES), author).build()
 
     // Tracks
     @JvmStatic

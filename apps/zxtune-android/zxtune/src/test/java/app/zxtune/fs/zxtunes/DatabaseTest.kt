@@ -91,6 +91,6 @@ class DatabaseTest {
     private fun addTrack(id: Int) = makeTrack(id).also(underTest::addTrack)
 }
 
-private fun makeAuthor(id: Int) = Author(id, "author$id")
+private fun makeAuthor(id: Int) = Author(id, "author$id", hasPhoto = 0 == id % 2)
 private fun makeTrack(id: Int) = Track(id, "track$id", duration = 0, date = 0)
 

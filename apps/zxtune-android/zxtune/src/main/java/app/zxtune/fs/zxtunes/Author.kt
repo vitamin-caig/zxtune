@@ -5,4 +5,9 @@
  */
 package app.zxtune.fs.zxtunes
 
-data class Author(val id: Int, val nickname: String, val name: String = "")
+data class Author(
+    val id: Int,
+    val nickname: String,
+    val name: String = "",
+    val hasPhoto: Boolean? = null
+)

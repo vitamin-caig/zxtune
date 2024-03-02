@@ -25,6 +25,20 @@ class RemoteCatalog internal constructor(private val http: MultisourceHttpProvid
         performQuery(Uris.forAllAuthors(), root)
     }
 
+    override fun queryAuthor(id: Int): Author? {
+        LOG.d { "queryAuthor(id=${id})" }
+        val visitor = object : Catalog.AuthorsVisitor {
+            var result: Author? = null
+            override fun accept(obj: Author) {
+                require(result == null)
+                result = obj
+            }
+        }
+        val root = createAuthorsParserRoot(visitor)
+        performQuery(Uris.forAuthor(id), root)
+        return visitor.result
+    }
+
     override fun queryAuthorTracks(author: Author, visitor: Catalog.TracksVisitor) {
         LOG.d { "queryAuthorTracks(author=${author.id})" }
         queryTracks(visitor, Uris.forTracks(author))
@@ -48,6 +62,9 @@ class RemoteCatalog internal constructor(private val http: MultisourceHttpProvid
     companion object {
         @JvmStatic
         fun getTrackUris(id: Int) = arrayOf(Uris.forDownload(id))
+
+        @JvmStatic
+        fun getImageUris(id: Int) = arrayOf(Uris.forPhoto(id))
     }
 }
 
@@ -63,6 +80,8 @@ private class Uris {
 
     fun forDownloads(): Uri = delegate.appendPath("downloads.php").build()
 
+    fun forPhoto(id: Int): Uri = delegate.appendPath("photo").appendEncodedPath("${id}.jpg").build()
+
     fun scope(scope: String) = apply {
         delegate.appendQueryParameter("scope", scope)
     }
@@ -76,14 +95,19 @@ private class Uris {
     }
 
     companion object {
-        fun forAllAuthors() =
-            Uris().scope("authors").fields("nickname,name,tracks").forApi()
+        private fun forAuthors() = Uris().scope("authors").fields("nickname,name,tracks,photo")
+
+        fun forAllAuthors() = forAuthors().forApi()
+
+        fun forAuthor(id: Int) = forAuthors().entity("id", id).forApi()
 
         fun forTracks(author: Author) =
             Uris().scope("tracks").fields("filename,title,duration,date")
                 .entity("author_id", author.id).forApi()
 
         fun forDownload(id: Int) = Uris().entity("id", id).forDownloads()
+
+        fun forPhoto(id: Int) = Uris().forPhoto(id)
     }
 }
 
@@ -92,6 +116,7 @@ private class AuthorBuilder {
     private var nickname: String? = null
     private var name = ""
     private var tracks: Int = 0
+    private var hasPhoto = false
 
     init {
         reset()
@@ -113,15 +138,21 @@ private class AuthorBuilder {
         tracks = tryGetInteger(value) ?: 0
     }
 
-    fun captureResult() = ifNotNulls(id, nickname, name.takeIf { tracks > 0 }, ::Author).also {
-        reset()
+    fun setHasPhoto(value: String?) {
+        hasPhoto = 1 == tryGetInteger(value)
     }
+
+    fun captureResult() =
+        ifNotNulls(id, nickname, name.takeIf { tracks > 0 }, hasPhoto, ::Author).also {
+            reset()
+        }
 
     private fun reset() {
         id = null
         nickname = null
         tracks = 0
         name = ""
+        hasPhoto = false
     }
 }
 
@@ -191,6 +222,7 @@ private fun createAuthorsParserRoot(visitor: Catalog.AuthorsVisitor) = createRoo
             getChild("nickname").setEndTextElementListener(builder::setNickname)
             getChild("name").setEndTextElementListener(builder::setName)
             getChild("tracks").setEndTextElementListener(builder::setTracks)
+            getChild("photo").setEndTextElementListener(builder::setHasPhoto)
         }
     }
 }
