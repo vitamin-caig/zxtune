@@ -1,5 +1,5 @@
 package app.zxtune.core
 
 interface ModuleDetectCallback {
-  fun onModule(subpath: String, obj: Module)
+    fun onModule(id: Identifier, obj: Module)
 }

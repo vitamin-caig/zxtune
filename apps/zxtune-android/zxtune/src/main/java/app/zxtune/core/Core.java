@@ -80,7 +80,8 @@ public class Core {
 
   private static class DetectCallbackAdapter implements DetectCallback {
 
-    private final VfsFile location;
+    private final VfsFile source;
+    private final Uri location;
     private final ModuleDetectCallback delegate;
     @Nullable
     private final ProgressCallback progress;
@@ -88,9 +89,10 @@ public class Core {
     private Resolver resolver;
     private int modulesCount = 0;
 
-    DetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate,
+    DetectCallbackAdapter(VfsFile source, ModuleDetectCallback delegate,
                           @Nullable ProgressCallback progress) {
-      this.location = location;
+      this.source = source;
+      this.location = source.getUri();
       this.delegate = delegate;
       this.progress = progress;
     }
@@ -100,21 +102,22 @@ public class Core {
     }
 
     @Override
-    public void onModule(String subpath, Module obj) {
+    public void onModule(String subPath, Module obj) {
       ++modulesCount;
       try {
+        final Identifier id = new Identifier(location, subPath);
         final String[] files = obj.getAdditionalFiles();
         if (files == null || files.length == 0) {
-          delegate.onModule(subpath, obj);
-        } else if (subpath.isEmpty()) {
-          Log.d(TAG, "Resolve additional files for detected %s", location.getUri());
-          delegate.onModule(subpath, resolve(obj, files));
+          delegate.onModule(id, obj);
+        } else if (subPath.isEmpty()) {
+          Log.d(TAG, "Resolve additional files for detected %s", location);
+          delegate.onModule(id, resolve(obj, files));
         } else {
           //was not resolved by core
           Log.d(TAG, "Unresolved additional files '%s'", Arrays.toString(files));
         }
       } catch (ResolvingException e) {
-        Log.w(TAG, e, "Skip module at %s in %s", subpath, location.getUri());
+        Log.w(TAG, e, "Skip module at %s in %s", subPath, location);
       }
     }
 
@@ -124,7 +127,7 @@ public class Core {
 
     private Resolver getResolver() {
       if (resolver == null) {
-        resolver = new Resolver(location, progress);
+        resolver = new Resolver(source, progress);
       }
       return resolver;
     }

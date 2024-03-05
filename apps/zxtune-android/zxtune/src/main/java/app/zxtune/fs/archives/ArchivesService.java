@@ -97,8 +97,7 @@ public class ArchivesService {
     final HashSet<Identifier> dirEntries = new HashSet<>();
     final int[] report = new int[]{0, 10};
     db.runInTransaction(() -> {
-      Core.detectModules(file, (subpath, module) -> {
-        final Identifier moduleId = new Identifier(path, subpath);
+      Core.detectModules(file, (moduleId, module) -> {
         final DirEntry dirEntry = DirEntry.create(moduleId);
 
         try {
