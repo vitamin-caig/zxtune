@@ -10,6 +10,7 @@
 
 // local includes
 #include "module.h"
+#include "array.h"
 #include "binary.h"
 #include "debug.h"
 #include "exception.h"
@@ -83,6 +84,8 @@ namespace
       Require(detectClass);
       OnModule = env->GetMethodID(detectClass, "onModule", "(Ljava/lang/String;Lapp/zxtune/core/Module;)V");
       Require(OnModule);
+      OnPicture = env->GetMethodID(detectClass, "onPicture", "(Ljava/lang/String;[B)V");
+      Require(OnPicture);
       auto* const progressClass = env->FindClass("app/zxtune/utils/ProgressCallback");
       Require(progressClass);
       OnProgress = env->GetMethodID(progressClass, "onProgressUpdate", "(II)V");
@@ -102,6 +105,13 @@ namespace
       Jni::ThrowIfError(env);
     }
 
+    static void CallOnPicture(JNIEnv* env, jobject cb, const String& subpath, jbyteArray buffer)
+    {
+      const Jni::TempJString tmpSubpath(env, subpath);
+      env->CallVoidMethod(cb, OnPicture, tmpSubpath.Get(), buffer);
+      Jni::ThrowIfError(env);
+    }
+
     static void CallOnProgress(JNIEnv* env, jobject cb, int progress)
     {
       env->CallVoidMethod(cb, OnProgress, progress, 100);
@@ -110,10 +120,12 @@ namespace
 
   private:
     static jmethodID OnModule;
+    static jmethodID OnPicture;
     static jmethodID OnProgress;
   };
 
   jmethodID CallbacksJni::OnModule;
+  jmethodID CallbacksJni::OnPicture;
   jmethodID CallbacksJni::OnProgress;
 
 #undef Require
@@ -122,6 +134,23 @@ namespace
     // TODO: cleanup
     static const auto instance = ZXTune::Service::Create(MakeSingletonPointer(Parameters::GlobalOptions()));
     return *instance;
+  }
+
+  bool IsPng(Binary::View data)
+  {
+    static const uint8_t HEADER[] = {0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
+    return data.Size() > std::size(HEADER) && 0 == std::memcmp(data.Start(), HEADER, std::size(HEADER));
+  }
+
+  bool IsJpeg(Binary::View data)
+  {
+    static const uint8_t SIGNATURE[] = {0xff, 0xd8, 0xff};
+    return data.Size() > std::size(SIGNATURE) && 0 == std::memcmp(data.Start(), SIGNATURE, std::size(SIGNATURE));
+  }
+
+  bool IsPictureFormat(Binary::View data)
+  {
+    return IsPng(data) || IsJpeg(data);
   }
 }  // namespace
 
@@ -197,6 +226,16 @@ namespace
     {
       auto* const object = CreateJniObject(Env, std::move(holder));
       CallbacksJni::CallOnModule(Env, Delegate, location.GetPath()->AsString(), object);
+    }
+
+    void ProcessUnknownData(const ZXTune::DataLocation& location) override
+    {
+      const auto rawData = location.GetData();
+      const auto data = Binary::View(*rawData);
+      if (IsPictureFormat(data))
+      {
+        CallbacksJni::CallOnPicture(Env, Delegate, location.GetPath()->AsString(), Jni::MakeByteArray(Env, data));
+      }
     }
 
     Log::ProgressCallback* GetProgress() const override

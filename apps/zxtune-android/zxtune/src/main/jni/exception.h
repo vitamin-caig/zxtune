@@ -49,8 +49,8 @@ namespace Jni
   class NullPointerException : public Exception
   {
   public:
-    NullPointerException()
-      : Exception("java/lang/NullPointerException")
+    explicit NullPointerException(const char* msg)
+      : Exception("java/lang/NullPointerException", msg)
     {}
   };
 

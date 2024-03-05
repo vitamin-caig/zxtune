@@ -1,5 +1,6 @@
 package app.zxtune.core.jni
 
+import app.zxtune.core.Module
 import org.junit.After
 import org.junit.Assert.assertSame
 import org.junit.Assert.fail
@@ -65,7 +66,10 @@ class DelayLoadApiTest {
         }
 
         try {
-            ref.detectModules(ByteBuffer.allocate(1), { _, _ -> unreached() }, null)
+            ref.detectModules(ByteBuffer.allocate(1), object : DetectCallback {
+                override fun onModule(subPath: String, obj: Module) = unreached()
+                override fun onPicture(subPath: String, obj: ByteArray) = unreached()
+            }, null)
             unreached()
         } catch (e: RuntimeException) {
             assertSame(error, e.cause)

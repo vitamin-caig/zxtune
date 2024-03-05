@@ -52,7 +52,7 @@ namespace Binary
       {
         return static_cast<const uint8_t*>(addr);
       }
-      throw Jni::NullPointerException();
+      throw Jni::NullPointerException("Not a direct buffer!");
     }
 
     static std::size_t GetSize(JNIEnv* env, jobject byteBuffer)

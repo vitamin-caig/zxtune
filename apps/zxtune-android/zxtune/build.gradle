@@ -83,6 +83,7 @@ apply from: "${treeRoot}/make/android/nativelibs.gradle"
 // Testing related
 android {
     defaultConfig {
+        testApplicationId "app.zxtune.test"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     testOptions.unitTests.includeAndroidResources = true

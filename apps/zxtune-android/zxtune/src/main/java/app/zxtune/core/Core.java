@@ -121,6 +121,11 @@ public class Core {
       }
     }
 
+    @Override
+    public void onPicture(String subPath, byte[] data) {
+      Log.d(TAG, "Picture at %s in %d bytes", subPath, data.length);
+    }
+
     private Module resolve(Module obj, String[] files) throws ResolvingException {
       return getResolver().resolve(obj, files);
     }
