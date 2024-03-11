@@ -111,6 +111,11 @@
                 android:grantUriPermissions="true"
                 android:process=":service" />
         <provider
+                android:name=".coverart.Provider"
+                android:authorities="app.zxtune.coverart"
+                android:exported="true"
+                android:process=":service" />
+        <provider
                 android:name=".preferences.Provider"
                 android:authorities="app.zxtune.preferences"
                 android:exported="false"
