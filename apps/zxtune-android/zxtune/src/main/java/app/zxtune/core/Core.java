@@ -14,23 +14,26 @@ import app.zxtune.Log;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.core.jni.Api;
 import app.zxtune.core.jni.DetectCallback;
+import app.zxtune.coverart.CoverartService;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.utils.ProgressCallback;
+import kotlin.Pair;
 
 public class Core {
   private static final String TAG = Core.class.getName();
 
   static Module loadModule(VfsFile file, String subpath) throws IOException, ResolvingException {
-    return loadModule(file, subpath, null);
+    final Module result = loadModule(file, subpath, null);
+    // TODO: move to another layer
+    CoverartService.get().addEmbedded(new Identifier(file.getUri(), subpath), result);
+    return result;
   }
 
   @SuppressWarnings("SameParameterValue")
-  private static Module loadModule(VfsFile file, String subpath,
-                                   @Nullable ProgressCallback progress) throws IOException,
-      ResolvingException {
+  private static Module loadModule(VfsFile file, String subpath, @Nullable ProgressCallback progress) throws IOException, ResolvingException {
     final ByteBuffer content = Vfs.read(file);
     Analytics.setNativeCallTags(file.getUri(), subpath, content.limit());
     final Module obj = Api.instance().loadModule(makeDirectBuffer(content), subpath);
@@ -50,17 +53,12 @@ public class Core {
     detectModules(file, callback, null);
   }
 
-  public static void detectModules(VfsFile file,
-                                   ModuleDetectCallback callback,
-                                   @Nullable ProgressCallback progress) throws IOException {
+  public static void detectModules(VfsFile file, ModuleDetectCallback callback, @Nullable ProgressCallback progress) throws IOException {
     final ByteBuffer content = Vfs.read(file, progress);
-    final DetectCallbackAdapter adapter = new DetectCallbackAdapter(file, callback,
-        progress);
+    final DetectCallbackAdapter adapter = new DetectCallbackAdapter(file, callback, CoverartService.get(), progress);
     Analytics.setNativeCallTags(file.getUri(), "*", content.limit());
     Api.instance().detectModules(makeDirectBuffer(content), adapter, progress);
-    if (0 == adapter.getDetectedModulesCount()) {
-      Analytics.sendNoTracksFoundEvent(file.getUri());
-    }
+    adapter.finish();
   }
 
   private static ByteBuffer makeDirectBuffer(ByteBuffer content) {
@@ -83,35 +81,45 @@ public class Core {
     private final VfsFile source;
     private final Uri location;
     private final ModuleDetectCallback delegate;
+    private final CoverartService covers;
     @Nullable
     private final ProgressCallback progress;
     @Nullable
     private Resolver resolver;
     private int modulesCount = 0;
+    private int picturesCount = 0;
 
-    DetectCallbackAdapter(VfsFile source, ModuleDetectCallback delegate,
-                          @Nullable ProgressCallback progress) {
+    DetectCallbackAdapter(VfsFile source, ModuleDetectCallback delegate, CoverartService covers, @Nullable ProgressCallback progress) {
       this.source = source;
       this.location = source.getUri();
       this.delegate = delegate;
+      this.covers = covers;
       this.progress = progress;
     }
 
-    final int getDetectedModulesCount() {
-      return modulesCount;
+    final void finish() {
+      if (0 == modulesCount) {
+        Analytics.sendNoTracksFoundEvent(location);
+        covers.cleanupFor(location);
+      } else if (modulesCount > 1 || picturesCount > 0) {
+        Analytics.sendEvent("track/scanned", new Pair<>("url", location), new Pair<>("tracks", modulesCount), new Pair<>("pictures", picturesCount));
+      }
     }
 
     @Override
     public void onModule(String subPath, Module obj) {
-      ++modulesCount;
       try {
         final Identifier id = new Identifier(location, subPath);
         final String[] files = obj.getAdditionalFiles();
         if (files == null || files.length == 0) {
+          covers.addEmbedded(id, obj);
           delegate.onModule(id, obj);
+          ++modulesCount;
         } else if (subPath.isEmpty()) {
           Log.d(TAG, "Resolve additional files for detected %s", location);
+          covers.addEmbedded(id, obj);
           delegate.onModule(id, resolve(obj, files));
+          ++modulesCount;
         } else {
           //was not resolved by core
           Log.d(TAG, "Unresolved additional files '%s'", Arrays.toString(files));
@@ -123,7 +131,8 @@ public class Core {
 
     @Override
     public void onPicture(String subPath, byte[] data) {
-      Log.d(TAG, "Picture at %s in %d bytes", subPath, data.length);
+      covers.addPicture(new Identifier(location, subPath), data);
+      ++picturesCount;
     }
 
     private Module resolve(Module obj, String[] files) throws ResolvingException {
