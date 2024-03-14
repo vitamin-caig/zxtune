@@ -12,6 +12,7 @@
 #include <make_ptr.h>
 // library includes
 #include <parameters/accessor.h>
+#include <parameters/delegated.h>
 #include <sound/matrix_mixer.h>
 #include <sound/mixer_parameters.h>
 #include <sound/sound_parameters.h>
@@ -54,48 +55,27 @@ namespace Sound
   }
 
   template<class MixerType>
-  class MixerNotificationParameters : public Parameters::Accessor
+  class MixerNotificationParameters : public Parameters::DelegatedAccessor
   {
   public:
     MixerNotificationParameters(Parameters::Accessor::Ptr params, typename MixerType::Ptr mixer)
-      : Params(std::move(params))
+      : Parameters::DelegatedAccessor(std::move(params))
       , Mixer(std::move(mixer))
-      , LastVersion(~Params->Version())
+      , LastVersion(~Delegate->Version())
     {}
 
     uint_t Version() const override
     {
-      const uint_t newVers = Params->Version();
+      const uint_t newVers = Delegate->Version();
       if (newVers != LastVersion)
       {
-        FillMixer(*Params, *Mixer);
+        FillMixer(*Delegate, *Mixer);
         LastVersion = newVers;
       }
       return newVers;
     }
 
-    std::optional<Parameters::IntType> FindInteger(Parameters::Identifier name) const override
-    {
-      return Params->FindInteger(name);
-    }
-
-    std::optional<Parameters::StringType> FindString(Parameters::Identifier name) const override
-    {
-      return Params->FindString(name);
-    }
-
-    Binary::Data::Ptr FindData(Parameters::Identifier name) const override
-    {
-      return Params->FindData(name);
-    }
-
-    void Process(Parameters::Visitor& visitor) const override
-    {
-      return Params->Process(visitor);
-    }
-
   private:
-    const Parameters::Accessor::Ptr Params;
     const typename MixerType::Ptr Mixer;
     mutable uint_t LastVersion;
   };

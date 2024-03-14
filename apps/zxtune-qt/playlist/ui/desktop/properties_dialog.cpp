@@ -24,6 +24,7 @@
 // library includes
 #include <core/core_parameters.h>
 #include <module/attributes.h>
+#include <parameters/delegated.h>
 #include <parameters/merged_accessor.h>
 // qt includes
 #include <QtWidgets/QAbstractButton>
@@ -70,38 +71,13 @@ namespace
     QPixmap Image;
   };
 
-  class ItemPropertiesContainer : public Parameters::Container
+  class ItemPropertiesContainer : public Parameters::Delegated<Parameters::Container, Parameters::Accessor::Ptr>
   {
   public:
     ItemPropertiesContainer(Parameters::Container::Ptr adjusted, Parameters::Accessor::Ptr merged)
-      : Adjusted(std::move(adjusted))
-      , Merged(std::move(merged))
+      : Parameters::Delegated<Parameters::Container, Parameters::Accessor::Ptr>(std::move(merged))
+      , Adjusted(std::move(adjusted))
     {}
-
-    uint_t Version() const override
-    {
-      return Merged->Version();
-    }
-
-    std::optional<Parameters::IntType> FindInteger(Parameters::Identifier name) const override
-    {
-      return Merged->FindInteger(name);
-    }
-
-    std::optional<Parameters::StringType> FindString(Parameters::Identifier name) const override
-    {
-      return Merged->FindString(name);
-    }
-
-    Binary::Data::Ptr FindData(Parameters::Identifier name) const override
-    {
-      return Merged->FindData(name);
-    }
-
-    void Process(Parameters::Visitor& visitor) const override
-    {
-      return Merged->Process(visitor);
-    }
 
     void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
@@ -125,7 +101,6 @@ namespace
 
   private:
     const Parameters::Container::Ptr Adjusted;
-    const Parameters::Accessor::Ptr Merged;
   };
 
   class PropertiesDialogImpl

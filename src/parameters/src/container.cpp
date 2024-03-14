@@ -14,6 +14,7 @@
 // library includes
 #include <binary/container_factories.h>
 #include <parameters/container.h>
+#include <parameters/delegated.h>
 // std includes
 #include <map>
 #include <utility>
@@ -206,39 +207,13 @@ namespace Parameters
     TransientMap<Binary::Data::Ptr> Datas;
   };
 
-  class CompositeContainer : public Container
+  class CompositeContainer : public Delegated<Container, Accessor::Ptr>
   {
   public:
     CompositeContainer(Accessor::Ptr accessor, Modifier::Ptr modifier)
-      : AccessDelegate(std::move(accessor))
+      : Delegated(std::move(accessor))
       , ModifyDelegate(std::move(modifier))
     {}
-
-    // accessor virtuals
-    uint_t Version() const override
-    {
-      return AccessDelegate->Version();
-    }
-
-    std::optional<IntType> FindInteger(Identifier name) const override
-    {
-      return AccessDelegate->FindInteger(name);
-    }
-
-    std::optional<StringType> FindString(Identifier name) const override
-    {
-      return AccessDelegate->FindString(name);
-    }
-
-    Binary::Data::Ptr FindData(Identifier name) const override
-    {
-      return AccessDelegate->FindData(name);
-    }
-
-    void Process(Visitor& visitor) const override
-    {
-      return AccessDelegate->Process(visitor);
-    }
 
     // visitor virtuals
     void SetValue(Identifier name, IntType val) override
@@ -263,7 +238,6 @@ namespace Parameters
     }
 
   private:
-    const Accessor::Ptr AccessDelegate;
     const Modifier::Ptr ModifyDelegate;
   };
 

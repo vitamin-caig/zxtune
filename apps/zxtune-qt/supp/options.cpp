@@ -18,6 +18,7 @@
 // library includes
 #include <binary/container_factories.h>
 #include <parameters/convert.h>
+#include <parameters/delegated.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/src/names_set.h>
 #include <parameters/tools.h>
@@ -423,38 +424,13 @@ namespace
     const Container::Ptr Changed;
   };
 
-  class SettingsSnapshot : public Accessor
+  class SettingsSnapshot : public DelegatedAccessor
   {
   public:
     SettingsSnapshot(Accessor::Ptr delegate, CompositeModifier::Subscription subscription)
-      : Delegate(std::move(delegate))
+      : DelegatedAccessor(std::move(delegate))
       , Subscription(std::move(subscription))
     {}
-
-    uint_t Version() const override
-    {
-      return Delegate->Version();
-    }
-
-    std::optional<IntType> FindInteger(Identifier name) const override
-    {
-      return Delegate->FindInteger(name);
-    }
-
-    std::optional<StringType> FindString(Identifier name) const override
-    {
-      return Delegate->FindString(name);
-    }
-
-    Binary::Data::Ptr FindData(Identifier name) const override
-    {
-      return Delegate->FindData(name);
-    }
-
-    void Process(Visitor& visitor) const override
-    {
-      return Delegate->Process(visitor);
-    }
 
     static Accessor::Ptr Create(Accessor::Ptr stored, CompositeModifier& modifiers)
     {
