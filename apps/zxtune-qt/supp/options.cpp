@@ -46,40 +46,47 @@ namespace
       return VersionValue;
     }
 
-    bool FindValue(Identifier name, IntType& val) const override
+    std::optional<IntType> FindInteger(Identifier name) const override
     {
       const Value value(Storage, name);
       if (!value.IsValid())
       {
-        return false;
+        return std::nullopt;
       }
       const QVariant& var = value.Get();
       const QVariant::Type type = var.type();
       if (type == QVariant::String)
       {
-        return ConvertFromString(FromQString(var.toString()), val);
+        IntType val;
+        if (ConvertFromString(FromQString(var.toString()), val))
+        {
+          return val;
+        }
       }
       else if (type == QVariant::LongLong || type == QVariant::Int)
       {
-        val = var.toLongLong();
-        return true;
+        return var.toLongLong();
       }
-      return false;
+      return std::nullopt;
     }
 
-    bool FindValue(Identifier name, StringType& val) const override
+    std::optional<StringType> FindString(Identifier name) const override
     {
       const Value value(Storage, name);
       if (!value.IsValid())
       {
-        return false;
+        return std::nullopt;
       }
       const QVariant& var = value.Get();
       if (var.type() == QVariant::String)
       {
-        return ConvertFromString(FromQString(var.toString()), val);
+        StringType val;
+        if (ConvertFromString(FromQString(var.toString()), val))
+        {
+          return val;
+        }
       }
-      return false;
+      return std::nullopt;
     }
 
     Binary::Data::Ptr FindData(Identifier name) const override
@@ -229,40 +236,40 @@ namespace
       return Temporary->Version();
     }
 
-    bool FindValue(Identifier name, IntType& val) const override
+    std::optional<IntType> FindInteger(Identifier name) const override
     {
-      if (Temporary->FindValue(name, val))
+      if (auto tmp = Temporary->FindInteger(name))
       {
-        return true;
+        return tmp;
       }
       else if (Removed.Has(name))
       {
-        return false;
+        return std::nullopt;
       }
-      else if (Persistent->FindValue(name, val))
+      else if (auto pers = Persistent->FindInteger(name))
       {
-        Temporary->SetValue(name, val);
-        return true;
+        Temporary->SetValue(name, *pers);
+        return pers;
       }
-      return false;
+      return std::nullopt;
     }
 
-    bool FindValue(Identifier name, StringType& val) const override
+    std::optional<StringType> FindString(Identifier name) const override
     {
-      if (Temporary->FindValue(name, val))
+      if (auto tmp = Temporary->FindString(name))
       {
-        return true;
+        return tmp;
       }
       else if (Removed.Has(name))
       {
-        return false;
+        return std::nullopt;
       }
-      else if (Persistent->FindValue(name, val))
+      else if (auto pers = Persistent->FindString(name))
       {
-        Temporary->SetValue(name, val);
-        return true;
+        Temporary->SetValue(name, *pers);
+        return pers;
       }
-      return false;
+      return std::nullopt;
     }
 
     Binary::Data::Ptr FindData(Identifier name) const override
@@ -429,14 +436,14 @@ namespace
       return Delegate->Version();
     }
 
-    bool FindValue(Identifier name, IntType& val) const override
+    std::optional<IntType> FindInteger(Identifier name) const override
     {
-      return Delegate->FindValue(name, val);
+      return Delegate->FindInteger(name);
     }
 
-    bool FindValue(Identifier name, StringType& val) const override
+    std::optional<StringType> FindString(Identifier name) const override
     {
-      return Delegate->FindValue(name, val);
+      return Delegate->FindString(name);
     }
 
     Binary::Data::Ptr FindData(Identifier name) const override

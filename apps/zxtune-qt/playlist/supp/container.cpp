@@ -29,9 +29,7 @@ namespace
 {
   QString GetPlaylistName(const Parameters::Accessor& params)
   {
-    Parameters::StringType name;
-    params.FindValue(Playlist::ATTRIBUTE_NAME, name);
-    return ToQString(name);
+    return ToQString(Parameters::GetString(params, Playlist::ATTRIBUTE_NAME));
   }
 
   class ContainerImpl : public Playlist::IO::Container

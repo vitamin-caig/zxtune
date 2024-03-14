@@ -20,7 +20,7 @@ namespace Parameters
   void CopyExistingValue(const Accessor& src, Visitor& dst, StringView name)
   {
     T val = T();
-    if (src.FindValue(name, val))
+    if (Parameters::FindValue(src, name, val))
     {
       dst.SetValue(name, val);
     }

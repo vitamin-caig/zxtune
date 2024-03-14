@@ -73,8 +73,7 @@ namespace
     void SelectDevice()
     {
       using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
-      String curDevice;
-      Options->FindValue(DEVICE, curDevice);
+      const auto curDevice = Parameters::GetString(*Options, DEVICE);
       DeviceChanged(ToQString(curDevice));
     }
 

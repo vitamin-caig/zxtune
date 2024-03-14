@@ -252,10 +252,10 @@ namespace Module::Mpt
     {
       if (Params.IsChanged())
       {
-        Parameters::IntType val = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
-        Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val);
+        using namespace Parameters::ZXTune::Core::DAC;
+        const auto val = Parameters::GetInteger(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
         // cubic interpolation vs windowed sinc with 8 taps
-        const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? 8 : 3;
+        const int interpolation = val != INTERPOLATION_NO ? 8 : 3;
         Track->set_render_param(openmpt::module::render_param::RENDER_INTERPOLATIONFILTER_LENGTH, interpolation);
       }
     }

@@ -23,7 +23,6 @@
 #include <sound/render_params.h>
 // std includes
 #include <algorithm>
-#include <optional>
 
 namespace Sound::Flac
 {
@@ -200,25 +199,14 @@ namespace Sound::Flac
       : Params(std::move(params))
     {}
 
-    std::optional<uint_t> GetCompressionLevel() const
+    auto GetCompressionLevel() const
     {
-      return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Flac::COMPRESSION);
+      return Params->FindInteger(Parameters::ZXTune::Sound::Backends::Flac::COMPRESSION);
     }
 
-    std::optional<uint_t> GetBlockSize() const
+    auto GetBlockSize() const
     {
-      return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Flac::BLOCKSIZE);
-    }
-
-  private:
-    std::optional<uint_t> GetOptionalParameter(Parameters::Identifier name) const
-    {
-      Parameters::IntType val = 0;
-      if (Params->FindValue(name, val))
-      {
-        return val;
-      }
-      return {};
+      return Params->FindInteger(Parameters::ZXTune::Sound::Backends::Flac::BLOCKSIZE);
     }
 
   private:
@@ -259,12 +247,15 @@ namespace Sound::Flac
       if (const auto compression = stream.GetCompressionLevel())
       {
         Dbg("Setting compression level to {}", *compression);
-        CheckFlacCall(FlacApi->FLAC__stream_encoder_set_compression_level(&encoder, *compression), THIS_LINE);
+        CheckFlacCall(
+            FlacApi->FLAC__stream_encoder_set_compression_level(&encoder, static_cast<unsigned>(*compression)),
+            THIS_LINE);
       }
       if (const auto blocksize = stream.GetBlockSize())
       {
         Dbg("Setting block size to {}", *blocksize);
-        CheckFlacCall(FlacApi->FLAC__stream_encoder_set_blocksize(&encoder, *blocksize), THIS_LINE);
+        CheckFlacCall(FlacApi->FLAC__stream_encoder_set_blocksize(&encoder, static_cast<unsigned>(*blocksize)),
+                      THIS_LINE);
       }
     }
 

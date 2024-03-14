@@ -38,24 +38,22 @@ namespace Parameters
       return VersionValue;
     }
 
-    bool FindValue(Identifier name, IntType& val) const override
+    std::optional<IntType> FindInteger(Identifier name) const override
     {
       if (const auto* ptr = Integers.Find(name))
       {
-        val = *ptr;
-        return true;
+        return *ptr;
       }
-      return false;
+      return std::nullopt;
     }
 
-    bool FindValue(Identifier name, StringType& val) const override
+    std::optional<StringType> FindString(Identifier name) const override
     {
       if (const auto* ptr = Strings.Find(name))
       {
-        val = *ptr;
-        return true;
+        return *ptr;
       }
-      return false;
+      return std::nullopt;
     }
 
     Binary::Data::Ptr FindData(Identifier name) const override
@@ -222,14 +220,14 @@ namespace Parameters
       return AccessDelegate->Version();
     }
 
-    bool FindValue(Identifier name, IntType& val) const override
+    std::optional<IntType> FindInteger(Identifier name) const override
     {
-      return AccessDelegate->FindValue(name, val);
+      return AccessDelegate->FindInteger(name);
     }
 
-    bool FindValue(Identifier name, StringType& val) const override
+    std::optional<StringType> FindString(Identifier name) const override
     {
-      return AccessDelegate->FindValue(name, val);
+      return AccessDelegate->FindString(name);
     }
 
     Binary::Data::Ptr FindData(Identifier name) const override

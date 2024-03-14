@@ -439,10 +439,8 @@ namespace
     void RestorePlaylistSession()
     {
       Session->Load(Container);
-      Parameters::IntType idx = 0;
-      Parameters::IntType trk = 0;
-      Options->FindValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
-      Options->FindValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
+      const auto idx = Parameters::GetInteger(*Options, Parameters::ZXTuneQT::Playlist::INDEX);
+      const auto trk = Parameters::GetInteger(*Options, Parameters::ZXTuneQT::Playlist::TRACK);
       Dbg("Restore current playlist {} with track {}", idx, trk);
       ActivatePlaylist(idx);
       widgetsContainer->setCurrentIndex(idx);
@@ -465,9 +463,7 @@ namespace
     Playlist::UI::View& GetCmdlineTarget()
     {
       using namespace Parameters::ZXTuneQT::Playlist;
-      Parameters::IntType target = CMDLINE_TARGET_DEFAULT;
-      Options->FindValue(CMDLINE_TARGET, target);
-      switch (target)
+      switch (Parameters::GetInteger(*Options, CMDLINE_TARGET, CMDLINE_TARGET_DEFAULT))
       {
       case CMDLINE_TARGET_ACTIVE:
         return GetActivePlaylist();

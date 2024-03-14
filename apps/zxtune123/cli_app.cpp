@@ -52,19 +52,17 @@ namespace
 {
   String GetModuleId(const Parameters::Accessor& props)
   {
-    String res;
-    props.FindValue(Module::ATTR_FULLPATH, res);
-    return res;
+    return Parameters::GetString(props, Module::ATTR_FULLPATH);
   }
 
   String GetFilenameTemplate(const Parameters::Accessor& params)
   {
-    String nameTemplate;
-    if (!params.FindValue(String("filename"), nameTemplate))
+    auto res = Parameters::GetString(params, "filename"_sv);
+    if (res.empty())
     {
       throw Error(THIS_LINE, "Output filename template is not specified.");
     }
-    return nameTemplate;
+    return res;
   }
 
   struct HolderAndData
@@ -113,8 +111,8 @@ namespace
   std::unique_ptr<Module::Conversion::Parameter> CreateConversionParameters(StringView mode,
                                                                             const Parameters::Accessor& modeParams)
   {
-    Parameters::IntType optimization = Module::Conversion::DEFAULT_OPTIMIZATION;
-    modeParams.FindValue("optimization"_sv, optimization);
+    const auto optimization =
+        Parameters::GetInteger<uint_t>(modeParams, "optimization"_sv, Module::Conversion::DEFAULT_OPTIMIZATION);
     std::unique_ptr<Module::Conversion::Parameter> param;
     if (mode == "psg"_sv)
     {
@@ -156,9 +154,9 @@ namespace
 
     void ApplyData(HolderAndData data) override
     {
-      const Parameters::IntType availSize = data.Data->Size();
-      Parameters::IntType usedSize = 0;
-      data.Holder->GetModuleProperties()->FindValue(Module::ATTR_SIZE, usedSize);
+      const auto availSize = data.Data->Size();
+      const auto usedSize =
+          Parameters::GetInteger<decltype(availSize)>(*data.Holder->GetModuleProperties(), Module::ATTR_SIZE);
       if (availSize != usedSize)
       {
         Require(availSize > usedSize);
@@ -195,8 +193,7 @@ namespace
       }
       else
       {
-        Parameters::StringType type;
-        props->FindValue(Module::ATTR_TYPE, type);
+        const auto& type = Parameters::GetString(*props, Module::ATTR_TYPE);
         const auto& id = GetModuleId(*props);
         Display.Message("Skipping '{0}' (type '{1}') due to convert impossibility.", id, type);
       }
@@ -219,14 +216,15 @@ namespace
     Convertor(const Parameters::Accessor& params, DisplayComponent& display)
       : Pipe(HolderAndData::Receiver::CreateStub())
     {
-      Parameters::StringType mode;
-      if (!params.FindValue(String("mode"), mode))
+      const auto mode = params.FindString("mode"_sv);
+      if (!mode)
       {
         throw Error(THIS_LINE, "Conversion mode is not specified.");
       }
       const HolderAndData::Receiver::Ptr saver(new SaveEndpoint(display, params));
-      const HolderAndData::Receiver::Ptr target =
-          mode == "raw" ? MakePtr<TruncateDataEndpoint>(saver) : MakePtr<ConvertEndpoint>(display, mode, params, saver);
+      const HolderAndData::Receiver::Ptr target = *mode == "raw"
+                                                      ? MakePtr<TruncateDataEndpoint>(saver)
+                                                      : MakePtr<ConvertEndpoint>(display, *mode, params, saver);
       Pipe = Async::DataReceiver<HolderAndData>::Create(1, 1000, target);
     }
 
@@ -258,10 +256,8 @@ namespace
     {
       const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
-      String path;
-      String type;
-      props->FindValue(Module::ATTR_FULLPATH, path);
-      props->FindValue(Module::ATTR_TYPE, type);
+      const auto& path = Parameters::GetString(*props, Module::ATTR_FULLPATH);
+      const auto& type = Parameters::GetString(*props, Module::ATTR_TYPE);
 
       try
       {

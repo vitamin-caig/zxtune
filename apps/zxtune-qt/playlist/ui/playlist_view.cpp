@@ -104,10 +104,9 @@ namespace
 
     unsigned GetPlayorderMode() const
     {
-      Parameters::IntType isLooped = Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT;
-      Params->FindValue(Parameters::ZXTuneQT::Playlist::LOOPED, isLooped);
-      Parameters::IntType isRandom = Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT;
-      Params->FindValue(Parameters::ZXTuneQT::Playlist::RANDOMIZED, isRandom);
+      using namespace Parameters::ZXTuneQT::Playlist;
+      const auto isLooped = Parameters::GetInteger(*Params, LOOPED, LOOPED_DEFAULT);
+      const auto isRandom = Parameters::GetInteger(*Params, RANDOMIZED, RANDOMIZED_DEFAULT);
       return (isLooped ? Playlist::Item::LOOPED : 0) | (isRandom ? Playlist::Item::RANDOMIZED : 0);
     }
 
@@ -772,11 +771,10 @@ namespace
 
     static Playlist::IO::ExportFlags GetSavePlaylistFlags(int saveCase)
     {
-      const Parameters::Accessor::Ptr options = GlobalOptions::Instance().Get();
-      Parameters::IntType val = Parameters::ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT;
-      options->FindValue(Parameters::ZXTuneQT::Playlist::Store::PROPERTIES, val);
+      const auto options = GlobalOptions::Instance().Get();
+      using namespace Parameters::ZXTuneQT::Playlist::Store;
       Playlist::IO::ExportFlags res = 0;
-      if (val)
+      if (0 != Parameters::GetInteger(*options, PROPERTIES, PROPERTIES_DEFAULT))
       {
         res |= Playlist::IO::SAVE_ATTRIBUTES;
       }

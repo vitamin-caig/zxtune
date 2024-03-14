@@ -32,19 +32,18 @@ namespace Module
       return 1;
     }
 
-    bool FindValue(Parameters::Identifier /*name*/, Parameters::IntType& /*val*/) const override
+    std::optional<Parameters::IntType> FindInteger(Parameters::Identifier /*name*/) const override
     {
-      return false;
+      return std::nullopt;
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
+    std::optional<Parameters::StringType> FindString(Parameters::Identifier name) const override
     {
       if (name == ATTR_FULLPATH)
       {
-        val = Uri;
-        return true;
+        return Uri;
       }
-      return false;
+      return std::nullopt;
     }
 
     Binary::Data::Ptr FindData(Parameters::Identifier /*name*/) const override
@@ -73,39 +72,34 @@ namespace Module
       return 1;
     }
 
-    bool FindValue(Parameters::Identifier /*name*/, Parameters::IntType& /*val*/) const override
+    std::optional<Parameters::IntType> FindInteger(Parameters::Identifier /*name*/) const override
     {
-      return false;
+      return std::nullopt;
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
+    std::optional<Parameters::StringType> FindString(Parameters::Identifier name) const override
     {
       if (name == ATTR_SUBPATH)
       {
-        val = Id->Subpath();
-        return true;
+        return Id->Subpath();
       }
       else if (name == ATTR_FILENAME)
       {
-        val = Id->Filename();
-        return true;
+        return Id->Filename();
       }
       else if (name == ATTR_EXTENSION)
       {
-        val = Id->Extension();
-        return true;
+        return Id->Extension();
       }
       else if (name == ATTR_PATH)
       {
-        val = Id->Path();
-        return true;
+        return Id->Path();
       }
       else if (name == ATTR_FULLPATH)
       {
-        val = Id->Full();
-        return true;
+        return Id->Full();
       }
-      return false;
+      return std::nullopt;
     }
 
     Binary::Data::Ptr FindData(Parameters::Identifier /*name*/) const override

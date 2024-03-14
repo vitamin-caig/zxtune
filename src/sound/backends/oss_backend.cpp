@@ -237,16 +237,14 @@ namespace Sound::Oss
 
     String GetDeviceName() const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::Oss::DEVICE_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Oss::DEVICE, strVal);
-      return strVal;
+      using namespace Parameters::ZXTune::Sound::Backends::Oss;
+      return Parameters::GetString(Accessor, DEVICE, DEVICE_DEFAULT);
     }
 
     String GetMixerName() const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::Oss::MIXER_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Oss::MIXER, strVal);
-      return strVal;
+      using namespace Parameters::ZXTune::Sound::Backends::Oss;
+      return Parameters::GetString(Accessor, MIXER, MIXER_DEFAULT);
     }
 
   private:

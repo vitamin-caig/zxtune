@@ -70,9 +70,11 @@ namespace
 
     bool GetValue() const
     {
-      IntType val = Default ? OneValue : 0;
-      Storage.FindValue(Name, val);
-      return val != 0;
+      if (const auto val = Storage.FindInteger(Name))
+      {
+        return *val != 0;
+      }
+      return Default ? OneValue : 0;
     }
 
   private:
@@ -121,9 +123,7 @@ namespace
 
     StringType GetValue() const
     {
-      StringType value;
-      Storage.FindValue(Name, value);
-      return value;
+      return Parameters::GetString(Storage, Name);
     }
 
   private:
@@ -191,9 +191,7 @@ namespace
   private:
     int GetValue() const
     {
-      IntType value = Default;
-      Storage.FindValue(Name, value);
-      return value;
+      return Parameters::GetInteger<int>(Storage, Name, Default);
     }
 
   private:
@@ -285,9 +283,7 @@ namespace
 
     IntType GetValue() const
     {
-      IntType value = Traits.Default;
-      Storage.FindValue(Traits.Name, value);
-      return value;
+      return Parameters::GetInteger<IntType>(Storage, Traits.Name, Traits.Default);
     }
 
   private:
@@ -332,9 +328,7 @@ namespace
 
     StringType GetValue() const
     {
-      StringType value = Default;
-      Storage.FindValue(Name, value);
-      return value;
+      return Parameters::GetString(Storage, Name, Default);
     }
 
   private:

@@ -139,8 +139,7 @@ namespace Sound
   private:
     Strings::Array GetOrder() const
     {
-      Parameters::StringType order;
-      Options->FindValue(Parameters::ZXTune::Sound::Backends::ORDER, order);
+      const auto order = Parameters::GetString(*Options, Parameters::ZXTune::Sound::Backends::ORDER);
       Strings::Array orderArray;
       Strings::Split(
           order, [](Char c) { return !IsAlNum(c); }, orderArray);

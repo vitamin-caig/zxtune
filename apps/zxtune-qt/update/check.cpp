@@ -116,15 +116,15 @@ namespace
   {
     Dbg("Downloading {}", FromQString(url.toString()));
     auto* reply = mgr.get(MakeRequest(url));
-    Require(QObject::connect(reply, &QNetworkReply::downloadProgress,
-                             [reply, ui = cb.get()](qint64 done, qint64 total) {
-                               Dbg("Downloaded {}/{} err={}", done, total, uint_t(reply->error()));
-                               if (!reply->error() && !ui->UpdateProgress(total > 0 ? uint_t(done * 100 / total) : 0))
-                               {
-                                 Dbg("Aborted");
-                                 reply->abort();
-                               }
-                             }));
+    Require(
+        QObject::connect(reply, &QNetworkReply::downloadProgress, [reply, ui = cb.get()](qint64 done, qint64 total) {
+          Dbg("Downloaded {}/{} err={}", done, total, uint_t(reply->error()));
+          if (!reply->error() && !ui->UpdateProgress(total > 0 ? uint_t(done * 100 / total) : 0))
+          {
+            Dbg("Aborted");
+            reply->abort();
+          }
+        }));
     Require(QObject::connect(reply, &QNetworkReply::errorOccurred,
                              [reply, ui = std::move(cb)](QNetworkReply::NetworkError err) {
                                Dbg("Network error {}", uint_t(err));
@@ -331,23 +331,21 @@ namespace
 
     QUrl GetFeedUrl() const
     {
-      Parameters::StringType url = Urls::DownloadsFeed();
-      Params->FindValue(Parameters::ZXTuneQT::Update::FEED, url);
+      using namespace Parameters;
+      const auto url = GetString(*Params, ZXTuneQT::Update::FEED, Urls::DownloadsFeed());
       return ToQString(url);
     }
 
     unsigned GetCheckPeriod() const
     {
-      Parameters::IntType period = Parameters::ZXTuneQT::Update::CHECK_PERIOD_DEFAULT;
-      Params->FindValue(Parameters::ZXTuneQT::Update::CHECK_PERIOD, period);
-      return static_cast<unsigned>(period);
+      using namespace Parameters::ZXTuneQT::Update;
+      return Parameters::GetInteger<unsigned>(*Params, CHECK_PERIOD, CHECK_PERIOD_DEFAULT);
     }
 
     std::time_t GetLastCheckTime() const
     {
-      Parameters::IntType lastCheck = 0;
-      Params->FindValue(Parameters::ZXTuneQT::Update::LAST_CHECK, lastCheck);
-      return static_cast<std::time_t>(lastCheck);
+      using namespace Parameters;
+      return GetInteger<std::time_t>(*Params, ZXTuneQT::Update::LAST_CHECK);
     }
 
     void SetLastCheckTime(std::time_t time)

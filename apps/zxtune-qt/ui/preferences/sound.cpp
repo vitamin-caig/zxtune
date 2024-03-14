@@ -58,8 +58,7 @@ namespace
 
       using namespace Parameters;
       using namespace ZXTune::Sound;
-      IntType freq = FREQUENCY_DEFAULT;
-      Options->FindValue(FREQUENCY, freq);
+      const auto freq = GetInteger(*Options, FREQUENCY, FREQUENCY_DEFAULT);
       SetFrequency(freq);
       Require(connect(soundFrequencyValue, qOverload<int>(&QComboBox::currentIndexChanged), this,
                       &SoundOptionsWidget::ChangeSoundFrequency));

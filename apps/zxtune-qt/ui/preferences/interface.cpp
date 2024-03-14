@@ -48,10 +48,9 @@ namespace
 
     int Get() const override
     {
-      using namespace Parameters;
-      Parameters::IntType val = ZXTuneQT::Update::CHECK_PERIOD_DEFAULT;
-      Ctr->FindValue(ZXTuneQT::Update::CHECK_PERIOD, val);
-      const Parameters::IntType* const arrPos = std::find(UPDATE_CHECK_PERIODS, std::end(UPDATE_CHECK_PERIODS), val);
+      using namespace Parameters::ZXTuneQT::Update;
+      const auto val = Parameters::GetInteger(*Ctr, CHECK_PERIOD, CHECK_PERIOD_DEFAULT);
+      const auto* const arrPos = std::find(UPDATE_CHECK_PERIODS, std::end(UPDATE_CHECK_PERIODS), val);
       return arrPos != std::end(UPDATE_CHECK_PERIODS) ? arrPos - UPDATE_CHECK_PERIODS : -1;
     }
 
@@ -129,7 +128,7 @@ namespace
     QString GetCurrentLanguage() const
     {
       Parameters::StringType val = FromQString(Language->GetSystem());
-      Options->FindValue(Parameters::ZXTuneQT::UI::LANGUAGE, val);
+      Parameters::FindValue(*Options, Parameters::ZXTuneQT::UI::LANGUAGE, val);
       return ToQString(val);
     }
 

@@ -28,9 +28,9 @@ namespace Sound
     {
       using namespace Parameters::ZXTune::Sound;
       const auto name = Mixer::LEVEL(channels, inChan, outChan);
-      auto val = Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
-      params.FindValue(name, val);
-      out[outChan] = Gain::Type(static_cast<int_t>(val), GAIN_PRECISION);
+      const auto def = Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
+      const auto val = Parameters::GetInteger<int_t>(params, name, def);
+      out[outChan] = Gain::Type(val, GAIN_PRECISION);
     }
   }
 
@@ -74,14 +74,14 @@ namespace Sound
       return newVers;
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
+    std::optional<Parameters::IntType> FindInteger(Parameters::Identifier name) const override
     {
-      return Params->FindValue(name, val);
+      return Params->FindInteger(name);
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
+    std::optional<Parameters::StringType> FindString(Parameters::Identifier name) const override
     {
-      return Params->FindValue(name, val);
+      return Params->FindString(name);
     }
 
     Binary::Data::Ptr FindData(Parameters::Identifier name) const override

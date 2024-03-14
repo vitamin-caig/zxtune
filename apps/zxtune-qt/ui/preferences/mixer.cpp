@@ -87,8 +87,7 @@ namespace
       , Storage(ctr)
       , Name(std::move(name))
     {
-      IntType value = defValue;
-      Storage.FindValue(Name, value);
+      const auto value = Parameters::GetInteger(Storage, Name, defValue);
       parent.setValue(value);
       Require(connect(&parent, &UI::MixerWidget::valueChanged, this, &MixerValueImpl::SetValue));
     }

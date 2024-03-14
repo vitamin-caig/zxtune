@@ -119,17 +119,15 @@ namespace Module::Sid
 
     bool GetUseFilter() const
     {
-      Parameters::IntType val = Parameters::ZXTune::Core::SID::FILTER_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Core::SID::FILTER, val);
-      return static_cast<bool>(val);
+      using namespace Parameters::ZXTune::Core::SID;
+      return 0 != Parameters::GetInteger(*Params, FILTER, FILTER_DEFAULT);
     }
 
   private:
     Parameters::IntType GetInterpolation() const
     {
-      Parameters::IntType val = Parameters::ZXTune::Core::SID::INTERPOLATION_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Core::SID::INTERPOLATION, val);
-      return val;
+      using namespace Parameters::ZXTune::Core::SID;
+      return Parameters::GetInteger(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
     }
 
   private:

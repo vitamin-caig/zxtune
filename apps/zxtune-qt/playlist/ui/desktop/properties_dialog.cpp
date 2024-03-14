@@ -83,14 +83,14 @@ namespace
       return Merged->Version();
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
+    std::optional<Parameters::IntType> FindInteger(Parameters::Identifier name) const override
     {
-      return Merged->FindValue(name, val);
+      return Merged->FindInteger(name);
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
+    std::optional<Parameters::StringType> FindString(Parameters::Identifier name) const override
     {
-      return Merged->FindValue(name, val);
+      return Merged->FindString(name);
     }
 
     Binary::Data::Ptr FindData(Parameters::Identifier name) const override
@@ -253,8 +253,7 @@ namespace
 
     void AddStrings(Parameters::Identifier name)
     {
-      Parameters::StringType value;
-      if (Properties->FindValue(name, value))
+      if (const auto value = Properties->FindString(name))
       {
         auto* const strings = new QTextEdit(this);
         QFont font;
@@ -265,7 +264,7 @@ namespace
 
         const int row = itemsLayout->rowCount();
         itemsLayout->addWidget(strings, row, 0, 1, itemsLayout->columnCount());
-        strings->setText(ToQString(value));
+        strings->setText(ToQString(*value));
       }
     }
 

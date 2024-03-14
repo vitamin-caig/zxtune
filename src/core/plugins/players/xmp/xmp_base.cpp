@@ -291,10 +291,9 @@ namespace Module::Xmp
     {
       if (Params.IsChanged())
       {
-        Parameters::IntType val = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
-        Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val);
-        const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? XMP_INTERP_SPLINE
-                                                                                         : XMP_INTERP_LINEAR;
+        using namespace Parameters::ZXTune::Core::DAC;
+        const auto val = Parameters::GetInteger(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
+        const int interpolation = val != INTERPOLATION_NO ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
         Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), interpolation);
       }
     }

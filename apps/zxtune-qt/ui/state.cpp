@@ -81,14 +81,14 @@ namespace
       Delegate->RemoveValue(Prefix.Append(name));
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
+    std::optional<Parameters::IntType> FindInteger(Parameters::Identifier name) const override
     {
-      return Delegate->FindValue(Prefix.Append(name), val);
+      return Delegate->FindInteger(Prefix.Append(name));
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
+    std::optional<Parameters::StringType> FindString(Parameters::Identifier name) const override
     {
-      return Delegate->FindValue(Prefix.Append(name), val);
+      return Delegate->FindString(Prefix.Append(name));
     }
 
     Binary::Data::Ptr FindData(Parameters::Identifier name) const override
@@ -266,8 +266,7 @@ namespace
 
     void Load() const override
     {
-      Parameters::IntType idx = 0;
-      Container->FindValue(Parameters::ZXTuneQT::UI::PARAM_INDEX, idx);
+      const auto idx = Parameters::GetInteger(*Container, Parameters::ZXTuneQT::UI::PARAM_INDEX);
       Wid.setCurrentIndex(idx);
     }
 
@@ -291,14 +290,13 @@ namespace
 
     void Load() const override
     {
-      Parameters::IntType size = 0;
-      if (Container->FindValue(Parameters::ZXTuneQT::UI::PARAM_SIZE, size) && size)
+      using namespace Parameters;
+      if (const auto size = GetInteger(*Container, ZXTuneQT::UI::PARAM_SIZE))
       {
         Wid.clear();
-        for (Parameters::IntType idx = 0; idx != size; ++idx)
+        for (IntType idx = 0; idx != size; ++idx)
         {
-          Parameters::StringType str;
-          if (Container->FindValue(Parameters::ConvertToString(idx), str) && !str.empty())
+          if (const auto str = GetString(*Container, ConvertToString(idx)); !str.empty())
           {
             Wid.addItem(ToQString(str));
           }
@@ -320,8 +318,7 @@ namespace
       for (;; ++idx)
       {
         const auto name = Parameters::ConvertToString(idx);
-        Parameters::StringType str;
-        if (Container->FindValue(name, str))
+        if (Container->FindString(name))
         {
           Container->RemoveValue(name);
         }
@@ -400,10 +397,9 @@ namespace
 
     void Load() const override
     {
-      Parameters::IntType val = 0;
-      if (Container->FindValue(Name, val))
+      if (const auto val = Container->FindInteger(Name))
       {
-        Wid.setChecked(val != 0);
+        Wid.setChecked(*val != 0);
       }
     }
 
@@ -428,14 +424,13 @@ namespace
 
     void Load() const override
     {
-      Parameters::IntType val;
       if (!Wid.restoreGeometry(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY)))
       {
         Dbg("Failed to restore geometry of QWidget({})", FromQString(Wid.objectName()));
       }
-      else if (Container->FindValue(Parameters::ZXTuneQT::UI::PARAM_VISIBLE, val))
+      else if (const auto val = Container->FindInteger(Parameters::ZXTuneQT::UI::PARAM_VISIBLE))
       {
-        Wid.setVisible(val != 0);
+        Wid.setVisible(*val != 0);
       }
     }
 

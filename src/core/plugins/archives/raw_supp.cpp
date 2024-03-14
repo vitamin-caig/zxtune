@@ -287,21 +287,19 @@ namespace ZXTune::Raw
 
     std::size_t GetMinimalSize() const
     {
-      Parameters::IntType minRawSize = Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE, minRawSize)
-          && minRawSize < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
+      using namespace Parameters::ZXTune::Core::Plugins::Raw;
+      const auto minRawSize = Parameters::GetInteger<std::size_t>(Accessor, MIN_SIZE, MIN_SIZE_DEFAULT);
+      if (minRawSize < MIN_MINIMAL_RAW_SIZE)
       {
         throw MakeFormattedError(THIS_LINE, translate("Specified minimal scan size ({0}). Should be more than {1}."),
                                  minRawSize, MIN_MINIMAL_RAW_SIZE);
       }
-      return static_cast<std::size_t>(minRawSize);
+      return minRawSize;
     }
 
     bool GetDoubleAnalysis() const
     {
-      Parameters::IntType doubleAnalysis = 0;
-      Accessor.FindValue(Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS, doubleAnalysis);
-      return doubleAnalysis != 0;
+      return 0 != Parameters::GetInteger(Accessor, Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS);
     }
 
   private:

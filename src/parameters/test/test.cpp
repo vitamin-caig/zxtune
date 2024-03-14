@@ -137,6 +137,26 @@ namespace
     std::vector<Binary::Data::Ptr> Datas;
   };
 
+  void TestFind(const Parameters::Accessor& src, StringView name, const Parameters::IntType* ref)
+  {
+    const auto out = src.FindInteger(name);
+    Test("find", !!out, !!ref);
+    if (ref != nullptr)
+    {
+      Test("value", *out, *ref);
+    }
+  }
+
+  void TestFind(const Parameters::Accessor& src, StringView name, const Parameters::StringType* ref)
+  {
+    const auto out = src.FindString(name);
+    Test("find", !!out, !!ref);
+    if (ref != nullptr)
+    {
+      Test("value", *out, *ref);
+    }
+  }
+
   void TestFind(const Parameters::Accessor& src, StringView name, const Binary::Dump* ref)
   {
     const auto out = src.FindData(name);
@@ -144,17 +164,6 @@ namespace
     if (ref)
     {
       Test("value", Parameters::ConvertToString(*out), Parameters::ConvertToString(*ref));
-    }
-  }
-
-  template<class T>
-  void TestFind(const Parameters::Accessor& src, StringView name, const T* ref)
-  {
-    T out;
-    Test("find", src.FindValue(name, out), ref != nullptr);
-    if (ref != nullptr)
-    {
-      Test("value", out, *ref);
     }
   }
 

@@ -44,10 +44,9 @@ namespace
 
     int Get() const override
     {
-      using namespace Parameters;
-      Parameters::StringType val = ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT;
-      Ctr->FindValue(ZXTune::Sound::Backends::Mp3::CHANNELS, val);
-      const Parameters::StringType* const arrPos = std::find(CHANNEL_MODES, std::end(CHANNEL_MODES), val);
+      using namespace Parameters::ZXTune::Sound::Backends::Mp3;
+      const auto val = Parameters::GetString(*Ctr, CHANNELS, CHANNELS_DEFAULT);
+      const auto* const arrPos = std::find(CHANNEL_MODES, std::end(CHANNEL_MODES), val);
       return arrPos != std::end(CHANNEL_MODES) ? arrPos - CHANNEL_MODES : -1;
     }
 

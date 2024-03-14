@@ -34,9 +34,8 @@ namespace Module::TFM
 
     uint64_t ClockFreq() const override
     {
-      Parameters::IntType val = Parameters::ZXTune::Core::FM::CLOCKRATE_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Core::FM::CLOCKRATE, val);
-      return val;
+      using namespace Parameters::ZXTune::Core::FM;
+      return Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
     }
 
     uint_t SoundFreq() const override

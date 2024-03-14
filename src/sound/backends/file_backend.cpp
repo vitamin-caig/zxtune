@@ -163,9 +163,9 @@ namespace Sound::File
     T GetProperty(Parameters::Identifier property) const
     {
       T result = T();
-      if (!Params->FindValue(ReplaceBackendId(property), result))
+      if (!Parameters::FindValue(*Params, ReplaceBackendId(property), result))
       {
-        Params->FindValue(property, result);
+        Parameters::FindValue(*Params, property, result);
       }
       return result;
     }
@@ -231,16 +231,15 @@ namespace Sound::File
   private:
     void SetProperties(FileStream& stream) const
     {
-      Parameters::StringType str;
-      if (Properties->FindValue(Module::ATTR_TITLE, str) && !str.empty())
+      if (const auto str = Parameters::GetString(*Properties, Module::ATTR_TITLE); !str.empty())
       {
         stream.SetTitle(str);
       }
-      if (Properties->FindValue(Module::ATTR_AUTHOR, str) && !str.empty())
+      if (const auto str = Parameters::GetString(*Properties, Module::ATTR_AUTHOR); !str.empty())
       {
         stream.SetAuthor(str);
       }
-      if (Properties->FindValue(Module::ATTR_COMMENT, str) && !str.empty())
+      if (const auto str = Parameters::GetString(*Properties, Module::ATTR_COMMENT); !str.empty())
       {
         stream.SetComment(str);
       }

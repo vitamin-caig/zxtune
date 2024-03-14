@@ -101,27 +101,25 @@ namespace Module::TurboSound
       return 1;
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
+    std::optional<Parameters::IntType> FindInteger(Parameters::Identifier name) const override
     {
-      return First->FindValue(name, val) || Second->FindValue(name, val);
+      if (auto first = First->FindInteger(name))
+      {
+        return first;
+      }
+      return Second->FindInteger(name);
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
+    std::optional<Parameters::StringType> FindString(Parameters::Identifier name) const override
     {
-      String val1;
-      String val2;
-      const bool res1 = First->FindValue(name, val1);
-      const bool res2 = Second->FindValue(name, val2);
-      if (res1 && res2)
+      auto val1 = First->FindString(name);
+      auto val2 = Second->FindString(name);
+      if (val1 && val2)
       {
-        MergeStringProperty(name, val1, val2);
-        val = val1;
+        MergeStringProperty(name, *val1, *val2);
+        return val1;
       }
-      else if (res1 != res2)
-      {
-        val = res1 ? val1 : val2;
-      }
-      return res1 || res2;
+      return val1 ? val1 : val2;
     }
 
     Binary::Data::Ptr FindData(Parameters::Identifier name) const override

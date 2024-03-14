@@ -48,15 +48,15 @@ namespace Sound::Sdl
 
     uint_t GetBuffersCount() const
     {
-      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS, val)
-          && (!Math::InRange<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
+      using namespace Parameters::ZXTune::Sound::Backends::Sdl;
+      const auto val = Parameters::GetInteger(Accessor, BUFFERS, BUFFERS_DEFAULT);
+      if (!Math::InRange(val, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
-                                 translate("SDL backend error: buffers count ({0}) is out of range ({1}..{2})."),
-                                 static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
+                                 translate("SDL backend error: buffers count ({0}) is out of range ({1}..{2})."), val,
+                                 BUFFERS_MIN, BUFFERS_MAX);
       }
-      return static_cast<uint_t>(val);
+      return val;
     }
 
   private:

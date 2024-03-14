@@ -158,7 +158,7 @@ namespace
           Dbg(" Parsing playlist extension");
           PropertiesFilter filter(*Properties, &IsPlaylistEnabledProperty, true);
           ParseExtension(filter);
-          Properties->FindValue(Playlist::ATTRIBUTE_VERSION, Version);
+          Parameters::FindValue(*Properties, Playlist::ATTRIBUTE_VERSION, Version);
         }
         else if (tagName == XSPF::TRACKLIST_TAG)
         {

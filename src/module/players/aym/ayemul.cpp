@@ -453,17 +453,13 @@ namespace Module::AYEMUL
     uint_t IntTicks() const override
     {
       using namespace Parameters::ZXTune::Core::Z80;
-      Parameters::IntType intTicks = INT_TICKS_DEFAULT;
-      Params->FindValue(INT_TICKS, intTicks);
-      return static_cast<uint_t>(intTicks);
+      return Parameters::GetInteger<uint_t>(*Params, INT_TICKS, INT_TICKS_DEFAULT);
     }
 
     uint64_t ClockFreq() const override
     {
-      using namespace Parameters::ZXTune::Core;
-      Parameters::IntType cpuClock = Z80::CLOCKRATE_DEFAULT;
-      Params->FindValue(Z80::CLOCKRATE, cpuClock);
-      return static_cast<uint_t>(cpuClock);
+      using namespace Parameters::ZXTune::Core::Z80;
+      return Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
     }
 
   private:
@@ -693,10 +689,9 @@ namespace Module::AYEMUL
     uint64_t ClockFreq() const override
     {
       const uint_t MIN_Z80_TICKS_PER_OUTPUT = 10;
-      using namespace Parameters::ZXTune::Core;
-      Parameters::IntType cpuClock = Z80::CLOCKRATE_DEFAULT;
-      Params->FindValue(Z80::CLOCKRATE, cpuClock);
-      return static_cast<uint_t>(cpuClock) / MIN_Z80_TICKS_PER_OUTPUT;
+      using namespace Parameters::ZXTune::Core::Z80;
+      const auto cpuClock = Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
+      return cpuClock / MIN_Z80_TICKS_PER_OUTPUT;
     }
 
     uint_t SoundFreq() const override
