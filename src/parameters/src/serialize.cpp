@@ -40,33 +40,31 @@ namespace
       emplace(name.AsString(), ConvertToString(val));
     }
   };
-
-  void SetValue(Visitor& visitor, StringView name, StringView val)
-  {
-    IntType asInt;
-    StringType asString;
-    if (ConvertFromString(val, asInt))
-    {
-      visitor.SetValue(name, asInt);
-    }
-    else if (const auto asData = ConvertDataFromString(val))
-    {
-      visitor.SetValue(name, *asData);
-    }
-    else if (ConvertFromString(val, asString))
-    {
-      visitor.SetValue(name, asString);
-    }
-  }
 }  // namespace
 
 namespace Parameters
 {
+  void Convert(StringView name, StringView value, class Visitor& visitor)
+  {
+    if (const auto asInt = ConvertIntegerFromString(value))
+    {
+      visitor.SetValue(name, *asInt);
+    }
+    else if (const auto asData = ConvertDataFromString(value))
+    {
+      visitor.SetValue(name, *asData);
+    }
+    else if (const auto asString = ConvertStringFromString(value))
+    {
+      visitor.SetValue(name, *asString);
+    }
+  }
+
   void Convert(const Strings::Map& map, Visitor& visitor)
   {
     for (const auto& entry : map)
     {
-      SetValue(visitor, entry.first, entry.second);
+      Convert(entry.first, entry.second, visitor);
     }
   }
 

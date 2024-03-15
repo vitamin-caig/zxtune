@@ -58,11 +58,7 @@ namespace
       const QVariant::Type type = var.type();
       if (type == QVariant::String)
       {
-        IntType val;
-        if (ConvertFromString(FromQString(var.toString()), val))
-        {
-          return val;
-        }
+        return ConvertIntegerFromString(FromQString(var.toString()));
       }
       else if (type == QVariant::LongLong || type == QVariant::Int)
       {
@@ -81,11 +77,7 @@ namespace
       const QVariant& var = value.Get();
       if (var.type() == QVariant::String)
       {
-        StringType val;
-        if (ConvertFromString(FromQString(var.toString()), val))
-        {
-          return val;
-        }
+        return ConvertStringFromString(FromQString(var.toString()));
       }
       return std::nullopt;
     }

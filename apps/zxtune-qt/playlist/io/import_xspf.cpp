@@ -318,9 +318,8 @@ namespace
     {
       const QString decoded = Version >= VERSION_WITH_TEXT_FIELDS_ESCAPING ? QUrl::fromPercentEncoding(input.toUtf8())
                                                                            : input;
-      const String res = FromQString(decoded);
-      String unescaped;
-      return Parameters::ConvertFromString(res, unescaped) ? unescaped : res;
+      String res = FromQString(decoded);
+      return Parameters::ConvertStringFromString(res).value_or(res);
     }
 
   private:

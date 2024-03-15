@@ -132,24 +132,22 @@ namespace Parameters
     return DataToString(val);
   }
 
-  bool ConvertFromString(StringView str, IntType& res)
+  std::optional<IntType> ConvertIntegerFromString(StringView str)
   {
     if (IsInteger(str))
     {
-      res = IntegerFromString(str);
-      return true;
+      return IntegerFromString(str);
     }
-    return false;
+    return std::nullopt;
   }
 
-  bool ConvertFromString(StringView str, StringType& res)
+  std::optional<StringType> ConvertStringFromString(StringView str)
   {
     if (!IsInteger(str) && !IsData(str))
     {
-      res = StringFromString(str);
-      return true;
+      return StringFromString(str).to_string();
     }
-    return false;
+    return std::nullopt;
   }
 
   Binary::Data::Ptr ConvertDataFromString(StringView str)

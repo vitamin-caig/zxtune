@@ -15,6 +15,7 @@
 
 namespace Parameters
 {
+  void Convert(StringView name, StringView value, class Visitor& visitor);
   void Convert(const Strings::Map& map, class Visitor& visitor);
   void Convert(const class Accessor& ac, Strings::Map& strings);
 }  // namespace Parameters
