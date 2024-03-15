@@ -15,10 +15,10 @@
             android:focusable="false" />
 
     <ImageView
+            android:id="@+id/coverart"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:alpha="0.2"
             android:clickable="false"
             android:focusable="false"
-            android:src="@drawable/background" />
+            android:src="@drawable/background_faded" />
 </FrameLayout>

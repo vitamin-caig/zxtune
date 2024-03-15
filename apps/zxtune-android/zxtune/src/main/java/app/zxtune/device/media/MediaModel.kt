@@ -19,7 +19,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import app.zxtune.Logger
+import app.zxtune.R
 import app.zxtune.TimeStamp
+import app.zxtune.coverart.BitmapLoader
+import app.zxtune.coverart.RemoteImage
 import app.zxtune.playback.Visualizer
 import app.zxtune.rpc.ParcelableBinder
 import app.zxtune.rpc.VisualizerProxy
@@ -65,6 +68,13 @@ class MediaModel(app: Application) : AndroidViewModel(app) {
             PlaybackPositionLiveData(PositionSource(it))
         } else {
             MutableLiveData(fromMediaTime(it.position))
+        }
+    }
+    // TODO: rework to the flow/livedata of ImageSource
+    val coverArt by lazy {
+        val loader = BitmapLoader("coverart", app, maxSize = 2)
+        RemoteImage(loader).apply {
+            setStub(R.drawable.background_faded)
         }
     }
 

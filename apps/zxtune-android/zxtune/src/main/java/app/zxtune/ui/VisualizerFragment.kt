@@ -1,17 +1,24 @@
 package app.zxtune.ui
 
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import app.zxtune.R
+import app.zxtune.analytics.Analytics
 import app.zxtune.device.media.MediaModel
 import app.zxtune.preferences.Preferences
 import app.zxtune.ui.views.SpectrumAnalyzerView
+import app.zxtune.utils.ifNotNulls
 
 class VisualizerFragment : Fragment() {
     private val state by lazy {
@@ -32,6 +39,32 @@ class VisualizerFragment : Fragment() {
             playbackState.observe(viewLifecycleOwner) { state ->
                 analyzer.setIsPlaying(PlaybackStateCompat.STATE_PLAYING == state?.state)
             }
+            // TODO: move to model
+            metadata.observe(viewLifecycleOwner) { meta ->
+                if (meta == null) {
+                    return@observe
+                }
+                var type: String? = null
+                val uri = meta.getString(MediaMetadataCompat.METADATA_KEY_ART_URI)?.also {
+                    type = "coverart"
+                } ?: meta.getString(
+                    MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI
+                )?.also {
+                    type = "albumart"
+                }
+                if (coverArt.setUri(uri?.let { Uri.parse(it) })) {
+                    ifNotNulls(type, meta.description?.mediaUri) { _, source ->
+                        Analytics.sendEvent("ui/image", "type" to type, "uri" to source)
+                    }
+                }
+            }
+            viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
+                private val imageView: ImageView = view.findViewById(R.id.coverart)
+                override fun onStart(owner: LifecycleOwner) = coverArt.bindTo(imageView)
+                override fun onStop(owner: LifecycleOwner) = coverArt.bindTo(null)
+                override fun onDestroy(owner: LifecycleOwner) =
+                    viewLifecycleOwner.lifecycle.removeObserver(this)
+            })
             view.setOnClickListener {
                 changeState()
             }
