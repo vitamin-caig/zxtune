@@ -12,8 +12,11 @@ import android.net.Uri;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.Util;
 import app.zxtune.fs.amp.Author;
@@ -26,6 +29,7 @@ import app.zxtune.fs.amp.Identifier;
 import app.zxtune.fs.amp.RemoteCatalog;
 import app.zxtune.fs.amp.Track;
 import app.zxtune.fs.http.MultisourceHttpProvider;
+import kotlin.text.StringsKt;
 
 final class VfsRootAmp extends StubObject implements VfsRoot {
 
@@ -35,16 +39,14 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   private final Context context;
   private final CachingCatalog catalog;
   private final GroupingDir[] groupings;
+  private final Random rand;
 
   VfsRootAmp(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http);
-    this.groupings = new GroupingDir[]{
-        new HandlesDir(),
-        new CountriesDir(),
-        new GroupsDir()
-    };
+    this.groupings = new GroupingDir[]{new HandlesDir(), new CountriesDir(), new GroupsDir()};
+    this.rand = new Random();
   }
 
   @Override
@@ -99,6 +101,12 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
   @Nullable
   private VfsObject resolve(Uri uri, List<String> path) {
+    final String category = Identifier.findCategory(path);
+    if (category == null) {
+      return this;
+    } else if (category.equals(Identifier.CATEGORY_IMAGE)) {
+      return ImageFile.tryCreate(catalog, uri, path);
+    }
     // due to identical structure of groupings, may resolve here
     // use plain algo with most frequent cases check first
     final Track track = Identifier.findTrack(uri, path);
@@ -112,10 +120,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     final VfsObject grouping = resolveGroupingDir(uri, path);
     if (grouping != null) {
       return grouping;
-    }
-    final String category = Identifier.findCategory(path);
-    if (category == null) {
-      return this;
     }
     for (GroupingDir group : groupings) {
       if (category.equals(group.getPath())) {
@@ -430,6 +434,16 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
         }
       });
     }
+
+
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.COVER_ART_URI.equals(id)) {
+        return Identifier.forPictureOf(author, Math.abs(rand.nextInt(1024)));
+      } else {
+        return super.getExtension(id);
+      }
+    }
   }
 
   @Nullable
@@ -443,8 +457,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
       return null;
     }
     // cut uri here
-    return new AuthorDir(Identifier.forAuthor(grouping.getUri().buildUpon(), author).build(),
-        author);
+    return new AuthorDir(Identifier.forAuthor(grouping.getUri().buildUpon(), author).build(), author);
   }
 
   private class TrackFile extends StubObject implements VfsFile {
@@ -490,6 +503,75 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     }
   }
 
+  private static class ImageFile extends StubObject implements VfsFile {
+    private final Uri uri;
+    private final String path;
+
+    private ImageFile(Uri uri, String path) {
+      this.uri = uri;
+      this.path = path;
+    }
+
+    @Nullable
+    static ImageFile tryCreate(Catalog cat, Uri uri, List<String> path) {
+      final Integer seed = Identifier.findSeed(uri, path);
+      final Author author = Identifier.findAuthor(uri, path);
+      if (seed == null || author == null) {
+        return null;
+      }
+      try {
+        final ArrayList<String> images = new ArrayList<>();
+        cat.queryPictures(author, new Catalog.PicturesVisitor() {
+          @Override
+          public void setCountHint(int count) {
+            images.ensureCapacity(count);
+          }
+
+          @Override
+          public void accept(String pic) {
+            images.add(pic);
+          }
+        });
+        return images.isEmpty() ? null : new ImageFile(uri, images.get(seed % images.size()));
+      } catch (IOException e) {
+        Log.w(TAG, e, "Failed to query author pictures");
+      }
+      return null;
+    }
+
+    @Override
+    public Uri getUri() {
+      return uri;
+    }
+
+    @Override
+    public String getName() {
+      return StringsKt.substringAfterLast(path, '/', path);
+    }
+
+    @Override
+    public VfsObject getParent() {
+      return null;
+    }
+
+    @Override
+    public String getSize() {
+      return "";
+    }
+
+    @Override
+    @Nullable
+    public Object getExtension(String id) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return getName();
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getPictureUris(path);
+      } else {
+        return super.getExtension(id);
+      }
+    }
+  }
+
   private class AuthorsSearchEngine implements VfsExtensions.SearchEngine {
 
     @Override
@@ -503,8 +585,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
         @Override
         public void accept(Author author, Track track) {
           final String letter = author.getHandle().substring(0, 1);
-          final Uri.Builder categoryUri = Identifier.forHandleLetter(Identifier.isHandleLetter(letter)
-              ? letter : Catalog.NON_LETTER_FILTER);
+          final Uri.Builder categoryUri = Identifier.forHandleLetter(Identifier.isHandleLetter(letter) ? letter : Catalog.NON_LETTER_FILTER);
           final Uri.Builder authorsUri = Identifier.forAuthor(categoryUri, author);
           final Uri.Builder trackUri = Identifier.forTrack(authorsUri, track);
           visitor.onFile(new TrackFile(trackUri.build(), track));

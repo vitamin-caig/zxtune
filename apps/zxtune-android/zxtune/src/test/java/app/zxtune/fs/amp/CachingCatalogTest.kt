@@ -6,7 +6,14 @@ import org.junit.After
 import org.junit.Assert.assertSame
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import org.robolectric.ParameterizedRobolectricTestRunner
 import java.io.IOException
 
@@ -30,6 +37,9 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     private val track1 = Track(31, "track1", 1)
     private val track2 = Track(32, "track2", 2)
 
+    private val picture1 = "/path/to/pic1.png"
+    private val picture2 = "/path/to/pic2.jpg"
+
     private val database = mock<Database> {
         on { runInTransaction(any()) } doAnswer {
             it.getArgument<Utils.ThrowingRunnable>(0).run()
@@ -39,11 +49,13 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
         on { getCountryLifetime(any(), any()) } doReturn lifetime
         on { getGroupLifetime(any(), any()) } doReturn lifetime
         on { getAuthorTracksLifetime(any(), any()) } doReturn lifetime
+        on { getAuthorPicturesLifetime(any(), any()) } doReturn lifetime
         on { queryGroups(any()) } doReturn case.hasCache
         on { queryAuthors(any<String>(), any()) } doReturn case.hasCache
         on { queryAuthors(any<Country>(), any()) } doReturn case.hasCache
         on { queryAuthors(any<Group>(), any()) } doReturn case.hasCache
         on { queryTracks(any(), any()) } doReturn case.hasCache
+        on { queryPictures(any(), any()) } doReturn case.hasCache
     }
 
     private val workingRemote = mock<RemoteCatalog> {
@@ -82,6 +94,13 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
                 accept(track2)
             }
         }
+        on { queryPictures(eq(queryAuthor), any()) } doAnswer {
+            it.getArgument<Catalog.PicturesVisitor>(1).run {
+                setCountHint(2)
+                accept(picture1)
+                accept(picture2)
+            }
+        }
     }
 
     private val failedRemote = mock<RemoteCatalog>(defaultAnswer = { throw error })
@@ -97,6 +116,7 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     private val groupsVisitor = mock<Catalog.GroupsVisitor>()
     private val authorsVisitor = mock<Catalog.AuthorsVisitor>()
     private val tracksVisitor = mock<Catalog.TracksVisitor>()
+    private val picturesVisitor = mock<Catalog.PicturesVisitor>()
     private val foundTracksVisitor = mock<Catalog.FoundTracksVisitor>()
 
     private val allMocks = arrayOf(
@@ -107,6 +127,7 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
         groupsVisitor,
         authorsVisitor,
         tracksVisitor,
+        picturesVisitor,
         foundTracksVisitor,
     )
 
@@ -218,6 +239,26 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
                 }
             }
             verify(database).queryTracks(queryAuthor, tracksVisitor)
+        }
+    }
+
+    @Test
+    fun `test queryPictures`(): Unit = CachingCatalog(remote, database).let { underTest ->
+        checkedQuery { underTest.queryPictures(queryAuthor, picturesVisitor) }
+
+        inOrder(*allMocks).run {
+            verify(database).getAuthorPicturesLifetime(eq(queryAuthor), any())
+            verify(lifetime).isExpired
+            if (case.isCacheExpired) {
+                verify(database).runInTransaction(any())
+                verify(remote).queryPictures(eq(queryAuthor), any())
+                if (!case.isFailedRemote) {
+                    verify(database).addAuthorPicture(queryAuthor, picture1)
+                    verify(database).addAuthorPicture(queryAuthor, picture2)
+                    verify(lifetime).update()
+                }
+            }
+            verify(database).queryPictures(queryAuthor, picturesVisitor)
         }
     }
 

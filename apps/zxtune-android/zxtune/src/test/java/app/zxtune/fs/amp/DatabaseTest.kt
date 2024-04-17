@@ -6,7 +6,10 @@ import app.zxtune.fs.DatabaseTestUtils.testFindObjects
 import app.zxtune.fs.DatabaseTestUtils.testQueryObjects
 import app.zxtune.fs.DatabaseTestUtils.testVisitor
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -137,6 +140,16 @@ class DatabaseTest {
     )
 
     @Test
+    fun `test queryPictures`() = testCheckObjectGrouping(
+        addObject = ::makePicture,
+        addGroup = ::makeAuthor,
+        addObjectToGroup = underTest::addAuthorPicture,
+        queryObjects = underTest::queryPictures,
+        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
+        checkAccept = { visitor, picture -> visitor.accept(picture) }
+    )
+
+    @Test
     fun `test queryGroups`() = testQueryObjects(
         addObject = ::addGroup,
         queryObjects = underTest::queryGroups,
@@ -169,3 +182,4 @@ private fun makeAuthor(id: Int) = Author(id, "author $id", "Author $id")
 private fun makeCountry(id: Int) = Country(id, "Country $id")
 private fun makeGroup(id: Int) = Group(id, "Group $id")
 private fun makeTrack(id: Int) = Track(id, "track${id}", id * 1024)
+private fun makePicture(id: Int) = "/path/to/${id}.png"

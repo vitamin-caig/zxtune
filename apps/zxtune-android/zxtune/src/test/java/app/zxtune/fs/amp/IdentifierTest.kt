@@ -81,6 +81,17 @@ class IdentifierTest {
     }
 
     @Test
+    fun `test images`() {
+        testParse("amp:/Image", category = Identifier.CATEGORY_IMAGE)
+        testParse(
+            "amp:/Image/Author/Name?author=12&seed=3456",
+            category = Identifier.CATEGORY_IMAGE,
+            author = Author(12, "Name", ""),
+            seed = 3456,
+        )
+    }
+
+    @Test
     fun `test errors`() {
         // Scheme validity is checked at another level
         testAnalyze(
@@ -106,7 +117,8 @@ private fun testParse(
     country: Country? = null,
     group: Group? = null,
     author: Author? = null,
-    track: Track? = null
+    track: Track? = null,
+    seed: Int? = null,
 ) {
     testAnalyze(
         uri = uri,
@@ -116,8 +128,15 @@ private fun testParse(
         country = country,
         group = group,
         author = author,
-        track = track
+        track = track,
+        seed = seed,
     )
+    if (seed != null) {
+        require(category == Identifier.CATEGORY_IMAGE)
+        requireNotNull(author)
+        assertEquals("uri", uri, Identifier.forPictureOf(author, seed).toString())
+        return;
+    }
     var builder = when {
         handleLetter != null -> Identifier.forHandleLetter(handleLetter)
         country != null -> Identifier.forCountry(country)
@@ -142,7 +161,8 @@ private fun testAnalyze(
     country: Country? = null,
     group: Group? = null,
     author: Author? = null,
-    track: Track? = null
+    track: Track? = null,
+    seed: Int? = null,
 ) = Uri.parse(uri).let { url ->
     val path = url.pathSegments
     assertEquals("isFromRoot", isFromRoot, Identifier.isFromRoot(url))
@@ -152,4 +172,5 @@ private fun testAnalyze(
     assertEquals("findGroup", group, Identifier.findGroup(url, path))
     assertEquals("findAuthor", author, Identifier.findAuthor(url, path))
     assertEquals("findTrack", track, Identifier.findTrack(url, path))
+    assertEquals("findSeed", seed, Identifier.findSeed(url, path))
 }

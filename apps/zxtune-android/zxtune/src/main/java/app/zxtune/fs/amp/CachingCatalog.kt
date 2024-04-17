@@ -12,6 +12,7 @@ import app.zxtune.fs.dbhelpers.QueryCommand
 private val GROUPS_TTL = TimeStamp.fromDays(30)
 private val AUTHORS_TTL = TimeStamp.fromDays(30)
 private val TRACKS_TTL = TimeStamp.fromDays(30)
+private val PICTURES_TTL = TimeStamp.fromDays(30)
 
 class CachingCatalog internal constructor(
     private val remote: RemoteCatalog,
@@ -100,6 +101,22 @@ class CachingCatalog internal constructor(
 
 
             override fun queryFromCache() = db.queryTracks(author, visitor)
+        })
+
+    override fun queryPictures(author: Author, visitor: Catalog.PicturesVisitor) = executor
+        .executeQuery("pictures", object : QueryCommand {
+            private val lifetime = db.getAuthorPicturesLifetime(author, PICTURES_TTL)
+            override val isCacheExpired
+                get() = lifetime.isExpired
+
+            override fun updateCache() = db.runInTransaction {
+                remote.queryPictures(author) {
+                    db.addAuthorPicture(author, it)
+                }
+                lifetime.update()
+            }
+
+            override fun queryFromCache() = db.queryPictures(author, visitor)
         })
 
     override fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) =
