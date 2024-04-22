@@ -25,6 +25,7 @@ import app.zxtune.R
 import app.zxtune.playback.Visualizer
 import app.zxtune.playback.stubs.VisualizerStub
 import java.lang.ref.WeakReference
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 import kotlin.math.min
 
@@ -139,7 +140,12 @@ class SpectrumAnalyzerView @JvmOverloads constructor(
 
         private inner class DrawTask(private val weakHolder: WeakReference<SurfaceHolder>) :
             Runnable {
+            private val scheduled = AtomicBoolean(false)
+
             override fun run() {
+                if (!scheduled.getAndSet(false)) {
+                    return
+                }
                 val holder = weakHolder.get() ?: return
                 schedule()
                 if (update()) {
@@ -150,10 +156,16 @@ class SpectrumAnalyzerView @JvmOverloads constructor(
             }
 
             fun schedule() {
-                handler.postDelayed(this, (1000 / UPDATE_FPS).toLong())
+                if (!scheduled.getAndSet(true)) {
+                    handler.postDelayed(this, (1000 / UPDATE_FPS).toLong())
+                }
             }
 
-            fun cancel() = handler.removeCallbacks(this)
+            fun cancel() {
+                if (scheduled.getAndSet(false)) {
+                    handler.removeCallbacks(this)
+                }
+            }
 
             private fun update(): Boolean {
                 val bars = src.getSpectrum(buffer)
