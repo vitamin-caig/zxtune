@@ -5,6 +5,18 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev5060 from 22.04.2024
+
+[*] Fixed fadeout processing for looped playback
+[*] Reduced memory usage on decompressing
+[*] Fixed some GSF tracks playback
+[*] Fixed playback of modules with internal loops
+[+] zxtune-qt: embedded coverart displaying in tooltip and track properties
+[*] zxtune-android: fixed spectrum analyzer
+[*] zxtune-android: improved support of Android 13&14
+[+] zxtune-android: embedded (mp3/ogg/flac) and external (vgmrips/zxtunes/amp/archive) coverart support 
+[+] zxtune-android: toggleable track comments control
+
 --- Rev5050 from 22.08.2023
 
 [+] Supported OPUS format playback including modules' samples
