@@ -48,6 +48,8 @@ namespace Module
   constexpr const auto ATTR_STRINGS = "Strings"_sv;
   //! Platform id
   constexpr const auto ATTR_PLATFORM = "Platform"_sv;
+  //! Covert art
+  constexpr const auto ATTR_PICTURE = "Picture"_sv;
   //@}
 
   //@{

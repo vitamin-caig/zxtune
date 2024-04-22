@@ -28,15 +28,13 @@ namespace Parameters
 
     String GetFieldValue(StringView fieldName) const override
     {
-      IntType intVal = 0;
-      StringType strVal;
-      if (Params.FindValue(fieldName, intVal))
+      if (auto integer = Params.FindInteger(fieldName))
       {
-        return ConvertToString(intVal);
+        return ConvertToString(*integer);
       }
-      else if (Params.FindValue(fieldName, strVal))
+      if (auto str = Params.FindString(fieldName))
       {
-        return strVal;
+        return *str;
       }
       return Policy::GetFieldValue(fieldName);
     }

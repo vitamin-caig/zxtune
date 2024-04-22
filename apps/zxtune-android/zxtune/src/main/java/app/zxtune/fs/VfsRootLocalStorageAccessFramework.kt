@@ -11,6 +11,7 @@ import androidx.documentfile.provider.DocumentFile
 import app.zxtune.R
 import app.zxtune.ResultActivity
 import app.zxtune.Util
+import app.zxtune.coverart.AlbumArt
 import app.zxtune.fs.local.Document
 import app.zxtune.fs.local.Identifier
 import app.zxtune.fs.local.PersistablePermissions
@@ -130,6 +131,7 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
                     ResultActivity.createStoragePermissionRequestIntent(context, uri)
                 }
 
+            VfsExtensions.COVER_ART_URI -> AlbumArt.forDir(this)
             else -> super.getExtension(id)
         }
 

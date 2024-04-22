@@ -11,7 +11,11 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import app.zxtune.Logger
 import app.zxtune.TimeStamp
-import app.zxtune.fs.dbhelpers.*
+import app.zxtune.fs.dbhelpers.DBProvider
+import app.zxtune.fs.dbhelpers.Grouping
+import app.zxtune.fs.dbhelpers.Objects
+import app.zxtune.fs.dbhelpers.Timestamps
+import app.zxtune.fs.dbhelpers.Utils
 
 /**
  * Version 1
@@ -28,12 +32,16 @@ import app.zxtune.fs.dbhelpers.*
  * CREATE TABLE groups (_id INTEGER PRIMARY KEY, name TEXT NOT NULL)
  * group_authors with 32-bit grouping
  *
+ * Version 3
+ *
+ * CREATE TABLE author_pictures (author INTEGER NOT NULL, path TEXT NOT NULL, PRIMARY KEY(author, path))
+ *
  */
 
 private val LOG = Logger(Database::class.java.name)
 
 private const val NAME = "amp.dascene.net"
-private const val VERSION = 2
+private const val VERSION = 3
 
 internal open class Database(context: Context) {
     private val helper = DBProvider(Helper(context))
@@ -42,6 +50,7 @@ internal open class Database(context: Context) {
     private val groups = Tables.Groups(helper)
     private val authors = Tables.Authors(helper)
     private val authorTracks = Tables.AuthorTracks(helper)
+    private val authorPictures = Tables.AuthorPictures(helper)
     private val tracks = Tables.Tracks(helper)
     private val timestamps = Timestamps(helper)
     private val findQuery = "SELECT * FROM authors LEFT OUTER JOIN tracks ON " +
@@ -60,6 +69,9 @@ internal open class Database(context: Context) {
 
     open fun getAuthorTracksLifetime(author: Author, ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Authors.NAME + author.id, ttl)
+
+    open fun getAuthorPicturesLifetime(author: Author, ttl: TimeStamp) =
+        timestamps.getLifetime(Tables.AuthorPictures.NAME + author.id, ttl)
 
     open fun getGroupsLifetime(ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Groups.NAME, ttl)
@@ -117,6 +129,26 @@ internal open class Database(context: Context) {
         return false
     }
 
+    open fun queryPictures(author: Author, visitor: Catalog.PicturesVisitor): Boolean {
+        helper.readableDatabase.query(
+            Tables.AuthorPictures.NAME, arrayOf(
+                Tables.AuthorPictures
+                    .FIELD
+            ), Tables.AuthorPictures.SELECTION, arrayOf(author.id.toString()), null, null,
+            null
+        )?.use { cursor ->
+            val count = cursor.count
+            if (count != 0) {
+                visitor.setCountHint(count)
+                while (cursor.moveToNext()) {
+                    visitor.accept(Tables.AuthorPictures.createPicture(cursor))
+                }
+                return true
+            }
+        }
+        return false
+    }
+
     open fun queryGroups(visitor: Catalog.GroupsVisitor): Boolean {
         helper.readableDatabase.query(Tables.Groups.NAME, null, null, null, null, null, null)
             ?.use { cursor ->
@@ -147,7 +179,8 @@ internal open class Database(context: Context) {
         }
     }
 
-    open fun addCountryAuthor(country: Country, author: Author) = countryAuthors.add(country, author)
+    open fun addCountryAuthor(country: Country, author: Author) =
+        countryAuthors.add(country, author)
 
     open fun addGroup(group: Group) = groups.add(group)
 
@@ -158,9 +191,11 @@ internal open class Database(context: Context) {
     open fun addTrack(obj: Track) = tracks.add(obj)
 
     open fun addAuthorTrack(author: Author, track: Track) = authorTracks.add(author, track)
+
+    open fun addAuthorPicture(author: Author, picture: String) = authorPictures.add(author, picture)
 }
 
-private class Helper constructor(context: Context) :
+private class Helper(context: Context) :
     SQLiteOpenHelper(context, NAME, null, VERSION) {
     override fun onCreate(db: SQLiteDatabase) {
         LOG.d { "Creating database" }
@@ -170,6 +205,7 @@ private class Helper constructor(context: Context) :
         db.execSQL(Tables.Authors.CREATE_QUERY)
         db.execSQL(Tables.Tracks.CREATE_QUERY)
         db.execSQL(Tables.AuthorTracks.CREATE_QUERY)
+        db.execSQL(Tables.AuthorPictures.CREATE_QUERY)
         db.execSQL(Timestamps.CREATE_QUERY)
     }
 
@@ -247,6 +283,25 @@ private class Tables {
         companion object {
             const val NAME = "author_tracks"
             val CREATE_QUERY: String = createQuery(NAME)
+        }
+    }
+
+    class AuthorPictures(helper: DBProvider) : Objects(helper, NAME, FIELDS_COUNT) {
+        fun add(author: Author, picture: String) = add(author.id.toLong(), picture)
+
+        companion object {
+            const val NAME = "author_pictures"
+            const val CREATE_QUERY = "CREATE TABLE author_pictures (" +
+                    "author INTEGER NOT NULL, " +
+                    "path TEXT NOT NULL, " +
+                    "PRIMARY KEY(author, path)" +
+                    ");"
+            const val FIELDS_COUNT = 2
+
+            const val SELECTION = "author = ?"
+            const val FIELD = "path"
+
+            fun createPicture(cursor: Cursor): String = cursor.getString(0)
         }
     }
 

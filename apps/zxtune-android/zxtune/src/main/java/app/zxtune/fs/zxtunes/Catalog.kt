@@ -37,6 +37,9 @@ interface Catalog {
     @Throws(IOException::class)
     fun queryAuthors(visitor: AuthorsVisitor)
 
+    @Throws(IOException::class)
+    fun queryAuthor(id: Int): Author?
+
     /**
      * Query tracks objects
      * @param author scope

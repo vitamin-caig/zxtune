@@ -309,13 +309,13 @@ namespace Sound::Ogg
 
     bool IsABRMode() const
     {
-      Parameters::StringType mode = Parameters::ZXTune::Sound::Backends::Ogg::MODE_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Sound::Backends::Ogg::MODE, mode);
-      if (mode == Parameters::ZXTune::Sound::Backends::Ogg::MODE_ABR)
+      using namespace Parameters::ZXTune::Sound::Backends::Ogg;
+      const auto mode = Parameters::GetString(*Params, MODE, MODE_DEFAULT);
+      if (mode == MODE_ABR)
       {
         return true;
       }
-      else if (mode == Parameters::ZXTune::Sound::Backends::Ogg::MODE_QUALITY)
+      else if (mode == MODE_QUALITY)
       {
         return false;
       }
@@ -327,26 +327,26 @@ namespace Sound::Ogg
 
     uint_t GetBitrate() const
     {
-      Parameters::IntType bitrate = Parameters::ZXTune::Sound::Backends::Ogg::BITRATE_DEFAULT;
-      if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Ogg::BITRATE, bitrate)
-          && !Math::InRange<Parameters::IntType>(bitrate, BITRATE_MIN, BITRATE_MAX))
+      using namespace Parameters::ZXTune::Sound::Backends::Ogg;
+      const auto bitrate = Parameters::GetInteger<uint_t>(*Params, BITRATE, BITRATE_DEFAULT);
+      if (!Math::InRange(bitrate, BITRATE_MIN, BITRATE_MAX))
       {
         throw MakeFormattedError(THIS_LINE, translate("OGG backend error: bitrate ({0}) is out of range ({1}..{2})."),
-                                 static_cast<int_t>(bitrate), BITRATE_MIN, BITRATE_MAX);
+                                 bitrate, BITRATE_MIN, BITRATE_MAX);
       }
-      return static_cast<uint_t>(bitrate);
+      return bitrate;
     }
 
     uint_t GetQuality() const
     {
-      Parameters::IntType quality = Parameters::ZXTune::Sound::Backends::Ogg::QUALITY_DEFAULT;
-      if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Ogg::QUALITY, quality)
-          && !Math::InRange<Parameters::IntType>(quality, QUALITY_MIN, QUALITY_MAX))
+      using namespace Parameters::ZXTune::Sound::Backends::Ogg;
+      const auto quality = Parameters::GetInteger<uint_t>(*Params, QUALITY, QUALITY_DEFAULT);
+      if (!Math::InRange(quality, QUALITY_MIN, QUALITY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, translate("OGG backend error: quality ({0}) is out of range ({1}..{2})."),
-                                 static_cast<int_t>(quality), QUALITY_MIN, QUALITY_MAX);
+                                 quality, QUALITY_MIN, QUALITY_MAX);
       }
-      return static_cast<uint_t>(quality);
+      return quality;
     }
 
   private:

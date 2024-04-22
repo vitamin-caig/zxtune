@@ -49,6 +49,14 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_
 
 /*
  * Class:     app_zxtune_core_jni_JniModule
+ * Method:    getProperty
+ * Signature: (Ljava/lang/String;[B)[B;
+ */
+JNIEXPORT jbyteArray JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2_3B
+  (JNIEnv *, jobject, jstring, jbyteArray);
+
+/*
+ * Class:     app_zxtune_core_jni_JniModule
  * Method:    getAdditionalFiles
  * Signature: ()[Ljava/lang/String;
  */

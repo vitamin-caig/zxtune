@@ -80,10 +80,10 @@ namespace
       if (isVisible() && ModuleProperties)
       {
         // TODO: use walker?
-        Parameters::IntType val;
-        isYM->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::AYM::TYPE, val));
-        aymLayout->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, val));
-        isDACInterpolated->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val));
+        using namespace Parameters::ZXTune::Core;
+        isYM->setEnabled(!ModuleProperties->FindInteger(AYM::TYPE).has_value());
+        aymLayout->setEnabled(!ModuleProperties->FindInteger(AYM::LAYOUT).has_value());
+        isDACInterpolated->setEnabled(!ModuleProperties->FindInteger(DAC::INTERPOLATION).has_value());
       }
     }
 

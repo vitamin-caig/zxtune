@@ -18,14 +18,6 @@
 
 namespace Sound
 {
-  Parameters::IntType GetProperty(const Parameters::Accessor& params, Parameters::Identifier name,
-                                  Parameters::IntType defVal = 0)
-  {
-    Parameters::IntType ret = defVal;
-    params.FindValue(name, ret);
-    return ret;
-  }
-
   class RenderParametersImpl : public RenderParameters
   {
   public:
@@ -41,13 +33,7 @@ namespace Sound
     uint_t SoundFreq() const override
     {
       using namespace Parameters::ZXTune::Sound;
-      return static_cast<uint_t>(FoundProperty(FREQUENCY, FREQUENCY_DEFAULT));
-    }
-
-  private:
-    Parameters::IntType FoundProperty(Parameters::Identifier name, Parameters::IntType defVal) const
-    {
-      return GetProperty(*Params, name, defVal);
+      return Parameters::GetInteger<uint_t>(*Params, FREQUENCY, FREQUENCY_DEFAULT);
     }
 
   private:
@@ -65,12 +51,12 @@ namespace Sound
   Module::LoopParameters GetLoopParameters(const Parameters::Accessor& params)
   {
     using namespace Parameters::ZXTune::Sound;
-    return {0 != GetProperty(params, LOOPED), static_cast<uint_t>(GetProperty(params, LOOP_LIMIT))};
+    return {0 != Parameters::GetInteger(params, LOOPED), Parameters::GetInteger<uint_t>(params, LOOP_LIMIT)};
   }
 
   uint_t GetSoundFrequency(const Parameters::Accessor& params)
   {
     using namespace Parameters::ZXTune::Sound;
-    return static_cast<uint_t>(GetProperty(params, FREQUENCY, FREQUENCY_DEFAULT));
+    return Parameters::GetInteger<uint_t>(params, FREQUENCY, FREQUENCY_DEFAULT);
   }
 }  // namespace Sound

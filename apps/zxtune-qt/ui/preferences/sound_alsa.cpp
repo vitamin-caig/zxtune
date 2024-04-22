@@ -101,8 +101,7 @@ namespace
     void SelectDevice()
     {
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      String curDevice = DEVICE_DEFAULT;
-      Options->FindValue(DEVICE, curDevice);
+      const auto curDevice = Parameters::GetString(*Options, DEVICE, DEVICE_DEFAULT);
       // force fill mixers- signal is not called by previous function (even when connected before, why?)
       DeviceChanged(ToQString(curDevice));
     }
@@ -122,8 +121,7 @@ namespace
     void SelectMixer()
     {
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      String curMixer;
-      Options->FindValue(MIXER, curMixer);
+      const auto curMixer = Parameters::GetString(*Options, MIXER);
       SetComboValue(*mixers, curMixer);
     }
 

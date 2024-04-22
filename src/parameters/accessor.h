@@ -15,6 +15,7 @@
 #include <parameters/types.h>
 // std includes
 #include <memory>
+#include <optional>
 
 namespace Parameters
 {
@@ -32,13 +33,49 @@ namespace Parameters
     virtual uint_t Version() const = 0;
 
     //! Accessing integer parameters
-    virtual bool FindValue(Identifier name, IntType& val) const = 0;
+    virtual std::optional<IntType> FindInteger(Identifier name) const = 0;
     //! Accessing string parameters
-    virtual bool FindValue(Identifier name, StringType& val) const = 0;
-    //! Accessing data parameters
-    virtual bool FindValue(Identifier name, DataType& val) const = 0;
+    virtual std::optional<StringType> FindString(Identifier name) const = 0;
+    //! Captures snapshot of currently stored data
+    virtual Binary::Data::Ptr FindData(Identifier name) const = 0;
 
     //! Valk along the stored values
     virtual void Process(class Visitor& visitor) const = 0;
   };
+
+  // Helper functions
+  inline bool FindValue(const Accessor& src, Identifier name, IntType& res)
+  {
+    if (auto val = src.FindInteger(name))
+    {
+      res = *val;
+      return true;
+    }
+    return false;
+  }
+
+  template<class T = IntType>
+  auto GetInteger(const Accessor& src, Identifier name, IntType defVal = 0)
+  {
+    return static_cast<T>(src.FindInteger(name).value_or(defVal));
+  }
+
+  inline bool FindValue(const Accessor& src, Identifier name, StringType& res)
+  {
+    if (auto val = src.FindString(name))
+    {
+      res = std::move(*val);
+      return true;
+    }
+    return false;
+  }
+
+  inline auto GetString(const Accessor& src, Identifier name, StringView defVal = ""_sv)
+  {
+    if (auto val = src.FindString(name))
+    {
+      return std::move(*val);
+    }
+    return defVal.to_string();
+  }
 }  // namespace Parameters

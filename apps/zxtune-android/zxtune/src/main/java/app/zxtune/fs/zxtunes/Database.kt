@@ -11,7 +11,11 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import app.zxtune.Logger
 import app.zxtune.TimeStamp
-import app.zxtune.fs.dbhelpers.*
+import app.zxtune.fs.dbhelpers.DBProvider
+import app.zxtune.fs.dbhelpers.Grouping
+import app.zxtune.fs.dbhelpers.Objects
+import app.zxtune.fs.dbhelpers.Timestamps
+import app.zxtune.fs.dbhelpers.Utils
 
 /**
  * Version 1
@@ -27,11 +31,14 @@ import app.zxtune.fs.dbhelpers.*
  *
  * Use author_tracks standard grouping
  * Use timestamps
+ *
+ * Version 3
+ * Add Authors.has_photo field
  */
 
 private val LOG = Logger(Database::class.java.name)
 private const val NAME = "www.zxtunes.com"
-private const val VERSION = 2
+private const val VERSION = 3
 
 internal open class Database(context: Context) {
 
@@ -56,8 +63,12 @@ internal open class Database(context: Context) {
     open fun getAuthorTracksLifetime(author: Author, ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Authors.NAME + author.id, ttl)
 
-    open fun queryAuthors(visitor: Catalog.AuthorsVisitor): Boolean {
-        helper.readableDatabase.query(Tables.Authors.NAME, null, null, null, null, null, null)
+    open fun queryAuthors(visitor: Catalog.AuthorsVisitor, id: Int? = null): Boolean {
+        helper.readableDatabase.query(
+            Tables.Authors.NAME, null, id?.let { "_id = ?" },
+            id?.let { arrayOf(it.toString()) }, null,
+            null, null
+        )
             ?.use { cursor ->
                 val count = cursor.count
                 if (count != 0) {
@@ -131,21 +142,24 @@ private class Helper constructor(context: Context) :
 
 private class Tables {
     class Authors(helper: DBProvider) : Objects(helper, NAME, FIELDS_COUNT) {
-        fun add(obj: Author) = add(obj.id.toLong(), obj.nickname, obj.name)
+        fun add(obj: Author) =
+            add(obj.id.toLong(), obj.nickname, obj.name, if (requireNotNull(obj.hasPhoto)) 1 else 0)
 
         companion object {
             const val NAME = "authors"
             const val CREATE_QUERY = "CREATE TABLE authors (" +
                     "_id  INTEGER PRIMARY KEY, " +
                     "nickname TEXT NOT NULL, " +
-                    "name TEXT);"
-            const val FIELDS_COUNT = 3
+                    "name TEXT, " +
+                    "has_photo INTEGER);"
+            const val FIELDS_COUNT = 4
 
             fun createAuthor(cursor: Cursor) = run {
                 val id = cursor.getInt(0)
-                val name = cursor.getString(2)
                 val nickname = cursor.getString(1)
-                Author(id, nickname, name)
+                val name = cursor.getString(2)
+                val hasPhoto = cursor.getInt(3) != 0
+                Author(id, nickname, name, hasPhoto)
             }
         }
     }

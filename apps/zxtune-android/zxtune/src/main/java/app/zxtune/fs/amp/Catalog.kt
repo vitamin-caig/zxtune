@@ -16,6 +16,7 @@ interface Catalog {
         fun setCountHint(count: Int) {}
     }
 
+    // TODO: generalize visitor
     fun interface GroupsVisitor : WithCountHint {
         override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
         fun accept(obj: Group)
@@ -34,6 +35,11 @@ interface Catalog {
     fun interface FoundTracksVisitor : WithCountHint {
         override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
         fun accept(author: Author, track: Track)
+    }
+
+    fun interface PicturesVisitor : WithCountHint {
+        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
+        fun accept(pic: String)
     }
 
     /**
@@ -74,6 +80,14 @@ interface Catalog {
      */
     @Throws(IOException::class)
     fun queryTracks(author: Author, visitor: TracksVisitor)
+
+    /**
+     * Query authors's tracks
+     * @param author scope
+     * @param visitor result receiver
+     */
+    @Throws(IOException::class)
+    fun queryPictures(author: Author, visitor: PicturesVisitor)
 
     /**
      * Find tracks by query substring

@@ -39,9 +39,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http);
-    this.groups = new GroupingDir[]{
-        new AuthorsDir()
-    };
+    this.groups = new GroupingDir[]{new AuthorsDir()};
   }
 
   @Override
@@ -99,12 +97,23 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     final String category = Identifier.findCategory(path);
     if (category == null) {
       return this;
+    } else if (Identifier.CATEGORY_IMAGES.equals(category)) {
+      return resolveImages(uri, path);
     } else {
       for (GroupingDir group : groups) {
         if (category.equals(group.getPath())) {
           return group.resolve(uri, path);
         }
       }
+    }
+    return null;
+  }
+
+  @Nullable
+  private VfsFile resolveImages(Uri uri, List<String> path) {
+    final Author author = Identifier.findAuthor(uri, path);
+    if (author != null) {
+      return new ImageFile(author);
     }
     return null;
   }
@@ -175,9 +184,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
         return new TrackFile(uri, track);
       }
       final VfsObject dir = resolveDir(uri, path);
-      return dir != null
-          ? dir
-          : this;
+      return dir != null ? dir : this;
     }
   }
 
@@ -188,9 +195,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
       return null;
     }
     final Integer date = Identifier.findDate(uri, path);
-    return date != null
-        ? new AuthorDateDir(author, date)
-        : new AuthorDir(author);
+    return date != null ? new AuthorDateDir(author, date) : new AuthorDir(author);
   }
 
   private class AuthorDir extends StubObject implements VfsDir {
@@ -243,6 +248,16 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
       });
       for (int i = 0, lim = dates.size(); i != lim; ++i) {
         visitor.onDir(new AuthorDateDir(author, dates.keyAt(i), dates.valueAt(i)));
+      }
+    }
+
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.COVER_ART_URI.equals(id)) {
+        final Author obj = catalog.queryAuthor(author.getId());
+        return obj != null && Boolean.TRUE == obj.getHasPhoto() ? Identifier.forPhotoOf(author) : null;
+      } else {
+        return super.getExtension(id);
       }
     }
   }
@@ -354,18 +369,53 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     @Override
     public String getSize() {
-      return module.getDuration() != null
-          ? FRAME_DURATION.multiplies(module.getDuration()).toString()
-          : "";
+      return module.getDuration() != null ? FRAME_DURATION.multiplies(module.getDuration()).toString() : "";
     }
 
     @Nullable
     private String getShareUrl() {
       final Author author = Identifier.findAuthor(uri, uri.getPathSegments());
-      return author != null
-          ? String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.getId(),
-          module.getId())
-          : null;
+      return author != null ? String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.getId(), module.getId()) : null;
+    }
+  }
+
+  private static class ImageFile extends StubObject implements VfsFile {
+    private final Author author;
+
+    private ImageFile(Author author) {
+      this.author = author;
+    }
+
+    @Override
+    public Uri getUri() {
+      return Identifier.forPhotoOf(author);
+    }
+
+    @Override
+    public String getName() {
+      return author.getNickname();
+    }
+
+    @Override
+    public VfsObject getParent() {
+      return null;
+    }
+
+    @Override
+    public String getSize() {
+      return "";
+    }
+
+    @Override
+    @Nullable
+    public Object getExtension(String id) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return author.getId() + ".jpg";
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getImageUris(author.getId());
+      } else {
+        return super.getExtension(id);
+      }
     }
   }
 

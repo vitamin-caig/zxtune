@@ -12,6 +12,7 @@
 #include <make_ptr.h>
 // library includes
 #include <parameters/accessor.h>
+#include <parameters/delegated.h>
 #include <sound/matrix_mixer.h>
 #include <sound/mixer_parameters.h>
 #include <sound/sound_parameters.h>
@@ -28,9 +29,9 @@ namespace Sound
     {
       using namespace Parameters::ZXTune::Sound;
       const auto name = Mixer::LEVEL(channels, inChan, outChan);
-      auto val = Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
-      params.FindValue(name, val);
-      out[outChan] = Gain::Type(static_cast<int_t>(val), GAIN_PRECISION);
+      const auto def = Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
+      const auto val = Parameters::GetInteger<int_t>(params, name, def);
+      out[outChan] = Gain::Type(val, GAIN_PRECISION);
     }
   }
 
@@ -54,48 +55,27 @@ namespace Sound
   }
 
   template<class MixerType>
-  class MixerNotificationParameters : public Parameters::Accessor
+  class MixerNotificationParameters : public Parameters::DelegatedAccessor
   {
   public:
     MixerNotificationParameters(Parameters::Accessor::Ptr params, typename MixerType::Ptr mixer)
-      : Params(std::move(params))
+      : Parameters::DelegatedAccessor(std::move(params))
       , Mixer(std::move(mixer))
-      , LastVersion(~Params->Version())
+      , LastVersion(~Delegate->Version())
     {}
 
     uint_t Version() const override
     {
-      const uint_t newVers = Params->Version();
+      const uint_t newVers = Delegate->Version();
       if (newVers != LastVersion)
       {
-        FillMixer(*Params, *Mixer);
+        FillMixer(*Delegate, *Mixer);
         LastVersion = newVers;
       }
       return newVers;
     }
 
-    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
-    {
-      return Params->FindValue(name, val);
-    }
-
-    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
-    {
-      return Params->FindValue(name, val);
-    }
-
-    bool FindValue(Parameters::Identifier name, Parameters::DataType& val) const override
-    {
-      return Params->FindValue(name, val);
-    }
-
-    void Process(Parameters::Visitor& visitor) const override
-    {
-      return Params->Process(visitor);
-    }
-
   private:
-    const Parameters::Accessor::Ptr Params;
     const typename MixerType::Ptr Mixer;
     mutable uint_t LastVersion;
   };

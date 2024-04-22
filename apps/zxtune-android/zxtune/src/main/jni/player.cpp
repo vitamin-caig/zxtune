@@ -10,6 +10,7 @@
 
 // local includes
 #include "player.h"
+#include "array.h"
 #include "debug.h"
 #include "exception.h"
 #include "global_options.h"
@@ -331,47 +332,6 @@ namespace
   {
     return MakePtr<PlayerControl>(module, samplerate, MakeSingletonPointer(Parameters::GlobalOptions()));
   }
-
-  template<class StorageType, class ResultType>
-  class AutoArray
-  {
-  public:
-    AutoArray(JNIEnv* env, StorageType storage)
-      : Env(env)
-      , Storage(storage)
-      , Length(Env->GetArrayLength(Storage))
-      , Content(static_cast<ResultType*>(Env->GetPrimitiveArrayCritical(Storage, nullptr)))
-    {}
-
-    ~AutoArray()
-    {
-      if (Content)
-      {
-        Env->ReleasePrimitiveArrayCritical(Storage, Content, 0);
-      }
-    }
-
-    operator bool() const
-    {
-      return Length != 0 && Content != nullptr;
-    }
-
-    ResultType* Data() const
-    {
-      return Length ? Content : nullptr;
-    }
-
-    std::size_t Size() const
-    {
-      return Length;
-    }
-
-  private:
-    JNIEnv* const Env;
-    const StorageType Storage;
-    const jsize Length;
-    ResultType* const Content;
-  };
 }  // namespace
 
 namespace Player
@@ -408,8 +368,7 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_core_jni_JniPlayer_render(JNIEnv* env
 {
   return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    using ArrayType = AutoArray<jshortArray, int16_t>;
-    const ArrayType buf(env, buffer);
+    const Jni::AutoShortArray buf(env, buffer);
     Jni::CheckArgument(buf, "Empty render buffer");
     if (const auto player = Player::Storage::Instance().Find(playerHandle))
     {
@@ -428,8 +387,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze(JNIEnv* env, j
     // Should be before AutoArray calls - else causes 'using JNI after critical get' error
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto player = Player::Storage::Instance().Find(playerHandle);
-    using ArrayType = AutoArray<jbyteArray, uint8_t>;
-    const ArrayType rawLevels(env, levels);
+    const Jni::AutoByteArray rawLevels(env, levels);
     if (rawLevels && player)
     {
       return player->Analyze(rawLevels.Size(), rawLevels.Data());

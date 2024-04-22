@@ -32,8 +32,7 @@ namespace Module
   Time::Duration<TimeUnit> GetDurationValue(const Parameters::Accessor& params, Parameters::Identifier name,
                                             Parameters::IntType def, Parameters::IntType precision)
   {
-    auto value = def;
-    params.FindValue(name, value);
+    const auto value = Parameters::GetInteger(params, name, def);
     return Time::Duration<TimeUnit>::FromRatio(value, precision);
   }
 
@@ -178,8 +177,7 @@ namespace Module
       if (Params.IsChanged())
       {
         using namespace Parameters::ZXTune::Sound;
-        auto val = GAIN_DEFAULT;
-        Params->FindValue(GAIN, val);
+        const auto val = Parameters::GetInteger(*Params, GAIN, GAIN_DEFAULT);
         Preamp = Sound::Gain::Type(val, GAIN_PRECISION);
         Debug("Preamp: {}%", val);
         Loop = Sound::GetLoopParameters(*Params);

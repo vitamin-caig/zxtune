@@ -21,4 +21,11 @@ interface PropertiesAccessor {
      * @return Property value or defVal if not found
      */
     fun getProperty(name: String, defVal: String): String
+
+    /**
+     * Getting binary property
+     * @param name Name of the property
+     * @return Property value or defVal if not found
+     */
+    fun getProperty(name: String, defVal: ByteArray?): ByteArray?
 }

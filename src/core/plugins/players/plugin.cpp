@@ -65,9 +65,8 @@ namespace ZXTune
         {
           props.SetType(Identifier);
           callback.ProcessModule(*inputData, *this, std::move(holder));
-          Parameters::IntType usedSize = 0;
-          properties->FindValue(Module::ATTR_SIZE, usedSize);
-          return Analysis::CreateMatchedResult(static_cast<std::size_t>(usedSize));
+          const auto usedSize = Parameters::GetInteger<std::size_t>(*properties, Module::ATTR_SIZE);
+          return Analysis::CreateMatchedResult(usedSize);
         }
       }
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), std::move(data));

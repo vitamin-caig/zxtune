@@ -62,6 +62,12 @@ class JniApi implements Api {
     }
 
     @Override
+    @Nullable
+    public byte[] getProperty(String name, @Nullable byte[] defVal) {
+      return delegate.getProperty(name, defVal);
+    }
+
+    @Override
     public void setProperty(String name, long value) {
       Log.d(TAG, "setProperty(%s, %d)", name, value);
       delegate.setProperty(name, value);

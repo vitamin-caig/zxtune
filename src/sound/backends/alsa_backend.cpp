@@ -666,29 +666,25 @@ namespace Sound::Alsa
     String GetDeviceName() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      Parameters::StringType strVal = DEVICE_DEFAULT;
-      Accessor.FindValue(DEVICE, strVal);
-      return strVal;
+      return Parameters::GetString(Accessor, DEVICE, DEVICE_DEFAULT);
     }
 
     String GetMixerName() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      Parameters::StringType strVal;
-      Accessor.FindValue(MIXER, strVal);
-      return strVal;
+      return Parameters::GetString(Accessor, MIXER);
     }
 
     Time::Milliseconds GetLatency() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      Parameters::IntType val = LATENCY_DEFAULT;
-      if (Accessor.FindValue(LATENCY, val) && !Math::InRange<Parameters::IntType>(val, LATENCY_MIN, LATENCY_MAX))
+      const auto val = Parameters::GetInteger<uint_t>(Accessor, LATENCY, LATENCY_DEFAULT);
+      if (!Math::InRange(val, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, translate("ALSA backend error: latency ({0}) is out of range ({1}..{2})."),
-                                 static_cast<int_t>(val), LATENCY_MIN, LATENCY_MAX);
+                                 val, LATENCY_MIN, LATENCY_MAX);
       }
-      return Time::Milliseconds{static_cast<uint_t>(val)};
+      return Time::Milliseconds{val};
     }
 
   private:

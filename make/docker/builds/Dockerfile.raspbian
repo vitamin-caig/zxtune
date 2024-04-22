@@ -81,8 +81,8 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
          "ld_flags=-static-libstdc++\n" \
          "libraries.linux=dl pthread\n" \
          "libraries.dirs.linux+=\$(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf\n" \
-         "qt.plugins=QXcbIntegrationPlugin\n" \
-         "libraries.qt.system.linux=qxcb qtpcre2 qtharfbuzz png16 fontconfig freetype ssl crypto" \
+         "qt.plugins=QXcbIntegrationPlugin QJpegPlugin\n" \
+         "libraries.qt.system.linux=qxcb qtpcre2 qtharfbuzz qjpeg png16 fontconfig freetype ssl crypto" \
            "xcb xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama xcb-xkb xkbcommon xkbcommon-x11\n" \
          "libraries.qt.linux=XcbQpa XkbCommonSupport ThemeSupport DBus EdidSupport FontDatabaseSupport ServiceSupport" > variables.mak
 

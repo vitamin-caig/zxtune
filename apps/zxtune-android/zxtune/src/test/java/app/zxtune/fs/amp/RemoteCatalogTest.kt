@@ -3,12 +3,15 @@ package app.zxtune.fs.amp
 import app.zxtune.BuildConfig
 import app.zxtune.fs.http.HttpProviderFactory
 import app.zxtune.fs.http.MultisourceHttpProvider
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
+// TODO: rework checkpoints to mocks
 @RunWith(RobolectricTestRunner::class)
 class RemoteCatalogTest {
 
@@ -99,6 +102,22 @@ class RemoteCatalogTest {
     }
 
     @Test
+    fun `test authors pictures`() {
+        val checkpoints = arrayOf(
+            "/pictures/K/Karsten Koch - 3980/Karsten Koch.jpg",
+            "/pictures/K/Karsten Koch - 3980/Karsten Koch_2.jpg",
+            "/pictures/K/Karsten Koch - 3980/Karsten Koch_3.jpg",
+            "/pictures/K/Karsten Koch - 3980/Karsten Koch_4.jpg",
+            "/pictures/K/Karsten Koch - 3980/Karsten Koch_5.jpg",
+            "/pictures/K/Karsten Koch - 3980/Karsten Koch_6.jpg",
+        )
+        val result = ArrayList<String>().apply {
+            catalog.queryPictures(Author(3980, "unused", "unused")) { add(it) }
+        }
+        check(6, checkpoints, result)
+    }
+
+    @Test
     fun `test search`() {
         val tracksCheckpoints = arrayOf( // first
             Track(121325, "\"bzzzt-chip 4\"", 7),  // last
@@ -129,6 +148,12 @@ class RemoteCatalogTest {
         assertEquals("${BuildConfig.CDN_ROOT}/download/amp/ids/12345", get(0).toString())
         assertEquals("https://amp.dascene.net/downmod.php?index=12345", get(1).toString())
     }
+
+    @Test
+    fun `test getPictureUris`() = with(RemoteCatalog.getPictureUris("/pictures/K/Karsten Koch - 3980/Karsten Koch.jpg")) {
+        assertEquals(1L, size.toLong())
+        assertEquals("https://amp.dascene.net/pictures/K/Karsten%20Koch%20-%203980/Karsten%20Koch.jpg", get(0).toString())
+    }
 }
 
 private fun <T> check(minSize: Int, expected: Array<T>, actual: ArrayList<T>) {
@@ -144,6 +169,7 @@ private fun <T> matches(lh: T, rh: T) = when (lh) {
     is Group -> matches(lh, rh as Group)
     is Author -> matches(lh, rh as Author)
     is Track -> matches(lh, rh as Track)
+    is String -> lh == rh
     else -> {
         fail("Unknown type of $lh")
         false

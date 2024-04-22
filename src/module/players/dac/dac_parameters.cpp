@@ -34,9 +34,7 @@ namespace Module::DAC
 
     uint_t BaseSampleFreq() const override
     {
-      Parameters::IntType intVal = 0;
-      Params->FindValue(Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY, intVal);
-      return static_cast<uint_t>(intVal);
+      return Parameters::GetInteger<uint_t>(*Params, Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY);
     }
 
     uint_t SoundFreq() const override
@@ -46,9 +44,8 @@ namespace Module::DAC
 
     bool Interpolate() const override
     {
-      Parameters::IntType intVal = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal);
-      return intVal != 0;
+      using namespace Parameters::ZXTune::Core::DAC;
+      return 0 != Parameters::GetInteger(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
     }
 
   private:

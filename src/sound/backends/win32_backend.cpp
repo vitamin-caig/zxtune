@@ -384,22 +384,21 @@ namespace Sound::Win32
 
     int_t GetDevice() const
     {
-      Parameters::IntType device = Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Win32::DEVICE, device);
-      return static_cast<int_t>(device);
+      using namespace Parameters::ZXTune::Sound::Backends::Win32;
+      return Parameters::GetInteger<int_t>(Accessor, DEVICE, DEVICE_DEFAULT);
     }
 
-    std::size_t GetBuffers() const
+    uint_t GetBuffers() const
     {
-      Parameters::IntType buffers = Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, buffers)
-          && !Math::InRange<Parameters::IntType>(buffers, BUFFERS_MIN, BUFFERS_MAX))
+      using namespace Parameters::ZXTune::Sound::Backends::Win32;
+      const auto buffers = Parameters::GetInteger<uint_t>(Accessor, BUFFERS, BUFFERS_DEFAULT);
+      if (!Math::InRange(buffers, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
                                  translate("Win32 backend error: buffers count ({0}) is out of range ({1}..{2})."),
-                                 static_cast<int_t>(buffers), BUFFERS_MIN, BUFFERS_MAX);
+                                 buffers, BUFFERS_MIN, BUFFERS_MAX);
       }
-      return static_cast<std::size_t>(buffers);
+      return buffers;
     }
 
   private:

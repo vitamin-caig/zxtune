@@ -13,6 +13,7 @@
 // common includes
 #include <byteorder.h>
 // library includes
+#include <binary/base64.h>
 #include <strings/casing.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
@@ -58,6 +59,15 @@ namespace Formats::Chiptune::Vorbis
     else if (Strings::EqualNoCaseAscii(name, "COPYRIGHT"_sv) || Strings::EqualNoCaseAscii(name, "DESCRIPTION"_sv))
     {
       strings.emplace_back(Decode(value));
+    }
+    else if (Strings::EqualNoCaseAscii(name, "COVERART"_sv))
+    {
+      try
+      {
+        target.SetPicture(Binary::Base64::Decode(value));
+      }
+      catch (const std::exception&)
+      {}
     }
     // TODO: meta.SetComment
     if (!strings.empty())

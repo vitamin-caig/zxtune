@@ -301,9 +301,8 @@ namespace Sound::OpenAl
 
     String GetDeviceName() const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OpenAl::DEVICE_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::OpenAl::DEVICE, strVal);
-      return strVal;
+      using namespace Parameters::ZXTune::Sound::Backends::OpenAl;
+      return Parameters::GetString(Accessor, DEVICE, DEVICE_DEFAULT);
     }
 
     uint_t GetSoundFreq() const
@@ -313,15 +312,15 @@ namespace Sound::OpenAl
 
     uint_t GetBuffersCount() const
     {
-      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::OpenAl::BUFFERS_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::OpenAl::BUFFERS, val)
-          && !Math::InRange<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX))
+      using namespace Parameters::ZXTune::Sound::Backends::OpenAl;
+      const auto val = Parameters::GetInteger<uint_t>(Accessor, BUFFERS, BUFFERS_DEFAULT);
+      if (!Math::InRange(val, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
                                  translate("OpenAL backend error: buffers count ({0}) is out of range ({1}..{2})."),
-                                 static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
+                                 val, BUFFERS_MIN, BUFFERS_MAX);
       }
-      return static_cast<uint_t>(val);
+      return val;
     }
 
   private:

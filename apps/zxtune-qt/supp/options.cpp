@@ -16,7 +16,9 @@
 #include <make_ptr.h>
 #include <pointers.h>
 // library includes
+#include <binary/container_factories.h>
 #include <parameters/convert.h>
+#include <parameters/delegated.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/src/names_set.h>
 #include <parameters/tools.h>
@@ -45,57 +47,55 @@ namespace
       return VersionValue;
     }
 
-    bool FindValue(Identifier name, IntType& val) const override
+    std::optional<IntType> FindInteger(Identifier name) const override
     {
       const Value value(Storage, name);
       if (!value.IsValid())
       {
-        return false;
+        return std::nullopt;
       }
       const QVariant& var = value.Get();
       const QVariant::Type type = var.type();
       if (type == QVariant::String)
       {
-        return ConvertFromString(FromQString(var.toString()), val);
+        return ConvertIntegerFromString(FromQString(var.toString()));
       }
       else if (type == QVariant::LongLong || type == QVariant::Int)
       {
-        val = var.toLongLong();
-        return true;
+        return var.toLongLong();
       }
-      return false;
+      return std::nullopt;
     }
 
-    bool FindValue(Identifier name, StringType& val) const override
+    std::optional<StringType> FindString(Identifier name) const override
     {
       const Value value(Storage, name);
       if (!value.IsValid())
       {
-        return false;
+        return std::nullopt;
       }
       const QVariant& var = value.Get();
       if (var.type() == QVariant::String)
       {
-        return ConvertFromString(FromQString(var.toString()), val);
+        return ConvertStringFromString(FromQString(var.toString()));
       }
-      return false;
+      return std::nullopt;
     }
 
-    bool FindValue(Identifier name, DataType& val) const override
+    Binary::Data::Ptr FindData(Identifier name) const override
     {
       const Value value(Storage, name);
       if (!value.IsValid())
       {
-        return false;
+        return {};
       }
       const QVariant& var = value.Get();
       if (var.type() == QVariant::ByteArray)
       {
         const QByteArray& arr = var.toByteArray();
-        val.assign(arr.data(), arr.data() + arr.size());
-        return true;
+        return Binary::CreateContainer(Binary::View(arr.data(), arr.size()));
       }
-      return false;
+      return {};
     }
 
     void Process(Visitor& /*visitor*/) const override
@@ -229,58 +229,58 @@ namespace
       return Temporary->Version();
     }
 
-    bool FindValue(Identifier name, IntType& val) const override
+    std::optional<IntType> FindInteger(Identifier name) const override
     {
-      if (Temporary->FindValue(name, val))
+      if (auto tmp = Temporary->FindInteger(name))
       {
-        return true;
+        return tmp;
       }
       else if (Removed.Has(name))
       {
-        return false;
+        return std::nullopt;
       }
-      else if (Persistent->FindValue(name, val))
+      else if (auto pers = Persistent->FindInteger(name))
       {
-        Temporary->SetValue(name, val);
-        return true;
+        Temporary->SetValue(name, *pers);
+        return pers;
       }
-      return false;
+      return std::nullopt;
     }
 
-    bool FindValue(Identifier name, StringType& val) const override
+    std::optional<StringType> FindString(Identifier name) const override
     {
-      if (Temporary->FindValue(name, val))
+      if (auto tmp = Temporary->FindString(name))
       {
-        return true;
+        return tmp;
       }
       else if (Removed.Has(name))
       {
-        return false;
+        return std::nullopt;
       }
-      else if (Persistent->FindValue(name, val))
+      else if (auto pers = Persistent->FindString(name))
       {
-        Temporary->SetValue(name, val);
-        return true;
+        Temporary->SetValue(name, *pers);
+        return pers;
       }
-      return false;
+      return std::nullopt;
     }
 
-    bool FindValue(Identifier name, DataType& val) const override
+    Binary::Data::Ptr FindData(Identifier name) const override
     {
-      if (Temporary->FindValue(name, val))
+      if (auto res = Temporary->FindData(name))
       {
-        return true;
+        return res;
       }
       else if (Removed.Has(name))
       {
-        return false;
+        return {};
       }
-      else if (Persistent->FindValue(name, val))
+      auto res = Persistent->FindData(name);
+      if (res)
       {
-        Temporary->SetValue(name, val);
-        return true;
+        Temporary->SetValue(name, *res);
       }
-      return false;
+      return res;
     }
 
     void Process(Visitor& visitor) const override
@@ -406,7 +406,7 @@ namespace
 
     void SetValue(Identifier name, Binary::View /*val*/) override
     {
-      CopyExistingValue<DataType>(*Stored, *Changed, name);
+      CopyExistingData(*Stored, *Changed, name);
     }
 
     void RemoveValue(Identifier /*name*/) override {}
@@ -416,38 +416,13 @@ namespace
     const Container::Ptr Changed;
   };
 
-  class SettingsSnapshot : public Accessor
+  class SettingsSnapshot : public DelegatedAccessor
   {
   public:
     SettingsSnapshot(Accessor::Ptr delegate, CompositeModifier::Subscription subscription)
-      : Delegate(std::move(delegate))
+      : DelegatedAccessor(std::move(delegate))
       , Subscription(std::move(subscription))
     {}
-
-    uint_t Version() const override
-    {
-      return Delegate->Version();
-    }
-
-    bool FindValue(Identifier name, IntType& val) const override
-    {
-      return Delegate->FindValue(name, val);
-    }
-
-    bool FindValue(Identifier name, StringType& val) const override
-    {
-      return Delegate->FindValue(name, val);
-    }
-
-    bool FindValue(Identifier name, DataType& val) const override
-    {
-      return Delegate->FindValue(name, val);
-    }
-
-    void Process(Visitor& visitor) const override
-    {
-      return Delegate->Process(visitor);
-    }
 
     static Accessor::Ptr Create(Accessor::Ptr stored, CompositeModifier& modifiers)
     {

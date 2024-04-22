@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.util.SparseIntArray;
 
 import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.util.Pair;
@@ -42,13 +43,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     this.context = context;
     this.catalog = Catalog.create(context, http);
     this.randomTracks = new RandomDir();
-    this.groupings = new GroupingDir[]{
-        new CompaniesDir(),
-        new ComposersDir(),
-        new ChipsDir(),
-        new SystemsDir(),
-        randomTracks
-    };
+    this.groupings = new GroupingDir[]{new CompaniesDir(), new ComposersDir(), new ChipsDir(), new SystemsDir(), randomTracks};
   }
 
   @Override
@@ -105,7 +100,9 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     if (category == null) {
       return this;
     }
-    if (Identifier.CATEGORY_RANDOM.equals(category)) {
+    if (Identifier.CATEGORY_IMAGES.equals(category)) {
+      return resolveImages(uri, path);
+    } else if (Identifier.CATEGORY_RANDOM.equals(category)) {
       return resolveRandomTrack(uri, path);
     }
     final GroupingDir grouping = findGrouping(category);
@@ -130,10 +127,18 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     }
   }
 
+  private VfsFile resolveImages(Uri uri, List<String> path) {
+    final Pack pack = Identifier.findPackForImage(uri, path);
+    if (pack != null) {
+      return ImageFile.tryCreate(catalog, pack);
+    }
+    return null;
+  }
+
   private VfsObject resolveRandomTrack(Uri uri, List<String> path) {
     final Pack pack = Identifier.findRandomPack(uri, path);
     final Track track = Identifier.findTrack(uri, path);
-    if (path != null && track != null) {
+    if (pack != null && track != null) {
       final PackDir packDir = new PackDir(randomTracks, pack);
       return new TrackFile(packDir, track);
     } else {
@@ -217,45 +222,40 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
   private class CompaniesDir extends GroupingDir {
 
     CompaniesDir() {
-      super(Identifier.CATEGORY_COMPANY, catalog.companies(),
-          R.string.vfs_vgmrips_companies_name, R.drawable.ic_browser_vfs_vgmrips_companies);
+      super(Identifier.CATEGORY_COMPANY, catalog.companies(), R.string.vfs_vgmrips_companies_name, R.drawable.ic_browser_vfs_vgmrips_companies);
     }
   }
 
   private class ComposersDir extends GroupingDir {
 
     ComposersDir() {
-      super(Identifier.CATEGORY_COMPOSER, catalog.composers(),
-          R.string.vfs_vgmrips_composers_name, R.drawable.ic_browser_vfs_vgmrips_composers);
+      super(Identifier.CATEGORY_COMPOSER, catalog.composers(), R.string.vfs_vgmrips_composers_name, R.drawable.ic_browser_vfs_vgmrips_composers);
     }
   }
 
   private class ChipsDir extends GroupingDir {
 
     ChipsDir() {
-      super(Identifier.CATEGORY_CHIP, catalog.chips(),
-          R.string.vfs_vgmrips_chips_name, R.drawable.ic_browser_vfs_vgmrips_chips);
+      super(Identifier.CATEGORY_CHIP, catalog.chips(), R.string.vfs_vgmrips_chips_name, R.drawable.ic_browser_vfs_vgmrips_chips);
     }
   }
 
   private class SystemsDir extends GroupingDir {
 
     SystemsDir() {
-      super(Identifier.CATEGORY_SYSTEM, catalog.systems(),
-          R.string.vfs_vgmrips_systems_name, R.drawable.ic_browser_vfs_vgmrips_systems);
+      super(Identifier.CATEGORY_SYSTEM, catalog.systems(), R.string.vfs_vgmrips_systems_name, R.drawable.ic_browser_vfs_vgmrips_systems);
     }
   }
 
   private class RandomDir extends GroupingDir {
     RandomDir() {
       super(Identifier.CATEGORY_RANDOM, new Catalog.Grouping() {
-            @Override
-            public void query(Catalog.Visitor<Group> visitor) {}
+        @Override
+        public void query(Catalog.Visitor<Group> visitor) {}
 
-            @Override
-            public void queryPacks(String id, Catalog.Visitor<Pack> visitor, ProgressCallback progress) {}
-          },
-          R.string.vfs_vgmrips_random_name, R.drawable.ic_browser_vfs_radio);
+        @Override
+        public void queryPacks(String id, Catalog.Visitor<Pack> visitor, ProgressCallback progress) {}
+      }, R.string.vfs_vgmrips_random_name, R.drawable.ic_browser_vfs_radio);
     }
 
     @Override
@@ -371,8 +371,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      parent.grouping.queryPacks(group.getId(), obj -> visitor.onDir(new PackDir(GroupDir.this, obj)),
-          visitor);
+      parent.grouping.queryPacks(group.getId(), obj -> visitor.onDir(new PackDir(GroupDir.this, obj)), visitor);
     }
 
     @Override
@@ -420,6 +419,8 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     public Object getExtension(String id) {
       if (VfsExtensions.COMPARATOR.equals(id)) {
         return TracksComparator.INSTANCE;
+      } else if (VfsExtensions.COVER_ART_URI.equals(id)) {
+        return Identifier.forImageOf(pack);
       } else {
         return super.getExtension(id);
       }
@@ -430,7 +431,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     }
   }
 
-  private class TrackFile extends StubObject implements VfsFile {
+  private static class TrackFile extends StubObject implements VfsFile {
 
     private final PackDir parent;
     private final Track track;
@@ -482,6 +483,65 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
       final TrackFile lh = (TrackFile) o1;
       final TrackFile rh = (TrackFile) o2;
       return lh.track.getNumber() < rh.track.getNumber() ? -1 : 1;
+    }
+  }
+
+  private static class ImageFile extends StubObject implements VfsFile {
+
+    private final Pack object;
+
+    private ImageFile(Pack obj) {
+      this.object = obj;
+    }
+
+    @Nullable
+    static ImageFile tryCreate(Catalog cat, Pack pack) {
+      Pack obj = pack;
+      if (obj.getImageLocation() == null) {
+        try {
+          obj = cat.findPack(obj.getId(), track -> {
+          });
+        } catch (IOException e) {
+          Log.w(TAG, e, "Failed to resolve pack");
+          obj = null;
+        }
+      }
+      return obj != null ? new ImageFile(obj) : null;
+    }
+
+    @NonNull
+    @Override
+    public String getName() {
+      return object.getTitle();
+    }
+
+    @NonNull
+    @Override
+    public Uri getUri() {
+      return Identifier.forImageOf(object);
+    }
+
+    @NonNull
+    @Override
+    public String getSize() {
+      return "";
+    }
+
+    @Override
+    public VfsObject getParent() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return object.getId() + "/image.png";
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getImageRemoteUris(object);
+      } else {
+        return super.getExtension(id);
+      }
     }
   }
 }

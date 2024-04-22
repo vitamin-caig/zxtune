@@ -31,7 +31,9 @@
 #include <contract.h>
 #include <error.h>
 // library includes
+#include <binary/base64.h>
 #include <debug/log.h>
+#include <module/attributes.h>
 #include <parameters/template.h>
 #include <strings/template.h>
 // boost includes
@@ -40,6 +42,7 @@
 // std includes
 #include <utility>
 // qt includes
+#include <QtCore/QBuffer>
 #include <QtCore/QIdentityProxyModel>
 #include <QtCore/QMimeData>
 #include <QtCore/QUrl>
@@ -101,10 +104,9 @@ namespace
 
     unsigned GetPlayorderMode() const
     {
-      Parameters::IntType isLooped = Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT;
-      Params->FindValue(Parameters::ZXTuneQT::Playlist::LOOPED, isLooped);
-      Parameters::IntType isRandom = Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT;
-      Params->FindValue(Parameters::ZXTuneQT::Playlist::RANDOMIZED, isRandom);
+      using namespace Parameters::ZXTuneQT::Playlist;
+      const auto isLooped = Parameters::GetInteger(*Params, LOOPED, LOOPED_DEFAULT);
+      const auto isRandom = Parameters::GetInteger(*Params, RANDOMIZED, RANDOMIZED_DEFAULT);
       return (isLooped ? Playlist::Item::LOOPED : 0) | (isRandom ? Playlist::Item::RANDOMIZED : 0);
     }
 
@@ -119,10 +121,15 @@ namespace
   public:
     explicit TooltipFieldsSourceAdapter(const Parameters::Accessor& props)
       : Parent(props)
+      , Props(props)
     {}
 
     String GetFieldValue(StringView fieldName) const override
     {
+      if (fieldName == Module::ATTR_PICTURE)
+      {
+        return GetPicture();
+      }
       static const Char AMPERSAND[] = {'&', 0};
       static const Char AMPERSAND_ESCAPED[] = {'&', 'a', 'm', 'p', ';', 0};
       static const Char LBRACKET[] = {'<', 0};
@@ -142,6 +149,58 @@ namespace
     }
 
   private:
+    String GetPicture() const
+    {
+      if (const auto pic = Props.FindData(Module::ATTR_PICTURE))
+      {
+        return CreateThumbnail(*pic);
+      }
+      return "";
+    }
+
+    static String CreateThumbnail(Binary::View pic)
+    {
+      // TODO: move load/resize/convert to another thread
+      QPixmap image;
+      if (!image.loadFromData(pic.As<uchar>(), pic.Size()))
+      {
+        Dbg("Failed to load image!");
+        return "";
+      }
+      const auto originalSize = image.size();
+      image = image.scaled(200, 200, Qt::KeepAspectRatio);
+      QByteArray bytes;
+      {
+        QBuffer buffer(&bytes);
+        buffer.open(QIODevice::WriteOnly);
+        if (!image.save(&buffer, "PNG"))
+        {
+          Dbg("Failed to convert resized image!");
+          return "";
+        }
+      }
+      const auto scaledSize = image.size();
+      Dbg("Resized image {}x{} ({} bytes) -> {}x{} ({} bytes)", originalSize.width(), originalSize.height(), pic.Size(),
+          scaledSize.width(), scaledSize.height(), bytes.size());
+      return CreateImageTag({bytes.constData(), static_cast<std::size_t>(bytes.size())});
+    }
+
+    static String CreateImageTag(Binary::View val)
+    {
+      static const char PREFIX[] = R"(<br/><img src="data:image/png;base64,)";
+      static const char SUFFIX[] = R"("/>)";
+      const auto encodedSize = Binary::Base64::CalculateConvertedSize(val.Size());
+      String res;
+      res.reserve(std::size(PREFIX) + encodedSize + std::size(SUFFIX));
+      res += PREFIX;
+      const auto* in = val.As<uint8_t>();
+      auto* out = res.data() + res.size();
+      res.resize(res.size() + encodedSize);
+      Binary::Base64::Encode(in, in + val.Size(), out, out + encodedSize);
+      res += SUFFIX;
+      return res;
+    }
+
     static void TrimLongMultiline(String& result, int maxLines)
     {
       static const Char NEWLINE[] = {'\n', 0};
@@ -154,6 +213,9 @@ namespace
         boost::algorithm::replace_range(result, Range(head.begin(), tail.begin()), ELLIPSIS);
       }
     }
+
+  private:
+    const Parameters::Accessor& Props;
   };
 
   class TooltipSource
@@ -178,6 +240,7 @@ namespace
           "<b>Program:</b> [Program]<br/>"
           "[Comment]"
           "<pre>[Strings]</pre>"
+          "[Picture]"
           "</html>");
       return GetTemplate(view);
     }
@@ -708,11 +771,10 @@ namespace
 
     static Playlist::IO::ExportFlags GetSavePlaylistFlags(int saveCase)
     {
-      const Parameters::Accessor::Ptr options = GlobalOptions::Instance().Get();
-      Parameters::IntType val = Parameters::ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT;
-      options->FindValue(Parameters::ZXTuneQT::Playlist::Store::PROPERTIES, val);
+      const auto options = GlobalOptions::Instance().Get();
+      using namespace Parameters::ZXTuneQT::Playlist::Store;
       Playlist::IO::ExportFlags res = 0;
-      if (val)
+      if (0 != Parameters::GetInteger(*options, PROPERTIES, PROPERTIES_DEFAULT))
       {
         res |= Playlist::IO::SAVE_ATTRIBUTES;
       }

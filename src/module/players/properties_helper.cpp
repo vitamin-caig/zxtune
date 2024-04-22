@@ -28,6 +28,11 @@ namespace Module
     }
   }
 
+  void PropertiesHelper::SetBinaryProperty(StringView name, Binary::View value)
+  {
+    Delegate.SetValue(name, value);
+  }
+
   void PropertiesHelper::SetType(StringView type)
   {
     Delegate.SetValue(ATTR_TYPE, type);

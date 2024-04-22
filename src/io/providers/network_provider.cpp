@@ -41,9 +41,7 @@ namespace IO::Network
 
     String GetHttpUseragent() const
     {
-      String res;
-      Accessor.FindValue(Parameters::ZXTune::IO::Providers::Network::Http::USERAGENT, res);
-      return res;
+      return Parameters::GetString(Accessor, Parameters::ZXTune::IO::Providers::Network::Http::USERAGENT);
     }
 
   private:

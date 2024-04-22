@@ -372,22 +372,20 @@ namespace Sound::DirectSound
 
     String GetDevice() const
     {
-      Parameters::StringType device;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::DirectSound::DEVICE, device);
-      return device;
+      return Parameters::GetString(Accessor, Parameters::ZXTune::Sound::Backends::DirectSound::DEVICE);
     }
 
     uint_t GetLatency() const
     {
-      Parameters::IntType latency = Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY, latency)
-          && !Math::InRange<Parameters::IntType>(latency, LATENCY_MIN, LATENCY_MAX))
+      using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
+      const auto latency = Parameters::GetInteger<uint_t>(Accessor, LATENCY, LATENCY_DEFAULT);
+      if (!Math::InRange(latency, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
                                  translate("DirectSound backend error: latency ({0}) is out of range ({1}..{2})."),
-                                 static_cast<int_t>(latency), LATENCY_MIN, LATENCY_MAX);
+                                 latency, LATENCY_MIN, LATENCY_MAX);
       }
-      return static_cast<uint_t>(latency);
+      return latency;
     }
 
   private:

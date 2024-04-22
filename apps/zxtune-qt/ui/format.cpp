@@ -15,12 +15,13 @@
 
 String GetModuleTitle(StringView format, const Parameters::Accessor& props)
 {
+  // TODO: remove duplicate of this logic
   const auto fmtTemplate = Strings::Template::Create(format);
   const auto& emptyTitle = fmtTemplate->Instantiate(Strings::SkipFieldsSource());
   auto curTitle = fmtTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(props));
   if (curTitle == emptyTitle)
   {
-    props.FindValue(Module::ATTR_FULLPATH, curTitle);
+    curTitle = Parameters::GetString(props, Module::ATTR_FULLPATH);
   }
   return curTitle;
 }

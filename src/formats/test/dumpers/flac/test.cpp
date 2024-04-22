@@ -49,6 +49,11 @@ namespace
       std::cout << "Comment: " << comment << std::endl;
     }
 
+    void SetPicture(Binary::View content) override
+    {
+      std::cout << "Picture: " << content.Size() << " bytes" << std::endl;
+    }
+
     MetaBuilder& GetMetaBuilder() override
     {
       return *this;

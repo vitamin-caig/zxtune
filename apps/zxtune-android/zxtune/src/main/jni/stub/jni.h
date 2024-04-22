@@ -54,6 +54,7 @@ struct JNIEnv
   const void* GetDirectBufferAddress(jobject) const;
   jlong GetDirectBufferCapacity(jobject) const;
   jsize GetArrayLength(jarray) const;
+  jbyteArray NewByteArray(jsize) const;
   void* GetPrimitiveArrayCritical(jarray, jboolean*) const;
   void ReleasePrimitiveArrayCritical(jarray, void*, jint) const;
 

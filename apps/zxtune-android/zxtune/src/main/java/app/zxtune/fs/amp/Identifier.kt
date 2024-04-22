@@ -21,6 +21,7 @@ import android.net.Uri
  * 8) amp:/Group
  * 9) amp:/Group/${group_name}?group=${group_id}
  * 10) amp:/Group/${group_name}/${author_name}?author=${author_id}&group=${group_id}
+ * 11) amp:/Image/Author/${author_name}?author=${author_id}
  */
 object Identifier {
     private const val SCHEME = "amp"
@@ -34,9 +35,11 @@ object Identifier {
     private const val PARAM_GROUP = "group"
     private const val PARAM_AUTHOR = "author"
     private const val PARAM_TRACK = "track"
+    private const val PARAM_SEED = "seed"
     const val CATEGORY_HANDLE = "Handle"
     const val CATEGORY_COUNTRY = "Country"
     const val CATEGORY_GROUP = "Group"
+    const val CATEGORY_IMAGE = "Image"
 
     // Root
     @JvmStatic
@@ -67,9 +70,9 @@ object Identifier {
 
     // Countries
     @JvmStatic
-    fun forCountry(country: Country): Uri.Builder = forCategory(CATEGORY_COUNTRY)
-        .appendPath(country.name)
-        .appendQueryParameter(PARAM_COUNTRY, country.id.toString())
+    fun forCountry(country: Country): Uri.Builder =
+        forCategory(CATEGORY_COUNTRY).appendPath(country.name)
+            .appendQueryParameter(PARAM_COUNTRY, country.id.toString())
 
     @JvmStatic
     fun findCountry(uri: Uri, path: List<String>) = path.getOrNull(POS_COUNTRY_NAME)?.let { name ->
@@ -80,8 +83,7 @@ object Identifier {
 
     // Groups
     @JvmStatic
-    fun forGroup(group: Group): Uri.Builder = forCategory(CATEGORY_GROUP)
-        .appendPath(group.name)
+    fun forGroup(group: Group): Uri.Builder = forCategory(CATEGORY_GROUP).appendPath(group.name)
         .appendQueryParameter(PARAM_GROUP, group.id.toString())
 
     @JvmStatic
@@ -94,8 +96,7 @@ object Identifier {
     // Authors
     @JvmStatic
     fun forAuthor(parent: Uri.Builder, author: Author): Uri.Builder =
-        parent.appendPath(author.handle)
-            .appendQueryParameter(PARAM_AUTHOR, author.id.toString())
+        parent.appendPath(author.handle).appendQueryParameter(PARAM_AUTHOR, author.id.toString())
 
     @JvmStatic
     fun findAuthor(uri: Uri, path: List<String>) = path.getOrNull(POS_AUTHOR_NAME)?.let { name ->
@@ -106,8 +107,8 @@ object Identifier {
 
     // Tracks
     @JvmStatic
-    fun forTrack(parent: Uri.Builder, track: Track): Uri.Builder = parent.appendPath(track.filename)
-        .appendQueryParameter(PARAM_TRACK, track.id.toString())
+    fun forTrack(parent: Uri.Builder, track: Track): Uri.Builder =
+        parent.appendPath(track.filename).appendQueryParameter(PARAM_TRACK, track.id.toString())
 
     @JvmStatic
     fun findTrack(uri: Uri, path: List<String>) =
@@ -116,4 +117,14 @@ object Identifier {
                 Track(id, filename, 0/*fake*/)
             }
         }
+
+    @JvmStatic
+    fun forPictureOf(author: Author, seed: Int): Uri =
+        forAuthor(forCategory(CATEGORY_IMAGE).appendPath("Author"), author).appendQueryParameter(
+            PARAM_SEED, seed.toString()
+        ).build()
+
+    @JvmStatic
+    fun findSeed(uri: Uri, path: List<String>) =
+        uri.takeIf { it.isHierarchical }?.getQueryParameter(PARAM_SEED)?.toIntOrNull()
 }

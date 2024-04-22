@@ -18,11 +18,13 @@
 #include "ui/utils.h"
 // common includes
 #include <contract.h>
+#include <debug/log.h>
 #include <error.h>
 #include <make_ptr.h>
 // library includes
 #include <core/core_parameters.h>
 #include <module/attributes.h>
+#include <parameters/delegated.h>
 #include <parameters/merged_accessor.h>
 // qt includes
 #include <QtWidgets/QAbstractButton>
@@ -34,38 +36,48 @@
 
 namespace
 {
-  class ItemPropertiesContainer : public Parameters::Container
+  const Debug::Stream Dbg("Playlist::UI::PropertiesDialog");
+
+  class QImageView : public QLabel
+  {
+  public:
+    QImageView(QWidget* parent)
+      : QLabel(parent)
+    {
+      setScaledContents(false);
+      setMinimumSize(200, 200);
+      setAlignment(Qt::AlignCenter);
+    }
+
+    void LoadImage(Binary::View pic)
+    {
+      // TODO: move load/resize/convert to another thread
+      if (!Image.loadFromData(pic.As<uchar>(), pic.Size()))
+      {
+        Dbg("Failed to load image!");
+        return;
+      }
+    }
+
+    void resizeEvent(QResizeEvent*) override
+    {
+      if (!Image.isNull())
+      {
+        setPixmap(Image.scaled(size(), Qt::KeepAspectRatio));
+      }
+    }
+
+  private:
+    QPixmap Image;
+  };
+
+  class ItemPropertiesContainer : public Parameters::Delegated<Parameters::Container, Parameters::Accessor::Ptr>
   {
   public:
     ItemPropertiesContainer(Parameters::Container::Ptr adjusted, Parameters::Accessor::Ptr merged)
-      : Adjusted(std::move(adjusted))
-      , Merged(std::move(merged))
+      : Parameters::Delegated<Parameters::Container, Parameters::Accessor::Ptr>(std::move(merged))
+      , Adjusted(std::move(adjusted))
     {}
-
-    uint_t Version() const override
-    {
-      return Merged->Version();
-    }
-
-    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
-    {
-      return Merged->FindValue(name, val);
-    }
-
-    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
-    {
-      return Merged->FindValue(name, val);
-    }
-
-    bool FindValue(Parameters::Identifier name, Parameters::DataType& val) const override
-    {
-      return Merged->FindValue(name, val);
-    }
-
-    void Process(Parameters::Visitor& visitor) const override
-    {
-      return Merged->Process(visitor);
-    }
 
     void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
@@ -89,7 +101,6 @@ namespace
 
   private:
     const Parameters::Container::Ptr Adjusted;
-    const Parameters::Accessor::Ptr Merged;
   };
 
   class PropertiesDialogImpl
@@ -107,8 +118,10 @@ namespace
       Properties = MakePtr<ItemPropertiesContainer>(item.GetAdjustedParameters(), item.GetModuleProperties());
 
       FillProperties(item.GetCapabilities());
-      itemsLayout->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding),
-                           itemsLayout->rowCount(), 0);
+
+      auto* filler = new QImageView(this);
+      itemsLayout->addWidget(filler, itemsLayout->rowCount(), 0, 1, itemsLayout->columnCount());
+      LoadPicture(filler);
 
       Require(connect(buttons, &QDialogButtonBox::clicked, this, &PropertiesDialogImpl::ButtonClicked));
     }
@@ -215,18 +228,26 @@ namespace
 
     void AddStrings(Parameters::Identifier name)
     {
-      Parameters::StringType value;
-      if (Properties->FindValue(name, value))
+      if (const auto value = Properties->FindString(name))
       {
-        auto* const strings = new QTextBrowser(this);
+        auto* const strings = new QTextEdit(this);
         QFont font;
         font.setFamily(QString::fromLatin1("Courier New"));
         strings->setFont(font);
         strings->setLineWrapMode(QTextEdit::NoWrap);
+        strings->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Maximum);
 
         const int row = itemsLayout->rowCount();
         itemsLayout->addWidget(strings, row, 0, 1, itemsLayout->columnCount());
-        strings->setText(ToQString(value));
+        strings->setText(ToQString(*value));
+      }
+    }
+
+    void LoadPicture(QImageView* target)
+    {
+      if (const auto pic = Properties->FindData(Module::ATTR_PICTURE))
+      {
+        target->LoadImage(*pic);
       }
     }
 

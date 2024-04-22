@@ -22,10 +22,9 @@
 #include <formats/chiptune/multidevice/multitrackcontainer.h>
 #include <module/attributes.h>
 #include <module/players/properties_helper.h>
-#include <parameters/convert.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/merged_container.h>
-#include <parameters/tools.h>
+#include <parameters/serialize.h>
 // std includes
 #include <algorithm>
 #include <list>
@@ -76,22 +75,7 @@ namespace Module::MTC
 
     void SetProperty(StringView name, StringView value) override
     {
-      Parameters::IntType asInt = 0;
-      Parameters::DataType asData;
-      Parameters::StringType asString;
-      auto& out = GetCurrentProperties();
-      if (Parameters::ConvertFromString(value, asInt))
-      {
-        out.SetValue(name, asInt);
-      }
-      else if (Parameters::ConvertFromString(value, asData))
-      {
-        out.SetValue(name, asData);
-      }
-      else if (Parameters::ConvertFromString(value, asString))
-      {
-        out.SetValue(name, asString);
-      }
+      Parameters::Convert(name, value, GetCurrentProperties());
     }
 
     void StartTrack(uint_t idx) override
@@ -187,7 +171,7 @@ namespace Module::MTC
       {
         if (Type.empty())
         {
-          Require(GetHolder()->GetModuleProperties()->FindValue(Module::ATTR_TYPE, Type));
+          Require(Parameters::FindValue(*GetHolder()->GetModuleProperties(), Module::ATTR_TYPE, Type));
         }
         return Type;
       }

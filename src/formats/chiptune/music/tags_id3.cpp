@@ -113,6 +113,16 @@ namespace Formats::Chiptune::Id3
       case 0x54454e43:  //'TENC'
         target.SetProgram(MakeString(encodedString));
         break;
+      case 0x41504943:  // 'APIC'
+      {
+        Binary::DataInputStream input(data);
+        input.ReadByte();                // encoding
+        input.ReadCString(data.Size());  // mime
+        input.ReadByte();                // type
+        input.ReadCString(data.Size());  // description
+        target.SetPicture(input.ReadRestData());
+      }
+      break;
       default:
         break;
       }

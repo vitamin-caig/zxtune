@@ -3,6 +3,8 @@ package app.zxtune.fs.zxtunes
 import app.zxtune.fs.http.HttpProviderFactory
 import app.zxtune.fs.http.MultisourceHttpProvider
 import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,6 +14,11 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class RemoteCatalogTest {
+
+    private val author5 = Author(5, "Zdw", "Dmitriy Zubarev", false)
+    private val author302 = Author(302, "(R)Soft", "Vladimir Bakum", true)
+    private val author519 = Author(519, "MmcM", "Sergey Kosov", true)
+    private val author1063 = Author(1063, "Nooly", "Vojta Nedved", true)
 
     private lateinit var catalog: RemoteCatalog
 
@@ -29,9 +36,18 @@ class RemoteCatalogTest {
 
         // no count hint
         //verify(visitor).setCountHint(argThat { hint -> hint > 900 })
-        verify(visitor).accept(Author(302, "(R)Soft", "Vladimir Bakum"))
-        verify(visitor).accept(Author(519, "MmcM", "Sergey Kosov"))
-        verify(visitor).accept(Author(1063, "Nooly", "Vojta Nedved"))
+        verify(visitor).accept(author5)
+        verify(visitor).accept(author302)
+        verify(visitor).accept(author519)
+        verify(visitor).accept(author1063)
+    }
+
+    @Test
+    fun `test queryAuthor`() {
+        assertNull(catalog.queryAuthor(-1))
+        for (test in arrayOf(author5, author302, author519, author1063)) {
+            assertEquals(test, requireNotNull(catalog.queryAuthor(test.id)))
+        }
     }
 
     @Test
@@ -77,5 +93,11 @@ class RemoteCatalogTest {
     fun `test getTrackUris()`() = with(RemoteCatalog.getTrackUris(12345)) {
         Assert.assertEquals(1L, size.toLong())
         Assert.assertEquals("http://zxtunes.com/downloads.php?id=12345", get(0).toString())
+    }
+
+    @Test
+    fun `test getImageUris()`() = with(RemoteCatalog.getImageUris(12345)) {
+        Assert.assertEquals(1L, size.toLong())
+        Assert.assertEquals("http://zxtunes.com/photo/12345.jpg", get(0).toString())
     }
 }

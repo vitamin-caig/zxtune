@@ -70,23 +70,18 @@ namespace Module
 
     uint64_t ClockFreq() const override
     {
-      Parameters::IntType val = Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
-      return val;
+      using namespace Parameters::ZXTune::Core::AYM;
+      return Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
     }
 
     String Title() const override
     {
-      String title;
-      Params->FindValue(Module::ATTR_TITLE, title);
-      return title;
+      return Parameters::GetString(*Params, Module::ATTR_TITLE);
     }
 
     String Author() const override
     {
-      String author;
-      Params->FindValue(Module::ATTR_AUTHOR, author);
-      return author;
+      return Parameters::GetString(*Params, Module::ATTR_AUTHOR);
     }
 
     uint_t LoopFrame() const override

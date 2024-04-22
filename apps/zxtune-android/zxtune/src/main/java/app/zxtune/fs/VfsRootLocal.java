@@ -20,6 +20,7 @@ import java.io.IOException;
 import app.zxtune.R;
 import app.zxtune.ResultActivity;
 import app.zxtune.Util;
+import app.zxtune.coverart.AlbumArt;
 import app.zxtune.fs.local.Document;
 import app.zxtune.fs.local.StoragesSource;
 
@@ -186,6 +187,16 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
         } else if (file.isFile()) {
           visitor.onFile(buildFile(file));
         }
+      }
+    }
+
+    @Nullable
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.COVER_ART_URI.equals(id)) {
+        return AlbumArt.forDir(this);
+      } else {
+        return super.getExtension(id);
       }
     }
   }

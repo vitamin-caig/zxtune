@@ -34,9 +34,8 @@ namespace Module::SAA
 
     uint64_t ClockFreq() const override
     {
-      Parameters::IntType val = Parameters::ZXTune::Core::SAA::CLOCKRATE_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Core::SAA::CLOCKRATE, val);
-      return val;
+      using namespace Parameters::ZXTune::Core::SAA;
+      return Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
     }
 
     uint_t SoundFreq() const override
@@ -46,9 +45,8 @@ namespace Module::SAA
 
     Devices::SAA::InterpolationType Interpolation() const override
     {
-      Parameters::IntType intVal = Parameters::ZXTune::Core::SAA::INTERPOLATION_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Core::SAA::INTERPOLATION, intVal);
-      return static_cast<Devices::SAA::InterpolationType>(intVal);
+      using namespace Parameters::ZXTune::Core::SAA;
+      return Parameters::GetInteger<Devices::SAA::InterpolationType>(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
     }
 
   private:

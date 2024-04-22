@@ -221,16 +221,15 @@ namespace
 
     std::size_t MemoryLimit() const
     {
-      Parameters::IntType res = Parameters::ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT;
-      Params->FindValue(Parameters::ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB, res);
-      return static_cast<std::size_t>(res * 1048576);
+      using namespace Parameters::ZXTuneQT::Playlist::Cache;
+      const auto mb = Parameters::GetInteger(*Params, MEMORY_LIMIT_MB, MEMORY_LIMIT_MB_DEFAULT);
+      return static_cast<std::size_t>(mb * 1048576);
     }
 
     std::size_t FilesLimit() const
     {
-      Parameters::IntType res = Parameters::ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT;
-      Params->FindValue(Parameters::ZXTuneQT::Playlist::Cache::FILES_LIMIT, res);
-      return static_cast<std::size_t>(res);
+      using namespace Parameters::ZXTuneQT::Playlist::Cache;
+      return Parameters::GetInteger<std::size_t>(*Params, FILES_LIMIT, FILES_LIMIT_DEFAULT);
     }
 
   private:
@@ -399,24 +398,6 @@ namespace
     const IO::Identifier::Ptr ModuleId;
   };
 
-  String GetStringProperty(const Parameters::Accessor& props, StringView propName)
-  {
-    Parameters::StringType val;
-    if (props.FindValue(propName, val))
-    {
-      return val;
-    }
-    return {};
-  }
-
-  Parameters::IntType GetIntProperty(const Parameters::Accessor& props, StringView propName,
-                                     Parameters::IntType defVal = 0)
-  {
-    Parameters::IntType val = defVal;
-    props.FindValue(propName, val);
-    return val;
-  }
-
   class DynamicAttributesProvider
   {
   public:
@@ -433,10 +414,7 @@ namespace
       String result = DisplayNameTemplate->Instantiate(adapter);
       if (result == DummyDisplayName)
       {
-        if (!properties.FindValue(Module::ATTR_FULLPATH, result))
-        {
-          result.clear();
-        }
+        result = Parameters::GetString(properties, Module::ATTR_FULLPATH);
       }
       return result;
     }
@@ -516,7 +494,7 @@ namespace
 
     String GetType() const override
     {
-      return GetStringProperty(*Properties, Module::ATTR_TYPE);
+      return Parameters::GetString(*Properties, Module::ATTR_TYPE);
     }
 
     String GetDisplayName() const override
@@ -531,32 +509,32 @@ namespace
 
     String GetAuthor() const override
     {
-      return GetStringProperty(*Properties, Module::ATTR_AUTHOR);
+      return Parameters::GetString(*Properties, Module::ATTR_AUTHOR);
     }
 
     String GetTitle() const override
     {
-      return GetStringProperty(*Properties, Module::ATTR_TITLE);
+      return Parameters::GetString(*Properties, Module::ATTR_TITLE);
     }
 
     String GetComment() const override
     {
-      return GetStringProperty(*Properties, Module::ATTR_COMMENT);
+      return Parameters::GetString(*Properties, Module::ATTR_COMMENT);
     }
 
     uint32_t GetChecksum() const override
     {
-      return static_cast<uint32_t>(GetIntProperty(*Properties, Module::ATTR_CRC));
+      return Parameters::GetInteger<uint32_t>(*Properties, Module::ATTR_CRC);
     }
 
     uint32_t GetCoreChecksum() const override
     {
-      return static_cast<uint32_t>(GetIntProperty(*Properties, Module::ATTR_FIXEDCRC));
+      return Parameters::GetInteger<uint32_t>(*Properties, Module::ATTR_FIXEDCRC);
     }
 
     std::size_t GetSize() const override
     {
-      return static_cast<std::size_t>(GetIntProperty(*Properties, Module::ATTR_SIZE));
+      return Parameters::GetInteger<std::size_t>(*Properties, Module::ATTR_SIZE);
     }
 
   private:

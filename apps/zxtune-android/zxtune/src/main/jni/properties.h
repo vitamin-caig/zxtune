@@ -10,6 +10,8 @@
 
 #pragma once
 
+// local includes
+#include "array.h"
 // library includes
 #include <parameters/accessor.h>
 #include <parameters/modifier.h>
@@ -93,17 +95,23 @@ namespace Jni
 
     jlong Get(jstring name, jlong defVal) const
     {
-      Parameters::IntType val = defVal;
-      Params.FindValue(JstringView(Env, name), val);
-      return val;
+      return Params.FindInteger(JstringView(Env, name)).value_or(defVal);
     }
 
     jstring Get(jstring name, jstring defVal) const
     {
-      Parameters::StringType val;
-      if (Params.FindValue(JstringView(Env, name), val))
+      if (const auto val = Params.FindString(JstringView(Env, name)))
       {
-        return MakeJstring(Env, val);
+        return MakeJstring(Env, *val);
+      }
+      return defVal;
+    }
+
+    jbyteArray Get(jstring name, jbyteArray defVal) const
+    {
+      if (const auto val = Params.FindData(JstringView(Env, name)))
+      {
+        return Jni::MakeByteArray(Env, *val);
       }
       return defVal;
     }

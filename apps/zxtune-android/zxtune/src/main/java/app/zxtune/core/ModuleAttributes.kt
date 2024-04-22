@@ -38,4 +38,9 @@ object ModuleAttributes {
      * Module container
      */
     const val CONTAINER = "Container"
+
+    /**
+     * Embedded picture
+     */
+    const val PICTURE = "Picture"
 }

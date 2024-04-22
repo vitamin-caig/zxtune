@@ -17,6 +17,7 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 // library includes
+#include <binary/dump.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/music/wav.h>

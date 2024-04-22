@@ -26,7 +26,7 @@ class JniPluginsTest {
         })
         assertEquals(16375, flags[0])
         assertEquals(51, flags[1])
-        assertEquals(118, counts[0])
-        assertEquals(24, counts[1])
+        assertEquals(274, counts[0])
+        assertEquals(58, counts[1])
     }
 }

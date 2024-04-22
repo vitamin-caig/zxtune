@@ -92,8 +92,7 @@ namespace
     void SelectDevice()
     {
       using namespace Parameters::ZXTune::Sound::Backends::Win32;
-      Parameters::IntType curDevice = DEVICE_DEFAULT;
-      Options->FindValue(DEVICE, curDevice);
+      const auto curDevice = Parameters::GetInteger(*Options, DEVICE, DEVICE_DEFAULT);
       DeviceChanged([curDevice](const Device& dev) { return dev.Id == curDevice; });
     }
 

@@ -86,33 +86,25 @@ namespace IO::File
     std::size_t MemoryMappingThreshold() const
     {
       using namespace Parameters::ZXTune::IO::Providers::File;
-      Parameters::IntType intVal = MMAP_THRESHOLD_DEFAULT;
-      Accessor.FindValue(MMAP_THRESHOLD, intVal);
-      return static_cast<std::size_t>(intVal);
+      return Parameters::GetInteger<std::size_t>(Accessor, MMAP_THRESHOLD, MMAP_THRESHOLD_DEFAULT);
     }
 
     OverwriteMode Overwrite() const override
     {
       using namespace Parameters::ZXTune::IO::Providers::File;
-      Parameters::IntType intVal = OVERWRITE_EXISTING_DEFAULT;
-      Accessor.FindValue(OVERWRITE_EXISTING, intVal);
-      return static_cast<OverwriteMode>(intVal);
+      return Parameters::GetInteger<OverwriteMode>(Accessor, OVERWRITE_EXISTING, OVERWRITE_EXISTING_DEFAULT);
     }
 
     bool CreateDirectories() const override
     {
       using namespace Parameters::ZXTune::IO::Providers::File;
-      Parameters::IntType intVal = CREATE_DIRECTORIES_DEFAULT;
-      Accessor.FindValue(CREATE_DIRECTORIES, intVal);
-      return intVal != 0;
+      return 0 != Parameters::GetInteger(Accessor, CREATE_DIRECTORIES, CREATE_DIRECTORIES_DEFAULT);
     }
 
     bool SanitizeNames() const override
     {
       using namespace Parameters::ZXTune::IO::Providers::File;
-      Parameters::IntType intVal = SANITIZE_NAMES_DEFAULT;
-      Accessor.FindValue(SANITIZE_NAMES, intVal);
-      return intVal != 0;
+      return 0 != Parameters::GetInteger(Accessor, SANITIZE_NAMES, SANITIZE_NAMES_DEFAULT);
     }
 
   private:

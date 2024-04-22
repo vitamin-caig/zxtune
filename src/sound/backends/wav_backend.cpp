@@ -18,6 +18,7 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 // library includes
+#include <binary/dump.h>
 #include <l10n/markup.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>

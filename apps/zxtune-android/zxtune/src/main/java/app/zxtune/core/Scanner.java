@@ -156,14 +156,7 @@ public final class Scanner {
   }
 
   private static void analyzeRealFile(VfsFile file, final Callback cb) throws Exception {
-    final Uri uri = file.getUri();
-    Core.detectModules(file, new ModuleDetectCallback() {
-
-      @Override
-      public void onModule(String subpath, Module obj) {
-        cb.onModule(new Identifier(uri, subpath), obj);
-      }
-    });
+    Core.detectModules(file, cb::onModule);
   }
 
   private void analyzeArchiveObject(Identifier id, Callback cb) throws Exception {
