@@ -108,6 +108,7 @@ namespace
   {
     QNetworkRequest result(url);
     result.setHeader(QNetworkRequest::UserAgentHeader, ToQString(GetUserAgent()));
+    result.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     return result;
   }
 
