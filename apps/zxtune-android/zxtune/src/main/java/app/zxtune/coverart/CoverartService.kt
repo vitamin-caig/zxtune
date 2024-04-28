@@ -29,7 +29,7 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
 
     fun addEmbedded(id: Identifier, module: Module) {
         if (!db.hasEmbedded(id)) {
-            module.getProperty(ModuleAttributes.PICTURE, null)?.let {
+            module.getPicture()?.let {
                 addPicture(id, it)
             }
         }
@@ -226,3 +226,7 @@ class ImagesSet(paths: List<String>) {
 }
 
 private fun Uri.isRandomized() = getQueryParameter("seed") != null
+
+private fun Module.getPicture() = runCatching {
+    getProperty(ModuleAttributes.PICTURE, null)
+}.getOrNull()
