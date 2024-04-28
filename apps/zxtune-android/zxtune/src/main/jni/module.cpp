@@ -232,7 +232,8 @@ namespace
     {
       const auto rawData = location.GetData();
       const auto data = Binary::View(*rawData);
-      if (IsPictureFormat(data))
+      const std::size_t MAX_PICTURE_SIZE = 1048576 * 2; //2Mb
+      if (data.Size() <= MAX_PICTURE_SIZE && IsPictureFormat(data))
       {
         CallbacksJni::CallOnPicture(Env, Delegate, location.GetPath()->AsString(), Jni::MakeByteArray(Env, data));
       }
