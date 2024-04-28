@@ -67,12 +67,12 @@ class CoverartServiceTest {
         val jpg = Location("images/folder.jpg").apply {
             assertEquals("images", dir)
             assertEquals("folder.jpg", name)
-            assertEquals(203, priority)
+            assertEquals(403, priority)
         }
         val jpeg = Location("sub/folder/cover.jpeg").apply {
             assertEquals("sub/folder", dir)
             assertEquals("cover.jpeg", name)
-            assertEquals(302, priority)
+            assertEquals(502, priority)
         }
 
         png.run {
@@ -225,9 +225,9 @@ class CoverartServiceTest {
         }
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException::class)
     fun `archiveArtOf not archive`() {
-        assertNull(underTest.archiveArtOf(archiveId))
+        underTest.archiveArtOf(archiveId)
     }
 
     @Test
@@ -287,7 +287,6 @@ class CoverartServiceTest {
             verify(db).query(archiveId)
             verify(db).listArchiveImages(archiveUri)
             verify(db).setArchiveImage(archiveUri, null)
-            verify(obj).parent
         }
     }
 

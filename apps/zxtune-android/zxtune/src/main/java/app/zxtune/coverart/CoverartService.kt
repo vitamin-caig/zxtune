@@ -85,8 +85,9 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
         db.query(id)?.run {
             return externalPicture
         }
-        archiveArtOf(id)?.let {
-            return it
+        // Do not mix archive and storage worlds
+        if (id.subPath.isNotEmpty()) {
+            return archiveArtOf(id)
         }
         var ref = dataObject.parent
         while (ref != null) {
@@ -110,9 +111,7 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
 
     @VisibleForTesting
     fun archiveArtOf(id: Identifier): Uri? {
-        if (id.subPath.isEmpty()) {
-            return null
-        }
+        require(id.subPath.isNotEmpty())
         val dataLocation = id.dataLocation
         // per-archive as reference
         db.query(Identifier(dataLocation))?.run {
