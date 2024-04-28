@@ -17,7 +17,7 @@ import app.zxtune.core.Identifier
 import app.zxtune.fs.dbhelpers.Utils
 
 const val NAME = "coverart"
-const val VERSION = 1
+const val VERSION = 2
 
 class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) {
     constructor(ctx: Context) : this(
