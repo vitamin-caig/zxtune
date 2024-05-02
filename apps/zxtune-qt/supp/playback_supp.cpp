@@ -60,6 +60,7 @@ namespace
       : PlaybackSupport(parent)
       , Service(&Sound::CreateSystemService, std::move(sndOptions))
       , Control(StubControl::Instance())
+      , ItemCookie(nullptr)
     {
       const unsigned UI_UPDATE_FPS = 5;
       Timer.setInterval(1000 / UI_UPDATE_FPS);
@@ -71,36 +72,33 @@ namespace
 
     void SetDefaultItem(Playlist::Item::Data::Ptr item) override
     {
-      IOThread::Execute([this, item]() {
-        if (Backend)
-        {
-          return;
-        }
-        LoadItem(item);
-      });
+      if (!ItemCookie)
+      {
+        ItemCookie = item.get();
+        SetItemAsync(std::move(item), false);
+      }
     }
 
     void SetItem(Playlist::Item::Data::Ptr item) override
     {
-      IOThread::Execute([this, item]() {
-        try
-        {
-          if (LoadItem(item))
-          {
-            Control->Play();
-          }
-        }
-        catch (const Error& e)
-        {
-          emit ErrorOccurred(e);
-        }
-      });
+      if (item == Item)
+      {
+        // Clicked the same item, just replay it
+        Control->SetPosition({});
+        Play();
+      }
+      else if (ItemCookie.exchange(item.get()) != item.get())
+      {
+        // Change the item
+        SetItemAsync(std::move(item), true);
+      }
     }
 
     void ResetItem() override
     {
       Stop();
       Item.reset();
+      ItemCookie = nullptr;
       Control = StubControl::Instance();
       Backend.reset();
     }
@@ -186,33 +184,55 @@ namespace
 
     void OnFinish() override
     {
+      SelfThread::Execute(this, &PlaybackSupportImpl::ResetItem);
       emit OnFinishModule();
     }
 
   private:
-    bool LoadItem(Playlist::Item::Data::Ptr item)
+    void SetItemAsync(Playlist::Item::Data::Ptr item, bool play)
     {
+      IOThread::Execute([this, item, play]() {
+        LoadItem(item, play);
+      });
+    }
+
+    void LoadItem(Playlist::Item::Data::Ptr item, bool play)
+    {
+      // must not be in UI thread
+      Require(!MainThread::IsCurrent());
       const Module::Holder::Ptr module = item->GetModule();
-      if (!module)
+      if (!module || (item.get() != ItemCookie))
       {
-        return false;
+        return;
       }
+
       try
       {
-        ResetItem();
-        Backend = CreateBackend(module);
-        if (Backend)
+        const auto backend = CreateBackend(module);
+        if (item.get() != ItemCookie)
         {
-          Control = Backend->GetPlaybackControl();
-          Item = std::move(item);
-          return true;
+          return;
         }
+        SelfThread::Execute(this, &PlaybackSupportImpl::ApplyItem, std::move(item), std::move(backend), play);
       }
       catch (const Error& e)
       {
         emit ErrorOccurred(e);
       }
-      return false;
+    }
+
+    void ApplyItem(Playlist::Item::Data::Ptr item, Sound::Backend::Ptr backend, bool play)
+    {
+      // must be in UI thread
+      Require(MainThread::IsCurrent());
+      ResetItem();
+      Backend = std::move(backend);
+      Control = Backend->GetPlaybackControl();
+      Item = std::move(item);
+      if (play)
+      {
+        Play();
+      }
     }
 
     Sound::Backend::Ptr CreateBackend(const Module::Holder::Ptr& module)
@@ -251,6 +271,7 @@ namespace
     Playlist::Item::Data::Ptr Item;
     Sound::Backend::Ptr Backend;
     Sound::PlaybackControl::Ptr Control;
+    std::atomic<const void *> ItemCookie;
   };
 }  // namespace
 
