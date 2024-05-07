@@ -15,5 +15,6 @@
 
 bool MainThread::IsCurrent()
 {
-  return QThread::currentThread() == QCoreApplication::instance()->thread();
+  auto instance = QCoreApplication::instance();
+  return instance && instance->thread() == QThread::currentThread();
 }
