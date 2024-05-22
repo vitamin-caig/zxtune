@@ -6,5 +6,6 @@ includedir=@includedir@
 Name: libsidplayfp
 Description: C64 cycle exact stereo sidplayer library.
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lsidplayfp
-Cflags: -I${includedir}
+Libs.private: @LIBGCRYPT_LIBS@ @EXSID_LIBS@
+Libs: -L${libdir} -lsidplayfp @OPENMP_CXXFLAGS@
+Cflags: -I${includedir} @OPENMP_CXXFLAGS@

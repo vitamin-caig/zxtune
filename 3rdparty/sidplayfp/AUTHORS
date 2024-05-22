@@ -1,12 +1,11 @@
-Libsidplayfp (and its console frontend sidplayfp) is a fork of sidplay2,
-a C64 music player library which integrates the reSID SID chip emulation
-into a cycle-based emulator environment, born with the aim to improve
-the quality of emulating the 6581, 8580 chips and the surrounding C64
-system in order to play SID music better.
+libsidplayfp is a C64 music player library which integrates
+the reSID and reSIDfp SID chip emulation into a cycle-based
+emulator environment, constantly aiming to improve emulation
+of the C64 system and the SID chips.
 
 Copyright (c) 2000 Simon White
 Copyright (c) 2007-2010 Antti Lankila
-Copyright (c) 2010-2014 Leandro Nini
+Copyright (c) 2010-2024 Leandro Nini
 
 This version of the freely available libsidplayfp emulator engine source code
 contains the following contributed or derived work. In the order they first
@@ -19,11 +18,16 @@ supplied contributions or code was derived from their work:
     Antti Lankila     - SID distortion simulation (reSID-fp),
                         emulation improvements
     Leandro Nini      - build system rewrite, code refactoring,
-                        backporting from jsidplay2
+                        backporting fixes from jsidplay2 and VICE,
+                        emulation improvements
     LaLa              - stilview
     André Fachat      - reloc65
+    Jarno Paananen    - HardSID UNIX builder
+    Thibaut VARENE    - exSID driver and builder
 
 VIC II, CIA and cpu-port emulation is based on VICE code.
+CIA SDR and interrupt handling are based on Denise emulator
+implementation.
 
 Credit where credit is due, so if I missed anyone please let me know.
 
