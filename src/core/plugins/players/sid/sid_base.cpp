@@ -32,11 +32,11 @@
 #include <strings/encoding.h>
 #include <strings/trim.h>
 // 3rdparty includes
-#include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
-#include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
-#include <3rdparty/sidplayfp/sidplayfp/SidTune.h>
-#include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
-#include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
+#include <3rdparty/sidplayfp/src/builders/resid-builder/resid.h>
+#include <3rdparty/sidplayfp/src/sidplayfp/SidInfo.h>
+#include <3rdparty/sidplayfp/src/sidplayfp/SidTune.h>
+#include <3rdparty/sidplayfp/src/sidplayfp/SidTuneInfo.h>
+#include <3rdparty/sidplayfp/src/sidplayfp/sidplayfp.h>
 
 namespace Module::Sid
 {
