@@ -52,6 +52,22 @@ public:
     {}
 };
 
+template< class This, void(This::*Callback)() >
+class FastEventCallback final : public Event
+{
+private:
+    This &m_this;
+
+private:
+    void event() override { (m_this.*Callback)(); }
+
+public:
+    FastEventCallback(const char* const name, This &object) :
+       Event(name),
+       m_this(object)
+    {}
+};
+
 }
 
 #endif // EVENTCALLBACK_H

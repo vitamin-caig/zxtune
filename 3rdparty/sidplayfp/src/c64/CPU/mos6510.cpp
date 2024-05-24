@@ -1474,9 +1474,9 @@ MOS6510::MOS6510(EventScheduler &scheduler) :
 #ifdef DEBUG
     m_fdbg(stdout),
 #endif
-    m_nosteal("CPU-nosteal", *this, &MOS6510::eventWithoutSteals),
-    m_steal("CPU-steal", *this, &MOS6510::eventWithSteals),
-    clearInt("Remove IRQ", *this, &MOS6510::removeIRQ)
+    m_nosteal("CPU-nosteal", *this),
+    m_steal("CPU-steal", *this),
+    clearInt("Remove IRQ", *this)
 {
     buildInstructionTable();
 
