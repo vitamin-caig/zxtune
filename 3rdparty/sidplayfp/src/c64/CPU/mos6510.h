@@ -85,7 +85,7 @@ public:
 private:
     struct ProcessorCycle
     {
-        void (MOS6510::*func)();
+        void (*func)(MOS6510&);
         bool nosteal;
         ProcessorCycle() :
             func(0),
