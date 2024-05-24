@@ -153,6 +153,7 @@ namespace Module::Sid
       const uint_t chipsCount = Player.info().maxsids();
       Builder.create(chipsCount);
       Config.frequency = samplerate;
+      Config.powerOnDelay = SidConfig::MAX_POWER_ON_DELAY - 1;
     }
 
     void Load(SidTune& tune)
