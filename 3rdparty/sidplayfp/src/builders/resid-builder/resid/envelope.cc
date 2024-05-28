@@ -158,7 +158,7 @@ unsigned short EnvelopeGenerator::model_dac[2][1 << 8] = {
 // ----------------------------------------------------------------------------
 EnvelopeGenerator::EnvelopeGenerator()
 {
-  static bool class_init;
+  static bool class_init = false;
 
   if (!class_init) {
     // Build DAC lookup tables for 8-bit DACs.

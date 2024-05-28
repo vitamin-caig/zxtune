@@ -22,6 +22,7 @@
 #define PSIDDRV_H
 
 #include <stdint.h>
+#include <vector>
 
 class SidTuneInfo;
 
@@ -36,6 +37,7 @@ private:
     const SidTuneInfo *m_tuneInfo;
     const char *m_errorString;
 
+    std::vector<uint8_t> psid_driver;
     uint8_t *reloc_driver;
     int      reloc_size;
 

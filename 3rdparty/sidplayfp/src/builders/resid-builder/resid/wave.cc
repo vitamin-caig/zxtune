@@ -82,7 +82,7 @@ unsigned short WaveformGenerator::model_dac[2][1 << 12] = {
 // ----------------------------------------------------------------------------
 WaveformGenerator::WaveformGenerator()
 {
-  static bool class_init;
+  static bool class_init = false;
 
   if (!class_init) {
     // Calculate tables for normal waveforms.

@@ -251,7 +251,7 @@ static const double Vref = 4.75;
 // ----------------------------------------------------------------------------
 Filter::Filter()
 {
-  static bool class_init;
+  static bool class_init = false;
 
   if (!class_init) {
     double tmp_n_param[2];
