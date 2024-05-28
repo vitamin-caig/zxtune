@@ -1469,8 +1469,9 @@ void MOS6510::rra_instr()
  * @param context
  *            The Event Context
  */
-MOS6510::MOS6510(EventScheduler &scheduler) :
+MOS6510::MOS6510(EventScheduler &scheduler, CPUDataBus &bus) :
     eventScheduler(scheduler),
+    dataBus(bus),
 #ifdef DEBUG
     m_fdbg(stdout),
 #endif

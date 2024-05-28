@@ -104,9 +104,6 @@ private:
     /// System event context
     EventScheduler eventScheduler;
 
-    /// CPU
-    c64cpu cpu;
-
     /// CIA1
     c64cia1 cia1;
 
@@ -134,26 +131,16 @@ private:
     /// MMU chip
     MMU mmu;
 
+    /// CPUBus
+    c64cpubus cpubus;
+
+    /// CPU
+    MOS6510 cpu;
+
 private:
     static double getCpuFreq(model_t model);
 
 private:
-    /**
-     * Access memory as seen by CPU.
-     *
-     * @param addr the address where to read from
-     * @return value at address
-     */
-    uint8_t cpuRead(uint_least16_t addr) override { return mmu.cpuRead(addr); }
-
-    /**
-     * Access memory as seen by CPU.
-     *
-     * @param addr the address where to write to
-     * @param data the value to write
-     */
-    void cpuWrite(uint_least16_t addr, uint8_t data) override { mmu.cpuWrite(addr, data); }
-
     /**
      * IRQ trigger signal.
      *

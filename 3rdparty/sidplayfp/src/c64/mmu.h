@@ -128,7 +128,7 @@ public:
      * @param addr the address where to read from
      * @return value at address
      */
-    uint8_t cpuRead(uint_least16_t addr) const { return cpuReadMap[addr >> 12]->peek(addr); }
+    uint8_t cpuRead(uint_least16_t addr) { return cpuReadMap[addr >> 12]->peek(addr); }
 
     /**
      * Access memory as seen by CPU.

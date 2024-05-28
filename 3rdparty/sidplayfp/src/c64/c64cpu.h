@@ -25,7 +25,7 @@
 #  include "config.h"
 #endif
 
-#include "c64/c64env.h"
+#include "c64/mmu.h"
 #include "CPU/mos6510.h"
 
 #ifdef VICE_TESTSUITE
@@ -65,13 +65,13 @@ static const char CHRtab[256] =
   0x2f,0x2d,0x2d,0x7c,0x7c,0x7c,0x7c,0x2d,0x2d,0x2d,0x2f,0x5c,0x5c,0x2f,0x2f,0x23
 };
 #endif
-class c64cpu final : public MOS6510
+class c64cpubus final : public CPUDataBus
 {
 private:
-    c64env &m_env;
+    MMU &m_mmu;
 
 protected:
-    uint8_t cpuRead(uint_least16_t addr) override { return m_env.cpuRead(addr); }
+    uint8_t cpuRead(uint_least16_t addr) override { return m_mmu.cpuRead(addr); }
 
     void cpuWrite(uint_least16_t addr, uint8_t data) override
     {
@@ -97,13 +97,12 @@ protected:
             }
         }
 #endif
-        m_env.cpuWrite(addr, data);
+        m_mmu.cpuWrite(addr, data);
     }
 
 public:
-    c64cpu (c64env &env) :
-        MOS6510(env.scheduler()),
-        m_env(env) {}
+    c64cpubus (MMU &mmu) :
+        m_mmu(mmu) {}
 };
 
 }

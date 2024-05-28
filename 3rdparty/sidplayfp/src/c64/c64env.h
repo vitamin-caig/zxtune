@@ -48,9 +48,6 @@ public:
 
     EventScheduler &scheduler() const { return eventScheduler; }
 
-    virtual uint8_t cpuRead(uint_least16_t addr) =0;
-    virtual void cpuWrite(uint_least16_t addr, uint8_t data) =0;
-
     virtual void interruptIRQ(bool state) = 0;
     virtual void interruptNMI() = 0;
     virtual void interruptRST() = 0;
