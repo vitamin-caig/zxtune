@@ -23,7 +23,9 @@
 #include <strings/casing.h>
 #include <strings/conversion.h>
 #include <strings/format.h>
+#include <strings/sanitize.h>
 #include <strings/split.h>
+#include <strings/trim.h>
 // std includes
 #include <array>
 #include <cctype>
@@ -535,7 +537,7 @@ namespace Formats::Chiptune
           const auto first = str.substr(0, sepPos);
           const auto second = str.substr(sepPos + 1);
           Name = Strings::TrimSpaces(first).to_string();
-          Value = Strings::TrimSpaces(second).to_string();
+          Value = Strings::Sanitize(second);
         }
 
         Entry(StringView name, StringView value)
@@ -1160,8 +1162,8 @@ namespace Formats::Chiptune
         MetaBuilder& meta = Target.GetMetaBuilder();
         meta.SetProgram(Strings::Format(EDITOR, 3, hdr.Version));
         Target.SetVersion(hdr.Version);
-        meta.SetTitle(DecodeString(hdr.Title));
-        meta.SetAuthor(DecodeString(hdr.Author));
+        meta.SetTitle(Strings::Sanitize(hdr.Title));
+        meta.SetAuthor(Strings::Sanitize(hdr.Author));
         Target.SetNoteTable(hdr.Table);
         Target.SetInitialTempo(hdr.Tempo);
         Positions pos;

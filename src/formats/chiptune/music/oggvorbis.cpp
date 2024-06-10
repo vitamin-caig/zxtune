@@ -20,8 +20,6 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <math/bitops.h>
-#include <strings/encoding.h>
-#include <strings/trim.h>
 // std includes
 #include <cctype>
 #include <numeric>

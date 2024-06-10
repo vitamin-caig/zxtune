@@ -20,7 +20,7 @@
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
 #include <strings/casing.h>
-#include <strings/encoding.h>
+#include <strings/sanitize.h>
 #include <strings/trim.h>
 
 namespace Formats::Chiptune
@@ -168,12 +168,12 @@ namespace Formats::Chiptune
         Stream.Seek(offset);
         if (sign < VER3)
         {
-          target.SetTitle(Strings::ToAutoUtf8(Stream.ReadCString(areas.GetAreaSize(TAG))));
+          target.SetTitle(Strings::Sanitize(Stream.ReadCString(areas.GetAreaSize(TAG))));
           return true;
         }
         else if (ReadTagSignature())
         {
-          const auto value = Strings::ToAutoUtf8(ReadMaybeTruncatedString(areas.GetAreaSize(TAG)));
+          const auto value = Strings::Sanitize(ReadMaybeTruncatedString(areas.GetAreaSize(TAG)));
           return ParsePSFTags(value, target);
         }
         else
@@ -221,19 +221,19 @@ namespace Formats::Chiptune
           }
           else if (Tags::Match(name, Tags::TITLE))
           {
-            target.SetTitle(value);
+            target.SetTitle(Strings::Sanitize(value));
           }
           else if (Tags::Match(name, Tags::GAME))
           {
-            target.SetProgram(value);
+            target.SetProgram(Strings::Sanitize(value));
           }
           else if (Tags::Match(name, Tags::ARTIST))
           {
-            target.SetAuthor(value);
+            target.SetAuthor(Strings::Sanitize(value));
           }
           else if (Tags::Match(name, Tags::COMMENT))
           {
-            target.SetStrings({value.to_string()});
+            target.SetComment(Strings::SanitizeMultiline(value));
           }
           result = true;
         }
@@ -247,7 +247,7 @@ namespace Formats::Chiptune
         if (eqPos != line.npos)
         {
           name = Strings::TrimSpaces(line.substr(0, eqPos));
-          value = Strings::TrimSpaces(line.substr(eqPos + 1));
+          value = line.substr(eqPos + 1);
           return true;
         }
         else

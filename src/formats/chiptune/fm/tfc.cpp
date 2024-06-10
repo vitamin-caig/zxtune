@@ -17,8 +17,7 @@
 // library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <strings/encoding.h>
-#include <strings/trim.h>
+#include <strings/sanitize.h>
 // std includes
 #include <array>
 
@@ -272,11 +271,6 @@ namespace Formats::Chiptune
       mutable std::size_t Max = 0;
     };
 
-    String DecodeString(StringView str)
-    {
-      return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
-    }
-
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
       const Binary::View data(rawData);
@@ -291,9 +285,9 @@ namespace Formats::Chiptune
         target.SetVersion({header.Version.data(), header.Version.size()});
         target.SetIntFreq(header.IntFreq);
         auto& meta = target.GetMetaBuilder();
-        meta.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
-        meta.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
-        meta.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
+        meta.SetTitle(Strings::Sanitize(stream.ReadCString(MAX_STRING_SIZE)));
+        meta.SetAuthor(Strings::Sanitize(stream.ReadCString(MAX_STRING_SIZE)));
+        meta.SetComment(Strings::SanitizeMultiline(stream.ReadCString(MAX_COMMENT_SIZE)));
 
         const Container container(data);
         for (uint_t chan = 0; chan != 6; ++chan)

@@ -16,8 +16,7 @@
 // library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <strings/encoding.h>
-#include <strings/trim.h>
+#include <strings/sanitize.h>
 // std includes
 #include <array>
 
@@ -104,11 +103,6 @@ namespace Formats::Chiptune
       const Binary::Format::Ptr Format;
     };
 
-    String DecodeString(StringView str)
-    {
-      return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
-    }
-
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
     {
       if (!FastCheck(data))
@@ -120,9 +114,9 @@ namespace Formats::Chiptune
         Binary::InputStream stream(data);
         stream.Read<SignatureType>();
         auto& meta = target.GetMetaBuilder();
-        meta.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
-        meta.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
-        meta.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
+        meta.SetTitle(Strings::Sanitize(stream.ReadCString(MAX_STRING_SIZE)));
+        meta.SetAuthor(Strings::Sanitize(stream.ReadCString(MAX_STRING_SIZE)));
+        meta.SetComment(Strings::SanitizeMultiline(stream.ReadCString(MAX_COMMENT_SIZE)));
 
         const std::size_t fixedOffset = stream.GetPosition();
         std::size_t totalFrames = 0;

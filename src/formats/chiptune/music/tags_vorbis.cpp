@@ -15,8 +15,7 @@
 // library includes
 #include <binary/base64.h>
 #include <strings/casing.h>
-#include <strings/encoding.h>
-#include <strings/trim.h>
+#include <strings/sanitize.h>
 // std includes
 #include <array>
 
@@ -29,36 +28,27 @@ namespace Formats::Chiptune::Vorbis
     return {utf8, size};
   }
 
-  String Decode(StringView str)
-  {
-    // do not trim before- it may break some encodings
-    auto decoded = Strings::ToAutoUtf8(str);
-    auto trimmed = Strings::TrimSpaces(decoded);
-    return decoded.size() == trimmed.size() ? decoded : trimmed.to_string();
-  }
-
   void ParseCommentField(StringView field, MetaBuilder& target)
   {
     const auto eqPos = field.find('=');
     if (eqPos == StringView::npos)
     {
-      target.SetStrings({Decode(field)});
+      target.SetComment(Strings::SanitizeMultiline(field));
       return;
     }
     const auto name = field.substr(0, eqPos);
     const auto value = field.substr(eqPos + 1);
-    Strings::Array strings;
     if (Strings::EqualNoCaseAscii(name, "TITLE"_sv))
     {
-      target.SetTitle(Decode(value));
+      target.SetTitle(Strings::Sanitize(value));
     }
     else if (Strings::EqualNoCaseAscii(name, "ARTIST"_sv) || Strings::EqualNoCaseAscii(name, "PERFORMER"_sv))
     {
-      target.SetAuthor(Decode(value));
+      target.SetAuthor(Strings::Sanitize(value));
     }
     else if (Strings::EqualNoCaseAscii(name, "COPYRIGHT"_sv) || Strings::EqualNoCaseAscii(name, "DESCRIPTION"_sv))
     {
-      strings.emplace_back(Decode(value));
+      target.SetComment(Strings::SanitizeMultiline(value));
     }
     else if (Strings::EqualNoCaseAscii(name, "COVERART"_sv))
     {
@@ -68,11 +58,6 @@ namespace Formats::Chiptune::Vorbis
       }
       catch (const std::exception&)
       {}
-    }
-    // TODO: meta.SetComment
-    if (!strings.empty())
-    {
-      target.SetStrings(strings);
     }
   }
 

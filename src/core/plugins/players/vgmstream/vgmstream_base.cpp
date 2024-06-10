@@ -35,6 +35,7 @@
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
+#include <strings/sanitize.h>
 // 3rdparty includes
 extern "C"
 {
@@ -441,11 +442,11 @@ namespace Module::VGMStream
                                            && stream->num_streams == 1;
       Require(1 == singleTrackModule + multiTrackModule + singleTrackMultiFileModule + singleTrackFFMpegModule);
       PropertiesHelper props(*properties);
-      props.SetTitle(stream->stream_name);
+      props.SetTitle(Strings::Sanitize(stream->stream_name));
       {
         std::array<char, 1024> buf{0};
         ::describe_vgmstream(stream.get(), buf.data(), buf.size());
-        props.SetComment(buf.data());
+        props.SetComment(Strings::SanitizeMultiline(buf.data()));
       }
       return MakePtr<Holder>(std::move(vfs), std::move(stream), std::move(properties));
     }

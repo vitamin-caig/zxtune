@@ -201,7 +201,7 @@ namespace Module::SPC
 
     void SetDumper(StringView dumper) override
     {
-      Meta.SetStrings({dumper.to_string()});
+      Meta.SetComment(dumper);
     }
 
     void SetDumpDate(StringView date) override

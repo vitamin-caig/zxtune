@@ -21,12 +21,10 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <strings/encoding.h>
+#include <strings/sanitize.h>
 // std includes
 #include <array>
 #include <cassert>
-// boost includes
-#include <boost/algorithm/string/trim.hpp>
 
 namespace Formats::Chiptune
 {
@@ -62,7 +60,13 @@ namespace Formats::Chiptune
       }
     };
 
-    using InstrumentName = std::array<char, 16>;
+    struct InstrumentName : std::array<char, 16>
+    {
+      bool IsEmpty() const
+      {
+        return size() == std::count(begin(), end(), 0xff);
+      }
+    };
 
     struct RawInstrument
     {
@@ -763,17 +767,6 @@ namespace Formats::Chiptune
       Binary::DataBuilder Decoded;
     };
 
-    StringView Trim(StringView str)
-    {
-      // empty samples' names are filled with FF
-      return boost::algorithm::trim_copy_if(str, boost::is_from_range('\x00', '\x20') || boost::is_any_of("\xff"));
-    }
-
-    String DecodeString(StringView str)
-    {
-      return Strings::ToAutoUtf8(Trim(str));
-    }
-
     template<class Version>
     class VersionedFormat
     {
@@ -788,14 +781,17 @@ namespace Formats::Chiptune
         builder.SetDate(ConvertDate(Source.CreationDate), ConvertDate(Source.SaveDate));
         MetaBuilder& meta = builder.GetMetaBuilder();
         meta.SetProgram(Version::DESCRIPTION.to_string());
-        meta.SetTitle(DecodeString(Source.Title));
-        meta.SetAuthor(DecodeString(Source.Author));
-        meta.SetComment(DecodeString(Source.Comment));
+        meta.SetTitle(Strings::Sanitize(Source.Title));
+        meta.SetAuthor(Strings::Sanitize(Source.Author));
+        meta.SetComment(Strings::SanitizeMultiline(Source.Comment));
         Strings::Array names;
         names.reserve(Source.InstrumentNames.size());
         for (const auto& name : Source.InstrumentNames)
         {
-          names.push_back(DecodeString(name));
+          if (!name.IsEmpty())
+          {
+            names.emplace_back(Strings::SanitizeKeepPadding(name));
+          }
         }
         meta.SetStrings(names);
       }

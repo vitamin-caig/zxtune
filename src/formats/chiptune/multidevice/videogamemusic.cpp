@@ -18,6 +18,7 @@
 #include <binary/input_stream.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
+#include <strings/sanitize.h>
 #include <strings/split.h>
 
 namespace Formats::Chiptune
@@ -191,24 +192,25 @@ namespace Formats::Chiptune
       static void ParseTags(Binary::View tags, MetaBuilder& target)
       {
         Binary::DataInputStream input(tags);
-        const auto titleEn = ReadUTF16(input);
-        const auto titleJa = ReadUTF16(input);
+        const auto titleEn = ReadUTF16Sanitized(input);
+        const auto titleJa = ReadUTF16Sanitized(input);
         target.SetTitle(DispatchString(titleEn, titleJa));
-        const auto gameEn = ReadUTF16(input);
-        const auto gameJa = ReadUTF16(input);
+        const auto gameEn = ReadUTF16Sanitized(input);
+        const auto gameJa = ReadUTF16Sanitized(input);
         target.SetProgram(DispatchString(gameEn, gameJa));
         /*const auto systemEn = */ ReadUTF16(input);
         /*const auto systemJa = */ ReadUTF16(input);
-        const auto authorEn = ReadUTF16(input);
-        const auto authorJa = ReadUTF16(input);
+        const auto authorEn = ReadUTF16Sanitized(input);
+        const auto authorJa = ReadUTF16Sanitized(input);
         /*const auto date = */ ReadUTF16(input);
-        const auto ripper = ReadUTF16(input);
+        const auto ripper = ReadUTF16Sanitized(input);
         target.SetAuthor(DispatchString(authorEn, DispatchString(authorJa, ripper)));
         const auto comment = ReadUTF16(input);
         Strings::Array strings;
         Strings::Split(comment, "\r\n"_sv, strings);
         if (!strings.empty())
         {
+          std::transform(strings.begin(), strings.end(), strings.begin(), &Strings::Sanitize);
           target.SetStrings(strings);
         }
       }
@@ -235,6 +237,11 @@ namespace Formats::Chiptune
           }
         }
         return value;
+      }
+
+      static String ReadUTF16Sanitized(Binary::DataInputStream& input)
+      {
+        return Strings::Sanitize(ReadUTF16(input));
       }
 
       static const String& DispatchString(const String& lh, const String& rh)

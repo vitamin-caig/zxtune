@@ -100,7 +100,7 @@ namespace Module::ASAP
         if (const auto* const ins =
                 ::ASAPInfo_GetInstrumentName(Info, static_cast<const unsigned char*>(data.Start()), data.Size(), idx))
         {
-          instruments.push_back(Strings::OptimizeAscii(ins));
+          instruments.emplace_back(Strings::OptimizeAscii(ins));
         }
         else
         {

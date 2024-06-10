@@ -25,8 +25,8 @@
 #include <module/track_information.h>
 #include <module/track_state.h>
 #include <parameters/tracking_helper.h>
+#include <strings/sanitize.h>
 #include <strings/split.h>
-#include <strings/trim.h>
 #include <time/duration.h>
 // std includes
 #include <memory>
@@ -344,33 +344,28 @@ namespace Module::Mpt
     const Binary::Format::Ptr Fmt;
   };
 
-  String DecodeString(const String& str)
-  {
-    const auto out = Strings::TrimSpaces(str);
-    return out == str ? str : out.to_string();
-  }
-
   void FillMetadata(const openmpt::module& module, PropertiesHelper& props)
   {
-    props.SetTitle(DecodeString(module.get_metadata("title")));
-    props.SetAuthor(DecodeString(module.get_metadata("artist")));
-    const auto tracker = DecodeString(module.get_metadata("tracker"));
+    props.SetTitle(Strings::Sanitize(module.get_metadata("title")));
+    props.SetAuthor(Strings::Sanitize(module.get_metadata("artist")));
+    const auto tracker = Strings::Sanitize(module.get_metadata("tracker"));
     if (!tracker.empty())
     {
       props.SetProgram(tracker);
     }
     else
     {
-      props.SetProgram(DecodeString(module.get_metadata("type_long")));
+      props.SetProgram(Strings::Sanitize(module.get_metadata("type_long")));
     }
-    props.SetDate(DecodeString(module.get_metadata("date")));
-    props.SetComment(DecodeString(module.get_metadata("message_raw")));
+    props.SetDate(Strings::Sanitize(module.get_metadata("date")));
+    props.SetComment(Strings::SanitizeMultiline(module.get_metadata("message_raw")));
     {
       const auto metadata = module.get_metadata("message_heuristic");
       Strings::Array strings;
       Strings::Split(metadata, "\r\n"_sv, strings);
       if (!strings.empty())
       {
+        std::transform(strings.begin(), strings.end(), strings.begin(), &Strings::SanitizeKeepPadding);
         props.SetStrings(strings);
       }
     }

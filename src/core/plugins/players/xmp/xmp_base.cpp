@@ -23,8 +23,7 @@
 #include <module/track_information.h>
 #include <module/track_state.h>
 #include <parameters/tracking_helper.h>
-#include <strings/encoding.h>
-#include <strings/trim.h>
+#include <strings/sanitize.h>
 #include <time/duration.h>
 // std includes
 #include <utility>
@@ -382,21 +381,16 @@ namespace Module::Xmp
     const Binary::Format::Ptr Fmt;
   };
 
-  String DecodeString(StringView str)
-  {
-    return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
-  }
-
   void ParseStrings(const xmp_module& mod, PropertiesHelper& props)
   {
     Strings::Array strings;
     for (int idx = 0; idx < mod.smp; ++idx)
     {
-      strings.push_back(DecodeString(mod.xxs[idx].name));
+      strings.emplace_back(Strings::SanitizeKeepPadding(mod.xxs[idx].name));
     }
     for (int idx = 0; idx < mod.ins; ++idx)
     {
-      strings.push_back(DecodeString(mod.xxi[idx].name));
+      strings.emplace_back(Strings::SanitizeKeepPadding(mod.xxi[idx].name));
     }
     props.SetStrings(strings);
   }
@@ -421,12 +415,12 @@ namespace Module::Xmp
         ctx->Call(&::xmp_get_frame_info, &frmInfo);
 
         PropertiesHelper props(*properties);
-        props.SetTitle(DecodeString(modInfo.mod->name));
-        props.SetAuthor(DecodeString(modInfo.mod->author));
-        props.SetProgram(DecodeString(modInfo.mod->type));
+        props.SetTitle(Strings::Sanitize(modInfo.mod->name));
+        props.SetAuthor(Strings::Sanitize(modInfo.mod->author));
+        props.SetProgram(Strings::Sanitize(modInfo.mod->type));
         if (const char* comment = modInfo.comment)
         {
-          props.SetComment(DecodeString(comment));
+          props.SetComment(Strings::SanitizeMultiline(comment));
         }
         ParseStrings(*modInfo.mod, props);
         auto info = MakePtr<Information>(*modInfo.mod, DurationType(frmInfo.total_time));
