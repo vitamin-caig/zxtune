@@ -17,8 +17,7 @@
 // library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <strings/encoding.h>
-#include <strings/trim.h>
+#include <strings/sanitize.h>
 // std includes
 #include <array>
 #include <utility>
@@ -196,8 +195,7 @@ namespace Formats::Chiptune
         Require(Stream.GetPosition() <= Source.NamesOffset);
         Stream.Skip(Source.NamesOffset - Stream.GetPosition());
         MetaBuilder& meta = target.GetMetaBuilder();
-        const auto title = Strings::TrimSpaces(Stream.ReadCString(Stream.GetRestSize()));
-        meta.SetTitle(Strings::ToAutoUtf8(title));
+        meta.SetTitle(Strings::Sanitize(Stream.ReadCString(Stream.GetRestSize())));
         ParseSampleNames(meta);
         ParseProgram(meta);
       }
@@ -216,8 +214,7 @@ namespace Formats::Chiptune
         Strings::Array names(count);
         for (uint_t smp = 0; smp < count; ++smp)
         {
-          const auto name = Strings::TrimSpaces(Stream.ReadCString(Stream.GetRestSize()));
-          names[smp] = Strings::ToAutoUtf8(name);
+          names[smp] = Strings::SanitizeKeepPadding(Stream.ReadCString(Stream.GetRestSize()));
         }
         meta.SetStrings(names);
       }

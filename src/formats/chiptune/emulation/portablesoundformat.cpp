@@ -20,8 +20,8 @@
 #include <debug/log.h>
 #include <formats/chiptune/container.h>
 #include <strings/casing.h>
-#include <strings/encoding.h>
 #include <strings/prefixed_index.h>
+#include <strings/sanitize.h>
 #include <strings/trim.h>
 #include <time/duration.h>
 // std includes
@@ -112,22 +112,13 @@ namespace Formats::Chiptune::PortableSoundFormat
         if (eqPos != line.npos)
         {
           Name = Strings::TrimSpaces(line.substr(0, eqPos));
-          Value = Strings::TrimSpaces(line.substr(eqPos + 1));
-          if (!IsUtf8)
-          {
-            ValueUtf8 = Strings::ToAutoUtf8(Value);
-          }
+          Value = line.substr(eqPos + 1);
           return true;
         }
         else
         {
           return false;
         }
-      }
-
-      void SetUtf8()
-      {
-        IsUtf8 = true;
       }
 
       StringView GetName() const
@@ -137,14 +128,12 @@ namespace Formats::Chiptune::PortableSoundFormat
 
       StringView GetValue() const
       {
-        return IsUtf8 ? Value : ValueUtf8;
+        return Value;
       }
 
     private:
-      bool IsUtf8 = false;
       StringView Name;
       StringView Value;
-      String ValueUtf8;
     };
 
     void ParseTags(Builder& target)
@@ -164,7 +153,7 @@ namespace Formats::Chiptune::PortableSoundFormat
           continue;
         }
         const auto name = tag.GetName();
-        const auto value = tag.GetValue();
+        const auto value = Strings::Sanitize(tag.GetValue());
         Dbg("tags[{}]={}", name, value);
         if (const auto num = FindLibraryNumber(name))
         {
@@ -173,7 +162,6 @@ namespace Formats::Chiptune::PortableSoundFormat
         }
         else if (name == Tags::UTF8)
         {
-          tag.SetUtf8();
           continue;
         }
         if (Tags::Match(name, Tags::TITLE))
@@ -214,15 +202,15 @@ namespace Formats::Chiptune::PortableSoundFormat
         }
         else if (Tags::Match(name, Tags::LENGTH))
         {
-          target.SetLength(ParseTime(value.to_string()));
+          target.SetLength(ParseTime(value));
         }
         else if (Tags::Match(name, Tags::FADE))
         {
-          target.SetFade(ParseTime(value.to_string()));
+          target.SetFade(ParseTime(value));
         }
         else if (Tags::Match(name, Tags::VOLUME))
         {
-          target.SetVolume(ParseVolume(value.to_string()));
+          target.SetVolume(ParseVolume(value));
         }
         else
         {

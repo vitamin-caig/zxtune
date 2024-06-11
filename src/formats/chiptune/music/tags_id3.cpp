@@ -11,28 +11,12 @@
 // local includes
 #include "formats/chiptune/music/tags_id3.h"
 // library includes
-#include <strings/encoding.h>
-#include <strings/trim.h>
+#include <strings/sanitize.h>
 // std includes
 #include <array>
 
 namespace Formats::Chiptune::Id3
 {
-  StringView CutValid(StringView str)
-  {
-    const auto* const end =
-        std::find_if(str.begin(), str.end(), [](Char c) { return c < ' ' && c != '\t' && c != '\r' && c != '\n'; });
-    return {str.begin(), end};
-  }
-
-  String MakeString(StringView str)
-  {
-    // do not trim before- it may break some encodings
-    auto decoded = Strings::ToAutoUtf8(str);
-    auto trimmed = Strings::TrimSpaces(CutValid(decoded));
-    return decoded.size() == trimmed.size() ? decoded : trimmed.to_string();
-  }
-
   // support V2.2+ only due to different tag size
   class V2Format
   {
@@ -67,11 +51,11 @@ namespace Formats::Chiptune::Id3
       switch (id)
       {
       case 0x54495432:  //'TIT2'
-        target.SetTitle(MakeString(encodedString));
+        target.SetTitle(Strings::Sanitize(encodedString));
         break;
       case 0x54504531:  //'TPE1'
       case 0x544f5045:  //'TOPE'
-        target.SetAuthor(MakeString(encodedString));
+        target.SetAuthor(Strings::Sanitize(encodedString));
         break;
       case 0x434f4d4d:  //'COMM'
         // http://id3.org/id3v2.3.0#Comments
@@ -84,23 +68,23 @@ namespace Formats::Chiptune::Id3
         Strings::Array strings;
         if (zeroPos != StringView::npos)
         {
-          const auto descr = MakeString(encodedString.substr(0, zeroPos));
+          auto descr = Strings::Sanitize(encodedString.substr(0, zeroPos));
           if (!descr.empty())
           {
-            strings.push_back(descr);
+            strings.emplace_back(std::move(descr));
           }
-          const auto value = MakeString(encodedString.substr(zeroPos + 1));
+          auto value = Strings::Sanitize(encodedString.substr(zeroPos + 1));
           if (!value.empty())
           {
-            strings.push_back(value);
+            strings.emplace_back(std::move(value));
           }
         }
         else
         {
-          const auto val = MakeString(encodedString);
+          auto val = Strings::Sanitize(encodedString);
           if (!val.empty())
           {
-            strings.push_back(val);
+            strings.emplace_back(std::move(val));
           }
         }
         if (!strings.empty())
@@ -111,7 +95,7 @@ namespace Formats::Chiptune::Id3
       break;
       case 0x54535345:  //'TSSE'
       case 0x54454e43:  //'TENC'
-        target.SetProgram(MakeString(encodedString));
+        target.SetProgram(Strings::Sanitize(encodedString));
         break;
       case 0x41504943:  // 'APIC'
       {
@@ -168,7 +152,7 @@ namespace Formats::Chiptune::Id3
   {
     std::array<char, 90> buf;
     std::copy(part2.begin(), part2.end(), std::copy(part1.begin(), part1.end(), buf.begin()));
-    return MakeString(buf);
+    return Strings::Sanitize(buf);
   }
 
   // https://en.wikipedia.org/wiki/ID3#ID3v1_and_ID3v1.1
@@ -191,14 +175,14 @@ namespace Formats::Chiptune::Id3
       }
       else
       {
-        target.SetTitle(MakeString(tag->Title));
-        target.SetAuthor(MakeString(tag->Artist));
+        target.SetTitle(Strings::Sanitize(tag->Title));
+        target.SetAuthor(Strings::Sanitize(tag->Artist));
       }
       // TODO: add MetaBuilder::SetComment field
       {
         const auto comment = StringView(tag->Comment);
         const auto hasTrackNum = comment[28] == 0 || comment[28] == 0xff;  // standard violation
-        target.SetStrings({MakeString(hasTrackNum ? comment.substr(0, 28) : comment)});
+        target.SetStrings({Strings::Sanitize(hasTrackNum ? comment.substr(0, 28) : comment)});
       }
       return true;
     }

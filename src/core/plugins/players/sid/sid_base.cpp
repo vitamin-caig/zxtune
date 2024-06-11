@@ -29,8 +29,7 @@
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
-#include <strings/encoding.h>
-#include <strings/trim.h>
+#include <strings/sanitize.h>
 // 3rdparty includes
 #include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
@@ -307,11 +306,6 @@ namespace Module::Sid
     const Parameters::Accessor::Ptr Properties;
   };
 
-  String DecodeString(StringView str)
-  {
-    return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
-  }
-
   class Factory : public Module::MultitrackFactory
   {
   public:
@@ -332,13 +326,13 @@ namespace Module::Sid
         default:
         case 3:
           // copyright/publisher really
-          props.SetComment(DecodeString(tuneInfo.infoString(2)));
+          props.SetComment(Strings::SanitizeMultiline(tuneInfo.infoString(2)));
           [[fallthrough]];
         case 2:
-          props.SetAuthor(DecodeString(tuneInfo.infoString(1)));
+          props.SetAuthor(Strings::Sanitize(tuneInfo.infoString(1)));
           [[fallthrough]];
         case 1:
-          props.SetTitle(DecodeString(tuneInfo.infoString(0)));
+          props.SetTitle(Strings::Sanitize(tuneInfo.infoString(0)));
           [[fallthrough]];
         case 0:
           break;

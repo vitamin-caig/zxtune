@@ -18,8 +18,7 @@
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <strings/encoding.h>
-#include <strings/trim.h>
+#include <strings/sanitize.h>
 // std includes
 #include <numeric>
 
@@ -221,7 +220,7 @@ namespace Formats::Chiptune
         static String ReadString(Binary::View data)
         {
           const StringView view(data.As<char>(), data.Size());
-          return Strings::ToAutoUtf8(Strings::TrimSpaces(view));
+          return Strings::Sanitize(view);
         }
 
       private:

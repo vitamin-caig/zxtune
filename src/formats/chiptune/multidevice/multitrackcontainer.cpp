@@ -19,7 +19,7 @@
 #include <binary/input_stream.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
-#include <strings/encoding.h>
+#include <strings/sanitize.h>
 // std includes
 #include <array>
 #include <utility>
@@ -93,11 +93,15 @@ namespace IFF
     virtual void GetResult(Binary::DataBuilder& builder) const = 0;
   };
 
+  StringView GetStringView(Binary::View data)
+  {
+    return StringView(data.As<char>(), data.Size());
+  }
+
   // Store in plain string, possibly UTF-8
   String GetString(Binary::View data)
   {
-    const StringView str(data.As<char>(), data.Size());
-    return Strings::ToAutoUtf8(str);
+    return Strings::Sanitize(GetStringView(data));
   }
 
   class BlobChunkSourceBase : public ChunkSource
@@ -418,8 +422,7 @@ namespace Formats::Chiptune
         }
         else if (id == IFF::Identifier::PROPERTY)
         {
-          const auto propertyStr = IFF::GetString(*content);
-          const auto property = StringView(propertyStr);
+          const auto property = IFF::GetStringView(*content);
           const auto eqPos = property.find_first_of(PROPERTY_DELIMITER);
           const auto name = property.substr(0, eqPos);
           const auto value = eqPos != String::npos ? property.substr(eqPos + 1) : StringView();

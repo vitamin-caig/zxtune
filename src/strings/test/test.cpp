@@ -18,6 +18,7 @@
 #include <strings/map.h>
 #include <strings/optimize.h>
 #include <strings/prefixed_index.h>
+#include <strings/sanitize.h>
 #include <strings/split.h>
 #include <strings/template.h>
 
@@ -82,6 +83,61 @@ namespace
     }
   }
 
+  char ToHex(uint8_t s)
+  {
+    return s < 10 ? '0' + s : 'a' + s - 10;
+  }
+
+  String Escape(const StringView& in)
+  {
+    String out;
+    out += '\'';
+    for (uint8_t c : in)
+    {
+      if (c >= ' ' && c < 127)
+      {
+        out += c;
+      }
+      else
+      {
+        out += '\\';
+        switch (c)
+        {
+        case '\\':
+          out += c;
+          break;
+        case '\r':
+          out += 'r';
+          break;
+        case '\n':
+          out += 'n';
+          break;
+        case '\t':
+          out += 't';
+          break;
+        default:
+          out += 'x';
+          out += ToHex(c >> 4);
+          out += ToHex(c & 15);
+          break;
+        }
+      }
+    }
+    out += '\'';
+    return out;
+  }
+
+  String Escape(const String& in)
+  {
+    return Escape(StringView{in});
+  }
+
+  template<class T>
+  T Escape(T in)
+  {
+    return in;
+  }
+
   template<class T1, class T2>
   void TestEquals(T1 ref, T2 val, StringView msg)
   {
@@ -91,7 +147,7 @@ namespace
     }
     else
     {
-      std::cout << "Failed test for " << msg << ": ref=" << ref << " val=" << val << std::endl;
+      std::cout << "Failed test for " << msg << ": ref=" << Escape(ref) << " val=" << Escape(val) << std::endl;
       throw 1;
     }
   }
@@ -120,6 +176,23 @@ namespace
   {
     TestEquals(reference, Strings::OptimizeAscii(str), "Optimize " + reference);
   }
+
+  struct SanitizeCase
+  {
+    StringView Title;
+    StringView Input;
+    StringView Ref;
+    StringView RefKeepPadding;
+    StringView RefMultiline;
+
+    void Test() const
+    {
+      const String title(Title);
+      TestEquals(Ref, Strings::Sanitize(Input), "Sanitize " + title);
+      TestEquals(RefKeepPadding, Strings::SanitizeKeepPadding(Input), "SanitizeKeepPadding " + title);
+      TestEquals(RefMultiline, Strings::SanitizeMultiline(Input), "SanitizeMultiline " + title);
+    }
+  };
 
   template<class T>
   void TestParse(const String& msg, const StringView str, T reference, const StringView restPart)
@@ -230,6 +303,23 @@ int main()
       TestOptimize("\x1\x82One\x82\x1", "One");
       TestOptimize("\x1One\x82Two\x3", "One?Two");
       TestOptimize("\x1One\x82\x3Two\x84", "One??Two");
+    }
+    std::cout << "---- Test for sanitize ----" << std::endl;
+    {
+      constexpr SanitizeCase cases[] = {
+          {"Empty", "", "", "", ""},
+          {"Space", " ", "", "", ""},
+          {"Tab", "\t", "", "", ""},
+          {"Newline", "\n", "", "", ""},
+          {"Return", "\r", "", "", ""},
+          {"Dos return", "\r\n", "", "", ""},
+          {"Complex", "\tTabs\r\nand\r line\nbre\xb0ks \rwith\x02spaces\r", "Tabs and  line bre\xc2\xb0ks  withspaces",
+           " Tabs and  line bre\xc2\xb0ks  with spaces", "Tabs\nand\nline\nbre\xc2\xb0ks\nwithspaces"},
+      };
+      for (const auto& c : cases)
+      {
+        c.Test();
+      }
     }
     std::cout << "---- Test for prefixed index ----" << std::endl;
     {

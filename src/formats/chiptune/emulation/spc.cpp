@@ -24,7 +24,7 @@
 #include <math/numeric.h>
 #include <strings/conversion.h>
 #include <strings/format.h>
-#include <strings/optimize.h>
+#include <strings/sanitize.h>
 // std includes
 #include <array>
 
@@ -366,8 +366,8 @@ namespace Formats::Chiptune
         {
           const char* const start = safe_ptr_cast<const char*>(this + 1);
           const char* const end = start + DataSize;
-          const StringView val = end[-1] ? StringView(start, end) : StringView(start);
-          return Strings::OptimizeAscii(val);
+          const auto val = end[-1] ? StringView(start, end) : StringView(start);
+          return Strings::Sanitize(val);
         }
         else
         {
@@ -553,14 +553,14 @@ namespace Formats::Chiptune
       static void ParseID666(Tag& tag, Builder& target)
       {
         auto& meta = target.GetMetaBuilder();
-        meta.SetTitle(tag.Song);
-        meta.SetProgram(tag.Game);
-        target.SetDumper(tag.Dumper);
-        meta.SetComment(tag.Comments);
-        target.SetDumpDate(tag.DumpDate);
+        meta.SetTitle(Strings::Sanitize(tag.Song));
+        meta.SetProgram(Strings::Sanitize(tag.Game));
+        target.SetDumper(Strings::Sanitize(tag.Dumper));
+        meta.SetComment(Strings::SanitizeMultiline(tag.Comments));
+        target.SetDumpDate(Strings::Sanitize(tag.DumpDate));
         target.SetLoop(tag.FadeTime);
         target.SetFade(tag.FadeDuration);
-        meta.SetAuthor(tag.Artist);
+        meta.SetAuthor(Strings::Sanitize(tag.Artist));
       }
 
       static void ParseSubchunks(Binary::View data, Builder& target)

@@ -22,7 +22,8 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/casing.h>
-#include <strings/optimize.h>
+#include <strings/sanitize.h>
+#include <strings/trim.h>
 // std includes
 #include <array>
 #include <cctype>
@@ -322,16 +323,16 @@ namespace Formats::Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Strings::OptimizeAscii(Source.GetProgram()));
+        meta.SetProgram(Strings::Sanitize(Source.GetProgram()));
         const RawId& id = Source.Metainfo;
         if (id.HasAuthor())
         {
-          meta.SetTitle(DecodeString(id.TrackName));
-          meta.SetAuthor(DecodeString(id.TrackAuthor));
+          meta.SetTitle(Strings::Sanitize(id.TrackName));
+          meta.SetAuthor(Strings::Sanitize(id.TrackAuthor));
         }
         else
         {
-          meta.SetTitle(DecodeString(StringView(id.TrackName.data(), &id.TrackAuthor.back() + 1)));
+          meta.SetTitle(Strings::Sanitize(StringView(id.TrackName.data(), &id.TrackAuthor.back() + 1)));
         }
         builder.SetVersion(Source.GetVersion());
         if (Math::InRange<uint_t>(Source.FreqTableNum, PROTRACKER, NATURAL))
