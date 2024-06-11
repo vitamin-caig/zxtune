@@ -85,6 +85,19 @@ namespace Module::Mpt
     const ModulePtr Track;
   };
 
+  std::vector<double> GetPositionPoints(openmpt::module& track)
+  {
+    const auto positions = track.get_num_orders();
+    std::vector<double> result(positions);
+    for (std::int32_t pos = 0; pos < positions; ++pos)
+    {
+      result[pos] = track.set_position_order_row(pos, 0);
+      Dbg("pos[{}] = {:.2f}s", pos, result[pos]);
+    }
+    track.set_position_order_row(0, 0);
+    return result;
+  }
+
   class TrackState : public Module::TrackState
   {
   public:
@@ -93,7 +106,7 @@ namespace Module::Mpt
     explicit TrackState(ModulePtr track)
       : Track(std::move(track))
       , TotalDuration(Track->get_duration_seconds())
-      , FirstPlayed(Track->get_num_orders())
+      , Positions(GetPositionPoints(*Track))
     {
       Reset();
     }
@@ -110,7 +123,7 @@ namespace Module::Mpt
 
     uint_t LoopCount() const override
     {
-      return Loopings;
+      return LoopsDone;
     }
 
     uint_t Position() const override
@@ -147,35 +160,33 @@ namespace Module::Mpt
     {
       Current.Position = static_cast<uint_t>(Track->get_current_order());
       Current.Time = Track->get_position_seconds();
-      auto& first = FirstPlayed[Current.Position];
-      if (first < 0.0)
+      if (Current.Time - AllLoopsDuration > TotalDuration)
       {
-        first = Current.Time;
-      }
-      else if (Current.Time - AllLoopsDuration > TotalDuration)
-      {
-        ++Loopings;
-        AllLoopsDuration = Current.Time - first;
+        ++LoopsDone;
+        AllLoopsDuration = Current.Time - Positions[Current.Position];
+        Dbg("Detected loop to {} at {:.2f}s, {} total loops done ({:.2f}s)", Current.Position,
+            Positions[Current.Position], LoopsDone, AllLoopsDuration);
       }
     }
 
     void ForcedLoop()
     {
-      ++Loopings;
+      ++LoopsDone;
+      Dbg("Forced loop, {} total", LoopsDone);
     }
 
     void Reset()
     {
-      Loopings = 0;
+      LoopsDone = 0;
       AllLoopsDuration = 0.0;
-      std::fill(FirstPlayed.begin(), FirstPlayed.end(), -1.0);
       Current = {};
     }
 
   private:
     const ModulePtr Track;
     const double TotalDuration;
-    uint_t Loopings = 0;
+    const std::vector<double> Positions;
+    uint_t LoopsDone = 0;
     double AllLoopsDuration = 0.0;
 
     struct PositionIndex
@@ -183,8 +194,6 @@ namespace Module::Mpt
       uint_t Position = 0;
       double Time;
     };
-
-    std::vector<double> FirstPlayed;
     PositionIndex Current = {};
   };
 
