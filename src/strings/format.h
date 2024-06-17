@@ -23,10 +23,10 @@ namespace Strings
   //! @code
   //! const String& txt = Strings::Format(FORMAT_STRING, param1, param2);
   //! @endcode
-  template<class S, class... P>
-  String Format(S&& format, P&&... params)
+  template<class... P>
+  String Format(std::string_view format, P&&... params)
   {
-    return fmt::format(std::forward<S>(format), std::forward<P>(params)...);
+    return fmt::format(fmt::runtime(format), std::forward<P>(params)...);
   }
 
   String FormatTime(uint_t hours, uint_t minutes, uint_t seconds, uint_t frames);
