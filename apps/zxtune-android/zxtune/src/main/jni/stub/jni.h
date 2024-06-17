@@ -2,16 +2,21 @@
 
 #include <types.h>
 
+template<class T>
+struct jArray;
+
 using jstring = void*;
 using jclass = void*;
 using jobject = void*;
+using jbyte = int8_t;
+using jshort = int16_t;
 using jint = int32_t;
 using jlong = int64_t;
 using jarray = void*;
-using jobjectArray = void*;
-using jshortArray = void*;
-using jintArray = void*;
-using jbyteArray = void*;
+using jobjectArray = jArray<jobject>*;
+using jshortArray = jArray<jshort>*;
+using jintArray = jArray<jint>*;
+using jbyteArray = jArray<jbyte>*;
 using jboolean = bool;
 using jmethodID = int;
 using jfieldID = int;

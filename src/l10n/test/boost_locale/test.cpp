@@ -40,6 +40,16 @@ namespace
     return Binary::CreateContainer(std::move(tmp));
   }
 
+  L10n::Translation MakeTranslation(const std::string& language, const std::string& type = "mo")
+  {
+    L10n::Translation res;
+    res.Domain = Domain;
+    res.Language = language;
+    res.Type = type;
+    res.Data = ReadFile(language + "/test." + type);
+    return res;
+  }
+
   std::vector<std::string> ReadLines(const std::string& name)
   {
     std::ifstream stream(name.c_str(), std::ios::in);
@@ -89,8 +99,8 @@ int main()
   try
   {
     L10n::Library& library = L10n::Library::Instance();
-    library.AddTranslation({Domain, "en", "mo", ReadFile("en/test.mo")});
-    library.AddTranslation({Domain, "ru", "mo", ReadFile("ru/test.mo")});
+    library.AddTranslation(MakeTranslation("en"));
+    library.AddTranslation(MakeTranslation("ru"));
 
     std::cout << "Test Default translation" << std::endl;
     Test(ReadLines("default.res"));
