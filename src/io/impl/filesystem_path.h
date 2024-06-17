@@ -19,7 +19,8 @@ namespace IO::Details
 {
   inline String ToString(const std::filesystem::path& path)
   {
-    return path.u8string();
+    const auto u8string = path.u8string();
+    return {u8string.begin(), u8string.end()};
   }
 
   inline std::filesystem::path FromString(StringView str)
