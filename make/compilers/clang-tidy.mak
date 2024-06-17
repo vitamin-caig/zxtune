@@ -24,7 +24,7 @@ CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(real_platform).cxx.flags) $($(re
 	-W -Wall -Wextra -pipe \
 	$(addprefix -I,$(INCLUDES_DIRS)) $(addprefix -include ,$(INCLUDES_FILES))
 
-CXXFLAGS = $(CCFLAGS) -std=c++17 -fvisibility-inlines-hidden
+CXXFLAGS = $(CCFLAGS) -std=c++20 -fvisibility-inlines-hidden
 
 #specify endpoint commands
 build_obj_cmd_nodeps = $(tools.clang-tidy) $(clang-tidy_flags) '-header-filter=$(abspath $(dirs.root))/(src|include|apps)' $$(realpath $1) -- $(CXXFLAGS) > $2 || mv $2 $2.fail
