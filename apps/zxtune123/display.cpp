@@ -65,7 +65,7 @@ namespace
   public:
     DisplayComponentImpl()
       : Options("Display-related options")
-      , InformationTemplate(Strings::Template::Create(ITEM_INFO.to_string()))
+      , InformationTemplate(Strings::Template::Create(ITEM_INFO))
       , ScrSize(Console::Self().GetSize())
     {
       using namespace boost::program_options;

@@ -17,6 +17,8 @@
 #include <binary/compression/zlib_container.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
+// std includes
+#include <array>
 
 namespace Formats::Chiptune
 {

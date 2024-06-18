@@ -93,7 +93,7 @@ namespace
       , Parent(parent)
       , Storage(ctr)
       , Name(std::move(name))
-      , Value(value.to_string())
+      , Value(value)
     {
       StringSetValue::Reload();
       Require(connect(&parent, &QAbstractButton::toggled, this, &StringSetValue::Set));
@@ -300,7 +300,7 @@ namespace
       , Parent(parent)
       , Storage(ctr)
       , Name(std::move(name))
-      , Default(defValue.to_string())
+      , Default(defValue)
     {
       StringValueImpl::Reload();
       Require(connect(&parent, &QLineEdit::textChanged, this, &StringValueImpl::Set));

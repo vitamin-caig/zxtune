@@ -22,6 +22,7 @@
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 // std includes
+#include <array>
 #include <unordered_map>
 #include <unordered_set>
 // boost includes

@@ -21,6 +21,8 @@
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <module/players/tracking.h>
+// std includes
+#include <array>
 
 namespace Module::ChipTracker
 {

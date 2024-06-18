@@ -63,7 +63,7 @@ namespace Module::VGMStream
 
     Vfs(StringView rootName, Binary::Data::Ptr rootData)
     {
-      Content.emplace_back(rootName.to_string(), std::move(rootData));
+      Content.emplace_back(rootName, std::move(rootData));
     }
 
     StringView Root() const
@@ -146,7 +146,7 @@ namespace Module::VGMStream
     MemoryStream(Vfs::Ptr vfs, StringView filename, Binary::View raw)
       : STREAMFILE()
       , Fs(std::move(vfs))
-      , Filename(filename.to_string())
+      , Filename(filename)
       , Raw(raw)
     {
       read = &Read;

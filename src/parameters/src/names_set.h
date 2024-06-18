@@ -27,7 +27,7 @@ namespace Parameters
       {
         return false;
       }
-      Storage.insert(lower, name.to_string());
+      Storage.emplace_hint(lower, name);
       return true;
     }
 

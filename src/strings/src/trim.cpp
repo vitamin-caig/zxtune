@@ -17,6 +17,7 @@ namespace Strings
 {
   StringView TrimSpaces(StringView str)
   {
-    return boost::algorithm::trim_copy_if(str, boost::is_from_range('\x00', '\x20'));
+    return boost::algorithm::trim_copy_if(StringViewCompat{str.begin(), str.end()},
+                                          boost::is_from_range('\x00', '\x20'));
   }
 }  // namespace Strings

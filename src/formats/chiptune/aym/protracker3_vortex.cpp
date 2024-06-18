@@ -305,7 +305,7 @@ namespace Formats::Chiptune
 
     public:
       SectionHeader(StringView category, StringView hdr)
-        : Category(category.to_string())
+        : Category(category)
         , Index(NO_INDEX)
         , Valid(false)
       {
@@ -320,13 +320,13 @@ namespace Formats::Chiptune
       }
 
       explicit SectionHeader(StringView category)
-        : Category(category.to_string())
+        : Category(category)
         , Index(NO_INDEX)
         , Valid(true)
       {}
 
       SectionHeader(StringView category, int_t idx)
-        : Category(category.to_string())
+        : Category(category)
         , Index(idx)
         , Valid(true)
       {}
@@ -371,13 +371,13 @@ namespace Formats::Chiptune
       {
         const std::size_t NO_LOOP = ~std::size_t(0);
 
-        std::vector<StringView> elems;
+        std::vector<StringViewCompat> elems;
         Strings::Split(str, ',', elems);
         Parent::resize(elems.size());
         std::size_t resLoop = NO_LOOP;
         for (std::size_t idx = 0; idx != elems.size(); ++idx)
         {
-          auto elem = elems[idx];
+          StringView elem = elems[idx];
           Require(!elem.empty());
           if ('L' == elem[0])
           {
@@ -536,13 +536,13 @@ namespace Formats::Chiptune
           Require(sepPos != str.npos);
           const auto first = str.substr(0, sepPos);
           const auto second = str.substr(sepPos + 1);
-          Name = Strings::TrimSpaces(first).to_string();
+          Name = Strings::TrimSpaces(first);
           Value = Strings::Sanitize(second);
         }
 
         Entry(StringView name, StringView value)
-          : Name(name.to_string())
-          , Value(value.to_string())
+          : Name(name)
+          , Value(value)
         {}
 
         Entry(Entry&& rh) noexcept = default;
@@ -673,7 +673,7 @@ namespace Formats::Chiptune
         explicit LineObject(const StringView str)
           : Looped(false)
         {
-          std::vector<StringView> fields;
+          std::vector<StringViewCompat> fields;
           Strings::Split(str, ' ', fields);
           switch (fields.size())
           {
@@ -798,7 +798,7 @@ namespace Formats::Chiptune
       {}
 
       explicit NoteObject(StringView val)
-        : Val(val.to_string())
+        : Val(val)
       {
         Require(val.size() == 3);
       }
@@ -1004,7 +1004,7 @@ namespace Formats::Chiptune
 
       explicit ChannelObject(StringView str)
       {
-        std::vector<StringView> fields;
+        std::vector<StringViewCompat> fields;
         Strings::Split(str, ' ', fields);
         Require(fields.size() == 3);
         Note = NoteObject(fields[0]);
@@ -1036,7 +1036,7 @@ namespace Formats::Chiptune
 
       explicit PatternLineObject(StringView str)
       {
-        std::vector<StringView> fields;
+        std::vector<StringViewCompat> fields;
         Strings::Split(str, '|', fields);
         Require(fields.size() == 5);
         Envelope = EnvelopeBase(fields[0]);
@@ -1309,12 +1309,12 @@ namespace Formats::Chiptune
 
       void SetTitle(StringView title) override
       {
-        Header.Title = title.to_string();
+        Header.Title = title;
       }
 
       void SetAuthor(StringView author) override
       {
-        Header.Author = author.to_string();
+        Header.Author = author;
       }
 
       void SetStrings(const Strings::Array& /*strings*/) override {}

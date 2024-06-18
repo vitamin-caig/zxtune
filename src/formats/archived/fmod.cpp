@@ -203,7 +203,7 @@ namespace Formats::Archived::Fmod
           {
             Stream.Seek(idx * sizeof(uint32_t));
             Stream.Seek(Stream.Read<le_uint32_t>());
-            return Stream.ReadCString(Stream.GetRestSize()).to_string();
+            return String{Stream.ReadCString(Stream.GetRestSize())};
           }
           else
           {

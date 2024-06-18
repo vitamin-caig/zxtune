@@ -12,6 +12,8 @@
 
 // library includes
 #include <devices/aym/chip.h>
+// std includes
+#include <array>
 
 namespace Devices::TurboSound
 {

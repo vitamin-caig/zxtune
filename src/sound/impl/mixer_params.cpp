@@ -17,6 +17,7 @@
 #include <sound/mixer_parameters.h>
 #include <sound/sound_parameters.h>
 // std includes
+#include <array>
 #include <utility>
 
 namespace Sound

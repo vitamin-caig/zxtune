@@ -161,7 +161,7 @@ namespace Formats::Chiptune
           const auto entryPos = Stream.GetPosition();
           const DirectoryEntry entry(Stream);
           Dbg("{} (offset={} size={} block={})", entry.Name, entry.Offset, entry.Size, entry.BlockSize);
-          auto entryPath = path.to_string().append(entry.Name);
+          auto entryPath = path + entry.Name;
           Stream.Seek(entry.Offset);
           if (entry.IsDir())
           {

@@ -26,6 +26,7 @@
 #include <strings/format.h>
 #include <strings/map.h>
 // std includes
+#include <array>
 #include <cstring>
 #include <list>
 #include <numeric>
@@ -467,7 +468,7 @@ namespace Formats::Archived
     public:
       SingleBlockFile(Binary::Container::Ptr archive, StringView name, DataBlockDescription block)
         : Data(std::move(archive))
-        , Name(name.to_string())
+        , Name(name)
         , Block(block)
       {
         Dbg("Created file '{}', size={}, packed size={}, compression={}", Name, Block.UncompressedSize, Block.Size,
@@ -508,7 +509,7 @@ namespace Formats::Archived
     public:
       MultiBlockFile(Binary::Container::Ptr archive, StringView name, DataBlocks blocks)
         : Data(std::move(archive))
-        , Name(name.to_string())
+        , Name(name)
         , Blocks(std::move(blocks))
       {
         Dbg("Created file '{}', contains from {} parts", Name, Blocks.size());

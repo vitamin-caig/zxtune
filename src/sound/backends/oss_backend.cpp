@@ -31,6 +31,7 @@
 #include <unistd.h>
 // std includes
 #include <algorithm>
+#include <array>
 #include <cerrno>
 #include <cstring>
 #include <mutex>
@@ -49,11 +50,11 @@ namespace Sound::Oss
     AutoDescriptor() = default;
 
     explicit AutoDescriptor(StringView name)
-      : Name(name.to_string())
+      : Name(name)
     {}
 
     AutoDescriptor(StringView name, int mode)
-      : Name(name.to_string())
+      : Name(name)
       , Handle(::open(Name.c_str(), mode, 0))
     {
       CheckResult(Valid(), THIS_LINE);

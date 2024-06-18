@@ -21,6 +21,7 @@
 // std includes
 #include <algorithm>
 #include <cstring>
+#include <utility>
 
 namespace Binary
 {
@@ -54,9 +55,8 @@ namespace Binary
       const auto* const limit = std::min(Cursor + maxSize, Finish);
       const auto* const strEnd = std::find(Cursor, limit, 0);
       Require(strEnd != limit);
-      StringView res(safe_ptr_cast<const Char*>(Cursor), safe_ptr_cast<const Char*>(strEnd));
-      Cursor = strEnd + 1;
-      return res;
+      const auto* begin = std::exchange(Cursor, strEnd + 1);
+      return StringViewCompat{safe_ptr_cast<const Char*>(begin), safe_ptr_cast<const Char*>(strEnd)};
     }
 
     //! @brief Read string till EOL
@@ -77,9 +77,8 @@ namespace Binary
           ++nextLine;
         }
       }
-      StringView result(safe_ptr_cast<const Char*>(Cursor), safe_ptr_cast<const Char*>(eolPos));
-      Cursor = nextLine;
-      return result;
+      const auto* start = std::exchange(Cursor, nextLine);
+      return StringViewCompat{safe_ptr_cast<const Char*>(start), safe_ptr_cast<const Char*>(eolPos)};
     }
 
     template<class T>

@@ -46,7 +46,7 @@ namespace Formats::Chiptune
       bool HasAuthor() const
       {
         const auto BY_DELIMITER = "BY"_sv;
-        const auto trimId = Strings::TrimSpaces(Optional2);
+        const auto trimId = Strings::TrimSpaces(MakeStringView(Optional2));
         return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
     };
@@ -70,9 +70,9 @@ namespace Formats::Chiptune
       StringView GetProgram() const
       {
         const auto COMPILATION_OF = "COMPILATION OF"_sv;
-        const auto opt = Strings::TrimSpaces(Optional1);
-        return Strings::EqualNoCaseAscii(opt, COMPILATION_OF) ? StringView(Id.data(), Optional1.data())
-                                                              : StringView(Id.data(), &Optional1.back() + 1);
+        const auto opt = Strings::TrimSpaces(MakeStringView(Optional1));
+        return Strings::EqualNoCaseAscii(opt, COMPILATION_OF) ? StringViewCompat{Id.data(), Optional1.data()}
+                                                              : StringViewCompat{Id.data(), &Optional1.back() + 1};
       }
 
       uint_t GetVersion() const
@@ -327,12 +327,12 @@ namespace Formats::Chiptune
         const RawId& id = Source.Metainfo;
         if (id.HasAuthor())
         {
-          meta.SetTitle(Strings::Sanitize(id.TrackName));
-          meta.SetAuthor(Strings::Sanitize(id.TrackAuthor));
+          meta.SetTitle(Strings::Sanitize(MakeStringView(id.TrackName)));
+          meta.SetAuthor(Strings::Sanitize(MakeStringView(id.TrackAuthor)));
         }
         else
         {
-          meta.SetTitle(Strings::Sanitize(StringView(id.TrackName.data(), &id.TrackAuthor.back() + 1)));
+          meta.SetTitle(Strings::Sanitize(StringViewCompat{id.TrackName.data(), &id.TrackAuthor.back() + 1}));
         }
         builder.SetVersion(Source.GetVersion());
         if (Math::InRange<uint_t>(Source.FreqTableNum, PROTRACKER, NATURAL))

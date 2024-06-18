@@ -234,7 +234,7 @@ namespace Formats::Archived
       File(ChainDecoder::Ptr decoder, FileBlock block, StringView name)
         : Decoder(std::move(decoder))
         , Block(block)
-        , Name(name.to_string())
+        , Name(name)
       {}
 
       String GetName() const override

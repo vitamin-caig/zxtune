@@ -20,6 +20,7 @@
 #include <binary/input_stream.h>
 #include <strings/sanitize.h>
 // std includes
+#include <array>
 #include <numeric>
 
 namespace Formats::Chiptune

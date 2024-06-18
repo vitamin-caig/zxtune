@@ -12,11 +12,13 @@
 
 // common includes
 #include <types.h>
+// std includes
+#include <array>
 
 template<typename C, C... Chars>
 struct basic_static_string
 {
-  constexpr operator basic_string_view<C>() const
+  constexpr operator std::basic_string_view<C>() const
   {
     return {data.data(), data.size()};
   }

@@ -53,8 +53,7 @@ namespace
   Playlist::Item::Conversion::Options::Ptr CreateOptions(StringView type, const QString& filenameTemplate,
                                                          Parameters::Accessor::Ptr params)
   {
-    return MakePtr<Playlist::Item::Conversion::Options>(type.to_string(), FromQString(filenameTemplate),
-                                                        std::move(params));
+    return MakePtr<Playlist::Item::Conversion::Options>(String{type}, FromQString(filenameTemplate), std::move(params));
   }
 
   class SetupConversionDialogImpl

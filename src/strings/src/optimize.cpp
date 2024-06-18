@@ -22,7 +22,7 @@ namespace Strings
 
   String OptimizeAscii(StringView str, Char replacement)
   {
-    auto res = boost::algorithm::trim_copy_if(str, !IsAsciiNoSpace).to_string();
+    auto res = String{boost::algorithm::trim_copy_if(StringViewCompat{str.begin(), str.end()}, !IsAsciiNoSpace)};
     std::replace_if(res.begin(), res.end(), !IsAscii, replacement);
     return res;
   }

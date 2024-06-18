@@ -17,5 +17,5 @@ namespace Strings
 {
   String ToAutoUtf8(StringView str);
 
-  String Utf16ToUtf8(basic_string_view<uint16_t> str);
+  String Utf16ToUtf8(std::basic_string_view<uint16_t> str);
 }  // namespace Strings

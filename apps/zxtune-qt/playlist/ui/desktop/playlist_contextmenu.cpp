@@ -31,6 +31,7 @@
 #include <make_ptr.h>
 // library includes
 #include <strings/map.h>
+#include <strings/set.h>
 #include <time/serialize.h>
 // qt includes
 #include <QtGui/QClipboard>
@@ -231,7 +232,7 @@ namespace
 
     void AddPath(StringView path) override
     {
-      Paths.insert(path.to_string());  // TODO
+      Paths.emplace(path);  // TODO
     }
 
   private:
@@ -240,7 +241,7 @@ namespace
     Time::Duration<Time::BaseUnit<uint64_t, 1000>> Duration;
     uint64_t Size = 0;
     Strings::ValueMap<std::size_t> Types;
-    std::set<String> Paths;
+    Strings::Set Paths;
   };
 
   Playlist::Item::StatisticTextNotification::Ptr CreateStatisticNotification()

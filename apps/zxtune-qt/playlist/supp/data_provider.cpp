@@ -112,7 +112,7 @@ namespace
       {}
 
       Item(StringView id, T val)
-        : Id(id.to_string())
+        : Id(id)
         , Value(val)
         , Weight(ObjectTraits<T>::Weight(val))
       {}
@@ -329,7 +329,7 @@ namespace
     // AdditionalFilesSource
     Binary::Container::Ptr Get(StringView name) const override
     {
-      return Provider->GetData(Dir + name.to_string());
+      return Provider->GetData(Dir + name);
     }
 
   private:

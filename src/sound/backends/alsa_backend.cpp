@@ -96,7 +96,7 @@ namespace Sound::Alsa
   public:
     AutoHandle(Api::Ptr api, StringView name)
       : AlsaApi(std::move(api))
-      , Name(name.to_string())
+      , Name(name)
       , Handle(nullptr)
     {}
 
@@ -169,9 +169,9 @@ namespace Sound::Alsa
       std::vector<StringView> elements;
       Strings::Split(id, ":,"_sv, elements);
       elements.resize(3);
-      Interface = elements[0].to_string();
-      Card = elements[1].to_string();
-      Device = elements[2].to_string();
+      Interface = elements[0];
+      Card = elements[1];
+      Device = elements[2];
     }
 
     String GetCard() const
@@ -466,7 +466,7 @@ namespace Sound::Alsa
   public:
     AttachedMixer(Api::Ptr api, StringView card)
       : AlsaApi(std::move(api))
-      , Name(card.to_string())
+      , Name(card)
       , MixDev(AlsaApi, card)
     {
       Open();
@@ -920,9 +920,9 @@ namespace Sound::Alsa
   public:
     DeviceInfo(Api::Ptr api, StringView id, StringView name, StringView cardName)
       : AlsaApi(std::move(api))
-      , IdValue(id.to_string())
-      , NameValue(name.to_string())
-      , CardNameValue(cardName.to_string())
+      , IdValue(id)
+      , NameValue(name)
+      , CardNameValue(cardName)
     {}
 
     String Id() const override

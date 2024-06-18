@@ -110,7 +110,7 @@ namespace
         {
           continue;
         }
-        const auto id = info->Id().to_string();
+        const auto id = String{info->Id()};
         String& opts = BackendOptions[id];
         opts = NOTUSED_MARK;
         opt(id.c_str(), value<String>(&opts)->implicit_value(String(), "parameters"), info->Description().c_str());
@@ -159,7 +159,7 @@ namespace
     {
       if (!typeHint.empty())
       {
-        return Service->CreateBackend(Sound::BackendId::FromString(typeHint.to_string()), module, callback);
+        return Service->CreateBackend(Sound::BackendId::FromString(typeHint), module, callback);
       }
       if (!UsedId.empty())
       {

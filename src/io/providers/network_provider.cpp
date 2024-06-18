@@ -116,9 +116,9 @@ namespace IO::Network
       Object.SetOption(CURLOPT_WRITEFUNCTION, reinterpret_cast<void*>(&WriteCallback), THIS_LINE);
     }
 
-    void SetSource(const String& url)
+    void SetSource(StringView url)
     {
-      Object.SetOption(CURLOPT_URL, url.c_str(), THIS_LINE);
+      Object.SetOption(CURLOPT_URL, String{url}.c_str(), THIS_LINE);
     }
 
     void SetOptions(const ProviderParameters& params)
@@ -220,9 +220,9 @@ namespace IO::Network
   {
   public:
     RemoteIdentifier(StringView scheme, StringView path, StringView subpath)
-      : SchemeValue(scheme.to_string())
-      , PathValue(path.to_string())
-      , SubpathValue(subpath.to_string())
+      : SchemeValue(scheme)
+      , PathValue(path)
+      , SubpathValue(subpath)
       , FullValue(Serialize())
     {
       Require(!SchemeValue.empty() && !PathValue.empty());
@@ -326,7 +326,7 @@ namespace IO::Network
 
       const auto scheme = uri.substr(0, schemePos);
       const auto hier = uri.npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
-      if (hier.empty() || !SupportedSchemes.count(scheme.to_string()))  // TODO
+      if (hier.empty() || !SupportedSchemes.count(scheme))  // TODO
       {
         // scheme and hierarchy part is mandatory
         return {};
@@ -344,7 +344,7 @@ namespace IO::Network
       {
         const ProviderParameters options(params);
         RemoteResource resource(Api);
-        resource.SetSource(path.to_string());
+        resource.SetSource(path);
         resource.SetOptions(options);
         resource.SetProgressCallback(cb);
         return resource.Download();

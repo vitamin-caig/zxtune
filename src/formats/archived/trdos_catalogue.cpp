@@ -83,7 +83,7 @@ namespace TRDos
   {
   public:
     FixedNameFile(StringView newName, File::Ptr delegate)
-      : FixedName(newName.to_string())
+      : FixedName(newName)
       , Delegate(std::move(delegate))
     {}
 
@@ -266,7 +266,7 @@ namespace TRDos
   public:
     GenericFile(Binary::Container::Ptr data, StringView name, std::size_t off, std::size_t size)
       : Data(std::move(data))
-      , Name(name.to_string())
+      , Name(name)
       , Offset(off)
       , Size(size)
     {}
@@ -374,7 +374,7 @@ namespace TRDos
   {
   public:
     FlatFile(StringView name, std::size_t off, std::size_t size)
-      : Name(name.to_string())
+      : Name(name)
       , Offset(off)
       , Size(size)
     {}

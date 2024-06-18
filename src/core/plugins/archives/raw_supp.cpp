@@ -751,7 +751,7 @@ namespace ZXTune::Raw
 
     String Description() const override
     {
-      return INFO.to_string();
+      return String{INFO};
     }
 
     uint_t Capabilities() const override
