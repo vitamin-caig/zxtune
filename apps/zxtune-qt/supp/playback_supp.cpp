@@ -191,9 +191,7 @@ namespace
   private:
     void SetItemAsync(Playlist::Item::Data::Ptr item, bool play)
     {
-      IOThread::Execute([this, item, play]() {
-        LoadItem(item, play);
-      });
+      IOThread::Execute([this, item, play]() { LoadItem(item, play); });
     }
 
     void LoadItem(Playlist::Item::Data::Ptr item, bool play)
@@ -271,7 +269,7 @@ namespace
     Playlist::Item::Data::Ptr Item;
     Sound::Backend::Ptr Backend;
     Sound::PlaybackControl::Ptr Control;
-    std::atomic<const void *> ItemCookie;
+    std::atomic<const void*> ItemCookie;
   };
 }  // namespace
 

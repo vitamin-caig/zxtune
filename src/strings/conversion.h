@@ -36,7 +36,7 @@ namespace Strings
         using WiderType = std::conditional_t<std::is_signed_v<T>, std::intmax_t, std::uintmax_t>;
         return static_cast<T>(ParsePartial<WiderType>(str));
       }
-      str = {res.ptr, lim};
+      str = StringViewCompat{res.ptr, lim};
       return result;
     }
   }

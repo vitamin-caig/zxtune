@@ -12,6 +12,8 @@
 
 // common includes
 #include <types.h>
+// std includes
+#include <array>
 
 #ifndef DO_LITERAL
 #  define DO_LITERAL_IMPL(str, lit) str##lit
@@ -73,7 +75,7 @@ class SourceFile
 public:
   using TagType = uint32_t;
 
-  constexpr static const auto StaticLocation = basic_string_view<C>{Path};
+  constexpr static const auto StaticLocation = std::basic_string_view<C>{Path.data(), Path.size()};
   constexpr static const auto StaticTag = Debug::Hash<TagType>(StaticLocation);
 
   constexpr auto Location() const

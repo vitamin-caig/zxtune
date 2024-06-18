@@ -12,6 +12,8 @@
 
 // common includes
 #include <types.h>
+// std includes
+#include <array>
 
 namespace Strings
 {
@@ -21,5 +23,11 @@ namespace Strings
   inline String OptimizeAscii(StringView str)
   {
     return OptimizeAscii(str, '\?');
+  }
+
+  template<std::size_t D>
+  inline auto OptimizeAscii(const std::array<Char, D>& data, Char replacement = '\?')
+  {
+    return OptimizeAscii(MakeStringView(data), replacement);
   }
 }  // namespace Strings

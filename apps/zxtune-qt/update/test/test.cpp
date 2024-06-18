@@ -21,7 +21,7 @@ namespace
     QFile file(ToQString(name));
     if (!file.open(QIODevice::ReadOnly))
     {
-      throw std::runtime_error("Failed to open " + name.to_string());
+      throw std::runtime_error(String{"Failed to open "} + name);
     }
     return file.readAll().replace("\r\n", "\n");
   }
@@ -31,7 +31,7 @@ namespace
     QFile file(ToQString(name));
     if (!file.open(QIODevice::WriteOnly))
     {
-      throw std::runtime_error("Failed to open " + name.to_string());
+      throw std::runtime_error(String{"Failed to open "} + name);
     }
     file.write(data);
   }

@@ -21,6 +21,7 @@
 #include <binary/input_stream.h>
 #include <math/bitops.h>
 // std includes
+#include <array>
 #include <cctype>
 #include <numeric>
 #include <unordered_map>

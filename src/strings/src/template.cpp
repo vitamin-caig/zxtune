@@ -27,7 +27,7 @@ namespace Strings
   {
   public:
     explicit PreprocessingTemplate(StringView templ)
-      : Value(templ.to_string())
+      : Value(templ)
     {
       const std::size_t fieldsAvg = std::count(templ.begin(), templ.end(), FIELD_START);
       FixedStrings.reserve(fieldsAvg);

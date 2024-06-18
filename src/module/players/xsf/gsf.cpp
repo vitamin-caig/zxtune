@@ -347,7 +347,7 @@ namespace Module::GSF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::GAME_BOY_ADVANCE.to_string());
+      properties->SetValue(ATTR_PLATFORM, Platforms::GAME_BOY_ADVANCE);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

@@ -259,8 +259,7 @@ namespace Module::SDSF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, tune->Version == 0x11 ? Platforms::SEGA_SATURN.to_string()
-                                                                : Platforms::DREAMCAST.to_string());
+      properties->SetValue(ATTR_PLATFORM, tune->Version == 0x11 ? Platforms::SEGA_SATURN : Platforms::DREAMCAST);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

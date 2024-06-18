@@ -164,7 +164,7 @@ namespace Formats::Chiptune
       {
         builder.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = builder.GetMetaBuilder();
-        const StringView id(Source.Identifier);
+        const auto id = MakeStringView(Source.Identifier);
         if (IsProgramName(id))
         {
           meta.SetProgram(Strings::OptimizeAscii(id));

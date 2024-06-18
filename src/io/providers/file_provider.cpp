@@ -48,15 +48,16 @@ namespace
     if (std::end(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, std::end(DEPRECATED_NAMES), filename))
     {
       const auto restPart = dotPos != in.npos ? in.substr(dotPos) : StringView();
-      return (filename.to_string() + '~').append(restPart);
+      // TODO: Concat(StringView...)
+      return String{filename} + '~' + restPart;
     }
-    return in.to_string();
+    return String{in};
   }
 
 #else
   String ApplyOSFilenamesRestrictions(StringView in)
   {
-    return in.to_string();
+    return String{in};
   }
 #endif
 
@@ -121,7 +122,7 @@ namespace IO::File
   public:
     FileIdentifier(std::filesystem::path path, StringView subpath)
       : PathValue(std::move(path))
-      , SubpathValue(subpath.to_string())
+      , SubpathValue(subpath)
       , FullValue(Serialize())
     {
       Require(!PathValue.empty());
@@ -134,7 +135,7 @@ namespace IO::File
 
     String Scheme() const override
     {
-      return SCHEME_FILE.to_string();
+      return String{SCHEME_FILE};
     }
 
     String Path() const override
@@ -441,7 +442,7 @@ namespace IO::File
     Strings::Set Schemes() const override
     {
       Strings::Set res;
-      res.insert(SCHEME_FILE.to_string());
+      res.emplace(SCHEME_FILE);
       return res;
     }
 

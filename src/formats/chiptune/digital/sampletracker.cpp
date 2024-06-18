@@ -130,7 +130,7 @@ namespace Formats::Chiptune
         names.reserve(Source.SampleNames.size());
         for (const auto& name : Source.SampleNames)
         {
-          names.push_back(Strings::OptimizeAscii(name));
+          names.emplace_back(Strings::OptimizeAscii(name));
         }
         meta.SetStrings(names);
       }

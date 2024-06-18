@@ -113,7 +113,7 @@ namespace
 
     Binary::Container::Ptr Get(StringView name) const override
     {
-      return IO::OpenData(Dir + name.to_string(), Params, Log::ProgressCallback::Stub());
+      return IO::OpenData(Dir + name, Params, Log::ProgressCallback::Stub());
     }
 
   private:

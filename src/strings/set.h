@@ -17,5 +17,5 @@
 
 namespace Strings
 {
-  using Set = std::set<String>;
+  using Set = std::set<String, std::less<>>;
 }

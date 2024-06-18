@@ -104,7 +104,7 @@ namespace Formats::Chiptune
       bool HasAuthor() const
       {
         const auto BY_DELIMITER = "BY"_sv;
-        const auto trimId = Strings::TrimSpaces(Identifier3);
+        const auto trimId = Strings::TrimSpaces(MakeStringView(Identifier3));
         return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
 
@@ -506,13 +506,13 @@ namespace Formats::Chiptune
 
     Traits GetOldVersionTraits(const RawHeader& hdr)
     {
-      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, StringView(hdr.Id.Version)) : EDITOR_OLD;
+      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, MakeStringView(hdr.Id.Version)) : EDITOR_OLD;
       return {std::move(programName), 0, 0};
     }
 
     Traits GetNewVersionTraits(const RawHeader& hdr)
     {
-      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, StringView(hdr.Id.Version)) : EDITOR_NEW;
+      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, MakeStringView(hdr.Id.Version)) : EDITOR_NEW;
       return {std::move(programName), hdr.OrnamentsTableOffset, sizeof(hdr)};
     }
 
@@ -587,7 +587,8 @@ namespace Formats::Chiptune
           }
           else
           {
-            meta.SetTitle(Strings::OptimizeAscii(StringView(Source.Id.Title.data(), &Source.Id.Author.back() + 1)));
+            meta.SetTitle(
+                Strings::OptimizeAscii(StringViewCompat{Source.Id.Title.data(), &Source.Id.Author.back() + 1}));
           }
         }
       }

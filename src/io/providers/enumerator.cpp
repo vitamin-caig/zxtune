@@ -126,7 +126,7 @@ namespace IO
   {
   public:
     UnavailableProvider(StringView id, const char* descr, Error status)
-      : IdValue(id.to_string())
+      : IdValue(id)
       , DescrValue(descr)
       , StatusValue(std::move(status))
     {}

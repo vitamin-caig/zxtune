@@ -176,7 +176,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Version::DESCRIPTION.to_string();
+      return String{Version::DESCRIPTION};
     }
 
     Binary::Format::Ptr GetFormat() const override

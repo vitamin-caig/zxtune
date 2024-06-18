@@ -79,9 +79,9 @@ namespace
   class RootNode : public Analysis::Node
   {
   public:
-    RootNode(Binary::Container::Ptr data, String name)
+    RootNode(Binary::Container::Ptr data, StringView name)
       : DataVal(std::move(data))
-      , NameVal(std::move(name))
+      , NameVal(name)
     {}
 
     String Name() const override
@@ -107,10 +107,10 @@ namespace
   class SubNode : public Analysis::Node
   {
   public:
-    SubNode(Analysis::Node::Ptr parent, Binary::Container::Ptr data, String name)
+    SubNode(Analysis::Node::Ptr parent, Binary::Container::Ptr data, StringView name)
       : ParentVal(std::move(parent))
       , DataVal(std::move(data))
-      , NameVal(std::move(name))
+      , NameVal(name)
     {}
 
     String Name() const override
@@ -140,12 +140,12 @@ namespace Analysis
   // since data is required, place it first
   Node::Ptr CreateRootNode(Binary::Container::Ptr data, StringView name)
   {
-    return MakePtr<RootNode>(std::move(data), name.to_string());
+    return MakePtr<RootNode>(std::move(data), name);
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, StringView name)
   {
-    return MakePtr<SubNode>(std::move(parent), std::move(data), name.to_string());
+    return MakePtr<SubNode>(std::move(parent), std::move(data), name);
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, std::size_t offset)
@@ -327,8 +327,8 @@ namespace
   class StaticResult : public Parsing::Result
   {
   public:
-    StaticResult(String name, Binary::Container::Ptr data)
-      : NameVal(std::move(name))
+    StaticResult(StringView name, Binary::Container::Ptr data)
+      : NameVal(name)
       , DataVal(std::move(data))
     {}
 
@@ -352,7 +352,7 @@ namespace Parsing
 {
   Result::Ptr CreateResult(StringView name, Binary::Container::Ptr data)
   {
-    return MakePtr<StaticResult>(name.to_string(), std::move(data));
+    return MakePtr<StaticResult>(name, std::move(data));
   }
 }  // namespace Parsing
 

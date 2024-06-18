@@ -418,7 +418,7 @@ namespace
     }
     catch (const Error&)
     {
-      return path.to_string();
+      return String{path};
     }
   }
 

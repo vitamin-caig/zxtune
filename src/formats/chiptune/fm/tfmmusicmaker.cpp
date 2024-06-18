@@ -780,17 +780,17 @@ namespace Formats::Chiptune
         builder.SetTempo(Source.GetEvenSpeed(), Source.GetOddSpeed(), Source.SpeedInterleave);
         builder.SetDate(ConvertDate(Source.CreationDate), ConvertDate(Source.SaveDate));
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Version::DESCRIPTION.to_string());
-        meta.SetTitle(Strings::Sanitize(Source.Title));
-        meta.SetAuthor(Strings::Sanitize(Source.Author));
-        meta.SetComment(Strings::SanitizeMultiline(Source.Comment));
+        meta.SetProgram(Version::DESCRIPTION);
+        meta.SetTitle(Strings::Sanitize(MakeStringView(Source.Title)));
+        meta.SetAuthor(Strings::Sanitize(MakeStringView(Source.Author)));
+        meta.SetComment(Strings::SanitizeMultiline(MakeStringView(Source.Comment)));
         Strings::Array names;
         names.reserve(Source.InstrumentNames.size());
         for (const auto& name : Source.InstrumentNames)
         {
           if (!name.IsEmpty())
           {
-            names.emplace_back(Strings::SanitizeKeepPadding(name));
+            names.emplace_back(Strings::SanitizeKeepPadding(MakeStringView(name)));
           }
         }
         meta.SetStrings(names);
@@ -1042,7 +1042,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Version::DESCRIPTION.to_string();
+        return String{Version::DESCRIPTION};
       }
 
       Binary::Format::Ptr GetFormat() const override

@@ -67,7 +67,7 @@ namespace
     {
       if (cap->first == caps)
       {
-        return Char(' ') + cap->second.to_string();
+        return Char(' ') + String{cap->second};
       }
     }
     return " unknown";
@@ -287,7 +287,7 @@ namespace
       // section
       if (!Desc)
       {
-        return Name.to_string();
+        return String{Name};
       }
       else
       {

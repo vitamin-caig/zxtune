@@ -153,7 +153,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          target.SetRegion(marker.to_string(), 0);
+          target.SetRegion(marker, 0);
         }
         Dbg("Marker: {}", marker);
       }

@@ -8,6 +8,7 @@
  *
  **/
 
+#include <array>
 #include <binary/container_factories.h>
 #include <contract.h>
 #include <cstring>

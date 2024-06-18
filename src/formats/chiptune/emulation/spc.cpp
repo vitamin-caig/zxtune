@@ -25,6 +25,7 @@
 #include <strings/conversion.h>
 #include <strings/format.h>
 #include <strings/sanitize.h>
+#include <strings/trim.h>
 // std includes
 #include <array>
 
@@ -40,21 +41,10 @@ namespace Formats::Chiptune
     const SignatureType SIGNATURE = {{'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ', 'S', 'o',
                                       'u', 'n', 'd', ' ', 'F', 'i', 'l', 'e', ' ', 'D', 'a', 't', 'a', ' '}};
 
-    inline StringView GetTrimmed(const char* begin, const char* end)
+    template<class Str>
+    inline auto GetTrimmed(const Str& str)
     {
-      return {begin, std::find(begin, end, '\0')};
-    }
-
-    template<std::size_t D>
-    inline StringView GetTrimmed(const std::array<char, D>& str)
-    {
-      return GetTrimmed(str.begin(), str.end());
-    }
-
-    template<std::size_t D>
-    inline StringView GetRaw(const std::array<char, D>& str)
-    {
-      return {str};
+      return Strings::TrimSpaces(MakeStringView(str));
     }
 
     inline bool IsValidString(StringView str)
@@ -148,13 +138,13 @@ namespace Formats::Chiptune
 
       bool IsValid() const
       {
-        return IsValidString(GetRaw(DumpDate)) && IsValidDigitsString(GetRaw(FadeTimeSec))
-               && IsValidDigitsString(GetRaw(FadeDurationMs));
+        return IsValidString(MakeStringView(DumpDate)) && IsValidDigitsString(MakeStringView(FadeTimeSec))
+               && IsValidDigitsString(MakeStringView(FadeDurationMs));
       }
 
       String GetDumpDate() const
       {
-        return GetTrimmed(DumpDate).to_string();
+        return String{GetTrimmed(DumpDate)};
       }
 
       Time::Seconds GetFadeTime() const
@@ -223,7 +213,7 @@ namespace Formats::Chiptune
 
       bool IsValid() const
       {
-        return (DumpDate.IsEmpty() || DumpDate.IsValid()) && IsValidString(Artist);
+        return (DumpDate.IsEmpty() || DumpDate.IsValid()) && IsValidString(MakeStringView(Artist));
       }
 
       String GetDumpDate() const
@@ -365,9 +355,7 @@ namespace Formats::Chiptune
         if (Type == Asciiz)
         {
           const char* const start = safe_ptr_cast<const char*>(this + 1);
-          const char* const end = start + DataSize;
-          const auto val = end[-1] ? StringView(start, end) : StringView(start);
-          return Strings::Sanitize(val);
+          return Strings::Sanitize({start, DataSize});
         }
         else
         {

@@ -62,7 +62,7 @@ namespace
 
     String GetFieldValue(StringView name) const override
     {
-      const auto it = Map.find(name.to_string());  // TODO
+      const auto it = Map.find(name);
       return it == Map.end() ? Policy::GetFieldValue(name) : it->second;
     }
 

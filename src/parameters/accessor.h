@@ -76,6 +76,6 @@ namespace Parameters
     {
       return std::move(*val);
     }
-    return defVal.to_string();
+    return String{defVal};
   }
 }  // namespace Parameters

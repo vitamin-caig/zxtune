@@ -30,7 +30,7 @@ namespace
   public:
     DomainVocabulary(LocalePtr locale, StringView domain)
       : Locale(std::move(locale))
-      , Domain(domain.to_string())
+      , Domain(domain)
     {
       Dbg("Created vocabulary for domain '{}'", Domain);
     }

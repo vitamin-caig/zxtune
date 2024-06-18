@@ -58,7 +58,7 @@ namespace Module::TurboSound
         const auto it = Strings.find(static_cast<StringView>(name));
         if (it == Strings.end())
         {
-          Strings.emplace(name.AsString(), val.to_string());
+          Strings.emplace(name.AsString(), val);
         }
         else
         {

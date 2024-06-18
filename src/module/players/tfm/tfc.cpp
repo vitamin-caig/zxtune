@@ -22,6 +22,7 @@
 #include <module/players/streaming.h>
 // std includes
 #include <algorithm>
+#include <array>
 
 namespace Module::TFC
 {

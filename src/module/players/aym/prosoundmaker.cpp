@@ -23,6 +23,7 @@
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 // std includes
+#include <array>
 #include <optional>
 
 namespace Module::ProSoundMaker

@@ -97,7 +97,7 @@ namespace
   {
     if (IsQuoted(val))
     {
-      return {val.begin() + 1, val.end() - 1};
+      return StringViewCompat{val.begin() + 1, val.end() - 1};
     }
     return val;
   }
@@ -111,7 +111,7 @@ namespace
       res += STRING_QUOTE;
       return res;
     }
-    return str.to_string();
+    return String{str};
   }
 }  // namespace
 
@@ -145,7 +145,7 @@ namespace Parameters
   {
     if (!IsInteger(str) && !IsData(str))
     {
-      return StringFromString(str).to_string();
+      return String{StringFromString(str)};
     }
     return std::nullopt;
   }

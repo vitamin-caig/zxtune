@@ -31,7 +31,7 @@ namespace ZXTune
       : Delegate(path.empty() ? delegate : nullptr)  // track only toplevel container
       , ToPercent(total, 100)
       , Id(plugin)
-      , Path(path.to_string())
+      , Path(path)
     {}
 
     void Report(StringView name)

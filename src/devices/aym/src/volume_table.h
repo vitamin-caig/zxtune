@@ -15,6 +15,7 @@
 // library includes
 #include <devices/aym/chip.h>
 // std includes
+#include <array>
 #include <cassert>
 
 namespace Devices::AYM

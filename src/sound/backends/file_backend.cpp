@@ -91,7 +91,8 @@ namespace Sound::File
   private:
     static bool HasField(StringView templ, StringView name)
     {
-      const String fullName = Strings::Template::FIELD_START + name.to_string() + Strings::Template::FIELD_END;
+      // TODO: Concat(StringView...)
+      const String fullName = String{Strings::Template::FIELD_START} + name + Strings::Template::FIELD_END;
       return String::npos != templ.find(fullName);
     }
 
@@ -176,7 +177,7 @@ namespace Sound::File
       static const auto GENERIC_ID = ".file."_sv;
       const auto pos = property.find(GENERIC_ID);
       Require(pos != property.npos);
-      auto result = property.to_string();
+      auto result = String{property};
       result.replace(pos + 1, GENERIC_ID.size() - 2, Id);
       return result;
     }

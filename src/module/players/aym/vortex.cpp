@@ -15,6 +15,7 @@
 // library includes
 #include <math/numeric.h>
 // std includes
+#include <array>
 #include <utility>
 
 namespace Module::Vortex

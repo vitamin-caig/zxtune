@@ -152,10 +152,10 @@ namespace
   class SoundFormatConvertOperation : public Playlist::Item::TextResultOperation
   {
   public:
-    SoundFormatConvertOperation(Playlist::Model::IndexSet::Ptr items, String type, Sound::Service::Ptr service,
+    SoundFormatConvertOperation(Playlist::Model::IndexSet::Ptr items, StringView type, Sound::Service::Ptr service,
                                 Playlist::Item::ConversionResultNotification::Ptr result)
       : SelectedItems(std::move(items))
-      , Type(std::move(type))
+      , Type(type)
       , Service(std::move(service))
       , Result(std::move(result))
     {}
@@ -268,8 +268,7 @@ namespace Playlist::Item
                                                              Sound::Service::Ptr service,
                                                              ConversionResultNotification::Ptr result)
   {
-    return MakePtr<SoundFormatConvertOperation>(std::move(items), type.to_string(), std::move(service),
-                                                std::move(result));
+    return MakePtr<SoundFormatConvertOperation>(std::move(items), type, std::move(service), std::move(result));
   }
 
   TextResultOperation::Ptr CreateExportOperation(StringView nameTemplate, Parameters::Accessor::Ptr params,

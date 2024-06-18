@@ -86,11 +86,12 @@ namespace Formats::Multitrack
         }
         if (value.empty())
         {
-          Lines.push_back(name.to_string());
+          Lines.emplace_back(String{name});
         }
         else
         {
-          Lines.emplace_back(name.to_string() + " " + value.to_string());
+          // TODO: Concat(StringView...)
+          Lines.emplace_back(String{name} + " " + value);
         }
       }
 
@@ -233,7 +234,7 @@ namespace Formats::Multitrack
           {
             name = line;
           }
-          builder.SetProperty(name.to_string(), value.to_string());
+          builder.SetProperty(name, value);
         }
       }
 

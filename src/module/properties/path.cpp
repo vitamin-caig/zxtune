@@ -24,7 +24,7 @@ namespace Module
   {
   public:
     explicit UnresolvedPathPropertiesAccessor(StringView uri)
-      : Uri(uri.to_string())
+      : Uri(uri)
     {}
 
     uint_t Version() const override

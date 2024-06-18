@@ -378,17 +378,17 @@ namespace Formats::Chiptune
 
       void SetTitle(StringView title) override
       {
-        Title = title.to_string();
+        Title = title;
       }
 
       void SetAuthor(StringView author) override
       {
-        Author = author.to_string();
+        Author = author;
       }
 
       void SetComment(StringView comment) override
       {
-        Comment = comment.to_string();
+        Comment = comment;
       }
 
       void SetProgram(StringView /*program*/) override {}

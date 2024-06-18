@@ -34,7 +34,7 @@ namespace Formats::Archived
     public:
       File(const Packed::Decoder& decoder, StringView name, std::size_t size, Binary::Container::Ptr data)
         : Decoder(decoder)
-        , Name(name.to_string())
+        , Name(name)
         , Size(size)
         , Data(std::move(data))
       {}
@@ -180,7 +180,7 @@ namespace Formats::Archived
         {
           const StringView rawName(header->Name, header->NameSize);
           const bool isUtf8 = 0 != (header->Flags & Packed::Zip::FILE_UTF8);
-          return isUtf8 ? rawName.to_string() : Strings::ToAutoUtf8(rawName);
+          return isUtf8 ? String{rawName} : Strings::ToAutoUtf8(rawName);
         }
         assert(!"Failed to get name");
         return {};

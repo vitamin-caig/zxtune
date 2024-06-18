@@ -47,7 +47,7 @@ namespace Debug
   {
   public:
     explicit Stream(StringView module)
-      : Module(module.to_string())
+      : Module(module)
       , Enabled(IsEnabledFor(Module))
     {}
 

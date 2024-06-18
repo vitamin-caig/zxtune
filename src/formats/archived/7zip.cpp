@@ -189,7 +189,7 @@ namespace Formats::Archived
         std::vector<UInt16> buf(nameLen);
         UInt16* const data = buf.data();
         SzArEx_GetFileNameUtf16(&Db, idx, data);
-        return Strings::Utf16ToUtf8(basic_string_view<uint16_t>(data, nameLen - 1));
+        return Strings::Utf16ToUtf8({data, nameLen - 1});
       }
 
       bool IsDir(uint_t idx) const

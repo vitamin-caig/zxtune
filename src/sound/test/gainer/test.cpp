@@ -82,9 +82,9 @@ namespace Sound
       Sample::MAX,
       // Overload
       Sample::MIN,
-      Sample::MIN,
+      Sample::MIN / 2,
       Sample::MID,
-      Sample::MAX,
+      Sample::MAX / 2,
       Sample::MAX,
   };
 

@@ -13,6 +13,8 @@
 // library includes
 #include <sound/gain.h>
 #include <sound/multichannel_sample.h>
+// std includes
+#include <array>
 
 namespace Sound
 {

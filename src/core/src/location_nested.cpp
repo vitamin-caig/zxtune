@@ -24,7 +24,7 @@ namespace ZXTune
       : Parent(std::move(parent))
       , SubData(std::move(subData))
       , SubPlugin(subPlugin)
-      , Subpath(subPath.to_string())
+      , Subpath(subPath)
     {}
 
     Binary::Container::Ptr GetData() const override

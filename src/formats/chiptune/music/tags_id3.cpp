@@ -152,7 +152,7 @@ namespace Formats::Chiptune::Id3
   {
     std::array<char, 90> buf;
     std::copy(part2.begin(), part2.end(), std::copy(part1.begin(), part1.end(), buf.begin()));
-    return Strings::Sanitize(buf);
+    return Strings::Sanitize(MakeStringView(buf));
   }
 
   // https://en.wikipedia.org/wiki/ID3#ID3v1_and_ID3v1.1
@@ -175,12 +175,12 @@ namespace Formats::Chiptune::Id3
       }
       else
       {
-        target.SetTitle(Strings::Sanitize(tag->Title));
-        target.SetAuthor(Strings::Sanitize(tag->Artist));
+        target.SetTitle(Strings::Sanitize(MakeStringView(tag->Title)));
+        target.SetAuthor(Strings::Sanitize(MakeStringView(tag->Artist)));
       }
       // TODO: add MetaBuilder::SetComment field
       {
-        const auto comment = StringView(tag->Comment);
+        const auto comment = MakeStringView(tag->Comment);
         const auto hasTrackNum = comment[28] == 0 || comment[28] == 0xff;  // standard violation
         target.SetStrings({Strings::Sanitize(hasTrackNum ? comment.substr(0, 28) : comment)});
       }

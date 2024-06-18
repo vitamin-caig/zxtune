@@ -22,7 +22,8 @@ namespace ZXTune
 
   String EncodeArchivePluginToPath(PluginId pluginId)
   {
-    return ARCHIVE_PLUGIN_PREFIX.to_string().append(pluginId);
+    // TODO: Concat(StringView...)
+    return String{ARCHIVE_PLUGIN_PREFIX} + pluginId;
   }
 
   bool IsArchivePluginPathComponent(StringView component)

@@ -13,6 +13,8 @@
 // common includes
 #include <string_view.h>
 #include <types.h>
+// std includes
+#include <array>
 
 namespace Parameters
 {
@@ -27,7 +29,7 @@ namespace Parameters
       : Storage(str)
     {}
 
-    /*explicit*/ constexpr Identifier(const String& str)
+    /*explicit*/ Identifier(const String& str)
       : Storage(str)
     {}
 
@@ -82,7 +84,7 @@ namespace Parameters
 
     String AsString() const
     {
-      return Storage.to_string();
+      return String{Storage};
     }
 
   private:
