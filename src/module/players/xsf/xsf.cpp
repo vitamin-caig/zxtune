@@ -31,7 +31,8 @@ namespace Module::XSF
   public:
     explicit FilePath(StringView str)
     {
-      Strings::Split(str, R"(/\)"_sv, Components);
+      const auto& elements = Strings::Split(str, R"(/\)"_sv);
+      Components.assign(elements.begin(), elements.end());
     }
 
     FilePath RelativeTo(const FilePath& rh) const

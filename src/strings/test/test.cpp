@@ -210,19 +210,10 @@ namespace
     }
   }
 
-  template<class T, class D>
-  void TestSplitImpl(StringView msg, StringView str, D delimiter, const std::vector<StringView>& reference)
-  {
-    std::vector<T> out;
-    Strings::Split(str, delimiter, out);
-    TestEquals(reference, out, msg);
-  }
-
   template<class D>
   void TestSplit(const String& msg, StringView str, D delimiter, const std::vector<StringView>& reference)
   {
-    TestSplitImpl<StringView>(msg + " StringView", str, delimiter, reference);
-    TestSplitImpl<String>(msg + " String", str, delimiter, reference);
+    TestEquals(reference, Strings::Split(str, delimiter), msg);
   }
 
   template<class T>
@@ -391,12 +382,13 @@ int main()
     std::cout << "---- Test for split ----" << std::endl;
     {
       TestSplit("Empty", "", ' ', {""});
+      TestSplit("OnlyDelimiter", ",;", ";,"_sv, {""});
       TestSplit("Single", "single", ',', {"single"});
       TestSplit("Double", "single,,double", ',', {"single", "double"});
-      TestSplit("Prefix", ",,str", ',', {"", "str"});
-      TestSplit("Suffix", "str,,", ',', {"str", ""});
-      TestSplit("MultiDelimiters", ":one,two/three;four.", ";/,.:"_sv, {"", "one", "two", "three", "four", ""});
-      TestSplit("Predicate", "a1bc2;d5", [](Char c) { return !std::isalpha(c); }, {"a", "bc", "d", ""});
+      TestSplit("Prefix", ",,str", ',', {"str"});
+      TestSplit("Suffix", "str,,", ',', {"str"});
+      TestSplit("MultiDelimiters", ":one,two/three;four.", ";/,.:"_sv, {"one", "two", "three", "four"});
+      TestSplit("Predicate", "a1bc2;d5", [](Char c) { return !std::isalpha(c); }, {"a", "bc", "d"});
     }
     std::cout << "---- Test for join ----" << std::endl;
     {

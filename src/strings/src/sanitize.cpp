@@ -132,8 +132,7 @@ namespace Strings
       return Sanitize(str);
     }
     auto out = Prepare(str, LINE_BREAK, 0);
-    std::vector<StringViewCompat> substrings;
-    Split(out, LINE_BREAK, substrings);
+    const auto substrings = Split(out, LINE_BREAK);
     StringBuilder builder(out);
     for (const auto& sub : substrings)
     {

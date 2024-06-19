@@ -33,12 +33,11 @@ namespace Test
   // name is filename[:offset[:size]]
   inline Binary::Container::Ptr OpenFile(const std::string& name)
   {
-    std::vector<std::string> elements;
-    Strings::Split(name, ':', elements);
+    auto elements = Strings::Split(name, ':');
     elements.resize(3);
-    const std::string& filename = elements.at(0);
-    const std::string& offsetStr = elements.at(1);
-    const std::string& sizeStr = elements.at(2);
+    const auto filename = std::string{elements.at(0)};
+    const auto offsetStr = elements.at(1);
+    const auto sizeStr = elements.at(2);
     std::ifstream stream(filename.c_str(), std::ios::binary);
     if (!stream)
     {

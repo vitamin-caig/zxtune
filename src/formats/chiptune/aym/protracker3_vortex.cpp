@@ -371,13 +371,12 @@ namespace Formats::Chiptune
       {
         const std::size_t NO_LOOP = ~std::size_t(0);
 
-        std::vector<StringViewCompat> elems;
-        Strings::Split(str, ',', elems);
+        const auto elems = Strings::Split(str, ',');
         Parent::resize(elems.size());
         std::size_t resLoop = NO_LOOP;
         for (std::size_t idx = 0; idx != elems.size(); ++idx)
         {
-          StringView elem = elems[idx];
+          auto elem = elems[idx];
           Require(!elem.empty());
           if ('L' == elem[0])
           {
@@ -673,8 +672,7 @@ namespace Formats::Chiptune
         explicit LineObject(const StringView str)
           : Looped(false)
         {
-          std::vector<StringViewCompat> fields;
-          Strings::Split(str, ' ', fields);
+          const auto& fields = Strings::Split(str, ' ');
           switch (fields.size())
           {
           case 5:
@@ -1004,8 +1002,7 @@ namespace Formats::Chiptune
 
       explicit ChannelObject(StringView str)
       {
-        std::vector<StringViewCompat> fields;
-        Strings::Split(str, ' ', fields);
+        const auto& fields = Strings::Split(str, ' ');
         Require(fields.size() == 3);
         Note = NoteObject(fields[0]);
         Parameters = NoteParametersObject(fields[1]);
@@ -1036,8 +1033,7 @@ namespace Formats::Chiptune
 
       explicit PatternLineObject(StringView str)
       {
-        std::vector<StringViewCompat> fields;
-        Strings::Split(str, '|', fields);
+        const auto& fields = Strings::Split(str, '|');
         Require(fields.size() == 5);
         Envelope = EnvelopeBase(fields[0]);
         Noise = NoiseBase(fields[1]);

@@ -29,13 +29,12 @@ namespace
 
   bool ParseFilename(StringView path, L10n::Translation& trans)
   {
-    std::vector<StringViewCompat> elements;
-    Strings::Split(path, R"(/\)"_sv, elements);
+    const auto& elements = Strings::Split(path, R"(/\)"_sv);
     if (elements.size() == PATH_ELEMENTS)
     {
       const auto& filename = elements[FILENAME_POS];
       const auto dotPos = filename.find_last_of('.');
-      trans.Domain = dotPos == filename.npos ? StringView{filename} : filename.substr(0, dotPos);
+      trans.Domain = dotPos == filename.npos ? filename : filename.substr(0, dotPos);
       trans.Language = elements[TRANSLATION_POS];
       trans.Type = dotPos == filename.npos ? StringView() : filename.substr(dotPos + 1);
       return true;

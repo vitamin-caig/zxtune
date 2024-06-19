@@ -166,8 +166,7 @@ namespace Sound::Alsa
   public:
     explicit Identifier(StringView id)
     {
-      std::vector<StringView> elements;
-      Strings::Split(id, ":,"_sv, elements);
+      auto elements = Strings::Split(id, ":,"_sv);
       elements.resize(3);
       Interface = elements[0];
       Card = elements[1];
