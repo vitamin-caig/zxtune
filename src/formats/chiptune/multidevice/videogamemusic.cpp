@@ -206,11 +206,10 @@ namespace Formats::Chiptune
         const auto ripper = ReadUTF16Sanitized(input);
         target.SetAuthor(DispatchString(authorEn, DispatchString(authorJa, ripper)));
         const auto comment = ReadUTF16(input);
-        Strings::Array strings;
-        Strings::Split(comment, "\r\n"_sv, strings);
-        if (!strings.empty())
+        if (const auto splitted = Strings::Split(comment, "\r\n"_sv); !splitted.empty())
         {
-          std::transform(strings.begin(), strings.end(), strings.begin(), &Strings::Sanitize);
+          Strings::Array strings;
+          std::transform(splitted.begin(), splitted.end(), strings.begin(), &Strings::Sanitize);
           target.SetStrings(strings);
         }
       }

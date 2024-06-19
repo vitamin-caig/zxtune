@@ -12,34 +12,42 @@
 
 // common includes
 #include <types.h>
-// boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
+// std includes
+#include <algorithm>
+#include <functional>
 
 namespace Strings
 {
   namespace Details
   {
-    inline auto ToPredicate(Char c)
+    template<bool Matching, class Pred>
+    requires(std::is_invocable_v<Pred, Char>) constexpr std::size_t Partition(StringView str, Pred pred)
     {
-      return boost::algorithm::is_from_range(c, c);
+      const auto it = Matching ? std::find_if_not(str.begin(), str.end(), pred)
+                               : std::find_if(str.begin(), str.end(), pred);
+      return it - str.begin();
     }
 
-    inline auto ToPredicate(StringView any)
+    template<bool Matching, class Match>
+    constexpr std::size_t Partition(StringView str, Match match)
     {
-      return boost::algorithm::is_any_of(any);
-    }
-
-    template<class T>
-    inline auto ToPredicate(T p)
-    {
-      return p;
+      const auto pos = Matching ? str.find_first_not_of(match) : str.find_first_of(match);
+      return pos != StringView::npos ? pos : str.size();
     }
   }  // namespace Details
 
-  template<class T, class D>
-  void Split(StringView str, D delimiter, T& target)
+  template<class D>
+  std::vector<StringView> Split(StringView str, D delimiter)
   {
-    boost::algorithm::split(target, str, Details::ToPredicate(delimiter), boost::algorithm::token_compress_on);
+    std::vector<StringView> target;
+    auto it = str.substr(Details::Partition<true>(str, delimiter));
+    do
+    {
+      const auto part = Details::Partition<false>(it, delimiter);
+      target.emplace_back(it.substr(0, part));
+      const auto delim = Details::Partition<true>(it.substr(part), delimiter);
+      it = it.substr(part + delim);
+    } while (!it.empty());
+    return target;
   }
 }  // namespace Strings

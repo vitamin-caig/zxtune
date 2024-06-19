@@ -370,11 +370,10 @@ namespace Module::Mpt
     props.SetComment(Strings::SanitizeMultiline(module.get_metadata("message_raw")));
     {
       const auto metadata = module.get_metadata("message_heuristic");
-      Strings::Array strings;
-      Strings::Split(metadata, "\r\n"_sv, strings);
-      if (!strings.empty())
+      if (const auto splitted = Strings::Split(metadata, "\r\n"_sv); !splitted.empty())
       {
-        std::transform(strings.begin(), strings.end(), strings.begin(), &Strings::SanitizeKeepPadding);
+        std::vector<String> strings(splitted.size());
+        std::transform(splitted.begin(), splitted.end(), strings.begin(), &Strings::SanitizeKeepPadding);
         props.SetStrings(strings);
       }
     }
