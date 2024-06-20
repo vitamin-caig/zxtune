@@ -17,8 +17,7 @@
 #include <math/numeric.h>
 // std includes
 #include <random>
-// boost includes
-#include <boost/iterator/counting_iterator.hpp>
+#include <utility>
 
 namespace
 {
@@ -26,84 +25,7 @@ namespace
 
   using IndexedItem = std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType>;
 
-  // simple std::list wrapper that guarantees contstant complexivity of size() method
-  class ItemsContainer : private std::list<IndexedItem>
-  {
-    using Parent = std::list<IndexedItem>;
-
-  public:
-    using Parent::value_type;
-    using Parent::const_iterator;
-    using Parent::iterator;
-
-    using Parent::begin;
-    using Parent::end;
-    using Parent::sort;
-
-    ItemsContainer() = default;
-
-    ItemsContainer(const ItemsContainer& rh) = default;
-
-    Parent::size_type size() const
-    {
-      return Size;
-    }
-
-    bool empty() const
-    {
-      return 0 == Size;
-    }
-
-    void push_back(const value_type& val)
-    {
-      Parent::push_back(val);
-      ++Size;
-    }
-
-    void erase(iterator it)
-    {
-      Parent::erase(it);
-      --Size;
-    }
-
-    void erase(iterator first, iterator last)
-    {
-      const std::size_t count = std::distance(first, last);
-      Parent::erase(first, last);
-      Size -= count;
-    }
-
-    void splice(iterator position, ItemsContainer& x, iterator i)
-    {
-      Parent::splice(position, x, i);
-      ++Size;
-      --x.Size;
-    }
-
-    void splice(iterator position, ItemsContainer& x, iterator first, iterator last)
-    {
-      const std::size_t count = std::distance(first, last);
-      Parent::splice(position, x, first, last);
-      Size += count;
-      x.Size -= count;
-    }
-
-    void splice(iterator position, ItemsContainer& x)
-    {
-      Parent::splice(position, x);
-      Size += x.Size;
-      x.Size = 0;
-    }
-
-    void swap(ItemsContainer& rh)
-    {
-      Parent::swap(rh);
-      std::swap(Size, rh.Size);
-    }
-
-  private:
-    std::size_t Size = 0;
-  };
+  using ItemsContainer = std::list<IndexedItem>;
 
   template<class IteratorType>
   class IteratorContainerWalker
@@ -262,11 +184,15 @@ namespace
 
     Model::OldToNewIndexMap::Ptr ResetIndices() override
     {
-      const Model::OldToNewIndexMap::RWPtr result = MakeRWPtr<Model::OldToNewIndexMap>();
-      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0),
-                     std::inserter(*result, result->end()), &MakeIndexPair);
-      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), Items.begin(),
-                     &UpdateItemIndex);
+      // TODO: use array in mapping
+      auto result = MakeRWPtr<Model::OldToNewIndexMap>();
+      Model::IndexType newIdx = 0;
+      for (auto& item : Items)
+      {
+        const auto oldIdx = std::exchange(item.second, newIdx);
+        result->emplace(oldIdx, newIdx);
+        ++newIdx;
+      }
       return result;
     }
 
@@ -391,16 +317,6 @@ namespace
     const void* Self() const
     {
       return this;
-    }
-
-    static Model::OldToNewIndexMap::value_type MakeIndexPair(const IndexedItem& item, Model::IndexType idx)
-    {
-      return {item.second, idx};
-    }
-
-    static IndexedItem UpdateItemIndex(const IndexedItem& item, Model::IndexType idx)
-    {
-      return {item.first, idx};
     }
 
     class ComparerWrapper

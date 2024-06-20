@@ -27,11 +27,10 @@
 #include <parameters/convert.h>
 #include <parameters/serialize.h>
 #include <sound/sound_parameters.h>
+#include <strings/casing.h>
 #include <tools/progress_callback_helpers.h>
 // std includes
 #include <cctype>
-// boost includes
-#include <boost/algorithm/string/predicate.hpp>
 // qt includes
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -422,10 +421,21 @@ namespace
     }
   }
 
+  StringView GetExtension(StringView path)
+  {
+    const auto dotpos = path.find_last_of('.');
+    if (dotpos == StringView::npos)
+    {
+      return {};
+    }
+    return path.substr(dotpos + 1);
+  }
+
   void ApplyFormatSpecificData(std::size_t formatSpec, Playlist::IO::ContainerItem& item)
   {
     // for AY files FormatSpec is subtune index
-    if (boost::algorithm::iends_with(item.Path, String(".ay")))
+    const auto ext = GetExtension(item.Path);
+    if (Strings::EqualNoCaseAscii(ext, "ay"_sv))
     {
       const auto subPath = Formats::Archived::MultitrackArchives::CreateFilename(formatSpec);
       item.Path = AppendSubpath(item.Path, subPath);
@@ -435,8 +445,8 @@ namespace
   void ApplyOffset(std::size_t offset, Playlist::IO::ContainerItem& item)
   {
     // offset for YM/VTX cannot be applied
-    if (!boost::algorithm::iends_with(item.Path, String(".vtx"))
-        && !boost::algorithm::iends_with(item.Path, String(".ym")))
+    const auto ext = GetExtension(item.Path);
+    if (!Strings::EqualNoCaseAscii(ext, "vtx"_sv) && !Strings::EqualNoCaseAscii(ext, "ym"_sv))
     {
       assert(offset);
       const auto subPath = ZXTune::Raw::CreateFilename(offset);
