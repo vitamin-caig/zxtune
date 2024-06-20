@@ -14,7 +14,7 @@ RUN mkdir /build/zxtune && cd /build/zxtune && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo "platform=linux\narch=x86_64\npackaging?=deb\ndistro?=bookworm" > variables.mak && \
     echo "qt.includes=/usr/include/x86_64-linux-gnu/qt5\nqt.bin=/usr/lib/x86_64-linux-gnu/qt5/bin/" >> variables.mak && \
-    echo "cxx_flags=-fPIC\nboost.force_static=1\nlibraries.static=icuuc icudata\ntools.python=python3" >> variables.mak
+    echo "cxx_flags=-fPIC\nboost.force_static=1\nlibraries.linux=icuuc icudata\ntools.python=python3" >> variables.mak
 
 WORKDIR /build/zxtune
 COPY entrypoint.sh .
