@@ -21,6 +21,7 @@
 #include <strings/sanitize.h>
 #include <strings/split.h>
 #include <strings/template.h>
+#include <strings/trim.h>
 
 #include <iostream>
 
@@ -172,6 +173,30 @@ namespace
     TestEquals(trans, transTrans, "Repeated transcode");
   }
 
+  struct TrimCase
+  {
+    StringView Title;
+    StringView Input;
+    StringView CharRef;
+    StringView ArrayRef;
+    StringView SvRef;
+    StringView PredRef;
+
+    void Test() const
+    {
+      constexpr auto singleChar = ' ';
+      constexpr auto charsetArray = " \t\n";
+      constexpr auto charsetSv = "\t\n "_sv;
+      constexpr auto pred = [](Char c) { return c < ' '; };
+
+      const String title(Title);
+      TestEquals(CharRef, Strings::Trim(Input, singleChar), "Trim single char on " + title);
+      TestEquals(ArrayRef, Strings::Trim(Input, charsetArray), "Trim array charset on " + title);
+      TestEquals(SvRef, Strings::Trim(Input, charsetSv), "Trim sv charset on " + title);
+      TestEquals(PredRef, Strings::Trim(Input, pred), "Trim predicate on " + title);
+    }
+  };
+
   void TestOptimize(StringView str, const String& reference)
   {
     TestEquals(reference, Strings::OptimizeAscii(str), "Optimize " + reference);
@@ -199,14 +224,16 @@ namespace
   {
     Test(Strings::ConvertTo<T>(str) == reference, "ConvertTo " + msg);
     {
-      T ret = 123;
-      Test(Strings::Parse(str, ret) == restPart.empty(), "Parse " + msg);
-      Test(ret == restPart.empty() ? reference : 123, "Parse result " + msg);
+      constexpr T defaultValue = 123;
+      T ret = defaultValue;
+      const auto succeed = restPart.empty();
+      TestEquals(succeed, Strings::Parse(str, ret), "Parse " + msg);
+      TestEquals(succeed ? reference : defaultValue, ret, "Parse result " + msg);
     }
     {
       StringView strCopy = str;
-      Test(Strings::ParsePartial<T>(strCopy) == reference, "ParsePartial " + msg);
-      Test(strCopy == restPart, "ParsePartial rest " + msg);
+      TestEquals(reference, Strings::ParsePartial<T>(strCopy), "ParsePartial " + msg);
+      TestEquals(restPart, strCopy, "ParsePartial rest " + msg);
     }
   }
 
@@ -281,6 +308,22 @@ int main()
       TestTranscode("UTF-16 surrogate", "\xfe\xff\xd8\x52\xdf\x62", "\xf0\xa4\xad\xa2");
       // unpaired surrogate should be encoded into 3 utf-8 bytes
       TestTranscode("UTF-16 unpaired surrogate", "\xfe\xff\xd8\x52", "\xed\xa1\x92");
+    }
+    std::cout << "---- Test for trim ----" << std::endl;
+    {
+      constexpr TrimCase cases[] = {
+          {"Empty", "", "", "", "", ""},
+          {"Only trimmable", "\t \n", "\t \n", "", "", " "},
+          {"Only printable", "text", "text", "text", "text", "text"},
+          {"Inside", "with:\n-\tmultiline text", "with:\n-\tmultiline text", "with:\n-\tmultiline text",
+           "with:\n-\tmultiline text", "with:\n-\tmultiline text"},
+          {"Complex", "\t\n text\n \tline \n\t", "\t\n text\n \tline \n\t", "text\n \tline", "text\n \tline",
+           " text\n \tline "},
+      };
+      for (const auto& c : cases)
+      {
+        c.Test();
+      }
     }
     std::cout << "---- Test for optimize ----" << std::endl;
     {

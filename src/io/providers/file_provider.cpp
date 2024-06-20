@@ -24,11 +24,11 @@
 #include <parameters/accessor.h>
 #include <strings/encoding.h>
 #include <strings/format.h>
+#include <strings/trim.h>
 // std includes
 #include <cctype>
 #include <fstream>
 // boost includes
-#include <boost/algorithm/string/trim.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
@@ -38,7 +38,7 @@ namespace
 {
 // TODO
 #ifdef _WIN32
-  String ApplyOSFilenamesRestrictions(StringView in)
+  String ApplyOSFilenamesRestrictions(String in)
   {
     static const StringView DEPRECATED_NAMES[] = {"CON",  "PRN",  "AUX",  "NUL",  "COM1", "COM2", "COM3", "COM4",
                                                   "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3",
@@ -51,13 +51,13 @@ namespace
       // TODO: Concat(StringView...)
       return String{filename} + '~' + restPart;
     }
-    return String{in};
+    return in;
   }
 
 #else
-  String ApplyOSFilenamesRestrictions(StringView in)
+  String ApplyOSFilenamesRestrictions(String in)
   {
-    return String{in};
+    return in;
   }
 #endif
 
@@ -345,11 +345,11 @@ namespace IO::File
     std::ofstream Stream;
   };
 
-  String SanitizePathComponent(const String& input)
+  String SanitizePathComponent(String input)
   {
-    String result = boost::algorithm::trim_copy_if(input, &IsNotFSSymbol);
-    std::replace_if(result.begin(), result.end(), &IsNotFSSymbol, Char('_'));
-    return ApplyOSFilenamesRestrictions(result);
+    input = Strings::Trim(input, &IsNotFSSymbol);
+    std::replace_if(input.begin(), input.end(), &IsNotFSSymbol, Char('_'));
+    return ApplyOSFilenamesRestrictions(std::move(input));
   }
 
   std::filesystem::path CreateSanitizedPath(StringView fileName)
