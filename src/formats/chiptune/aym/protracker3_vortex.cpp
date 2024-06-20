@@ -30,8 +30,6 @@
 #include <array>
 #include <cctype>
 #include <sstream>
-// boost includes
-#include <boost/algorithm/string/predicate.hpp>
 
 namespace Formats::Chiptune
 {
@@ -311,7 +309,7 @@ namespace Formats::Chiptune
       {
         const auto start = '[' + Category;
         const auto stop = "]"_sv;
-        if (boost::algorithm::istarts_with(hdr, start) && boost::algorithm::ends_with(hdr, stop))
+        if (hdr.starts_with(start) && hdr.ends_with(stop))
         {
           Valid = true;
           const auto numStr = hdr.substr(start.size(), hdr.size() - start.size() - stop.size());
@@ -466,8 +464,8 @@ namespace Formats::Chiptune
           Dbg(" {}={}", entry.Name, entry.Value);
           if (Strings::EqualNoCaseAscii(entry.Name, Headers::VERSION))
           {
-            static const String VERSION("3.");
-            Require(boost::algorithm::starts_with(entry.Value, VERSION));
+            constexpr auto VERSION = "3."_sv;
+            Require(entry.Value.starts_with(VERSION));
             const String minorVal = entry.Value.substr(VERSION.size());
             const auto minor = Strings::ConvertTo<uint_t>(minorVal);
             Require(minor < 10);
