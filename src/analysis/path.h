@@ -11,8 +11,9 @@
 #pragma once
 
 // common includes
-#include <iterator.h>
 #include <types.h>
+// std includes
+#include <span>
 
 namespace Analysis
 {
@@ -21,7 +22,6 @@ namespace Analysis
   {
   public:
     using Ptr = std::shared_ptr<const Path>;
-    using Iterator = ObjectIterator<String>;
 
     virtual ~Path() = default;
 
@@ -31,10 +31,8 @@ namespace Analysis
     //! @brief Serialization
     //! @return String presentation of path
     virtual String AsString() const = 0;
-    //! @brief Path elements iterating
-    //! @return Iterator by strings
-    //! @invariant Always not-null result
-    virtual Iterator::Ptr GetIterator() const = 0;
+    //! @brief Path elements
+    virtual std::span<const String> Elements() const = 0;
     //! @brief Append path to current
     //! @param element Subpath to be appended. May be complex
     //! @return New path object

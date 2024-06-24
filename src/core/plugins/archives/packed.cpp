@@ -84,7 +84,7 @@ namespace ZXTune
     DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr inputData,
                               const Analysis::Path& pathToOpen) const override
     {
-      auto pathComponent = pathToOpen.GetIterator()->Get();
+      const auto& pathComponent = pathToOpen.Elements().front();
       const auto pluginId = DecodeArchivePluginFromPathComponent(pathComponent);
       if (pluginId != Identifier)
       {

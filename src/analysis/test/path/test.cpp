@@ -28,24 +28,12 @@ namespace
     Test(path.Empty() == val.empty(), context + " Empty");
     const String asStr = path.AsString();
     Test(asStr == val, context + " AsString");
-    const Analysis::Path::Iterator::Ptr iter = path.GetIterator();
-    Test(iter->IsValid() == !val.empty(), context + " GetIterator");
-    if (!first.empty())
-    {
-      Test(iter->IsValid() && iter->Get() == first, context + " check iterator step 1");
-      iter->Next();
-      if (!second.empty())
-      {
-        Test(iter->IsValid() && iter->Get() == second, context + " check iterator step 2");
-        iter->Next();
-        if (!third.empty())
-        {
-          Test(iter->IsValid() && iter->Get() == third, context + " check iterator step 3");
-          iter->Next();
-        }
-      }
-    }
-    Test(!iter->IsValid(), context + " check iterator at end");
+    const auto elems = path.Elements();
+    Test(!elems.empty() == !val.empty(), context + " Elements");
+    Test(elems.size() == std::size_t(!first.empty() + !second.empty() + !third.empty()), "  size()");
+    Test(first.empty() || (elems[0] == first), "  [0]");
+    Test(second.empty() || (elems[1] == second), "  [1]");
+    Test(third.empty() || (elems[2] == third), "  [2]");
   }
 
   const String EMPTY_PATH = String();

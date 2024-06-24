@@ -25,10 +25,9 @@ namespace std
     template<class It, class End>
     basic_string_view_compat(It first, End last)
       : basic_string_view<C>(std::to_address(first), static_cast<std::size_t>(last - first))
-    {
-    }
+    {}
   };
-}
+}  // namespace std
 
 constexpr auto operator"" _sv(const char* str, std::size_t size) noexcept
 {

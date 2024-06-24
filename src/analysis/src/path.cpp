@@ -67,9 +67,9 @@ namespace Analysis
       return JoinPath(Components, Separator);
     }
 
-    Iterator::Ptr GetIterator() const override
+    std::span<const String> Elements() const override
     {
-      return CreateRangedObjectIteratorAdapter(Components.begin(), Components.end());
+      return {Components};
     }
 
     Ptr Append(StringView element) const override
@@ -128,9 +128,9 @@ namespace Analysis
       return {};
     }
 
-    Iterator::Ptr GetIterator() const override
+    std::span<const String> Elements() const override
     {
-      return Iterator::CreateStub();
+      return {};
     }
 
     Ptr Append(StringView element) const override
