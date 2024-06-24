@@ -23,7 +23,7 @@ namespace Module::DAC
   class DataIterator : public Iterator
   {
   public:
-    using Ptr = std::shared_ptr<DataIterator>;
+    using Ptr = std::unique_ptr<DataIterator>;
 
     virtual State::Ptr GetStateObserver() const = 0;
 
@@ -33,7 +33,7 @@ namespace Module::DAC
   class Chiptune
   {
   public:
-    using Ptr = std::shared_ptr<const Chiptune>;
+    using Ptr = std::unique_ptr<const Chiptune>;
     virtual ~Chiptune() = default;
 
     static Time::Microseconds GetFrameDuration()

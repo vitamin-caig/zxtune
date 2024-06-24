@@ -11,7 +11,6 @@
 // local includes
 #include "module/players/xsf/sdsf.h"
 #include "module/players/xsf/xsf.h"
-#include "module/players/xsf/xsf_factory.h"
 // common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -385,8 +384,8 @@ namespace Module::SDSF
     }
   };
 
-  Module::Factory::Ptr CreateFactory()
+  XSF::Factory::Ptr CreateFactory()
   {
-    return XSF::CreateFactory(MakePtr<Factory>());
+    return MakePtr<Factory>();
   }
 }  // namespace Module::SDSF

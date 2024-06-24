@@ -37,7 +37,7 @@ namespace Devices::Beeper
   class Device
   {
   public:
-    using Ptr = std::shared_ptr<Device>;
+    using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
     /// Render multiple data chunks
@@ -51,7 +51,7 @@ namespace Devices::Beeper
   class Chip : public Device
   {
   public:
-    using Ptr = std::shared_ptr<Chip>;
+    using Ptr = std::unique_ptr<Chip>;
 
     virtual Sound::Chunk RenderTill(Stamp till) = 0;
   };
@@ -59,7 +59,7 @@ namespace Devices::Beeper
   class ChipParameters
   {
   public:
-    using Ptr = std::shared_ptr<const ChipParameters>;
+    using Ptr = std::unique_ptr<const ChipParameters>;
 
     virtual ~ChipParameters() = default;
 

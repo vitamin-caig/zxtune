@@ -21,15 +21,16 @@ namespace ZXTune
   {
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::DAC
                         | Capabilities::Module::Traits::MULTIFILE;
-    const auto factory = Module::SDSF::CreateFactory();
+    auto factory = Module::SDSF::CreateFactory();
     {
       auto decoder = Formats::Chiptune::CreateSSFDecoder();
-      auto plugin = CreatePlayerPlugin("SSF"_id, CAPS, std::move(decoder), factory);
+      auto plugin = CreatePlayerPlugin("SSF"_id, CAPS, std::move(decoder), Module::XSF::CreateModuleFactory(factory));
       registrator.RegisterPlugin(std::move(plugin));
     }
     {
       auto decoder = Formats::Chiptune::CreateDSFDecoder();
-      auto plugin = CreatePlayerPlugin("DSF"_id, CAPS, std::move(decoder), factory);
+      auto plugin =
+          CreatePlayerPlugin("DSF"_id, CAPS, std::move(decoder), Module::XSF::CreateModuleFactory(std::move(factory)));
       registrator.RegisterPlugin(std::move(plugin));
     }
   }

@@ -65,7 +65,7 @@ namespace Devices::Z80
   class Chip
   {
   public:
-    using Ptr = std::shared_ptr<Chip>;
+    using Ptr = std::unique_ptr<Chip>;
     virtual ~Chip() = default;
 
     virtual void Reset() = 0;

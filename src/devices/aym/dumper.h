@@ -14,6 +14,8 @@
 #include <binary/data.h>
 #include <devices/aym.h>
 #include <time/duration.h>
+// std includes
+#include <memory>
 
 // supporting for AY/YM-based modules
 namespace Devices::AYM
@@ -22,7 +24,7 @@ namespace Devices::AYM
   class Dumper : public Device
   {
   public:
-    using Ptr = std::shared_ptr<Dumper>;
+    using Ptr = std::unique_ptr<Dumper>;
 
     virtual Binary::Data::Ptr GetDump() = 0;
   };
@@ -50,7 +52,7 @@ namespace Devices::AYM
   class FYMDumperParameters : public DumperParameters
   {
   public:
-    using Ptr = std::shared_ptr<const FYMDumperParameters>;
+    using Ptr = std::unique_ptr<const FYMDumperParameters>;
 
     virtual uint64_t ClockFreq() const = 0;
     virtual String Title() const = 0;
@@ -58,5 +60,5 @@ namespace Devices::AYM
     virtual uint_t LoopFrame() const = 0;
   };
 
-  Dumper::Ptr CreateFYMDumper(const FYMDumperParameters::Ptr& params);
+  Dumper::Ptr CreateFYMDumper(FYMDumperParameters::Ptr params);
 }  // namespace Devices::AYM

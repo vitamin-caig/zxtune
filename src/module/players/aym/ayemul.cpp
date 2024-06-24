@@ -497,7 +497,7 @@ namespace Module::AYEMUL
   class Computer
   {
   public:
-    using Ptr = std::shared_ptr<Computer>;
+    using Ptr = std::unique_ptr<Computer>;
 
     Computer(ModuleData::Ptr data, Devices::Z80::ChipParameters::Ptr params, PortsPlexer::Ptr cpuPorts)
       : Data(std::move(data))
