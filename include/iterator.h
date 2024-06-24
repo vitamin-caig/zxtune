@@ -215,38 +215,3 @@ inline typename ObjectIterator<T>::Ptr ObjectIterator<T>::CreateStub()
   static ObjectIteratorStub<T> instance;
   return MakeSingletonPointer(instance);
 }
-
-template<class T, class V = typename std::iterator_traits<T>::value_type>
-class RangedObjectIteratorAdapter : public ObjectIterator<V>
-{
-public:
-  explicit RangedObjectIteratorAdapter(T from, T to)
-    : Range(from, to)
-  {}
-
-  bool IsValid() const override
-  {
-    return Range;
-  }
-
-  V Get() const override
-  {
-    assert(Range);
-    return *Range;
-  }
-
-  void Next() override
-  {
-    assert(Range);
-    ++Range;
-  }
-
-private:
-  RangeIterator<T> Range;
-};
-
-template<class T>
-typename RangedObjectIteratorAdapter<T>::Ptr CreateRangedObjectIteratorAdapter(T from, T to)
-{
-  return typename RangedObjectIteratorAdapter<T>::Ptr(new RangedObjectIteratorAdapter<T>(from, to));
-}

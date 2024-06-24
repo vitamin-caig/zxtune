@@ -234,12 +234,12 @@ namespace
         info.Id(), info.Description(), BackendCaps(info.Capabilities()), status ? status.GetText() : "Available");
   }
 
-  inline void ShowBackends(Sound::BackendInformation::Iterator& backends)
+  inline void ShowBackends(std::span<const Sound::BackendInformation::Ptr> backends)
   {
     StdOut << "Supported backends:" << std::endl;
-    for (; backends.IsValid(); backends.Next())
+    for (const auto& backend : backends)
     {
-      StdOut << DescribeBackend(*backends.Get());
+      StdOut << DescribeBackend(*backend);
     }
   }
 
@@ -257,9 +257,9 @@ namespace
   inline void ShowProviders()
   {
     StdOut << "Supported IO providers:" << std::endl;
-    for (const auto providers = IO::EnumerateProviders(); providers->IsValid(); providers->Next())
+    for (const auto& provider : IO::EnumerateProviders())
     {
-      StdOut << DescribeProvider(*providers->Get());
+      StdOut << DescribeProvider(*provider);
     }
   }
 
@@ -513,7 +513,7 @@ namespace
       }
       if (EnumBackends)
       {
-        ShowBackends(*sound.EnumerateBackends());
+        ShowBackends(sound.EnumerateBackends());
       }
       if (EnumProviders)
       {

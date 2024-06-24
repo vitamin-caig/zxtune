@@ -55,7 +55,6 @@ namespace ZXTune
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, PluginId subPlugin,
                                          StringView subPath)
   {
-    assert(subData);
     return MakePtr<NestedLocation>(std::move(parent), subPlugin, std::move(subData), subPath);
   }
 }  // namespace ZXTune

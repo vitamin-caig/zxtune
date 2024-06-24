@@ -12,8 +12,9 @@
 
 // libary includes
 #include <io/api.h>
-#include <io/provider.h>  // for ProviderInfoArray
-#include <strings/set.h>
+#include <io/provider.h>
+// std includes
+#include <span>
 
 namespace IO
 {
@@ -23,7 +24,6 @@ namespace IO
   public:
     using Ptr = std::shared_ptr<const DataProvider>;
 
-    virtual Strings::Set Schemes() const = 0;
     virtual Identifier::Ptr Resolve(StringView uri) const = 0;
     virtual Binary::Container::Ptr Open(StringView path, const Parameters::Accessor& parameters,
                                         Log::ProgressCallback& callback) const = 0;
@@ -47,7 +47,7 @@ namespace IO
     virtual Binary::OutputStream::Ptr CreateStream(StringView path, const Parameters::Accessor& params,
                                                    Log::ProgressCallback& cb) const = 0;
 
-    virtual Provider::Iterator::Ptr Enumerate() const = 0;
+    virtual std::span<const Provider::Ptr> Enumerate() const = 0;
 
     static ProvidersEnumerator& Instance();
   };

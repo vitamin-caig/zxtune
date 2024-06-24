@@ -27,8 +27,6 @@ namespace IO
 {
   const Debug::Stream Dbg("IO::Enumerator");
 
-  using ProvidersList = std::vector<DataProvider::Ptr>;
-
   // implementation of IO providers enumerator
   class ProvidersEnumeratorImpl : public ProvidersEnumerator
   {
@@ -42,17 +40,13 @@ namespace IO
     {
       Providers.push_back(provider);
       Dbg("Registered provider '{}'", provider->Id());
-      const Strings::Set& schemes = provider->Schemes();
-      for (const auto& scheme : schemes)
-      {
-        Schemes.insert(std::make_pair(scheme, provider));
-      }
+      DataProviders.emplace_back(std::move(provider));
     }
 
     Identifier::Ptr ResolveUri(StringView uri) const override
     {
       Dbg("Resolving uri '{}'", uri);
-      if (auto id = Resolve(uri))
+      if (const auto [id, provider] = Resolve(uri); id)
       {
         return id;
       }
@@ -64,13 +58,10 @@ namespace IO
                                     Log::ProgressCallback& cb) const override
     {
       Dbg("Opening path '{}'", path);
-      if (const auto id = Resolve(path))
+      if (const auto [id, provider] = Resolve(path); provider)
       {
-        if (const DataProvider* provider = FindProvider(id->Scheme()))
-        {
-          Dbg(" Used provider '{}'", provider->Id());
-          return provider->Open(id->Path(), params, cb);
-        }
+        Dbg(" Used provider '{}'", provider->Id());
+        return provider->Open(id->Path(), params, cb);
       }
       Dbg(" No suitable provider found");
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
@@ -80,46 +71,38 @@ namespace IO
                                            Log::ProgressCallback& cb) const override
     {
       Dbg("Creating stream '{}'", path);
-      if (const auto id = Resolve(path))
+      if (const auto [id, provider] = Resolve(path); provider)
       {
-        if (const DataProvider* provider = FindProvider(id->Scheme()))
-        {
-          Dbg(" Used provider '{}'", provider->Id());
-          // pass nonchanged parameter to lower level
-          return provider->Create(path, params, cb);
-        }
+        Dbg(" Used provider '{}'", provider->Id());
+        // pass nonchanged parameter to lower level
+        return provider->Create(path, params, cb);
       }
       Dbg(" No suitable provider found");
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
-    Provider::Iterator::Ptr Enumerate() const override
+    std::span<const Provider::Ptr> Enumerate() const override
     {
-      return MakePtr<RangedObjectIteratorAdapter<ProvidersList::const_iterator, Provider::Ptr> >(Providers.begin(),
-                                                                                                 Providers.end());
+      return {Providers};
     }
 
   private:
-    Identifier::Ptr Resolve(StringView uri) const
+    std::pair<Identifier::Ptr, DataProvider::Ptr> Resolve(StringView uri) const
     {
-      for (const auto& provider : Providers)
+      for (const auto& provider : DataProviders)
       {
         if (auto res = provider->Resolve(uri))
         {
-          return res;
+          return {std::move(res), provider};
         }
       }
       return {};
     }
 
-    const DataProvider* FindProvider(StringView scheme) const
-    {
-      return Schemes.FindPtrValue(scheme);
-    }
-
   private:
-    ProvidersList Providers;
-    Strings::ValueMap<DataProvider::Ptr> Schemes;
+    // Span is invariant...
+    std::vector<Provider::Ptr> Providers;
+    std::vector<DataProvider::Ptr> DataProviders;
   };
 
   class UnavailableProvider : public DataProvider
@@ -154,11 +137,6 @@ namespace IO
     Binary::OutputStream::Ptr Create(StringView, const Parameters::Accessor&, Log::ProgressCallback&) const override
     {
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
-    }
-
-    Strings::Set Schemes() const override
-    {
-      return {};
     }
 
     Identifier::Ptr Resolve(StringView /*uri*/) const override
@@ -196,7 +174,7 @@ namespace IO
     return ProvidersEnumerator::Instance().CreateStream(path, params, cb);
   }
 
-  Provider::Iterator::Ptr EnumerateProviders()
+  std::span<const Provider::Ptr> EnumerateProviders()
   {
     return ProvidersEnumerator::Instance().Enumerate();
   }

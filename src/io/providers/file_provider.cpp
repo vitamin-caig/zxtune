@@ -439,13 +439,6 @@ namespace IO::File
       return {};
     }
 
-    Strings::Set Schemes() const override
-    {
-      Strings::Set res;
-      res.emplace(SCHEME_FILE);
-      return res;
-    }
-
     Identifier::Ptr Resolve(StringView uri) const override
     {
       const auto schemePos = uri.find(SCHEME_SIGN);

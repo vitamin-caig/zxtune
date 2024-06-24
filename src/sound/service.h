@@ -14,6 +14,7 @@
 #include <module/holder.h>
 #include <sound/backend.h>
 // std includes
+#include <span>
 #include <vector>
 
 namespace Sound
@@ -26,7 +27,7 @@ namespace Sound
     virtual ~Service() = default;
 
     //! Enumerate all the registered backends
-    virtual BackendInformation::Iterator::Ptr EnumerateBackends() const = 0;
+    virtual std::span<const BackendInformation::Ptr> EnumerateBackends() const = 0;
 
     //! Return list of available backends ordered by preferences
     virtual std::vector<BackendId> GetAvailableBackends() const = 0;

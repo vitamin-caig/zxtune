@@ -77,9 +77,9 @@ namespace Sound
       : Options(std::move(options))
     {}
 
-    BackendInformation::Iterator::Ptr EnumerateBackends() const override
+    std::span<const BackendInformation::Ptr> EnumerateBackends() const override
     {
-      return CreateRangedObjectIteratorAdapter(Infos.begin(), Infos.end());
+      return {Infos};
     }
 
     std::vector<BackendId> GetAvailableBackends() const override

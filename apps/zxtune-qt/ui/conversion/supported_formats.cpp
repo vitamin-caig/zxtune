@@ -31,9 +31,8 @@ namespace
     explicit FileBackendsSet(Parameters::Accessor::Ptr options)
     {
       const auto service = Sound::CreateFileService(std::move(options));
-      for (auto backends = service->EnumerateBackends(); backends->IsValid(); backends->Next())
+      for (const auto& info : service->EnumerateBackends())
       {
-        const auto info = backends->Get();
         Ids.emplace(info->Id(), info->Status());
       }
     }
