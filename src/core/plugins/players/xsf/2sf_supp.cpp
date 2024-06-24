@@ -26,7 +26,8 @@ namespace ZXTune
 
     auto factory = Module::TwoSF::CreateFactory();
     auto decoder = Formats::Chiptune::Create2SFDecoder();
-    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    auto plugin =
+        CreatePlayerPlugin(ID, CAPS, std::move(decoder), Module::XSF::CreateModuleFactory(std::move(factory)));
     registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

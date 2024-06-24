@@ -136,7 +136,7 @@ namespace Module::Sid
   class SidEngine
   {
   public:
-    using Ptr = std::shared_ptr<SidEngine>;
+    using Ptr = std::unique_ptr<SidEngine>;
 
     SidEngine()
       : Builder("resid")

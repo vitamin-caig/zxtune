@@ -21,7 +21,7 @@ namespace Module::DAC
   class Factory
   {
   public:
-    using Ptr = std::shared_ptr<const Factory>;
+    using Ptr = std::unique_ptr<const Factory>;
     virtual ~Factory() = default;
 
     virtual Chiptune::Ptr CreateChiptune(const Binary::Container& data,

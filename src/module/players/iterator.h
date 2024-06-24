@@ -18,7 +18,7 @@ namespace Module
   class Iterator
   {
   public:
-    using Ptr = std::shared_ptr<Iterator>;
+    using Ptr = std::unique_ptr<Iterator>;
 
     virtual ~Iterator() = default;
 
@@ -29,7 +29,7 @@ namespace Module
   class StateIterator : public Iterator
   {
   public:
-    using Ptr = std::shared_ptr<StateIterator>;
+    using Ptr = std::unique_ptr<StateIterator>;
 
     virtual uint_t CurrentFrame() const = 0;
 

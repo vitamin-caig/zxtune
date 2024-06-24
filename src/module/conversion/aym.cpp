@@ -136,7 +136,7 @@ namespace Module
     else if (const auto* fym = parameter_cast<FYMConvertParam>(&spec))
     {
       auto dumpParams = MakePtr<FYMDumperParameters>(params, 0 /*LoopFrame - TODO*/, fym->Optimization);
-      dumper = Devices::AYM::CreateFYMDumper(dumpParams);
+      dumper = Devices::AYM::CreateFYMDumper(std::move(dumpParams));
       errMessage = translate("Failed to convert to FYM format.");
     }
 

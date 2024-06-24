@@ -102,9 +102,9 @@ namespace Devices::AYM
     const FramedDumpBuilder::Ptr Delegate;
   };
 
-  Dumper::Ptr CreateFYMDumper(const FYMDumperParameters::Ptr& params)
+  Dumper::Ptr CreateFYMDumper(FYMDumperParameters::Ptr params)
   {
-    auto builder = MakePtr<FYMBuilder>(params);
+    auto builder = MakePtr<FYMBuilder>(std::move(params));
     return CreateDumper(*params, std::move(builder));
   }
 }  // namespace Devices::AYM

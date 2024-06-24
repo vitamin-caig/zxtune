@@ -14,7 +14,6 @@
 #include "module/players/xsf/psf_exe.h"
 #include "module/players/xsf/psf_vfs.h"
 #include "module/players/xsf/xsf.h"
-#include "module/players/xsf/xsf_factory.h"
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
@@ -540,8 +539,8 @@ namespace Module::PSF
     }
   };
 
-  Module::Factory::Ptr CreateFactory()
+  XSF::Factory::Ptr CreateFactory()
   {
-    return XSF::CreateFactory(MakePtr<Factory>());
+    return MakePtr<Factory>();
   }
 }  // namespace Module::PSF

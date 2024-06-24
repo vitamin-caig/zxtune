@@ -29,8 +29,10 @@ namespace Devices::DAC
   class FastSample
   {
   public:
-    using Ptr = std::shared_ptr<const FastSample>;
-
+    FastSample(const FastSample&) = delete;
+    FastSample(FastSample&&) = default;
+    FastSample& operator=(const FastSample&) = delete;
+    FastSample& operator=(FastSample&&) = default;
     // use additional sample for interpolation
     explicit FastSample(std::size_t idx, const Sample& in)
       : Index(static_cast<uint_t>(idx))
@@ -147,10 +149,10 @@ namespace Devices::DAC
 
   private:
     friend class Iterator;
-    const uint_t Index;
-    const std::unique_ptr<Sound::Sample::Type[]> Data;
-    const std::size_t Size = 1;
-    const std::size_t Loop = 1;
+    uint_t Index;
+    std::unique_ptr<Sound::Sample::Type[]> Data;
+    std::size_t Size = 1;
+    std::size_t Loop = 1;
   };
 
   class ClockSource
@@ -203,27 +205,24 @@ namespace Devices::DAC
   class SamplesStorage
   {
   public:
-    void Add(std::size_t idx, const Sample::Ptr& sample)
+    void Add(std::size_t idx, const Sample& sample)
     {
-      if (sample)
-      {
-        Content.resize(std::max(Content.size(), idx + 1));
-        Content[idx] = MakePtr<FastSample>(idx, *sample);
-      }
+      Content.resize(std::max(Content.size(), idx + 1));
+      Content[idx] = FastSample(idx, sample);
     }
 
-    FastSample::Ptr Get(std::size_t idx) const
+    const FastSample& Get(std::size_t idx) const
     {
-      static FastSample STUB;
-      if (auto val = idx < Content.size() ? Content[idx] : FastSample::Ptr())
+      static const FastSample STUB;
+      if (idx < Content.size())
       {
-        return val;
+        return Content[idx];
       }
-      return MakeSingletonPointer(STUB);
+      return STUB;
     }
 
   private:
-    std::vector<FastSample::Ptr> Content;
+    std::vector<FastSample> Content;
   };
 
   using SignedLevelType = Math::FixedPoint<int, ChannelData::LevelType::PRECISION>;
@@ -235,8 +234,8 @@ namespace Devices::DAC
       : Level(1)
     {}
 
-    explicit ChannelState(FastSample::Ptr sample)
-      : Source(std::move(sample))
+    explicit ChannelState(const FastSample& sample)
+      : Source(&sample)
       , Level(1)
     {}
 
@@ -247,7 +246,7 @@ namespace Devices::DAC
     // current slide in Hz
     int_t FreqSlide = 0;
     // sample
-    FastSample::Ptr Source;
+    const FastSample* Source = nullptr;
     FastSample::Iterator Iterator;
     SignedLevelType Level;
 
@@ -276,7 +275,7 @@ namespace Devices::DAC
       // sample changed
       if (const uint_t* sampleNum = state.GetSampleNum())
       {
-        Source = samples.Get(*sampleNum);
+        Source = &samples.Get(*sampleNum);
         Iterator.SetSample(*Source);
       }
       // position in sample changed
@@ -480,7 +479,7 @@ namespace Devices::DAC
     }
 
     /// Set sample for work
-    void SetSample(uint_t idx, Sample::Ptr sample) override
+    void SetSample(uint_t idx, const Sample& sample) override
     {
       Samples.Add(idx, sample);
     }

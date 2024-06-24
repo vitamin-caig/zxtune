@@ -26,7 +26,8 @@ namespace ZXTune
 
     auto factory = Module::USF::CreateFactory();
     auto decoder = Formats::Chiptune::CreateUSFDecoder();
-    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    auto plugin =
+        CreatePlayerPlugin(ID, CAPS, std::move(decoder), Module::XSF::CreateModuleFactory(std::move(factory)));
     registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

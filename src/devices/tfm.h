@@ -57,7 +57,7 @@ namespace Devices::TFM
   class Device
   {
   public:
-    using Ptr = std::shared_ptr<Device>;
+    using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
     virtual void RenderData(const DataChunk& src) = 0;
@@ -67,7 +67,7 @@ namespace Devices::TFM
   class Chip : public Device
   {
   public:
-    using Ptr = std::shared_ptr<Chip>;
+    using Ptr = std::unique_ptr<Chip>;
 
     /// Render rest data and return result
     virtual Sound::Chunk RenderTill(Stamp stamp) = 0;

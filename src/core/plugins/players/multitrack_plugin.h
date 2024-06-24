@@ -19,8 +19,12 @@
 
 namespace Module
 {
-  using MultitrackFactory = BaseFactory<Formats::Multitrack::Container>;
-}
+  class MultitrackFactory : public BaseFactory<Formats::Multitrack::Container>
+  {
+  public:
+    using Ptr = std::shared_ptr<const MultitrackFactory>;
+  };
+}  // namespace Module
 
 namespace ZXTune
 {

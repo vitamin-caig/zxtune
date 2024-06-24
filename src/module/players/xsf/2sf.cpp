@@ -12,7 +12,6 @@
 #include "module/players/xsf/2sf.h"
 #include "module/players/xsf/memory_region.h"
 #include "module/players/xsf/xsf.h"
-#include "module/players/xsf/xsf_factory.h"
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
@@ -403,8 +402,8 @@ namespace Module::TwoSF
     }
   };
 
-  Module::Factory::Ptr CreateFactory()
+  XSF::Factory::Ptr CreateFactory()
   {
-    return XSF::CreateFactory(MakePtr<Factory>());
+    return MakePtr<Factory>();
   }
 }  // namespace Module::TwoSF

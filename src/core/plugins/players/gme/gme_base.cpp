@@ -49,7 +49,7 @@ namespace Module::GME
 {
   const Debug::Stream Dbg("Core::GMESupp");
 
-  using EmuPtr = std::shared_ptr< ::Music_Emu>;
+  using EmuPtr = std::unique_ptr< ::Music_Emu>;
 
   using EmuCreator = EmuPtr (*)();
 

@@ -80,8 +80,8 @@ namespace Benchmark::AY
   Devices::AYM::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t soundFreq,
                                        Devices::AYM::InterpolationType interpolate)
   {
-    const Devices::AYM::ChipParameters::Ptr params = MakePtr<AYParameters>(clockFreq, soundFreq, interpolate);
-    return Devices::AYM::CreateChip(params, Sound::ThreeChannelsMatrixMixer::Create());
+    auto params = MakePtr<AYParameters>(clockFreq, soundFreq, interpolate);
+    return Devices::AYM::CreateChip(std::move(params), Sound::ThreeChannelsMatrixMixer::Create());
   }
 
   double Test(Devices::AYM::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration)
