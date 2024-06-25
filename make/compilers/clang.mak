@@ -8,6 +8,10 @@ tools.strip ?= $($(platform).$(arch).execprefix)strip
 
 LINKER_BEGIN_GROUP ?= -Wl,--start-group
 LINKER_END_GROUP ?= -Wl,--end-group
+BUILD_ID_FLAG ?= -Wl,--build-id
+
+#enable build id
+LD_MODE_FLAGS += $(BUILD_ID_FLAG)
 
 #set options according to mode
 ifdef release

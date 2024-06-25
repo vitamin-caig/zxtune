@@ -11,6 +11,7 @@ compiler=clang
 host=macos
 LINKER_BEGIN_GROUP=
 LINKER_END_GROUP=
+BUILD_ID_FLAG=
 # Disable stripping for MacOSX - this breaks diginal signature
 # See:
 # - https://github.com/thefloweringash/sigtool
