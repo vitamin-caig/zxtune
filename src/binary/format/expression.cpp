@@ -29,6 +29,12 @@ namespace Binary::FormatDSL
 {
   using PatternIterator = RangeIterator<StringView::const_iterator>;
 
+  class InternalPredicate : public Predicate
+  {
+  public:
+    using Ptr = std::unique_ptr<const InternalPredicate>;
+  };
+
   class AnyValuePredicate : public Predicate
   {
   public:
@@ -39,14 +45,109 @@ namespace Binary::FormatDSL
       return true;
     }
 
-    static Ptr Create()
+    static const Predicate* Instance()
     {
       static const AnyValuePredicate INSTANCE;
-      return MakeSingletonPointer(INSTANCE);
+      return &INSTANCE;
     }
   };
 
-  class MatchValuePredicate : public Predicate
+  class Pattern
+  {
+  public:
+    std::size_t Size() const
+    {
+      return Predicates.size();
+    }
+
+    void AddVerified(InternalPredicate::Ptr pred)
+    {
+      Verify(*pred);
+      Add(std::move(pred));
+    }
+
+    void Add(InternalPredicate::Ptr pred)
+    {
+      Pool.emplace_back(std::move(pred));
+      Add(Pool.back().get());
+    }
+
+    void Add(const Predicate* pred)
+    {
+      Predicates.emplace_back(pred);
+    }
+
+    void DuplicateLast(std::size_t count)
+    {
+      const auto* last = Predicates.back();
+      Predicates.resize(Predicates.size() + count - 1, last);
+    }
+
+    void DuplicateTail(std::size_t tailSize, std::size_t count)
+    {
+      const auto oldSize = Predicates.size();
+      Predicates.resize(oldSize + tailSize * (count - 1));
+      const auto oldEnd = Predicates.begin() + oldSize;
+      // Overlapping copying is UB
+      for (auto src = oldEnd - tailSize, dst = oldEnd, lim = Predicates.end(); dst != lim; ++src, ++dst)
+      {
+        *dst = *src;
+      }
+    }
+
+    const Predicate& PopLast()
+    {
+      Require(!Predicates.empty());
+      const auto* res = Predicates.back();
+      Predicates.pop_back();
+      return *res;
+    }
+
+    std::size_t Cleanup()
+    {
+      const auto first = Predicates.begin();
+      const auto last = Predicates.end();
+      const auto isAny = [](const Predicate* p) { return p == AnyValuePredicate::Instance(); };
+      const auto firstNotAny = std::find_if_not(first, last, isAny);
+      Require(firstNotAny != last);
+      const auto lastNotAny = std::find_if_not(Predicates.rbegin(), Predicates.rend(), isAny).base();
+      if (first != firstNotAny)
+      {
+        std::copy(firstNotAny, lastNotAny, first);
+      }
+      Predicates.resize(std::distance(firstNotAny, lastNotAny));
+      return std::distance(first, firstNotAny);
+    }
+
+    std::span<const Predicate* const> GetPredicates() const
+    {
+      return {Predicates};
+    }
+
+  private:
+    static void Verify(const Predicate& pred)
+    {
+      bool hasMatched = false;
+      bool hasUnmatched = false;
+      for (uint_t val = 0; val < 256; ++val)
+      {
+        const auto res = pred.Match(val);
+        hasMatched |= res;
+        hasUnmatched |= !res;
+        if (hasMatched && hasUnmatched)
+        {
+          return;
+        }
+      }
+      Require(false);
+    }
+
+  private:
+    std::vector<InternalPredicate::Ptr> Pool;
+    std::vector<const Predicate*> Predicates;
+  };
+
+  class MatchValuePredicate : public InternalPredicate
   {
   public:
     explicit MatchValuePredicate(uint_t value)
@@ -58,7 +159,7 @@ namespace Binary::FormatDSL
       return val == Value;
     }
 
-    static Ptr Create(PatternIterator& it)
+    static InternalPredicate::Ptr Create(PatternIterator& it)
     {
       Require(it && SYMBOL_TEXT == *it && ++it);
       const char val = *it;
@@ -67,10 +168,11 @@ namespace Binary::FormatDSL
     }
 
   private:
+    friend class MatchRangePredicate;
     const uint_t Value;
   };
 
-  class MatchMaskPredicate : public Predicate
+  class MatchMaskPredicate : public InternalPredicate
   {
   public:
     MatchMaskPredicate(uint_t mask, uint_t value)
@@ -85,7 +187,7 @@ namespace Binary::FormatDSL
       return (Mask & val) == Value;
     }
 
-    static Ptr Create(PatternIterator& it)
+    static void Parse(PatternIterator it, Pattern& out)
     {
       Require(it);
       uint_t mask = 0;
@@ -122,11 +224,11 @@ namespace Binary::FormatDSL
       switch (mask)
       {
       case 0:
-        return AnyValuePredicate::Create();
+        return out.Add(AnyValuePredicate::Instance());
       case 0xff:
-        return MakePtr<MatchValuePredicate>(value);
+        return out.Add(MakePtr<MatchValuePredicate>(value));
       default:
-        return MakePtr<MatchMaskPredicate>(mask, value);
+        return out.Add(MakePtr<MatchMaskPredicate>(mask, value));
       }
     }
 
@@ -159,7 +261,7 @@ namespace Binary::FormatDSL
     return res;
   }
 
-  class MatchMultiplicityPredicate : public Predicate
+  class MatchMultiplicityPredicate : public InternalPredicate
   {
   public:
     explicit MatchMultiplicityPredicate(uint_t mult)
@@ -184,58 +286,16 @@ namespace Binary::FormatDSL
     const uint_t Mult;
   };
 
-  uint_t GetSingleMatchedValue(const Predicate& pred)
-  {
-    const int_t NO_MATCHES = -1;
-    int_t val = NO_MATCHES;
-    for (uint_t idx = 0; idx != 256; ++idx)
-    {
-      if (pred.Match(idx))
-      {
-        Require(NO_MATCHES == val);
-        val = idx;
-      }
-    }
-    Require(NO_MATCHES != val);
-    return static_cast<uint_t>(val);
-  }
-
-  bool IsAnyByte(const Predicate& pred)
-  {
-    for (uint_t idx = 0; idx != 256; ++idx)
-    {
-      if (!pred.Match(idx))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool IsNoByte(const Predicate& pred)
-  {
-    for (uint_t idx = 0; idx != 256; ++idx)
-    {
-      if (pred.Match(idx))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool NotAnyByte(const Predicate::Ptr& p)
-  {
-    return !IsAnyByte(*p);
-  }
-
-  class MatchRangePredicate : public Predicate
+  class MatchRangePredicate : public InternalPredicate
   {
   public:
     MatchRangePredicate(uint_t from, uint_t to)
       : From(from)
       , To(to)
-    {}
+    {
+      Require(from < to);
+      Require(from != 0 || to != 255);
+    }
 
     bool Match(uint_t val) const override
     {
@@ -244,10 +304,17 @@ namespace Binary::FormatDSL
 
     static Ptr Create(const Predicate& lh, const Predicate& rh)
     {
-      const uint_t left = GetSingleMatchedValue(lh);
-      const uint_t right = GetSingleMatchedValue(rh);
-      Require(left < right);
+      const uint_t left = GetSingleMatchingValue(lh);
+      const uint_t right = GetSingleMatchingValue(rh);
       return MakePtr<MatchRangePredicate>(left, right);
+    }
+
+  private:
+    static uint_t GetSingleMatchingValue(const Predicate& pred)
+    {
+      const auto* const match = dynamic_cast<const MatchValuePredicate*>(&pred);
+      Require(match);
+      return match->Value;
     }
 
   private:
@@ -272,27 +339,27 @@ namespace Binary::FormatDSL
   };
 
   template<class BinOp>
-  class BinaryOperationPredicate : public Predicate
+  class BinaryOperationPredicate : public InternalPredicate
   {
   public:
-    BinaryOperationPredicate(Ptr lh, Ptr rh)
-      : Lh(std::move(lh))
-      , Rh(std::move(rh))
+    BinaryOperationPredicate(const Predicate& lh, const Predicate& rh)
+      : Lh(lh)
+      , Rh(rh)
     {}
 
     bool Match(uint_t val) const override
     {
-      return BinOp::Execute(val, *Lh, *Rh);
+      return BinOp::Execute(val, Lh, Rh);
     }
 
-    static Ptr Create(Ptr lh, Ptr rh)
+    static Ptr Create(const Predicate& lh, const Predicate& rh)
     {
-      return MakePtr<BinaryOperationPredicate>(std::move(lh), std::move(rh));
+      return MakePtr<BinaryOperationPredicate>(lh, rh);
     }
 
   private:
-    const Ptr Lh;
-    const Ptr Rh;
+    const Predicate& Lh;
+    const Predicate& Rh;
   };
 
   inline std::size_t ParseQuantor(PatternIterator& it)
@@ -304,50 +371,41 @@ namespace Binary::FormatDSL
     return mult;
   }
 
-  Predicate::Ptr ParseSinglePredicate(StringView txt)
+  void ParseSinglePredicate(StringView txt, Pattern& out)
   {
     PatternIterator it(txt.begin(), txt.end());
     Require(it);
     switch (*it)
     {
     case ANY_BYTE_TEXT:
-      ++it;
-      return AnyValuePredicate::Create();
+      return out.Add(AnyValuePredicate::Instance());
     case SYMBOL_TEXT:
-      return MatchValuePredicate::Create(it);
+      return out.Add(MatchValuePredicate::Create(it));
     case MULTIPLICITY_TEXT:
-      return MatchMultiplicityPredicate::Create(it);
+      return out.Add(MatchMultiplicityPredicate::Create(it));
     case BINARY_MASK_TEXT:
     default:
-      return MatchMaskPredicate::Create(it);
+      return MatchMaskPredicate::Parse(it, out);
     }
   }
 
-  Predicate::Ptr ParseOperation(StringView txt, Pattern& pat)
+  void ParseOperation(StringView txt, Pattern& pat)
   {
     Require(!txt.empty());
-    if (txt[0] == RANGE_TEXT || txt[0] == CONJUNCTION_TEXT || txt[0] == DISJUNCTION_TEXT)
+    const auto& rh = pat.PopLast();
+    const auto& lh = pat.PopLast();
+    switch (txt[0])
     {
-      Require(pat.size() >= 2);
-      auto rh = std::move(pat.back());
-      pat.pop_back();
-      auto lh = std::move(pat.back());
-      pat.pop_back();
-      if (txt[0] == RANGE_TEXT)
-      {
-        return MatchRangePredicate::Create(*lh, *rh);
-      }
-      else if (txt[0] == CONJUNCTION_TEXT)
-      {
-        return BinaryOperationPredicate<Conjunction>::Create(std::move(lh), std::move(rh));
-      }
-      else if (txt[0] == DISJUNCTION_TEXT)
-      {
-        return BinaryOperationPredicate<Disjunction>::Create(std::move(lh), std::move(rh));
-      }
+    case RANGE_TEXT:
+      return pat.Add(MatchRangePredicate::Create(lh, rh));
+    case CONJUNCTION_TEXT:
+      return pat.AddVerified(BinaryOperationPredicate<Conjunction>::Create(lh, rh));
+    case DISJUNCTION_TEXT:
+      return pat.AddVerified(BinaryOperationPredicate<Disjunction>::Create(lh, rh));
+    default:
+      Require(false);
+      return;
     }
-    Require(false);
-    return {};
   }
 
   class PredicatesFactory : public FormatTokensVisitor
@@ -355,49 +413,40 @@ namespace Binary::FormatDSL
   public:
     void Match(StringView val) override
     {
-      Result.push_back(ParseSinglePredicate(val));
-      Require(!IsNoByte(*Result.back()));
+      ParseSinglePredicate(val, Result);
     }
 
     void GroupStart() override
     {
-      GroupBegins.push(Result.size());
+      GroupBegins.push(Result.Size());
     }
 
     void GroupEnd() override
     {
       Require(!GroupBegins.empty());
-      Groups.emplace(GroupBegins.top(), Result.size());
+      Groups.emplace(GroupBegins.top(), Result.Size());
       GroupBegins.pop();
     }
 
     void Quantor(uint_t count) override
     {
       Require(count != 0);
-      Require(!Result.empty());
-      Pattern dup;
-      if (!Groups.empty() && Groups.top().second == Result.size())
+      const auto avail = Result.Size();
+      Require(avail != 0);
+      if (!Groups.empty() && Groups.top().second == avail)
       {
-        auto start = Result.begin();
-        std::advance(start, Groups.top().first);
-        dup.assign(start, Result.end());
+        Result.DuplicateTail(avail - Groups.top().first, count);
         Groups.pop();
       }
       else
       {
-        dup.push_back(Result.back());
-      }
-      for (std::size_t idx = 0; idx < count - 1; ++idx)
-      {
-        std::copy(dup.begin(), dup.end(), std::back_inserter(Result));
+        Result.DuplicateLast(count);
       }
     }
 
     void Operation(StringView op) override
     {
-      Result.emplace_back(ParseOperation(op, Result));
-      Require(!IsAnyByte(*Result.back()));
-      Require(!IsNoByte(*Result.back()));
+      ParseOperation(op, Result);
     }
 
     Pattern CaptureResult()
@@ -423,19 +472,21 @@ namespace Binary::FormatDSL
   class LinearExpression : public Expression
   {
   public:
-    LinearExpression(std::size_t offset, Pattern pat)
-      : Offset(offset)
+    explicit LinearExpression(Pattern pat)
+      : Offset(pat.Cleanup())
       , Pat(std::move(pat))
-    {}
+    {
+      Require(pat.Size() < 1000);
+    }
 
     std::size_t StartOffset() const override
     {
       return Offset;
     }
 
-    const Pattern& Predicates() const override
+    std::span<const Predicate* const> Predicates() const override
     {
-      return Pat;
+      return Pat.GetPredicates();
     }
 
   private:
@@ -449,14 +500,6 @@ namespace Binary::FormatDSL
   Expression::Ptr Expression::Parse(StringView notation)
   {
     auto pat = CompilePattern(notation);
-    const auto first = pat.begin();
-    const auto last = pat.end();
-    const auto firstNotAny = std::find_if(first, last, &NotAnyByte);
-    Require(firstNotAny != last);
-    const auto lastNotAny = std::find_if(pat.rbegin(), pat.rend(), &NotAnyByte).base();
-    const std::size_t offset = std::distance(first, firstNotAny);
-    pat.erase(lastNotAny, pat.end());
-    pat.erase(pat.begin(), firstNotAny);
-    return MakePtr<LinearExpression>(offset, std::move(pat));
+    return MakePtr<LinearExpression>(std::move(pat));
   }
 }  // namespace Binary::FormatDSL
