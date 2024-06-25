@@ -13,14 +13,24 @@
 // std includes
 #include <utility>
 
-template<class T, class... P>
-inline typename T::Ptr MakePtr(P&&... p)
+namespace Details
 {
-  return typename T::Ptr(new T(std::forward<P>(p)...));
+  template<class PtrType, class T, class... P>
+  auto Make(P&&... p)
+  {
+    using NativePtrType = decltype(&*std::declval<PtrType>());
+    return PtrType(static_cast<NativePtrType>(new T(std::forward<P>(p)...)));
+  }
+}  // namespace Details
+
+template<class T, class... P>
+auto MakePtr(P&&... p)
+{
+  return Details::Make<typename T::Ptr, T>(std::forward<P>(p)...);
 }
 
 template<class T, class... P>
-inline typename T::RWPtr MakeRWPtr(P&&... p)
+auto MakeRWPtr(P&&... p)
 {
-  return typename T::RWPtr(new T(std::forward<P>(p)...));
+  return Details::Make<typename T::RWPtr, T>(std::forward<P>(p)...);
 }
