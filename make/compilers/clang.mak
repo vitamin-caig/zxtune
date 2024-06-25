@@ -9,6 +9,9 @@ tools.strip ?= $($(platform).$(arch).execprefix)strip
 LINKER_BEGIN_GROUP ?= -Wl,--start-group
 LINKER_END_GROUP ?= -Wl,--end-group
 
+#enable build id
+LD_MODE_FLAGS += -Wl,--build-id
+
 #set options according to mode
 ifdef release
 CXX_MODE_FLAGS = -O2 -DNDEBUG -funroll-loops
