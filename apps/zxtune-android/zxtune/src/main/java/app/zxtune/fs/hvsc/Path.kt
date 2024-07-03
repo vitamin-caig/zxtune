@@ -19,11 +19,6 @@ class Path private constructor(elements: List<String>, isDir: Boolean) :
                 .authority("www.prg.dtu.dk")
                 .path("HVSC/C64Music/${path}")
                 .build(),
-            Uri.Builder()
-                .scheme("http")
-                .authority("www.c64.org")
-                .path("HVSC/${path}")
-                .build()
         )
     }
 
@@ -33,11 +28,14 @@ class Path private constructor(elements: List<String>, isDir: Boolean) :
         if (elements.isEmpty()) EMPTY else Path(elements, isDir)
 
     companion object {
+        const val REMOTE_URLS_COUNT = 2
 
         private const val SCHEME = "hvsc"
         private const val OLD_PREFIX = "/C64Music/"
 
-        private val EMPTY = Path(emptyList(), true)
+        private val EMPTY = Path(emptyList(), true).also {
+            check(it.getRemoteUris().size == REMOTE_URLS_COUNT)
+        }
 
         private fun stripOldPrefix(path: String?) =
             if (true == path?.startsWith(OLD_PREFIX)) {

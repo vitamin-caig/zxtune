@@ -5,10 +5,16 @@ import app.zxtune.fs.httpdir.RemoteCatalogTestBase
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
+import org.robolectric.ParameterizedRobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
-class CatalogTest : RemoteCatalogTestBase() {
+@RunWith(ParameterizedRobolectricTestRunner::class)
+class RemoteCatalogTest(remoteUrlIdx: Int) : RemoteCatalogTestBase(remoteUrlIdx) {
+
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters
+        fun data() = Array(Path.REMOTE_URLS_COUNT) { i -> i }
+    }
 
     @Before
     fun setUp() = setUpTest()
@@ -20,14 +26,14 @@ class CatalogTest : RemoteCatalogTestBase() {
             "MSX", "",
             "Master System", ""
         )
-        test(this, entries)
+        test(this, entries, Mode.CHECK_MISSED)
     }
 
     @Test
     fun `test NSF n`() = with(Path.parse(Uri.parse("joshw:/nsf/n"))!!) {
         val entries = arrayOf( //first
             "NARC (1990-08)(Williams)(Rare)(Acclaim)[NES].7z", "3.3K",  //escaped
-            "North & South (1990-09-21)(Kemco)[NES].7z", "10.6K",  //11K for native
+            "North & South (1990-09-21)(Kemco)[NES].7z", if (remoteUrlIdx == 0) "10.6K" else "11K",
             //last
             "Nuts & Milk (1984-07-28)(Hudson)[NES].7z", "3.0K"
         )

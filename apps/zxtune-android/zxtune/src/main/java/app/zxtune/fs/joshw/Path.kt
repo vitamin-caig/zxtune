@@ -16,7 +16,7 @@ class Path private constructor(elements: List<String>, isDir: Boolean) :
         return arrayOf(
             Cdn.joshw(catalogue, path),
             Uri.Builder()
-                .scheme("http")
+                .scheme("https")
                 .authority("${catalogue}.joshw.info")
                 .path(path)
                 .build()
@@ -36,11 +36,14 @@ class Path private constructor(elements: List<String>, isDir: Boolean) :
     fun getCatalogue() = elements.firstOrNull() ?: EMPTY_CATALOGUE
 
     companion object {
+        const val REMOTE_URLS_COUNT = 2
 
         private const val SCHEME = "joshw"
         private const val EMPTY_CATALOGUE = ""
 
-        private val EMPTY = Path(emptyList(), true)
+        private val EMPTY = Path(emptyList(), true).also {
+            check(it.getRemoteUris().size == REMOTE_URLS_COUNT)
+        }
 
         @JvmStatic
         fun create() = EMPTY

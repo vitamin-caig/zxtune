@@ -47,7 +47,7 @@ private fun verifyRoot(path: app.zxtune.fs.httpdir.Path) = with(path) {
     with(getRemoteUris()) {
         assertEquals("getRemoteUris.length", 2, size)
         assertEquals("getRemoteUris[0]", "${BuildConfig.CDN_ROOT}/browse/asma/", get(0).toString())
-        assertEquals("getRemoteUris[1]", "http://asma.atari.org/asma/", get(1).toString())
+        assertEquals("getRemoteUris[1]", "https://asma.atari.org/asma/", get(1).toString())
     }
     assertEquals("getLocalId", "", getLocalId())
     assertEquals("getUri", "asma:", getUri().toString())
@@ -65,7 +65,7 @@ private fun verifyDir(path: app.zxtune.fs.httpdir.Path) = with(path) {
             "${BuildConfig.CDN_ROOT}/browse/asma/dir/",
             get(0).toString()
         )
-        assertEquals("getRemoteUris[1]", "http://asma.atari.org/asma/dir/", get(1).toString())
+        assertEquals("getRemoteUris[1]", "https://asma.atari.org/asma/dir/", get(1).toString())
     }
     assertEquals("getLocalId", "dir", getLocalId())
     assertEquals("getUri", "asma:/dir/", getUri().toString())
@@ -83,7 +83,7 @@ private fun verifyFile(path: app.zxtune.fs.httpdir.Path) = with(path) {
             get(0).toString()
         )
         assertEquals(
-            "getRemoteUris[1]", "http://asma.atari.org/asma/dir/file.sap", get(1).toString()
+            "getRemoteUris[1]", "https://asma.atari.org/asma/dir/file.sap", get(1).toString()
         )
     }
     assertEquals("getLocalId", "dir/file.sap", getLocalId())

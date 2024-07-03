@@ -5,10 +5,16 @@ import app.zxtune.fs.httpdir.RemoteCatalogTestBase
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
+import org.robolectric.ParameterizedRobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
-class CatalogTest : RemoteCatalogTestBase() {
+@RunWith(ParameterizedRobolectricTestRunner::class)
+class RemoteCatalogTest(remoteUrlIdx: Int) : RemoteCatalogTestBase(remoteUrlIdx) {
+
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters
+        fun data() = Array(Path.REMOTE_URLS_COUNT) { i -> i }
+    }
 
     @Before
     fun setUp() = setUpTest()
@@ -28,8 +34,8 @@ class CatalogTest : RemoteCatalogTestBase() {
     fun `test listing`() = with(Path.parse(Uri.parse("hvsc:/MUSICIANS/O/OPM"))!!) {
         val entries = arrayOf(
             "Fantjes_Beat.sid", "1.9K",
-            "Rockmonitor_3.sid", "35.1K",  //35K for native
-            "Rockmonitor_5_Demosong.sid", "18.3K",  //18K for native
+            "Rockmonitor_3.sid", if (remoteUrlIdx == 0) "35.1K" else "35K",
+            "Rockmonitor_5_Demosong.sid", if (remoteUrlIdx == 0) "18.3K" else "18K",
             "Sid_Slam.sid", "1.8K",
             "Zoolook.sid", "3.2K"
         )

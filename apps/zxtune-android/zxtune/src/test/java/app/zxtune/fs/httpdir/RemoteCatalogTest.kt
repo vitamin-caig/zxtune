@@ -2,12 +2,14 @@ package app.zxtune.fs.httpdir
 
 import app.zxtune.fs.http.HttpProviderFactory
 import app.zxtune.fs.http.MultisourceHttpProvider
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-open class RemoteCatalogTestBase {
+open class RemoteCatalogTestBase(protected val remoteUrlIdx : Int) {
 
     protected lateinit var catalog: RemoteCatalog
 
@@ -21,14 +23,16 @@ open class RemoteCatalogTestBase {
         catalog = factory(MultisourceHttpProvider(HttpProviderFactory.createTestProvider()))
     }
 
-    protected fun test(path: Path, entries: Array<String>) =
-        test(path, entries, Mode.CHECK_ALL)
-
-    internal fun test(path: Path, entries: Array<String>, mode: Mode) =
+    internal fun test(path: Path, entries: Array<String>, mode: Mode = Mode.CHECK_ALL) =
         with(CheckingVisitor(entries, mode)) {
-            catalog.parseDir(path, this)
+            catalog.parseDir(wrap(path), this)
             check()
         }
+
+    private fun wrap(path: Path) = object : Path by path {
+        override fun getRemoteUris() =
+            path.getRemoteUris().copyOfRange(remoteUrlIdx, remoteUrlIdx + 1)
+    }
 
     internal class CheckingVisitor(
         entries: Array<String>,

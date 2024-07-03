@@ -27,10 +27,13 @@ class Path private constructor(elements: List<String>, isDir: Boolean) :
         if (elements.isEmpty()) EMPTY else Path(elements, isDir)
 
     companion object {
+        const val REMOTE_URLS_COUNT = 2
 
         private const val SCHEME = "aminet"
 
-        private val EMPTY = Path(emptyList(), true)
+        private val EMPTY = Path(emptyList(), true).also {
+            check(it.getRemoteUris().size == REMOTE_URLS_COUNT)
+        }
 
         @JvmStatic
         fun create() = EMPTY

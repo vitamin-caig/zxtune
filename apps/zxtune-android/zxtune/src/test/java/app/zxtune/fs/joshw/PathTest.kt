@@ -61,7 +61,7 @@ class PathTest {
                 )
                 assertEquals(
                     "getRemoteUris[1]",
-                    "http://nsf.joshw.info/n/North%20%26%20South%20(1990-09-21)(Kemco).7z",
+                    "https://nsf.joshw.info/n/North%20%26%20South%20(1990-09-21)(Kemco).7z",
                     get(1).toString()
                 )
             }
@@ -95,7 +95,7 @@ private fun verifyCatalog(path: Path) = with(path) {
             "${BuildConfig.CDN_ROOT}/browse/joshw/root/",
             get(0).toString()
         )
-        assertEquals("getRemoteUris[1]", "http://root.joshw.info", get(1).toString())
+        assertEquals("getRemoteUris[1]", "https://root.joshw.info", get(1).toString())
     }
     assertEquals("getLocalId", "root", getLocalId())
     assertEquals("getUri", "joshw:/root/", getUri().toString())
@@ -113,7 +113,7 @@ private fun verifyDir(path: Path) = with(path) {
             "${BuildConfig.CDN_ROOT}/browse/joshw/root/dir/",
             get(0).toString()
         )
-        assertEquals("getRemoteUris[1]", "http://root.joshw.info/dir/", get(1).toString())
+        assertEquals("getRemoteUris[1]", "https://root.joshw.info/dir/", get(1).toString())
     }
     assertEquals("getLocalId", "root/dir", getLocalId())
     assertEquals("getUri", "joshw:/root/dir/", getUri().toString())
@@ -131,7 +131,7 @@ private fun verifyFile(path: Path) = with(path) {
             "${BuildConfig.CDN_ROOT}/browse/joshw/root/dir/file.7z",
             get(0).toString()
         )
-        assertEquals("getRemoteUris[1]", "http://root.joshw.info/dir/file.7z", get(1).toString())
+        assertEquals("getRemoteUris[1]", "https://root.joshw.info/dir/file.7z", get(1).toString())
     }
     assertEquals("getLocalId", "root/dir/file.7z", getLocalId())
     assertEquals("getUri", "joshw:/root/dir/file.7z", getUri().toString())

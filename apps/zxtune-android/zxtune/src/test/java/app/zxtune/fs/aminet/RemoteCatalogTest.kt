@@ -5,10 +5,16 @@ import app.zxtune.fs.httpdir.RemoteCatalogTestBase
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
+import org.robolectric.ParameterizedRobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
-class RemoteCatalogTest : RemoteCatalogTestBase() {
+@RunWith(ParameterizedRobolectricTestRunner::class)
+class RemoteCatalogTest(remoteUrlIdx: Int) : RemoteCatalogTestBase(remoteUrlIdx) {
+
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters
+        fun data() = Array(Path.REMOTE_URLS_COUNT) { i -> i }
+    }
 
     @Before
     fun setUp() = setUpTest(::RemoteCatalog)
