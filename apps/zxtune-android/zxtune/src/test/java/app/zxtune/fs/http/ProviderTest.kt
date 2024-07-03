@@ -34,9 +34,13 @@ class ProviderTest {
 
     @Test
     fun `test redirected object`() =
+        /*
+         http://...?index=... => https://...?index=... => http://...gz => https://...gz
+         No automatic redirect with scheme change
+         */
         with(provider.getObject(Uri.parse("http://amp.dascene.net/downmod.php?index=150946"))) {
             assertEquals(
-                "http://amp.dascene.net/modules/E/Estrayk/MOD.%28Starquake%29broken%20heart.gz",
+                "https://amp.dascene.net/modules/E/Estrayk/MOD.%28Starquake%29broken%20heart.gz",
                 uri.toString()
             )
             assertEquals(182985, contentLength!!)

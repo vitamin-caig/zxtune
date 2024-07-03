@@ -34,7 +34,7 @@ internal class HttpUrlConnectionProvider(
             throw e
         }
 
-    private inner class SimpleHttpObject constructor(uri: Uri) : HttpObject {
+    private inner class SimpleHttpObject(uri: Uri) : HttpObject {
 
         private val _contentLength: Long?
         private val _lastModified: TimeStamp?
@@ -42,13 +42,7 @@ internal class HttpUrlConnectionProvider(
         private val acceptRanges: Boolean
 
         init {
-            val connection = Http.createConnection(uri.toString())
-            connection.setRequestProperty("Accept-Encoding", "identity")
-            connection.requestMethod = "HEAD"
-            // Required to perform input in order to read response code and other
-            //connection.doInput = false
-            connection.instanceFollowRedirects = true
-            connection.connect()
+            val connection = openHeadConnection(uri)
             val code = connection.responseCode
             if (code != HttpURLConnection.HTTP_OK) {
                 throw IOException("Unexpected code $code (${connection.responseMessage}) for HEAD request to $uri")
@@ -68,8 +62,8 @@ internal class HttpUrlConnectionProvider(
         override val lastModified = _lastModified
 
         override val input = contentLength?.let { limit ->
-            FixedSizeInputStream(uri, limit, acceptRanges)
-        } ?: createStream(uri, 0)
+            FixedSizeInputStream(_uri, limit, acceptRanges)
+        } ?: createStream(_uri, 0)
     }
 
     override fun getInputStream(uri: Uri) = createStream(uri, 0)
@@ -86,7 +80,7 @@ internal class HttpUrlConnectionProvider(
             throw e
         }
 
-    private inner class FixedSizeInputStream constructor(
+    private inner class FixedSizeInputStream(
         private val uri: Uri,
         private val total: Long,
         private val acceptRanges: Boolean
@@ -160,6 +154,29 @@ internal class HttpUrlConnectionProvider(
             }
     }
 }
+
+private fun openHeadConnection(uri: Uri): HttpURLConnection {
+    var currentUri = uri.toString()
+    var doneRedirects = 0
+    while (true) {
+        val connection = Http.createConnection(currentUri)
+        connection.setRequestProperty("Accept-Encoding", "identity")
+        connection.requestMethod = "HEAD"
+        // Required to perform input in order to read response code and other
+        //connection.doInput = false
+        connection.instanceFollowRedirects = true
+        connection.connect()
+        if (isRedirect(connection.responseCode) && doneRedirects++ < 5) {
+            currentUri = connection.getHeaderField("Location")
+            connection.disconnect()
+            continue
+        }
+        return connection
+    }
+}
+
+private fun isRedirect(code: Int) =
+    code == HttpURLConnection.HTTP_MOVED_PERM || code == HttpURLConnection.HTTP_MOVED_TEMP || code == HttpURLConnection.HTTP_SEE_OTHER
 
 private fun getContentLength(connection: HttpURLConnection) =
     if (Build.VERSION.SDK_INT >= 24) {
