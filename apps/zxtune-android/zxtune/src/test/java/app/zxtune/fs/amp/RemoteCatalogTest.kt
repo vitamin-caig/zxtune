@@ -4,14 +4,18 @@ import app.zxtune.BuildConfig
 import app.zxtune.fs.http.HttpProviderFactory
 import app.zxtune.fs.http.MultisourceHttpProvider
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.AdditionalMatchers.gt
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.atLeast
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 
-// TODO: rework checkpoints to mocks
 @RunWith(RobolectricTestRunner::class)
 class RemoteCatalogTest {
 
@@ -24,122 +28,105 @@ class RemoteCatalogTest {
 
     @Test
     fun `test groups`() {
-        val checkpoints = arrayOf(
-            Group(6018, "0-Dezign"),
-            Group(6013, "ABSENCE"),  // multiline
-            Group(677, "Anexia"),  // utf-8
-            Group(9016, "Åltalános Védelmi Hiba (AHV)")
-        )
-        val result = ArrayList<Group>().apply {
-            catalog.queryGroups { add(it) }
-        }
-        check(8825, checkpoints, result)
+        val visitor = mock<Catalog.GroupsVisitor>()
+        catalog.queryGroups(visitor)
+        val groupsApprox = 8800
+        verify(visitor).setCountHint(gt(groupsApprox))
+        verify(visitor).accept(Group(6018, "0-Dezign"))
+        verify(visitor).accept(Group(6013, "ABSENCE"))
+        // multiline
+        verify(visitor).accept(Group(677, "Anexia"))
+        // utf-8
+        verify(visitor).accept(Group(9016, "Åltalános Védelmi Hiba (AHV)"))
+        // count
+        verify(visitor, atLeast(groupsApprox)).accept(any())
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
     fun `test authors by handle`() {
-        val checkpoints = arrayOf( // first
-            Author(9913, "00d", "Petteri Kuittinen"),  // pivot
-            Author(10, "4-Mat", "Matthew Simmonds"),  // n/a in real name -> empty
-            Author(15226, "808-Style", ""),  // utf-8
-            Author(13302, "8bitbubsy", "Olav Sørensen")
-        )
-        with(AuthorsChecker()) {
-            catalog.queryAuthors("0-9", this)
-            check(46, checkpoints)
-        }
+        val visitor = mock<Catalog.AuthorsVisitor>()
+        catalog.queryAuthors("0-9", visitor)
+        val authorsApprox = 50
+        // Pagination with unknown size
+        verify(visitor).accept(Author(9913, "00d", "Petteri Kuittinen"))
+        // pivot
+        verify(visitor).accept(Author(10, "4-Mat", "Matthew Simmonds"))
+        // n/a in real name -> empty
+        verify(visitor).accept(Author(15226, "808-Style", ""))
+        // utf-8
+        verify(visitor).accept(Author(13302, "8bitbubsy", "Olav Sørensen"))
+        // count
+        verify(visitor, atLeast(authorsApprox)).accept(any())
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
     fun `test authors by country`() {
-        val checkpoints = arrayOf( // first
-            Author(13606, "Agent Orange", "Oleg Sharonov"),  // next page
-            Author(2142, "Doublestar", "Victor Shimyakov"),  // last one
-            Author(8482, "Zyz", "")
-        )
-        with(AuthorsChecker()) {
-            catalog.queryAuthors(Country(44, "Russia"), this)
-            check(200, checkpoints)
-        }
+        val visitor = mock<Catalog.AuthorsVisitor>()
+        catalog.queryAuthors(Country(44, "Russia"), visitor)
+        val authorsApprox = 200
+        verify(visitor).accept(Author(13606, "Agent Orange", "Oleg Sharonov"))
+        verify(visitor).accept(Author(2142, "Doublestar", "Victor Shimyakov"))
+        verify(visitor).accept(Author(8482, "Zyz", ""))
+        // count
+        verify(visitor, atLeast(authorsApprox)).accept(any())
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
     fun `test authors by group`() {
-        val checkpoints = arrayOf( // first
-            Author(14354, "BeRo", "Benjamin Rosseaux"),  // last
-            Author(8120, "Wayfinder", "Sebastian Grillmaier")
-        )
-        with(AuthorsChecker()) {
-            catalog.queryAuthors(Group(1770, "Farbrausch"), this)
-            check(11, checkpoints)
-        }
-    }
-
-    private class AuthorsChecker : Catalog.AuthorsVisitor {
-
-        private val result = ArrayList<Author>()
-
-        override fun accept(obj: Author) {
-            result.add(obj)
-        }
-
-        fun check(size: Int, checkpoints: Array<Author>) {
-            check(size, checkpoints, result)
-        }
+        val visitor = mock<Catalog.AuthorsVisitor>()
+        catalog.queryAuthors(Group(1770, "Farbrausch"), visitor)
+        val authorsApprox = 10
+        verify(visitor).accept(Author(14354, "BeRo", "Benjamin Rosseaux"))
+        verify(visitor).accept(Author(8120, "Wayfinder", "Sebastian Grillmaier"))
+        // count
+        verify(visitor, atLeast(authorsApprox)).accept(any())
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
     fun `test authors tracks`() {
-        val checkpoints = arrayOf( // first
-            Track(15892, "egometriosporasie", 186),  // instead unavailable
-            Track(15934, "un peu + a l'ouest", 309),  // last
-            Track(15804, "yapleindmondalagas", 190)
-        )
-        val result = ArrayList<Track>().apply {
-            catalog.queryTracks(Author(2085, "doh", "Nicolas Dessesart")) { add(it) }
-        }
-        check(226 - 59, checkpoints, result)
+        val visitor = mock<Catalog.TracksVisitor>()
+        catalog.queryTracks(Author(2085, "doh", "Nicolas Dessesart"), visitor)
+        val tracksApprox = 160
+        verify(visitor).setCountHint(gt(tracksApprox))
+        verify(visitor).accept(Track(15892, "egometriosporasie", 186))
+        verify(visitor).accept(Track(15934, "un peu + a l'ouest", 309))
+        verify(visitor).accept(Track(15804, "yapleindmondalagas", 190))
+        // count
+        verify(visitor, atLeast(tracksApprox)).accept(any())
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
     fun `test authors pictures`() {
-        val checkpoints = arrayOf(
-            "/pictures/K/Karsten Koch - 3980/Karsten Koch.jpg",
-            "/pictures/K/Karsten Koch - 3980/Karsten Koch_2.jpg",
-            "/pictures/K/Karsten Koch - 3980/Karsten Koch_3.jpg",
-            "/pictures/K/Karsten Koch - 3980/Karsten Koch_4.jpg",
-            "/pictures/K/Karsten Koch - 3980/Karsten Koch_5.jpg",
-            "/pictures/K/Karsten Koch - 3980/Karsten Koch_6.jpg",
-        )
-        val result = ArrayList<String>().apply {
-            catalog.queryPictures(Author(3980, "unused", "unused")) { add(it) }
-        }
-        check(6, checkpoints, result)
+        val visitor = mock<Catalog.PicturesVisitor>()
+        catalog.queryPictures(Author(3980, "unused", "unused"), visitor)
+        val picsExact = 6
+        verify(visitor).setCountHint(picsExact)
+        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch.jpg")
+        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch_2.jpg")
+        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch_3.jpg")
+        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch_4.jpg")
+        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch_5.jpg")
+        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch_6.jpg")
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
     fun `test search`() {
-        val tracksCheckpoints = arrayOf( // first
-            Track(121325, "\"bzzzt-chip 4\"", 7),  // last
-            Track(22313, "zzzzzzzzz", 50)
-        )
-        val authorsCheckpoints = arrayOf( // first
-            // for multiple authors first is taken and merged into previous
-            Author(8462, "Zuo", ""),
-            Author(8071, "Voyce", ""),  // last
-            Author(1669, "Daze", "")
-        )
-        val tracks = ArrayList<Track>()
-        val authors = ArrayList<Author>()
-        catalog.findTracks("zzz") { author, track ->
-            tracks.add(track)
-            // simple uniq
-            if (authors.isEmpty() || authors[authors.size - 1].id != author.id) {
-                authors.add(author)
-            }
-        }
-        check(52, tracksCheckpoints, tracks)
-        check(42, authorsCheckpoints, authors)
+        val visitor = mock<Catalog.FoundTracksVisitor>()
+        catalog.findTracks("zzz", visitor)
+        val tracksApprox = 50
+        verify(visitor).accept(Author(8462, "Zuo", ""), Track(121325, "\"bzzzt-chip 4\"", 7))
+        verify(visitor).accept(Author(3993, "ADKD", ""), Track(165885, "frizzz", 12))
+        verify(visitor).accept(Author(3993, "ADKD", ""), Track(172349, "frizzz.alt", 8))
+        // last page
+        verify(visitor).accept(Author(1669, "Daze", ""), Track(22313, "zzzzzzzzz", 50))
+        verify(visitor, atLeast(tracksApprox)).accept(any(), any())
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
@@ -150,37 +137,12 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun `test getPictureUris`() = with(RemoteCatalog.getPictureUris("/pictures/K/Karsten Koch - 3980/Karsten Koch.jpg")) {
-        assertEquals(1L, size.toLong())
-        assertEquals("https://amp.dascene.net/pictures/K/Karsten%20Koch%20-%203980/Karsten%20Koch.jpg", get(0).toString())
-    }
+    fun `test getPictureUris`() =
+        with(RemoteCatalog.getPictureUris("/pictures/K/Karsten Koch - 3980/Karsten Koch.jpg")) {
+            assertEquals(1L, size.toLong())
+            assertEquals(
+                "https://amp.dascene.net/pictures/K/Karsten%20Koch%20-%203980/Karsten%20Koch.jpg",
+                get(0).toString()
+            )
+        }
 }
-
-private fun <T> check(minSize: Int, expected: Array<T>, actual: ArrayList<T>) {
-    assertTrue(actual.size >= minSize)
-    for (obj in expected) {
-        assertTrue("Not found $obj", contains(actual, obj))
-    }
-}
-
-private fun <T> contains(actual: ArrayList<T>, obj: T) = actual.find { matches(it, obj) } != null
-
-private fun <T> matches(lh: T, rh: T) = when (lh) {
-    is Group -> matches(lh, rh as Group)
-    is Author -> matches(lh, rh as Author)
-    is Track -> matches(lh, rh as Track)
-    is String -> lh == rh
-    else -> {
-        fail("Unknown type of $lh")
-        false
-    }
-}
-
-private fun matches(lh: Group, rh: Group) =
-    lh.id == rh.id && lh.name == rh.name
-
-private fun matches(lh: Author, rh: Author) =
-    lh.id == rh.id && lh.handle == rh.handle && lh.realName == rh.realName
-
-private fun matches(lh: Track, rh: Track) =
-    lh.id == rh.id && lh.filename == rh.filename && lh.size == rh.size
