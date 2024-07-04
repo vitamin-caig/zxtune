@@ -15,14 +15,6 @@ WORKDIR /build
 
 ENV androidsdk=/build/android-sdk prebuilt=/build/prebuilt CCACHE_DIR=/ccache
 
-#Boost headers. Do not use github release to avoid b2 building
-ENV boost=1.82.0
-RUN bash -c "wget -q https://boostorg.jfrog.io/artifactory/main/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
-    (cd boost* && \
-     mkdir -p ${prebuilt}/boost-${boost}/include && \
-     mv boost ${prebuilt}/boost-${boost}/include/) && \
-    rm -Rf boost*
-
 #Android SDK AGP=8.1.1
 #NDK is last supporting minSdk=16
 ENV build_tools=34.0.0 platform=33 ndk=23.2.8568313
@@ -36,7 +28,7 @@ RUN mkdir -p ${androidsdk} && cd ${androidsdk} && \
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "android.ndk=${androidsdk}/ndk/${ndk}\nprebuilt.dir=${prebuilt}\nboost.version=${boost}\n"\
+    echo "android.ndk=${androidsdk}/ndk/${ndk}\nprebuilt.dir=${prebuilt}\n"\
          "tools.python=python3\n" > variables.mak && \
     mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}\nndk.version=${ndk}" > apps/zxtune-android/local.properties && \
     echo "org.gradle.jvmargs=-Xmx4g\nandroid.enableJetifier=true\nandroid.useAndroidX=true" > apps/zxtune-android/gradle.properties
