@@ -39,7 +39,7 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     echo "android.ndk=${androidsdk}/ndk/${ndk}\nprebuilt.dir=${prebuilt}\nboost.version=${boost}\n"\
          "tools.python=python3\n" > variables.mak && \
     mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}\nndk.version=${ndk}" > apps/zxtune-android/local.properties && \
-    echo "org.gradle.jvmargs=-Xmx4g\nandroid.enableJetifier=true\nandroid.useAndroidX=true" > apps/zxtune-android/gradle.properties
+    echo "org.gradle.jvmargs=-Xmx8g\nandroid.useAndroidX=true" > apps/zxtune-android/gradle.properties
 
 # To allow volume binding with proper access rights
 RUN  mkdir /build/.gradle && chown build:users /build/.gradle
