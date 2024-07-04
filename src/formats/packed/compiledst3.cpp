@@ -30,6 +30,8 @@ namespace Formats::Packed
     const std::size_t MAX_MODULE_SIZE = 0x4000;
     const std::size_t MAX_PLAYER_SIZE = 0xa00;
 
+    using RawInformation = std::array<uint8_t, 55>;
+
     struct RawPlayer
     {
       uint8_t Padding1;
@@ -40,7 +42,7 @@ namespace Formats::Packed
       le_uint16_t PlayAddr;
       uint8_t Padding4[3];
       //+12
-      uint8_t Information[55];
+      RawInformation Information;
       //+67
       uint8_t Initialization;
 
@@ -56,9 +58,9 @@ namespace Formats::Packed
         return DataAddr - compileAddr;
       }
 
-      Binary::View GetInfo() const
+      const RawInformation& GetInfo() const
       {
-        return {Information, 55};
+        return Information;
       }
     };
 
@@ -83,15 +85,12 @@ namespace Formats::Packed
         "23"    // inc hl
         ""_sv;
 
-    bool IsInfoEmpty(Binary::View info)
+    bool IsInfoEmpty(const RawInformation& info)
     {
-      assert(info.Size() == 55);
       // 28 is fixed
       // 27 is title
-      const auto* const start = info.As<Char>();
-      const auto* const end = start + info.Size();
-      const auto* const titleStart = start + 28;
-      return std::none_of(titleStart, end, [](auto c) { return c > ' '; });
+      const auto* const titleStart = info.begin() + 28;
+      return std::none_of(titleStart, info.end(), [](auto c) { return c > ' '; });
     }
   }  // namespace CompiledST3
 
@@ -146,7 +145,7 @@ namespace Formats::Packed
       {
         if (Formats::Chiptune::SoundTracker::Ver3::Parse(*fixedModule, stub))
         {
-          const std::size_t originalSize = fixedModule->Size() - metainfo.Size();
+          const std::size_t originalSize = fixedModule->Size() - metainfo.size();
           return CreateContainer(std::move(fixedModule), playerSize + originalSize);
         }
         Dbg("Failed to parse fixed module");
