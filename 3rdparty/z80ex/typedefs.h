@@ -10,20 +10,21 @@
 #ifndef _Z80_TYPEDEFS_H_INCLUDED
 #define _Z80_TYPEDEFS_H_INCLUDED
 
-/* using boost byteorder defines */
-#include <boost/predef/other/endian.h>
-
 struct _z80_cpu_context;
 typedef struct _z80_cpu_context Z80EX_CONTEXT;
 
 #define __Z80EX_SELF_INCLUDE
 #include "z80ex.h"
 
+#define LITTLE_ENDIAN_VAL 0x41424344UL
+#define BIG_ENDIAN_VAL 0x44434241UL
+#define NATIVE_ENDIAN_VAL ('ABCD')
+
 /* Union allowing a register pair to be accessed as bytes or as a word */
 typedef union {
-#if BOOST_ENDIAN_BIG_BYTE
+#if NATIVE_ENDIAN_VAL == BIG_ENDIAN_VAL
   struct { Z80EX_BYTE h,l; } b;
-#elif BOOST_ENDIAN_LITTLE_BYTE
+#elif NATIVE_ENDIAN_VAL == LITTLE_ENDIAN_VAL
   struct { Z80EX_BYTE l,h; } b;
 #else
 #error Unsupported byte order
