@@ -246,8 +246,9 @@ class BrowserFragmentTest {
     */
 
     companion object {
-        private const val PARENT_ICON = R.drawable.ic_launcher
-        private const val FOLDER_ICON = R.drawable.ic_browser_vfs_local
+        // Resources identifiers cannot be const values
+        private fun parentIcon() = R.drawable.ic_launcher
+        private fun folderIcon() = R.drawable.ic_browser_vfs_local
 
         private fun makeState(
             depth: Int,
@@ -260,7 +261,7 @@ class BrowserFragmentTest {
                     add(BreadcrumbsEntry(
                         uri = builder.appendPath("p$idx").build(),
                         title = "Parent $idx",
-                        icon = PARENT_ICON.takeIf { idx == 0 } // only first
+                        icon = parentIcon().takeIf { idx == 0 } // only first
                     ))
                 }
             }
@@ -274,7 +275,7 @@ class BrowserFragmentTest {
                             uri = builder.appendEncodedPath("dir$idx").build(),
                             title = "Dir$idx",
                             description = "Directory $idx",
-                            icon = FOLDER_ICON.takeIf { idx == 0 } // first one
+                            icon = folderIcon().takeIf { idx == 0 } // first one
                         )
                     } else {
                         ListingEntry.makeFile(
