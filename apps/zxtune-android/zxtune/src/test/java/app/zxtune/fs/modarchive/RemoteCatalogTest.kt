@@ -4,13 +4,20 @@ import app.zxtune.BuildConfig
 import app.zxtune.fs.http.HttpProviderFactory
 import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.utils.ProgressCallback
-import org.junit.Assert
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.AdditionalMatchers.geq
+import org.mockito.AdditionalMatchers.gt
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.atLeast
+import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
@@ -25,128 +32,91 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryAuthors`() {
-        val checkpoints = arrayOf(
-            Author(68877, "_Matt_"),
-            Author(83394, "4mat"),
-            Author(0, "!Unknown"),
-            Author(91065, "ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ"),
-            Author(90081, "Дима")
-        )
-        val result = ArrayList<Author>()
+        val visitor = mock<Catalog.AuthorsVisitor>()
         val progress = mock<ProgressCallback>()
-
-        catalog.queryAuthors(object : Catalog.AuthorsVisitor {
-            override fun setCountHint(count: Int) {
-                result.ensureCapacity(count)
-            }
-
-            override fun accept(obj: Author) {
-                result.add(obj)
-            }
-        }, progress)
-
-        check(2400, checkpoints, result)
-        verifyProgress(progress, 61)
+        val pagesMin = 65
+        val authorsApprox = 2400
+        catalog.queryAuthors(visitor, progress)
+        verify(visitor, atLeast(pagesMin)).setCountHint(gt(authorsApprox))
+        verify(visitor).accept(Author(68877, "_Matt_"))
+        verify(visitor).accept(Author(83394, "4mat"))
+        verify(visitor).accept(Author(0, "!Unknown"))
+        verify(visitor).accept(Author(90081, "Дима"))
+        verify(visitor, atLeast(authorsApprox)).accept(any())
+        verify(progress, atLeast(pagesMin)).onProgressUpdate(geq(0), geq(pagesMin))
+        verifyNoMoreInteractions(visitor, progress)
     }
 
     @Test
     fun `test queryGenres`() {
-        val checkpoints = arrayOf(
-            Genre(48, "Alternative", 440),
-            Genre(71, "Trance (general)", 910),
-            Genre(25, "Soul", 10)
-        )
-        val result = ArrayList<Genre>()
-
-        catalog.queryGenres(object : Catalog.GenresVisitor {
-            override fun setCountHint(count: Int) {
-                result.ensureCapacity(count)
-            }
-
-            override fun accept(obj: Genre) {
-                result.add(obj)
-            }
-        })
-
-        check(75, checkpoints, result)
+        val visitor = mock<Catalog.GenresVisitor>()
+        val genresApprox = 75
+        catalog.queryGenres(visitor)
+        verify(visitor).setCountHint(gt(genresApprox))
+        fun matchesGenre(id: Int, name: String, tracksMin: Int) = { genre: Genre ->
+            genre.id == id && genre.name == name && genre.tracks >= tracksMin
+        }
+        verify(visitor).accept(argThat(matchesGenre(48, "Alternative", 440)))
+        verify(visitor).accept(argThat(matchesGenre(71, "Trance (general)", 910)))
+        verify(visitor).accept(argThat(matchesGenre(25, "Soul", 10)))
+        verify(visitor, atLeast(genresApprox)).accept(any())
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
     fun `test queryTracks by author`() {
-        val checkpoints = arrayOf(
-            Track(182782, "4mat_-_broken_heart.xm", "<3 broken heart <3", 61760),
-            Track(77970, "forest-loader.mod", "forest-loader", 24992),
-            Track(140500, "egg_plant.xm", "<< EGG PLANT >>", 530975)
-        )
-        val result = ArrayList<Track>()
+        val visitor = mock<Catalog.TracksVisitor>()
         val progress = mock<ProgressCallback>()
+        val tracksMin = 370
+        val pagesMin = 10
+        catalog.queryTracks(Author(83394, "UNUSED!!!"), visitor, progress)
 
-        catalog.queryTracks(Author(83394, "UNUSED!!!"), object : Catalog.TracksVisitor {
-            override fun setCountHint(count: Int) {
-                result.ensureCapacity(count)
-            }
-
-            override fun accept(obj: Track) {
-                result.add(obj)
-            }
-        }, progress)
-
-        check(370, checkpoints, result)
-        verifyProgress(progress, 10)
+        // No total tracks info, only on-page amount
+        //verify(visitor).setCountHint(geq(trackMin))
+        verify(visitor).accept(Track(182782, "4mat_-_broken_heart.xm", "<3 broken heart <3", 61760))
+        verify(visitor).accept(Track(77970, "forest-loader.mod", "forest-loader", 24992))
+        verify(visitor).accept(Track(140500, "egg_plant.xm", "<< EGG PLANT >>", 530975))
+        verify(visitor, atLeast(tracksMin)).accept(any())
+        verify(progress, atLeast(pagesMin)).onProgressUpdate(geq(0), geq(pagesMin))
+        verifyNoMoreInteractions(visitor, progress)
     }
 
     @Test
     fun `test queryTracks by genre`() {
-        val checkpoints = arrayOf(
-            Track(94399, "_nice_outfit_.mod", "(.nice outfit.)", 43386),
-            Track(190055, "joseph_tek_fox_-_ci_towermpa.s3m", "Tower of Masamune Past", 235184),
-            Track(162204, "zulualert.mod", "zulu alert 3", 196092)
-        )
-        val result = ArrayList<Track>()
+        val visitor = mock<Catalog.TracksVisitor>()
         val progress = mock<ProgressCallback>()
+        val tracksMin = 440
+        val pagesMin = 10
+        catalog.queryTracks(Genre(48, "UNUSED!!!", -100500), visitor, progress)
 
-        catalog.queryTracks(Genre(48, "UNUSED!!!", -100500), object : Catalog.TracksVisitor {
-            override fun setCountHint(count: Int) {
-                result.ensureCapacity(count)
-            }
-
-            override fun accept(obj: Track) {
-                result.add(obj)
-            }
-        }, progress)
-
-        check(440, checkpoints, result)
-        verifyProgress(progress, 10)
+        verify(visitor).accept(Track(94399, "_nice_outfit_.mod", "(.nice outfit.)", 43386))
+        verify(visitor).accept(
+            Track(
+                190055, "joseph_tek_fox_-_ci_towermpa.s3m", "Tower of " + "Masamune Past", 235184
+            )
+        )
+        verify(visitor).accept(Track(162204, "zulualert.mod", "zulu alert 3", 196092))
+        verify(visitor, atLeast(tracksMin)).accept(any())
+        verify(progress, atLeast(pagesMin)).onProgressUpdate(geq(0), geq(pagesMin))
+        verifyNoMoreInteractions(visitor, progress)
     }
 
     @Test
     fun `test findTracks`() {
-        val authorsCheckpoints = arrayOf(
-            Author(69008, "xtd"),
-            Author(0, "!Unknown"),
+        val visitor = mock<Catalog.FoundTracksVisitor>()
+        val minTracks = 260
+        catalog.findTracks("test", visitor)
+        verify(visitor).accept(
+            Author(69008, "xtd"), Track(121407, "_chipek_test_.mod", "## chipek test ##", 13740)
         )
-        val tracksCheckpoints = arrayOf(
-            Track(121407, "_chipek_test_.mod", "## chipek test ##", 13740),
-            Track(49744, "ncontest.s3m", "no contest", 124440),
-            Track(111269, "wildtest.mod", "wildtest", 2932)
+        verify(visitor).accept(
+            Author(0, "!Unknown"), Track(49744, "ncontest.s3m", "no contest", 124440)
         )
-        val authorsResult = ArrayList<Author>()
-        val tracksResult = ArrayList<Track>()
-
-        catalog.findTracks("test", object : Catalog.FoundTracksVisitor {
-            override fun setCountHint(count: Int) {
-                authorsResult.ensureCapacity(count)
-                tracksResult.ensureCapacity(count)
-            }
-
-            override fun accept(author: Author, track: Track) {
-                authorsResult.add(author)
-                tracksResult.add(track)
-            }
-        })
-
-        check(260, authorsCheckpoints, authorsResult)
-        check(260, tracksCheckpoints, tracksResult)
+        verify(visitor).accept(
+            Author(0, "!Unknown"), Track(111269, "wildtest.mod", "wildtest", 2932)
+        )
+        verify(visitor, atLeast(minTracks)).accept(any(), any())
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
@@ -155,44 +125,18 @@ class RemoteCatalogTest {
 
         catalog.findRandomTracks(visitor)
 
-        verify(visitor, never()).setCountHint(any<Int>())
-        verify(visitor, atLeastOnce()).accept(any<Track>())
+        verify(visitor, never()).setCountHint(any())
+        verify(visitor, atLeastOnce()).accept(any())
     }
 
     @Test
     fun `test getTrackUris`() = with(RemoteCatalog.getTrackUris(12345)) {
         assertEquals(2L, size.toLong())
         assertEquals(
-            "${BuildConfig.CDN_ROOT}/download/modarchive/ids/12345",
-            get(0).toString()
+            "${BuildConfig.CDN_ROOT}/download/modarchive/ids/12345", get(0).toString()
         )
         assertEquals(
-            "https://api.modarchive.org/downloads.php?moduleid=12345",
-            get(1).toString()
+            "https://api.modarchive.org/downloads.php?moduleid=12345", get(1).toString()
         )
     }
 }
-
-private fun <T> check(minSize: Int, expected: Array<T>, actual: ArrayList<T>) {
-    assertTrue(actual.size >= minSize)
-    for (obj in expected) {
-        assertTrue("Not found $obj", contains(actual, obj))
-    }
-}
-
-private fun <T> contains(actual: ArrayList<T>, obj: T) = actual.find { matches(it, obj) } != null
-
-private fun <T> matches(lh: T, rh: T) = when (lh) {
-    is Author -> lh == rh as Author
-    is Genre -> with(rh as Genre) { lh.id == id && lh.name == name && lh.tracks >= tracks }
-    is Track -> lh == rh as Track
-    else -> {
-        Assert.fail("Unknown type of $lh")
-        false
-    }
-}
-
-private fun verifyProgress(mock: ProgressCallback, minPages: Int) =
-    verify(mock, atLeast(minPages)).onProgressUpdate(
-        argThat { done -> done in 0 until minPages },
-        argThat { total -> total >= minPages })

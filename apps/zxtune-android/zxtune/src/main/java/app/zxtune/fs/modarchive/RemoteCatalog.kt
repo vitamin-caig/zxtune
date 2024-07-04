@@ -310,7 +310,7 @@ private fun createTracksParserRoot(visitor: TracksVisitor) = createRootElement()
 }
 
 private fun createFoundTracksParserRoot(visitor: FoundTracksVisitor) = createRootElement().apply {
-    getChild("results").setEndTextElementListener { body: String? ->
+    getChild("total_results").setEndTextElementListener { body: String? ->
         tryGetInteger(body)?.let { result ->
             visitor.setCountHint(result)
         }
