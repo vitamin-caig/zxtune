@@ -28,10 +28,14 @@ import app.zxtune.fs.dbhelpers.*
  *
  * Use standard grouping for {authors,collections,formats}_tracks
  * Use timestamps
+ *
+ * Version 3
+ *
+ * Bump due to identifier change on primary site
  */
 private val LOG = Logger(Database::class.java.name)
 private const val NAME = "modland.com"
-private const val VERSION = 2
+private const val VERSION = 3
 
 internal open class Database(context: Context) {
 
