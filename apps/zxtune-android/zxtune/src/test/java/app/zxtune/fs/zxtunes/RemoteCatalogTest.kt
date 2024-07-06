@@ -2,14 +2,16 @@ package app.zxtune.fs.zxtunes
 
 import app.zxtune.fs.http.HttpProviderFactory
 import app.zxtune.fs.http.MultisourceHttpProvider
-import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.atLeast
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
@@ -30,16 +32,18 @@ class RemoteCatalogTest {
     @Test
     fun `test queryAuthors`() {
         val visitor = mock<Catalog.AuthorsVisitor>()
-
+        val authorsMin = 900
         // http://zxtunes.com/xml.php?scope=authors&fields=nickname,name,tracks
         catalog.queryAuthors(visitor)
 
         // no count hint
-        //verify(visitor).setCountHint(argThat { hint -> hint > 900 })
+        //verify(visitor).setCountHint(gt(authorsMin))
         verify(visitor).accept(author5)
         verify(visitor).accept(author302)
         verify(visitor).accept(author519)
         verify(visitor).accept(author1063)
+        verify(visitor, atLeast(authorsMin)).accept(any())
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
@@ -53,28 +57,22 @@ class RemoteCatalogTest {
     @Test
     fun `test queryAuthorTracks`() {
         val visitor = mock<Catalog.TracksVisitor>()
+        val tracksMin = 120
 
         // http://zxtunes.com/xml.php?scope=tracks&fields=filename,title,duration,date&author_id=483
         catalog.queryAuthorTracks(Author(483, "UNUSED", "UNUSED"), visitor)
 
         // no count hint
-        // verify(visitor).setCountHint(argThat { hint -> hint > 240 })
+        // verify(visitor).setCountHint(gt(tracksMin))
         verify(visitor).accept(
             Track(
-                13031,
-                "fable.pt2",
-                "FABLE..........R.MILES+KLIM'96",
-                10560,
-                1996
+                13031, "fable.pt2", "FABLE..........R.MILES+KLIM'96", 10560, 1996
             )
         )
         // no date
         verify(visitor).accept(
             Track(
-                13151,
-                "logo.pt3",
-                "Klim/OHG/PZS - Omega Hackers Group logo",
-                320
+                13151, "logo.pt3", "Klim/OHG/PZS - Omega Hackers Group logo", 320
             )
         )
         // symbols
@@ -87,17 +85,19 @@ class RemoteCatalogTest {
                 1998
             )
         )
+        verify(visitor, atLeast(tracksMin)).accept(any())
+        verifyNoMoreInteractions(visitor)
     }
 
     @Test
     fun `test getTrackUris()`() = with(RemoteCatalog.getTrackUris(12345)) {
-        Assert.assertEquals(1L, size.toLong())
-        Assert.assertEquals("http://zxtunes.com/downloads.php?id=12345", get(0).toString())
+        assertEquals(1L, size.toLong())
+        assertEquals("http://zxtunes.com/downloads.php?id=12345", get(0).toString())
     }
 
     @Test
     fun `test getImageUris()`() = with(RemoteCatalog.getImageUris(12345)) {
-        Assert.assertEquals(1L, size.toLong())
-        Assert.assertEquals("http://zxtunes.com/photo/12345.jpg", get(0).toString())
+        assertEquals(1L, size.toLong())
+        assertEquals("http://zxtunes.com/photo/12345.jpg", get(0).toString())
     }
 }
