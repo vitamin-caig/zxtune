@@ -31,7 +31,7 @@ class RemoteCatalogTest(remoteUrlIdx: Int) : RemoteCatalogTestBase(remoteUrlIdx)
     }
 
     @Test
-    fun `test listing`() = with(Path.parse(Uri.parse("hvsc:/MUSICIANS/O/OPM"))!!) {
+    fun `test listing`() = with(Path.parse(Uri.parse("hvsc:/MUSICIANS/O/OPM/"))!!) {
         val entries = arrayOf(
             "Fantjes_Beat.sid", "1.9K",
             "Rockmonitor_3.sid", if (remoteUrlIdx == 0) "35.1K" else "35K",

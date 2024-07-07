@@ -31,7 +31,7 @@ class RemoteCatalogTest(remoteUrlIdx: Int) : RemoteCatalogTestBase(remoteUrlIdx)
     }
 
     @Test
-    fun `test listing`() = with(Path.parse(Uri.parse("scene:/groups/farb-rausch"))!!) {
+    fun `test listing`() = with(Path.parse(Uri.parse("scene:/groups/farb-rausch/"))!!) {
         val entries = arrayOf(
             "005-mentz-last_shadow.mp3", "7.2M",
             "018-rp-axodry.mp3", if (remoteUrlIdx == 0) "3.6M" else "3.5M",

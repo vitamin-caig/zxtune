@@ -30,7 +30,7 @@ class RemoteCatalogTest(remoteUrlIdx: Int) : RemoteCatalogTestBase(remoteUrlIdx)
     }
 
     @Test
-    fun `test NSF n`() = with(Path.parse(Uri.parse("joshw:/nsf/n"))!!) {
+    fun `test NSF n`() = with(Path.parse(Uri.parse("joshw:/nsf/n/"))!!) {
         val entries = arrayOf( //first
             "NARC (1990-08)(Williams)(Rare)(Acclaim)[NES].7z", "3.3K",  //escaped
             "North & South (1990-09-21)(Kemco)[NES].7z", if (remoteUrlIdx == 0) "10.6K" else "11K",
@@ -41,7 +41,7 @@ class RemoteCatalogTest(remoteUrlIdx: Int) : RemoteCatalogTestBase(remoteUrlIdx)
     }
 
     @Test
-    fun `test big file`() = with(Path.parse(Uri.parse("joshw:/pc/t"))!!) {
+    fun `test big file`() = with(Path.parse(Uri.parse("joshw:/pc/t/"))!!) {
         val entries = arrayOf(
             "Tekken 7 (2017-06-02)(-)(Bandai Namco)[PC].7z", "3.4G"
         )

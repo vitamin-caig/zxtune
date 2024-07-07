@@ -32,7 +32,7 @@ class RemoteCatalogTest(remoteUrlIdx: Int) : RemoteCatalogTestBase(remoteUrlIdx)
     }
 
     @Test
-    fun `test listing`() = with(Path.parse(Uri.parse("asma:/Composers/Bendyk_Piotr"))!!) {
+    fun `test listing`() = with(Path.parse(Uri.parse("asma:/Composers/Bendyk_Piotr/"))!!) {
         val entries = arrayOf(
             "Surprise.sap", "7.8K",
             "Surprise_2.sap", "9.9K",
