@@ -17,12 +17,26 @@ import app.zxtune.TestUtils.construct
 import app.zxtune.TestUtils.constructedInstance
 import app.zxtune.ui.AsyncDifferInMainThreadRule
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.clearInvocations
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -53,7 +67,10 @@ class BrowserFragmentTest {
     @After
     fun tearDown() = verifyNoMoreInteractions(*mocks)
 
-    private fun startScenario() = FragmentScenario.launchInContainer(BrowserFragment::class.java)
+    private fun startScenario() = FragmentScenario.launchInContainer(
+        fragmentClass = BrowserFragment::class.java,
+        themeResId = R.style.CustomTheme,
+    )
 
     @Test
     fun `first start no data`() {

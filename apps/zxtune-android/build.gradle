@@ -33,7 +33,7 @@ ext {
     room_version = '2.5.2'
 
     junit_version = '4.13.2'
-    fragment_version = '1.6.1'
+    fragment_version = '1.6.2'  // minsdk=19 since 1.7.0
     mockito_version = '5.1.0'
 }
 

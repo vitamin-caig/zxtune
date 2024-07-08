@@ -53,6 +53,7 @@ android {
 
 configurations {
     developImplementation {}
+    stagingImplementation {}
 }
 
 dependencies {
@@ -100,12 +101,9 @@ dependencies {
     testImplementation "org.mockito.kotlin:mockito-kotlin:$mockito_version"
     testImplementation 'androidx.test:core-ktx:1.5.0'
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
-    testImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     // See https://developer.android.com/guide/fragments/test#configure
-    // But for some reason testImplementation is required
     testImplementation "androidx.fragment:fragment-testing:$fragment_version"
-    debugImplementation "androidx.fragment:fragment-testing:$fragment_version"
-    developImplementation "androidx.fragment:fragment-testing:$fragment_version"
+    stagingImplementation "androidx.fragment:fragment-testing-manifest:$fragment_version"
     kspTest "androidx.room:room-compiler:$room_version"
 }
 
@@ -129,6 +127,9 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        staging {
+            initWith release
         }
     }
 }
