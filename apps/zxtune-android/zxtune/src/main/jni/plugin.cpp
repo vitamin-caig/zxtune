@@ -9,7 +9,7 @@
  **/
 
 // local includes
-#include "jni_api.h"
+#include "defines.h"
 #include "properties.h"
 // library includes
 #include <core/plugin.h>
@@ -104,7 +104,7 @@ namespace Plugin
   };
 }  // namespace Plugin
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_enumeratePlugins(JNIEnv* env, jobject /*self*/, jobject visitor)
+EXPORTED void JNICALL Java_app_zxtune_core_jni_JniApi_enumeratePlugins(JNIEnv* env, jobject /*self*/, jobject visitor)
 {
   Plugin::Visitor adapter(env, visitor);
   ZXTune::EnumeratePlugins(adapter);

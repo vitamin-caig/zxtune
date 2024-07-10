@@ -9,7 +9,7 @@
  **/
 
 // local includes
-#include "jni_api.h"
+#include "defines.h"
 #include "module.h"
 #include "player.h"
 #include "plugin.h"
@@ -20,7 +20,7 @@
 
 const jint JNI_VERSION = JNI_VERSION_1_6;
 
-JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/)
+EXPORTED jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/)
 {
   JNIEnv* env;
   if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
@@ -35,7 +35,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/)
   return JNI_VERSION;
 }
 
-JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* /*reserved*/)
+EXPORTED void JNI_OnUnload(JavaVM* vm, void* /*reserved*/)
 {
   JNIEnv* env;
   vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION);
@@ -45,7 +45,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* /*reserved*/)
   Module::CleanupJni(env);
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_forcedInit(JNIEnv* /*env*/, jobject /*self*/)
+EXPORTED void JNICALL Java_app_zxtune_core_jni_JniApi_forcedInit(JNIEnv* /*env*/, jobject /*self*/)
 {
   class EmptyVisitor : public ZXTune::PluginVisitor
   {

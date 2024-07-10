@@ -19,18 +19,6 @@ ld_flags += -Wl,--version-script=libzxtune.version
 
 include $(dirs.root)/makefile.mak
 
-jni_api.h: ../java/app/zxtune/core/jni/JniApi.java
-	javah -classpath ../java -o $@ app.zxtune.core.jni.JniApi
-
-jni_options.h: ../java/app/zxtune/core/jni/JniOptions.java
-	javah -classpath ../java -o $@ app.zxtune.core.jni.JniOptions
-
-jni_module.h: ../java/app/zxtune/core/jni/JniModule.java
-	javah -classpath ../java -o $@ app.zxtune.core.jni.JniModule
-
-jni_player.h: ../java/app/zxtune/core/jni/JniPlayer.java
-	javah -classpath ../java -o $@ app.zxtune.core.jni.JniPlayer
-
 install_$(platform):
 	$(call copyfile_cmd,$(target),$(DESTDIR))
 

@@ -13,10 +13,8 @@
 #include "array.h"
 #include "binary.h"
 #include "debug.h"
-#include "exception.h"
+#include "defines.h"
 #include "global_options.h"
-#include "jni_api.h"
-#include "jni_module.h"
 #include "player.h"
 #include "properties.h"
 // common includes
@@ -266,8 +264,8 @@ namespace Module
   }
 }  // namespace Module
 
-JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule(JNIEnv* env, jobject /*self*/, jobject buffer,
-                                                                     jstring subpath)
+EXPORTED jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule(JNIEnv* env, jobject /*self*/, jobject buffer,
+                                                                    jstring subpath)
 {
   return Jni::Call(env, [=]() {
     auto module = CreateModule(Binary::CreateByteBufferContainer(env, buffer), Jni::JstringView(env, subpath));
@@ -275,8 +273,8 @@ JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule(JNIEnv* env
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules(JNIEnv* env, jobject /*self*/, jobject buffer,
-                                                                     jobject cb, jobject progress)
+EXPORTED void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules(JNIEnv* env, jobject /*self*/, jobject buffer,
+                                                                    jobject cb, jobject progress)
 {
   return Jni::Call(env, [=]() {
     ProgressCallback progressAdapter(env, progress);
@@ -285,7 +283,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules(JNIEnv* env
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_close(JNIEnv* /*env*/, jclass /*self*/, jint handle)
+EXPORTED void JNICALL Java_app_zxtune_core_jni_JniModule_close(JNIEnv* /*env*/, jclass /*self*/, jint handle)
 {
   if (Module::Storage::Instance().Fetch(handle))
   {
@@ -293,7 +291,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_close(JNIEnv* /*env*/,
   }
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniModule_getDurationMs(JNIEnv* env, jobject self)
+EXPORTED jint JNICALL Java_app_zxtune_core_jni_JniModule_getDurationMs(JNIEnv* env, jobject self)
 {
   return Jni::Call(env, [=]() {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
@@ -306,9 +304,9 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniModule_getDurationMs(JNIEnv* 
   });
 }
 
-JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2J(JNIEnv* env, jobject self,
-                                                                                             jstring propName,
-                                                                                             jlong defVal)
+EXPORTED jlong JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2J(JNIEnv* env, jobject self,
+                                                                                            jstring propName,
+                                                                                            jlong defVal)
 {
   return Jni::Call(env, [=] {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
@@ -319,7 +317,7 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_la
   });
 }
 
-JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2Ljava_lang_String_2(
+EXPORTED jstring JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2Ljava_lang_String_2(
     JNIEnv* env, jobject self, jstring propName, jstring defVal)
 {
   return Jni::Call(env, [=] {
@@ -331,10 +329,10 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_
   });
 }
 
-JNIEXPORT jbyteArray JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2_3B(JNIEnv* env,
-                                                                                                    jobject self,
-                                                                                                    jstring propName,
-                                                                                                    jbyteArray defVal)
+EXPORTED jbyteArray JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2_3B(JNIEnv* env,
+                                                                                                   jobject self,
+                                                                                                   jstring propName,
+                                                                                                   jbyteArray defVal)
 {
   return Jni::Call(env, [=] {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
@@ -345,7 +343,7 @@ JNIEXPORT jbyteArray JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Lja
   });
 }
 
-JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_createPlayer(JNIEnv* env, jobject self, jint samplerate)
+EXPORTED jobject JNICALL Java_app_zxtune_core_jni_JniModule_createPlayer(JNIEnv* env, jobject self, jint samplerate)
 {
   return Jni::Call(env, [=]() {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
@@ -354,7 +352,7 @@ JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_createPlayer(JNIEnv
   });
 }
 
-JNIEXPORT jobjectArray JNICALL Java_app_zxtune_core_jni_JniModule_getAdditionalFiles(JNIEnv* env, jobject self)
+EXPORTED jobjectArray JNICALL Java_app_zxtune_core_jni_JniModule_getAdditionalFiles(JNIEnv* env, jobject self)
 {
   return Jni::Call(env, [=]() {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
@@ -376,8 +374,8 @@ JNIEXPORT jobjectArray JNICALL Java_app_zxtune_core_jni_JniModule_getAdditionalF
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_resolveAdditionalFile(JNIEnv* env, jobject self,
-                                                                                jstring fileName, jobject data)
+EXPORTED void JNICALL Java_app_zxtune_core_jni_JniModule_resolveAdditionalFile(JNIEnv* env, jobject self,
+                                                                               jstring fileName, jobject data)
 {
   return Jni::Call(env, [=]() {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
