@@ -122,7 +122,7 @@ namespace
     void SetValue(Parameters::Identifier name, StringView val) override
     {
       Names.emplace_back(name.AsString());
-      Strings.emplace_back(val.to_string());
+      Strings.emplace_back(val);
     }
 
     void SetValue(Parameters::Identifier name, Binary::View val) override

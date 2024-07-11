@@ -22,7 +22,8 @@ namespace ZXTune
 
   String EncodeArchivePluginToPath(PluginId pluginId)
   {
-    return ARCHIVE_PLUGIN_PREFIX.to_string().append(pluginId);
+    // TODO: Concat(StringView...)
+    return String{ARCHIVE_PLUGIN_PREFIX} + pluginId;
   }
 
   bool IsArchivePluginPathComponent(StringView component)
@@ -83,7 +84,7 @@ namespace ZXTune
     DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr inputData,
                               const Analysis::Path& pathToOpen) const override
     {
-      auto pathComponent = pathToOpen.GetIterator()->Get();
+      const auto& pathComponent = pathToOpen.Elements().front();
       const auto pluginId = DecodeArchivePluginFromPathComponent(pathComponent);
       if (pluginId != Identifier)
       {

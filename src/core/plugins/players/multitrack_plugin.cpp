@@ -50,13 +50,8 @@ namespace ZXTune
 
   std::optional<std::size_t> FindTrackIndexIn(const Analysis::Path& path)
   {
-    String lastPathSegment;
-    // TODO: add method to Path
-    for (auto it = path.GetIterator(); it->IsValid(); it->Next())
-    {
-      lastPathSegment = it->Get();
-    }
-    return Filename::FindIndex(lastPathSegment);
+    const auto& elements = path.Elements();
+    return elements.empty() ? std::nullopt : Filename::FindIndex(elements.back());
   }
 
   template<class BasePluginType>

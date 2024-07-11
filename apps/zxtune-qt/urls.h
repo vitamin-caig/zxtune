@@ -27,17 +27,17 @@ namespace Urls
 
   inline String DownloadsFeed()
   {
-    return Site().to_string() + "downloads.xml";
+    return String{Site()} + "downloads.xml";
   }
 
   inline String Help()
   {
-    return Site().to_string() + "manuals/zxtune-qt/";
+    return String{Site()} + "manuals/zxtune-qt/";
   }
 
   inline String Faq()
   {
-    return Site().to_string() + "faq/";
+    return String{Site()} + "faq/";
   }
 
   constexpr StringView Repository()
@@ -47,6 +47,6 @@ namespace Urls
 
   inline String Bugreport()
   {
-    return Repository().to_string() + "issues/new";
+    return String{Repository()} + "issues/new";
   }
 }  // namespace Urls

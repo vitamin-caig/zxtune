@@ -11,7 +11,6 @@
 // local includes
 #include "module/players/xsf/sdsf.h"
 #include "module/players/xsf/xsf.h"
-#include "module/players/xsf/xsf_factory.h"
 // common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -259,8 +258,7 @@ namespace Module::SDSF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, tune->Version == 0x11 ? Platforms::SEGA_SATURN.to_string()
-                                                                : Platforms::DREAMCAST.to_string());
+      properties->SetValue(ATTR_PLATFORM, tune->Version == 0x11 ? Platforms::SEGA_SATURN : Platforms::DREAMCAST);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 
@@ -386,8 +384,8 @@ namespace Module::SDSF
     }
   };
 
-  Module::Factory::Ptr CreateFactory()
+  XSF::Factory::Ptr CreateFactory()
   {
-    return XSF::CreateFactory(MakePtr<Factory>());
+    return MakePtr<Factory>();
   }
 }  // namespace Module::SDSF

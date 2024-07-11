@@ -15,7 +15,6 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 // library includes
-#include <binary/dump.h>
 #include <binary/format_factories.h>
 #include <debug/log.h>
 // std includes
@@ -32,6 +31,8 @@ namespace Formats::Packed
     const std::size_t MAX_MODULE_SIZE = 0x2800;
     const std::size_t MAX_PLAYER_SIZE = 2000;
 
+    using RawInformation = std::array<uint8_t, 53>;
+
     struct Version1
     {
       static const StringView DESCRIPTION;
@@ -47,7 +48,7 @@ namespace Formats::Packed
         le_uint16_t PlayAddr;
         uint8_t Padding4[8];
         //+17
-        std::array<uint8_t, 53> Information;
+        RawInformation Information;
         uint8_t Padding5[8];
         //+78
         uint8_t Initialization;
@@ -59,9 +60,9 @@ namespace Formats::Packed
           return DataAddr - compileAddr;
         }
 
-        Binary::Dump GetInfo() const
+        RawInformation GetInfo() const
         {
-          return {Information.begin(), Information.end()};
+          return Information;
         }
       };
     };
@@ -92,9 +93,9 @@ namespace Formats::Packed
           return DataAddr - compileAddr;
         }
 
-        Binary::Dump GetInfo() const
+        RawInformation GetInfo() const
         {
-          Binary::Dump result(53);
+          RawInformation result;
           const uint8_t* const src = Information;
           uint8_t* const dst = result.data();
           std::memcpy(dst, src, 24);
@@ -154,15 +155,12 @@ namespace Formats::Packed
         "32??"  // ld (xxxx),a
         ""_sv;
 
-    bool IsInfoEmpty(Binary::View info)
+    bool IsInfoEmpty(const RawInformation& info)
     {
-      assert(info.Size() == 53);
       // 28 is fixed
       // 25 is title
-      const auto* const start = info.As<Char>();
-      const auto* const end = start + info.Size();
-      const auto* const titleStart = start + 28;
-      return std::none_of(titleStart, end, [](auto b) { return b > ' '; });
+      const auto* const titleStart = info.begin() + 28;
+      return std::none_of(titleStart, info.end(), [](auto b) { return b > ' '; });
     }
   }  // namespace CompiledSTP
 
@@ -176,7 +174,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Version::DESCRIPTION.to_string();
+      return String{Version::DESCRIPTION};
     }
 
     Binary::Format::Ptr GetFormat() const override

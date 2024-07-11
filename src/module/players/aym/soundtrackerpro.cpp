@@ -18,6 +18,8 @@
 #include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+// std includes
+#include <array>
 
 namespace Module::SoundTrackerPro
 {

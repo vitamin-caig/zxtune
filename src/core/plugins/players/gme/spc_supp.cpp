@@ -53,7 +53,7 @@ namespace Module::SPC
     static const uint_t C_7_FREQ = 2093;
 
   public:
-    using Ptr = std::shared_ptr<SPC>;
+    using Ptr = std::unique_ptr<SPC>;
 
     explicit SPC(Binary::View data)
       : Data(data)

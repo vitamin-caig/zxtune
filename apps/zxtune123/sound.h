@@ -17,6 +17,7 @@
 #include <time/duration.h>
 // std includes
 #include <memory>
+#include <span>
 
 // forward declarations
 namespace boost::program_options
@@ -36,7 +37,7 @@ public:
   virtual Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, StringView typeHint = {},
                                             Sound::BackendCallback::Ptr callback = {}) = 0;
 
-  virtual Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const = 0;
+  virtual std::span<const Sound::BackendInformation::Ptr> EnumerateBackends() const = 0;
 
   virtual uint_t GetSamplerate() const = 0;
 

@@ -10,10 +10,10 @@
 
 #pragma once
 
-// library includes
-#include <module/players/factory.h>
+// local includes
+#include "module/players/xsf/xsf_factory.h"
 
 namespace Module::SDSF
 {
-  Factory::Ptr CreateFactory();
+  XSF::Factory::Ptr CreateFactory();
 }  // namespace Module::SDSF

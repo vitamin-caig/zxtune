@@ -26,6 +26,7 @@
 #include <3rdparty/v2m/src/v2mplayer.h>
 // std includes
 #include <algorithm>
+#include <array>
 
 namespace Module::V2M
 {

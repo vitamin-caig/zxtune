@@ -111,7 +111,7 @@ namespace Binary::FormatDSL
   class StaticPattern
   {
   public:
-    explicit StaticPattern(const Pattern& pat)
+    explicit StaticPattern(std::span<const Predicate* const> pat)
     {
       Data.reserve(pat.size());
       for (const auto& pred : pat)

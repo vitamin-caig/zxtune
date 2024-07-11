@@ -152,7 +152,7 @@ namespace Parameters
         {
           return Update(lower->second, value);
         }
-        const auto it = Storage.insert(lower, {name.to_string(), {}});
+        const auto it = Storage.emplace_hint(lower, name, T{});
         return Update(it->second, value);
       }
 
@@ -164,7 +164,7 @@ namespace Parameters
 
       static bool Update(StringType& ref, StringView update)
       {
-        return ref != update ? (ref = update.to_string(), true) : false;
+        return ref != update ? (ref = StringType{update}, true) : false;
       }
 
       static bool Update(Binary::Data::Ptr& ref, Binary::View update)

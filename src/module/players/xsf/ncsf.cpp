@@ -12,7 +12,6 @@
 #include "module/players/xsf/ncsf.h"
 #include "module/players/xsf/memory_region.h"
 #include "module/players/xsf/xsf.h"
-#include "module/players/xsf/xsf_factory.h"
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
@@ -249,7 +248,7 @@ namespace Module::NCSF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_DS.to_string());
+      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_DS);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 
@@ -366,8 +365,8 @@ namespace Module::NCSF
     }
   };
 
-  Module::Factory::Ptr CreateFactory()
+  XSF::Factory::Ptr CreateFactory()
   {
-    return XSF::CreateFactory(MakePtr<Factory>());
+    return MakePtr<Factory>();
   }
 }  // namespace Module::NCSF

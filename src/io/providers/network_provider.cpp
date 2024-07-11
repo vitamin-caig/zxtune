@@ -116,9 +116,9 @@ namespace IO::Network
       Object.SetOption(CURLOPT_WRITEFUNCTION, reinterpret_cast<void*>(&WriteCallback), THIS_LINE);
     }
 
-    void SetSource(const String& url)
+    void SetSource(StringView url)
     {
-      Object.SetOption(CURLOPT_URL, url.c_str(), THIS_LINE);
+      Object.SetOption(CURLOPT_URL, String{url}.c_str(), THIS_LINE);
     }
 
     void SetOptions(const ProviderParameters& params)
@@ -205,24 +205,24 @@ namespace IO::Network
 
   // uri-related constants
   const auto SCHEME_SIGN = "://"_sv;
-  const Char SCHEME_HTTP[] = {'h', 't', 't', 'p', 0};
-  const Char SCHEME_HTTPS[] = {'h', 't', 't', 'p', 's', 0};
-  const Char SCHEME_FTP[] = {'f', 't', 'p', 0};
+  const auto SCHEME_HTTP = "http"_sv;
+  const auto SCHEME_HTTPS = "https"_sv;
+  const auto SCHEME_FTP = "ftp"_sv;
+
   const Char SUBPATH_DELIMITER = '#';
 
-  const Char* ALL_SCHEMES[] = {
-      SCHEME_HTTP,
-      SCHEME_HTTPS,
-      SCHEME_FTP,
-  };
+  auto IsSupportedScheme(StringView scheme)
+  {
+    return scheme == SCHEME_HTTP || scheme == SCHEME_HTTPS || scheme == SCHEME_FTP;
+  }
 
   class RemoteIdentifier : public Identifier
   {
   public:
     RemoteIdentifier(StringView scheme, StringView path, StringView subpath)
-      : SchemeValue(scheme.to_string())
-      , PathValue(path.to_string())
-      , SubpathValue(subpath.to_string())
+      : SchemeValue(scheme)
+      , PathValue(path)
+      , SubpathValue(subpath)
       , FullValue(Serialize())
     {
       Require(!SchemeValue.empty() && !PathValue.empty());
@@ -290,7 +290,6 @@ namespace IO::Network
   public:
     explicit DataProvider(Curl::Api::Ptr api)
       : Api(std::move(api))
-      , SupportedSchemes(ALL_SCHEMES, std::end(ALL_SCHEMES))
     {}
 
     String Id() const override
@@ -308,11 +307,6 @@ namespace IO::Network
       return {};
     }
 
-    Strings::Set Schemes() const override
-    {
-      return SupportedSchemes;
-    }
-
     Identifier::Ptr Resolve(StringView uri) const override
     {
       const auto schemePos = uri.find(SCHEME_SIGN);
@@ -326,7 +320,7 @@ namespace IO::Network
 
       const auto scheme = uri.substr(0, schemePos);
       const auto hier = uri.npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
-      if (hier.empty() || !SupportedSchemes.count(scheme.to_string()))  // TODO
+      if (hier.empty() || !IsSupportedScheme(scheme))  // TODO
       {
         // scheme and hierarchy part is mandatory
         return {};
@@ -344,7 +338,7 @@ namespace IO::Network
       {
         const ProviderParameters options(params);
         RemoteResource resource(Api);
-        resource.SetSource(path.to_string());
+        resource.SetSource(path);
         resource.SetOptions(options);
         resource.SetProgressCallback(cb);
         return resource.Download();
@@ -363,7 +357,6 @@ namespace IO::Network
 
   private:
     const Curl::Api::Ptr Api;
-    const Strings::Set SupportedSchemes;
   };
 }  // namespace IO::Network
 

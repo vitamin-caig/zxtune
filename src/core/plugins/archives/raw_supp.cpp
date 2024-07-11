@@ -751,7 +751,7 @@ namespace ZXTune::Raw
 
     String Description() const override
     {
-      return INFO.to_string();
+      return String{INFO};
     }
 
     uint_t Capabilities() const override
@@ -819,7 +819,7 @@ namespace ZXTune::Raw
     DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr location,
                               const Analysis::Path& inPath) const override
     {
-      const auto& pathComp = inPath.GetIterator()->Get();
+      const auto& pathComp = inPath.Elements().front();
       const auto pathIndex = Strings::PrefixedIndex::Parse(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {

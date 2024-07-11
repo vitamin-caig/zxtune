@@ -68,6 +68,7 @@ namespace Platform::Details
 
   String BuildLibraryFilename(StringView name)
   {
+    // TODO: Concat(StringView...)
     return String(name).append(SUFFIX);
   }
 
@@ -84,7 +85,7 @@ namespace Platform::Details
 
   String GetSharedLibraryFilename(StringView name)
   {
-    return name.find(SUFFIX) == name.npos ? BuildLibraryFilename(name) : name.to_string();
+    return name.find(SUFFIX) == name.npos ? BuildLibraryFilename(name) : String{name};
   }
 
   std::vector<String> GetSharedLibraryFilenames(const SharedLibrary::Name& name)

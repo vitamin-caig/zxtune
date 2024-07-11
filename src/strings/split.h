@@ -10,36 +10,25 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
+// library includes
+#include <strings/src/find.h>
+// std includes
+#include <vector>
 
 namespace Strings
 {
-  namespace Details
+  template<class D>
+  std::vector<StringView> Split(StringView str, D delimiter)
   {
-    inline auto ToPredicate(Char c)
+    std::vector<StringView> target;
+    auto it = str.substr(Find::FirstNot(str, delimiter));
+    do
     {
-      return boost::algorithm::is_from_range(c, c);
-    }
-
-    inline auto ToPredicate(StringView any)
-    {
-      return boost::algorithm::is_any_of(any);
-    }
-
-    template<class T>
-    inline auto ToPredicate(T p)
-    {
-      return p;
-    }
-  }  // namespace Details
-
-  template<class T, class D>
-  void Split(StringView str, D delimiter, T& target)
-  {
-    boost::algorithm::split(target, str, Details::ToPredicate(delimiter), boost::algorithm::token_compress_on);
+      const auto part = Find::First(it, delimiter);
+      target.emplace_back(it.substr(0, part));
+      const auto delim = Find::FirstNot(it.substr(part), delimiter);
+      it = it.substr(part + delim);
+    } while (!it.empty());
+    return target;
   }
 }  // namespace Strings

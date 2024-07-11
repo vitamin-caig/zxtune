@@ -104,8 +104,6 @@ namespace Module::MTC
     class TrackEntity
     {
     public:
-      using Ptr = std::shared_ptr<TrackEntity>;
-
       virtual ~TrackEntity() = default;
 
       virtual Module::Holder::Ptr GetHolder() const = 0;

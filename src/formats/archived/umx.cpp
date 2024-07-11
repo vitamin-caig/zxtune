@@ -454,7 +454,7 @@ namespace Formats::Archived
     {
     public:
       File(StringView name, Binary::Container::Ptr data)
-        : Name(name.to_string())
+        : Name(name)
         , Data(std::move(data))
       {}
 

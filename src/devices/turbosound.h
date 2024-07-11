@@ -12,6 +12,8 @@
 
 // library includes
 #include <devices/aym/chip.h>
+// std includes
+#include <array>
 
 namespace Devices::TurboSound
 {
@@ -34,7 +36,7 @@ namespace Devices::TurboSound
   class Device
   {
   public:
-    using Ptr = std::shared_ptr<Device>;
+    using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
     virtual void RenderData(const DataChunk& src) = 0;
@@ -45,7 +47,7 @@ namespace Devices::TurboSound
   class Chip : public Device
   {
   public:
-    using Ptr = std::shared_ptr<Chip>;
+    using Ptr = std::unique_ptr<Chip>;
 
     virtual Sound::Chunk RenderTill(Stamp till) = 0;
   };

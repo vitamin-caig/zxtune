@@ -101,7 +101,7 @@ namespace Formats::Chiptune
       bool HasAuthor() const
       {
         const auto BY_DELIMITER = "BY"_sv;
-        const auto trimId = Strings::TrimSpaces(Identifier2);
+        const auto trimId = Strings::TrimSpaces(MakeStringView(Identifier2));
         return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
     };
@@ -601,7 +601,7 @@ namespace Formats::Chiptune
       {
         builder.SetInitialTempo(Header.Tempo);
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(version.Description.to_string());
+        meta.SetProgram(version.Description);
         if (Id.Check())
         {
           if (Id.HasAuthor())
@@ -611,7 +611,7 @@ namespace Formats::Chiptune
           }
           else
           {
-            meta.SetTitle(Strings::OptimizeAscii(StringView(Id.Title.data(), &Id.Author.back() + 1)));
+            meta.SetTitle(Strings::OptimizeAscii(StringViewCompat{Id.Title.data(), &Id.Author.back() + 1}));
           }
         }
       }
@@ -1245,7 +1245,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Version.Description.to_string();
+        return String{Version.Description};
       }
 
       Binary::Format::Ptr GetFormat() const override

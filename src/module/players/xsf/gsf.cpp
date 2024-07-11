@@ -12,7 +12,6 @@
 #include "module/players/xsf/gsf.h"
 #include "module/players/xsf/gsf_rom.h"
 #include "module/players/xsf/xsf.h"
-#include "module/players/xsf/xsf_factory.h"
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
@@ -347,7 +346,7 @@ namespace Module::GSF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::GAME_BOY_ADVANCE.to_string());
+      properties->SetValue(ATTR_PLATFORM, Platforms::GAME_BOY_ADVANCE);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 
@@ -464,8 +463,8 @@ namespace Module::GSF
     }
   };
 
-  Module::Factory::Ptr CreateFactory()
+  XSF::Factory::Ptr CreateFactory()
   {
-    return XSF::CreateFactory(MakePtr<Factory>());
+    return MakePtr<Factory>();
   }
 }  // namespace Module::GSF

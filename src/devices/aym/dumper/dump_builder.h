@@ -28,7 +28,7 @@ namespace Devices::AYM
   class FramedDumpBuilder : public DumpBuilder
   {
   public:
-    using Ptr = std::shared_ptr<FramedDumpBuilder>;
+    using Ptr = std::unique_ptr<FramedDumpBuilder>;
 
     virtual void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) = 0;
   };

@@ -27,6 +27,7 @@
 #include <strings/prefixed_index.h>
 // std includes
 #include <algorithm>
+#include <array>
 
 namespace ZXTune::Zdata
 {
@@ -245,7 +246,7 @@ namespace ZXTune
     const Zdata::Header hdr = Zdata::Compress(input, builder);
     hdr.ToRaw(builder.Get<Zdata::RawHeader>(0));
     auto data = Zdata::Convert(builder.GetView());
-    return CreateLocation(std::move(data), Zdata::ID.to_string(),
+    return CreateLocation(std::move(data), String{Zdata::ID},
                           Strings::PrefixedIndex::Create(Zdata::PLUGIN_PREFIX, hdr.Crc).ToString());
   }
 }  // namespace ZXTune
@@ -264,7 +265,7 @@ namespace ZXTune::Zdata
 
     String Description() const override
     {
-      return INFO.to_string();
+      return String{INFO};
     }
 
     uint_t Capabilities() const override
@@ -286,7 +287,7 @@ namespace ZXTune::Zdata
     DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr location,
                               const Analysis::Path& inPath) const override
     {
-      const auto& pathComp = inPath.GetIterator()->Get();
+      const auto& pathComp = inPath.Elements().front();
       const auto pathIndex = Strings::PrefixedIndex::Parse(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {

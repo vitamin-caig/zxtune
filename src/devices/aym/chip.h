@@ -21,7 +21,7 @@ namespace Devices::AYM
   class Chip : public Device
   {
   public:
-    using Ptr = std::shared_ptr<Chip>;
+    using Ptr = std::unique_ptr<Chip>;
 
     virtual Sound::Chunk RenderTill(Stamp till) = 0;
   };
@@ -62,7 +62,7 @@ namespace Devices::AYM
   class ChipParameters
   {
   public:
-    using Ptr = std::shared_ptr<const ChipParameters>;
+    using Ptr = std::unique_ptr<const ChipParameters>;
 
     virtual ~ChipParameters() = default;
 

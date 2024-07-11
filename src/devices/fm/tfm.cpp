@@ -15,6 +15,7 @@
 // library includes
 #include <devices/tfm.h>
 // std includes
+#include <array>
 #include <functional>
 
 namespace Devices::TFM

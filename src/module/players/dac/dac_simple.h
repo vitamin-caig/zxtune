@@ -48,6 +48,8 @@ namespace Module::DAC
       return *Patterns;
     }
 
+    void SetupSamples(Devices::DAC::Chip& chip) const;
+
     const uint_t ChannelsCount;
     uint_t InitialTempo = 0;
     OrderList::Ptr Order;

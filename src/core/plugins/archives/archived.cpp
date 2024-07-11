@@ -31,7 +31,7 @@ namespace ZXTune
       : Delegate(path.empty() ? delegate : nullptr)  // track only toplevel container
       , ToPercent(total, 100)
       , Id(plugin)
-      , Path(path.to_string())
+      , Path(path)
     {}
 
     void Report(StringView name)
@@ -169,9 +169,9 @@ namespace ZXTune
                                           const Analysis::Path& path) const
     {
       auto resolved = Analysis::ParsePath(String(), Module::SUBPATH_DELIMITER);
-      for (const auto components = path.GetIterator(); components->IsValid(); components->Next())
+      for (const auto& element : path.Elements())
       {
-        resolved = resolved->Append(components->Get());
+        resolved = resolved->Append(element);
         const String filename = resolved->AsString();
         ArchivedDbg("Trying '{}'", filename);
         if (auto file = container.FindFile(filename))

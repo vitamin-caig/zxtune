@@ -35,10 +35,9 @@
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <parameters/template.h>
+#include <strings/join.h>
+#include <strings/split.h>
 #include <strings/template.h>
-// boost includes
-#include <boost/algorithm/string/find.hpp>
-#include <boost/algorithm/string/replace.hpp>
 // std includes
 #include <utility>
 // qt includes
@@ -130,21 +129,10 @@ namespace
       {
         return GetPicture();
       }
-      static const Char AMPERSAND[] = {'&', 0};
-      static const Char AMPERSAND_ESCAPED[] = {'&', 'a', 'm', 'p', ';', 0};
-      static const Char LBRACKET[] = {'<', 0};
-      static const Char LBRACKET_ESCAPED[] = {'&', 'l', 't', ';', 0};
-      static const Char RBRACKET[] = {'>', 0};
-      static const Char RBRACKET_ESCAPED[] = {'&', 'g', 't', ';', 0};
-      static const Char NEWLINE[] = {'\n', 0};
-      static const Char NEWLINE_ESCAPED[] = {'<', 'b', 'r', '/', '>', 0};
-      static const int MAX_LINES = 16;
-      String result = Parent::GetFieldValue(fieldName);
+      const auto MAX_LINES = 16;
+      auto result = Parent::GetFieldValue(fieldName);
       TrimLongMultiline(result, MAX_LINES);
-      boost::algorithm::replace_all(result, AMPERSAND, AMPERSAND_ESCAPED);
-      boost::algorithm::replace_all(result, LBRACKET, LBRACKET_ESCAPED);
-      boost::algorithm::replace_all(result, RBRACKET, RBRACKET_ESCAPED);
-      boost::algorithm::replace_all(result, NEWLINE, NEWLINE_ESCAPED);
+      EscapeHtml(result);
       return result;
     }
 
@@ -203,15 +191,51 @@ namespace
 
     static void TrimLongMultiline(String& result, int maxLines)
     {
-      static const Char NEWLINE[] = {'\n', 0};
-      static const Char ELLIPSIS[] = {'\n', '<', '.', '.', '.', '>', 0};
-      using Range = boost::iterator_range<String::iterator>;
-      const Range head = boost::algorithm::find_nth(result, NEWLINE, maxLines / 2 - 1);
-      const Range tail = boost::algorithm::find_nth(result, NEWLINE, -maxLines / 2);
-      if (head.begin() < tail.begin())
+      const auto SEPARATOR = "\n"_sv;
+      const auto ELLIPSIS = "<...>"_sv;
+      auto lines = Strings::Split(result, SEPARATOR);
+      if (lines.size() <= maxLines)
       {
-        boost::algorithm::replace_range(result, Range(head.begin(), tail.begin()), ELLIPSIS);
+        return;
       }
+      auto tgt = lines.begin() + maxLines / 2 - 1;
+      *tgt++ = ELLIPSIS;
+      tgt = std::copy(lines.end() - maxLines / 2, lines.end(), tgt);
+      lines.erase(tgt, lines.end());
+      result = Strings::Join(lines, SEPARATOR);
+    }
+
+    // TODO: get rid of template, build tooltip one-by-one and escape html with Qt
+    static void EscapeHtml(String& result)
+    {
+      if (result.size() == Strings::Find::First(result, "&<>\n"_sv))
+      {
+        return;
+      }
+      String escaped;
+      escaped.reserve(result.size() * 11 / 10);
+      for (auto c : result)
+      {
+        switch (c)
+        {
+        case '&':
+          escaped += "&amp;"_sv;
+          break;
+        case '<':
+          escaped += "&lt;"_sv;
+          break;
+        case '>':
+          escaped += "&gt;"_sv;
+          break;
+        case '\n':
+          escaped += "<br/>"_sv;
+          break;
+        default:
+          escaped += c;
+          break;
+        }
+      }
+      result.swap(escaped);
     }
 
   private:

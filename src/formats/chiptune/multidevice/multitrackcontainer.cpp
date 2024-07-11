@@ -164,7 +164,7 @@ namespace IFF
   public:
     StringChunkSource(Identifier::Type id, StringView str)
       : BlobChunkSourceBase(id)
-      , Data(str.to_string())
+      , Data(str)
     {}
 
   protected:
@@ -344,7 +344,8 @@ namespace Formats::Chiptune
         Require(name.npos == name.find_first_of(PROPERTY_DELIMITER));
         if (!value.empty())
         {
-          Context->OnString(IFF::Identifier::PROPERTY, name.to_string().append(PROPERTY_DELIMITER).append(value));
+          // TODO: make Concat(StringView str...)
+          Context->OnString(IFF::Identifier::PROPERTY, String{name} + PROPERTY_DELIMITER + value);
         }
         else
         {

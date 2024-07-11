@@ -34,7 +34,7 @@ namespace Strings
 
     String ToString() const
     {
-      return Str;
+      return String{Str};
     }
 
   private:

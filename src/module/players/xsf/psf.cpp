@@ -14,7 +14,6 @@
 #include "module/players/xsf/psf_exe.h"
 #include "module/players/xsf/psf_vfs.h"
 #include "module/players/xsf/xsf.h"
-#include "module/players/xsf/xsf_factory.h"
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
@@ -76,7 +75,7 @@ namespace Module::PSF
       if (auto data = Vfs->Find(path))
       {
         Dbg("Open '{}'", path);
-        CachedName = path.to_string();
+        CachedName = path;
         CachedData = std::move(data);
         return true;
       }
@@ -361,8 +360,7 @@ namespace Module::PSF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, tune->Version == 1 ? Platforms::PLAYSTATION.to_string()
-                                                             : Platforms::PLAYSTATION_2.to_string());
+      properties->SetValue(ATTR_PLATFORM, tune->Version == 1 ? Platforms::PLAYSTATION : Platforms::PLAYSTATION_2);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 
@@ -541,8 +539,8 @@ namespace Module::PSF
     }
   };
 
-  Module::Factory::Ptr CreateFactory()
+  XSF::Factory::Ptr CreateFactory()
   {
-    return XSF::CreateFactory(MakePtr<Factory>());
+    return MakePtr<Factory>();
   }
 }  // namespace Module::PSF

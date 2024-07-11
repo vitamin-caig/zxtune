@@ -103,14 +103,13 @@ namespace
     {
       using namespace boost::program_options;
       auto opt = OptionsDescription.add_options();
-      for (auto backends = Service->EnumerateBackends(); backends->IsValid(); backends->Next())
+      for (const auto& info : Service->EnumerateBackends())
       {
-        const auto info = backends->Get();
         if (info->Status())
         {
           continue;
         }
-        const auto id = info->Id().to_string();
+        const auto id = String{info->Id()};
         String& opts = BackendOptions[id];
         opts = NOTUSED_MARK;
         opt(id.c_str(), value<String>(&opts)->implicit_value(String(), "parameters"), info->Description().c_str());
@@ -159,16 +158,15 @@ namespace
     {
       if (!typeHint.empty())
       {
-        return Service->CreateBackend(Sound::BackendId::FromString(typeHint.to_string()), module, callback);
+        return Service->CreateBackend(Sound::BackendId::FromString(typeHint), module, callback);
       }
       if (!UsedId.empty())
       {
         Dbg("Using previously succeed backend {}", UsedId);
         return Service->CreateBackend(Sound::BackendId::FromString(UsedId), module, callback);
       }
-      for (auto backends = Service->EnumerateBackends(); backends->IsValid(); backends->Next())
+      for (const auto& info : Service->EnumerateBackends())
       {
-        const auto info = backends->Get();
         const auto id = info->Id();
         if (BackendOptions.empty() || BackendOptions.count(id))
         {
@@ -193,7 +191,7 @@ namespace
       throw Error(THIS_LINE, "Failed to create any backend.");
     }
 
-    Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const override
+    std::span<const Sound::BackendInformation::Ptr> EnumerateBackends() const override
     {
       return Service->EnumerateBackends();
     }

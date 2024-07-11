@@ -16,6 +16,8 @@
 #include <pointers.h>
 // library includes
 #include <math/numeric.h>
+// std includes
+#include <array>
 // 3rdparty
 extern "C"
 {

@@ -169,7 +169,7 @@ namespace Devices::AYM
   class Device
   {
   public:
-    using Ptr = std::shared_ptr<Device>;
+    using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
     /// Render single data chunk

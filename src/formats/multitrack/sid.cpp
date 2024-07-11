@@ -20,6 +20,7 @@
 #include <formats/multitrack.h>
 #include <math/numeric.h>
 // std includes
+#include <array>
 #include <utility>
 
 namespace Formats::Multitrack

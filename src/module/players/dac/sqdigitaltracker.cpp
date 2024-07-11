@@ -19,6 +19,8 @@
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <module/players/tracking.h>
+// std includes
+#include <array>
 
 namespace Module::SQDigitalTracker
 {
@@ -283,10 +285,7 @@ namespace Module::SQDigitalTracker
 
     void GetSamples(Devices::DAC::Chip& chip) const override
     {
-      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
-      {
-        chip.SetSample(idx, Data->Samples.Get(idx));
-      }
+      Data->SetupSamples(chip);
     }
 
   private:

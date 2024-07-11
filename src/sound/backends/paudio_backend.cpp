@@ -38,7 +38,7 @@ namespace Sound::PulseAudio
       : PaApi(std::move(api))
       , Params(std::move(params))
       , Client(Platform::Version::GetProgramTitle())  // TODO: think about another solution...
-      , Stream(stream.to_string())
+      , Stream(stream)
     {}
 
     void Startup() override

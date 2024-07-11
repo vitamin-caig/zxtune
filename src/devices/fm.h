@@ -18,6 +18,7 @@
 #include <time/instant.h>
 // std includes
 #include <array>
+#include <memory>
 
 namespace Devices::FM
 {
@@ -62,7 +63,7 @@ namespace Devices::FM
   class Device
   {
   public:
-    using Ptr = std::shared_ptr<Device>;
+    using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
     /// render single data chunk
@@ -76,7 +77,7 @@ namespace Devices::FM
   class Chip : public Device
   {
   public:
-    using Ptr = std::shared_ptr<Chip>;
+    using Ptr = std::unique_ptr<Chip>;
 
     /// Render rest data and return result
     virtual Sound::Chunk RenderTill(Stamp stamp) = 0;
@@ -85,7 +86,7 @@ namespace Devices::FM
   class ChipParameters
   {
   public:
-    using Ptr = std::shared_ptr<const ChipParameters>;
+    using Ptr = std::unique_ptr<const ChipParameters>;
 
     virtual ~ChipParameters() = default;
 

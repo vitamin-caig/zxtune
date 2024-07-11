@@ -456,18 +456,20 @@ namespace Sound::DirectSound
       StreamBuffer::Ptr Stream;
       VolumeControl::Ptr Volume;
 
-      DSObjects& operator=(const DSObjects& rh)
+      DSObjects() = default;
+      DSObjects(const DSObjects&) = delete;
+      DSObjects(DSObjects&&) = default;
+
+      DSObjects& operator=(const DSObjects& rh) = delete;
+      DSObjects& operator=(DSObjects&& rh)
       {
         if (Stream)
         {
           Stream->Stop();
         }
-        Volume.reset();
-        Stream.reset();
-        Device.reset();
-        Device = rh.Device;
-        Stream = rh.Stream;
-        Volume = rh.Volume;
+        Device = std::move(rh.Device);
+        Stream = std::move(rh.Stream);
+        Volume = std::move(rh.Volume);
         return *this;
       }
     };
@@ -513,8 +515,8 @@ namespace Sound::DirectSound
   {
   public:
     DirectSoundDevice(StringView id, StringView name)
-      : IdValue(id.to_string())
-      , NameValue(name.to_string())
+      : IdValue(id)
+      , NameValue(name)
     {}
 
     String Id() const override

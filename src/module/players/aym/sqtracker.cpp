@@ -22,10 +22,10 @@
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 // std includes
+#include <array>
+#include <functional>
 #include <unordered_map>
 #include <unordered_set>
-// boost includes
-#include <boost/functional/hash.hpp>
 
 namespace Module::SQTracker
 {
@@ -71,14 +71,10 @@ namespace Module::SQTracker
       explicit HashedPosition(const Formats::Chiptune::SQTracker::PositionEntry& pos)
         : Formats::Chiptune::SQTracker::PositionEntry(pos)
       {
-        boost::hash_combine(Hash, pos.Tempo);
-        for (uint_t chan = 0; chan != 3; ++chan)
+        HashCombine(Hash, pos.Tempo);
+        for (const auto& chan : pos.Channels)
         {
-          const Formats::Chiptune::SQTracker::PositionEntry::Channel& channel = pos.Channels[chan];
-          boost::hash_combine(Hash, channel.Pattern);
-          boost::hash_combine(Hash, channel.Transposition);
-          boost::hash_combine(Hash, channel.Attenuation);
-          boost::hash_combine(Hash, channel.EnabledEffects);
+          HashCombine(Hash, chan.Pattern, chan.Transposition, chan.Attenuation, chan.EnabledEffects);
         }
       }
 
@@ -89,6 +85,13 @@ namespace Module::SQTracker
       }
 
     private:
+      template<typename T, typename... Rest>
+      static void HashCombine(std::size_t& seed, T v, Rest... rest)
+      {
+        seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        (HashCombine(seed, rest), ...);
+      }
+
       static bool Equal(const Formats::Chiptune::SQTracker::PositionEntry::Channel& lh,
                         const Formats::Chiptune::SQTracker::PositionEntry::Channel& rh)
       {

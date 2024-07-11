@@ -19,7 +19,7 @@ namespace
   template<class Stream>
   Stream OpenStream(StringView name)
   {
-    Stream result(name.to_string().c_str(), std::ios::binary);
+    Stream result(String{name}.c_str(), std::ios::binary);
     if (!result)
     {
       throw std::runtime_error(String("Failed to open ").append(name));

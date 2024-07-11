@@ -353,10 +353,9 @@ namespace
     void FillBackendsTree()
     {
       BackendsTreeHelper tree(*backendsTree);
-      const Sound::Service::Ptr svc = Sound::CreateGlobalService(GlobalOptions::Instance().Get());
-      for (const auto backends = svc->EnumerateBackends(); backends->IsValid(); backends->Next())
+      const auto svc = Sound::CreateGlobalService(GlobalOptions::Instance().Get());
+      for (const auto& backend : svc->EnumerateBackends())
       {
-        const Sound::BackendInformation::Ptr backend = backends->Get();
         tree.AddBackend(*backend);
       }
     }
@@ -364,10 +363,8 @@ namespace
     void FillProvidersTree()
     {
       ProvidersTreeHelper tree(*providersTree);
-
-      for (const auto providers = IO::EnumerateProviders(); providers->IsValid(); providers->Next())
+      for (const auto& provider : IO::EnumerateProviders())
       {
-        const IO::Provider::Ptr provider = providers->Get();
         tree.AddProvider(*provider);
       }
     }

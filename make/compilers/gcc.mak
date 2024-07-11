@@ -55,7 +55,7 @@ CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platfor
 	-W -Wall -Wextra -pipe \
 	$(addprefix -I,$(INCLUDES_DIRS)) $(addprefix -include ,$(INCLUDES_FILES))
 
-CXXFLAGS = $(CCFLAGS) -std=c++17 -fvisibility-inlines-hidden
+CXXFLAGS = $(CCFLAGS) -std=c++20 -fvisibility-inlines-hidden
 
 ARFLAGS := crus
 LDFLAGS = $(LD_MODE_FLAGS) $($(platform).ld.flags) $($(platform).$(arch).ld.flags) $(ld_flags)

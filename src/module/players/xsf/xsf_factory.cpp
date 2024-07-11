@@ -194,8 +194,9 @@ namespace Module::XSF
     const XSF::Factory::Ptr Delegate;
   };
 
-  Module::Factory::Ptr CreateFactory(XSF::Factory::Ptr delegate)
+  Module::Factory::Ptr CreateModuleFactory(XSF::Factory::Ptr delegate)
   {
+    Require(delegate != nullptr);
     return MakePtr<GenericFactory>(std::move(delegate));
   }
 }  // namespace Module::XSF

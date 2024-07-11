@@ -21,11 +21,10 @@
 
 namespace Analysis
 {
-  Strings::Array SplitPath(StringView str, Char separator)
+  std::vector<StringView> SplitPath(StringView str, Char separator)
   {
-    Strings::Array parts;
-    Strings::Split(str, separator, parts);
-    const auto newEnd = std::remove_if(parts.begin(), parts.end(), std::mem_fn(&String::empty));
+    auto parts = Strings::Split(str, separator);
+    const auto newEnd = std::remove_if(parts.begin(), parts.end(), std::mem_fn(&StringView::empty));
     parts.erase(newEnd, parts.end());
     return parts;
   }
@@ -68,9 +67,9 @@ namespace Analysis
       return JoinPath(Components, Separator);
     }
 
-    Iterator::Ptr GetIterator() const override
+    std::span<const String> Elements() const override
     {
-      return CreateRangedObjectIteratorAdapter(Components.begin(), Components.end());
+      return {Components};
     }
 
     Ptr Append(StringView element) const override
@@ -129,9 +128,9 @@ namespace Analysis
       return {};
     }
 
-    Iterator::Ptr GetIterator() const override
+    std::span<const String> Elements() const override
     {
-      return Iterator::CreateStub();
+      return {};
     }
 
     Ptr Append(StringView element) const override
@@ -183,7 +182,7 @@ namespace Analysis
 {
   Path::Ptr ParsePath(StringView str, Char separator)
   {
-    auto parsed = SplitPath(str, separator);
-    return CreatePath(separator, std::move(parsed));
+    const auto& parsed = SplitPath(str, separator);
+    return CreatePath(separator, parsed.begin(), parsed.end());
   }
 }  // namespace Analysis

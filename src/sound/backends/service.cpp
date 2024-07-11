@@ -77,9 +77,9 @@ namespace Sound
       : Options(std::move(options))
     {}
 
-    BackendInformation::Iterator::Ptr EnumerateBackends() const override
+    std::span<const BackendInformation::Ptr> EnumerateBackends() const override
     {
-      return CreateRangedObjectIteratorAdapter(Infos.begin(), Infos.end());
+      return {Infos};
     }
 
     std::vector<BackendId> GetAvailableBackends() const override
@@ -140,10 +140,8 @@ namespace Sound
     Strings::Array GetOrder() const
     {
       const auto order = Parameters::GetString(*Options, Parameters::ZXTune::Sound::Backends::ORDER);
-      Strings::Array orderArray;
-      Strings::Split(
-          order, [](Char c) { return !IsAlNum(c); }, orderArray);
-      return orderArray;
+      const auto& elements = Strings::Split(order, [](Char c) { return !IsAlNum(c); });
+      return {elements.begin(), elements.end()};
     }
 
     std::vector<BackendId> GetAvailable() const

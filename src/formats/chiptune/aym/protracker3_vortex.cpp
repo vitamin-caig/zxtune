@@ -30,8 +30,6 @@
 #include <array>
 #include <cctype>
 #include <sstream>
-// boost includes
-#include <boost/algorithm/string/predicate.hpp>
 
 namespace Formats::Chiptune
 {
@@ -305,13 +303,13 @@ namespace Formats::Chiptune
 
     public:
       SectionHeader(StringView category, StringView hdr)
-        : Category(category.to_string())
+        : Category(category)
         , Index(NO_INDEX)
         , Valid(false)
       {
         const auto start = '[' + Category;
         const auto stop = "]"_sv;
-        if (boost::algorithm::istarts_with(hdr, start) && boost::algorithm::ends_with(hdr, stop))
+        if (hdr.starts_with(start) && hdr.ends_with(stop))
         {
           Valid = true;
           const auto numStr = hdr.substr(start.size(), hdr.size() - start.size() - stop.size());
@@ -320,13 +318,13 @@ namespace Formats::Chiptune
       }
 
       explicit SectionHeader(StringView category)
-        : Category(category.to_string())
+        : Category(category)
         , Index(NO_INDEX)
         , Valid(true)
       {}
 
       SectionHeader(StringView category, int_t idx)
-        : Category(category.to_string())
+        : Category(category)
         , Index(idx)
         , Valid(true)
       {}
@@ -371,8 +369,7 @@ namespace Formats::Chiptune
       {
         const std::size_t NO_LOOP = ~std::size_t(0);
 
-        std::vector<StringView> elems;
-        Strings::Split(str, ',', elems);
+        const auto elems = Strings::Split(str, ',');
         Parent::resize(elems.size());
         std::size_t resLoop = NO_LOOP;
         for (std::size_t idx = 0; idx != elems.size(); ++idx)
@@ -467,8 +464,8 @@ namespace Formats::Chiptune
           Dbg(" {}={}", entry.Name, entry.Value);
           if (Strings::EqualNoCaseAscii(entry.Name, Headers::VERSION))
           {
-            static const String VERSION("3.");
-            Require(boost::algorithm::starts_with(entry.Value, VERSION));
+            constexpr auto VERSION = "3."_sv;
+            Require(entry.Value.starts_with(VERSION));
             const String minorVal = entry.Value.substr(VERSION.size());
             const auto minor = Strings::ConvertTo<uint_t>(minorVal);
             Require(minor < 10);
@@ -536,13 +533,13 @@ namespace Formats::Chiptune
           Require(sepPos != str.npos);
           const auto first = str.substr(0, sepPos);
           const auto second = str.substr(sepPos + 1);
-          Name = Strings::TrimSpaces(first).to_string();
+          Name = Strings::TrimSpaces(first);
           Value = Strings::Sanitize(second);
         }
 
         Entry(StringView name, StringView value)
-          : Name(name.to_string())
-          , Value(value.to_string())
+          : Name(name)
+          , Value(value)
         {}
 
         Entry(Entry&& rh) noexcept = default;
@@ -673,8 +670,7 @@ namespace Formats::Chiptune
         explicit LineObject(const StringView str)
           : Looped(false)
         {
-          std::vector<StringView> fields;
-          Strings::Split(str, ' ', fields);
+          const auto& fields = Strings::Split(str, ' ');
           switch (fields.size())
           {
           case 5:
@@ -798,7 +794,7 @@ namespace Formats::Chiptune
       {}
 
       explicit NoteObject(StringView val)
-        : Val(val.to_string())
+        : Val(val)
       {
         Require(val.size() == 3);
       }
@@ -1004,8 +1000,7 @@ namespace Formats::Chiptune
 
       explicit ChannelObject(StringView str)
       {
-        std::vector<StringView> fields;
-        Strings::Split(str, ' ', fields);
+        const auto& fields = Strings::Split(str, ' ');
         Require(fields.size() == 3);
         Note = NoteObject(fields[0]);
         Parameters = NoteParametersObject(fields[1]);
@@ -1036,8 +1031,7 @@ namespace Formats::Chiptune
 
       explicit PatternLineObject(StringView str)
       {
-        std::vector<StringView> fields;
-        Strings::Split(str, '|', fields);
+        const auto& fields = Strings::Split(str, '|');
         Require(fields.size() == 5);
         Envelope = EnvelopeBase(fields[0]);
         Noise = NoiseBase(fields[1]);
@@ -1309,12 +1303,12 @@ namespace Formats::Chiptune
 
       void SetTitle(StringView title) override
       {
-        Header.Title = title.to_string();
+        Header.Title = title;
       }
 
       void SetAuthor(StringView author) override
       {
-        Header.Author = author.to_string();
+        Header.Author = author;
       }
 
       void SetStrings(const Strings::Array& /*strings*/) override {}

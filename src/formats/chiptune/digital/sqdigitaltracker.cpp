@@ -311,15 +311,15 @@ namespace Formats::Chiptune
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
         const auto title = *Source.Title.begin() == '|' && *Source.Title.rbegin() == '|'
-                               ? StringView(Source.Title.data() + 1, &Source.Title.back())
-                               : StringView(Source.Title);
+                               ? StringViewCompat{Source.Title.data() + 1, &Source.Title.back()}
+                               : StringViewCompat{Source.Title.begin(), Source.Title.end()};
         meta.SetTitle(Strings::OptimizeAscii(title));
         meta.SetProgram(DESCRIPTION);
         Strings::Array names;
         names.reserve(SAMPLES_COUNT);
         for (const auto& name : Source.SampleNames)
         {
-          names.push_back(Strings::OptimizeAscii(name));
+          names.emplace_back(Strings::OptimizeAscii(name));
         }
         meta.SetStrings(names);
       }

@@ -11,8 +11,9 @@
 #pragma once
 
 // common includes
-#include <iterator.h>
 #include <types.h>
+// std includes
+#include <span>
 
 // forward declarations
 class Error;
@@ -25,8 +26,6 @@ namespace IO
   public:
     //! Pointer type
     using Ptr = std::shared_ptr<const Provider>;
-    //! Iterator type
-    using Iterator = ObjectIterator<Provider::Ptr>;
 
     //! Virtual destructor
     virtual ~Provider() = default;
@@ -40,5 +39,5 @@ namespace IO
   };
 
   //! @brief Enumerating supported %IO providers
-  Provider::Iterator::Ptr EnumerateProviders();
+  std::span<const Provider::Ptr> EnumerateProviders();
 }  // namespace IO

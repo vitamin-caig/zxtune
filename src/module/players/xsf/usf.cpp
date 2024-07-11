@@ -11,7 +11,6 @@
 // local includes
 #include "module/players/xsf/usf.h"
 #include "module/players/xsf/xsf.h"
-#include "module/players/xsf/xsf_factory.h"
 // common includes
 #include <contract.h>
 #include <error_tools.h>
@@ -256,7 +255,7 @@ namespace Module::USF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_64.to_string());
+      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_64);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 
@@ -368,8 +367,8 @@ namespace Module::USF
     }
   };
 
-  Module::Factory::Ptr CreateFactory()
+  XSF::Factory::Ptr CreateFactory()
   {
-    return XSF::CreateFactory(MakePtr<Factory>());
+    return MakePtr<Factory>();
   }
 }  // namespace Module::USF
