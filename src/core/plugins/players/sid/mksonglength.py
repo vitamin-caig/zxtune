@@ -158,8 +158,7 @@ class SongLengths:
     if not fmt:
       raise Exception('Invalid time value: ', timeStr)
     res = 60 * int(fmt.group(1)) + int(fmt.group(2))
-    assert res != 0
-    return res
+    return res if res != 0 else 1
 
 def main():
   songs = SongLengths()

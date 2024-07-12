@@ -35,6 +35,7 @@
 #include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTune.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
+#include <3rdparty/sidplayfp/sidplayfp/sidmd5.h>
 #include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
 
 namespace Module::Sid
@@ -56,17 +57,20 @@ namespace Module::Sid
       , Index(selectSong(idx + 1))
     {
       CheckSidplayError(getStatus());
+      sidmd5 md5;
+      md5.append(data.Start(), data.Size());
+      md5.finish();
+      MD5 = md5.getDigest();
     }
 
     void FillDuration(const Parameters::Accessor& params)
     {
-      const auto* md5 = createMD5();
-      Duration = GetSongLength(md5, Index - 1);
+      Duration = GetSongLength(MD5, Index - 1);
       if (!Duration)
       {
         Duration = GetDefaultDuration(params);
       }
-      Dbg("Duration for {}/{} is {}ms", md5, Index, Duration.Get());
+      Dbg("Duration for {}/{} is {}ms", MD5, Index, Duration.Get());
     }
 
     Time::Milliseconds GetDuration() const
@@ -77,6 +81,7 @@ namespace Module::Sid
   private:
     uint_t Index = 0;
     Time::Milliseconds Duration;
+    std::string MD5;
   };
 
   inline const uint8_t* GetData(const Binary::Data::Ptr& data, const uint8_t* defVal)

@@ -36,9 +36,9 @@ namespace Module::Sid
     }
   }
 
-  TimeType GetSongLength(const char* md5digest, uint_t idx)
+  TimeType GetSongLength(StringView md5digest, uint_t idx)
   {
-    const auto hashCrc32 = Binary::Crc32(Binary::View(md5digest, 32));
+    const auto hashCrc32 = Binary::Crc32(Binary::View(md5digest.data(), md5digest.size()));
     const auto* const end = std::end(ENTRIES);
     const auto* const it = std::upper_bound(ENTRIES, end, uint64_t(hashCrc32) << 32);
     if (it == end || (*it) >> 32 != hashCrc32)

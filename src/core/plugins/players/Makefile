@@ -22,7 +22,7 @@ jumbo.excludes := asap/asap_base.cpp \
 include $(dirs.root)/makefile.mak
 
 ifdef tools.python
-sid/songlengths_db.inc: sid/mksonglength.py $(sort $(wildcard sid/Songlengths*.txt))
+sid/songlengths_db.inc: sid/mksonglength.py $(sort $(wildcard sid/Songlengths*.md5))
 	$(tools.python) $^ > $@
 endif
 
