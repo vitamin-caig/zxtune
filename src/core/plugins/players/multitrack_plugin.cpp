@@ -101,10 +101,9 @@ namespace ZXTune
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), std::move(data));
     }
 
-    DataLocation::Ptr CreateSubtrackLocation(DataLocation::Ptr inputData, uint_t idx) const
+    DataLocation::Ptr CreateSubtrackLocation(DataLocation::Ptr inputData, Binary::Container::Ptr content, uint_t idx) const
     {
-      auto blob = inputData->GetData();
-      return CreateNestedLocation(std::move(inputData), std::move(blob), Identifier, Filename::FromIndex(idx));
+      return CreateNestedLocation(std::move(inputData), std::move(content), Identifier, Filename::FromIndex(idx));
     }
 
   private:
@@ -156,7 +155,7 @@ namespace ZXTune
       bool result = false;
       for (auto index : xrange(container.TracksCount()))
       {
-        const auto subData = CreateSubtrackLocation(inputData, index);
+        const auto subData = CreateSubtrackLocation(inputData, inputData->GetData(), index);
         if (ProcessSubtrack(params, *subData, ChangedTrackIndexAdapter(container, index), callback))
         {
           result = true;
@@ -282,7 +281,10 @@ namespace ZXTune
     {
       if (const auto index = Filename::FindIndex(pathToOpen.AsString()))
       {
-        return CreateSubtrackLocation(std::move(inputData), *index);
+        if (auto container = Decoder->Decode(*inputData->GetData()))
+        {
+          return CreateSubtrackLocation(std::move(inputData), std::move(container), *index);
+        }
       }
       return {};
     }
