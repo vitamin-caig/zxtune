@@ -1,33 +1,41 @@
-ARG arch=x86_64
+# --begin: keep in sync with other linux-based builds
+ARG arch
 
-FROM debian:bookworm-slim as debian-x86_64
-ENV arch=x86_64 execprefix=x86_64-linux-gnu- debianarch=amd64 debiancompiler=g++
+FROM debian:bookworm-slim as debian-buildenv
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+     ca-certificates debian-ports-archive-keyring \
+     wget xz-utils bzip2 zip nano less sudo \
+     git make cmake g++ gcc python3-minimal ccache && \
+    useradd -m -s /bin/bash -U -G users,sudo -d /build build && \
+    echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers
+ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+# --end
 
-FROM debian:bookworm-slim as debian-arm64
+FROM debian-buildenv as debian-x86_64
+ENV arch=x86_64 execprefix=x86_64-linux-gnu- debianarch=amd64 debiancompiler=g++-x86-64-linux-gnu
+
+FROM debian-buildenv as debian-arm64
 ENV arch=arm64 execprefix=aarch64-linux-gnu- debianarch=arm64 debiancompiler=g++-aarch64-linux-gnu
 
-FROM debian:bookworm-slim as debian-x86
+FROM debian-buildenv as debian-x86
 ENV arch=x86 execprefix=i686-linux-gnu- debianarch=i386 debiancompiler=g++-i686-linux-gnu
 
 FROM debian-${arch}
-ARG cores=12
-RUN dpkg --add-architecture ${debianarch} && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates wget xz-utils bzip2 git make zip nano less sudo cmake \
-      g++ gcc python3-minimal ccache ${debiancompiler} && \
-    bash -c "dependencies=(libpulse-dev libasound2-dev zlib1g-dev libssl-dev \
+RUN bash -c "dependencies=(libpulse-dev libasound2-dev zlib1g-dev libssl-dev \
       libfontconfig1-dev libfreetype6-dev libx11-dev libx11-xcb-dev libxext-dev libxfixes-dev libxi-dev \
       libxrender-dev libxcb1-dev libxcb-glx0-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-shm0-dev \
       libxcb-icccm4-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0-dev \
       libxcb-util-dev libxcb-xinerama0-dev libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev); \
-     apt-get install -y --no-install-recommends \${dependencies[@]/%/:${debianarch}}" && \
-    useradd -m -s /bin/bash -U -G users,sudo -d /build build && \
-    echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers
+     dpkg --add-architecture ${debianarch} && \
+     apt-get update && \
+     apt-get install -y --no-install-recommends \${dependencies[@]/%/:${debianarch}} ${debiancompiler}"
 
 USER build
 WORKDIR /build
 
-ARG prebuilt=/build/prebuilt
+ARG cores=12
 
 ARG boost=1.82.0
 RUN wget -q https://github.com/boostorg/boost/releases/download/boost-${boost}/boost-${boost}.tar.xz -O - | tar -xJ && \
