@@ -22,6 +22,9 @@ interface Api {
     @Throws(ResolvingException::class)
     fun loadModule(data: ByteBuffer, subPath: String): Module
 
+    @Throws(ResolvingException::class)
+    fun loadModuleData(data: ByteBuffer, subPath: String, callback: DataCallback)
+
     /**
      * Detects all the modules in data
      *
