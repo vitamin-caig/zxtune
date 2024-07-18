@@ -1,0 +1,783 @@
+### general ###
+general/banking00/banking00
+#general/fuxxortest/test-fuxxored
+general/fuxxortest/ef1-nmi
+# sprite collision, won't work
+#general/fuxxortest/ef2-inst2
+#general/fuxxortest/ef2-inst3
+#general/fuxxortest/ef2-inst4a
+#general/fuxxortest/ef2-inst4c
+general/fuxxortest/ef2-inst4b                        --sid old
+general/Lorenz-2.15/src/start
+general/Lorenz-2.15/src/ldab
+general/Lorenz-2.15/src/ldaz
+general/Lorenz-2.15/src/ldazx
+general/Lorenz-2.15/src/ldaa
+general/Lorenz-2.15/src/ldaax
+general/Lorenz-2.15/src/ldaay
+general/Lorenz-2.15/src/ldaix
+general/Lorenz-2.15/src/ldaiy
+general/Lorenz-2.15/src/staz
+general/Lorenz-2.15/src/stazx
+general/Lorenz-2.15/src/staa
+general/Lorenz-2.15/src/staax
+general/Lorenz-2.15/src/staay
+general/Lorenz-2.15/src/staix
+general/Lorenz-2.15/src/staiy
+general/Lorenz-2.15/src/ldxb
+general/Lorenz-2.15/src/ldxz
+general/Lorenz-2.15/src/ldxzy
+general/Lorenz-2.15/src/ldxa
+general/Lorenz-2.15/src/ldxay
+general/Lorenz-2.15/src/stxz
+general/Lorenz-2.15/src/stxzy
+general/Lorenz-2.15/src/stxa
+general/Lorenz-2.15/src/ldyb
+general/Lorenz-2.15/src/ldyz
+general/Lorenz-2.15/src/ldyzx
+general/Lorenz-2.15/src/ldya
+general/Lorenz-2.15/src/ldyax
+general/Lorenz-2.15/src/styz
+general/Lorenz-2.15/src/styzx
+general/Lorenz-2.15/src/stya
+general/Lorenz-2.15/src/taxn
+general/Lorenz-2.15/src/tayn
+general/Lorenz-2.15/src/txan
+general/Lorenz-2.15/src/tyan
+general/Lorenz-2.15/src/tsxn
+general/Lorenz-2.15/src/txsn
+general/Lorenz-2.15/src/phan
+general/Lorenz-2.15/src/plan
+general/Lorenz-2.15/src/phpn
+general/Lorenz-2.15/src/plpn
+general/Lorenz-2.15/src/inxn
+general/Lorenz-2.15/src/inyn
+general/Lorenz-2.15/src/dexn
+general/Lorenz-2.15/src/deyn
+general/Lorenz-2.15/src/incz
+general/Lorenz-2.15/src/inczx
+general/Lorenz-2.15/src/inca
+general/Lorenz-2.15/src/incax
+general/Lorenz-2.15/src/decz
+general/Lorenz-2.15/src/deczx
+general/Lorenz-2.15/src/deca
+general/Lorenz-2.15/src/decax
+general/Lorenz-2.15/src/asln
+general/Lorenz-2.15/src/aslz
+general/Lorenz-2.15/src/aslzx
+general/Lorenz-2.15/src/asla
+general/Lorenz-2.15/src/aslax
+general/Lorenz-2.15/src/lsrn
+general/Lorenz-2.15/src/lsrz
+general/Lorenz-2.15/src/lsrzx
+general/Lorenz-2.15/src/lsra
+general/Lorenz-2.15/src/lsrax
+general/Lorenz-2.15/src/roln
+general/Lorenz-2.15/src/rolz
+general/Lorenz-2.15/src/rolzx
+general/Lorenz-2.15/src/rola
+general/Lorenz-2.15/src/rolax
+general/Lorenz-2.15/src/rorn
+general/Lorenz-2.15/src/rorz
+general/Lorenz-2.15/src/rorzx
+general/Lorenz-2.15/src/rora
+general/Lorenz-2.15/src/rorax
+general/Lorenz-2.15/src/andb
+general/Lorenz-2.15/src/andz
+general/Lorenz-2.15/src/andzx
+general/Lorenz-2.15/src/anda
+general/Lorenz-2.15/src/andax
+general/Lorenz-2.15/src/anday
+general/Lorenz-2.15/src/andix
+general/Lorenz-2.15/src/andiy
+general/Lorenz-2.15/src/orab
+general/Lorenz-2.15/src/oraz
+general/Lorenz-2.15/src/orazx
+general/Lorenz-2.15/src/oraa
+general/Lorenz-2.15/src/oraax
+general/Lorenz-2.15/src/oraay
+general/Lorenz-2.15/src/oraix
+general/Lorenz-2.15/src/oraiy
+general/Lorenz-2.15/src/eorb
+general/Lorenz-2.15/src/eorz
+general/Lorenz-2.15/src/eorzx
+general/Lorenz-2.15/src/eora
+general/Lorenz-2.15/src/eorax
+general/Lorenz-2.15/src/eoray
+general/Lorenz-2.15/src/eorix
+general/Lorenz-2.15/src/eoriy
+general/Lorenz-2.15/src/clcn
+general/Lorenz-2.15/src/secn
+general/Lorenz-2.15/src/cldn
+general/Lorenz-2.15/src/sedn
+general/Lorenz-2.15/src/clin
+general/Lorenz-2.15/src/sein
+general/Lorenz-2.15/src/clvn
+general/Lorenz-2.15/src/adcb
+general/Lorenz-2.15/src/adcz
+general/Lorenz-2.15/src/adczx
+general/Lorenz-2.15/src/adca
+general/Lorenz-2.15/src/adcax
+general/Lorenz-2.15/src/adcay
+general/Lorenz-2.15/src/adcix
+general/Lorenz-2.15/src/adciy
+general/Lorenz-2.15/src/sbcb
+general/Lorenz-2.15/src/sbcz
+general/Lorenz-2.15/src/sbczx
+general/Lorenz-2.15/src/sbca
+general/Lorenz-2.15/src/sbcax
+general/Lorenz-2.15/src/sbcay
+general/Lorenz-2.15/src/sbcix
+general/Lorenz-2.15/src/sbciy
+general/Lorenz-2.15/src/cmpb
+general/Lorenz-2.15/src/cmpz
+general/Lorenz-2.15/src/cmpzx
+general/Lorenz-2.15/src/cmpa
+general/Lorenz-2.15/src/cmpax
+general/Lorenz-2.15/src/cmpay
+general/Lorenz-2.15/src/cmpix
+general/Lorenz-2.15/src/cmpiy
+general/Lorenz-2.15/src/cpxb
+general/Lorenz-2.15/src/cpxz
+general/Lorenz-2.15/src/cpxa
+general/Lorenz-2.15/src/cpyb
+general/Lorenz-2.15/src/cpyz
+general/Lorenz-2.15/src/cpya
+general/Lorenz-2.15/src/bitz
+general/Lorenz-2.15/src/bita
+general/Lorenz-2.15/src/brkn
+general/Lorenz-2.15/src/rtin
+general/Lorenz-2.15/src/jsrw
+general/Lorenz-2.15/src/rtsn
+general/Lorenz-2.15/src/jmpw
+general/Lorenz-2.15/src/jmpi
+general/Lorenz-2.15/src/beqr
+general/Lorenz-2.15/src/bner
+general/Lorenz-2.15/src/bmir
+general/Lorenz-2.15/src/bplr
+general/Lorenz-2.15/src/bcsr
+general/Lorenz-2.15/src/bccr
+general/Lorenz-2.15/src/bvsr
+general/Lorenz-2.15/src/bvcr
+general/Lorenz-2.15/src/nopn
+general/Lorenz-2.15/src/nopb
+general/Lorenz-2.15/src/nopz
+general/Lorenz-2.15/src/nopzx
+general/Lorenz-2.15/src/nopa
+general/Lorenz-2.15/src/nopax
+general/Lorenz-2.15/src/asoz
+general/Lorenz-2.15/src/asozx
+general/Lorenz-2.15/src/asoa
+general/Lorenz-2.15/src/asoax
+general/Lorenz-2.15/src/asoay
+general/Lorenz-2.15/src/asoix
+general/Lorenz-2.15/src/asoiy
+general/Lorenz-2.15/src/rlaz
+general/Lorenz-2.15/src/rlazx
+general/Lorenz-2.15/src/rlaa
+general/Lorenz-2.15/src/rlaax
+general/Lorenz-2.15/src/rlaay
+general/Lorenz-2.15/src/rlaix
+general/Lorenz-2.15/src/rlaiy
+general/Lorenz-2.15/src/lsez
+general/Lorenz-2.15/src/lsezx
+general/Lorenz-2.15/src/lsea
+general/Lorenz-2.15/src/lseax
+general/Lorenz-2.15/src/lseay
+general/Lorenz-2.15/src/lseix
+general/Lorenz-2.15/src/lseiy
+general/Lorenz-2.15/src/rraz
+general/Lorenz-2.15/src/rrazx
+general/Lorenz-2.15/src/rraa
+general/Lorenz-2.15/src/rraax
+general/Lorenz-2.15/src/rraay
+general/Lorenz-2.15/src/rraix
+general/Lorenz-2.15/src/rraiy
+general/Lorenz-2.15/src/dcmz
+general/Lorenz-2.15/src/dcmzx
+general/Lorenz-2.15/src/dcma
+general/Lorenz-2.15/src/dcmax
+general/Lorenz-2.15/src/dcmay
+general/Lorenz-2.15/src/dcmix
+general/Lorenz-2.15/src/dcmiy
+general/Lorenz-2.15/src/insz
+general/Lorenz-2.15/src/inszx
+general/Lorenz-2.15/src/insa
+general/Lorenz-2.15/src/insax
+general/Lorenz-2.15/src/insay
+general/Lorenz-2.15/src/insix
+general/Lorenz-2.15/src/insiy
+general/Lorenz-2.15/src/laxz
+general/Lorenz-2.15/src/laxzy
+general/Lorenz-2.15/src/laxa
+general/Lorenz-2.15/src/laxay
+general/Lorenz-2.15/src/laxix
+general/Lorenz-2.15/src/laxiy
+general/Lorenz-2.15/src/axsz
+general/Lorenz-2.15/src/axszy
+general/Lorenz-2.15/src/axsa
+general/Lorenz-2.15/src/axsix
+general/Lorenz-2.15/src/alrb
+general/Lorenz-2.15/src/arrb
+general/Lorenz-2.15/src/aneb
+general/Lorenz-2.15/src/lxab
+general/Lorenz-2.15/src/sbxb
+general/Lorenz-2.15/src/shaay
+general/Lorenz-2.15/src/shaiy
+general/Lorenz-2.15/src/shxay
+general/Lorenz-2.15/src/shyax
+general/Lorenz-2.15/src/shsay
+general/Lorenz-2.15/src/ancb
+general/Lorenz-2.15/src/lasay
+general/Lorenz-2.15/src/sbcb-eb
+general/Lorenz-2.15/src/trap1
+general/Lorenz-2.15/src/trap2
+general/Lorenz-2.15/src/trap3
+general/Lorenz-2.15/src/trap4
+general/Lorenz-2.15/src/trap5
+general/Lorenz-2.15/src/trap6
+general/Lorenz-2.15/src/trap7
+general/Lorenz-2.15/src/trap8
+general/Lorenz-2.15/src/trap9
+general/Lorenz-2.15/src/trap10
+general/Lorenz-2.15/src/trap11
+general/Lorenz-2.15/src/trap12
+general/Lorenz-2.15/src/trap13
+general/Lorenz-2.15/src/trap14
+general/Lorenz-2.15/src/trap15
+general/Lorenz-2.15/src/trap16
+general/Lorenz-2.15/src/trap17
+general/Lorenz-2.15/src/branchwrap
+general/Lorenz-2.15/src/mmufetch
+general/Lorenz-2.15/src/mmu
+general/Lorenz-2.15/src/cpuport
+general/Lorenz-2.15/src/cputiming
+general/Lorenz-2.15/src/irq
+general/Lorenz-2.15/src/nmi
+general/Lorenz-2.15/src/cia1tb123                    --cia old
+general/Lorenz-2.15/src/cia2tb123                    --cia old
+general/Lorenz-2.15/src/cia1pb6                      --cia old
+general/Lorenz-2.15/src/cia1pb7                      --cia old
+general/Lorenz-2.15/src/cia2pb6                      --cia old
+general/Lorenz-2.15/src/cia2pb7                      --cia old
+general/Lorenz-2.15/src/cia1tab                      --cia old
+general/Lorenz-2.15/src/loadth                       --cia old
+general/Lorenz-2.15/src/cnto2                        --cia old
+general/Lorenz-2.15/src/icr01                        --cia old
+general/Lorenz-2.15/src/imr                          --cia old
+general/Lorenz-2.15/src/flipos                       --cia old
+general/Lorenz-2.15/src/oneshot                      --cia old
+general/Lorenz-2.15/src/cntdef                       --cia old
+general/Lorenz-2.15/src/cia1ta                       --cia old
+general/Lorenz-2.15/src/cia1tb                       --cia old
+general/Lorenz-2.15/src/cia2ta                       --cia old
+general/Lorenz-2.15/src/cia2tb                       --cia old
+general/Lorenz-2.15/src/irqnew                       --cia new
+general/Lorenz-2.15/src/nminew                       --cia new
+general/Lorenz-2.15/src/cia1tb123                    --cia new
+general/Lorenz-2.15/src/cia2tb123                    --cia new
+general/Lorenz-2.15/src/cia1pb6                      --cia new
+general/Lorenz-2.15/src/cia1pb7                      --cia new
+general/Lorenz-2.15/src/cia2pb6                      --cia new
+general/Lorenz-2.15/src/cia2pb7                      --cia new
+general/Lorenz-2.15/src/cia1tabnew                   --cia new
+general/Lorenz-2.15/src/loadth                       --cia new
+general/Lorenz-2.15/src/cnto2                        --cia new
+general/Lorenz-2.15/src/icr01new                     --cia new
+general/Lorenz-2.15/src/imrnew                       --cia new
+general/Lorenz-2.15/src/flipos                       --cia new
+general/Lorenz-2.15/src/oneshot                      --cia new
+general/Lorenz-2.15/src/cntdef                       --cia new
+general/Lorenz-2.15/src/cia1tanew                    --cia new
+general/Lorenz-2.15/src/cia1tbnew                    --cia new
+# broken tests
+#general/Lorenz-2.15/src/cia2tanew                    --cia new
+#general/Lorenz-2.15/src/cia2tbnew                    --cia new
+general/Lorenz-2.15/src/finish
+# sprite collision, won't work
+#general/ram0001/test1
+### C64 ###
+C64/bankio/bankio
+C64/openio/gauntlet
+C64/raminitpattern/cyberloadtest
+C64/raminitpattern/darkstarbbstest
+C64/raminitpattern/platoontest
+C64/raminitpattern/typicaltest
+### CIA ###
+CIA/CIA-AcountsB/cia-b-counts-a
+CIA/CIA-AcountsB/cmp-b-counts-a-old                  --cia old
+CIA/CIA-AcountsB/cmp-b-counts-a-new                  --cia new
+CIA/CIA-AcountsB/cia-b-counts-a_ntsc                 --vic ntsc
+CIA/CIA-AcountsB/cmp-b-counts-a-old_ntsc             --cia old --vic ntsc
+CIA/CIA-AcountsB/cmp-b-counts-a-new_ntsc             --cia new --vic ntsc
+CIA/cia-timer/cia-timer-oldcias                      --cia old
+CIA/cia-timer/cia-timer-newcias                      --cia new
+CIA/ciavarious/cia1
+CIA/ciavarious/cia2
+CIA/ciavarious/cia3                                  --cia old
+CIA/ciavarious/cia3new                               --cia new
+CIA/ciavarious/cia3a                                 --cia old
+CIA/ciavarious/cia3anew                              --cia new
+CIA/ciavarious/cia4                                  --cia old
+CIA/ciavarious/cia4new                               --cia new
+CIA/ciavarious/cia5
+CIA/ciavarious/cia6
+CIA/ciavarious/cia7
+CIA/ciavarious/cia8                                  --cia old
+CIA/ciavarious/cia8new                               --cia new
+CIA/ciavarious/cia9
+CIA/ciavarious/cia10
+CIA/ciavarious/cia11
+CIA/ciavarious/cia12
+CIA/ciavarious/cia13
+CIA/ciavarious/cia14
+CIA/ciavarious/cia15
+CIA/dd0drw/dd0drw
+CIA/dd0dtest/dd0dtest                                --cia old
+CIA/dd0dtest/dd0dtest                                --cia new
+CIA/mirrors/ciamirrors
+CIA/irqdelay/irqdelay                                --cia old
+CIA/irqdelay/irqdelay-new                            --cia new
+CIA/irqdelay/irqdelay2                               --cia old
+CIA/irqdelay/irqdelay2-new                           --cia new
+CIA/irqdelay/irqdelay-oneshot                        --cia old
+CIA/irqdelay/irqdelay-oneshot-new                    --cia new
+CIA/irqdelay/irqdelay-cia1
+CIA/irqdelay/irqdelay-cia1-4-old                     --cia old
+CIA/irqdelay/irqdelay-cia1-4-new                     --cia new
+CIA/irqdelay/irqdelay-cia1-oneshot
+CIA/irqdelay/irqdelay-cia1-oneshot-4-old             --cia old
+CIA/irqdelay/irqdelay-cia1-oneshot-4-new             --cia new
+CIA/irqdelay/irqdelay-cia2
+CIA/irqdelay/irqdelay-cia2-4
+CIA/irqdelay/irqdelay-cia2-oneshot
+CIA/irqdelay/irqdelay-cia2-oneshot-4
+CIA/pb6pb7/main
+CIA/reload0/reload0a
+CIA/reload0/reload0b
+CIA/shiftregister/cia-icr-test-continues-old         --cia old
+CIA/shiftregister/cia-icr-test-continues-new         --cia new
+CIA/shiftregister/cia-icr-test-oneshot-old           --cia old
+CIA/shiftregister/cia-icr-test-oneshot-new           --cia new
+CIA/shiftregister/cia-icr-test2-continues
+CIA/shiftregister/cia-icr-test2-oneshot
+CIA/shiftregister/cia-sdr-load
+CIA/shiftregister/cia-sdr-delay
+CIA/shiftregister/cia-sdr-init
+CIA/shiftregister/cia-sp-test-continues-old          --cia old
+CIA/shiftregister/cia-sp-test-continues-new          --cia new
+CIA/shiftregister/cia-sp-test-oneshot-old            --cia old
+CIA/shiftregister/cia-sp-test-oneshot-new            --cia new
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-0
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-0_7f
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-1_7f
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-3
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-4_7f
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-19
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-39
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-generic-0
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-generic-0_7f
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-generic-1_7f
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-generic-3
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-generic-4_7f
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-generic-19
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-generic-39
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-0
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-0_7f
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-1_7f
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-3
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-4_7f
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-19
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-39
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-generic-0
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-generic-0_7f
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-generic-1_7f
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-generic-3
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-generic-4_7f
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-generic-19
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-generic-39
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-4485-0    --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-4485-0_7f --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-4485-1_7f --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-4485-3    --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-4485-4_7f --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-4485-19   --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia1-sdr-icr-4485-39   --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-4485-0    --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-4485-0_7f --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-4485-1_7f --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-4485-3    --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-4485-4_7f --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-4485-19   --cia 4485
+CIA/shiftregister/cia-sdr-icr/cia2-sdr-icr-4485-39   --cia 4485
+CIA/timerbasics/test                                 --cia old
+CIA/timerbasics/test_new                             --cia new
+CIA/timerbasics/timer                                --cia old
+CIA/timerbasics/timer_new                            --cia new
+CIA/timerbasics/timer_test1                          --cia old
+CIA/timerbasics/timer_test1_new                      --cia new
+CIA/tod/0alarm
+CIA/tod/1alarm
+CIA/tod/4tod
+CIA/tod/4todcia1
+CIA/tod/5tod
+CIA/tod/6tod
+CIA/tod/alarm
+CIA/tod/alarm-cond
+CIA/tod/alarm-cond2
+CIA/tod/fix-hour
+CIA/tod/fix-min
+CIA/tod/fix-sec
+CIA/tod/fix-tsec
+CIA/tod/frogger
+CIA/tod/hammerfist0
+CIA/tod/hammerfist1
+CIA/tod/hour-test
+CIA/tod/hzsync0
+CIA/tod/hzsync1
+CIA/tod/hzsync2
+CIA/tod/hzsync3
+CIA/tod/hzsync4
+CIA/tod/hzsync5
+CIA/tod/hzsync6
+CIA/tod/powerup
+CIA/tod/read-latch
+CIA/tod/stability
+CIA/tod/stability-ntsc                --vic ntsc
+CIA/tod/write-stop
+CIA/tod/ampmtest
+### CPU ###
+CPU/64doc/dadc
+CPU/64doc/dincsbc
+CPU/64doc/dincsbc-deccmp
+CPU/64doc/droradc
+CPU/64doc/dsbc
+CPU/64doc/dsbc-cmp-flags
+CPU/64doc/sbx-c100
+# these run VERY long
+#CPU/64doc/sbx
+#CPU/64doc/vsbx
+CPU/Acid800/cpu_bugs
+CPU/Acid800/cpu_clisei
+CPU/Acid800/cpu_decimal
+CPU/Acid800/cpu_flags
+CPU/Acid800/cpu_illegal
+CPU/Acid800/cpu_insn
+CPU/Acid800/cpu_timing
+CPU/Acid800/cpu_timing_ntsc                   --vic ntsc
+CPU/ane/ane
+CPU/ane/ane-border
+CPU/ane/ane-none
+CPU/asap/cpu_ane
+CPU/asap/cpu_anx
+CPU/asap/cpu_decimal
+CPU/asap/cpu_las
+CPU/asap/cpu_shx
+CPU/bclark/decimalmode
+# these would timeout
+#CPU/cpujam/cpujam02
+#CPU/cpujam/cpujam12
+#CPU/cpujam/cpujam22
+#CPU/cpujam/cpujam32
+#CPU/cpujam/cpujam42
+#CPU/cpujam/cpujam52
+#CPU/cpujam/cpujam62
+#CPU/cpujam/cpujam72
+#CPU/cpujam/cpujam92
+#CPU/cpujam/cpujamb2
+#CPU/cpujam/cpujamd2
+#CPU/cpujam/cpujamf2
+#CPU/cpujam/nojam
+CPU/cpuport/test1
+CPU/decimalmode/adc00
+CPU/decimalmode/adc01
+CPU/decimalmode/adc02
+CPU/decimalmode/adc10
+CPU/decimalmode/adc11
+CPU/decimalmode/adc12
+CPU/decimalmode/sbc00
+CPU/decimalmode/sbc01
+CPU/decimalmode/sbc02
+CPU/decimalmode/sbc10
+CPU/decimalmode/sbc11
+CPU/decimalmode/sbc12
+CPU/decimalmode/arr00
+CPU/decimalmode/arr01
+CPU/decimalmode/arr02
+CPU/decimalmode/arr10
+CPU/decimalmode/arr11
+CPU/decimalmode/arr12
+CPU/decimalmode/sbcEB00
+CPU/decimalmode/sbcEB01
+CPU/decimalmode/sbcEB02
+CPU/decimalmode/sbcEB10
+CPU/decimalmode/sbcEB11
+CPU/decimalmode/sbcEB12
+CPU/decimalmode/isc00
+CPU/decimalmode/isc01
+CPU/decimalmode/isc02
+CPU/decimalmode/isc03
+CPU/decimalmode/isc10
+CPU/decimalmode/isc11
+CPU/decimalmode/isc12
+CPU/decimalmode/isc13
+CPU/decimalmode/rra00
+CPU/decimalmode/rra01
+CPU/decimalmode/rra02
+CPU/decimalmode/rra03
+CPU/decimalmode/rra10
+CPU/decimalmode/rra11
+CPU/decimalmode/rra12
+CPU/decimalmode/rra13
+CPU/hmc6502/AllSuiteA
+CPU/kdormann/6502_functional_test
+CPU/lax/lax
+CPU/lax/lax-border
+CPU/lax/lax-none
+CPU/sha/shaabsy1
+CPU/sha/shaabsy2
+CPU/sha/shaabsy3
+CPU/sha/shaabsy4
+CPU/sha/shaabsy5
+CPU/sha/shazpy1
+CPU/sha/shazpy2
+CPU/sha/shazpy3
+CPU/sha/shazpy4
+CPU/sha/shazpy5
+CPU/shs/shsabsy1
+CPU/shs/shsabsy2
+CPU/shs/shsabsy3
+CPU/shs/shsabsy4
+CPU/shs/shsabsy5
+CPU/shxy/shx-test
+CPU/shxy/shxy1
+CPU/shxy/shxy2
+CPU/shxy/shxy3
+CPU/shxy/shxy4
+CPU/shxy/shxy5
+CPU/shxy/shyx1
+CPU/shxy/shyx2
+CPU/shxy/shyx3
+CPU/shxy/shyx4
+CPU/shxy/shyx5
+### interrupts ###
+interrupts/branchquirk/branchquirk-nmiold            --cia old
+interrupts/branchquirk/branchquirk-old               --cia old
+interrupts/branchquirk/branchquirk-nminew            --cia new
+interrupts/branchquirk/branchquirk-new               --cia new
+interrupts/cia-int/cia-int-irq                       --cia old
+interrupts/cia-int/cia-int-irq-new                   --cia new
+interrupts/cia-int/cia-int-nmi                       --cia old
+interrupts/cia-int/cia-int-nmi-new                   --cia new
+interrupts/irq-ackn-bug/cia1                         --cia old
+interrupts/irq-ackn-bug/cia1new                      --cia new
+interrupts/irq-ackn-bug/cia2                         --cia old
+interrupts/irq-ackn-bug/cia2new                      --cia new
+# sprite collision, won't work
+#interrupts/irq-ackn-bug/irq-ack-vicii
+interrupts/irqdma/nmitest6                           --cia old
+interrupts/irqdma/nmitest6                           --cia new
+interrupts/irqdma/nmitest6b                          --cia old
+interrupts/irqdma/nmitest6b                          --cia new
+interrupts/irqdma/test1
+interrupts/irqdma/test1b
+interrupts/irqdma/test2
+interrupts/irqdma/test2b
+interrupts/irqdma/test3
+interrupts/irqdma/test3b
+interrupts/irqdma/test4
+interrupts/irqdma/test4b
+interrupts/irqdma/test5
+interrupts/irqdma/test5b
+interrupts/irqdma/test6
+interrupts/irqdma/test6b                             --cia old
+interrupts/irqdma/test6b                             --cia new
+interrupts/irqdma/test7
+interrupts/irqdma/test7b
+interrupts/irqdummy/irqdummy
+interrupts/irqnmi/irqnmi-old                         --cia old
+interrupts/irqnmi/irqnmi-new                         --cia new
+### SID
+SID/busvalue/busvalue                                --sid old
+SID/detect/detect-1-old                              --sid old
+SID/detect/detect-2-old                              --sid old
+SID/detect/detect-1-new                              --sid new
+SID/detect/detect-2-new                              --sid new
+SID/env_test/env_test_adra_1                         --sid old
+SID/env_test/env_test_adra_2                         --sid old
+SID/env_test/env_test_ar_1                           --sid old
+SID/env_test/env_test_ar_2                           --sid old
+SID/env_test/env_test_ar_3                           --sid old
+SID/env_test/env_test_ra_0000                        --sid old
+SID/env_test/env_test_ra_0100                        --sid old
+SID/env_test/env_test_ra_ff00                        --sid old
+SID/envelope/lft-adsr-test                           --sid old
+SID/envelope/testADSRDelayBug                        --sid old
+SID/envelope/testFlip00toFF                          --sid old
+SID/envelope/testFlipFFto00                          --sid old
+SID/exp_counter_reset/env_test_exr                   --sid old
+SID/osc3-wave0/osc3-wave0-new                        --sid new
+SID/osc3-wave0/osc3-wave0                            --sid old
+SID/osc_topbit/osc_topbit_test_noise_old             --sid old
+SID/osc_topbit/osc_topbit_test_pulse_old             --sid old
+SID/osc_topbit/osc_topbit_test_triangle_old          --sid old
+SID/osc_topbit/osc_topbit_test_noise_new             --sid new
+SID/osc_topbit/osc_topbit_test_pulse_new             --sid new
+SID/osc_topbit/osc_topbit_test_triangle_new          --sid new
+SID/oscinit/allinit                                  --sid old
+SID/oscinit/noiseinit                                --sid old
+SID/oscinit/oscinit                                  --sid old
+SID/exp_counter_reset/env_test_exr                   --sid old
+SID/resid-test/envdelay                              --sid old
+SID/resid-test/envrate                               --sid old
+SID/resid-test/envsustain                            --sid old
+SID/resid-test/envtime                               --sid old
+SID/resid-test/noisetest                             --sid old
+SID/resid-test/oscsample0-6581                       --sid old
+SID/resid-test/oscsample1-6581                       --sid old
+SID/resid-test/oscsample0-8580                       --sid new
+SID/resid-test/oscsample1-8580                       --sid new
+SID/ringmod/ringmodtest                              --sid old
+SID/waveforms/waveforms-10-6581                      --sid old
+SID/waveforms/waveforms-20-6581                      --sid old
+SID/waveforms/waveforms-40-6581                      --sid old
+SID/waveforms/waveforms-80-6581                      --sid old
+SID/waveforms/waveforms-10-8580                      --sid new
+SID/waveforms/waveforms-20-8580                      --sid new
+SID/waveforms/waveforms-40-8580                      --sid new
+SID/waveforms/waveforms-80-8580                      --sid new
+SID/wb_testsuite/noise_writeback_check_8_to_8_old    --sid old
+SID/wb_testsuite/noise_writeback_check_8_to_9_old    --sid old
+SID/wb_testsuite/noise_writeback_check_8_to_A_old    --sid old
+SID/wb_testsuite/noise_writeback_check_8_to_B_old    --sid old
+SID/wb_testsuite/noise_writeback_check_8_to_C_old    --sid old
+SID/wb_testsuite/noise_writeback_check_8_to_D_old    --sid old
+SID/wb_testsuite/noise_writeback_check_8_to_E_old    --sid old
+SID/wb_testsuite/noise_writeback_check_8_to_F_old    --sid old
+SID/wb_testsuite/noise_writeback_check_9_to_8_old    --sid old
+SID/wb_testsuite/noise_writeback_check_9_to_9_old    --sid old
+SID/wb_testsuite/noise_writeback_check_9_to_A_old    --sid old
+SID/wb_testsuite/noise_writeback_check_9_to_B_old    --sid old
+SID/wb_testsuite/noise_writeback_check_9_to_C_old    --sid old
+SID/wb_testsuite/noise_writeback_check_9_to_D_old    --sid old
+SID/wb_testsuite/noise_writeback_check_9_to_E_old    --sid old
+SID/wb_testsuite/noise_writeback_check_9_to_F_old    --sid old
+SID/wb_testsuite/noise_writeback_check_A_to_8_old    --sid old
+SID/wb_testsuite/noise_writeback_check_A_to_9_old    --sid old
+SID/wb_testsuite/noise_writeback_check_A_to_A_old    --sid old
+SID/wb_testsuite/noise_writeback_check_A_to_B_old    --sid old
+SID/wb_testsuite/noise_writeback_check_A_to_C_old    --sid old
+SID/wb_testsuite/noise_writeback_check_A_to_D_old    --sid old
+SID/wb_testsuite/noise_writeback_check_A_to_E_old    --sid old
+SID/wb_testsuite/noise_writeback_check_A_to_F_old    --sid old
+SID/wb_testsuite/noise_writeback_check_B_to_8_old    --sid old
+SID/wb_testsuite/noise_writeback_check_B_to_9_old    --sid old
+SID/wb_testsuite/noise_writeback_check_B_to_A_old    --sid old
+SID/wb_testsuite/noise_writeback_check_B_to_B_old    --sid old
+SID/wb_testsuite/noise_writeback_check_B_to_D_old    --sid old
+SID/wb_testsuite/noise_writeback_check_B_to_E_old    --sid old
+SID/wb_testsuite/noise_writeback_check_B_to_F_old    --sid old
+SID/wb_testsuite/noise_writeback_check_C_to_8_old    --sid old
+SID/wb_testsuite/noise_writeback_check_C_to_9_old    --sid old
+SID/wb_testsuite/noise_writeback_check_C_to_A_old    --sid old
+SID/wb_testsuite/noise_writeback_check_C_to_B_old    --sid old
+SID/wb_testsuite/noise_writeback_check_C_to_C_old    --sid old
+SID/wb_testsuite/noise_writeback_check_C_to_D_old    --sid old
+SID/wb_testsuite/noise_writeback_check_C_to_E_old    --sid old
+SID/wb_testsuite/noise_writeback_check_C_to_F_old    --sid old
+SID/wb_testsuite/noise_writeback_check_D_to_8_old    --sid old
+SID/wb_testsuite/noise_writeback_check_D_to_9_old    --sid old
+SID/wb_testsuite/noise_writeback_check_D_to_A_old    --sid old
+SID/wb_testsuite/noise_writeback_check_D_to_B_old    --sid old
+SID/wb_testsuite/noise_writeback_check_D_to_C_old    --sid old
+SID/wb_testsuite/noise_writeback_check_D_to_D_old    --sid old
+SID/wb_testsuite/noise_writeback_check_D_to_E_old    --sid old
+SID/wb_testsuite/noise_writeback_check_D_to_F_old    --sid old
+SID/wb_testsuite/noise_writeback_check_E_to_8_old    --sid old
+SID/wb_testsuite/noise_writeback_check_E_to_9_old    --sid old
+SID/wb_testsuite/noise_writeback_check_E_to_A_old    --sid old
+SID/wb_testsuite/noise_writeback_check_E_to_B_old    --sid old
+SID/wb_testsuite/noise_writeback_check_E_to_C_old    --sid old
+SID/wb_testsuite/noise_writeback_check_E_to_E_old    --sid old
+SID/wb_testsuite/noise_writeback_check_E_to_F_old    --sid old
+SID/wb_testsuite/noise_writeback_check_F_to_8_old    --sid old
+SID/wb_testsuite/noise_writeback_check_F_to_9_old    --sid old
+SID/wb_testsuite/noise_writeback_check_F_to_A_old    --sid old
+SID/wb_testsuite/noise_writeback_check_F_to_B_old    --sid old
+SID/wb_testsuite/noise_writeback_check_F_to_C_old    --sid old
+SID/wb_testsuite/noise_writeback_check_F_to_D_old    --sid old
+SID/wb_testsuite/noise_writeback_check_F_to_E_old    --sid old
+SID/wb_testsuite/noise_writeback_check_F_to_F_old    --sid old
+SID/wb_testsuite/noise_writeback_check_8_to_8_new    --sid new
+SID/wb_testsuite/noise_writeback_check_8_to_9_new    --sid new
+SID/wb_testsuite/noise_writeback_check_8_to_A_new    --sid new
+SID/wb_testsuite/noise_writeback_check_8_to_B_new    --sid new
+SID/wb_testsuite/noise_writeback_check_8_to_D_new    --sid new
+SID/wb_testsuite/noise_writeback_check_8_to_E_new    --sid new
+SID/wb_testsuite/noise_writeback_check_8_to_F_new    --sid new
+SID/wb_testsuite/noise_writeback_check_9_to_8_new    --sid new
+SID/wb_testsuite/noise_writeback_check_9_to_9_new    --sid new
+SID/wb_testsuite/noise_writeback_check_9_to_B_new    --sid new
+SID/wb_testsuite/noise_writeback_check_9_to_D_new    --sid new
+SID/wb_testsuite/noise_writeback_check_9_to_F_new    --sid new
+SID/wb_testsuite/noise_writeback_check_A_to_8_new    --sid new
+SID/wb_testsuite/noise_writeback_check_A_to_9_new    --sid new
+SID/wb_testsuite/noise_writeback_check_A_to_A_new    --sid new
+SID/wb_testsuite/noise_writeback_check_A_to_B_new    --sid new
+SID/wb_testsuite/noise_writeback_check_A_to_D_new    --sid new
+SID/wb_testsuite/noise_writeback_check_A_to_E_new    --sid new
+SID/wb_testsuite/noise_writeback_check_A_to_F_new    --sid new
+SID/wb_testsuite/noise_writeback_check_B_to_9_new    --sid new
+SID/wb_testsuite/noise_writeback_check_B_to_A_new    --sid new
+SID/wb_testsuite/noise_writeback_check_B_to_B_new    --sid new
+SID/wb_testsuite/noise_writeback_check_B_to_D_new    --sid new
+SID/wb_testsuite/noise_writeback_check_B_to_E_new    --sid new
+SID/wb_testsuite/noise_writeback_check_B_to_F_new    --sid new
+SID/wb_testsuite/noise_writeback_check_C_to_8_new    --sid new
+SID/wb_testsuite/noise_writeback_check_C_to_9_new    --sid new
+SID/wb_testsuite/noise_writeback_check_C_to_A_new    --sid new
+SID/wb_testsuite/noise_writeback_check_C_to_E_new    --sid new
+SID/wb_testsuite/noise_writeback_check_C_to_F_new    --sid new
+SID/wb_testsuite/noise_writeback_check_D_to_8_new    --sid new
+SID/wb_testsuite/noise_writeback_check_D_to_9_new    --sid new
+SID/wb_testsuite/noise_writeback_check_D_to_B_new    --sid new
+SID/wb_testsuite/noise_writeback_check_D_to_D_new    --sid new
+SID/wb_testsuite/noise_writeback_check_D_to_F_new    --sid new
+SID/wb_testsuite/noise_writeback_check_E_to_8_new    --sid new
+SID/wb_testsuite/noise_writeback_check_E_to_9_new    --sid new
+SID/wb_testsuite/noise_writeback_check_E_to_A_new    --sid new
+SID/wb_testsuite/noise_writeback_check_E_to_B_new    --sid new
+SID/wb_testsuite/noise_writeback_check_E_to_E_new    --sid new
+SID/wb_testsuite/noise_writeback_check_E_to_F_new    --sid new
+SID/wb_testsuite/noise_writeback_check_F_to_9_new    --sid new
+SID/wb_testsuite/noise_writeback_check_F_to_A_new    --sid new
+SID/wb_testsuite/noise_writeback_check_F_to_B_new    --sid new
+SID/wb_testsuite/noise_writeback_check_F_to_D_new    --sid new
+SID/wb_testsuite/noise_writeback_check_F_to_E_new    --sid new
+SID/wb_testsuite/noise_writeback_check_F_to_F_new    --sid new
+SID/writedelay/writedelay                            --sid old
+SID/wf12nsr/wf12nsr                                  --sid old
+SID/wf12nsr/wf12nsr-8580                             --sid new
+SID/noiselfsrinit/simple                             --sid old
+SID/noiselfsrinit/scan                               --sid old
+### VICII ###
+VICII/colorram/test
+VICII/split-tests/bascan/bascan
+VICII/split-tests/lightpen/lightpen                  --vic pal
+VICII/split-tests/lightpen/lightpen                  --vic ntsc
+VICII/split-tests/lightpen/lightpen                  --vic drean
+# are these supposed to work?
+#VICII/split-tests/spritescan/spritescan              --vic pal
+#VICII/split-tests/spritescan/spritescan_drean        --vic drean
+VICII/vspbug/vsp_bug
+VICII/spritesteal/spritesteal                        --vic pal
+VICII/spritesteal/spritesteal_ntsc                   --vic ntsc
+VICII/spritesteal/spritesteal_ntscold                --vic oldntsc
+# sprite collision, won't work
+#VICII/spritex/demusinterruptus
+#VICII/spritex/testsuite                              --vic pal
+#VICII/spritex/testsuite_ntsc                         --vic ntsc
+#VICII/spritex/testsuite_ntscold                      --vic oldntsc
+#VICII/spritey/spritey
+VICII/lplatency/lplatency
+VICII/lp-trigger/test2

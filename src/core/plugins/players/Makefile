@@ -4,7 +4,7 @@ source_dirs := . asap ay dac gme mpt multi music saa sid tfm vgm vgmstream xmp x
 
 po_files := core_players
 
-includes.dirs.sid_base.cpp = $(dirs.root)/3rdparty/sidplayfp
+includes.dirs.sid_base.cpp = $(dirs.root)/3rdparty/sidplayfp/src
 includes.dirs.ffmpeg_decoder.cpp = $(dirs.root)/3rdparty/ffmpeg
 includes.dirs.vgmstream_base.cpp = $(dirs.root)/3rdparty/vgmstream/ext_includes
 includes.dirs.ogg_supp.cpp = $(dirs.root)/3rdparty

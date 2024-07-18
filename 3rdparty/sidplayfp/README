@@ -1,17 +1,16 @@
 libsidplayfp
 ============
 
-http://sourceforge.net/projects/sidplay-residfp/
+https://github.com/libsidplayfp/libsidplayfp
 
-libsidplayfp is a fork of LIBSIDPLAY2, a C64 music player library which
-integrates the reSID SID chip emulation into a cycle-based emulator
-environment, started with primary purpose to improve emulation of the
+libsidplayfp is a C64 music player library which integrates
+the reSID SID chip emulation into a cycle-based emulator
+environment, constantly aiming to improve emulation of the
 C64 system and the SID chips.
 
 Copyright (c) 2000-2001 Simon White
 Copyright (c) 2007-2010 Antti Lankila
-Copyright (c) 2010-2014 Leandro Nini <drfiemost@users.sourceforge.net>
-
+Copyright (c) 2010-2024 Leandro Nini <drfiemost@users.sourceforge.net>
 
 -----------------------------------------------------------------------------
 
@@ -31,11 +30,26 @@ Copyright (c) 2010-2014 Leandro Nini <drfiemost@users.sourceforge.net>
 
 -----------------------------------------------------------------------------
 
+**NOTE**: the git repository contains submodules,
+          clone with the --recurse-submodules option
+
+-----------------------------------------------------------------------------
+
+API documentation available online at
+
+https://libsidplayfp.github.io/libsidplayfp/
+
+-----------------------------------------------------------------------------
+
 * Build
 
 This package uses autotools so the usual ./configure && make is enough to build
-the libraries.
-In addition to the standard options the following are available:
+the libraries. If cloning the bare sources the package need to be bootstrapped
+in advance with the autoreconf -i command. This step requires the xa cross-assembler
+to compile the 6502 code, usually provided by distributions with the xa65 package
+or available at http://www.floodgap.com/retrotech/xa/.
+
+In addition to the standard build options the following are available:
 
 --enable-debug[=no/yes/full]
 compile with debugging messages
@@ -49,17 +63,34 @@ enabled by default
 enable branch hints in reSID engine so the compiler can produce more optimized code
 enabled by default
 
---enable-mmx
-enable some MMX code in reSIDfp that increases performance on old x86 processors which lack
-sse2 support
-disabled by default
+--with-simd=<sse2/mmx/neon/none>
+enable SIMD code in reSIDfp that might increase resampling performance.
+Be aware that this is processor specific and the compiler could actually produce
+more optimized code with the appropriate flags. Use only if you know what you're doing.
+none by default
 
 --enable-testsuite=PATH_TO_TESTSUITE
-add support for running Lorenz testsuite (in prg format). The testsuite is available
-in the svn repository. Intended only for regression tests since it may break normal
+add support for running VICE testsuite (in prg format). The testsuite is available
+in the repository. Intended only for regression tests since it may break normal
 code execution. The path to testsuite must include terminal path separator
 disabled by default
 
+--enable-tests
+enables unit tests. Requires libUnitTest++ installed. Use "make check" to launch the testsuite
+disabled by default
+
+--enable-hardsid
+enables hardsid support
+
+--with-gcrypt / --without-gcrypt
+force/disable libgcrypt support for MD5 computation
+default check
+
+--with-exsid
+Build with exsid support. Requires either libexsid or one of libfdti1 or libftd2xx
+
+--disable-openmp
+do not use OpenMP
 
 
 If doxygen is installed and detected by the configure script the documentation
@@ -70,4 +101,3 @@ can be built by invoking "make doc".
 Known bugs/limitations:
 * mus data embedded in psid file is not supported
 * hardsid support is untested and possibly broken
-* No support for second SID outside the I/O ($Dxxx) area

@@ -31,12 +31,12 @@
 #include <parameters/tracking_helper.h>
 #include <strings/sanitize.h>
 // 3rdparty includes
-#include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
-#include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
-#include <3rdparty/sidplayfp/sidplayfp/SidTune.h>
-#include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
-#include <3rdparty/sidplayfp/sidplayfp/sidmd5.h>
-#include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
+#include <3rdparty/sidplayfp/src/builders/resid-builder/resid.h>
+#include <3rdparty/sidplayfp/src/sidmd5.h>
+#include <3rdparty/sidplayfp/src/sidplayfp/SidInfo.h>
+#include <3rdparty/sidplayfp/src/sidplayfp/SidTune.h>
+#include <3rdparty/sidplayfp/src/sidplayfp/SidTuneInfo.h>
+#include <3rdparty/sidplayfp/src/sidplayfp/sidplayfp.h>
 
 namespace Module::Sid
 {
@@ -57,7 +57,7 @@ namespace Module::Sid
       , Index(selectSong(idx + 1))
     {
       CheckSidplayError(getStatus());
-      sidmd5 md5;
+      libsidplayfp::sidmd5 md5;
       md5.append(data.Start(), data.Size());
       md5.finish();
       MD5 = md5.getDigest();
@@ -157,6 +157,7 @@ namespace Module::Sid
       const uint_t chipsCount = Player.info().maxsids();
       Builder.create(chipsCount);
       Config.frequency = samplerate;
+      Config.powerOnDelay = SidConfig::MAX_POWER_ON_DELAY - 1;
     }
 
     void Load(SidTune& tune)

@@ -1,22 +1,22 @@
 library_name := sidplayfp
 dirs.root := ../..
 
-includes.dirs += $(dirs.root)/3rdparty/sidplayfp/sidplayfp $(dirs.root)/3rdparty/sidplayfp
+includes.dirs += $(dirs.root)/3rdparty/sidplayfp/src
 
-source_dirs = sidplayfp \
-              sidplayfp/c64 \
-              sidplayfp/c64/CIA \
-              sidplayfp/c64/CPU \
-              sidplayfp/c64/VIC_II \
-              sidplayfp/sidtune \
+source_dirs = src \
+              src/c64 \
+              src/c64/CIA \
+              src/c64/CPU \
+              src/c64/VIC_II \
+              src/sidplayfp \
+              src/sidtune \
 
-source_dirs += utils/MD5
+source_dirs += src/utils/MD5
+source_files += src/utils/md5Factory.cpp
 
-source_dirs += builders/resid-builder \
-               builders/resid-builder/resid
+source_dirs += src/builders/resid-builder
 
-#disable for digital tunes playback (e.g. hvsc/MUSICIANS/L/LMan/Vortex.sid)
-#defines += FAST_AND_ROUGH
+source_files += $(foreach src,dac envelope extfilt filter8580new pot sid version voice wave,src/builders/resid-builder/resid/$(src).cc)
 
 includes.files += defines.h
 

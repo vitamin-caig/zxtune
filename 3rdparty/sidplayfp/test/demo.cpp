@@ -1,7 +1,7 @@
 /*
  * This file is part of libsidplayfp, a SID player engine.
  *
- * Copyright 2012-2014 Leandro Nini <drfiemost@users.sourceforge.net>
+ * Copyright 2012-2023 Leandro Nini <drfiemost@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,8 @@
 #include <sidplayfp/builders/residfp.h>
 
 /**
+ * Works on UNIX using OSS
+ *
  * Compile with
  *     g++ `pkg-config --cflags libsidplayfp` `pkg-config --libs libsidplayfp` demo.cpp
  */
@@ -49,6 +51,10 @@
 #define CHARGEN_PATH ""
 
 #define SAMPLERATE 48000
+
+#if __cplusplus < 201103L
+#  define unique_ptr auto_ptr
+#endif
 
 /*
  * Load ROM dump from file.
@@ -72,7 +78,7 @@ char* loadRom(const char* path, size_t romSize)
  * to play a SID tune from a file.
  * It uses OSS for audio output.
  */
-int main(int argc, char* argv[])
+int main(int, char* argv[])
 {
     sidplayfp m_engine;
 
@@ -89,7 +95,7 @@ int main(int argc, char* argv[])
     }
 
     // Set up a SID builder
-    std::auto_ptr<ReSIDfpBuilder> rs(new ReSIDfpBuilder("Demo"));
+    std::unique_ptr<ReSIDfpBuilder> rs(new ReSIDfpBuilder("Demo"));
 
     // Get the number of SIDs supported by the engine
     unsigned int maxsids = (m_engine.info ()).maxsids();
@@ -105,7 +111,7 @@ int main(int argc, char* argv[])
     }
 
     // Load tune from file
-    std::auto_ptr<SidTune> tune(new SidTune(argv[1]));
+    std::unique_ptr<SidTune> tune(new SidTune(argv[1]));
 
     // CHeck if the tune is valid
     if (!tune->getStatus())
@@ -148,11 +154,18 @@ int main(int argc, char* argv[])
     int bufferSize;
     ioctl(handle, SNDCTL_DSP_GETBLKSIZE, &bufferSize);
 
+    uint_least32_t bufferSamples = static_cast<uint_least32_t>(bufferSize) / sizeof(short);
+
     // Play
-    std::vector<short> buffer(bufferSize);
+    std::vector<short> buffer(bufferSamples);
     for (int i=0; i<1000; i++)
     {
-        m_engine.play(&buffer.front(), bufferSize/sizeof(short));
+        uint_least32_t res = m_engine.play(&buffer.front(), bufferSamples);
+        if (!m_engine.isPlaying() || (res < bufferSamples))
+        {
+            std::cerr <<  m_engine.error() << std::endl;
+            break;
+        }
         ::write(handle, &buffer.front(), bufferSize);
     }
 

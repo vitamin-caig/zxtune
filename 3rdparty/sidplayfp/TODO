@@ -1,11 +1,13 @@
-* add an optional VIC II cycle exact emulation
-* add SIDid support
+3.0
+* wrap everything into a library namespace (?)
+* require c++11 (?)
+* add API to allow mixing client side
 
+
+someday/maybe:
+
+* support non-ascii paths on Windows (SidTune, STIL)
+* relocate only psid tunes (?)
+* add SIDid support
 * implement support for mus data embedded in psid files
 * test hardsid support
-
-* improve documentation
-
-* remove the fastForward support (?)
-* move mixer into resid specific class (?)
-* share resampling code between resid emulations (?)
