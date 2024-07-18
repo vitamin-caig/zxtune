@@ -1,11 +1,24 @@
-FROM debian:bookworm-slim
+# --begin: keep in sync with other linux-based builds
+ARG arch
+
+FROM debian:bookworm-slim as debian-buildenv
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates debhelper build-essential fakeroot git zip python3-minimal ccache \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+     ca-certificates debian-ports-archive-keyring \
+     wget xz-utils bzip2 zip nano less sudo \
+     git make cmake g++ gcc python3-minimal ccache && \
+    useradd -m -s /bin/bash -U -G users,sudo -d /build build && \
+    echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers
+ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+# --end
+
+FROM debian-buildenv
+RUN apt-get install -y --no-install-recommends \
+      debhelper build-essential fakeroot \
       libpulse-dev libclalsadrv-dev \
       libboost-locale-dev libboost-program-options-dev libicu-dev \
-      qtbase5-dev && \
-    rm -rf /var/lib/apt/lists/* && \
-    useradd -m -s /bin/bash -U -G users -d /build build
+      qtbase5-dev
 
 # TODO: link own static boost
 USER build

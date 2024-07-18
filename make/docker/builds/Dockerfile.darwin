@@ -1,13 +1,21 @@
-FROM debian:bookworm-slim
-ARG cores=12
+# --begin: keep in sync with other linux-based builds
+ARG arch
+
+FROM debian:bookworm-slim as debian-buildenv
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
-      ca-certificates gnupg2 wget git make zip bzip2 python3-minimal sudo ccache \
-      xz-utils patch icnsutils graphicsmagick-imagemagick-compat genisoimage cmake zlib1g-dev libxml2-dev libssl-dev clang \
-      nano less file && \
+     ca-certificates debian-ports-archive-keyring \
+     wget xz-utils bzip2 zip nano less sudo \
+     git make cmake g++ gcc python3-minimal ccache && \
     useradd -m -s /bin/bash -U -G users,sudo -d /build build && \
-    echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers && \
-    mkdir /ccache && chown build:users /ccache
+    echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers
+ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+# --end
+
+FROM debian-buildenv
+RUN apt-get install -y --no-install-recommends \
+     gnupg2 patch icnsutils graphicsmagick-imagemagick-compat genisoimage zlib1g-dev libxml2-dev libssl-dev clang
 
 #ARG clang=16
 # emulate installation of clang package as if depends on clang-16
@@ -22,7 +30,7 @@ RUN apt-get update && \
 USER build
 WORKDIR build
 
-ENV prebuilt=/build/prebuilt toolchains=/build/toolchains CCACHE_DIR=/ccache
+ARG cores=12
 
 RUN git clone --depth=1 https://github.com/vitamin-caig/libdmg-hfsplus.git && \
     (cd libdmg-hfsplus && cmake -DCMAKE_INSTALL_PREFIX=/usr/local . && make && sudo make install) && \
@@ -43,7 +51,7 @@ RUN git clone https://github.com/tpoechtrager/osxcross && \
       sudo cp -rv build/compiler-rt/compiler-rt/build/lib/darwin  /usr/lib/llvm-14/lib/clang/14.0.6/lib ) && \
     rm -Rf osxcross
 
-ARG arch=x86_64
+ARG arch
 ENV execprefix=${arch}-apple-darwin20.4-
 
 ARG boost=1.82.0
@@ -79,7 +87,7 @@ RUN git clone --depth=1 --branch=v${qt} https://github.com/qt/qt5.git && \
       -no-directfb -no-evdev -no-tslib \
       -no-feature-testlib -no-feature-sql \
       -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -qt-webp -qt-freetype -qt-harfbuzz && \
-      make -j${cores} && make -j${cores} install) && \
+      make -j${cores} install) && \
       rm -Rf qt5*
 
 #Sources

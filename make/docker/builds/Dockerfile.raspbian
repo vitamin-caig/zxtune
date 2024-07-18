@@ -1,13 +1,21 @@
-FROM debian:bookworm-slim
-ARG cores=12
-#Do not remove /var/lib/apt/lists due to later download
+# --begin: keep in sync with other linux-based builds
+ARG arch
+
+FROM debian:bookworm-slim as debian-buildenv
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget ca-certificates gnupg2 \
-      xz-utils bzip2 git make zip g++ python3-minimal sudo nano ccache && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+     ca-certificates debian-ports-archive-keyring \
+     wget xz-utils bzip2 zip nano less sudo \
+     git make cmake g++ gcc python3-minimal ccache && \
     useradd -m -s /bin/bash -U -G users,sudo -d /build build && \
     echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers
+ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+# --end
 
-RUN wget -q -O- https://archive.raspbian.org/raspbian.public.key | gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/raspbian.gpg --import && \
+FROM debian-buildenv
+RUN apt-get install gnupg2 -y --no-install-recommends && \
+    wget -q -O- https://archive.raspbian.org/raspbian.public.key | gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/raspbian.gpg --import && \
     chmod 644 /etc/apt/trusted.gpg.d/raspbian.gpg && \
     echo "deb [arch=armhf] http://mirrordirector.raspbian.org/raspbian/ buster main rpi" > /etc/apt/sources.list.d/raspbian.list && \
     apt-get update
@@ -15,7 +23,7 @@ RUN wget -q -O- https://archive.raspbian.org/raspbian.public.key | gpg --no-defa
 USER build
 WORKDIR /build
 
-ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+ARG cores=12
 
 # Toolchain from https://github.com/abhiTronix/raspberry-pi-cross-compilers
 ARG gcc=10.3.0

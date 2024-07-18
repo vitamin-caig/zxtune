@@ -1,34 +1,39 @@
-ARG arch=x86_64
+# --begin: keep in sync with other linux-based builds
+ARG arch
 
-FROM debian:bookworm-slim AS mingw-x86_64
-ENV arch=x86_64 execprefix=x86_64-w64-mingw32- addressmodel=64
-
-FROM debian:bookworm-slim AS mingw-x86
-ENV arch=x86 execprefix=i686-w64-mingw32- addressmodel=32
-
-FROM debian:bookworm-slim AS mingw-arm64
-ENV arch=arm64 execprefix=aarch64-w64-mingw32- addressmodel=64
-
-FROM mingw-${arch}
-ARG cores=12
+FROM debian:bookworm-slim as debian-buildenv
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates wget xz-utils bzip2 git make zip nano less sudo cmake \
-      g++ gcc python3-minimal ccache && \
-    rm -rf /var/lib/apt/lists/* && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+     ca-certificates debian-ports-archive-keyring \
+     wget xz-utils bzip2 zip nano less sudo \
+     git make cmake g++ gcc python3-minimal ccache && \
     useradd -m -s /bin/bash -U -G users,sudo -d /build build && \
     echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers
-
-USER build
-WORKDIR /build
-
 ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+# --end
 
+FROM debian-buildenv as mingw-buildenv
 ARG llvm_mingw=20230614
 RUN mkdir -p ${toolchains} && cd ${toolchains} && \
     wget -q https://github.com/mstorsjo/llvm-mingw/releases/download/${llvm_mingw}/llvm-mingw-${llvm_mingw}-msvcrt-ubuntu-20.04-x86_64.tar.xz -O- | tar -xJ && \
     mv llvm-mingw* llvm-mingw
-
 ENV PATH=${toolchains}/llvm-mingw/bin:${PATH}
+
+FROM mingw-buildenv AS mingw-x86_64
+ENV arch=x86_64 execprefix=x86_64-w64-mingw32- addressmodel=64
+
+FROM mingw-buildenv AS mingw-x86
+ENV arch=x86 execprefix=i686-w64-mingw32- addressmodel=32
+
+FROM mingw-buildenv AS mingw-arm64
+ENV arch=arm64 execprefix=aarch64-w64-mingw32- addressmodel=64
+
+FROM mingw-${arch}
+USER build
+WORKDIR /build
+
+ARG cores=12
 
 # use mimic gcc toolchain to avoid .lib extension for artifacts
 ARG boost=1.82.0
