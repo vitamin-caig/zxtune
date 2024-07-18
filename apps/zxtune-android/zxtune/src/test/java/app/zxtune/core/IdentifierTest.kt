@@ -21,6 +21,7 @@ class IdentifierTest {
         assertEquals(Uri.EMPTY, dataLocation)
         assertEquals("", subPath)
         assertEquals("", displayFilename)
+        assertEquals("", virtualFilename)
         assertEquals(null, trackIndex)
 
         verifyEquals(this, Identifier.parse(""))
@@ -40,6 +41,7 @@ class IdentifierTest {
             assertEquals(path, dataLocation.toString())
             assertEquals("", subPath)
             assertEquals("file", displayFilename)
+            assertEquals("file", virtualFilename)
             assertEquals(null, trackIndex)
 
             verifyEquals(this, Identifier.parse("${path}#"))
@@ -62,6 +64,7 @@ class IdentifierTest {
             assertEquals(path, dataLocation.toString())
             assertEquals("nested/sub path", this.subPath)
             assertEquals("path > sub path", displayFilename)
+            assertEquals("sub path", virtualFilename)
             assertEquals(null, trackIndex)
 
             verifyEquals(this, Identifier(Uri.parse(path), subPath))
@@ -81,6 +84,47 @@ class IdentifierTest {
             assertEquals(path, dataLocation.toString())
             assertEquals("nested/sub path/#123", this.subPath)
             assertEquals("path > #123", displayFilename)
+            assertEquals("sub path", virtualFilename)
+            assertEquals(123, trackIndex)
+
+            verifyEquals(this, Identifier(Uri.parse(path), subPath))
+        }
+    }
+
+    @Test
+    fun `test parsing full url with packed data`() {
+        val path = "http://host/path?query"
+        val subPath = "nested/sub path/+unGZIP"
+        val subPathEncoded = Uri.encode(subPath)
+
+        with(Identifier.parse("${path}#${subPathEncoded}")) {
+
+            assertEquals("${path}#${subPathEncoded}", toString())
+            assertEquals("${path}#${subPathEncoded}", fullLocation.toString())
+            assertEquals(path, dataLocation.toString())
+            assertEquals("nested/sub path/+unGZIP", this.subPath)
+            assertEquals("path > sub path", displayFilename)
+            assertEquals("sub path", virtualFilename)
+            assertEquals(null, trackIndex)
+
+            verifyEquals(this, Identifier(Uri.parse(path), subPath))
+        }
+    }
+
+    @Test
+    fun `test parsing full url with packed data and index`() {
+        val path = "http://host/path?query"
+        val subPath = "nested/sub path/+unGZIP/#123"
+        val subPathEncoded = Uri.encode(subPath)
+
+        with(Identifier.parse("${path}#${subPathEncoded}")) {
+
+            assertEquals("${path}#${subPathEncoded}", toString())
+            assertEquals("${path}#${subPathEncoded}", fullLocation.toString())
+            assertEquals(path, dataLocation.toString())
+            assertEquals("nested/sub path/+unGZIP/#123", this.subPath)
+            assertEquals("path > #123", displayFilename)
+            assertEquals("sub path", virtualFilename)
             assertEquals(123, trackIndex)
 
             verifyEquals(this, Identifier(Uri.parse(path), subPath))
