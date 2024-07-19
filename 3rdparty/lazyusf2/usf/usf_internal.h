@@ -103,7 +103,7 @@ struct usf_state
     unsigned int r4300emu/* = 0*/;
     int llbit, rompause;
     int stop;
-    long long int reg[32], hi, lo;
+    int64_t reg[32], hi, lo;
     unsigned int next_interupt;
     precomp_instr *PC;
     unsigned int delay_slot, skip_jump/* = 0*/, last_addr;
@@ -120,7 +120,7 @@ struct usf_state
     float *reg_cop1_simple[32];
     double *reg_cop1_double[32];
     int FCR0, FCR31;
-    long long int reg_cop1_fgr_64[32];
+    int64_t reg_cop1_fgr_64[32];
     
     int rounding_mode/* = 0x33F*/;
     // These constants won't be written to, but they need to be located within the struct

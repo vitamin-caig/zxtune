@@ -36,8 +36,8 @@ typedef struct _precomp_instr
      {
     struct
       {
-         long long int *rs;
-         long long int *rt;
+         int64_t *rs;
+         int64_t *rt;
          short immediate;
       } i;
     struct
@@ -46,9 +46,9 @@ typedef struct _precomp_instr
       } j;
     struct
       {
-         long long int *rs;
-         long long int *rt;
-         long long int *rd;
+         int64_t *rs;
+         int64_t *rt;
+         int64_t *rd;
          unsigned char sa;
          unsigned char nrd;
       } r;

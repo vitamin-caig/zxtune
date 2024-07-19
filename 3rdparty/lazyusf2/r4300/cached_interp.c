@@ -51,7 +51,7 @@
    { \
       const int take_jump = (condition); \
       const unsigned int jump_target = (destination); \
-      long long int *link_register = (link); \
+      int64_t *link_register = (link); \
       if (cop1 && check_cop1_unusable(state)) return; \
       if (link_register != &state->reg[0]) \
       { \
@@ -83,7 +83,7 @@
    { \
       const int take_jump = (condition); \
       const unsigned int jump_target = (destination); \
-      long long int *link_register = (link); \
+      int64_t *link_register = (link); \
       if (cop1 && check_cop1_unusable(state)) return; \
       if (link_register != &state->reg[0]) \
       { \

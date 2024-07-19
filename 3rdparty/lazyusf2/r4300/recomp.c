@@ -686,7 +686,7 @@ static void RMFC0(usf_state_t * state)
 {
    state->dst->ops = state->current_instruction_table.MFC0;
    recompile_standard_r_type(state);
-   state->dst->f.r.rd = (long long*)(state->g_cp0_regs + ((state->src >> 11) & 0x1F));
+   state->dst->f.r.rd = (int64_t*)(state->g_cp0_regs + ((state->src >> 11) & 0x1F));
    state->dst->f.r.nrd = (state->src >> 11) & 0x1F;
    if (state->dst->f.r.rt == state->reg) RNOP(state);
 }
