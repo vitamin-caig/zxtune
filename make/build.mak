@@ -86,6 +86,8 @@ all: $(target)
 $(platform).execprefix ?= $(execprefix)
 $(platform).$(arch).execprefix ?= $($(platform).execprefix)
 
+dir.sysroot ?= $(firstword $($(platform).$(arch).crossroot) $($(platform).crossroot) $(crossroot))
+
 #set compiler-specific parameters
 include $(dirs.root)/make/compilers/$(compiler).mak
 

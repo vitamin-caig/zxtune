@@ -44,6 +44,11 @@ CXX_MODE_FLAGS += --coverage
 LD_MODE_FLAGS += --coverage
 endif
 
+ifneq ($(dir.sysroot),)
+CXX_MODE_FLAGS += --sysroot=$(dir.sysroot)
+LD_MODE_FLAGS += --sysroot=$(dir.sysroot)
+endif
+
 DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch))
 INCLUDES_DIRS = $(sort $(includes.dirs) $(includes.dirs.$(platform)) $(includes.dirs.$(notdir $1)))
 INCLUDES_FILES = $(includes.files) $(includes.files.$(platform))
