@@ -206,8 +206,8 @@ namespace
 
       try
       {
-        const auto backend = CreateBackend(module);
-        if (item.get() != ItemCookie)
+        auto backend = CreateBackend(module);
+        if (!backend || item.get() != ItemCookie)
         {
           return;
         }
