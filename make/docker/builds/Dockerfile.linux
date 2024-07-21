@@ -22,15 +22,44 @@ ENV arch=arm64 execprefix=aarch64-linux-gnu- debianarch=arm64 debiancompiler=g++
 FROM debian-buildenv as debian-x86
 ENV arch=x86 execprefix=i686-linux-gnu- debianarch=i386 debiancompiler=g++-i686-linux-gnu
 
+FROM debian-buildenv as debian-armhf
+ENV arch=armhf execprefix=armv6-rpi-linux-gnueabihf- PATH=${toolchains}/x-tools/armv6-rpi-linux-gnueabihf/bin:${PATH}
+# Toolchain from https://github.com/tttapa/docker-arm-cross-toolchain
+RUN mkdir -p ${toolchains} && cd ${toolchains} && \
+    wget -q https://github.com/tttapa/docker-arm-cross-toolchain/releases/download/0.2.0/x-tools-armv6-rpi-linux-gnueabihf-gcc14.tar.xz -O - | tar -xJ
+RUN apt-get install gnupg2 -y --no-install-recommends && \
+    wget -q -O- https://archive.raspbian.org/raspbian.public.key | gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/raspbian.gpg --import && \
+    chmod 644 /etc/apt/trusted.gpg.d/raspbian.gpg && \
+    echo "deb [arch=armhf] http://mirrordirector.raspbian.org/raspbian/ buster main rpi" > /etc/apt/sources.list.d/raspbian.list && \
+    apt-get update
+# Compiler sysroot structure is different from system's so just install to existing sysroot
+RUN cd "${toolchains}/x-tools/armv6-rpi-linux-gnueabihf/armv6-rpi-linux-gnueabihf/sysroot" && \
+    bash -c "apt-get download lib{xcb1{,-dev},xcb-icccm4{,-dev},xcb-{image,randr,render,render-util,shape,shm,util,xfixes,xinerama}0{,-dev},\
+xcb-{sync,xkb}{1,-dev},xcb-keysyms1{,-dev},x11-dev,\
+{fontconfig1,freetype6}{,-dev},xkbcommon{0,-dev},xkbcommon-x11-{0,dev},\
+ssl{1.1,-dev},{bsd0,expat1,xau6,xdmcp6,uuid1},c6{,-dev},png{16-16,-dev},\
+{asound2,pulse}-dev}:armhf zlib1g{,-dev}:armhf" && \
+    (for pkg in *.deb ; do dpkg -x ${pkg} . ; done) && \
+    rm *.deb
+# Fix symbolic links pointed to absolute root
+RUN  cd "${toolchains}/x-tools/armv6-rpi-linux-gnueabihf/armv6-rpi-linux-gnueabihf/sysroot/usr/lib/arm-linux-gnueabihf" && \
+      ln -sf ../../../lib/arm-linux-gnueabihf/libthread_db.so.1 libthread_db.so && \
+      ln -sf ../../../lib/arm-linux-gnueabihf/libz.so.1.2.11 libz.so && \
+      ln -sf ../../../lib/arm-linux-gnueabihf/librt.so.1 librt.so && \
+      ln -sf ../../../lib/arm-linux-gnueabihf/libpthread.so.0 libpthread.so && \
+      ln -sf ../../../lib/arm-linux-gnueabihf/libdl.so.2 libdl.so && \
+      ln -sf ../../../lib/arm-linux-gnueabihf/libm.so.6 libm.so
+
 FROM debian-${arch}
-RUN bash -c "dependencies=(libpulse-dev libasound2-dev zlib1g-dev libssl-dev \
-      libfontconfig1-dev libfreetype6-dev libx11-dev libx11-xcb-dev libxext-dev libxfixes-dev libxi-dev \
+RUN bash -c 'dependencies=(libpulse-dev libasound2-dev zlib1g-dev libssl-dev \
+      libfontconfig1-dev libfreetype6-dev libx11-dev libxfixes-dev libxi-dev \
       libxrender-dev libxcb1-dev libxcb-glx0-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-shm0-dev \
       libxcb-icccm4-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0-dev \
       libxcb-util-dev libxcb-xinerama0-dev libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev); \
-     dpkg --add-architecture ${debianarch} && \
-     apt-get update && \
-     apt-get install -y --no-install-recommends \${dependencies[@]/%/:${debianarch}} ${debiancompiler}"
+      if [ -n "${debianarch}" ]; then \
+       dpkg --add-architecture ${debianarch} && \
+       apt-get update && \
+       apt-get install -y --no-install-recommends ${dependencies[@]/%/:${debianarch}} ${debiancompiler} ; fi'
 
 USER build
 WORKDIR /build
@@ -54,28 +83,30 @@ RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" &
      ./init-repository --module-subset=qtbase,qtimageformats && \
      (cd qtbase/src/corelib && sed -i '/QT_BEGIN_NAMESPACE/i#include <limits>' global/qfloat16.h text/qbytearraymatcher.h global/qendian.h tools/qoffsetstringarray_p.h) && \
      ./configure -v -device linux-generic-g++ -device-option CROSS_COMPILE=${execprefix} \
-      -prefix ${prebuilt}/qt-${qt}-linux-${arch} -release -opensource -static -confirm-license -no-rpath \
+      ${crossroot:+-sysroot ${crossroot}} -extprefix ${prebuilt}/qt-${qt}-linux-${arch} \
+      -release -opensource -static -confirm-license -no-rpath \
       -no-opengl -no-openvg \
-      -no-ico -no-gif -no-cups -no-pch -no-glib \
-      -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms \
-      -xcb -qpa xcb \
-      -no-feature-testlib -no-feature-sql -no-feature-pdf -no-feature-printer \
-      -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig -openssl-linked \
+      -no-ico -no-gif -no-cups -no-pch -no-glib -no-icu \
+      -no-directfb -no-evdev -no-tslib -no-linuxfb -no-kms -no-vulkan \
+      -xcb -bundled-xcb-xinput -no-xcb-xlib -qpa xcb \
+      -no-feature-testlib -no-feature-sql -no-feature-pdf -no-feature-printer -no-feature-gssapi -no-feature-zstd \
+      -qt-harfbuzz -qt-pcre -system-zlib -system-libpng -qt-libjpeg -qt-webp -fontconfig -openssl-linked \
       -make libs && \
-     make -j${cores} install) && \
+     make -j${cores} install && \
+     cp -r config.* ${prebuilt}/qt-${qt}-linux-${arch}) && \
      rm -Rf qt5
 
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=linux\narch=${arch}\n\npackaging=any\ntools.python=python3\nsystem.zlib=1\n" \
+    echo "platform=linux\npackaging=any\ntools.python=python3\nsystem.zlib=1\n" \
          "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n" \
          "ld_flags=-static-libstdc++\n" \
          "cxx_flags=-fPIC\n" \
          "qt.plugins=QXcbIntegrationPlugin QJpegPlugin\n" \
          "libraries.qt.system.linux=qxcb qtpcre2 qtharfbuzz qjpeg png16 fontconfig freetype ssl crypto" \
            "xcb xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-render xcb-render-util xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xinerama" \
-           "xcb-xkb xkbcommon xkbcommon-x11 X11 X11-xcb\n" \
+           "xcb-xkb xkbcommon xkbcommon-x11\n" \
          "libraries.qt.linux=XcbQpa XkbCommonSupport ThemeSupport DBus EdidSupport FontDatabaseSupport ServiceSupport" > variables.mak
 
 WORKDIR /build/zxtune

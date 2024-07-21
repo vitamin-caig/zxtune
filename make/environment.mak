@@ -18,13 +18,6 @@ android.ld.flags = -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-unde
 #this required to use boost which doesn't know anything about __armel__ or __mipsel__
 defines.android += ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N LITTLE_ENDIAN
 
-#linux armhf
-linux.armhf.toolchain = $(toolchains.root)/armhf-linux
-linux.armhf.execprefix = $(linux.armhf.toolchain)/bin/arm-linux-gnueabihf-
-linux.armhf.crossroot = $(prebuilt.dir)/root-linux-armhf
-linux.armhf.qt.libs = $(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf
-linux.armhf.cxx.flags = -march=armv6 -mfpu=vfp -mfloat-abi=hard -Wa,--no-warn
-
 #mingw
 mingw.cxx.flags = -mno-ms-bitfields
 mingw.ld.flags = -static -Wl,--allow-multiple-definition
