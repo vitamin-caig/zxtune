@@ -49,4 +49,9 @@ interface Item {
      * @return Item's duration
      */
     val duration: TimeStamp
+
+    /**
+     * @return Item's raw size in bytes
+     */
+    val size: Long
 }

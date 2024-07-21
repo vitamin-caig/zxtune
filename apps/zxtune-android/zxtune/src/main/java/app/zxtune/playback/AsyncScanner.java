@@ -196,6 +196,11 @@ public final class AsyncScanner {
     }
 
     @Override
+    public long getSize() {
+      return module.getProperty(ModuleAttributes.SIZE, 0);
+    }
+
+    @Override
     public Module getModule() {
       return module;
     }
