@@ -273,6 +273,31 @@ Labels:
  </content>
 </entry>
 
+ <entry>
+ <updated>2013-12-19T12:59:51Z</updated>
+ <id>zxtune_r2850_linux_loong64.tar.gz</id>
+ <link rel="alternate" type="text/html" href="https://bitbucket.org/zxtune/zxtune/downloads" />
+ <link rel="direct" href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_loong64.tar.gz" />
+ <title>
+ zxtune_r2850_linux_loong64.tar.gz (11.2 MB)
+ </title>
+ <author>
+ <name>vitamin....@gmail.com</name>
+ </author>
+ <content type="html">
+&lt;pre&gt;
+zxtune revision 2850
+
+Labels: 
+ Type-Archive
+ OpSys-Linux
+ Platform-loong64
+ Compiler-gcc
+
+&lt;a href=&quot;http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_loong64.tar.gz&quot;&gt;Download&lt;/a&gt;
+&lt;/pre&gt;
+ </content>
+</entry>
  
  <entry>
  <updated>2013-12-19T12:59:18Z</updated>

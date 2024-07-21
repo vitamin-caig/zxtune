@@ -178,6 +178,24 @@ Labels:
 </pre>
  
 
+Entry zxtune_r2850_linux_loong64.tar.gz (11.2 MB)
+ Updated: 2013-12-19
+ DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_loong64.tar.gz
+ AlternateLink: https://bitbucket.org/zxtune/zxtune/downloads
+ HtmlContent: 
+<pre>
+zxtune revision 2850
+
+Labels: 
+ Type-Archive
+ OpSys-Linux
+ Platform-loong64
+ Compiler-gcc
+
+<a href="http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_loong64.tar.gz">Download</a>
+</pre>
+ 
+
 Entry zxtune_r2850_linux_armhf.tar.gz (9.5 MB)
  Updated: 2013-12-19
  DirectLink: http://bitbucket.org/zxtune/zxtune/downloads/zxtune_r2850_linux_armhf.tar.gz

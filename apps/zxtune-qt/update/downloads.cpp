@@ -50,6 +50,7 @@ namespace
   const QLatin1String PLATFORM_ARM("Platform-arm");
   const QLatin1String PLATFORM_ARM64("Platform-arm64");
   const QLatin1String PLATFORM_ARMHF("Platform-armhf");
+  const QLatin1String PLATFORM_LOONG64("Platform-loong64");
   const QLatin1String PLATFORM_MIPSEL("Platform-mipsel");
 
   const QLatin1String TYPE_ZIP(".zip");
@@ -117,6 +118,10 @@ namespace
       else if (Entry.HtmlContent.contains(PLATFORM_ARM))
       {
         return Product::Release::ARM;
+      }
+      else if (Entry.HtmlContent.contains(PLATFORM_LOONG64))
+      {
+        return Product::Release::LOONG64;
       }
       else if (Entry.HtmlContent.contains(PLATFORM_MIPSEL))
       {
