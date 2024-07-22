@@ -32,6 +32,7 @@
 #include <strings/sanitize.h>
 // 3rdparty includes
 #include <3rdparty/sidplayfp/src/builders/resid-builder/resid.h>
+#include <3rdparty/sidplayfp/src/config.h>
 #include <3rdparty/sidplayfp/src/sidmd5.h>
 #include <3rdparty/sidplayfp/src/sidplayfp/SidInfo.h>
 #include <3rdparty/sidplayfp/src/sidplayfp/SidTune.h>
