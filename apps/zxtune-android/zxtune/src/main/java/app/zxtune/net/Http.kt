@@ -44,11 +44,7 @@ object Http {
 private object CompatSSLContext {
     private val context: SSLContext by lazy {
         val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).apply {
-            val trustStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
-                load(null)
-                addCertificate(R.raw.isrgrootx1)
-            }
-            init(trustStore)
+            init(createCustomKeyStore())
         }
         SSLContext.getInstance("TLS").apply {
             init(
@@ -61,12 +57,39 @@ private object CompatSSLContext {
         get() = context.socketFactory
 }
 
-private fun KeyStore.addCertificate(@RawRes id: Int) = loadCustomCert(id).apply {
-    Log.d("SSL", "addCertificate(%s)", subjectX500Principal.name)
-    setCertificateEntry(subjectX500Principal.name, this)
+private fun createCustomKeyStore() = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
+    load(null)
+    if (addCustomCA("ISRG Root X1", R.raw.isrgrootx1)) {
+        addSupportedCAs()
+    }
+}
+
+private fun KeyStore.addCustomCA(alias: String, @RawRes id: Int): Boolean {
+    if (!containsAlias(alias)) {
+        loadCustomCert(id).apply {
+            Log.d("SSL", "addCustomCA(%s) = %s", alias, subjectX500Principal.name)
+            setCertificateEntry(alias, this)
+        }
+        return true
+    }
+    Log.d("SSL", "Already exists %s", alias)
+    return false
 }
 
 private fun loadCustomCert(@RawRes id: Int) =
     MainApplication.getGlobalContext().resources.openRawResource(id).use {
         CertificateFactory.getInstance("X.509").generateCertificate(it) as X509Certificate
     }
+
+private fun KeyStore.addSupportedCAs() = KeyStore.getInstance("AndroidCAStore").let { system ->
+    system.load(null)
+    for (alias in system.aliases()) {
+        val cert = system.getCertificate(alias)
+        Log.d(
+            "SSL",
+            "addSystemCA(%s)",
+            (cert as? X509Certificate)?.subjectX500Principal?.name ?: cert.toString()
+        )
+        setCertificateEntry(alias, cert)
+    }
+}
