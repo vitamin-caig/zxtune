@@ -207,7 +207,7 @@ public final class VfsArchive {
     });
   }
 
-  private class ArchiveRoot extends StubObject implements VfsDir {
+  private class ArchiveRoot implements VfsDir, VfsFile {
 
     private final VfsFile file;
 
@@ -226,8 +226,23 @@ public final class VfsArchive {
     }
 
     @Override
+    public String getDescription() {
+      return file.getDescription();
+    }
+
+    @Override
     public VfsObject getParent() {
       return file.getParent();
+    }
+
+    @Override
+    public Object getExtension(String id) {
+      return file.getExtension(id);
+    }
+
+    @Override
+    public String getSize() {
+      return file.getSize();
     }
 
     @Override
