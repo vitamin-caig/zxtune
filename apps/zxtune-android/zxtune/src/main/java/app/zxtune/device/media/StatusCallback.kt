@@ -70,6 +70,7 @@ internal class StatusCallback private constructor(
             putNonEmptyString(ModuleAttributes.PROGRAM, item.program)
             putNonEmptyString(ModuleAttributes.STRINGS, item.strings)
             putLong(MediaMetadataCompat.METADATA_KEY_DURATION, item.duration.toMilliseconds())
+            putLong(ModuleAttributes.SIZE, item.size.toLong())
             putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, dataId.toString())
             putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, item.id.toString())
         }
@@ -103,13 +104,6 @@ internal class StatusCallback private constructor(
                 val location = dataId.dataLocation
                 val obj = Vfs.resolve(location)
                 putNonEmptyString(VfsExtensions.SHARE_URL, obj.shareUrl)
-                if (dataId.subPath.isEmpty() && obj is VfsFile) {
-                    if (null != Vfs.getCacheOrFile(obj)) {
-                        putNonEmptyString(
-                            VfsExtensions.FILE, getFileUriFor(location).toString()
-                        )
-                    }
-                }
                 with(CoverartService.get()) {
                     maybeAddImageUri(
                         MediaMetadataCompat.METADATA_KEY_ART_URI, coverArtOf(dataId)

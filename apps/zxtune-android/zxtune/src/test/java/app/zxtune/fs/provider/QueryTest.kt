@@ -12,6 +12,8 @@ private const val ENCODED_PATH = "scheme%3A%2Fpath%3Fwith%2Fquery"
 
 private const val SEARCH_QUERY = "to search"
 
+private const val FILE_SIZE = 12345L
+
 private const val AUTHORITY = "content://app.zxtune.vfs"
 
 private const val MIME_ITEM = "vnd.android.cursor.item/vnd.app.zxtune.vfs.item"
@@ -28,6 +30,7 @@ class QueryTest {
             assertEquals(MIME_ITEM, Query.mimeTypeOf(uri))
             assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_RESOLVE, Query.getUriType(uri))
             assertEquals(uri, Query.resolveUriFor(Uri.parse(PATH)))
         }
@@ -35,6 +38,7 @@ class QueryTest {
             assertEquals(MIME_ITEM, Query.mimeTypeOf(uri))
             assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_RESOLVE, Query.getUriType(uri))
         }
     }
@@ -45,6 +49,7 @@ class QueryTest {
             assertEquals(MIME_GROUP, Query.mimeTypeOf(uri))
             assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_LISTING, Query.getUriType(uri))
             assertEquals(uri, Query.listingUriFor(Uri.parse(PATH)))
         }
@@ -52,6 +57,7 @@ class QueryTest {
             assertEquals(MIME_GROUP, Query.mimeTypeOf(uri))
             assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_LISTING, Query.getUriType(uri))
         }
     }
@@ -62,6 +68,7 @@ class QueryTest {
             assertEquals(MIME_SIMPLEITEMS, Query.mimeTypeOf(uri))
             assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_PARENTS, Query.getUriType(uri))
             assertEquals(uri, Query.parentsUriFor(Uri.parse(PATH)))
         }
@@ -69,6 +76,7 @@ class QueryTest {
             assertEquals(MIME_SIMPLEITEMS, Query.mimeTypeOf(uri))
             assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_PARENTS, Query.getUriType(uri))
         }
     }
@@ -79,6 +87,8 @@ class QueryTest {
             assertEquals(MIME_GROUP, Query.mimeTypeOf(uri))
             assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
             assertEquals(SEARCH_QUERY, Query.getQueryFrom(uri))
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_SEARCH, Query.getUriType(uri))
             assertEquals(uri, Query.searchUriFor(Uri.parse(PATH), SEARCH_QUERY))
         }
@@ -86,30 +96,41 @@ class QueryTest {
             assertEquals(MIME_GROUP, Query.mimeTypeOf(uri))
             assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_SEARCH, Query.getUriType(uri))
         }
         Uri.parse("${AUTHORITY}/search").let { uri ->
             assertEquals(MIME_GROUP, Query.mimeTypeOf(uri))
             assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_SEARCH, Query.getUriType(uri))
         }
     }
 
     @Test
     fun `test file uri`() {
-        Uri.parse("${AUTHORITY}/file/${ENCODED_PATH}").let { uri ->
-            assertEquals(MIME_ITEM, Query.mimeTypeOf(uri))
-            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertEquals(Query.TYPE_FILE, Query.getUriType(uri))
-            assertEquals(uri, Query.fileUriFor(Uri.parse(PATH)))
-        }
         Uri.parse("${AUTHORITY}/file").let { uri ->
             assertThrowsIllegalArgumentException { Query.mimeTypeOf(uri) }
             assertThrowsIllegalArgumentException { Query.getPathFrom(uri) }
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(-1, Query.getUriType(uri))
+        }
+        Uri.parse("${AUTHORITY}/file/${ENCODED_PATH}").let { uri ->
+            assertEquals(MIME_ITEM, Query.mimeTypeOf(uri))
+            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
+            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
+            assertEquals(Query.TYPE_FILE, Query.getUriType(uri))
+        }
+        Uri.parse("${AUTHORITY}/file/${ENCODED_PATH}?size=${FILE_SIZE}").let { uri ->
+            assertEquals(MIME_ITEM, Query.mimeTypeOf(uri))
+            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
+            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertEquals(FILE_SIZE, Query.getSizeFrom(uri))
+            assertEquals(Query.TYPE_FILE, Query.getUriType(uri))
+            assertEquals(uri, Query.fileUriFor(Uri.parse(PATH), FILE_SIZE))
         }
     }
 
@@ -119,6 +140,7 @@ class QueryTest {
             assertEquals(MIME_NOTIFICATION, Query.mimeTypeOf(uri))
             assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_NOTIFICATION, Query.getUriType(uri))
             assertEquals(uri, Query.notificationUriFor(Uri.parse(PATH)))
         }
@@ -126,6 +148,7 @@ class QueryTest {
             assertEquals(MIME_NOTIFICATION, Query.mimeTypeOf(uri))
             assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.TYPE_NOTIFICATION, Query.getUriType(uri))
         }
     }

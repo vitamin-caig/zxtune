@@ -10,7 +10,9 @@ import android.support.v4.media.MediaMetadataCompat
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContract
 import app.zxtune.analytics.Analytics
+import app.zxtune.core.ModuleAttributes
 import app.zxtune.fs.VfsExtensions
+import app.zxtune.fs.provider.VfsProviderClient
 import app.zxtune.utils.ifNotNulls
 
 /*
@@ -107,7 +109,11 @@ private val MediaMetadataCompat.shareUrl
     get() = getString(VfsExtensions.SHARE_URL)
 
 private val MediaMetadataCompat.contentUrl
-    get() = getString(VfsExtensions.FILE)
+    get() = ifNotNulls(
+        description.mediaUri,
+        getLong(ModuleAttributes.SIZE),
+        VfsProviderClient::getFileUriFor
+    )
 
 private fun guessSocialAction(extra: Bundle) = when {
     extra.getParcelable<Uri>(Intent.EXTRA_STREAM) != null -> Analytics.SOCIAL_ACTION_SEND
