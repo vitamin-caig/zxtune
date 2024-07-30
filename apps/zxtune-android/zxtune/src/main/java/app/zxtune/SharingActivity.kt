@@ -1,6 +1,7 @@
 package app.zxtune
 
 import android.app.Activity
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -30,23 +31,24 @@ class SharingActivity : ComponentActivity() {
         @JvmStatic
         fun maybeCreateShareIntent(ctx: Context, metadata: MediaMetadataCompat) =
             metadata.shareUrl?.let { shareUrl ->
-                makeSendIntent("text/plain", metadata.description)
-                    .apply {
-                        putExtra(Intent.EXTRA_TEXT, ctx.getString(R.string.share_text, shareUrl))
-                    }.let {
-                        wrap(ctx, metadata.description, it)
-                    }
+                makeSendIntent("text/plain", metadata.description).apply {
+                    putExtra(Intent.EXTRA_TEXT, ctx.getString(R.string.share_text, shareUrl))
+                }.let {
+                    wrap(ctx, metadata.description, it)
+                }
             }
 
         @JvmStatic
         fun maybeCreateSendIntent(ctx: Context, metadata: MediaMetadataCompat) =
             metadata.contentUrl?.let { contentUrl ->
                 makeSendIntent("application/octet", metadata.description).apply {
+                    val label = ctx.getString(R.string.send_text, metadata.shareUrl ?: "")
                     putExtra(
-                        Intent.EXTRA_TEXT,
-                        ctx.getString(R.string.send_text, metadata.shareUrl ?: "")
+                        Intent.EXTRA_TEXT, label
                     )
-                    putExtra(Intent.EXTRA_STREAM, Uri.parse(contentUrl))
+                    putExtra(Intent.EXTRA_STREAM, contentUrl)
+                    clipData = ClipData.newRawUri(label, contentUrl)
+                    data = contentUrl
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }.let {
                     wrap(ctx, metadata.description, it)
@@ -67,17 +69,26 @@ class SharingActivity : ComponentActivity() {
     }
 
     private val request = registerForActivityResult(ActivityPickerContract()) { data ->
-        if (data != null) {
-            ifNotNulls(
-                intent?.data,
-                data.component?.packageName,
-                data.extras?.let { guessSocialAction(it) },
-                Analytics::sendSocialEvent
-            )
-            data.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(data)
+        data?.let {
+            sendOrShare(data)
         }
         finish()
+    }
+
+    private fun sendOrShare(request: Intent) {
+        val pkg = request.component?.packageName
+        ifNotNulls(
+            intent?.data,
+            pkg,
+            request.extras?.let { guessSocialAction(it) },
+            Analytics::sendSocialEvent
+        )
+        ifNotNulls(pkg, request.data) { toPackage, uri ->
+            grantUriPermission(toPackage, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            request.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        request.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(request)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -110,9 +121,7 @@ private val MediaMetadataCompat.shareUrl
 
 private val MediaMetadataCompat.contentUrl
     get() = ifNotNulls(
-        description.mediaUri,
-        getLong(ModuleAttributes.SIZE),
-        VfsProviderClient::getFileUriFor
+        description.mediaUri, getLong(ModuleAttributes.SIZE), VfsProviderClient::getFileUriFor
     )
 
 private fun guessSocialAction(extra: Bundle) = when {
