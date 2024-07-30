@@ -48,7 +48,7 @@ private val LOG = Logger(RemoteCatalog::class.java.name)
 open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
     override fun queryGroups(visitor: Catalog.GroupsVisitor) =
-        getQueryUriBuilder("groups", "").build().let { uri ->
+        getQueryUri("groups", "").let { uri ->
             LOG.d { "queryGroups()" }
             readDoc(uri).select("tr>td>a[href^=newresult.php?request=groupid]").also {
                 visitor.setCountHint(it.size)
@@ -60,24 +60,24 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         }
 
     override fun queryAuthors(handleFilter: String, visitor: Catalog.AuthorsVisitor) =
-        getQueryUriBuilder("list", handleFilter).let { uri ->
+        getQueryUri("list", handleFilter).let { uri ->
             LOG.d { "queryAuthors(handleFilter=${handleFilter})" }
             queryAuthorsInternal(uri, visitor)
         }
 
     override fun queryAuthors(country: Country, visitor: Catalog.AuthorsVisitor) =
-        getQueryUriBuilder("country", country.id.toString()).let { uri ->
+        getQueryUri("country", country.id.toString()).let { uri ->
             LOG.d { "queryAuthors(country=${country.id})" }
             queryAuthorsInternal(uri, visitor)
         }
 
     override fun queryAuthors(group: Group, visitor: Catalog.AuthorsVisitor) =
-        getQueryUriBuilder("groupid", group.id.toString()).let { uri ->
+        getQueryUri("groupid", group.id.toString()).let { uri ->
             LOG.d { "queryAuthors(group=${group.id})" }
             queryAuthorsInternal(uri, visitor)
         }
 
-    private fun queryAuthorsInternal(uri: Uri.Builder, visitor: Catalog.AuthorsVisitor) =
+    private fun queryAuthorsInternal(uri: Uri, visitor: Catalog.AuthorsVisitor) =
         loadPages(uri) { doc ->
             parseAuthors(doc, visitor)
         }
@@ -110,7 +110,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
     open fun searchSupported() = http.hasConnection()
 
     override fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) =
-        getQueryUriBuilder("module", query).let { uri ->
+        getQueryUri("module", query).let { uri ->
             LOG.d { "findTracks(query=${query})" }
             loadPages(uri) { doc ->
                 parseFoundTracks(doc, visitor)
@@ -135,7 +135,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         fun onPage(doc: Document)
     }
 
-    private fun loadPages(query: Uri.Builder, visitor: PagesVisitor) {
+    private fun loadPages(query: Uri, visitor: PagesVisitor) {
         var offset = 0
         while (true) {
             val doc = readDoc(getPageUrl(query, offset))
@@ -156,16 +156,16 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
     private fun readDoc(base: Uri) = HtmlUtils.parseDoc(http.getInputStream(base))
 }
 
-private fun getPageUrl(base: Uri.Builder, start: Int) =
-    base.appendQueryParameter("position", start.toString()).build().also {
+private fun getPageUrl(base: Uri, start: Int) =
+    base.buildUpon().appendQueryParameter("position", start.toString()).build().also {
         LOG.d { "Load page: $it" }
     }
 
 private fun getMainUriBuilder() = Uri.Builder().scheme("https").authority("amp.dascene.net")
 
-private fun getQueryUriBuilder(request: String, search: String) =
+private fun getQueryUri(request: String, search: String) =
     getMainUriBuilder().appendPath("newresult.php").appendQueryParameter("request", request)
-        .appendQueryParameter("search", search)
+        .appendQueryParameter("search", search).build()
 
 private fun getAuthorTracksUri(id: Int) =
     getMainUriBuilder().appendPath("detail.php").appendQueryParameter("detail", "modules")
