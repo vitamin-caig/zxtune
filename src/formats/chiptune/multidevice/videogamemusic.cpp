@@ -208,7 +208,7 @@ namespace Formats::Chiptune
         const auto comment = ReadUTF16(input);
         if (const auto splitted = Strings::Split(comment, "\r\n"_sv); !splitted.empty())
         {
-          Strings::Array strings;
+          Strings::Array strings(splitted.size());
           std::transform(splitted.begin(), splitted.end(), strings.begin(), &Strings::Sanitize);
           target.SetStrings(strings);
         }
