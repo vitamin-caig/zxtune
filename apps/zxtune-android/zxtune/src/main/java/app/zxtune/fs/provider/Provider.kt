@@ -9,6 +9,7 @@ import androidx.annotation.VisibleForTesting
 import app.zxtune.Logger
 import app.zxtune.MainApplication
 import java.io.FileNotFoundException
+import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
 
 class Provider @VisibleForTesting internal constructor(
@@ -109,7 +110,8 @@ class Provider @VisibleForTesting internal constructor(
                 callback,
                 Query.getQueryFrom(uri)
             )
-            Query.TYPE_FILE -> FileOperation(path, resolver, projection)
+
+            Query.TYPE_FILE -> FileOperation(path, Query.getSizeFrom(uri), resolver, projection)
             else -> throw UnsupportedOperationException("Unsupported uri $uri")
         }
     }
@@ -130,7 +132,21 @@ class Provider @VisibleForTesting internal constructor(
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
         try {
             if (Query.getUriType(uri) == Query.TYPE_FILE) {
-                return FileOperation(Query.getPathFrom(uri), resolver, null).openFile(mode)
+                require("r" == mode) { "Invalid mode: $mode" }
+                val path = Query.getPathFrom(uri)
+                val size = Query.getSizeFrom(uri)
+                return FileOperation(path, size, resolver, null).run {
+                    openPipeHelper(
+                        path,
+                        "application/octet",
+                        null,
+                        null
+                    ) { out, _, _, _, _ ->
+                        FileOutputStream(out.fileDescriptor).use {
+                            consumeContent(it.channel)
+                        }
+                    }
+                }
             }
         } catch (e: Exception) {
             LOG.w(e) { "Failed to open file $uri" }

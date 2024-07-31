@@ -88,12 +88,17 @@ namespace
       Require(progressClass);
       OnProgress = env->GetMethodID(progressClass, "onProgressUpdate", "(II)V");
       Require(OnProgress);
+      auto* const dataClass = env->FindClass("app/zxtune/core/jni/DataCallback");
+      Require(dataClass);
+      OnData = env->GetMethodID(dataClass, "onData", "(Ljava/nio/ByteBuffer;)V");
+      Require(OnData);
     }
 
     static void Cleanup(JNIEnv* /*env*/)
     {
       OnModule = 0;
       OnProgress = 0;
+      OnData = 0;
     }
 
     static void CallOnModule(JNIEnv* env, jobject cb, const String& subpath, jobject module)
@@ -116,15 +121,24 @@ namespace
       Jni::ThrowIfError(env);
     }
 
+    static void CallOnData(JNIEnv* env, jobject cb, Binary::View data)
+    {
+      const auto buf = env->NewDirectByteBuffer(const_cast<void*>(data.Start()), data.Size());
+      env->CallVoidMethod(cb, OnData, buf);
+      Jni::ThrowIfError(env);
+    }
+
   private:
     static jmethodID OnModule;
     static jmethodID OnPicture;
     static jmethodID OnProgress;
+    static jmethodID OnData;
   };
 
   jmethodID CallbacksJni::OnModule;
   jmethodID CallbacksJni::OnPicture;
   jmethodID CallbacksJni::OnProgress;
+  jmethodID CallbacksJni::OnData;
 
 #undef Require
   const ZXTune::Service& GetService()
@@ -270,6 +284,23 @@ EXPORTED jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule(JNIEnv* env,
   return Jni::Call(env, [=]() {
     auto module = CreateModule(Binary::CreateByteBufferContainer(env, buffer), Jni::JstringView(env, subpath));
     return CreateJniObject(env, std::move(module));
+  });
+}
+
+EXPORTED void JNICALL Java_app_zxtune_core_jni_JniApi_loadModuleData(JNIEnv* env, jobject /*self*/, jobject buffer,
+                                                                     jstring subpath, jobject cb)
+{
+  return Jni::Call(env, [=]() {
+    try
+    {
+      const auto data =
+          GetService().OpenData(Binary::CreateByteBufferContainer(env, buffer), Jni::JstringView(env, subpath));
+      return CallbacksJni::CallOnData(env, cb, *data);
+    }
+    catch (const Error& e)
+    {
+      throw Jni::ResolvingException(e.GetText());
+    }
   });
 }
 

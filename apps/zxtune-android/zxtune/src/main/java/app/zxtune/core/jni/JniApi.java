@@ -30,6 +30,9 @@ class JniApi implements Api {
   public native Module loadModule(ByteBuffer data, String subPath) throws ResolvingException;
 
   @Override
+  public native void loadModuleData(ByteBuffer data, String subPath, DataCallback callback) throws ResolvingException;
+
+  @Override
   public native void detectModules(ByteBuffer data, DetectCallback callback, @Nullable ProgressCallback progress);
 
   @Override

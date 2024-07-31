@@ -19,13 +19,14 @@ class Identifier private constructor(builder: Uri.Builder) {
     val displayFilename: String
         get() {
             val filename = dataLocation.lastPathSegment.orEmpty()
-            val nestedName = subPath
-            return if (nestedName.isEmpty()) {
-                filename
-            } else {
-                "$filename > ${nestedName.substringAfterLast(SUBPATH_DELIMITER)}"
-            }
+            return subPath.extractFilename { !it.isPackedDataIdentifier }?.let { nestedName ->
+                "$filename > $nestedName"
+            } ?: filename
         }
+
+    val virtualFilename
+        get() = subPath.extractFilename { !it.isPackedDataIdentifier && !it.isTrackIndexIdentifier }
+            ?: dataLocation.lastPathSegment.orEmpty()
 
     val trackIndex: Int?
         get() = subPath.substringAfterLast("${SUBPATH_DELIMITER}${TRACK_INDEX_PREFIX}", "")
@@ -64,3 +65,25 @@ class Identifier private constructor(builder: Uri.Builder) {
         fun parse(str: String?) = str?.let { Identifier(Uri.parse(it)) } ?: EMPTY
     }
 }
+
+private val CharSequence.isPackedDataIdentifier
+    get() = startsWith("+un")
+
+private val CharSequence.isTrackIndexIdentifier
+    get() = startsWith(Identifier.TRACK_INDEX_PREFIX)
+
+private fun CharSequence.splitAsPath() =
+    when (val lastDelimiter = lastIndexOf(Identifier.SUBPATH_DELIMITER)) {
+        -1 -> "" to this
+        else -> subSequence(0, lastDelimiter) to subSequence(lastDelimiter + 1, length)
+    }
+
+private fun CharSequence.extractFilename(filter: (CharSequence) -> Boolean): CharSequence? =
+    splitAsPath().run {
+        when {
+            second.isEmpty() -> null
+            filter(second) -> second
+            first.isEmpty() -> null
+            else -> first.extractFilename(filter)
+        }
+    }

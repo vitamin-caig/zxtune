@@ -56,6 +56,7 @@ struct JNIEnv
 
   jobjectArray NewObjectArray(jint, jclass, jobject) const;
   void SetObjectArrayElement(jobjectArray, jint, jobject) const;
+  jobject NewDirectByteBuffer(void*, jlong) const;
   const void* GetDirectBufferAddress(jobject) const;
   jlong GetDirectBufferCapacity(jobject) const;
   jsize GetArrayLength(jarray) const;

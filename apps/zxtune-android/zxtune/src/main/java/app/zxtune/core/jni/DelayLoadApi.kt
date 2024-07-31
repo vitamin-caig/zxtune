@@ -14,8 +14,7 @@ import kotlin.concurrent.withLock
 private val LOG = Logger(DelayLoadApi::class.java.name)
 
 internal class DelayLoadApi @VisibleForTesting constructor(
-    private val ref: AtomicReference<Api>,
-    private val factory: () -> Api
+    private val ref: AtomicReference<Api>, private val factory: () -> Api
 ) : Api {
 
     private val lock = ReentrantLock()
@@ -74,10 +73,11 @@ internal class DelayLoadApi @VisibleForTesting constructor(
     override fun loadModule(data: ByteBuffer, subPath: String) =
         waitForLoad().loadModule(data, subPath)
 
+    override fun loadModuleData(data: ByteBuffer, subPath: String, callback: DataCallback) =
+        waitForLoad().loadModuleData(data, subPath, callback)
+
     override fun detectModules(
-        data: ByteBuffer,
-        callback: DetectCallback,
-        progress: ProgressCallback?
+        data: ByteBuffer, callback: DetectCallback, progress: ProgressCallback?
     ) = waitForLoad().detectModules(data, callback, progress)
 
     override fun enumeratePlugins(visitor: Plugins.Visitor) =
@@ -92,10 +92,11 @@ private class ErrorApi(error: Throwable) : Api {
 
     override fun loadModule(data: ByteBuffer, subPath: String): Module = throw error
 
+    override fun loadModuleData(data: ByteBuffer, subPath: String, callback: DataCallback) =
+        throw error
+
     override fun detectModules(
-        data: ByteBuffer,
-        callback: DetectCallback,
-        progress: ProgressCallback?
+        data: ByteBuffer, callback: DetectCallback, progress: ProgressCallback?
     ) = throw error
 
     override fun enumeratePlugins(visitor: Plugins.Visitor) = throw error

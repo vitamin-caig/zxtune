@@ -17,7 +17,7 @@ import androidx.annotation.IntDef
  * content://app.zxtune.vfs/listing/${path} - get directory content by full path
  * content://app.zxtune.vfs/parents/${path} - get object parents chain
  * content://app.zxtune.vfs/search/${path}?query=${query} - start search
- * content://app.zxtune.vfs/file/${path} - get information about and file object about local file
+ * content://app.zxtune.vfs/file/${path}?size=${size} - get information/content of track file
  * content://app.zxtune.vfs/notification/${path} - get path-related notification
  */
 internal object Query {
@@ -40,6 +40,7 @@ internal object Query {
     private const val SEARCH_PATH = "search"
     private const val QUERY_PARAM = "query"
     private const val FILE_PATH = "file"
+    private const val SIZE_PARAM = "size"
     private const val NOTIFICATION_PATH = "notification"
     private const val ITEM_SUBTYPE = "vnd.$AUTHORITY.item"
     private const val SIMPLE_ITEM_SUBTYPE = "vnd.$AUTHORITY.simple_item"
@@ -83,6 +84,10 @@ internal object Query {
         uri.takeIf { uriTemplate.match(uri) == TYPE_SEARCH }?.getQueryParameter(QUERY_PARAM)
             ?: throw IllegalArgumentException("Wrong search URI: $uri")
 
+    fun getSizeFrom(uri: Uri) =
+        uri.takeIf { uriTemplate.match(uri) == TYPE_FILE }?.getQueryParameter(SIZE_PARAM)
+            ?.toLongOrNull() ?: throw IllegalArgumentException("Wrong file URI: $uri")
+
     @Type
     fun getUriType(uri: Uri) = uriTemplate.match(uri)
 
@@ -95,7 +100,8 @@ internal object Query {
     fun searchUriFor(uri: Uri, query: String): Uri =
         makeUri(SEARCH_PATH, uri).appendQueryParameter(QUERY_PARAM, query).build()
 
-    fun fileUriFor(uri: Uri): Uri = makeUri(FILE_PATH, uri).build()
+    fun fileUriFor(uri: Uri, size: Long): Uri =
+        makeUri(FILE_PATH, uri).appendQueryParameter(SIZE_PARAM, size.toString()).build()
 
     fun notificationUriFor(uri: Uri): Uri = makeUri(NOTIFICATION_PATH, uri).build()
 

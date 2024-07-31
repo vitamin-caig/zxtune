@@ -98,7 +98,7 @@ class VfsProviderClient(ctx: Context) {
 
     companion object {
         @JvmStatic
-        fun getFileUriFor(uri: Uri) = Query.fileUriFor(uri)
+        fun getFileUriFor(uri: Uri, size: Long) = Query.fileUriFor(uri, size)
 
         private fun getListing(cursor: Cursor, cb: ListingCallback) {
             while (cursor.moveToNext()) {

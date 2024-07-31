@@ -43,4 +43,9 @@ object ModuleAttributes {
      * Embedded picture
      */
     const val PICTURE = "Picture"
+
+    /**
+     * Raw module size
+     */
+    const val SIZE = "Size"
 }

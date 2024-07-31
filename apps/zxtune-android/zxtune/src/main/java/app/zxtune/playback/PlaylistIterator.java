@@ -171,6 +171,11 @@ class PlaylistIterator implements Iterator {
     }
 
     @Override
+    public long getSize() {
+      return content.getSize();
+    }
+
+    @Override
     public Module getModule() {
       return content.getModule();
     }

@@ -37,4 +37,7 @@ open class ItemStub : Item {
 
     override val duration: TimeStamp
         get() = TimeStamp.EMPTY
+
+    override val size: Long
+        get() = 0
 }
