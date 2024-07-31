@@ -50,6 +50,27 @@ RUN  cd "${toolchains}/x-tools/armv6-rpi-linux-gnueabihf/armv6-rpi-linux-gnueabi
       ln -sf ../../../lib/arm-linux-gnueabihf/libdl.so.2 libdl.so && \
       ln -sf ../../../lib/arm-linux-gnueabihf/libm.so.6 libm.so
 
+FROM debian-buildenv as debian-loong64
+ENV arch=loong64 execprefix=loongarch64-unknown-linux-gnu- PATH=${toolchains}/cross-tools/bin:${PATH} crossroot=/build/rootfs-loong64
+# Toolchain and rootfs from https://github.com/loongson/build-tools
+RUN mkdir -p ${toolchains} && cd ${toolchains} && \
+    wget -q https://github.com/loongson/build-tools/releases/download/2024.06.01/x86_64-cross-tools-loongarch64-binutils_2.42-gcc_14.1.0-glibc_2.39.tar.xz -O - | tar -xJ
+RUN mkdir -p ${crossroot} && \
+    apt-get install -y squashfs-tools && \
+    echo 'Fetch and unpack rootfs' && \
+    wget -q https://github.com/loongson/build-tools/releases/download/2023.08.08/clfs-loongarch64-system-8.1-sysroot.squashfs && \
+    unsquashfs -d ${crossroot} *.squashfs usr/include usr/lib usr/lib64 && \
+    (echo 'Cleanup rootfs' && cd ${crossroot}/usr && \
+      # qt5
+      rm -Rf include/qt* lib64/metatypes/qt* lib64/pkgconfig/Qt* lib64/libQt* lib64/cmake/Qt* lib64/qt* && \
+      # boost
+      rm -Rf include/boost lib64/cmake/?oost* lib64/libboost* \
+    ) && \
+    rm *.squashfs && \
+    echo 'Protect crossroot' && chmod -R a-w ${crossroot} && \
+    # TODO: create or switch user before this stage, should be no more root'ed folders!
+    chown build /build
+
 FROM debian-${arch}
 RUN bash -c 'dependencies=(libpulse-dev libasound2-dev zlib1g-dev libssl-dev \
       libfontconfig1-dev libfreetype6-dev libx11-dev libxfixes-dev libxi-dev \
@@ -82,6 +103,7 @@ RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" &
     (cd qt5 && \
      ./init-repository --module-subset=qtbase,qtimageformats && \
      (cd qtbase/src/corelib && sed -i '/QT_BEGIN_NAMESPACE/i#include <limits>' global/qfloat16.h text/qbytearraymatcher.h global/qendian.h tools/qoffsetstringarray_p.h) && \
+     sed -i '/__mips__/adefined(__loongarch__) || \\' qtbase/src/3rdparty/double-conversion/include/double-conversion/utils.h && \
      ./configure -v -device linux-generic-g++ -device-option CROSS_COMPILE=${execprefix} \
       ${crossroot:+-sysroot ${crossroot}} -extprefix ${prebuilt}/qt-${qt}-linux-${arch} \
       -release -opensource -static -confirm-license -no-rpath \

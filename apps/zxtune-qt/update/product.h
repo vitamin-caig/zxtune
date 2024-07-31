@@ -43,6 +43,7 @@ namespace Product
       ARM,
       ARM64,
       ARMHF,
+      LOONG64,
       MIPSEL,
     };
 
@@ -81,6 +82,7 @@ namespace Product
       LINUX_ARM,
       LINUX_ARM64,
       LINUX_ARMHF,
+      LINUX_LOONG64,
       DINGUX_MIPSEL,
       ARCHLINUX_X86,
       ARCHLINUX_X86_64,

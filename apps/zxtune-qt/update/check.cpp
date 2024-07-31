@@ -223,19 +223,12 @@ namespace
       : CurVersion(Product::ThisRelease().Version(), Product::ThisRelease().Date())
       , CurTypes(Product::SupportedUpdateTypes())
       , UpdateRank(~std::size_t(0))
-    {
-      Dbg("Supported update types: {} items", CurTypes.size());
-      for (auto type : CurTypes)
-      {
-        Dbg(" {}", int(type));
-      }
-    }
+    {}
 
     void OnDownload(Product::Update::Ptr update) override
     {
-      const Product::Update::TypeTag type =
-          Product::GetUpdateType(update->Platform(), update->Architecture(), update->Packaging());
-      Dbg("Update {}, type {}", FromQString(update->Title()), int(type));
+      Dbg("Update {}:", FromQString(update->Title()));
+      const auto type = Product::GetUpdateType(update->Platform(), update->Architecture(), update->Packaging());
       const auto it = std::find(CurTypes.begin(), CurTypes.end(), type);
       if (CurTypes.end() == it)
       {

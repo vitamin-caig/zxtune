@@ -12,12 +12,15 @@
 #include "product.h"
 #include "apps/zxtune-qt/ui/utils.h"
 // library includes
+#include <debug/log.h>
 #include <platform/version/api.h>
 // qt includes
 #include <QtCore/QFileInfo>
 
 namespace
 {
+  const Debug::Stream Dbg("UpdateCheck");
+
   class CurrentRelease : public Product::Release
   {
   public:
@@ -48,6 +51,7 @@ namespace
       }
       else
       {
+        Dbg("Unknown platform {}", txt);
         return Product::Release::UNKNOWN_PLATFORM;
       }
     }
@@ -75,12 +79,17 @@ namespace
       {
         return Product::Release::ARMHF;
       }
+      else if (txt == "loongarch64")
+      {
+        return Product::Release::LOONG64;
+      }
       else if (txt == "mipsel")
       {
         return Product::Release::MIPSEL;
       }
       else
       {
+        Dbg("Unknown architecture {}", txt);
         return Product::Release::UNKNOWN_ARCHITECTURE;
       }
     }
@@ -142,6 +151,7 @@ namespace
       {Update::LINUX_ARM, Release::LINUX, Release::ARM, Update::TARGZ},
       {Update::LINUX_ARM64, Release::LINUX, Release::ARM64, Update::TARGZ},
       {Update::LINUX_ARMHF, Release::LINUX, Release::ARMHF, Update::TARGZ},
+      {Update::LINUX_LOONG64, Release::LINUX, Release::LOONG64, Update::TARGZ},
       {Update::DINGUX_MIPSEL, Release::DINGUX, Release::MIPSEL, Update::TARGZ},
       {Update::ARCHLINUX_X86, Release::LINUX, Release::X86, Update::TARXZ},
       {Update::ARCHLINUX_X86_64, Release::LINUX, Release::X86_64, Update::TARXZ},
@@ -169,14 +179,18 @@ namespace Product
     {
       if (release.Platform == platform && release.Architecture == architecture && release.Packaging == packaging)
       {
+        Dbg(" platform={} architecture={} packaging={} => {}", int(platform), int(architecture), int(packaging),
+            int(release.Type));
         return release.Type;
       }
     }
+    Dbg(" platform={} architecture={} packaging={} => unknown", int(platform), int(architecture), int(packaging));
     return Update::UNKNOWN_TYPE;
   }
 
   std::vector<Update::TypeTag> SupportedUpdateTypes()
   {
+    Dbg("Supported update types:");
     std::vector<Update::TypeTag> result;
     const Release::PlatformTag platform = ThisRelease().Platform();
     const Release::ArchitectureTag architecture = ThisRelease().Architecture();
@@ -195,7 +209,11 @@ namespace Product
     case Release::LINUX:
     {
       const Update::PackagingTag packaging = GetLinuxPackaging();
-      result.push_back(GetUpdateType(Release::LINUX, architecture, packaging));
+      const auto bestType = GetUpdateType(Release::LINUX, architecture, packaging);
+      if (bestType != Update::UNKNOWN_TYPE)
+      {
+        result.push_back(bestType);
+      }
       if (packaging != Update::TARGZ)
       {
         result.push_back(GetUpdateType(Release::LINUX, architecture, Update::TARGZ));

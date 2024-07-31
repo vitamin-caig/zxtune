@@ -32,6 +32,9 @@ namespace Platform::Version::Details
 #  elif defined(_M_PPC) || defined(__powerpc__)
   static const char ARCH[] = "ppc";
   static const char ARCH_VERSION[] = "";
+#  elif defined(__loongarch64)
+  static const char ARCH[] = "loongarch64";
+  static const char ARCH_VERSION[] = __loongarch_arch;
 #  else
   static const char ARCH[] = "unknown-arch";
   static const char ARCH_VERSION[] = "";
