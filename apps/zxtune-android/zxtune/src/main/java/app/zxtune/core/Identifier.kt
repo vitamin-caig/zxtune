@@ -58,8 +58,10 @@ class Identifier private constructor(builder: Uri.Builder) {
      * @returns filename suitable for saving
      */
     val virtualFilename: String
+        get() = archiveEntryName ?: dataLocation.lastPathSegment.orEmpty()
+
+    val archiveEntryName: String?
         get() = findNestedFilename(acceptTrackIndex = false)
-            ?: dataLocation.lastPathSegment.orEmpty()
 
     /**
      * @returns last suitable path component of subpath

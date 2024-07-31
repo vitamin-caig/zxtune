@@ -22,6 +22,7 @@ class IdentifierTest {
         assertEquals("", subPath)
         assertEquals("", displayFilename)
         assertEquals("", virtualFilename)
+        assertEquals(null, archiveEntryName)
         assertEquals(null, trackIndex)
 
         verifyEquals(this, Identifier.parse(""))
@@ -42,6 +43,7 @@ class IdentifierTest {
             assertEquals("", subPath)
             assertEquals("file", displayFilename)
             assertEquals("file", virtualFilename)
+            assertEquals(null, archiveEntryName)
             assertEquals(null, trackIndex)
 
             verifyEquals(this, Identifier.parse("${path}#"))
@@ -65,6 +67,7 @@ class IdentifierTest {
             assertEquals("nested/sub path", this.subPath)
             assertEquals("path > sub path", displayFilename)
             assertEquals("sub path", virtualFilename)
+            assertEquals("sub path", archiveEntryName)
             assertEquals(null, trackIndex)
 
             verifyEquals(this, Identifier(Uri.parse(path), subPath))
@@ -85,6 +88,7 @@ class IdentifierTest {
             assertEquals("nested/sub path/#123", this.subPath)
             assertEquals("path > #123", displayFilename)
             assertEquals("sub path", virtualFilename)
+            assertEquals("sub path", archiveEntryName)
             assertEquals(123, trackIndex)
 
             verifyEquals(this, Identifier(Uri.parse(path), subPath))
@@ -105,6 +109,7 @@ class IdentifierTest {
             assertEquals("nested/sub path/+unGZIP", this.subPath)
             assertEquals("path > sub path", displayFilename)
             assertEquals("sub path", virtualFilename)
+            assertEquals("sub path", archiveEntryName)
             assertEquals(null, trackIndex)
 
             verifyEquals(this, Identifier(Uri.parse(path), subPath))
@@ -125,6 +130,7 @@ class IdentifierTest {
             assertEquals("nested/sub path/+unGZIP/#123", this.subPath)
             assertEquals("path > #123", displayFilename)
             assertEquals("sub path", virtualFilename)
+            assertEquals("sub path", archiveEntryName)
             assertEquals(123, trackIndex)
 
             verifyEquals(this, Identifier(Uri.parse(path), subPath))
