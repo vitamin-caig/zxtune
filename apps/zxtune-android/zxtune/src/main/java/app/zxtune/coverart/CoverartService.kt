@@ -86,7 +86,7 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
             return externalPicture
         }
         // Do not mix archive and storage worlds
-        if (id.subPath.isNotEmpty()) {
+        if (id.archiveEntryName != null) {
             return archiveArtOf(id)
         }
         var ref = dataObject.parent

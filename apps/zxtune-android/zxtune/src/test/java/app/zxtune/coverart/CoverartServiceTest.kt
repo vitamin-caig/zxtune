@@ -38,6 +38,8 @@ class CoverartServiceTest {
     private val dirUri = rootUri.buildUpon().appendPath("path").build()
     private val moduleUri = dirUri.buildUpon().appendPath("module").build()
     private val moduleId = Identifier(moduleUri)
+    // Packed and/or multitrack module should be treated as simple track file
+    private val complexModuleId = Identifier(moduleUri, "+unPACK/+unGZIP/#2")
     private val archiveUri = dirUri.buildUpon().appendPath("archive").build()
     private val archiveId = Identifier(archiveUri)
     private val archivedModuleId = Identifier(archiveUri, "sub/path")
@@ -315,20 +317,20 @@ class CoverartServiceTest {
     }
 
     @Test
-    fun `albumArtOf parent dir coverart`() {
+    fun `albumArtOf parent dir coverart for complex module`() {
         obj.stub {
             on { uri } doReturn dirUri
             on { parent } doReturn obj
             on { getExtension(any()) } doReturn picUri
         }
-        assertEquals(picUri, underTest.albumArtOf(moduleId, obj))
+        assertEquals(picUri, underTest.albumArtOf(complexModuleId, obj))
         inOrder(db, obj) {
-            verify(db).query(moduleId)
+            verify(db).query(complexModuleId)
             verify(obj).parent
             verify(obj).uri
             verify(db).query(Identifier(dirUri))
             verify(obj).getExtension(VfsExtensions.COVER_ART_URI)
-            verify(db).addExternal(moduleId, picUri)
+            verify(db).addExternal(complexModuleId, picUri)
             verify(db).addExternal(Identifier(dirUri), picUri)
         }
     }
