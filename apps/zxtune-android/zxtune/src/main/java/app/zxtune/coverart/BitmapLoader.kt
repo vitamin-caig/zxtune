@@ -34,7 +34,13 @@ class BitmapReference(obj: Bitmap?) : Releaseable {
     }
 }
 
-class BitmapLoader(tag: String, ctx: Context, maxSize: Int? = null, maxUsedMemory: Int? = null) {
+class BitmapLoader(
+    tag: String,
+    ctx: Context,
+    maxSize: Int? = null,
+    maxUsedMemory: Int? = null,
+    private val maxImageSize: Int? = null
+) {
 
     init {
         require((maxSize != null) != (maxUsedMemory != null)) {
@@ -47,11 +53,10 @@ class BitmapLoader(tag: String, ctx: Context, maxSize: Int? = null, maxUsedMemor
     private val executor = Executors.newCachedThreadPool()
 
     private val cache: LruCache<Uri, BitmapReference> = maxSize?.let {
-        lruCache(it,
-            onEntryRemoved = { _, key, oldValue, _ ->
-                log.d { "Remove cached bitmap for $key (${oldValue.usedMemorySize} bytes)" }
-                oldValue.release()
-            })
+        lruCache(it, onEntryRemoved = { _, key, oldValue, _ ->
+            log.d { "Remove cached bitmap for $key (${oldValue.usedMemorySize} bytes)" }
+            oldValue.release()
+        })
     } ?: lruCache(requireNotNull(maxUsedMemory),
         sizeOf = { _, value -> value.usedMemorySize },
         onEntryRemoved = { _, key, oldValue, _ ->
@@ -72,7 +77,16 @@ class BitmapLoader(tag: String, ctx: Context, maxSize: Int? = null, maxUsedMemor
         }
         executor.submit {
             val ref = BitmapReference(resolver.openInputStream(uri)?.use {
-                BitmapFactory.decodeStream(it)
+                val bitmap = BitmapFactory.decodeStream(it)
+                if (maxImageSize != null) {
+                    bitmap.fitScaledTo(maxImageSize, maxImageSize).also { res ->
+                        if (res != bitmap) {
+                            bitmap.recycle()
+                        }
+                    }
+                } else {
+                    bitmap
+                }
             })
             log.d {
                 ref.bitmap?.run {
