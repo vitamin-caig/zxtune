@@ -2,6 +2,10 @@ package app.zxtune.core
 
 import android.net.Uri
 
+private const val SUBPATH_DELIMITER = '/'
+private const val TRACK_INDEX_PREFIX = '#'
+private const val PACKED_DATA_PREFIX = "+un"
+
 /**
  * Identifier is not fully compatible with playlists from desktop version of zxtune
  * <p>
@@ -13,24 +17,8 @@ class Identifier private constructor(builder: Uri.Builder) {
 
     val dataLocation: Uri = builder.fragment(null).build()
 
-    val subPath: String
+    val subPath
         get() = fullLocation.fragment.orEmpty()
-
-    val displayFilename: String
-        get() {
-            val filename = dataLocation.lastPathSegment.orEmpty()
-            return subPath.extractFilename { !it.isPackedDataIdentifier }?.let { nestedName ->
-                "$filename > $nestedName"
-            } ?: filename
-        }
-
-    val virtualFilename
-        get() = subPath.extractFilename { !it.isPackedDataIdentifier && !it.isTrackIndexIdentifier }
-            ?: dataLocation.lastPathSegment.orEmpty()
-
-    val trackIndex: Int?
-        get() = subPath.substringAfterLast("${SUBPATH_DELIMITER}${TRACK_INDEX_PREFIX}", "")
-            .toIntOrNull()
 
     constructor(location: Uri) : this(
         if (location.path.isNullOrEmpty()) {
@@ -48,6 +36,52 @@ class Identifier private constructor(builder: Uri.Builder) {
         }
     )
 
+    /**
+     * @returns optional track index for multitrack modules
+     */
+    val trackIndex: Int?
+        get() = subPath.substringAfterLast("$SUBPATH_DELIMITER$TRACK_INDEX_PREFIX", "")
+            .toIntOrNull()
+
+    /**
+     * @returns user-friendly display name
+     */
+    val displayFilename: String
+        get() {
+            val filename = dataLocation.lastPathSegment.orEmpty()
+            return findNestedFilename(acceptTrackIndex = true)?.let { nestedName ->
+                "$filename > $nestedName"
+            } ?: filename
+        }
+
+    /**
+     * @returns filename suitable for saving
+     */
+    val virtualFilename: String
+        get() = findNestedFilename(acceptTrackIndex = false)
+            ?: dataLocation.lastPathSegment.orEmpty()
+
+    /**
+     * @returns last suitable path component of subpath
+     */
+    private fun findNestedFilename(acceptTrackIndex: Boolean = false): String? {
+        val path = subPath
+        if (path.isEmpty()) {
+            return null
+        }
+        var result: String? = null
+        var start = 0
+        do {
+            val next = path.indexOf(SUBPATH_DELIMITER, start)
+            val part = if (next == -1) path.substring(start) else path.substring(start, next)
+            if (!part.startsWith(PACKED_DATA_PREFIX) && (!part.startsWith(TRACK_INDEX_PREFIX) || acceptTrackIndex)) {
+                result = part
+            }
+            start = next + 1
+        } while (start != 0)
+        return result
+    }
+
     override fun toString() = fullLocation.toString()
 
     override fun hashCode() = fullLocation.hashCode()
@@ -55,9 +89,6 @@ class Identifier private constructor(builder: Uri.Builder) {
     override fun equals(other: Any?) = (other as? Identifier)?.fullLocation == fullLocation
 
     companion object {
-        const val SUBPATH_DELIMITER = '/'
-        const val TRACK_INDEX_PREFIX = '#'
-
         @JvmField
         val EMPTY = Identifier(Uri.EMPTY)
 
@@ -65,25 +96,3 @@ class Identifier private constructor(builder: Uri.Builder) {
         fun parse(str: String?) = str?.let { Identifier(Uri.parse(it)) } ?: EMPTY
     }
 }
-
-private val CharSequence.isPackedDataIdentifier
-    get() = startsWith("+un")
-
-private val CharSequence.isTrackIndexIdentifier
-    get() = startsWith(Identifier.TRACK_INDEX_PREFIX)
-
-private fun CharSequence.splitAsPath() =
-    when (val lastDelimiter = lastIndexOf(Identifier.SUBPATH_DELIMITER)) {
-        -1 -> "" to this
-        else -> subSequence(0, lastDelimiter) to subSequence(lastDelimiter + 1, length)
-    }
-
-private fun CharSequence.extractFilename(filter: (CharSequence) -> Boolean): CharSequence? =
-    splitAsPath().run {
-        when {
-            second.isEmpty() -> null
-            filter(second) -> second
-            first.isEmpty() -> null
-            else -> first.extractFilename(filter)
-        }
-    }
