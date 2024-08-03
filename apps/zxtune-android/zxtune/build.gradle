@@ -3,14 +3,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'com.google.devtools.ksp'
 
 android {
-    compileSdk 33
+    compileSdk 34
     buildToolsVersion = '34.0.0'
     namespace 'app.zxtune'
 
     defaultConfig {
         applicationId "app.zxtune"
         minSdkVersion 16
-        targetSdkVersion 33
+        targetSdkVersion 34
         //supported languages
         resourceConfigurations += ['en', 'de', 'ru', 'es', 'cs', 'zh', 'ja', 'pt']
         //supported densities for vector drawables rasterization
@@ -60,11 +60,12 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$appcompat_version"
     implementation "androidx.appcompat:appcompat-resources:$appcompat_version"
     implementation "androidx.media:media:$media_version"
-    implementation 'androidx.annotation:annotation:1.6.0'
+    implementation 'androidx.annotation:annotation:1.8.1'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
-    implementation 'androidx.recyclerview:recyclerview:1.3.1'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
     implementation 'androidx.recyclerview:recyclerview-selection:1.1.0'
+    //noinspection GradleDependency minsdk=19
     implementation 'androidx.core:core-animation:1.0.0-beta01'
     implementation 'org.jsoup:jsoup:1.13.1'
     implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'

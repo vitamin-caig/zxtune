@@ -26,9 +26,9 @@ WORKDIR /build
 
 ENV androidsdk=/build/android-sdk
 
-#Android SDK AGP=8.1.1
+#Android SDK AGP=8.5.1
 #NDK is last supporting minSdk=16
-ENV build_tools=34.0.0 platform=33 ndk=23.2.8568313
+ENV build_tools=34.0.0 platform=34 ndk=23.2.8568313
 RUN mkdir -p ${androidsdk} && cd ${androidsdk} && \
     wget -q https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip && \
     unzip -q *.zip && \
