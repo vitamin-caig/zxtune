@@ -5,6 +5,17 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev5070 from 03.08.2024
+
+[+] Supported Loongson architecture
+[*] Fixed embedded strings processing for some formats
+[*] Fixed Windows 7 support
+[*] Reduced size of builds for Debian
+[*] Updated libsidplayfp library, fixed playback of some .sid tracks
+[*] zxtune-qt: fixed crash on items activation in some cases
+[*] zxtune-android: improved compatibility with old Android versions
+[*] zxtune-android: supported archived/packed tracks sending
+
 --- Rev5060 from 22.04.2024
 
 [*] Fixed fadeout processing for looped playback
