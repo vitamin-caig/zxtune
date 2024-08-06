@@ -16,7 +16,7 @@ source_files += src/utils/md5Factory.cpp
 
 source_dirs += src/builders/resid-builder
 
-source_files += $(foreach src,dac envelope extfilt filter8580new pot sid version voice wave,src/builders/resid-builder/resid/$(src).cc)
+source_files += $(foreach src,dac envelope extfilt filter pot sid version voice wave,src/builders/resid-builder/resid/$(src).cc)
 
 includes.files += defines.h
 
