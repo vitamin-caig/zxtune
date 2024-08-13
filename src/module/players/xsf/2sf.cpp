@@ -24,6 +24,7 @@
 #include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
+#include <strings/casing.h>
 // std includes
 #include <list>
 // 3rdparty includes
@@ -110,7 +111,7 @@ namespace Module::TwoSF
       // TODO: interpolation
       for (const auto& tag : meta.Tags)
       {
-        if (tag.first == "_clockdown")
+        if (Strings::EqualNoCaseAscii(tag.first, "_clockdown"_sv))
         {
           clockDown = std::atoi(tag.second.c_str());
         }
@@ -131,19 +132,19 @@ namespace Module::TwoSF
 
     int* FindTagTarget(StringView name)
     {
-      if (name == "_frames"_sv)
+      if (Strings::EqualNoCaseAscii(name, "_frames"_sv))
       {
         return &State.initial_frames;
       }
-      else if (name == "_vio2sf_sync_type"_sv)
+      else if (Strings::EqualNoCaseAscii(name, "_vio2sf_sync_type"_sv))
       {
         return &State.sync_type;
       }
-      else if (name == "_vio2sf_arm9_clockdown_level"_sv)
+      else if (Strings::EqualNoCaseAscii(name, "_vio2sf_arm9_clockdown_level"_sv))
       {
         return &State.arm9_clockdown_level;
       }
-      else if (name == "_vio2sf_arm7_clockdown_level"_sv)
+      else if (Strings::EqualNoCaseAscii(name, "_vio2sf_arm7_clockdown_level"_sv))
       {
         return &State.arm7_clockdown_level;
       }

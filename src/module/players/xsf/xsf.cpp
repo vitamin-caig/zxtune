@@ -15,6 +15,7 @@
 #include <make_ptr.h>
 // library includes
 #include <formats/chiptune/emulation/portablesoundformat.h>
+#include <strings/casing.h>
 #include <strings/conversion.h>
 #include <strings/join.h>
 #include <strings/split.h>
@@ -130,7 +131,7 @@ namespace Module::XSF
 
     void SetTag(StringView name, StringView value) override
     {
-      if (name == "_refresh"_sv)
+      if (Strings::EqualNoCaseAscii(name, "_refresh"_sv))
       {
         GetMeta().RefreshRate = Strings::ConvertTo<uint_t>(value);
       }
