@@ -68,7 +68,7 @@ class RemoteCatalogTest {
         val authorsApprox = 200
         verify(visitor).accept(Author(13606, "Agent Orange", "Oleg Sharonov"))
         verify(visitor).accept(Author(2142, "Doublestar", "Victor Shimyakov"))
-        verify(visitor).accept(Author(8482, "Zyz", ""))
+        verify(visitor).accept(Author(8482, "Zyz", "Dmitry Rusak"))
         // count
         verify(visitor, atLeast(authorsApprox)).accept(any())
         verifyNoMoreInteractions(visitor)

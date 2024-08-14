@@ -8,7 +8,15 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.clearInvocations
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implementation
@@ -156,11 +164,12 @@ class ApiTest {
 }
 
 @Implements(Http::class)
-object ShadowHttp {
+class ShadowHttp {
+    companion object {
+        val createConnection = mock<(String) -> HttpURLConnection>()
 
-    val createConnection = mock<(String) -> HttpURLConnection>()
-
-    @Implementation
-    @JvmStatic
-    fun createConnection(uri: String) = createConnection.invoke(uri)
+        @Implementation
+        @JvmStatic
+        fun createConnection(uri: String) = createConnection.invoke(uri)
+    }
 }
