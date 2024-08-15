@@ -41,10 +41,9 @@ void r4300_end(usf_state_t *);
 void generic_jump_to(usf_state_t *, unsigned int address);
 
 // r4300 emulators
-#ifdef DEBUG_INFO
 #define CORE_PURE_INTERPRETER 0
-#endif
 #define CORE_INTERPRETER      1
+#define CORE_DYNAREC          2
 
 #endif /* M64P_R4300_R4300_H */
 

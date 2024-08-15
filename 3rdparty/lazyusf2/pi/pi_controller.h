@@ -28,7 +28,7 @@
 #include "cart_rom.h"
 
 struct r4300_core;
-struct rdram;
+struct ri_controller;
 
 enum pi_registers
 {
@@ -55,20 +55,26 @@ struct pi_controller
     struct cart_rom cart_rom;
 
     struct r4300_core* r4300;
-    struct rdram* rdram;
+    struct ri_controller* ri;
 };
 
 #include "osal/preproc.h"
 
+static osal_inline uint32_t pi_reg(uint32_t address)
+{
+    return (address & 0xffff) >> 2;
+}
+
+
 void connect_pi(struct pi_controller* pi,
                 struct r4300_core* r4300,
-                struct rdram* rdram,
+                struct ri_controller* ri,
                 uint8_t* rom, size_t rom_size);
 
 void init_pi(struct pi_controller* pi);
 
-uint32_t read_pi_regs(struct pi_controller* pi, uint32_t address);
-void write_pi_regs(struct pi_controller* pi, uint32_t address, uint32_t value, uint32_t mask);
+int read_pi_regs(void* opaque, uint32_t address, uint32_t* value);
+int write_pi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void pi_end_of_dma_event(struct pi_controller* pi);
 

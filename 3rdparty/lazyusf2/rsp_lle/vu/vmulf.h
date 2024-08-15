@@ -26,7 +26,7 @@
 #define SEMIFRAC    (VS[i]*VT[i] + 0x4000)
 #endif
 
-INLINE static void do_mulf(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE static void do_mulf(usf_state_t * state, short* VD, short* VS, short* VT)
 {
 
 #ifdef ARCH_MIN_ARM_NEON
@@ -55,7 +55,7 @@ INLINE static void do_mulf(struct rsp_core* sp, short* VD, short* VS, short* VT)
 	vst1q_s16(VACC_M,vacc_m);
 	vst1q_s16(VACC_H,vacc_h);
 	
-	SIGNED_CLAMP_AM(sp, VD);
+	SIGNED_CLAMP_AM(state, VD);
 	return;
 	
 #else
@@ -73,17 +73,17 @@ INLINE static void do_mulf(struct rsp_core* sp, short* VD, short* VS, short* VT)
     for (i = 0; i < N; i++)
         VD[i] -= (VACC_M[i] < 0) & (VS[i] == VT[i]); /* ACC b 31 set, min*min */
 #else
-    SIGNED_CLAMP_AM(sp, VD);
+    SIGNED_CLAMP_AM(state, VD);
 #endif
     return;
 #endif
 }
 
-static void VMULF(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VMULF(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    do_mulf(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    do_mulf(state, state->VR[vd], state->VR[vs], ST);
     return;
 }

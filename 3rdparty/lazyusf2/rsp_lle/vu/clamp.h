@@ -85,13 +85,13 @@ static INLINE void vector_copy(short * VD, short * VS)
     return;
 }
 
-static INLINE void SIGNED_CLAMP_ADD(struct rsp_core* sp, short* VD, short* VS, short* VT)
+static INLINE void SIGNED_CLAMP_ADD(usf_state_t * state, short* VD, short* VS, short* VT)
 {
     int16x8_t dst, src, vco, max, min;
 
     src = vld1q_s16((const int16_t*)VS);
     dst = vld1q_s16((const int16_t*)VT);
-    vco = vld1q_s16((const int16_t*)sp->co);
+    vco = vld1q_s16((const int16_t*)state->co);
 
     max = vmaxq_s16(dst, src);
     min = vminq_s16(dst, src);
@@ -104,14 +104,14 @@ static INLINE void SIGNED_CLAMP_ADD(struct rsp_core* sp, short* VD, short* VS, s
 
 }
 
-static INLINE void SIGNED_CLAMP_SUB(struct rsp_core* sp, short* VD, short* VS, short* VT)
+static INLINE void SIGNED_CLAMP_SUB(usf_state_t * state, short* VD, short* VS, short* VT)
 {
 	int16x8_t dst, src, vco, dif, res, xmm,vd;
 	
     src = vld1q_s16((const int16_t*)VS);
 	vd = vld1q_s16((const int16_t*)VD);
     dst = vld1q_s16((const int16_t*)VT);
-    vco = vld1q_s16((const int16_t*)sp->co);
+    vco = vld1q_s16((const int16_t*)state->co);
 
     res = vqsubq_s16(src, dst);
 
@@ -131,7 +131,7 @@ static INLINE void SIGNED_CLAMP_SUB(struct rsp_core* sp, short* VD, short* VS, s
 	
 }
 
-static INLINE void SIGNED_CLAMP_AM(struct rsp_core* sp, short* VD)
+static INLINE void SIGNED_CLAMP_AM(usf_state_t * state, short* VD)
 {
 	int16x8_t pvs, pvd;
 	int16x8x2_t packed;
@@ -170,14 +170,14 @@ static INLINE void vector_copy(short* VD, short* VS)
     return;
 }
 
-static INLINE void SIGNED_CLAMP_ADD(struct rsp_core* sp, short* VD, short* VS, short* VT)
+static INLINE void SIGNED_CLAMP_ADD(usf_state_t * state, short* VD, short* VS, short* VT)
 {
     ALIGNED int32_t sum[N];
     ALIGNED short hi[N], lo[N];
     register int i;
 
     for (i = 0; i < N; i++)
-        sum[i] = VS[i] + VT[i] + sp->co[i];
+        sum[i] = VS[i] + VT[i] + state->co[i];
     for (i = 0; i < N; i++)
         lo[i] = (sum[i] + 0x8000) >> 31;
     for (i = 0; i < N; i++)
@@ -193,14 +193,14 @@ static INLINE void SIGNED_CLAMP_ADD(struct rsp_core* sp, short* VD, short* VS, s
 }
 
 
-static INLINE void SIGNED_CLAMP_SUB(struct rsp_core* sp, short* VD, short* VS, short* VT)
+static INLINE void SIGNED_CLAMP_SUB(usf_state_t * state, short* VD, short* VS, short* VT)
 {
     ALIGNED int32_t dif[N];
     ALIGNED short hi[N], lo[N];
     register int i;
 
     for (i = 0; i < N; i++)
-        dif[i] = VS[i] - VT[i] - sp->co[i];
+        dif[i] = VS[i] - VT[i] - state->co[i];
     for (i = 0; i < N; i++)
         lo[i] = (dif[i] + 0x8000) >> 31;
     for (i = 0; i < N; i++)
@@ -215,7 +215,7 @@ static INLINE void SIGNED_CLAMP_SUB(struct rsp_core* sp, short* VD, short* VS, s
     return;
 }
 
-static INLINE void SIGNED_CLAMP_AM(struct rsp_core* sp, short* VD)
+static INLINE void SIGNED_CLAMP_AM(usf_state_t * state, short* VD)
 { 
     ALIGNED short hi[N], lo[N];
     register int i;
@@ -260,14 +260,14 @@ static INLINE void vector_copy(short* VD, short* VS)
     return;
 }
 
-static INLINE void SIGNED_CLAMP_ADD(struct rsp_core* sp, short* VD, short* VS, short* VT)
+static INLINE void SIGNED_CLAMP_ADD(usf_state_t * state, short* VD, short* VS, short* VT)
 {
     __m128i dst, src, vco;
     __m128i max, min;
 
     src = _mm_load_si128((__m128i *)VS);
     dst = _mm_load_si128((__m128i *)VT);
-    vco = _mm_load_si128((__m128i *)sp->co);
+    vco = _mm_load_si128((__m128i *)state->co);
 
 /*
  * Due to premature clamping in between adds, sometimes we need to add the
@@ -282,14 +282,14 @@ static INLINE void SIGNED_CLAMP_ADD(struct rsp_core* sp, short* VD, short* VS, s
     _mm_store_si128((__m128i *)VD, max);
     return;
 }
-static INLINE void SIGNED_CLAMP_SUB(struct rsp_core* sp, short* VD, short* VS, short* VT)
+static INLINE void SIGNED_CLAMP_SUB(usf_state_t * state, short* VD, short* VS, short* VT)
 {
     __m128i dst, src, vco;
     __m128i dif, res, xmm;
 
     src = _mm_load_si128((__m128i *)VS);
     dst = _mm_load_si128((__m128i *)VT);
-    vco = _mm_load_si128((__m128i *)sp->co);
+    vco = _mm_load_si128((__m128i *)state->co);
 
     res = _mm_subs_epi16(src, dst);
 
@@ -311,7 +311,7 @@ static INLINE void SIGNED_CLAMP_SUB(struct rsp_core* sp, short* VD, short* VS, s
     _mm_store_si128((__m128i *)VD, res);
     return;
 }
-static INLINE void SIGNED_CLAMP_AM(struct rsp_core* sp, short* VD)
+static INLINE void SIGNED_CLAMP_AM(usf_state_t * state, short* VD)
 { /* typical sign-clamp of accumulator-mid (bits 31:16) */
     __m128i dst, src;
     __m128i pvd, pvs;
@@ -327,7 +327,7 @@ static INLINE void SIGNED_CLAMP_AM(struct rsp_core* sp, short* VD)
 }
 #endif
 
-static INLINE void UNSIGNED_CLAMP(struct rsp_core* sp, short* VD)
+static INLINE void UNSIGNED_CLAMP(usf_state_t * state, short* VD)
 { /* sign-zero hybrid clamp of accumulator-mid (bits 31:16) */
 
     ALIGNED short cond[N];
@@ -340,7 +340,7 @@ static INLINE void UNSIGNED_CLAMP(struct rsp_core* sp, short* VD)
 	int16x8_t t = vld1q_s16((const int16_t*)temp);
 	int16x8_t vaccm = vld1q_s16((const int16_t*)VACC_M);
 
-    SIGNED_CLAMP_AM(sp, temp);
+    SIGNED_CLAMP_AM(state, temp);
 
 	c = vcgtq_s16(t,vaccm);
 	int16x8_t t_ = vshrq_n_s16(t,15);
@@ -352,7 +352,7 @@ static INLINE void UNSIGNED_CLAMP(struct rsp_core* sp, short* VD)
 
 #else
 
-    SIGNED_CLAMP_AM(sp, temp); /* no direct map in SSE, but closely based on this */
+    SIGNED_CLAMP_AM(state, temp); /* no direct map in SSE, but closely based on this */
     for (i = 0; i < N; i++)
         cond[i] = -(temp[i] >  VACC_M[i]); /* VD |= -(ACC47..16 > +32767) */
     for (i = 0; i < N; i++)
@@ -363,7 +363,7 @@ static INLINE void UNSIGNED_CLAMP(struct rsp_core* sp, short* VD)
 #endif
 }
 
-static INLINE void SIGNED_CLAMP_AL(struct rsp_core* sp, short* VD)
+static INLINE void SIGNED_CLAMP_AL(usf_state_t * state, short* VD)
 { /* sign-clamp accumulator-low (bits 15:0) */
 
     ALIGNED short cond[N];
@@ -373,7 +373,7 @@ static INLINE void SIGNED_CLAMP_AL(struct rsp_core* sp, short* VD)
 	
 #ifdef ARCH_MIN_ARM_NEON
 	
-	SIGNED_CLAMP_AM(sp, temp); 
+	SIGNED_CLAMP_AM(state, temp); 
 	
 	uint16x8_t c;
 	int16x8_t eightk = vdupq_n_s16(0x8000);
@@ -391,7 +391,7 @@ static INLINE void SIGNED_CLAMP_AL(struct rsp_core* sp, short* VD)
 	return;
 #else
 
-    SIGNED_CLAMP_AM(sp, temp); /* no direct map in SSE, but closely based on this */
+    SIGNED_CLAMP_AM(state, temp); /* no direct map in SSE, but closely based on this */
     for (i = 0; i < N; i++)
         cond[i] = (temp[i] != VACC_M[i]); /* result_clamped != result_raw ? */
     for (i = 0; i < N; i++)

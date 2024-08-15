@@ -113,7 +113,7 @@ m64p_error open_rom_header(usf_state_t * state, unsigned char * header, int head
     state->ROM_PARAMS.aidacrate = rom_system_type_to_ai_dac_rate(state->ROM_PARAMS.systemtype);
     state->ROM_PARAMS.countperop = COUNT_PER_OP_DEFAULT;
     
-    state->g_rdram.dram[0x300/4] = state->ROM_PARAMS.systemtype;
+    state->g_rdram[0x300/4] = state->ROM_PARAMS.systemtype;
 
     return M64ERR_SUCCESS;
 }

@@ -28,7 +28,7 @@
 #include "osal/preproc.h"
 
 struct r4300_core;
-struct rdram;
+struct ri_controller;
 struct vi_controller;
 
 enum ai_registers
@@ -61,9 +61,14 @@ struct ai_controller
     void (*push_audio_samples)(void*,const void*,size_t);
 
     struct r4300_core* r4300;
-    struct rdram* rdram;
+    struct ri_controller* ri;
     struct vi_controller* vi;
 };
+
+static osal_inline uint32_t ai_reg(uint32_t address)
+{
+    return (address & 0xffff) >> 2;
+}
 
 /* This is for enablefifofull */
 void ai_fifo_queue_int(struct ai_controller* ai);
@@ -73,13 +78,13 @@ void push_audio_samples(struct ai_controller* ai, const void* buffer, size_t siz
 
 void connect_ai(struct ai_controller* ai,
                 struct r4300_core* r4300,
-                struct rdram* rdram,
+                struct ri_controller* ri,
                 struct vi_controller* vi);
 
 void init_ai(struct ai_controller* ai);
 
-uint32_t read_ai_regs(struct ai_controller* ai, uint32_t address);
-void write_ai_regs(struct ai_controller* ai, uint32_t address, uint32_t value, uint32_t mask);
+int read_ai_regs(void* opaque, uint32_t address, uint32_t* value);
+int write_ai_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void ai_end_of_dma_event(struct ai_controller* ai);
 

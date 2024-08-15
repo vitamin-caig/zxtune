@@ -13,7 +13,7 @@
 \******************************************************************************/
 #include "vu.h"
 
-INLINE static void set_co(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE static void set_co(usf_state_t * state, short* VD, short* VS, short* VT)
 { /* set CARRY and carry out from sum */
 
 #ifdef ARCH_MIN_ARM_NEON
@@ -33,8 +33,8 @@ INLINE static void set_co(struct rsp_core* sp, short* VD, short* VS, short* VT)
 	
 	vst1q_u16(VACC_L, vaccl);
 	vector_copy(VD, VACC_L);
-	vst1q_u16(sp->ne, (uint16x8_t)zero);
-	vst1q_u16(sp->co, co);
+	vst1q_u16(state->ne, (uint16x8_t)zero);
+	vst1q_u16(state->co, co);
 	
 	return;
 #else
@@ -48,19 +48,19 @@ INLINE static void set_co(struct rsp_core* sp, short* VD, short* VS, short* VT)
         VACC_L[i] = VS[i] + VT[i];
     vector_copy(VD, VACC_L);
     for (i = 0; i < N; i++)
-        sp->ne[i] = 0;
+        state->ne[i] = 0;
     for (i = 0; i < N; i++)
-        sp->co[i] = sum[i] >> 16; /* native:  (sum[i] > +65535) */
+        state->co[i] = sum[i] >> 16; /* native:  (sum[i] > +65535) */
     return;
 
 #endif
 }
 
-static void VADDC(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VADDC(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    set_co(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    set_co(state, state->VR[vd], state->VR[vs], ST);
     return;
 }

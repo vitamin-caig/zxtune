@@ -26,7 +26,7 @@
 
 struct r4300_core;
 struct rdp_core;
-struct rdram;
+struct ri_controller;
 
 enum { SP_MEM_SIZE = 0x2000 };
 
@@ -55,78 +55,49 @@ enum
     SP_STATUS_INTR_BREAK = 0x040
 };
 
-#ifndef RCPREG_DEFINED
-#define RCPREG_DEFINED
-typedef uint32_t RCPREG;
-#endif
-
 struct rsp_core
 {
     uint32_t mem[SP_MEM_SIZE/4];
     uint32_t regs[SP_REGS_COUNT];
     uint32_t regs2[SP_REGS2_COUNT];
 
-    int32_t stage; // unused since EMULATE_STATIC_PC is defined by default in rsp/config.h
-    int32_t temp_PC;
-    int16_t MFC0_count[32];
-    
-    unsigned char * DMEM;
-    unsigned char * IMEM;
-    
-    // RSP virtual registers, also needs alignment
-    int32_t SR[32];
-    RCPREG* CR[16];
-
-    // RSP vector registers, need to be aligned to 16 bytes
-    // when SSE2 or SSSE3 is enabled, or for any hope of
-    // auto vectorization
-
-    // usf_clear takes care of aligning the structure within
-    // the memory block passed into it, treating the pointer
-    // as usf_state_helper, and storing an offset from the
-    // pointer to the actual usf_state structure. The size
-    // which is indicated for allocation accounts for this
-    // with two pages of padding.
-    int16_t VR[32][8];
-    int16_t VACC[3][8];
-
-    // rsp/vu/cf.h, all need alignment
-    int16_t ne[8]; /* $vco:  high byte "NOTEQUAL" */
-    int16_t co[8]; /* $vco:  low byte "carry/borrow in/out" */
-    int16_t clip[8]; /* $vcc:  high byte (clip tests:  VCL, VCH, VCR) */
-    int16_t comp[8]; /* $vcc:  low byte (VEQ, VNE, VLT, VGE, VCL, VCH, VCR) */
-    int16_t vce[8]; /* $vce:  vector compare extension register */
-
-    // rsp/vu/divrom.h
-    int32_t DivIn; /* buffered numerator of division read from vector file */
-    int32_t DivOut; /* global division result set by VRCP/VRCPL/VRSQ/VRSQH */
-#if (0)
-    int32_t MovIn; /* We do not emulate this register (obsolete, for VMOV). */
-#endif
-    int32_t DPH;
-    
     struct r4300_core* r4300;
     struct rdp_core* dp;
-    struct rdram* rdram;
+    struct ri_controller* ri;
 };
 
 #include "osal/preproc.h"
 
+static osal_inline uint32_t rsp_mem_address(uint32_t address)
+{
+    return (address & 0x1fff) >> 2;
+}
+
+static osal_inline uint32_t rsp_reg(uint32_t address)
+{
+    return (address & 0xffff) >> 2;
+}
+
+static osal_inline uint32_t rsp_reg2(uint32_t address)
+{
+    return (address & 0xffff) >> 2;
+}
+
 void connect_rsp(struct rsp_core* sp,
                  struct r4300_core* r4300,
                  struct rdp_core* dp,
-                 struct rdram* rdram);
+                 struct ri_controller* ri);
 
 void init_rsp(struct rsp_core* sp);
 
-uint32_t read_rsp_mem(struct rsp_core* sp, uint32_t address);
-void write_rsp_mem(struct rsp_core* sp, uint32_t address, uint32_t value, uint32_t mask);
+int read_rsp_mem(void* opaque, uint32_t address, uint32_t* value);
+int write_rsp_mem(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
-uint32_t read_rsp_regs(struct rsp_core* sp, uint32_t address);
-void write_rsp_regs(struct rsp_core* sp, uint32_t address, uint32_t value, uint32_t mask);
+int read_rsp_regs(void* opaque, uint32_t address, uint32_t* value);
+int write_rsp_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
-uint32_t read_rsp_regs2(struct rsp_core* sp, uint32_t address);
-void write_rsp_regs2(struct rsp_core* sp, uint32_t address, uint32_t value, uint32_t mask);
+int read_rsp_regs2(void* opaque, uint32_t address, uint32_t* value);
+int write_rsp_regs2(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void do_SP_Task(struct rsp_core* sp);
 

@@ -26,7 +26,7 @@
 #include "vi_controller.h"
 
 #include "main/main.h"
-#include "memory/memory_tools.h"
+#include "memory/memory.h"
 #include "r4300/r4300_core.h"
 #include "r4300/cp0.h"
 #include "r4300/interupt.h"
@@ -47,14 +47,11 @@ void init_vi(struct vi_controller* vi)
     vi->delay = vi->next_vi = 5000;
 }
 
-static osal_inline uint32_t vi_reg(uint32_t address)
-{
-    return (address & 0xffff) >> 2;
-}
 
-uint32_t read_vi_regs(struct vi_controller* vi, uint32_t address)
+int read_vi_regs(void* opaque, uint32_t address, uint32_t* value)
 {
-    const uint32_t reg = vi_reg(address);
+    struct vi_controller* vi = (struct vi_controller*)opaque;
+    uint32_t reg = vi_reg(address);
 
     if (reg == VI_CURRENT_REG)
     {
@@ -63,12 +60,17 @@ uint32_t read_vi_regs(struct vi_controller* vi, uint32_t address)
         vi->regs[VI_CURRENT_REG] = (vi->regs[VI_CURRENT_REG] & (~1)) | vi->field;
     }
 
-    return vi->regs[reg];
+    *value = vi->regs[reg];
+
+    return 0;
 }
 
-void write_vi_regs(struct vi_controller* vi, uint32_t address, uint32_t value, uint32_t mask)
+int write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    const uint32_t reg = vi_reg(address);
+    struct vi_controller* vi = (struct vi_controller*)opaque;
+    usf_state_t * state = vi->r4300->state;
+    uint32_t reg = vi_reg(address);
+	int32_t count_per_scanline;
 
     switch(reg)
     {
@@ -77,23 +79,35 @@ void write_vi_regs(struct vi_controller* vi, uint32_t address, uint32_t value, u
         {
             masked_write(&vi->regs[VI_STATUS_REG], value, mask);
         }
-        break;
+        return 0;
 
     case VI_WIDTH_REG:
         if ((vi->regs[VI_WIDTH_REG] & mask) != (value & mask))
         {
             masked_write(&vi->regs[VI_WIDTH_REG], value, mask);
         }
-        break;
+        return 0;
 
     case VI_CURRENT_REG:
         clear_rcp_interrupt(vi->r4300, MI_INTR_VI);
-        break;
-        
-    default:
+        return 0;
+
+    case VI_V_SYNC_REG:
         masked_write(&vi->regs[reg], value, mask);
-        break;
+        count_per_scanline = ((float)state->ROM_PARAMS.aidacrate / (float)state->ROM_PARAMS.vilimit) / (vi->regs[VI_V_SYNC_REG] + 1);
+        vi->delay = (vi->regs[VI_V_SYNC_REG] + 1) * count_per_scanline;
+        if (vi->regs[VI_V_SYNC_REG] != 0 && vi->next_vi == 0)
+        {
+            update_count(vi->r4300->state);
+            vi->next_vi = state->g_cp0_regs[CP0_COUNT_REG] + vi->delay;
+            add_interupt_event_count(state, VI_INT, vi->next_vi);
+        }
+        return 0;
     }
+
+    masked_write(&vi->regs[reg], value, mask);
+
+    return 0;
 }
 
 void vi_vertical_interrupt_event(struct vi_controller* vi)
@@ -101,15 +115,10 @@ void vi_vertical_interrupt_event(struct vi_controller* vi)
     usf_state_t * state = vi->r4300->state;
     
     /* toggle vi field if in interlaced mode */
+    update_count(vi->r4300->state);
     vi->field ^= (vi->regs[VI_STATUS_REG] >> 6) & 0x1;
 
-    /* schedule next vertical interrupt */
-    vi->delay = (vi->regs[VI_V_SYNC_REG] == 0)
-            ? 500000
-            : (vi->regs[VI_V_SYNC_REG] + 1)*1500;
-
-    vi->next_vi += vi->delay;
-
+    vi->next_vi = state->g_cp0_regs[CP0_COUNT_REG] + vi->delay;
     add_interupt_event_count(state, VI_INT, vi->next_vi);
 
     /* trigger interrupt */

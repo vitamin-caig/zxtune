@@ -23,17 +23,19 @@
 
 #include "usf/usf_internal.h"
 
+#include "usf/barray.h"
+
 #include "rsp_lle/rsp_lle.h"
 
 #include "rsp_core.h"
 
 #include "main/main.h"
-#include "memory/memory_tools.h"
+#include "memory/memory.h"
 #include "r4300/cp0.h"
 #include "r4300/r4300_core.h"
 #include "r4300/interupt.h"
 #include "rdp/rdp_core.h"
-#include "ri/rdram.h"
+#include "ri/ri_controller.h"
 
 #include <string.h>
 
@@ -51,15 +53,28 @@ void dma_sp_write(struct rsp_core* sp)
     unsigned int dramaddr = sp->regs[SP_DRAM_ADDR_REG] & 0xffffff;
 
     unsigned char *spmem = (unsigned char*)sp->mem + (sp->regs[SP_MEM_ADDR_REG] & 0x1000);
-    unsigned char *dram = (unsigned char*)sp->rdram->dram;
+    unsigned char *dram = (unsigned char*)sp->ri->rdram.dram;
 
-    for(j=0; j<count; j++) {
-        for(i=0; i<length; i++) {
-            spmem[memaddr^S8] = dram[dramaddr^S8];
-            memaddr++;
-            dramaddr++;
+    if (sp->r4300->state->enable_trimming_mode) {
+        for(j=0; j<count; j++) {
+            for(i=0; i<length; i++) {
+                spmem[memaddr^S8] = dram[dramaddr^S8];
+                if (!bit_array_test(sp->r4300->state->barray_ram_written_first, dramaddr / 4))
+                    bit_array_set(sp->r4300->state->barray_ram_read, dramaddr / 4);
+                memaddr++;
+                dramaddr++;
+            }
+            dramaddr+=skip;
         }
-        dramaddr+=skip;
+    } else {
+        for(j=0; j<count; j++) {
+            for(i=0; i<length; i++) {
+                spmem[memaddr^S8] = dram[dramaddr^S8];
+                memaddr++;
+                dramaddr++;
+            }
+            dramaddr+=skip;
+        }
     }
 }
 
@@ -77,15 +92,28 @@ void dma_sp_read(struct rsp_core* sp)
     unsigned int dramaddr = sp->regs[SP_DRAM_ADDR_REG] & 0xffffff;
 
     unsigned char *spmem = (unsigned char*)sp->mem + (sp->regs[SP_MEM_ADDR_REG] & 0x1000);
-    unsigned char *dram = (unsigned char*)sp->rdram->dram;
+    unsigned char *dram = (unsigned char*)sp->ri->rdram.dram;
 
-    for(j=0; j<count; j++) {
-        for(i=0; i<length; i++) {
-            dram[dramaddr^S8] = spmem[memaddr^S8];
-            memaddr++;
-            dramaddr++;
+    if (sp->r4300->state->enable_trimming_mode) {
+        for(j=0; j<count; j++) {
+            for(i=0; i<length; i++) {
+                dram[dramaddr^S8] = spmem[memaddr^S8];
+                if (!bit_array_test(sp->r4300->state->barray_ram_read, dramaddr / 4))
+                    bit_array_set(sp->r4300->state->barray_ram_written_first, dramaddr / 4);
+                memaddr++;
+                dramaddr++;
+            }
+            dramaddr+=skip;
         }
-        dramaddr+=skip;
+    } else {
+        for(j=0; j<count; j++) {
+            for(i=0; i<length; i++) {
+                dram[dramaddr^S8] = spmem[memaddr^S8];
+                memaddr++;
+                dramaddr++;
+            }
+            dramaddr+=skip;
+        }
     }
 }
 
@@ -160,11 +188,11 @@ static void update_sp_status(struct rsp_core* sp, uint32_t w)
 void connect_rsp(struct rsp_core* sp,
                  struct r4300_core* r4300,
                  struct rdp_core* dp,
-                 struct rdram* rdram)
+                 struct ri_controller* ri)
 {
     sp->r4300 = r4300;
     sp->dp = dp;
-    sp->rdram = rdram;
+    sp->ri = ri;
 
     init_rsp_lle(r4300->state);
 }
@@ -178,67 +206,58 @@ void init_rsp(struct rsp_core* sp)
     sp->regs[SP_STATUS_REG] = 1;
 }
 
-static osal_inline uint32_t rsp_mem_address(uint32_t address)
+
+int read_rsp_mem(void* opaque, uint32_t address, uint32_t* value)
 {
-    return (address & 0x1fff) >> 2;
+    struct rsp_core* sp = (struct rsp_core*)opaque;
+    uint32_t addr = rsp_mem_address(address);
+
+    *value = sp->mem[addr];
+
+    return 0;
 }
 
-static osal_inline uint32_t rsp_reg(uint32_t address)
+int write_rsp_mem(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    return (address & 0xffff) >> 2;
-}
-
-static osal_inline uint32_t rsp_reg2(uint32_t address)
-{
-    return (address & 0xffff) >> 2;
-}
-
-uint32_t read_rsp_mem(struct rsp_core* sp, uint32_t address)
-{
-    const uint32_t addr = rsp_mem_address(address);
-
-    return sp->mem[addr];
-}
-
-void write_rsp_mem(struct rsp_core* sp, uint32_t address, uint32_t value, uint32_t mask)
-{
-    const uint32_t addr = rsp_mem_address(address);
+    struct rsp_core* sp = (struct rsp_core*)opaque;
+    uint32_t addr = rsp_mem_address(address);
 
     masked_write(&sp->mem[addr], value, mask);
+
+    return 0;
 }
 
-uint32_t read_rsp_regs(struct rsp_core* sp, uint32_t address)
-{
-    const uint32_t reg = rsp_reg(address);
 
-    const uint32_t value = sp->regs[reg];
+int read_rsp_regs(void* opaque, uint32_t address, uint32_t* value)
+{
+    struct rsp_core* sp = (struct rsp_core*)opaque;
+    uint32_t reg = rsp_reg(address);
+
+    *value = sp->regs[reg];
 
     if (reg == SP_SEMAPHORE_REG)
     {
         sp->regs[SP_SEMAPHORE_REG] = 1;
     }
 
-    return value;
+    return 0;
 }
 
-void write_rsp_regs(struct rsp_core* sp, uint32_t address, uint32_t value, uint32_t mask)
+int write_rsp_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    const uint32_t reg = rsp_reg(address);
+    struct rsp_core* sp = (struct rsp_core*)opaque;
+    uint32_t reg = rsp_reg(address);
 
     switch(reg)
     {
     case SP_STATUS_REG:
         update_sp_status(sp, value & mask);
-        break;
-        
     case SP_DMA_FULL_REG:
     case SP_DMA_BUSY_REG:
-        break;
-    
-    default:
-        masked_write(&sp->regs[reg], value, mask);
-        break;
+        return 0;
     }
+
+    masked_write(&sp->regs[reg], value, mask);
 
     switch(reg)
     {
@@ -252,20 +271,29 @@ void write_rsp_regs(struct rsp_core* sp, uint32_t address, uint32_t value, uint3
         sp->regs[SP_SEMAPHORE_REG] = 0;
         break;
     }
+
+    return 0;
 }
 
-uint32_t read_rsp_regs2(struct rsp_core* sp, uint32_t address)
-{
-    const uint32_t reg = rsp_reg2(address);
 
-    return sp->regs2[reg];
+int read_rsp_regs2(void* opaque, uint32_t address, uint32_t* value)
+{
+    struct rsp_core* sp = (struct rsp_core*)opaque;
+    uint32_t reg = rsp_reg2(address);
+
+    *value = sp->regs2[reg];
+
+    return 0;
 }
 
-void write_rsp_regs2(struct rsp_core* sp, uint32_t address, uint32_t value, uint32_t mask)
+int write_rsp_regs2(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    const uint32_t reg = rsp_reg2(address);
+    struct rsp_core* sp = (struct rsp_core*)opaque;
+    uint32_t reg = rsp_reg2(address);
 
     masked_write(&sp->regs2[reg], value, mask);
+
+    return 0;
 }
 
 void do_SP_Task(struct rsp_core* sp)

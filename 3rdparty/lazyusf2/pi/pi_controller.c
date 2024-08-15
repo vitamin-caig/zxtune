@@ -23,21 +23,24 @@
 
 #include "usf/usf_internal.h"
 
+#include "usf/barray.h"
+
 #include "pi_controller.h"
 
 #define M64P_CORE_PROTOTYPES 1
 #include "api/m64p_types.h"
 #include "api/callbacks.h"
 #include "main/rom.h"
-#include "memory/memory_tools.h"
+#include "memory/memory.h"
 #include "r4300/cached_interp.h"
 #include "r4300/cp0.h"
 #include "r4300/interupt.h"
+#include "r4300/new_dynarec/new_dynarec.h"
 #include "r4300/ops.h"
 #include "r4300/r4300.h"
 #include "r4300/r4300_core.h"
 #include "ri/rdram_detection_hack.h"
-#include "ri/rdram.h"
+#include "ri/ri_controller.h"
 
 #include <string.h>
 
@@ -60,7 +63,7 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
 {
     unsigned int longueur;
     int i;
-
+    
 #ifdef DEBUG_INFO
     if (state->debug_log)
       fprintf(state->debug_log, "PI DMA WRITE: %08x to %08x for %08x bytes\n", pi->regs[PI_CART_ADDR_REG], pi->regs[PI_DRAM_ADDR_REG], pi->regs[PI_WR_LEN_REG] + 1);
@@ -98,7 +101,7 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
     longueur = (pi->regs[PI_WR_LEN_REG] & 0xFFFFFF)+1;
     i = (pi->regs[PI_CART_ADDR_REG]-0x10000000)&0x3FFFFFF;
     longueur = (i + (int) longueur) > pi->cart_rom.rom_size ?
-               (pi->cart_rom.rom_size - i) : longueur;
+               (unsigned int)(pi->cart_rom.rom_size - i) : longueur;
     longueur = (pi->regs[PI_DRAM_ADDR_REG] + longueur) > 0x7FFFFF ?
                (0x7FFFFF - pi->regs[PI_DRAM_ADDR_REG]) : longueur;
 
@@ -110,20 +113,8 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
 
         return;
     }
-#ifdef DEBUG_INFO
-    if (state->r4300emu == CORE_PURE_INTERPRETER)
-    {
-        for (i=0; i<(int)longueur; i++)
-        {
-            unsigned long rom_address = (((pi->regs[PI_CART_ADDR_REG]-0x10000000)&0x3FFFFFF)+i);
-            unsigned long ram_address = (pi->regs[PI_DRAM_ADDR_REG]+i);
 
-            ((unsigned char*)pi->rdram->dram)[ram_address^S8]=
-                pi->cart_rom.rom[rom_address^S8];
-        }
-    }
-    else
-#endif
+    if (state->r4300emu != CORE_PURE_INTERPRETER)
     {
         for (i=0; i<(int)longueur; i++)
         {
@@ -132,11 +123,61 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
             unsigned long rom_address = (((pi->regs[PI_CART_ADDR_REG]-0x10000000)&0x3FFFFFF)+i);
             unsigned long ram_address = (pi->regs[PI_DRAM_ADDR_REG]+i);
 
-            ((unsigned char*)pi->rdram->dram)[ram_address^S8]=
+            if (state->enable_trimming_mode)
+            {
+                bit_array_set(state->barray_rom, rom_address / 4);
+                if (!(ram_address & 3) && (longueur - i) >= 4)
+                {
+                    if (!bit_array_test(state->barray_ram_read, ram_address / 4))
+                        bit_array_set(state->barray_ram_written_first, ram_address / 4);
+                }
+            }
+            
+            ((unsigned char*)pi->ri->rdram.dram)[ram_address^S8]=
                 pi->cart_rom.rom[rom_address^S8];
 
-            invalidate_code(state, rdram_address1);
-            invalidate_code(state, rdram_address2);
+            if (!state->invalid_code[rdram_address1>>12])
+            {
+                if (!state->blocks[rdram_address1>>12] ||
+                    state->blocks[rdram_address1>>12]->block[(rdram_address1&0xFFF)/4].ops !=
+                    state->current_instruction_table.NOTCOMPILED)
+                {
+                    state->invalid_code[rdram_address1>>12] = 1;
+                }
+#ifdef NEW_DYNAREC
+                invalidate_block(state, rdram_address1>>12);
+#endif
+            }
+            if (!state->invalid_code[rdram_address2>>12])
+            {
+                if (!state->blocks[rdram_address1>>12] ||
+                    state->blocks[rdram_address2>>12]->block[(rdram_address2&0xFFF)/4].ops !=
+                    state->current_instruction_table.NOTCOMPILED)
+                {
+                    state->invalid_code[rdram_address2>>12] = 1;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (i=0; i<(int)longueur; i++)
+        {
+            unsigned long rom_address = (((pi->regs[PI_CART_ADDR_REG]-0x10000000)&0x3FFFFFF)+i);
+            unsigned long ram_address = (pi->regs[PI_DRAM_ADDR_REG]+i);
+
+            if (state->enable_trimming_mode)
+            {
+                bit_array_set(state->barray_rom, rom_address / 4);
+                if (!(ram_address & 3) && (longueur - i) >= 4)
+                {
+                    if (!bit_array_test(state->barray_ram_read, ram_address / 4))
+                        bit_array_set(state->barray_ram_written_first, ram_address / 4);
+                }
+            }
+
+            ((unsigned char*)pi->ri->rdram.dram)[ram_address^S8]=
+                pi->cart_rom.rom[rom_address^S8];
         }
     }
 
@@ -156,13 +197,13 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
 
 void connect_pi(struct pi_controller* pi,
                 struct r4300_core* r4300,
-                struct rdram* rdram,
+                struct ri_controller* ri,
                 uint8_t* rom, size_t rom_size)
 {
     connect_cart_rom(&pi->cart_rom, rom, rom_size);
 
     pi->r4300 = r4300;
-    pi->rdram = rdram;
+    pi->ri = ri;
 }
 
 void init_pi(struct pi_controller* pi)
@@ -170,38 +211,38 @@ void init_pi(struct pi_controller* pi)
     memset(pi->regs, 0, PI_REGS_COUNT*sizeof(uint32_t));
 }
 
-static osal_inline uint32_t pi_reg(uint32_t address)
+
+int read_pi_regs(void* opaque, uint32_t address, uint32_t* value)
 {
-    return (address & 0xffff) >> 2;
+    struct pi_controller* pi = (struct pi_controller*)opaque;
+    uint32_t reg = pi_reg(address);
+
+    *value = pi->regs[reg];
+
+    return 0;
 }
 
-uint32_t read_pi_regs(struct pi_controller* pi, uint32_t address)
+int write_pi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    const uint32_t reg = pi_reg(address);
-
-    return pi->regs[reg];
-}
-
-void write_pi_regs(struct pi_controller* pi, uint32_t address, uint32_t value, uint32_t mask)
-{
-    const uint32_t reg = pi_reg(address);
+    struct pi_controller* pi = (struct pi_controller*)opaque;
+    uint32_t reg = pi_reg(address);
 
     switch (reg)
     {
     case PI_RD_LEN_REG:
         masked_write(&pi->regs[PI_RD_LEN_REG], value, mask);
         dma_pi_read(pi->r4300->state, pi);
-        break;
+        return 0;
 
     case PI_WR_LEN_REG:
         masked_write(&pi->regs[PI_WR_LEN_REG], value, mask);
         dma_pi_write(pi->r4300->state, pi);
-        break;
+        return 0;
 
     case PI_STATUS_REG:
         if (value & mask & 2)
             clear_rcp_interrupt(pi->r4300, MI_INTR_PI);
-        break;
+        return 0;
 
     case PI_BSD_DOM1_LAT_REG:
     case PI_BSD_DOM1_PWD_REG:
@@ -212,12 +253,12 @@ void write_pi_regs(struct pi_controller* pi, uint32_t address, uint32_t value, u
     case PI_BSD_DOM2_PGS_REG:
     case PI_BSD_DOM2_RLS_REG:
         masked_write(&pi->regs[reg], value & 0xff, mask);
-        break;
-        
-    default:
-        masked_write(&pi->regs[reg], value, mask);
-        break;
+        return 0;
     }
+
+    masked_write(&pi->regs[reg], value, mask);
+
+    return 0;
 }
 
 void pi_end_of_dma_event(struct pi_controller* pi)

@@ -34,9 +34,9 @@
 #define MD      01
 #define LO      02
 
-#define VACC_L      (sp->VACC[LO])
-#define VACC_M      (sp->VACC[MD])
-#define VACC_H      (sp->VACC[HI])
+#define VACC_L      (state->VACC[LO])
+#define VACC_M      (state->VACC[MD])
+#define VACC_H      (state->VACC[HI])
 
 #define ACC_L(i)    (VACC_L[i])
 #define ACC_M(i)    (VACC_M[i])
@@ -46,31 +46,31 @@
 #include "clamp.h"
 #include "cf.h"
 
-static void res_V(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void res_V(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     register int i;
 
     vs = vt = e = 0;
     if (vs != vt || vt != e)
         return;
-    message(sp->r4300->state, "C2\nRESERVED", 2); /* uncertain how to handle reserved, untested */
+    message(state, "C2\nRESERVED", 2); /* uncertain how to handle reserved, untested */
 
 #ifdef ARCH_MIN_ARM_NEON
 	int16x8_t zero = vdupq_n_s16(0);
-	vst1q_s16(sp->VR[vd], zero);
+	vst1q_s16(state->VR[vd], zero);
 	return;
 #else
 
 
     for (i = 0; i < N; i++)
-        sp->VR[vd][i] = 0x0000; /* override behavior (bpoint) */
+        state->VR[vd][i] = 0x0000; /* override behavior (bpoint) */
     return;
 #endif
 }
-static void res_M(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void res_M(usf_state_t * state, int vd, int vs, int vt, int e)
 {
-    message(sp->r4300->state, "VMUL IQ", 2);
-    res_V(sp, vd, vs, vt, e);
+    message(state, "VMUL IQ", 2);
+    res_V(state, vd, vs, vt, e);
     return; /* Ultra64 OS did have these, so one could implement this ext. */
 }
 
@@ -116,7 +116,7 @@ static void res_M(struct rsp_core* sp, int vd, int vs, int vt, int e)
 #include "vsubc.h"
 #include "vxor.h"
 
-static void (*COP2_C2[64])(struct rsp_core*, int, int, int, int) = {
+static void (*COP2_C2[64])(usf_state_t *, int, int, int, int) = {
     VMULF  ,VMULU  ,res_M  ,res_M  ,VMUDL  ,VMUDM  ,VMUDN  ,VMUDH  , /* 000 */
     VMACF  ,VMACU  ,res_M  ,VMACQ  ,VMADL  ,VMADM  ,VMADN  ,VMADH  , /* 001 */
     VADD   ,VSUB   ,res_V  ,VABS   ,VADDC  ,VSUBC  ,res_V  ,res_V  , /* 010 */

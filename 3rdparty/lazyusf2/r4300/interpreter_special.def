@@ -151,7 +151,7 @@ DECLARE_INSTRUCTION(DIV)
      sign_extended(state->lo);
      sign_extended(state->hi);
    }
-   //else DebugMessage(state, M64MSG_ERROR, "DIV: divide by 0");
+   else DebugMessage(state, M64MSG_ERROR, "DIV: divide by 0");
    ADD_TO_PC(1);
 }
 
@@ -164,7 +164,7 @@ DECLARE_INSTRUCTION(DIVU)
      sign_extended(state->lo);
      sign_extended(state->hi);
    }
-   //else DebugMessage(state, M64MSG_ERROR, "DIVU: divide by 0");
+   else DebugMessage(state, M64MSG_ERROR, "DIVU: divide by 0");
    ADD_TO_PC(1);
 }
 
@@ -248,7 +248,7 @@ DECLARE_INSTRUCTION(DDIV)
      state->lo = (long long int)rrs / (long long int)rrt;
      state->hi = (long long int)rrs % (long long int)rrt;
    }
-   //else DebugMessage(state, M64MSG_ERROR, "DDIV: divide by 0");
+   else DebugMessage(state, M64MSG_ERROR, "DDIV: divide by 0");
    ADD_TO_PC(1);
 }
 
@@ -259,7 +259,7 @@ DECLARE_INSTRUCTION(DDIVU)
      state->lo = (unsigned long long int)rrs / (unsigned long long int)rrt;
      state->hi = (unsigned long long int)rrs % (unsigned long long int)rrt;
    }
-   //else DebugMessage(state, M64MSG_ERROR, "DDIVU: divide by 0");
+   else DebugMessage(state, M64MSG_ERROR, "DDIVU: divide by 0");
    ADD_TO_PC(1);
 }
 
@@ -404,5 +404,7 @@ DECLARE_INSTRUCTION(DSRA32)
 DECLARE_INSTRUCTION(BREAK)
 {
    state->g_cp0_regs[CP0_COUNT_REG] = state->next_interupt;
+   state->cycle_count = 0;
+
    ADD_TO_PC(1);
 }

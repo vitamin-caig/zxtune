@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *   Mupen64plus-rsp-hle - plugin.c                                        *
- *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
+ *   Mupen64Plus homepage: https://mupen64plus.org/                        *
  *   Copyright (C) 2014 Bobby Smiles                                       *
  *   Copyright (C) 2009 Richard Goedeken                                   *
  *   Copyright (C) 2002 Hacktarux                                          *
@@ -31,6 +31,8 @@
 #include "r4300/interupt.h"
 
 #include "hle.h"
+
+extern void rsp_lle_run_task(usf_state_t * state);
 
 /* Global functions needed by HLE core */
 void HleVerboseMessage(void* user_defined, const char *message, ...)
@@ -73,6 +75,28 @@ void HleErrorMessage(void* user_defined, const char *message, ...)
     state->stop = 1;
 }
 
+void HleWarnMessage(void* user_defined, const char *message, ...)
+{
+#if 0
+    usf_state_t* state;
+    va_list ap;
+    size_t len;
+
+    state = (usf_state_t*)user_defined;
+    len = strlen( state->error_message );
+
+    if ( len )
+        state->error_message[ len++ ] = '\n';
+
+    va_start( ap, message );
+    vsprintf( state->error_message + len, message, ap );
+    va_end( ap );
+
+    state->last_error = state->error_message;
+    state->stop = 1;
+#endif
+}
+
 void HleCheckInterrupts(void* user_defined)
 {
     //check_interupt((usf_state_t*)user_defined);
@@ -95,6 +119,12 @@ void HleProcessRdpList(void* user_defined)
 }
 
 void HleShowCFB(void* user_defined)
+{
+    rsp_lle_run_task((usf_state_t *)user_defined);
+    return 0;
+}
+
+int HleForwardTask(void* user_defined)
 {
     /* disabled */
 }

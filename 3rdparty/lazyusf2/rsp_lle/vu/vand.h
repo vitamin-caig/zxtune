@@ -13,7 +13,7 @@
 \******************************************************************************/
 #include "vu.h"
 
-INLINE void do_and(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE void do_and(usf_state_t * state, short* VD, short* VS, short* VT)
 {
 #ifdef ARCH_MIN_ARM_NEON
 
@@ -34,11 +34,11 @@ INLINE void do_and(struct rsp_core* sp, short* VD, short* VS, short* VT)
 #endif
 }
 
-static void VAND(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VAND(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    do_and(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    do_and(state, state->VR[vd], state->VR[vs], ST);
     return;
 }

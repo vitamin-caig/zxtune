@@ -97,399 +97,596 @@ DECLARE_INSTRUCTION(DADDIU)
    ADD_TO_PC(1);
 }
 
-//dword processing is big-endian
-
 // TODOXXX refactor the following functions to remove the
 // lsaddr and lsrpt locals. this may lead to a small speedup too
+
 DECLARE_INSTRUCTION(LDL)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   uint64_t* const lsrtp = (uint64_t*)(&irt);
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
+   unsigned long long int word = 0;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr & 0xFFFFFFF8);
-   if (address == 0)
-   {
-     return;
-   }
-   const uint64_t dword = read_dword_from_memory(address);
-   switch (lsaddr & 7)
-   {
-   case 0:
-     *lsrtp = dword;
-     break;
-   case 1:
-     *lsrtp = (*lsrtp & 0x00000000000000FF) | (dword <<  8);
-     break;
-   case 2:
-     *lsrtp = (*lsrtp & 0x000000000000FFFF) | (dword << 16);
-     break;
-   case 3:
-     *lsrtp = (*lsrtp & 0x0000000000FFFFFF) | (dword << 24);
-     break;
-   case 4:
-     *lsrtp = (*lsrtp & 0x00000000FFFFFFFF) | (dword << 32);
-     break;
-   case 5:
-     *lsrtp = (*lsrtp & 0x000000FFFFFFFFFF) | (dword << 40);
-     break;
-   case 6:
-     *lsrtp = (*lsrtp & 0x0000FFFFFFFFFFFF) | (dword << 48);
-     break;
-   case 7:
-     *lsrtp = (*lsrtp & 0x00FFFFFFFFFFFFFF) | (dword << 56);
-     break;
-   }
+   switch ((lsaddr) & 7)
+     {
+      case 0:
+    state->address = (unsigned int) lsaddr;
+    state->rdword = (unsigned long long *) lsrtp;
+    read_dword_in_memory();
+    break;
+      case 1:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFF) | (word << 8);
+    break;
+      case 2:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFF) | (word << 16);
+    break;
+      case 3:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFF) | (word << 24);
+    break;
+      case 4:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFF) | (word << 32);
+    break;
+      case 5:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFFFFLL) | (word << 40);
+    break;
+      case 6:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFFFFFFLL) | (word << 48);
+    break;
+      case 7:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFFFFFFFFLL) | (word << 56);
+    break;
+     }
 }
 
 DECLARE_INSTRUCTION(LDR)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   uint64_t* const lsrtp = (uint64_t*)(&irt);
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
+   unsigned long long int word = 0;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr & 0xFFFFFFF8);
-   if (0 == address)
-   {
-     return;
-   }
-   const uint64_t dword = read_dword_from_memory(address);
-   switch (lsaddr & 7)
-   {
-   case 0:
-     *lsrtp = (*lsrtp & 0xFFFFFFFFFFFFFF00ULL) | (dword >> 56);
-     break;
-   case 1:
-     *lsrtp = (*lsrtp & 0xFFFFFFFFFFFF0000ULL) | (dword >> 48);
-     break;
-   case 2:
-     *lsrtp = (*lsrtp & 0xFFFFFFFFFF000000ULL) | (dword >> 40);
-     break;
-   case 3:
-     *lsrtp = (*lsrtp & 0xFFFFFFFF00000000ULL) | (dword >> 32);
-     break;
-   case 4:
-     *lsrtp = (*lsrtp & 0xFFFFFF0000000000ULL) | (dword >> 24);
-     break;
-   case 5:
-     *lsrtp = (*lsrtp & 0xFFFF000000000000ULL) | (dword >> 16);
-     break;
-   case 6:
-     *lsrtp = (*lsrtp & 0xFF00000000000000ULL) | (dword >>  8);
-     break;
-   case 7:
-     *lsrtp = dword;
-     break;
-   }
+   switch ((lsaddr) & 7)
+     {
+      case 0:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFFFFFFFF00LL) | (word >> 56);
+    break;
+      case 1:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFFFFFF0000LL) | (word >> 48);
+    break;
+      case 2:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFFFF000000LL) | (word >> 40);
+    break;
+      case 3:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFF00000000LL) | (word >> 32);
+    break;
+      case 4:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFF0000000000LL) | (word >> 24);
+    break;
+      case 5:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFF000000000000LL) | (word >> 16);
+    break;
+      case 6:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &word;
+    read_dword_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFF00000000000000LL) | (word >> 8);
+    break;
+      case 7:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = (unsigned long long *) lsrtp;
+    read_dword_in_memory();
+    break;
+     }
 }
 
 DECLARE_INSTRUCTION(LB)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr);
-   if (address != 0)
-   {
-     *lsrtp = sign_extend8(read_byte_from_memory(address));
-   }
+   state->address = (unsigned int) lsaddr;
+   state->rdword = (unsigned long long *) lsrtp;
+   read_byte_in_memory();
+   if (state->address)
+     sign_extendedb(*lsrtp);
 }
 
 DECLARE_INSTRUCTION(LH)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr);
-   if (address != 0)
-   {
-     *lsrtp = sign_extend16(read_hword_from_memory(address));
-   }
+   state->address = (unsigned int) lsaddr;
+   state->rdword = (unsigned long long *) lsrtp;
+   read_hword_in_memory();
+   if (state->address)
+     sign_extendedh(*lsrtp);
 }
 
 DECLARE_INSTRUCTION(LWL)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
+   unsigned long long int word = 0;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr & 0xFFFFFFFC);
-   if (address == 0)
-   {
-     return;
-   }
-   const uint32_t word = read_word_from_memory(address);
-   switch (lsaddr & 3)
-   {
-   case 0:
-     *lsrtp = sign_extend32(word);
-     break;
-   case 1:
-     *lsrtp = sign_extend32((*lsrtp & 0xFF) | (word << 8));
-     break;
-   case 2:
-     *lsrtp = sign_extend32((*lsrtp & 0xFFFF) | (word << 16));
-     break;
-   case 3:
-     *lsrtp = sign_extend32((*lsrtp & 0xFFFFFF) | (word << 24));
-     break;
-   }
+   switch ((lsaddr) & 3)
+     {
+      case 0:
+    state->address = (unsigned int) lsaddr;
+    state->rdword = (unsigned long long *) lsrtp;
+    read_word_in_memory();
+    break;
+      case 1:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = &word;
+    read_word_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFF) | (word << 8);
+    break;
+      case 2:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = &word;
+    read_word_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFF) | (word << 16);
+    break;
+      case 3:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = &word;
+    read_word_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFF) | (word << 24);
+    break;
+     }
+   if(state->address)
+     sign_extended(*lsrtp);
 }
 
 DECLARE_INSTRUCTION(LW)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr);
-   if (address != 0)
-   {
-     *lsrtp = sign_extend32(read_word_from_memory(address));
-   }
+   state->address = (unsigned int) lsaddr;
+   state->rdword = (unsigned long long *) lsrtp;
+   read_word_in_memory();
+   if (state->address)
+     sign_extended(*lsrtp);
 }
 
 DECLARE_INSTRUCTION(LBU)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr);
-   if (address != 0)
-   {
-     *lsrtp = read_byte_from_memory(address);
-   }
+   state->address = (unsigned int) lsaddr;
+   state->rdword = (unsigned long long *) lsrtp;
+   read_byte_in_memory();
 }
 
 DECLARE_INSTRUCTION(LHU)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr);
-   if (address != 0)
-   {
-     *lsrtp = read_hword_from_memory(address);
-   }
+   state->address = (unsigned int) lsaddr;
+   state->rdword = (unsigned long long *) lsrtp;
+   read_hword_in_memory();
 }
 
 DECLARE_INSTRUCTION(LWR)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
+   unsigned long long int word = 0;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr & 0xFFFFFFFC);
-   if (address == 0)
-   {
-     return;
-   }
-   const uint32_t word = read_word_from_memory(address);
-   switch (lsaddr & 3)
-   {
-   case 0:
-     *lsrtp = (*lsrtp & 0xFFFFFFFFFFFFFF00LL) | (word >> 24);
-     break;
-   case 1:
-     *lsrtp = (*lsrtp & 0xFFFFFFFFFFFF0000LL) | (word >> 16);
-     break;
-   case 2:
-     *lsrtp = (*lsrtp & 0xFFFFFFFFFF000000LL) | (word >> 8);
-     break;
-   case 3:
-     *lsrtp = sign_extend32(word);
-     break;
-   }
+   switch ((lsaddr) & 3)
+     {
+      case 0:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = &word;
+    read_word_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFFFFFFFF00LL) | ((word >> 24) & 0xFF);
+    break;
+      case 1:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = &word;
+    read_word_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFFFFFF0000LL) | ((word >> 16) & 0xFFFF);
+    break;
+      case 2:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = &word;
+    read_word_in_memory();
+    if(state->address)
+      *lsrtp = (*lsrtp & 0xFFFFFFFFFF000000LL) | ((word >> 8) & 0XFFFFFF);
+    break;
+      case 3:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = (unsigned long long *) lsrtp;
+    read_word_in_memory();
+    if(state->address)
+      sign_extended(*lsrtp);
+     }
 }
 
 DECLARE_INSTRUCTION(LWU)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr);
-   if (address != 0)
-   {
-     *lsrtp = read_word_from_memory(address);
-   }
+   state->address = (unsigned int) lsaddr;
+   state->rdword = (unsigned long long *) lsrtp;
+   read_word_in_memory();
 }
 
 DECLARE_INSTRUCTION(SB)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_write_address(lsaddr);
-   if (address != 0)
-   {
-     const uint8_t byte = (uint8_t)(*lsrtp);
-     write_byte_to_memory(address, byte);
-     CHECK_MEMORY(address);
-   }
+   state->address = (unsigned int) lsaddr;
+   state->cpu_byte = (unsigned char)(*lsrtp & 0xFF);
+   write_byte_in_memory();
+   CHECK_MEMORY();
 }
 
 DECLARE_INSTRUCTION(SH)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_write_address(lsaddr);
-   if (address != 0)
-   {
-     const uint16_t hword = (uint16_t)(*lsrtp);
-     write_hword_to_memory(address, hword);
-     CHECK_MEMORY(address)
-   }
+   state->address = (unsigned int) lsaddr;
+   state->cpu_hword = (unsigned short)(*lsrtp & 0xFFFF);
+   write_hword_in_memory();
+   CHECK_MEMORY();
 }
 
 DECLARE_INSTRUCTION(SWL)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
+   unsigned long long int old_word = 0;
    ADD_TO_PC(1);
-   const uint32_t address = get_write_address(lsaddr & 0xFFFFFFFC);
-   if (address == 0)
-   {
-     return;
-   }
-   const uint32_t word = (uint32_t)(*lsrtp);
-   //TODO: shifts?
-   switch (lsaddr & 3)
-   {
-   case 0:
-     write_word_to_memory(address, word);
-     break;
-   case 1:
-     write_masked_word_to_memory(address, word >>  8, 0x00ffffff);
-     break;
-   case 2:
-     write_masked_word_to_memory(address, word >> 16, 0x0000ffff);
-     break;
-   case 3:
-     write_masked_word_to_memory(address, word >> 24, 0x000000ff);
-     break;
-   }
-   CHECK_MEMORY(address)
+   switch ((lsaddr) & 3)
+     {
+      case 0:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->cpu_word = (unsigned int)*lsrtp;
+    write_word_in_memory();
+    CHECK_MEMORY();
+    break;
+      case 1:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = &old_word;
+    read_word_in_memory();
+    if(state->address)
+      {
+         state->cpu_word = ((unsigned int)*lsrtp >> 8) | ((unsigned int) old_word & 0xFF000000);
+         write_word_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 2:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = &old_word;
+    read_word_in_memory();
+    if(state->address)
+      {
+         state->cpu_word = ((unsigned int)*lsrtp >> 16) | ((unsigned int) old_word & 0xFFFF0000);
+         write_word_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 3:
+    state->address = (unsigned int) lsaddr;
+    state->cpu_byte = (unsigned char)(*lsrtp >> 24);
+    write_byte_in_memory();
+    CHECK_MEMORY();
+    break;
+     }
 }
 
 DECLARE_INSTRUCTION(SW)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_write_address(lsaddr);
-   if (address != 0)
-   {
-     const uint32_t word = (uint32_t)(*lsrtp);
-     write_word_to_memory(address, word);
-     CHECK_MEMORY(address)
-   }
+   state->address = (unsigned int) lsaddr;
+   state->cpu_word = (unsigned int)(*lsrtp & 0xFFFFFFFF);
+   write_word_in_memory();
+   CHECK_MEMORY();
 }
 
 DECLARE_INSTRUCTION(SDL)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   uint64_t* const lsrtp = (uint64_t*)&irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
+   unsigned long long int old_word = 0;
    ADD_TO_PC(1);
-   const uint32_t address = get_write_address(lsaddr & 0xFFFFFFF8);
-   if (address == 0)
-   {
-     return;
-   }
-   switch (lsaddr & 7)
-   {
-   case 0:
-     write_dword_to_memory(address, *lsrtp);
-     break;
-   case 1:
-     write_masked_dword_to_memory(address, *lsrtp >>  8, 0x00FFFFFFFFFFFFFFULL);
-     break;
-   case 2:
-     write_masked_dword_to_memory(address, *lsrtp >> 16, 0x0000FFFFFFFFFFFFULL);
-     break;
-   case 3:
-     write_masked_dword_to_memory(address, *lsrtp >> 24, 0x000000FFFFFFFFFFULL);
-     break;
-   case 4:
-     write_masked_dword_to_memory(address, *lsrtp >> 32, 0x00000000FFFFFFFFULL);
-     break;
-   case 5:
-     write_masked_dword_to_memory(address, *lsrtp >> 40, 0x0000000000FFFFFFULL);
-     break;
-   case 6:
-     write_masked_dword_to_memory(address, *lsrtp >> 48, 0x000000000000FFFFULL);
-     break;
-   case 7:
-     write_masked_dword_to_memory(address, *lsrtp >> 56, 0x00000000000000FFULL);
-     break;
-   }
-   CHECK_MEMORY(address)
-   CHECK_MEMORY(address + sizeof(uint32_t))
+   switch ((lsaddr) & 7)
+     {
+      case 0:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->cpu_dword = *lsrtp;
+    write_dword_in_memory();
+    CHECK_MEMORY();
+    break;
+      case 1:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = ((unsigned long long)*lsrtp >> 8)|(old_word & 0xFF00000000000000LL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 2:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = ((unsigned long long)*lsrtp >> 16)|(old_word & 0xFFFF000000000000LL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 3:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = ((unsigned long long)*lsrtp >> 24)|(old_word & 0xFFFFFF0000000000LL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 4:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = ((unsigned long long)*lsrtp >> 32)|(old_word & 0xFFFFFFFF00000000LL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 5:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = ((unsigned long long)*lsrtp >> 40)|(old_word & 0xFFFFFFFFFF000000LL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 6:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = ((unsigned long long)*lsrtp >> 48)|(old_word & 0xFFFFFFFFFFFF0000LL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 7:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = ((unsigned long long)*lsrtp >> 56)|(old_word & 0xFFFFFFFFFFFFFF00LL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+     }
 }
 
 DECLARE_INSTRUCTION(SDR)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   uint64_t* const lsrtp = (uint64_t*)(&irt);
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
+   unsigned long long int old_word = 0;
    ADD_TO_PC(1);
-   const uint32_t address = get_write_address(lsaddr & 0xFFFFFFF8);
-   if (address == 0)
-   {
-     return;
-   }
-   switch (lsaddr & 7)
-   {
-   case 0:
-     write_masked_dword_to_memory(address, *lsrtp << 56, 0xFF00000000000000ULL);
-     break;
-   case 1:
-     write_masked_dword_to_memory(address, *lsrtp << 48, 0xFFFF000000000000ULL);
-     break;
-   case 2:
-     write_masked_dword_to_memory(address, *lsrtp << 40, 0xFFFFFF0000000000ULL);
-     break;
-   case 3:
-     write_masked_dword_to_memory(address, *lsrtp << 32, 0xFFFFFFFF00000000ULL);
-     break;
-   case 4:
-     write_masked_dword_to_memory(address, *lsrtp << 24, 0xFFFFFFFFFF000000ULL);
-     break;
-   case 5:
-     write_masked_dword_to_memory(address, *lsrtp << 16, 0xFFFFFFFFFFFF0000ULL);
-     break;
-   case 6:
-     write_masked_dword_to_memory(address, *lsrtp <<  8, 0xFFFFFFFFFFFFFF00ULL);
-     break;
-   case 7:
-     write_dword_to_memory(address, *lsrtp);
-     break;
-   }
-   CHECK_MEMORY(address)
-   CHECK_MEMORY(address + sizeof(uint32_t))
+   switch ((lsaddr) & 7)
+     {
+      case 0:
+    state->address = (unsigned int) lsaddr;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = (*lsrtp << 56) | (old_word & 0x00FFFFFFFFFFFFFFLL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 1:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = (*lsrtp << 48) | (old_word & 0x0000FFFFFFFFFFFFLL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 2:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = (*lsrtp << 40) | (old_word & 0x000000FFFFFFFFFFLL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 3:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = (*lsrtp << 32) | (old_word & 0x00000000FFFFFFFFLL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 4:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = (*lsrtp << 24) | (old_word & 0x0000000000FFFFFFLL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 5:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = (*lsrtp << 16) | (old_word & 0x000000000000FFFFLL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 6:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->rdword = &old_word;
+    read_dword_in_memory();
+    if(state->address)
+      {
+         state->cpu_dword = (*lsrtp << 8) | (old_word & 0x00000000000000FFLL);
+         write_dword_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 7:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFF8;
+    state->cpu_dword = *lsrtp;
+    write_dword_in_memory();
+    CHECK_MEMORY();
+    break;
+     }
 }
 
 DECLARE_INSTRUCTION(SWR)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
+   unsigned long long int old_word = 0;
    ADD_TO_PC(1);
-   const uint32_t address = get_write_address(lsaddr & 0xFFFFFFFC);
-   if (address == 0)
-   {
-     return;
-   }
-   const uint32_t word = (uint32_t)(*lsrtp);
-   switch (lsaddr & 3)
-   {
-   case 0:
-     write_masked_word_to_memory(address, word << 24, 0xFF000000);
-     break;
-   case 1:
-     write_masked_word_to_memory(address, word << 16, 0xFFFF0000);
-     break;
-   case 2:
-     write_masked_word_to_memory(address, word <<  8, 0xFFFFFF00);
-     break;
-   case 3:
-     write_word_to_memory(address, word);
-     break;
-   }
-   CHECK_MEMORY(address)
+   switch ((lsaddr) & 3)
+     {
+      case 0:
+    state->address = (unsigned int) lsaddr;
+    state->rdword = &old_word;
+    read_word_in_memory();
+    if(state->address)
+      {
+         state->cpu_word = ((unsigned int)*lsrtp << 24) | ((unsigned int) old_word & 0x00FFFFFF);
+         write_word_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 1:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = &old_word;
+    read_word_in_memory();
+    if(state->address)
+      {
+         state->cpu_word = ((unsigned int)*lsrtp << 16) | ((unsigned int) old_word & 0x0000FFFF);
+         write_word_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 2:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->rdword = &old_word;
+    read_word_in_memory();
+    if(state->address)
+      {
+         state->cpu_word = ((unsigned int)*lsrtp << 8) | ((unsigned int) old_word & 0x000000FF);
+         write_word_in_memory();
+         CHECK_MEMORY();
+      }
+    break;
+      case 3:
+    state->address = ((unsigned int) lsaddr) & 0xFFFFFFFC;
+    state->cpu_word = (unsigned int)*lsrtp;
+    write_word_in_memory();
+    CHECK_MEMORY();
+    break;
+     }
 }
 
 DECLARE_INSTRUCTION(CACHE)
@@ -499,70 +696,65 @@ DECLARE_INSTRUCTION(CACHE)
 
 DECLARE_INSTRUCTION(LL)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr);
-   if (address != 0)
-   {
-     *lsrtp = sign_extend32(read_word_from_memory(address));
-     state->llbit = 1;
-   }
+   state->address = (unsigned int) lsaddr;
+   state->rdword = (unsigned long long *) lsrtp;
+   read_word_in_memory();
+   if (state->address)
+     {
+    sign_extended(*lsrtp);
+    state->llbit = 1;
+     }
 }
 
 DECLARE_INSTRUCTION(LWC1)
 {
-   if (check_cop1_unusable(state)) {return;}
-   const uint8_t lslfft = lfft;
-   const uint32_t lslfaddr = (uint32_t)(lfoffset + state->reg[lfbase]);
+   const unsigned char lslfft = lfft;
+   const unsigned int lslfaddr = (unsigned int)(lfoffset + state->reg[lfbase]);
+   unsigned long long int temp;
+   if (check_cop1_unusable(state)) return;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lslfaddr);
-   if (address != 0)
-   {
-     *((int32_t*)state->reg_cop1_simple[lslfft]) = (int32_t)read_word_from_memory(address);
-   }
+   state->address = (unsigned int) lslfaddr;
+   state->rdword = &temp;
+   read_word_in_memory();
+   if (state->address)
+     *((int*)state->reg_cop1_simple[lslfft]) = (int) *state->rdword;
 }
 
 DECLARE_INSTRUCTION(LDC1)
 {
-   if (check_cop1_unusable(state)) {return;}
-   const uint8_t lslfft = lfft;
-   const uint32_t lslfaddr = (uint32_t)(lfoffset + state->reg[lfbase]);
+   const unsigned char lslfft = lfft;
+   const unsigned int lslfaddr = (unsigned int)(lfoffset + state->reg[lfbase]);
+   if (check_cop1_unusable(state)) return;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lslfaddr);
-   if (address != 0)
-   {
-     *(uint64_t*)state->reg_cop1_double[lslfft] = read_dword_from_memory(address);
-   }
+   state->address = (unsigned int) lslfaddr;
+   state->rdword = (unsigned long long *)state->reg_cop1_double[lslfft];
+   read_dword_in_memory();
 }
 
 DECLARE_INSTRUCTION(LD)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   uint64_t* const lsrtp = (uint64_t*)(&irt);
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_read_address(lsaddr);
-   if (address != 0)
-   {
-     *lsrtp = read_dword_from_memory(address);
-   }
+   state->address = (unsigned int) lsaddr;
+   state->rdword = (unsigned long long *) lsrtp;
+   read_dword_in_memory();
 }
 
 DECLARE_INSTRUCTION(SC)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
    if(state->llbit)
    {
-      const uint32_t address = get_write_address(lsaddr);
-      if (address != 0)
-      {
-        const uint32_t word = (uint32_t)(*lsrtp);
-        write_word_to_memory(address, word);
-        CHECK_MEMORY(address)
-      }
-      //is it right???
+      state->address = (unsigned int) lsaddr;
+      state->cpu_word = (unsigned int)(*lsrtp & 0xFFFFFFFF);
+      write_word_in_memory();
+      CHECK_MEMORY();
       state->llbit = 0;
       *lsrtp = 1;
    }
@@ -574,46 +766,35 @@ DECLARE_INSTRUCTION(SC)
 
 DECLARE_INSTRUCTION(SWC1)
 {
-   if (check_cop1_unusable(state)) {return;}
-   const uint8_t lslfft = lfft;
-   const uint32_t lslfaddr = (uint32_t)(lfoffset + state->reg[lfbase]);
+   const unsigned char lslfft = lfft;
+   const unsigned int lslfaddr = (unsigned int)(lfoffset + state->reg[lfbase]);
+   if (check_cop1_unusable(state)) return;
    ADD_TO_PC(1);
-   const uint32_t address = get_write_address(lslfaddr);
-   if (address != 0)
-   {
-     const uint32_t word = *((uint32_t*)state->reg_cop1_simple[lslfft]);
-     write_word_to_memory(address, word);
-     CHECK_MEMORY(address)
-   }
+   state->address = (unsigned int) lslfaddr;
+   state->cpu_word = *((int*)state->reg_cop1_simple[lslfft]);
+   write_word_in_memory();
+   CHECK_MEMORY();
 }
 
 DECLARE_INSTRUCTION(SDC1)
 {
-   if (check_cop1_unusable(state)) {return;}
-   const uint8_t lslfft = lfft;
-   const uint32_t lslfaddr = (uint32_t)(lfoffset + state->reg[lfbase]);
+   const unsigned char lslfft = lfft;
+   const unsigned int lslfaddr = (unsigned int)(lfoffset + state->reg[lfbase]);
+   if (check_cop1_unusable(state)) return;
    ADD_TO_PC(1);
-   const uint32_t address = get_write_address(lslfaddr);
-   if (address != 0)
-   {
-     const uint64_t dword = *((uint64_t*)state->reg_cop1_double[lslfft]);
-     write_dword_to_memory(address, dword);
-     CHECK_MEMORY(address)
-     CHECK_MEMORY(address + sizeof(uint32_t))
-   }
+   state->address = (unsigned int) lslfaddr;
+   state->cpu_dword = *((unsigned long long*)state->reg_cop1_double[lslfft]);
+   write_dword_in_memory();
+   CHECK_MEMORY();
 }
 
 DECLARE_INSTRUCTION(SD)
 {
-   const uint32_t lsaddr = (uint32_t)(iimmediate + irs32);
-   int64_t* const lsrtp = &irt;
+   const unsigned int lsaddr = (unsigned int)(iimmediate + irs32);
+   long long int *lsrtp = &irt;
    ADD_TO_PC(1);
-   const uint32_t address = get_write_address(lsaddr);
-   if (address != 0)
-   {
-     const uint64_t dword = *lsrtp;
-     write_dword_to_memory(address, dword);
-     CHECK_MEMORY(address)
-     CHECK_MEMORY(address + sizeof(uint32_t))
-   }
+   state->address = (unsigned int) lsaddr;
+   state->cpu_dword = *lsrtp;
+   write_dword_in_memory();
+   CHECK_MEMORY();
 }

@@ -40,7 +40,7 @@ void real_run_rsp(usf_state_t * state, uint32_t cycles)
         message(state, "SP_STATUS_HALT", 3);
         return;
     }
-    switch (*(unsigned int *)(state->g_sp.DMEM + 0xFC0))
+    switch (*(unsigned int *)(state->DMEM + 0xFC0))
     { /* Simulation barrier to redirect processing externally. */
         case 0x00000002: /* OSTask.type == M_AUDTASK */
             if (state->enable_hle_audio == 0)
@@ -56,35 +56,40 @@ void real_run_rsp(usf_state_t * state, uint32_t cycles)
             hle_execute(&state->hle);
             return;
     }
-    run_task(&state->g_sp);
+    run_task(state);
+}
+
+void rsp_lle_run_task(usf_state_t * state)
+{
+    run_task(state);
 }
 
 int32_t init_rsp_lle(usf_state_t * state)
 {
-    state->g_sp.CR[0x0] = &state->g_sp.regs[SP_MEM_ADDR_REG];
-    state->g_sp.CR[0x1] = &state->g_sp.regs[SP_DRAM_ADDR_REG];
-    state->g_sp.CR[0x2] = &state->g_sp.regs[SP_RD_LEN_REG];
-    state->g_sp.CR[0x3] = &state->g_sp.regs[SP_WR_LEN_REG];
-    state->g_sp.CR[0x4] = &state->g_sp.regs[SP_STATUS_REG];
-    state->g_sp.CR[0x5] = &state->g_sp.regs[SP_DMA_FULL_REG];
-    state->g_sp.CR[0x6] = &state->g_sp.regs[SP_DMA_BUSY_REG];
-    state->g_sp.CR[0x7] = &state->g_sp.regs[SP_SEMAPHORE_REG];
-    state->g_sp.CR[0x8] = &state->g_dp.dpc_regs[DPC_START_REG];
-    state->g_sp.CR[0x9] = &state->g_dp.dpc_regs[DPC_END_REG];
-    state->g_sp.CR[0xA] = &state->g_dp.dpc_regs[DPC_CURRENT_REG];
-    state->g_sp.CR[0xB] = &state->g_dp.dpc_regs[DPC_STATUS_REG];
-    state->g_sp.CR[0xC] = &state->g_dp.dpc_regs[DPC_CLOCK_REG];
-    state->g_sp.CR[0xD] = &state->g_dp.dpc_regs[DPC_BUFBUSY_REG];
-    state->g_sp.CR[0xE] = &state->g_dp.dpc_regs[DPC_PIPEBUSY_REG];
-    state->g_sp.CR[0xF] = &state->g_dp.dpc_regs[DPC_TMEM_REG];
+    state->CR[0x0] = &state->g_sp.regs[SP_MEM_ADDR_REG];
+    state->CR[0x1] = &state->g_sp.regs[SP_DRAM_ADDR_REG];
+    state->CR[0x2] = &state->g_sp.regs[SP_RD_LEN_REG];
+    state->CR[0x3] = &state->g_sp.regs[SP_WR_LEN_REG];
+    state->CR[0x4] = &state->g_sp.regs[SP_STATUS_REG];
+    state->CR[0x5] = &state->g_sp.regs[SP_DMA_FULL_REG];
+    state->CR[0x6] = &state->g_sp.regs[SP_DMA_BUSY_REG];
+    state->CR[0x7] = &state->g_sp.regs[SP_SEMAPHORE_REG];
+    state->CR[0x8] = &state->g_dp.dpc_regs[DPC_START_REG];
+    state->CR[0x9] = &state->g_dp.dpc_regs[DPC_END_REG];
+    state->CR[0xA] = &state->g_dp.dpc_regs[DPC_CURRENT_REG];
+    state->CR[0xB] = &state->g_dp.dpc_regs[DPC_STATUS_REG];
+    state->CR[0xC] = &state->g_dp.dpc_regs[DPC_CLOCK_REG];
+    state->CR[0xD] = &state->g_dp.dpc_regs[DPC_BUFBUSY_REG];
+    state->CR[0xE] = &state->g_dp.dpc_regs[DPC_PIPEBUSY_REG];
+    state->CR[0xF] = &state->g_dp.dpc_regs[DPC_TMEM_REG];
 
-    state->g_sp.DMEM = (unsigned char *)state->g_sp.mem;
-    state->g_sp.IMEM = (unsigned char *)state->g_sp.mem + 0x1000;
+    state->DMEM = (unsigned char *)state->g_sp.mem;
+    state->IMEM = (unsigned char *)state->g_sp.mem + 0x1000;
     
     hle_init(&state->hle,
-        (unsigned char *)state->g_rdram.dram,
-        state->g_sp.DMEM,
-        state->g_sp.IMEM,
+        (unsigned char *)state->g_rdram,
+        state->DMEM,
+        state->IMEM,
         &state->g_r4300.mi.regs[MI_INTR_REG],
         &state->g_sp.regs[SP_MEM_ADDR_REG],
         &state->g_sp.regs[SP_DRAM_ADDR_REG],
@@ -104,6 +109,8 @@ int32_t init_rsp_lle(usf_state_t * state)
         &state->g_dp.dpc_regs[DPC_PIPEBUSY_REG],
         &state->g_dp.dpc_regs[DPC_TMEM_REG],
         state);
+
+    state->hle.hle_gfx = 1;
 
     return 0;
 }

@@ -13,7 +13,7 @@
 \******************************************************************************/
 #include "vu.h"
 
-INLINE void do_nxor(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE void do_nxor(usf_state_t * state, short* VD, short* VS, short* VT)
 {
 
 #ifdef ARCH_MIN_ARM_NEON
@@ -38,11 +38,11 @@ INLINE void do_nxor(struct rsp_core* sp, short* VD, short* VS, short* VT)
 #endif
 }
 
-static void VNXOR(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VNXOR(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    do_nxor(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    do_nxor(state, state->VR[vd], state->VR[vs], ST);
     return;
 }

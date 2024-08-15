@@ -23,6 +23,8 @@
 
 #include "usf/usf_internal.h"
 
+#include "usf/barray.h"
+
 #include "cart_rom.h"
 #include "pi_controller.h"
 
@@ -38,28 +40,52 @@ void init_cart_rom(struct cart_rom* cart_rom)
     cart_rom->last_write = 0;
 }
 
-static osal_inline uint32_t rom_address(uint32_t address)
-{
-    return (address & 0x03fffffc);
-}
 
-uint32_t read_cart_rom(struct pi_controller* pi, uint32_t address)
+int read_cart_rom(void* opaque, uint32_t address, uint32_t* value)
 {
-    const uint32_t addr = rom_address(address);
+    struct pi_controller* pi = (struct pi_controller*)opaque;
+    uint32_t addr = rom_address(address);
 
     if (pi->cart_rom.last_write != 0)
     {
-        const uint32_t res = pi->cart_rom.last_write;
+        *value = pi->cart_rom.last_write;
         pi->cart_rom.last_write = 0;
-        return res;
     }
     else
     {
-        return *(uint32_t*)(pi->cart_rom.rom + addr);
+        *value = *(uint32_t*)(pi->cart_rom.rom + addr);
     }
+
+    return 0;
 }
 
-void write_cart_rom(struct pi_controller* pi, uint32_t address, uint32_t value, uint32_t mask)
+int write_cart_rom(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
+    struct pi_controller* pi = (struct pi_controller*)opaque;
     pi->cart_rom.last_write = value & mask;
+
+    return 0;
 }
+
+
+int read_cart_rom_tracked(void* opaque, uint32_t address, uint32_t* value)
+{
+    usf_state_t* state = (usf_state_t*)opaque;
+    struct pi_controller* pi = &state->g_pi;
+    uint32_t addr = rom_address(address);
+    
+    if (pi->cart_rom.last_write != 0)
+    {
+        *value = pi->cart_rom.last_write;
+        pi->cart_rom.last_write = 0;
+    }
+    else
+    {
+        bit_array_set(state->barray_rom, addr / 4);
+        
+        *value = *(uint32_t*)(pi->cart_rom.rom + addr);
+    }
+    
+    return 0;
+}
+

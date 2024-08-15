@@ -76,21 +76,21 @@ void init_mi(struct mi_controller* mi)
     mi->AudioIntrReg = 0;
 }
 
-static osal_inline uint32_t mi_reg(uint32_t address)
+
+int read_mi_regs(void* opaque, uint32_t address, uint32_t* value)
 {
-    return (address & 0xffff) >> 2;
+    struct r4300_core* r4300 = (struct r4300_core*)opaque;
+    uint32_t reg = mi_reg(address);
+
+    *value = r4300->mi.regs[reg];
+
+    return 0;
 }
 
-uint32_t read_mi_regs(struct r4300_core* r4300, uint32_t address)
+int write_mi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    const uint32_t reg = mi_reg(address);
-
-    return r4300->mi.regs[reg];
-}
-
-void write_mi_regs(struct r4300_core* r4300, uint32_t address, uint32_t value, uint32_t mask)
-{
-    const uint32_t reg = mi_reg(address);
+    struct r4300_core* r4300 = (struct r4300_core*)opaque;
+    uint32_t reg = mi_reg(address);
 
     switch(reg)
     {
@@ -100,15 +100,16 @@ void write_mi_regs(struct r4300_core* r4300, uint32_t address, uint32_t value, u
             clear_rcp_interrupt(r4300, MI_INTR_DP);
         }
         break;
-        
     case MI_INTR_MASK_REG:
         update_mi_intr_mask(&r4300->mi.regs[MI_INTR_MASK_REG], value & mask);
 
         check_interupt(r4300->state);
         update_count(r4300->state);
-        if (r4300->state->next_interupt <= r4300->state->g_cp0_regs[CP0_COUNT_REG]) gen_interupt(r4300->state);
+        if (r4300->state->cycle_count >= 0) gen_interupt(r4300->state);
         break;
     }
+
+    return 0;
 }
 
 /* interrupt execution is immediate (if not masked) */

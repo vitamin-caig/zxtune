@@ -14,12 +14,12 @@
 #include "vu.h"
 #include "divrom.h"
 
-static void VRCP(struct rsp_core* sp, int vd, int de, int vt, int e)
+static void VRCP(usf_state_t * state, int vd, int de, int vt, int e)
 {
-    sp->DivIn = (int)sp->VR[vt][e & 07];
-    do_div(sp, sp->DivIn, SP_DIV_SQRT_NO, SP_DIV_PRECISION_SINGLE);
-    SHUFFLE_VECTOR(VACC_L, sp->VR[vt], e);
-    sp->VR[vd][de &= 07] = (short)sp->DivOut;
-    sp->DPH = SP_DIV_PRECISION_SINGLE;
+    state->DivIn = (int)state->VR[vt][e & 07];
+    do_div(state, state->DivIn, SP_DIV_SQRT_NO, SP_DIV_PRECISION_SINGLE);
+    SHUFFLE_VECTOR(VACC_L, state->VR[vt], e);
+    state->VR[vd][de &= 07] = (short)state->DivOut;
+    state->DPH = SP_DIV_PRECISION_SINGLE;
     return;
 }

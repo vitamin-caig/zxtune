@@ -54,7 +54,6 @@
 #include "r4300/reset.h"
 #include "rdp/rdp_core.h"
 #include "ri/ri_controller.h"
-#include "ri/rdram.h"
 #include "rsp/rsp_core.h"
 #include "si/si_controller.h"
 #include "vi/vi_controller.h"
@@ -105,18 +104,21 @@ static void connect_all(
         struct rsp_core* sp,
         struct ai_controller* ai,
         struct pi_controller* pi,
-        struct rdram* rdram,
+        struct ri_controller* ri,
         struct si_controller* si,
         struct vi_controller* vi,
+        uint32_t* dram,
+        size_t dram_size,
         uint8_t* rom,
         size_t rom_size)
 {
     connect_r4300(r4300, state);
-    connect_rdp(dp, r4300, sp);
-    connect_rsp(sp, r4300, dp, rdram);
-    connect_ai(ai, r4300, rdram, vi);
-    connect_pi(pi, r4300, rdram, rom, rom_size);
-    connect_si(si, r4300, rdram);
+    connect_rdp(dp, r4300, sp, ri);
+    connect_rsp(sp, r4300, dp, ri);
+    connect_ai(ai, r4300, ri, vi);
+    connect_pi(pi, r4300, ri, rom, rom_size);
+    connect_ri(ri, dram, dram_size);
+    connect_si(si, r4300, ri);
     connect_vi(vi, r4300);
 }
 
@@ -126,15 +128,16 @@ static void connect_all(
 m64p_error main_start(usf_state_t * state)
 {
     unsigned int RDRAMSize;
+    unsigned int disable_extra_mem;
 
     memcpy(&RDRAMSize, state->save_state + 4, 4);
     to_little_endian_buffer(&RDRAMSize, 4, 1);
 
     /* take the r4300 emulator mode from the config file at this point and cache it in a global variable */
 #ifdef DEBUG_INFO
-    state->r4300emu = CORE_PURE_INTERPRETER;
+    state->r4300emu = 0;
 #else
-    state->r4300emu = CORE_INTERPRETER;
+    state->r4300emu = state->enable_trimming_mode ? 0 : 2;
 #endif
 
     /* set some other core parameters based on the config file values */
@@ -142,12 +145,17 @@ m64p_error main_start(usf_state_t * state)
     //state->g_delay_si = 1;
     state->g_delay_sp = 1;
     state->g_disable_tlb_write_exception = 1;
+    disable_extra_mem = RDRAMSize == 0x400000;
+    state->count_per_op = COUNT_PER_OP_DEFAULT;
+    if (state->count_per_op <= 0)
+        state->count_per_op = state->ROM_PARAMS.countperop;
 
     connect_all(state, &state->g_r4300, &state->g_dp, &state->g_sp,
-                &state->g_ai, &state->g_pi, &state->g_rdram, &state->g_si, &state->g_vi,
+                &state->g_ai, &state->g_pi, &state->g_ri, &state->g_si, &state->g_vi,
+                state->g_rdram, (disable_extra_mem == 0) ? 0x800000 : 0x400000,
                 state->g_rom, state->g_rom_size);
 
-    init_memory(state, RDRAMSize);
+    init_memory(state, (disable_extra_mem == 0) ? 0x800000 : 0x400000);
 
     /* connect external audio sink to AI component */
     state->g_ai.user_data = state;
@@ -167,6 +175,25 @@ m64p_error main_start(usf_state_t * state)
         state->g_delay_ai = 1;
         ai_fifo_queue_int(&state->g_ai);
         state->g_ai.regs[AI_STATUS_REG] |= 0x40000000;
+    }
+
+    // We want to leave in all the necessary code so that these can one day be enabled for the trimmed sets
+    if (state->enable_trimming_mode)
+    {
+        state->g_delay_si = 1;
+        state->g_delay_ai = 1;
+        state->g_delay_pi = 1;
+        state->g_delay_dp = 1;
+        state->enable_hle_audio = 0;
+    }
+
+    // Assume it's a proper rip
+    if (state->enablecompare && state->enableFIFOfull)
+    {
+        state->g_delay_si = 1;
+        state->g_delay_ai = 1;
+        state->g_delay_pi = 1;
+        state->g_delay_dp = 1;
     }
 
     return M64ERR_SUCCESS;

@@ -121,6 +121,15 @@ DECLARE_INSTRUCTION(MUL_D)
 DECLARE_INSTRUCTION(DIV_D)
 {
    if (check_cop1_unusable(state)) return;
+   if((state->FCR31 & 0x400) && *state->reg_cop1_double[cfft] == 0)
+   {
+      //state->FCR31 |= 0x8020;
+      /*state->FCR31 |= 0x8000;
+      state->Cause = 15 << 2;
+      exception_general(state);*/
+      DebugMessage(state, M64MSG_ERROR, "DIV_D by 0");
+      //return;
+   }
    div_d(state, state->reg_cop1_double[cffs], state->reg_cop1_double[cfft], state->reg_cop1_double[cffd]);
    ADD_TO_PC(1);
 }
@@ -418,6 +427,10 @@ DECLARE_INSTRUCTION(MUL_S)
 DECLARE_INSTRUCTION(DIV_S)
 {  
    if (check_cop1_unusable(state)) return;
+   if((state->FCR31 & 0x400) && *state->reg_cop1_simple[cfft] == 0)
+   {
+     DebugMessage(state, M64MSG_ERROR, "DIV_S by 0");
+   }
    div_s(state, state->reg_cop1_simple[cffs], state->reg_cop1_simple[cfft], state->reg_cop1_simple[cffd]);
    ADD_TO_PC(1);
 }

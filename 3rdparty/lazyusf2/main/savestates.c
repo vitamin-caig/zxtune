@@ -48,8 +48,10 @@
 #include "r4300/cached_interp.h"
 #include "r4300/interupt.h"
 #include "pi/pi_controller.h"
+#ifdef NEW_DYNAREC
+#include "r4300/new_dynarec/new_dynarec.h"
+#endif
 #include "rdp/rdp_core.h"
-#include "ri/rdram.h"
 #include "ri/ri_controller.h"
 #include "rsp/rsp_core.h"
 #include "si/si_controller.h"
@@ -131,16 +133,16 @@ static int savestates_load_m64p(usf_state_t * state, unsigned char * ptr, unsign
     read_bytes(queue, sizeof(queue));
     
     // Parse savestate
-    state->g_rdram.regs[RDRAM_CONFIG_REG]       = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_DEVICE_ID_REG]    = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_DELAY_REG]        = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_MODE_REG]         = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_REF_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_REF_ROW_REG]      = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_RAS_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_MIN_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_ADDR_SELECT_REG]  = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_DEVICE_MANUF_REG] = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_CONFIG_REG]       = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_DEVICE_ID_REG]    = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_DELAY_REG]        = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_MODE_REG]         = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_REF_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_REF_ROW_REG]      = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_RAS_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_MIN_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_ADDR_SELECT_REG]  = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_DEVICE_MANUF_REG] = GETDATA(curr, uint32_t);
 
     curr += 4; /* Padding from old implementation */
     state->g_r4300.mi.regs[MI_INIT_MODE_REG] = GETDATA(curr, uint32_t);
@@ -243,7 +245,7 @@ static int savestates_load_m64p(usf_state_t * state, unsigned char * ptr, unsign
     state->g_dp.dps_regs[DPS_BUFTEST_ADDR_REG] = GETDATA(curr, uint32_t);
     state->g_dp.dps_regs[DPS_BUFTEST_DATA_REG] = GETDATA(curr, uint32_t);
 
-    COPYARRAY(state->g_rdram.dram, curr, uint32_t, RDRAM_MAX_SIZE/4);
+    COPYARRAY(state->g_rdram, curr, uint32_t, RDRAM_MAX_SIZE/4);
     COPYARRAY(state->g_sp.mem, curr, uint32_t, SP_MEM_SIZE/4);
     COPYARRAY(state->g_si.pif.ram, curr, uint8_t, PIF_RAM_SIZE);
 
@@ -253,7 +255,8 @@ static int savestates_load_m64p(usf_state_t * state, unsigned char * ptr, unsign
     /*state->g_pi.flashram.erase_offset =*/ (void)GETDATA(curr, unsigned int);
     /*state->g_pi.flashram.write_pointer =*/ (void)GETDATA(curr, unsigned int);
 
-    COPYARRAY(state->io.tlb_LUT, curr, unsigned int, 0x100000);
+    COPYARRAY(state->tlb_LUT_r, curr, unsigned int, 0x100000);
+    COPYARRAY(state->tlb_LUT_w, curr, unsigned int, 0x100000);
 
     state->llbit = GETDATA(curr, unsigned int);
     COPYARRAY(state->reg, curr, long long int, 32);
@@ -293,14 +296,28 @@ static int savestates_load_m64p(usf_state_t * state, unsigned char * ptr, unsign
         state->tlb_e[i].end_odd = GETDATA(curr, unsigned int);
         state->tlb_e[i].phys_odd = GETDATA(curr, unsigned int);
     }
-#ifdef DEBUG_INFO
+
+#ifdef NEW_DYNAREC
+    if (state->r4300emu == CORE_DYNAREC) {
+        state->pcaddr = GETDATA(curr, unsigned int);
+        state->pending_exception = 1;
+        invalidate_all_pages(state);
+    } else {
+        if(state->r4300emu != CORE_PURE_INTERPRETER)
+        {
+            for (i = 0; i < 0x100000; i++)
+                state->invalid_code[i] = 1;
+        }
+        generic_jump_to(state, GETDATA(curr, unsigned int)); // PC
+    }
+#else
     if(state->r4300emu != CORE_PURE_INTERPRETER)
-#endif
     {
         for (i = 0; i < 0x100000; i++)
             state->invalid_code[i] = 1;
     }
     generic_jump_to(state, GETDATA(curr, unsigned int)); // PC
+#endif
 
     state->next_interupt = GETDATA(curr, unsigned int);
     state->g_vi.next_vi = GETDATA(curr, unsigned int);
@@ -313,7 +330,14 @@ static int savestates_load_m64p(usf_state_t * state, unsigned char * ptr, unsign
     to_little_endian_buffer(queue, 4, 256);
     load_eventqueue_infos(state, queue);
 
+#ifdef NEW_DYNAREC
+    if (state->r4300emu == CORE_DYNAREC)
+        state->last_addr = state->pcaddr;
+    else
+        state->last_addr = state->PC->addr;
+#else
     state->last_addr = state->PC->addr;
+#endif
 
     return 1;
 }
@@ -323,11 +347,15 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     char buffer[1024];
     unsigned int vi_timer, SaveRDRAMSize;
     int i;
+#ifdef DYNAREC
+    unsigned long long dummy;
+#endif
 
     unsigned char header[8];
 
     unsigned char * state_ptr = ptr;
     unsigned int state_size = size;
+    unsigned int count_per_scanline;
     
     size_t savestateSize;
     unsigned char *savestateData = 0, *curr;
@@ -377,8 +405,8 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     COPYARRAY(state->g_cp0_regs, curr, unsigned int, CP0_REGS_COUNT);
 
     set_fpr_pointers(state, state->g_cp0_regs[CP0_STATUS_REG]);
-    if ((state->g_cp0_regs[CP0_STATUS_REG] & 0x04000000) == 0) // TODO not sure how pj64 handles this
-        shuffle_fpr_data(state, 0x04000000, 0);
+    /*if ((state->g_cp0_regs[CP0_STATUS_REG] & 0x04000000) == 0) // pj64 always stores data depending on the current mode
+        shuffle_fpr_data(state, 0x04000000, 0);*/
 
     // Initialze the interupts
     vi_timer += state->g_cp0_regs[CP0_COUNT_REG];
@@ -395,6 +423,8 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
 
     load_eventqueue_infos(state, buffer);
 
+    state->cycle_count = state->g_cp0_regs[CP0_COUNT_REG] - state->q.first->data.count;
+
     // FPCR
     state->FCR0 = GETDATA(curr, int);
     curr += 30 * 4; // FCR1...FCR30 not supported
@@ -405,16 +435,16 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     state->lo = GETDATA(curr, long long int);
 
     // rdram register
-    state->g_rdram.regs[RDRAM_CONFIG_REG]       = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_DEVICE_ID_REG]    = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_DELAY_REG]        = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_MODE_REG]         = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_REF_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_REF_ROW_REG]      = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_RAS_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_MIN_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_ADDR_SELECT_REG]  = GETDATA(curr, uint32_t);
-    state->g_rdram.regs[RDRAM_DEVICE_MANUF_REG] = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_CONFIG_REG]       = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_DEVICE_ID_REG]    = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_DELAY_REG]        = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_MODE_REG]         = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_REF_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_REF_ROW_REG]      = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_RAS_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_MIN_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_ADDR_SELECT_REG]  = GETDATA(curr, uint32_t);
+    state->g_ri.rdram.regs[RDRAM_DEVICE_MANUF_REG] = GETDATA(curr, uint32_t);
 
     // sp_register
     state->g_sp.regs[SP_MEM_ADDR_REG]  = GETDATA(curr, uint32_t);
@@ -461,9 +491,6 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     state->g_vi.regs[VI_V_BURST_REG] = GETDATA(curr, uint32_t);
     state->g_vi.regs[VI_X_SCALE_REG] = GETDATA(curr, uint32_t);
     state->g_vi.regs[VI_Y_SCALE_REG] = GETDATA(curr, uint32_t);
-    state->g_vi.delay = (state->g_vi.regs[VI_V_SYNC_REG] == 0)
-                      ? 500000
-                      : (state->g_vi.regs[VI_V_SYNC_REG] + 1)*1500;
 
     // ai_register
     state->g_ai.regs[AI_DRAM_ADDR_REG] = GETDATA(curr, uint32_t);
@@ -508,7 +535,8 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     state->g_si.regs[SI_STATUS_REG]         = GETDATA(curr, uint32_t);
 
     // tlb
-    memset(state->io.tlb_LUT, 0, 0x400000);
+    memset(state->tlb_LUT_r, 0, 0x400000);
+    memset(state->tlb_LUT_w, 0, 0x400000);
     for (i=0; i < 32; i++)
     {
         unsigned int MyPageMask, MyEntryHi, MyEntryLo0, MyEntryLo1;
@@ -551,8 +579,8 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     COPYARRAY(state->g_si.pif.ram, curr, uint8_t, PIF_RAM_SIZE);
 
     // RDRAM
-    memset(state->g_rdram.dram, 0, RDRAM_MAX_SIZE);
-    COPYARRAY(state->g_rdram.dram, curr, uint32_t, SaveRDRAMSize/4);
+    memset(state->g_rdram, 0, RDRAM_MAX_SIZE);
+    COPYARRAY(state->g_rdram, curr, uint32_t, SaveRDRAMSize/4);
 
     // DMEM + IMEM
     COPYARRAY(state->g_sp.mem, curr, uint32_t, SP_MEM_SIZE/4);
@@ -569,14 +597,38 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     //init_flashram(&state->g_pi.flashram);
 
     open_rom_header(state, savestateData, sizeof(m64p_rom_header));
-#ifdef DEBUG_INFO    
+
+    // Needs the rom header parsed first before the delay can be calculated
+    count_per_scanline = (unsigned int)((float)state->ROM_PARAMS.aidacrate / (float)state->ROM_PARAMS.vilimit) / (state->g_vi.regs[VI_V_SYNC_REG] + 1);
+    state->g_vi.delay = (state->g_vi.regs[VI_V_SYNC_REG] + 1) * count_per_scanline;
+
+#ifdef NEW_DYNAREC
+    if (state->r4300emu == CORE_DYNAREC) {
+        state->pcaddr = state->last_addr;
+        state->pending_exception = 1;
+        invalidate_all_pages(state);
+    } else {
+        if(state->r4300emu != CORE_PURE_INTERPRETER)
+        {
+            for (i = 0; i < 0x100000; i++)
+                state->invalid_code[i] = 1;
+        }
+        generic_jump_to(state, state->last_addr);
+    }
+#else
     if(state->r4300emu != CORE_PURE_INTERPRETER)
-#endif
     {
         for (i = 0; i < 0x100000; i++)
             state->invalid_code[i] = 1;
     }
+#ifdef DYNAREC
+    *(void **)&state->return_address = (void *)&dummy;
+#endif
     generic_jump_to(state, state->last_addr);
+#ifdef DYNAREC
+	*(void **)&state->return_address = (void *)0;
+#endif
+#endif
 
     // assert(savestateData+savestateSize == curr)
 
