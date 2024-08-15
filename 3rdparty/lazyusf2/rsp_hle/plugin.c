@@ -121,7 +121,6 @@ void HleProcessRdpList(void* user_defined)
 void HleShowCFB(void* user_defined)
 {
     rsp_lle_run_task((usf_state_t *)user_defined);
-    return 0;
 }
 
 int HleForwardTask(void* user_defined)
