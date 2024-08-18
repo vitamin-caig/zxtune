@@ -41,16 +41,27 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("${treeRoot}/make/android/release.keystore")
+            storeFile file("${treeRoot}/make/android/keystore")
             storePassword localProperties.getProperty("key.store.password")
             keyAlias "release"
             keyPassword localProperties.getProperty("key.alias.password")
+        }
+
+        aab_googleplay {
+            initWith release
+            keyAlias "upload_google"
+        }
+
+        aab_rustore {
+            initWith release
+            keyAlias "upload_rustore"
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            // Take config from flavor
+            signingConfig null
         }
 
         debug {
@@ -99,13 +110,15 @@ android {
             copy {
                from aab
                into publicBuildsDir
-               rename ".*\\.aab", "${baseName}.aab"
+               def tag = variant.flavorName
+               rename ".*\\.aab", "${baseName}${tag ? '_' + tag : ''}.aab"
             }
         }
 
         def publicBuildVariant = task("publicBuild${suffix}", group: "Publish") {
             if (variant.buildType.name == "release") {
-               if (variant.name =~ /thin/) {
+               // Detect package type by signing config name...
+               if (variant.signingConfig.name =~ /aab_/) {
                   dependsOn publishAab
                } else {
                   dependsOn publishApk
