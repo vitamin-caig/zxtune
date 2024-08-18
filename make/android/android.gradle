@@ -28,6 +28,11 @@ ext {
     localProperties = loadLocalProperties()
 }
 
+def aliasPassword(alias) {
+  def fallback = localProperties.getProperty('key.alias.password')
+  return localProperties.getProperty("key.${alias}.password", fallback)
+}
+
 android {
 
     defaultConfig {
@@ -42,19 +47,21 @@ android {
     signingConfigs {
         release {
             storeFile file("${treeRoot}/make/android/keystore")
-            storePassword localProperties.getProperty("key.store.password")
-            keyAlias "release"
-            keyPassword localProperties.getProperty("key.alias.password")
+            storePassword localProperties.getProperty('key.store.password')
+            keyAlias 'release'
+            keyPassword aliasPassword('release')
         }
 
-        aab_googleplay {
+        aab_google {
             initWith release
-            keyAlias "upload_google"
+            keyAlias 'upload_google'
+            keyPassword aliasPassword('upload_google')
         }
 
         aab_rustore {
             initWith release
-            keyAlias "upload_rustore"
+            keyAlias 'upload_rustore'
+            keyPassword aliasPassword('upload_rustore')
         }
     }
 
@@ -116,7 +123,7 @@ android {
         }
 
         def publicBuildVariant = task("publicBuild${suffix}", group: "Publish") {
-            if (variant.buildType.name == "release") {
+            if (variant.buildType.name == 'release') {
                // Detect package type by signing config name...
                if (variant.signingConfig.name =~ /aab_/) {
                   dependsOn publishAab

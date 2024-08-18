@@ -5,7 +5,19 @@
 
 def getListProperty(name, defvalue) {
   def prop = localProperties.getProperty(name, defvalue)
-  return prop.split();
+  return prop.split()
+}
+
+def getSplittedAbiFilters() {
+  return getListProperty('flavors.splitted.abifilters', '')
+}
+
+def getFatAbiFilters() {
+  return getListProperty('flavors.fat.abifilters', '')
+}
+
+def getAabAbiFilters() {
+  return getListProperty('flavors.thin.abifilters', '')
 }
 
 android {
@@ -19,7 +31,7 @@ android {
     flavorDimensions "packaging"
 
     splits.abi {
-        def abis = getListProperty("flavors.splitted.abifilters", "")
+        def abis = getSplittedAbiFilters()
         reset()
         if (abis.length != 0) {
             enable true
@@ -32,23 +44,34 @@ android {
     productFlavors {
         // Single APK
         fat {
-            dimension "packaging"
-            versionNameSuffix "-fat"
-            ndk.abiFilters getListProperty("flavors.fat.abifilters", "")
+            dimension 'packaging'
+            versionNameSuffix '-fat'
+            ndk.abiFilters getFatAbiFilters()
+            signingConfig signingConfigs.release
         }
 
-        // Single AAB
+        // Single AAB for GooglePlay. Name and suffix for compatibility
         thin {
-            dimension "packaging"
-            versionNameSuffix "-thin"
-            ndk.abiFilters getListProperty("flavors.thin.abifilters", "")
+            dimension 'packaging'
+            versionNameSuffix '-thin'
+            ndk.abiFilters getAabAbiFilters()
+            signingConfig signingConfigs.aab_google
+        }
+
+        // Single AAB for Rustore
+        rustore {
+            dimension 'packaging'
+            versionNameSuffix '-rustore'
+            ndk.abiFilters getAabAbiFilters()
+            signingConfig signingConfigs.aab_rustore
         }
 
         // Several APKs
         // Should not be combined with another flavors (configs)
         splitted {
-            dimension "packaging"
-            versionNameSuffix "-splitted"
+            dimension 'packaging'
+            versionNameSuffix '-splitted'
+            signingConfig signingConfigs.release
         }
     }
 
