@@ -41,7 +41,8 @@ namespace Module::XSF
     MergeVal(Duration, rh.Duration);
     MergeVal(Fadeout, rh.Fadeout);
     MergeVal(Volume, rh.Volume);
-    // TODO: merge tags
+    // Just add as low-priority at end
+    std::copy(rh.Tags.begin(), rh.Tags.end(), std::back_inserter(Tags));
   }
 
   void MetaInformation::Dump(Parameters::Modifier& out) const

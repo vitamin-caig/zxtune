@@ -94,24 +94,24 @@ namespace Module::XSF
       Result.PackedProgramSection = std::move(blob);
     }
 
-    void SetYear(StringView date) override
+    void SetYear(String date) override
     {
-      GetMeta().Year = date;
+      GetMeta().Year = std::move(date);
     }
 
-    void SetGenre(StringView genre) override
+    void SetGenre(String genre) override
     {
-      GetMeta().Genre = genre;
+      GetMeta().Genre = std::move(genre);
     }
 
-    void SetCopyright(StringView copyright) override
+    void SetCopyright(String copyright) override
     {
-      GetMeta().Copyright = copyright;
+      GetMeta().Copyright = std::move(copyright);
     }
 
-    void SetDumper(StringView dumper) override
+    void SetDumper(String dumper) override
     {
-      GetMeta().Dumper = dumper;
+      GetMeta().Dumper = std::move(dumper);
     }
 
     void SetLength(Time::Milliseconds duration) override
@@ -129,19 +129,19 @@ namespace Module::XSF
       GetMeta().Volume = vol;
     }
 
-    void SetTag(StringView name, StringView value) override
+    void SetTag(String name, String value) override
     {
-      if (Strings::EqualNoCaseAscii(name, "_refresh"_sv))
+      if (name == "_refresh"_sv)
       {
         GetMeta().RefreshRate = Strings::ConvertTo<uint_t>(value);
       }
       else
       {
-        GetMeta().Tags.emplace_back(name, value);
+        GetMeta().Tags.emplace_back(std::move(name), std::move(value));
       }
     }
 
-    void SetLibrary(uint_t num, StringView filename) override
+    void SetLibrary(uint_t num, String filename) override
     {
       Result.Dependencies.resize(std::max<std::size_t>(Result.Dependencies.size(), num));
       Result.Dependencies[num - 1] = FilePath(filename).ToString();

@@ -411,22 +411,22 @@ namespace
       Dumper->DumpProgram(*unpacked);
     }
 
-    void SetYear(StringView date) override
+    void SetYear(String date) override
     {
       Write(1, "Year: {}", date);
     }
 
-    void SetGenre(StringView genre) override
+    void SetGenre(String genre) override
     {
       Write(1, "Genre: {}", genre);
     }
 
-    void SetCopyright(StringView copyright) override
+    void SetCopyright(String copyright) override
     {
       Write(1, "Copyright: {}", copyright);
     }
 
-    void SetDumper(StringView dumper) override
+    void SetDumper(String dumper) override
     {
       Write(1, "Dumper: {}", dumper);
     }
@@ -446,12 +446,12 @@ namespace
       Write(1, "Volume: {}", vol);
     }
 
-    void SetTag(StringView name, StringView value) override
+    void SetTag(String name, String value) override
     {
       Write(1, "{}: {}", name, value);
     }
 
-    void SetLibrary(uint_t num, StringView filename) override
+    void SetLibrary(uint_t num, String filename) override
     {
       Write(1, "Library #{}: {}", num, filename);
     }

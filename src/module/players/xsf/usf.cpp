@@ -21,7 +21,6 @@
 #include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
-#include <strings/casing.h>
 // std includes
 #include <list>
 // 3rdparty includes
@@ -147,11 +146,11 @@ namespace Module::USF
     {
       for (const auto& tag : meta.Tags)
       {
-        if (Strings::EqualNoCaseAscii(tag.first, "_enablecompare"_sv))
+        if (tag.first == "_enablecompare"_sv)
         {
           ::usf_set_compare(Emu.GetRaw(), true);
         }
-        else if (Strings::EqualNoCaseAscii(tag.first, "_enablefifofull"_sv))
+        else if (tag.first == "_enablefifofull"_sv)
         {
           ::usf_set_fifo_full(Emu.GetRaw(), true);
         }
