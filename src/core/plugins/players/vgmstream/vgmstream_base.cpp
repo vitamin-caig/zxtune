@@ -287,8 +287,9 @@ namespace Module::VGMStream
       const auto multichannelSamples = toRender * Tune->channels;
       // Downmixing is performed after multichannel rendering
       Sound::Chunk result(Math::Align<uint_t>(multichannelSamples, Sound::Sample::CHANNELS) / Sound::Sample::CHANNELS);
+      const auto current_before = Tune->current_sample;
       const auto done = ::render_vgmstream(safe_ptr_cast<sample_t*>(result.data()), toRender, Tune.get());
-      if (Tune->num_samples == Tune->current_sample)
+      if (Tune->current_sample == Tune->num_samples || Tune->current_sample == current_before)
       {
         // TODO: take into account loop_end_sample
         const auto loop_count = Tune->loop_count;
