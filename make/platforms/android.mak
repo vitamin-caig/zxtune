@@ -32,4 +32,16 @@ android.ld.flags += -Wl,-O3,--gc-sections
 endif
 endif
 
+# Do not change target level for compilation - no significant result but bloats compiler cache
+# TODO: use intcmp function after make 4.4+ available
+ifeq ($(android.minsdk),16)
+# Default safe value
+else ifeq ($(android.minsdk),23)
+android.ld.flags += -Wl,--pack-dyn-relocs=android
+else ifeq ($(android.minsdk),28)
+android.ld.flags += -Wl,--pack-dyn-relocs=android+relr -Wl,--use-android-relr-tags
+else ifneq ($(android.minsdk),)
+$(error Invalid android.minsdk=$(android.minsdk))
+endif
+
 libraries.android += c m
