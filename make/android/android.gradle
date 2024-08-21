@@ -129,8 +129,7 @@ android {
             copy {
                from aab
                into publicBuildsDir
-               def tag = variant.flavorName
-               rename ".*\\.aab", "${baseName}${tag ? '_' + tag : ''}.aab"
+               rename ".*\\.aab", "${baseName}${variant.mergedFlavor.versionNameSuffix}.aab"
             }
           }
         }
