@@ -28,7 +28,7 @@ android {
 }
 
 android {
-    flavorDimensions "packaging"
+    flavorDimensions 'packaging'
 
     splits.abi {
         def abis = getSplittedAbiFilters()
@@ -37,6 +37,10 @@ android {
             enable true
             include abis
         }
+    }
+
+    productFlavors.whenObjectAdded { flavor ->
+        flavor.ext.set('isBundle', false)
     }
 
     // Splits config is global and cannot be per-variant
@@ -50,20 +54,15 @@ android {
             signingConfig signingConfigs.release
         }
 
-        // Single AAB for GooglePlay. Name and suffix for compatibility
-        thin {
+        // Single AAB
+        aabStores.each { name -> 
+          create("${name}") {
             dimension 'packaging'
-            versionNameSuffix '-thin'
+            versionNameSuffix "-${name}"
             ndk.abiFilters getAabAbiFilters()
-            signingConfig signingConfigs.aab_google
-        }
-
-        // Single AAB for Rustore
-        rustore {
-            dimension 'packaging'
-            versionNameSuffix '-rustore'
-            ndk.abiFilters getAabAbiFilters()
-            signingConfig signingConfigs.aab_rustore
+            signingConfig signingConfigs.getByName("aab_${name}")
+            isBundle = true
+          }
         }
 
         // Several APKs
@@ -76,18 +75,24 @@ android {
     }
 
     variantFilter { variant ->
-        def names = variant.flavors*.name
-        if (names.contains('splitted')) {
-            if (!splits.abi.enable) {
-                setIgnore(true)
-                println "Disable ${variant.name} due to disabled abi split"
-            }
-        } else if (splits.abi.enable) {
+        def isRelease = variant.buildType.name == 'release'
+        def pkgFlavor = variant.flavors[0]
+        assert pkgFlavor.dimension == 'packaging'
+        def packaging = pkgFlavor.name
+        if (!isRelease && packaging != 'fat') {
             setIgnore(true)
-            println "Disable ${variant.name} due to enabled abi split"
-        } else if (variant.flavors*.ndk.abiFilters.flatten().isEmpty()) {
+            println "Disable ${variant.name} for developer builds"
+            return
+        }
+        if (splits.abi.enable != (packaging == 'splitted')) {
+            setIgnore(true)
+            println "Disable ${variant.name} due to abi splits"
+            return
+        }
+        if (!splits.abi.enable && pkgFlavor.ndk.abiFilters.flatten().isEmpty()) {
             setIgnore(true)
             println "Disable ${variant.name} due to empty ndk.abiFilters"
+            return
         }
     }
 }
