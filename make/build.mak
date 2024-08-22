@@ -139,7 +139,7 @@ ifdef library_name
 $(target): $(OBJECTS) | $(output_dir) $(TRANSLATIONS)
 	$(call build_lib_cmd,$^,$@)
 
-.PHONY: deps
+deps: $(target)
 else
 #libraries helpers
 include $(dirs.root)/libraries.mak
@@ -152,9 +152,9 @@ $(target): $(OBJECTS) $(LIBS) $(embedded_files) | $(output_dir) $(TRANSLATIONS)
 	$(postlink_cmd)
 	$(if $(embedded_files),$(embed_file_cmd),)
 
-$(LIBS): deps
+deps: $(OBJECTS) $(LIBS) $(embedded_files) $(TRANSLATIONS)
 
-deps: $(depends) $($(platform)_depends)
+$(LIBS): $(depends) $($(platform)_depends)
 
 $(depends) $($(platform)_depends):
 	$(MAKE) pic=$(pic) static_runtime=$(static_runtime) -C $(addprefix $(dirs.root)/,$@) $(MAKECMDGOALS)
