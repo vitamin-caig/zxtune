@@ -21,12 +21,13 @@ import javax.net.ssl.TrustManagerFactory
 object Http {
     private val USER_AGENT = String.format(
         Locale.US,
-        "%s/%d (%s; %s; %s)",
+        "%s/%d (%s; %s; %s; %s)",
         BuildConfig.APPLICATION_ID,
         BuildConfig.VERSION_CODE,
         BuildConfig.BUILD_TYPE,
         Build.CPU_ABI,
-        BuildConfig.FLAVOR
+        BuildConfig.FLAVOR_packaging,
+        BuildConfig.FLAVOR_api
     )
 
     init {
