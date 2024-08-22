@@ -26,6 +26,13 @@ def loadLocalProperties() {
 
 ext {
     localProperties = loadLocalProperties()
+
+    aabStores = ['google', 'rustore']
+}
+
+def aliasPassword(alias) {
+  def fallback = localProperties.getProperty('key.alias.password')
+  return localProperties.getProperty("key.${alias}.password", fallback)
 }
 
 android {
@@ -41,16 +48,26 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("${treeRoot}/make/android/release.keystore")
-            storePassword localProperties.getProperty("key.store.password")
-            keyAlias "release"
-            keyPassword localProperties.getProperty("key.alias.password")
+            storeFile file("${treeRoot}/make/android/keystore")
+            storePassword localProperties.getProperty('key.store.password')
+            keyAlias 'release'
+            keyPassword aliasPassword('release')
+        }
+
+        // AAB signing with upload keys
+        aabStores.each { name ->
+          create("aab_${name}") {
+            initWith release
+            keyAlias "upload_${name}"
+            keyPassword aliasPassword("upload_${name}")
+          }
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            // Take config from flavor
+            signingConfig null
         }
 
         debug {
@@ -78,12 +95,21 @@ android {
 android {
     ext.publicBuildsDir = "${treeRoot}/Builds/${defaultConfig.versionName}/android"
 
-    task publicBuild(group: "Publish") {}
-
-    applicationVariants.all { variant ->
-        def suffix = variant.name.capitalize()
-        def baseName = "${project.name}_${defaultConfig.versionName}"
-        def publishApk = task("publishApk${suffix}", group: "Publish", dependsOn: ["assemble${suffix}"] ).doLast {
+    def publicBuild = tasks.register('publicBuild') {
+      group = 'Publish'
+    }
+    applicationVariants.configureEach { variant ->
+      if (variant.buildType.name != 'release') {
+        return
+      }
+      def suffix = variant.name.capitalize()
+      def baseName = "${project.name}_${defaultConfig.versionName}"
+      def pkgTask = !variant.productFlavors*.isBundle.any()
+        ?
+        tasks.register("publishApk${suffix}") {
+          group = 'Publish'
+          dependsOn "assemble${suffix}"
+          doLast {
             variant.outputs.each { out ->
               copy {
                 def abi = out.getFilter("ABI")
@@ -92,27 +118,24 @@ android {
                 rename ".*\\.apk", "${baseName}${abi ? '_' + abi : ''}.apk"
               }
             }
+          }
         }
-
-        def publishAab = task("publishAab${suffix}", group: "Publish", dependsOn: ["bundle${suffix}"]).doLast {
+        :
+        tasks.register("publishAab${suffix}") {
+          group = 'Publish'
+          dependsOn "bundle${suffix}"
+          doLast {
             def aab = tasks["sign${suffix}Bundle"].outputs.files.filter { it.name.endsWith('.aab') }.singleFile
             copy {
                from aab
                into publicBuildsDir
-               rename ".*\\.aab", "${baseName}.aab"
+               def tag = variant.flavorName
+               rename ".*\\.aab", "${baseName}${tag ? '_' + tag : ''}.aab"
             }
+          }
         }
-
-        def publicBuildVariant = task("publicBuild${suffix}", group: "Publish") {
-            if (variant.buildType.name == "release") {
-               if (variant.name =~ /thin/) {
-                  dependsOn publishAab
-               } else {
-                  dependsOn publishApk
-               }
-            }
-        }
-
-        publicBuild.dependsOn publicBuildVariant
+      publicBuild.configure {
+        dependsOn pkgTask
+      }
     }
 }

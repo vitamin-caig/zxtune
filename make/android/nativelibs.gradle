@@ -5,7 +5,19 @@
 
 def getListProperty(name, defvalue) {
   def prop = localProperties.getProperty(name, defvalue)
-  return prop.split();
+  return prop.split()
+}
+
+def getSplittedAbiFilters() {
+  return getListProperty('flavors.splitted.abifilters', '')
+}
+
+def getFatAbiFilters() {
+  return getListProperty('flavors.fat.abifilters', '')
+}
+
+def getAabAbiFilters() {
+  return getListProperty('flavors.thin.abifilters', '')
 }
 
 android {
@@ -16,10 +28,10 @@ android {
 }
 
 android {
-    flavorDimensions "packaging"
+    flavorDimensions 'packaging'
 
     splits.abi {
-        def abis = getListProperty("flavors.splitted.abifilters", "")
+        def abis = getSplittedAbiFilters()
         reset()
         if (abis.length != 0) {
             enable true
@@ -27,44 +39,60 @@ android {
         }
     }
 
+    productFlavors.whenObjectAdded { flavor ->
+        flavor.ext.set('isBundle', false)
+    }
+
     // Splits config is global and cannot be per-variant
     // so, it conflicts with another flavors due to non-empty ndk.abiFilters
     productFlavors {
         // Single APK
         fat {
-            dimension "packaging"
-            versionNameSuffix "-fat"
-            ndk.abiFilters getListProperty("flavors.fat.abifilters", "")
+            dimension 'packaging'
+            versionNameSuffix '-fat'
+            ndk.abiFilters getFatAbiFilters()
+            signingConfig signingConfigs.release
         }
 
         // Single AAB
-        thin {
-            dimension "packaging"
-            versionNameSuffix "-thin"
-            ndk.abiFilters getListProperty("flavors.thin.abifilters", "")
+        aabStores.each { name -> 
+          create("${name}") {
+            dimension 'packaging'
+            versionNameSuffix "-${name}"
+            ndk.abiFilters getAabAbiFilters()
+            signingConfig signingConfigs.getByName("aab_${name}")
+            isBundle = true
+          }
         }
 
         // Several APKs
         // Should not be combined with another flavors (configs)
         splitted {
-            dimension "packaging"
-            versionNameSuffix "-splitted"
+            dimension 'packaging'
+            versionNameSuffix '-splitted'
+            signingConfig signingConfigs.release
         }
     }
 
     variantFilter { variant ->
-        def names = variant.flavors*.name
-        if (names.contains('splitted')) {
-            if (!splits.abi.enable) {
-                setIgnore(true)
-                println "Disable ${variant.name} due to disabled abi split"
-            }
-        } else if (splits.abi.enable) {
+        def isRelease = variant.buildType.name == 'release'
+        def pkgFlavor = variant.flavors[0]
+        assert pkgFlavor.dimension == 'packaging'
+        def packaging = pkgFlavor.name
+        if (!isRelease && packaging != 'fat') {
             setIgnore(true)
-            println "Disable ${variant.name} due to enabled abi split"
-        } else if (variant.flavors*.ndk.abiFilters.flatten().isEmpty()) {
+            println "Disable ${variant.name} for developer builds"
+            return
+        }
+        if (splits.abi.enable != (packaging == 'splitted')) {
+            setIgnore(true)
+            println "Disable ${variant.name} due to abi splits"
+            return
+        }
+        if (!splits.abi.enable && pkgFlavor.ndk.abiFilters.flatten().isEmpty()) {
             setIgnore(true)
             println "Disable ${variant.name} due to empty ndk.abiFilters"
+            return
         }
     }
 }
