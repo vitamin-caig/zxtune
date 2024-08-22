@@ -71,12 +71,13 @@ namespace Formats::Archived
         Free = MyFree;
         CrcGenerateTable();
       }
-      static void* MyAlloc(void* /*p*/, size_t size)
+
+      static void* MyAlloc(ISzAllocPtr /*p*/, size_t size)
       {
         return size ? malloc(size) : nullptr;
       }
 
-      static void MyFree(void* /*p*/, void* address)
+      static void MyFree(ISzAllocPtr /*p*/, void* address)
       {
         if (address)
         {
@@ -98,11 +99,16 @@ namespace Formats::Archived
       }
 
     private:
-      static SRes DoRead(void* p, void* buf, size_t* size)
+      static SeekStream& GetSelf(ISeekInStreamPtr p)
+      {
+        return *const_cast<SeekStream*>(static_cast<const SeekStream*>(p));
+      }
+
+      static SRes DoRead(ISeekInStreamPtr p, void* buf, size_t* size)
       {
         if (size_t originalSize = *size)
         {
-          SeekStream& self = *static_cast<SeekStream*>(p);
+          auto& self = GetSelf(p);
           if (const std::size_t avail = self.Limit - self.Position)
           {
             originalSize = std::min<size_t>(originalSize, avail);
@@ -118,9 +124,9 @@ namespace Formats::Archived
         return SZ_OK;
       }
 
-      static SRes DoSeek(void* p, Int64* pos, ESzSeek origin)
+      static SRes DoSeek(ISeekInStreamPtr p, Int64* pos, ESzSeek origin)
       {
-        SeekStream& self = *static_cast<SeekStream*>(p);
+        auto& self = GetSelf(p);
         Int64 newPos = *pos;
         switch (origin)
         {
@@ -144,19 +150,29 @@ namespace Formats::Archived
       std::size_t Position = 0;
     };
 
-    class LookupStream : public CLookToRead
+    class LookupStream : public CLookToRead2
     {
     public:
-      explicit LookupStream(Binary::Data::Ptr data)
-        : Stream(std::move(data))
+      LookupStream(ISzAlloc& allocator, Binary::Data::Ptr data)
+        : CLookToRead2()
+        , Stream(std::move(data))
+        , Allocator(allocator)
       {
-        LookToRead_CreateVTable(this, false);
+        LookToRead2_CreateVTable(this, false);
+        LookToRead2_INIT(this);
         realStream = &Stream;
-        LookToRead_Init(this);
+        bufSize = 1 << 18;
+        buf = static_cast<Byte*>(Allocator.Alloc(nullptr, bufSize));
+      }
+
+      ~LookupStream()
+      {
+        Allocator.Free(nullptr, buf);
       }
 
     private:
       SeekStream Stream;
+      ISzAlloc& Allocator;
     };
 
     class Archive
@@ -165,16 +181,17 @@ namespace Formats::Archived
       using Ptr = std::shared_ptr<const Archive>;
 
       explicit Archive(Binary::Data::Ptr data)
-        : Stream(std::move(data))
+        : Allocator(LzmaContext::Allocator())
+        , Stream(*Allocator, std::move(data))
       {
         SzArEx_Init(&Db);
-        CheckError(SzArEx_Open(&Db, &Stream.s, LzmaContext::Allocator(), LzmaContext::Allocator()));
+        CheckError(SzArEx_Open(&Db, &Stream.vt, Allocator, Allocator));
       }
 
       ~Archive()
       {
-        LzmaContext::Allocator()->Free(nullptr, Cache.OutBuffer);
-        SzArEx_Free(&Db, LzmaContext::Allocator());
+        Allocator->Free(nullptr, Cache.OutBuffer);
+        SzArEx_Free(&Db, Allocator);
       }
 
       uint_t GetFilesCount() const
@@ -207,9 +224,9 @@ namespace Formats::Archived
         // WARN: not thread-safe
         size_t offset = 0;
         size_t outSizeProcessed = 0;
-        CheckError(SzArEx_Extract(&Db, const_cast<ILookInStream*>(&Stream.s), idx, &Cache.BlockIndex, &Cache.OutBuffer,
-                                  &Cache.OutBufferSize, &offset, &outSizeProcessed, LzmaContext::Allocator(),
-                                  LzmaContext::Allocator()));
+        CheckError(SzArEx_Extract(&Db, const_cast<ILookInStreamPtr>(&Stream.vt), idx, &Cache.BlockIndex,
+                                  &Cache.OutBuffer, &Cache.OutBufferSize, &offset, &outSizeProcessed, Allocator,
+                                  Allocator));
         Require(outSizeProcessed == SzArEx_GetFileSize(&Db, idx));
         return Binary::CreateContainer(Binary::View(Cache.OutBuffer + offset, outSizeProcessed));
       }
@@ -223,16 +240,13 @@ namespace Formats::Archived
 
       struct UnpackCache
       {
-        UInt32 BlockIndex;
+        UInt32 BlockIndex = ~UInt32(0);
         Byte* OutBuffer = nullptr;
         size_t OutBufferSize = 0;
-
-        UnpackCache()
-          : BlockIndex(~UInt32(0))
-        {}
       };
 
     private:
+      ISzAlloc* const Allocator;
       LookupStream Stream;
       CSzArEx Db;
       mutable UnpackCache Cache;
@@ -263,7 +277,15 @@ namespace Formats::Archived
       Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '{}'", Name);
-        return Arch->GetFileData(Idx);
+        try
+        {
+          return Arch->GetFileData(Idx);
+        }
+        catch (const std::exception&)
+        {
+          Dbg("Failed to decompress");
+        }
+        return {};
       }
 
     private:
