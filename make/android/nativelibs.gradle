@@ -149,7 +149,7 @@ abstract class NativeLibsTask extends DefaultTask {
       def binDir = outputs.files.first()
       def flags = "android.minsdk=${minsdk}"
       inputs.files.each { jniDir ->
-        callMake("multiarch=${abis.join(':')} bins_dir=${binDir} ${flags} -C ${jniDir} -j ${cpuCount}")
+        callMake("arch=${abis.join(':')} bins_dir=${binDir} ${flags} -C ${jniDir} -j ${cpuCount}")
       }
     }
 

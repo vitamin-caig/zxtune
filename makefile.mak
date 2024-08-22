@@ -1,7 +1,3 @@
 include $(dirs.root)/make/default.mak
 
-ifneq ($(multiarch),)
-include $(dirs.root)/make/build_multiarch.mak
-else
-include $(dirs.root)/make/build.mak
-endif
+include $(dirs.root)/make/build$(if $(findstring :,$(arch)),_multivar).mak
