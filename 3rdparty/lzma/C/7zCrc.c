@@ -11,7 +11,7 @@
 
 #ifdef __ARM_FEATURE_CRC32
 // #pragma message("__ARM_FEATURE_CRC32")
-#define Z7_CRC_HW_FORCE
+//#define Z7_CRC_HW_FORCE
 #endif
 
 // #define Z7_CRC_DEBUG_BE
@@ -144,7 +144,7 @@ Z7_DIAGNOSTIC_IGNORE_BEGIN_RESERVED_MACRO_IDENTIFIER
 Z7_DIAGNOSTIC_IGNORE_END_RESERVED_MACRO_IDENTIFIER
 #endif
 #endif
-        #define Z7_CRC_HW_USE
+        // #define Z7_CRC_HW_USE
         #include <arm_acle.h>
       #endif
   #elif defined(_MSC_VER)
