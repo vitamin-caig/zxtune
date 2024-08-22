@@ -277,7 +277,15 @@ namespace Formats::Archived
       Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '{}'", Name);
-        return Arch->GetFileData(Idx);
+        try
+        {
+          return Arch->GetFileData(Idx);
+        }
+        catch (const std::exception&)
+        {
+          Dbg("Failed to decompress");
+        }
+        return {};
       }
 
     private:
