@@ -3,6 +3,10 @@
  *
  */
 
+ext {
+  jniDir = "${project.buildDir}/jni"
+}
+
 def getListProperty(name, defvalue) {
   def prop = localProperties.getProperty(name, defvalue)
   return prop.split()
@@ -73,24 +77,15 @@ android {
             signingConfig signingConfigs.release
         }
 
-        minsdk16 {
-            dimension 'api'
-            versionNameSuffix '-minsdk16'
-            minSdkVersion 16
-        }
-
-        minsdk23 {
-            dimension 'api'
-            versionNameSuffix '-minsdk23'
-            minSdkVersion 23
-            versionCode android.defaultConfig.versionCode + 1
-        }
-
-        minsdk28 {
-            dimension 'api'
-            versionNameSuffix '-minsdk28'
-            minSdkVersion 28
-            versionCode android.defaultConfig.versionCode + 2
+        [16, 23, 28].eachWithIndex { val, idx ->
+            def name = "minsdk${val}"
+            create(name) {
+              dimension 'api'
+              versionNameSuffix "-${name}"
+              minSdkVersion val
+              versionCode android.defaultConfig.versionCode + idx
+              sourceSets.getByName(name).jniLibs.srcDirs = [ "${jniDir}/${name}" ]
+            }
         }
     }
 
@@ -126,60 +121,61 @@ android {
 }
 
 abstract class NativeLibsTask extends DefaultTask {
+    private int cpuCount = Runtime.runtime.availableProcessors()
+
+    @Internal
+    int maxLinkers = cpuCount / 2
+
     @Input
     Set<String> abis = new HashSet<String>()
 
-    private int minsdk
-
-    @Inject
-    NativeLibsTask(minsdk, sources) {
-       group = 'Native'
-       assert minsdk > 0
-       this.minsdk = minsdk
-       def flavor = "minsdk${minsdk}"
-       def outDir = "${project.buildDir}/jni/${flavor}"
-       inputs.files sources.main.jni.srcDirs
-       outputs.dir outDir
-       sources.getByName(flavor).jniLibs.srcDirs = [outDir]
-    }
+    @Input
+    Set<Integer> minsdks = new HashSet<Integer>()
 
     @TaskAction
     void execute() {
-      def cpuCount = Runtime.runtime.availableProcessors()
+      assert !abis.isEmpty()
+      assert !minsdks.isEmpty()
+      def usedLinkers = abis.size() * minsdks.size()
+      def jobs = usedLinkers > maxLinkers ? maxLinkers : cpuCount
+      println "Build native libs arch=${abis} minsdk=${minsdks} jobs=${jobs}"
+
       def binDir = outputs.files.first()
-      def flags = "android.minsdk=${minsdk}"
+      def flags = "arch=${abis.join(':')} android.minsdk=${minsdks.join(':')}"
       inputs.files.each { jniDir ->
-        callMake("arch=${abis.join(':')} bins_dir=${binDir}/\$(arch) ${flags} -C ${jniDir} -j ${cpuCount}")
+        callMake("${flags} bins_dir=${binDir}/minsdk\$(android.minsdk)/\$(arch) -C ${jniDir} -j ${jobs}")
       }
     }
 
-  void callMake(cmdline) {
-    def fullCmd = "make platform=android ${cmdline}"
-    def proc = fullCmd.execute()
-    proc.consumeProcessOutput(System.out, System.out)
-    assert 0 == proc.waitFor()
-  }
+    void callMake(cmdline) {
+      def fullCmd = "make platform=android ${cmdline}"
+      def proc = fullCmd.execute()
+      proc.consumeProcessOutput(System.out, System.out)
+      assert 0 == proc.waitFor()
+    }
 }
 
 android {
-    productFlavors.configureEach { flavor ->
-        if (flavor.dimension == 'api') {
-            tasks.register("nativeLibs${flavor.name.capitalize()}", NativeLibsTask, flavor.minSdkVersion.apiLevel, android.sourceSets)
+    def nativeLibs = tasks.register('nativeLibs', NativeLibsTask) {
+        group = 'Native'
+        abis += splits.abiFilters
+        def linkers = localProperties.getProperty('build.jni.max_linkers')
+        if (linkers != null && !linkers.isEmpty()) {
+            maxLinkers = linkers.toInteger()
         }
+        inputs.files sourceSets.main.jni.srcDirs
+        outputs.dir jniDir
     }
-
     applicationVariants.configureEach { variant ->
-        def suffix = variant.name.capitalize()
+        def pkgFlavor = variant.productFlavors[0]
         def apiFlavor = variant.productFlavors[1]
-        def task = tasks.named("nativeLibs${apiFlavor.name.capitalize()}", NativeLibsTask) {
-            abis += variant.productFlavors[0].ndk.abiFilters
-            abis += splits.abiFilters
+        nativeLibs.configure {
+            abis += pkgFlavor.ndk.abiFilters
+            minsdks += apiFlavor.minSdkVersion.apiLevel
         }
-        tasks.named("package${suffix}").configure {
-            dependsOn task
-        }
+        def suffix = variant.name.capitalize()
         tasks.named("merge${suffix}JniLibFolders").configure {
-            dependsOn task
+            dependsOn nativeLibs
         }
     }
 }
