@@ -68,6 +68,9 @@ android {
         release {
             // Take config from flavor
             signingConfig null
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
         }
 
         debug {
