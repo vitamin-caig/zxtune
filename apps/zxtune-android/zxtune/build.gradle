@@ -106,8 +106,10 @@ dependencies {
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
     // See https://developer.android.com/guide/fragments/test#configure
     testImplementation "androidx.fragment:fragment-testing:$fragment_version"
+    // Run fragment tests under Develop flavor to avoid
+    // https://github.com/robolectric/robolectric/pull/4736 problem
     //noinspection FragmentGradleConfiguration
-    stagingImplementation "androidx.fragment:fragment-testing-manifest:$fragment_version"
+    developImplementation "androidx.fragment:fragment-testing-manifest:$fragment_version"
     kspTest "androidx.room:room-compiler:$room_version"
 }
 
@@ -131,9 +133,6 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-        staging {
-            initWith release
         }
     }
 }
