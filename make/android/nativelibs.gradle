@@ -44,7 +44,9 @@ android {
     }
 
     productFlavors.whenObjectAdded { flavor ->
+        // flavor is not set up yet...
         flavor.ext.set('isBundle', false)
+        flavor.ext.set('versionCodeOffset', 0)
     }
 
     // Splits config is global and cannot be per-variant
@@ -85,8 +87,9 @@ android {
                 versionNameSuffix "-${name}"
               }
               minSdkVersion val
-              versionCode android.defaultConfig.versionCode + idx
+              versionCode android.defaultConfig.versionCode * 10 + idx
               sourceSets.getByName(name).jniLibs.srcDirs = [ "${jniDir}/${name}" ]
+              versionCodeOffset = idx
             }
         }
     }
@@ -98,7 +101,7 @@ android {
         def packaging = pkgFlavor.name
         def apiFlavor = variant.flavors[1]
         assert apiFlavor.dimension == 'api'
-        def api = apiFlavor.name
+        def isBaseMinsdk = 0 == apiFlavor.versionCodeOffset
         if (!isRelease && packaging != 'fat') {
             setIgnore(true)
             println "Disable ${variant.name} for developer builds"
@@ -114,7 +117,7 @@ android {
             println "Disable ${variant.name} due to empty ndk.abiFilters"
             return
         }
-        if (!pkgFlavor.isBundle && api != 'minsdk16') {
+        if (!pkgFlavor.isBundle && !isBaseMinsdk) {
             setIgnore(true)
             println "Disable ${variant.name} for apk packages"
             return
