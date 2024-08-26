@@ -9,7 +9,6 @@ android {
 
     defaultConfig {
         applicationId "app.zxtune"
-        minSdkVersion 16
         targetSdkVersion 34
         //supported languages
         resourceConfigurations += ['en', 'de', 'ru', 'es', 'cs', 'zh', 'ja', 'pt']
