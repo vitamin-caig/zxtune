@@ -122,6 +122,11 @@ android {
             println "Disable ${variant.name} for apk packages"
             return
         }
+        if (!isBaseMinsdk && packaging == 'rustore') {
+            setIgnore(true)
+            println "Disable ${variant.name} for rustore limitations"
+            return
+        }
     }
 }
 
