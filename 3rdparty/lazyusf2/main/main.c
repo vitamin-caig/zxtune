@@ -137,7 +137,11 @@ m64p_error main_start(usf_state_t * state)
 #ifdef DEBUG_INFO
     state->r4300emu = 0;
 #else
+#ifndef NO_TRIMMING
     state->r4300emu = state->enable_trimming_mode ? 0 : 2;
+#else
+    state->r4300emu = 2;
+#endif
 #endif
 
     /* set some other core parameters based on the config file values */
@@ -177,6 +181,7 @@ m64p_error main_start(usf_state_t * state)
         state->g_ai.regs[AI_STATUS_REG] |= 0x40000000;
     }
 
+#ifndef NO_TRIMMING
     // We want to leave in all the necessary code so that these can one day be enabled for the trimmed sets
     if (state->enable_trimming_mode)
     {
@@ -186,6 +191,7 @@ m64p_error main_start(usf_state_t * state)
         state->g_delay_dp = 1;
         state->enable_hle_audio = 0;
     }
+#endif
 
     // Assume it's a proper rip
     if (state->enablecompare && state->enableFIFOfull)

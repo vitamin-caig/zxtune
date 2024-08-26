@@ -249,11 +249,13 @@ struct usf_state
     // options for decoding
     uint32_t enable_hle_audio;
     
+#ifndef NO_TRIMMING
     // trimming helper
     uint32_t enable_trimming_mode;
     void * barray_rom;
     void * barray_ram_read;
     void * barray_ram_written_first;
+#endif
     
     // save state
     unsigned char * save_state;

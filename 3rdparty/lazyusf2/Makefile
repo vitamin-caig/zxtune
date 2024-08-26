@@ -13,7 +13,7 @@ source_files += ai/ai_controller \
                 $(addprefix rsp_hle/, alist alist_audio alist_naudio alist_nead audio cicx105 hle hvqm jpeg memory mp3 musyx plugin re2) \
                 rsp_lle/rsp \
                 $(addprefix si/, cic game_controller n64_cic_nus_6105 pif si_controller) \
-                $(addprefix usf/, usf resampler barray) \
+                $(addprefix usf/, usf resampler) \
                 vi/vi_controller
 
 includes.dirs += . $(dirs.root)/3rdparty/zlib
@@ -26,5 +26,7 @@ endif
 source_files := $(addsuffix .c,$(source_files))
 
 objects_flat_names := 1
+
+defines += NO_TRIMMING
 
 include $(dirs.root)/makefile.mak

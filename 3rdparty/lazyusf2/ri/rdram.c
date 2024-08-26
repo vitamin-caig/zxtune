@@ -88,6 +88,7 @@ int write_rdram_dram(void* opaque, uint32_t address, uint32_t value, uint32_t ma
     return 0;
 }
 
+#ifndef NO_TRIMMING
 int read_rdram_dram_tracked(void* opaque, uint32_t address, uint32_t* value)
 {
     usf_state_t* state = (usf_state_t*) opaque;
@@ -115,4 +116,5 @@ int write_rdram_dram_tracked(void* opaque, uint32_t address, uint32_t value, uin
     
     return 0;
 }
+#endif
 

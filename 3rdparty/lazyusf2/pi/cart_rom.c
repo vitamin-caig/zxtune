@@ -81,7 +81,9 @@ int read_cart_rom_tracked(void* opaque, uint32_t address, uint32_t* value)
     }
     else
     {
+#ifndef NO_TRIMMING
         bit_array_set(state->barray_rom, addr / 4);
+#endif
         
         *value = *(uint32_t*)(pi->cart_rom.rom + addr);
     }

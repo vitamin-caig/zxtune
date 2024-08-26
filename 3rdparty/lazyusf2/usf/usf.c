@@ -77,10 +77,12 @@ void usf_set_hle_audio(void * state, int enable)
     USF_STATE->enable_hle_audio = enable;
 }
 
+#ifndef NO_TRIMMING
 void usf_set_trimming_mode(void * state, int enable)
 {
     USF_STATE->enable_trimming_mode = enable;
 }
+#endif
 
 static uint32_t get_le32( const void * _p )
 {
@@ -212,12 +214,14 @@ static int usf_startup(usf_state_t * state)
         return -1;
     }
 
+#ifndef NO_TRIMMING
     if (state->enable_trimming_mode)
     {
         state->barray_rom = bit_array_create(state->g_rom_size / 4);
         state->barray_ram_read = bit_array_create(get_le32(state->save_state + 4) / 4);
         state->barray_ram_written_first = bit_array_create(get_le32(state->save_state + 4) / 4);
     }
+#endif
 
     state->MemoryState = 1;
 
@@ -414,6 +418,7 @@ void usf_restart(void * state)
     if ( USF_STATE->MemoryState )
     {
         r4300_end(USF_STATE);
+#ifndef NO_TRIMMING
         if (USF_STATE->enable_trimming_mode)
         {
             bit_array_destroy(USF_STATE->barray_rom);
@@ -423,6 +428,7 @@ void usf_restart(void * state)
             USF_STATE->barray_ram_read = 0;
             USF_STATE->barray_ram_written_first = 0;
         }
+#endif
         USF_STATE->MemoryState = 0;
     }
 
@@ -435,6 +441,7 @@ void usf_restart(void * state)
 void usf_shutdown(void * state)
 {
     r4300_end(USF_STATE);
+#ifndef NO_TRIMMING
     if (USF_STATE->enable_trimming_mode)
     {
         if (USF_STATE->barray_rom)
@@ -447,6 +454,7 @@ void usf_shutdown(void * state)
         USF_STATE->barray_ram_read = 0;
         USF_STATE->barray_ram_written_first = 0;
     }
+#endif
     USF_STATE->MemoryState = 0;
     free(USF_STATE->save_state);
     USF_STATE->save_state = 0;
@@ -459,6 +467,7 @@ void usf_shutdown(void * state)
     USF_STATE->resampler = 0;
 }
 
+#ifndef NO_TRIMMING
 void * usf_get_rom_coverage_barray(void * state)
 {
     return USF_STATE->barray_rom;
@@ -468,6 +477,7 @@ void * usf_get_ram_coverage_barray(void * state)
 {
     return USF_STATE->barray_ram_read;
 }
+#endif
 
 #ifdef DEBUG_INFO
 void usf_log_start(void * state)

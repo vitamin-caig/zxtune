@@ -296,6 +296,7 @@ void osal_fastcall write_rdramd(usf_state_t * state)
 }
 
 
+#ifndef NO_TRIMMING
 void osal_fastcall read_rdram_tracked(usf_state_t * state)
 {
     readw(read_rdram_dram_tracked, state, state->address, state->rdword);
@@ -335,6 +336,7 @@ void osal_fastcall write_rdram_trackedd(usf_state_t * state)
 {
     writed(write_rdram_dram_tracked, state, state->address, state->cpu_dword);
 }
+#endif
 
 
 static void osal_fastcall read_rdramreg(usf_state_t * state)
@@ -855,6 +857,7 @@ static void osal_fastcall write_rom(usf_state_t * state)
 }
 
 
+#ifndef NO_TRIMMING
 static void osal_fastcall read_rom_tracked(usf_state_t * state)
 {
     readw(read_cart_rom_tracked, state, state->address, state->rdword);
@@ -874,6 +877,7 @@ static void osal_fastcall read_rom_trackedd(usf_state_t * state)
 {
     readd(read_cart_rom_tracked, state, state->address, state->rdword);
 }
+#endif
 
 
 static void osal_fastcall read_pif(usf_state_t * state)
@@ -988,6 +992,7 @@ int init_memory(usf_state_t * state, uint32_t rdram_size)
     }
 
     /* map RDRAM */
+#ifndef NO_TRIMMING
     if (state->enable_trimming_mode)
     {
         for(i = 0; i < /*0x40*/(rdram_size >> 16); ++i)
@@ -997,6 +1002,7 @@ int init_memory(usf_state_t * state, uint32_t rdram_size)
         }
     }
     else
+#endif
     {
         for(i = 0; i < /*0x40*/(rdram_size >> 16); ++i)
         {
@@ -1135,6 +1141,7 @@ int init_memory(usf_state_t * state, uint32_t rdram_size)
     }
 
     /* map cart ROM */
+#ifndef NO_TRIMMING
     if (state->enable_trimming_mode)
     {
         for(i = 0; i < (state->g_rom_size >> 16); ++i)
@@ -1145,6 +1152,7 @@ int init_memory(usf_state_t * state, uint32_t rdram_size)
         }
     }
     else
+#endif
     {
         for(i = 0; i < (state->g_rom_size >> 16); ++i)
         {
@@ -1168,7 +1176,11 @@ int init_memory(usf_state_t * state, uint32_t rdram_size)
         map_region(state, 0xb000+i, M64P_MEM_NOTHING, RW(nothing));
     }
 
+#ifndef NO_TRIMMING
     state->fast_memory = state->enable_trimming_mode ? 0 : 1;
+#else
+    state->fast_memory = 1;
+#endif
 
     if (state->g_rom && state->g_rom_size >= 0xfc0)
         init_cic_using_ipl3(state, &state->g_si.pif.cic, state->g_rom + 0x40);
@@ -1248,6 +1260,7 @@ unsigned int * osal_fastcall fast_mem_access(usf_state_t * state, unsigned int a
      * and the recompiler, on the other hand, fetch the start of a
      * block and use the pointer for the entire block. */
 
+#ifndef NO_TRIMMING
     if (state->enable_trimming_mode)
     {
         if (address < RDRAM_MAX_SIZE)
@@ -1260,6 +1273,7 @@ unsigned int * osal_fastcall fast_mem_access(usf_state_t * state, unsigned int a
             bit_array_set(state->barray_rom, address / 4);
         }
     }
+#endif
 
     if (address < RDRAM_MAX_SIZE)
         return (unsigned int*)((unsigned char*)state->g_rdram + address);
