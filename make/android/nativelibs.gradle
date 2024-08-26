@@ -81,7 +81,9 @@ android {
             def name = "minsdk${val}"
             create(name) {
               dimension 'api'
-              versionNameSuffix "-${name}"
+              if (idx != 0) {
+                versionNameSuffix "-${name}"
+              }
               minSdkVersion val
               versionCode android.defaultConfig.versionCode + idx
               sourceSets.getByName(name).jniLibs.srcDirs = [ "${jniDir}/${name}" ]
