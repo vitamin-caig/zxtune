@@ -23,7 +23,7 @@ object Http {
         Locale.US,
         "%s/%d (%s; %s; %s; %s)",
         BuildConfig.APPLICATION_ID,
-        BuildConfig.VERSION_CODE,
+        BuildConfig.VERSION,
         BuildConfig.BUILD_TYPE,
         Build.CPU_ABI,
         BuildConfig.FLAVOR_packaging,

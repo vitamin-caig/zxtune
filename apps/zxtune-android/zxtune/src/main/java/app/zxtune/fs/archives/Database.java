@@ -100,7 +100,7 @@ import app.zxtune.fs.dbhelpers.Utils;
 class Database {
 
   private static final String NAME = "archives";
-  private static final int VERSION = BuildConfig.VERSION_CODE;
+  private static final int VERSION = BuildConfig.VERSION;
   private static final String TAG = Database.class.getName();
 
   static final class Tables {

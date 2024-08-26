@@ -42,7 +42,7 @@ class AboutFragment : DialogFragment(R.layout.about) {
         }
 
     private fun getAppInfo() =
-        "${getString(app.zxtune.R.string.app_name)} b${BuildConfig.VERSION_CODE} (${BuildConfig.FLAVOR})"
+        "${getString(app.zxtune.R.string.app_name)} b${BuildConfig.VERSION} (${BuildConfig.FLAVOR})"
 
     private fun getSystemInfo() = InfoBuilder(requireContext()).apply {
         buildOSInfo()
