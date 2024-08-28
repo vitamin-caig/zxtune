@@ -145,7 +145,9 @@ m64p_error main_start(usf_state_t * state)
 #endif
 
     /* set some other core parameters based on the config file values */
+#ifdef DYNAREC
     state->no_compiled_jump = 0;
+#endif
     //state->g_delay_si = 1;
     state->g_delay_sp = 1;
     state->g_disable_tlb_write_exception = 1;

@@ -37,7 +37,11 @@ void TLB_refill_exception(usf_state_t * state, unsigned int address, int w)
 {
    int usual_handler = 0, i;
 
+#ifdef DYNAREC
    if (state->r4300emu != CORE_DYNAREC && w != 2) update_count(state);
+#else
+   if (w != 2) update_count(state);
+#endif
    if (w == 1) state->g_cp0_regs[CP0_CAUSE_REG] = (3 << 2);
    else state->g_cp0_regs[CP0_CAUSE_REG] = (2 << 2);
    state->g_cp0_regs[CP0_BADVADDR_REG] = address;
@@ -104,7 +108,9 @@ void TLB_refill_exception(usf_state_t * state, unsigned int address, int w)
      }
 #endif
    
+#ifdef DYNAREC
    if (state->r4300emu != CORE_DYNAREC || state->dyna_interp)
+#endif
      {
     state->dyna_interp = 0;
     if (state->delay_slot)
@@ -141,7 +147,9 @@ void osal_fastcall exception_general(usf_state_t * state)
     if (!state->dyna_interp) state->delay_slot = 0;
      }
 #endif
+#ifdef DYNAREC
    if (state->r4300emu != CORE_DYNAREC || state->dyna_interp)
+#endif
      {
     state->dyna_interp = 0;
     if (state->delay_slot)

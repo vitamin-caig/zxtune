@@ -2723,25 +2723,29 @@ void init_block(usf_state_t * state, precomp_block *block)
       state->dst->addr = block->start + i*4;
 #ifdef DYNAREC
       state->dst->reg_cache_infos.need_map = 0;
-#endif
       state->dst->local_addr = state->code_length;
+#endif
       RNOTCOMPILED(state);
 #ifdef DYNAREC
       if (state->r4300emu == CORE_DYNAREC) state->recomp_func(state);
 #endif
     }
+#ifdef DYNAREC
   state->init_length = state->code_length;
+#endif
   }
   else
   {
+#ifdef DYNAREC
     state->code_length = state->init_length; /* recompile everything, overwrite old recompiled instructions */
+#endif
     for (i=0; i<length; i++)
     {
       state->dst = block->block + i;
 #ifdef DYNAREC
       state->dst->reg_cache_infos.need_map = 0;
-#endif
       state->dst->local_addr = i * (state->init_length / length);
+#endif
       state->dst->ops = state->current_instruction_table.NOTCOMPILED;
     }
   }
@@ -2889,9 +2893,9 @@ void recompile_block(usf_state_t * state, int *source, precomp_block *block, uns
     state->dst->addr = block->start + i*4;
 #ifdef DYNAREC
     state->dst->reg_cache_infos.need_map = 0;
-#endif
     state->dst->local_addr = state->code_length;
     state->recomp_func = NULL;
+#endif
     recomp_ops[((state->src >> 26) & 0x3F)](state);
 #ifdef DYNAREC
     if (state->r4300emu == CORE_DYNAREC) state->recomp_func(state);
@@ -2932,10 +2936,12 @@ void recompile_block(usf_state_t * state, int *source, precomp_block *block, uns
     state->dst->addr = block->start + i*4;
 #ifdef DYNAREC
     state->dst->reg_cache_infos.need_map = 0;
-#endif
     state->dst->local_addr = state->code_length;
+#endif
     RFIN_BLOCK(state);
+#ifdef DYNAREC
     if (state->r4300emu == CORE_DYNAREC) state->recomp_func(state);
+#endif
     i++;
     if (i < length-1+(length>>2)) // useful when last opcode is a jump
       {
@@ -2943,8 +2949,8 @@ void recompile_block(usf_state_t * state, int *source, precomp_block *block, uns
          state->dst->addr = block->start + i*4;
 #ifdef DYNAREC
          state->dst->reg_cache_infos.need_map = 0;
-#endif
          state->dst->local_addr = state->code_length;
+#endif
          RFIN_BLOCK(state);
 #ifdef DYNAREC
          if (state->r4300emu == CORE_DYNAREC) state->recomp_func(state);
@@ -3054,7 +3060,9 @@ void recompile_opcode(usf_state_t * state)
 #endif
    if(!is_jump(state))
    {
+#ifdef DYNAREC
      state->recomp_func = NULL;
+#endif
      recomp_ops[((state->src >> 26) & 0x3F)](state);
 #ifdef DYNAREC
      if (state->r4300emu == CORE_DYNAREC) state->recomp_func(state);

@@ -1176,10 +1176,12 @@ int init_memory(usf_state_t * state, uint32_t rdram_size)
         map_region(state, 0xb000+i, M64P_MEM_NOTHING, RW(nothing));
     }
 
+#ifdef DYNAREC
 #ifndef NO_TRIMMING
     state->fast_memory = state->enable_trimming_mode ? 0 : 1;
 #else
     state->fast_memory = 1;
+#endif
 #endif
 
     if (state->g_rom && state->g_rom_size >= 0xfc0)

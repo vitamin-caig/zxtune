@@ -391,26 +391,27 @@ struct usf_state
     
     // r4300/recomp.c
     precomp_instr *dst; // destination structure for the recompiled instruction
-    int code_length; // current real recompiled code length
-    int max_code_length; // current recompiled code's buffer length
-    unsigned char **inst_pointer; // output buffer for recompiled code
     precomp_block *dst_block; // the current block that we are recompiling
     int src; // the current recompiled instruction
-    int fast_memory;
-    int no_compiled_jump /* = 0*/; /* use cached interpreter instead of recompiler for jumps */
-    
-    void (*recomp_func)(usf_state_t *); // pointer to the dynarec's generator
-    // function for the latest decoded opcode
     
     int *SRC; // currently recompiled instruction in the input stream
     int check_nop; // next instruction is nop ?
     int delay_slot_compiled/* = 0*/;
     
-    int init_length;
 
     int cycle_count;
 
 #ifdef DYNAREC
+    int code_length; // current real recompiled code length
+    int max_code_length; // current recompiled code's buffer length
+    unsigned char **inst_pointer; // output buffer for recompiled code
+    int fast_memory;
+    int no_compiled_jump /* = 0*/; /* use cached interpreter instead of recompiler for jumps */
+
+    void (*recomp_func)(usf_state_t *); // pointer to the dynarec's generator
+    // function for the latest decoded opcode
+
+    int init_length;
 #ifdef _MSC_VER
 #define __i386__
 #endif

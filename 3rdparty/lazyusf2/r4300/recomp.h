@@ -29,10 +29,12 @@
 #ifndef PRECOMP_STRUCTS
 #define PRECOMP_STRUCTS
 
+#ifdef DYNAREC
 #if defined(__x86_64__)
 #include "x86_64/assemble_struct.h"
 #else
 #include "x86/assemble_struct.h"
+#endif
 #endif
 
 typedef struct _precomp_instr
@@ -72,8 +74,8 @@ typedef struct _precomp_instr
       } cf;
      } f;
    unsigned int addr; /* word-aligned instruction address in r4300 address space */
-   unsigned int local_addr; /* byte offset to start of corresponding x86_64 instructions, from start of code block */
 #ifdef DYNAREC
+   unsigned int local_addr; /* byte offset to start of corresponding x86_64 instructions, from start of code block */
    reg_cache_struct reg_cache_infos;
 #endif
 } precomp_instr;
@@ -104,12 +106,16 @@ void dyna_start(usf_state_t *, void *code);
 void dyna_stop(usf_state_t *);
 void *realloc_exec(usf_state_t *, void *ptr, size_t oldsize, size_t newsize);
 
+#ifdef DYNAREC
 #if defined(__x86_64__)
   #include "x86_64/assemble.h"
   #include "x86_64/regcache.h"
 #else
   #include "x86/assemble.h"
   #include "x86/regcache.h"
+#endif
+#else
+#include "recomph.h"
 #endif
 
 #endif /* M64P_R4300_RECOMP_H */
