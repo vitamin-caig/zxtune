@@ -48,7 +48,7 @@ void init_vi(struct vi_controller* vi)
 }
 
 
-int read_vi_regs(void* opaque, uint32_t address, uint32_t* value)
+void read_vi_regs(void* opaque, uint32_t address, uint32_t* value)
 {
     struct vi_controller* vi = (struct vi_controller*)opaque;
     uint32_t reg = vi_reg(address);
@@ -61,11 +61,9 @@ int read_vi_regs(void* opaque, uint32_t address, uint32_t* value)
     }
 
     *value = vi->regs[reg];
-
-    return 0;
 }
 
-int write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
+void write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
     struct vi_controller* vi = (struct vi_controller*)opaque;
     usf_state_t * state = vi->r4300->state;
@@ -79,18 +77,18 @@ int write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
         {
             masked_write(&vi->regs[VI_STATUS_REG], value, mask);
         }
-        return 0;
+        return;
 
     case VI_WIDTH_REG:
         if ((vi->regs[VI_WIDTH_REG] & mask) != (value & mask))
         {
             masked_write(&vi->regs[VI_WIDTH_REG], value, mask);
         }
-        return 0;
+        return;
 
     case VI_CURRENT_REG:
         clear_rcp_interrupt(vi->r4300, MI_INTR_VI);
-        return 0;
+        return;
 
     case VI_V_SYNC_REG:
         masked_write(&vi->regs[reg], value, mask);
@@ -102,12 +100,10 @@ int write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
             vi->next_vi = state->g_cp0_regs[CP0_COUNT_REG] + vi->delay;
             add_interupt_event_count(state, VI_INT, vi->next_vi);
         }
-        return 0;
+        return;
     }
 
     masked_write(&vi->regs[reg], value, mask);
-
-    return 0;
 }
 
 void vi_vertical_interrupt_event(struct vi_controller* vi)

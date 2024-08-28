@@ -77,17 +77,15 @@ void init_mi(struct mi_controller* mi)
 }
 
 
-int read_mi_regs(void* opaque, uint32_t address, uint32_t* value)
+void read_mi_regs(void* opaque, uint32_t address, uint32_t* value)
 {
     struct r4300_core* r4300 = (struct r4300_core*)opaque;
     uint32_t reg = mi_reg(address);
 
     *value = r4300->mi.regs[reg];
-
-    return 0;
 }
 
-int write_mi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
+void write_mi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
     struct r4300_core* r4300 = (struct r4300_core*)opaque;
     uint32_t reg = mi_reg(address);
@@ -108,8 +106,6 @@ int write_mi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
         if (r4300->state->cycle_count >= 0) gen_interupt(r4300->state);
         break;
     }
-
-    return 0;
 }
 
 /* interrupt execution is immediate (if not masked) */

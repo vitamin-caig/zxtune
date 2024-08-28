@@ -63,8 +63,8 @@
 
 #include "osal/preproc.h"
 
-typedef int (*readfn)(void*, uint32_t, uint32_t*);
-typedef int (*writefn)(void*, uint32_t, uint32_t, uint32_t);
+typedef void (*readfn)(void*, uint32_t, uint32_t*);
+typedef void (*writefn)(void*, uint32_t, uint32_t, uint32_t);
 
 static osal_inline unsigned int bshift(uint32_t address)
 {
@@ -76,76 +76,64 @@ static osal_inline unsigned int hshift(uint32_t address)
     return ((address & 2) ^ 2) << 3;
 }
 
-static int readb(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
+static void readb(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
 {
     uint32_t w;
     unsigned shift = bshift(address);
-    int result = read_word(opaque, address, &w);
+    read_word(opaque, address, &w);
     *value = (w >> shift) & 0xff;
-
-    return result;
 }
 
-static int readh(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
+static void readh(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
 {
     uint32_t w;
     unsigned shift = hshift(address);
-    int result = read_word(opaque, address, &w);
+    read_word(opaque, address, &w);
     *value = (w >> shift) & 0xffff;
-
-    return result;
 }
 
-static int readw(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
+static void readw(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
 {
     uint32_t w;
-    int result = read_word(opaque, address, &w);
+    read_word(opaque, address, &w);
     *value = w;
-
-    return result;
 }
 
-static int readd(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
+static void readd(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
 {
     uint32_t w[2];
-    int result =
     read_word(opaque, address    , &w[0]);
     read_word(opaque, address + 4, &w[1]);
     *value = ((uint64_t)w[0] << 32) | w[1];
-
-    return result;
 }
 
-static int writeb(writefn write_word, void* opaque, uint32_t address, uint8_t value)
+static void writeb(writefn write_word, void* opaque, uint32_t address, uint8_t value)
 {
     unsigned int shift = bshift(address);
     uint32_t w = (uint32_t)value << shift;
     uint32_t mask = (uint32_t)0xff << shift;
 
-    return write_word(opaque, address, w, mask);
+    write_word(opaque, address, w, mask);
 }
 
-static int writeh(writefn write_word, void* opaque, uint32_t address, uint16_t value)
+static void writeh(writefn write_word, void* opaque, uint32_t address, uint16_t value)
 {
     unsigned int shift = hshift(address);
     uint32_t w = (uint32_t)value << shift;
     uint32_t mask = (uint32_t)0xffff << shift;
 
-    return write_word(opaque, address, w, mask);
+    write_word(opaque, address, w, mask);
 }
 
-static int writew(writefn write_word, void* opaque, uint32_t address, uint32_t value)
+static void writew(writefn write_word, void* opaque, uint32_t address, uint32_t value)
 {
-    return write_word(opaque, address, value, ~0U);
+    write_word(opaque, address, value, ~0U);
 }
 
-static int writed(writefn write_word, void* opaque, uint32_t address, uint64_t value)
+static void writed(writefn write_word, void* opaque, uint32_t address, uint64_t value)
 {
-    int result =
     write_word(opaque, address    , value >> 32, ~0U);
     write_word(opaque, address + 4, value      , ~0U);
-
-    return result;
 }
 
 
@@ -923,18 +911,15 @@ static void osal_fastcall write_pifd(usf_state_t * state)
 /* HACK: just to get F-Zero to boot
  * TODO: implement a real DD module
  */
-static int read_dd_regs(void* opaque, uint32_t address, uint32_t* value)
+static void read_dd_regs(void* opaque, uint32_t address, uint32_t* value)
 {
     *value = (address == 0xa5000508)
            ? 0xffffffff
            : 0x00000000;
-
-    return 0;
 }
 
-static int write_dd_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
+static void write_dd_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    return 0;
 }
 
 static void osal_fastcall read_dd(usf_state_t * state)
