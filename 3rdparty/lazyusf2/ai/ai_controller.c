@@ -186,18 +186,18 @@ void init_ai(struct ai_controller* ai)
 }
 
 
-void read_ai_regs(void* opaque, uint32_t address, uint32_t* value)
+uint32_t read_ai_regs(void* opaque, uint32_t address)
 {
     struct ai_controller* ai = (struct ai_controller*)opaque;
     uint32_t reg = ai_reg(address);
 
     if (reg == AI_LEN_REG)
     {
-        *value = get_remaining_dma_length(ai);
+        return get_remaining_dma_length(ai);
     }
     else
     {
-        *value = ai->regs[reg];
+        return ai->regs[reg];
     }
 }
 

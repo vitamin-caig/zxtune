@@ -59,7 +59,7 @@ void connect_ri(struct ri_controller* ri,
 
 void init_ri(struct ri_controller* ri);
 
-void read_ri_regs(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_ri_regs(void* opaque, uint32_t address);
 void write_ri_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 #endif

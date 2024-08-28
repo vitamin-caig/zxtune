@@ -90,13 +90,13 @@ void connect_rsp(struct rsp_core* sp,
 
 void init_rsp(struct rsp_core* sp);
 
-void read_rsp_mem(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_rsp_mem(void* opaque, uint32_t address);
 void write_rsp_mem(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
-void read_rsp_regs(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_rsp_regs(void* opaque, uint32_t address);
 void write_rsp_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
-void read_rsp_regs2(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_rsp_regs2(void* opaque, uint32_t address);
 void write_rsp_regs2(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void do_SP_Task(struct rsp_core* sp);

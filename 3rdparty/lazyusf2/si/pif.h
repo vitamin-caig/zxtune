@@ -66,7 +66,7 @@ static osal_inline uint32_t pif_ram_address(uint32_t address)
 
 void init_pif(struct pif* pif);
 
-void read_pif_ram(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_pif_ram(void* opaque, uint32_t address);
 void write_pif_ram(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void update_pif_write(struct si_controller* si);

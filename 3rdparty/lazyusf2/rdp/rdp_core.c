@@ -74,12 +74,12 @@ void init_rdp(struct rdp_core* dp)
 }
 
 
-void read_dpc_regs(void* opaque, uint32_t address, uint32_t* value)
+uint32_t read_dpc_regs(void* opaque, uint32_t address)
 {
     struct rdp_core* dp = (struct rdp_core*)opaque;
     uint32_t reg = dpc_reg(address);
 
-    *value = dp->dpc_regs[reg];
+    return dp->dpc_regs[reg];
 }
 
 void write_dpc_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
@@ -114,12 +114,12 @@ void write_dpc_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mas
 }
 
 
-void read_dps_regs(void* opaque, uint32_t address, uint32_t* value)
+uint32_t read_dps_regs(void* opaque, uint32_t address)
 {
     struct rdp_core* dp = (struct rdp_core*)opaque;
     uint32_t reg = dps_reg(address);
 
-    *value = dp->dps_regs[reg];
+    return dp->dps_regs[reg];
 }
 
 void write_dps_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)

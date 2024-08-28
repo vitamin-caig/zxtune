@@ -73,7 +73,7 @@ void connect_pi(struct pi_controller* pi,
 
 void init_pi(struct pi_controller* pi);
 
-void read_pi_regs(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_pi_regs(void* opaque, uint32_t address);
 void write_pi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void pi_end_of_dma_event(struct pi_controller* pi);

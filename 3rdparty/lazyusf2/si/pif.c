@@ -68,7 +68,7 @@ void init_pif(struct pif* pif)
     memset(pif->ram, 0, PIF_RAM_SIZE);
 }
 
-void read_pif_ram(void* opaque, uint32_t address, uint32_t* value)
+uint32_t read_pif_ram(void* opaque, uint32_t address)
 {
     struct si_controller* si = (struct si_controller*)opaque;
     uint32_t addr = pif_ram_address(address);
@@ -76,12 +76,10 @@ void read_pif_ram(void* opaque, uint32_t address, uint32_t* value)
     if (addr >= PIF_RAM_SIZE)
     {
         DebugMessage(si->r4300->state, M64MSG_ERROR, "Invalid PIF address: %08x", address);
-        *value = 0;
-        return;
+        return 0;
     }
 
-    memcpy(value, si->pif.ram + addr, sizeof(*value));
-    *value = sl(*value);
+    return sl(*(uint32_t*)(&si->pif.ram[addr]));
 }
 
 void write_pif_ram(void* opaque, uint32_t address, uint32_t value, uint32_t mask)

@@ -63,7 +63,7 @@
 
 #include "osal/preproc.h"
 
-typedef void (*readfn)(void*, uint32_t, uint32_t*);
+typedef uint32_t (*readfn)(void*, uint32_t);
 typedef void (*writefn)(void*, uint32_t, uint32_t, uint32_t);
 
 static osal_inline unsigned int bshift(uint32_t address)
@@ -78,32 +78,29 @@ static osal_inline unsigned int hshift(uint32_t address)
 
 static void readb(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
 {
-    uint32_t w;
+    uint32_t w = read_word(opaque, address);
     unsigned shift = bshift(address);
-    read_word(opaque, address, &w);
     *value = (w >> shift) & 0xff;
 }
 
 static void readh(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
 {
-    uint32_t w;
+    uint32_t w = read_word(opaque, address);
     unsigned shift = hshift(address);
-    read_word(opaque, address, &w);
     *value = (w >> shift) & 0xffff;
 }
 
 static void readw(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
 {
-    uint32_t w;
-    read_word(opaque, address, &w);
+    uint32_t w = read_word(opaque, address);
     *value = w;
 }
 
 static void readd(readfn read_word, void* opaque, uint32_t address, unsigned long long int* value)
 {
     uint32_t w[2];
-    read_word(opaque, address    , &w[0]);
-    read_word(opaque, address + 4, &w[1]);
+    w[0] = read_word(opaque, address);
+    w[1] = read_word(opaque, address + 4);
     *value = ((uint64_t)w[0] << 32) | w[1];
 }
 
@@ -911,9 +908,9 @@ static void osal_fastcall write_pifd(usf_state_t * state)
 /* HACK: just to get F-Zero to boot
  * TODO: implement a real DD module
  */
-static void read_dd_regs(void* opaque, uint32_t address, uint32_t* value)
+static uint32_t read_dd_regs(void* opaque, uint32_t address)
 {
-    *value = (address == 0xa5000508)
+    return (address == 0xa5000508)
            ? 0xffffffff
            : 0x00000000;
 }

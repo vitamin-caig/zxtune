@@ -65,13 +65,13 @@ void connect_rdram(struct rdram* rdram,
 
 void init_rdram(struct rdram* rdram);
 
-void read_rdram_regs(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_rdram_regs(void* opaque, uint32_t address);
 void write_rdram_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
-void read_rdram_dram(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_rdram_dram(void* opaque, uint32_t address);
 void write_rdram_dram(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
-void read_rdram_dram_tracked(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_rdram_dram_tracked(void* opaque, uint32_t address);
 void write_rdram_dram_tracked(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 #endif

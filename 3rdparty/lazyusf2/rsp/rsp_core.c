@@ -213,12 +213,12 @@ void init_rsp(struct rsp_core* sp)
 }
 
 
-void read_rsp_mem(void* opaque, uint32_t address, uint32_t* value)
+uint32_t read_rsp_mem(void* opaque, uint32_t address)
 {
     struct rsp_core* sp = (struct rsp_core*)opaque;
     uint32_t addr = rsp_mem_address(address);
 
-    *value = sp->mem[addr];
+    return sp->mem[addr];
 }
 
 void write_rsp_mem(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
@@ -230,17 +230,18 @@ void write_rsp_mem(void* opaque, uint32_t address, uint32_t value, uint32_t mask
 }
 
 
-void read_rsp_regs(void* opaque, uint32_t address, uint32_t* value)
+uint32_t read_rsp_regs(void* opaque, uint32_t address)
 {
     struct rsp_core* sp = (struct rsp_core*)opaque;
     uint32_t reg = rsp_reg(address);
 
-    *value = sp->regs[reg];
+    const uint32_t tmp = sp->regs[reg];
 
     if (reg == SP_SEMAPHORE_REG)
     {
         sp->regs[SP_SEMAPHORE_REG] = 1;
     }
+    return tmp;
 }
 
 void write_rsp_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
@@ -274,12 +275,12 @@ void write_rsp_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mas
 }
 
 
-void read_rsp_regs2(void* opaque, uint32_t address, uint32_t* value)
+uint32_t read_rsp_regs2(void* opaque, uint32_t address)
 {
     struct rsp_core* sp = (struct rsp_core*)opaque;
     uint32_t reg = rsp_reg2(address);
 
-    *value = sp->regs2[reg];
+    return sp->regs2[reg];
 }
 
 void write_rsp_regs2(void* opaque, uint32_t address, uint32_t value, uint32_t mask)

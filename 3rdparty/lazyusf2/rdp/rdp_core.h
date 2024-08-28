@@ -80,10 +80,10 @@ void connect_rdp(struct rdp_core* dp,
 
 void init_rdp(struct rdp_core* dp);
 
-void read_dpc_regs(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_dpc_regs(void* opaque, uint32_t address);
 void write_dpc_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
-void read_dps_regs(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_dps_regs(void* opaque, uint32_t address);
 void write_dps_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void rdp_interrupt_event(struct rdp_core* dp);

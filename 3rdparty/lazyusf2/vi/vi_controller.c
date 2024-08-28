@@ -48,7 +48,7 @@ void init_vi(struct vi_controller* vi)
 }
 
 
-void read_vi_regs(void* opaque, uint32_t address, uint32_t* value)
+uint32_t read_vi_regs(void* opaque, uint32_t address)
 {
     struct vi_controller* vi = (struct vi_controller*)opaque;
     uint32_t reg = vi_reg(address);
@@ -60,7 +60,7 @@ void read_vi_regs(void* opaque, uint32_t address, uint32_t* value)
         vi->regs[VI_CURRENT_REG] = (vi->regs[VI_CURRENT_REG] & (~1)) | vi->field;
     }
 
-    *value = vi->regs[reg];
+    return vi->regs[reg];
 }
 
 void write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)

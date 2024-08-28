@@ -61,7 +61,7 @@ static osal_inline uint32_t mi_reg(uint32_t address)
 
 void init_mi(struct mi_controller* mi);
 
-void read_mi_regs(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_mi_regs(void* opaque, uint32_t address);
 void write_mi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void raise_rcp_interrupt(struct r4300_core* r4300, uint32_t mi_intr);

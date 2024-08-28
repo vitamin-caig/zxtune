@@ -65,7 +65,7 @@ void connect_si(struct si_controller* si,
 
 void init_si(struct si_controller* si);
 
-void read_si_regs(void* opaque, uint32_t address, uint32_t* value);
+uint32_t read_si_regs(void* opaque, uint32_t address);
 void write_si_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void si_end_of_dma_event(struct si_controller* si);

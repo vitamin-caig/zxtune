@@ -42,12 +42,12 @@ void init_ri(struct ri_controller* ri)
 }
 
 
-void read_ri_regs(void* opaque, uint32_t address, uint32_t* value)
+uint32_t read_ri_regs(void* opaque, uint32_t address)
 {
     struct ri_controller* ri = (struct ri_controller*)opaque;
     uint32_t reg = ri_reg(address);
 
-    *value = ri->regs[reg];
+    return ri->regs[reg];
 }
 
 void write_ri_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)

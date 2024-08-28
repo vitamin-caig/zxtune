@@ -216,12 +216,12 @@ void init_pi(struct pi_controller* pi)
 }
 
 
-void read_pi_regs(void* opaque, uint32_t address, uint32_t* value)
+uint32_t read_pi_regs(void* opaque, uint32_t address)
 {
     struct pi_controller* pi = (struct pi_controller*)opaque;
     uint32_t reg = pi_reg(address);
 
-    *value = pi->regs[reg];
+    return pi->regs[reg];
 }
 
 void write_pi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
