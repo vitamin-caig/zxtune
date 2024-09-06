@@ -79,7 +79,7 @@ android {
             signingConfig signingConfigs.release
         }
 
-        [16, 23, 28].eachWithIndex { val, idx ->
+        minSdks.eachWithIndex { val, idx ->
             def name = "minsdk${val}"
             create(name) {
               dimension 'api'
