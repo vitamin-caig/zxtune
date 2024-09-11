@@ -409,7 +409,7 @@ class VrtsFiles:
 
                 # same file N times
                 if self._args.performance and self._args.performance_repeat:
-                    for i in range(self._args.performance_repeat):
+                    for _ in range(self._args.performance_repeat):
                         self.filenames.append(file)
 
 
@@ -530,18 +530,14 @@ class VrtsApp:
 
     def _get_performance_args(self, cli):
         args = [cli, '-O'] #flag to not write files
-        if self._args.looping:
+        if not self._args.looping:
             args.append('-i')
         args.extend(self._files.filenames)
         return args
 
     def _performance(self):
-        flag_looping = ''
-        if self._args.looping:
-            flag_looping = '-i'
-
         # pases all files at once, as it's faster than 1 by 1 (that has to init program every time)
-        if self._performance_new:
+        if self._args.performance_new:
             self._p.info("testing new performance")
             ts_st = time.time()
 
@@ -551,7 +547,7 @@ class VrtsApp:
             ts_ed = time.time()
             self._p.info("done: elapsed %ss" % (ts_ed - ts_st))
 
-        if self._performance_old:
+        if self._args.performance_old:
             self._p.info("testing old performance")
             ts_st = time.time()
 
@@ -559,10 +555,10 @@ class VrtsApp:
             res = self._prc.call(args)
 
             ts_ed = time.time()
-            self._p.info("done: elapsed %ss (%s)" % (ts_ed - ts_st))
+            self._p.info("done: elapsed %ss" % (ts_ed - ts_st))
 
         #if self._performance_both:
-        #   ...
+        #   handled above
 
 
     # returns max fuzzy count, except for non-fuzzable files (that use int math)
@@ -587,7 +583,7 @@ class VrtsApp:
 
     def _get_compare_args(self, cli, outwav, filename):
         args = [cli, '-o', outwav] #flag to not write files
-        if self._args.looping:
+        if not self._args.looping:
             args.append('-i')
         args.append(filename)
         return args
@@ -595,10 +591,6 @@ class VrtsApp:
     def _compare(self):
         ts_st = time.time()
         self._p.info("comparing files")
-
-        flag_looping = ''
-        if self._args.looping:
-            flag_looping = '-i'
 
         total_ok = 0
         total_ko = 0

@@ -1,9 +1,12 @@
 #include <ctype.h>
 #include "../vgmstream.h"
 #include "../coding/coding.h"
+#include "../layout/layout.h"
 #include "mixing.h"
 #include "../util/channel_mappings.h"
 #include "../util/sf_utils.h"
+
+#define TEMPSIZE (256+32)
 
 /*******************************************************************************/
 /* TEXT                                                                        */
@@ -12,7 +15,7 @@
 static void describe_get_time(int32_t samples, int sample_rate, double* p_time_mm, double* p_time_ss) {
     double seconds = (double)samples / sample_rate;
     *p_time_mm = (int)(seconds / 60.0);
-    *p_time_ss = seconds - *p_time_mm * 60.0f;
+    *p_time_ss = seconds - *p_time_mm * 60.0;
     if (*p_time_ss >= 59.999) /* avoid round up to 60.0 when printing to %06.3f */
         *p_time_ss = 59.999;
 }
@@ -20,7 +23,6 @@ static void describe_get_time(int32_t samples, int sample_rate, double* p_time_m
 /* Write a description of the stream into array pointed by desc, which must be length bytes long.
  * Will always be null-terminated if length > 0 */
 void describe_vgmstream(VGMSTREAM* vgmstream, char* desc, int length) {
-#define TEMPSIZE (256+32)
     char temp[TEMPSIZE];
     double time_mm, time_ss;
 
@@ -51,7 +53,7 @@ void describe_vgmstream(VGMSTREAM* vgmstream, char* desc, int length) {
     }
 
     if (vgmstream->channel_layout) {
-        int cl = vgmstream->channel_layout;
+        uint32_t cl = vgmstream->channel_layout;
 
         /* not "channel layout: " to avoid mixups with "layout: " */
         snprintf(temp,TEMPSIZE, "channel mask: 0x%x /", vgmstream->channel_layout);
@@ -62,8 +64,8 @@ void describe_vgmstream(VGMSTREAM* vgmstream, char* desc, int length) {
         if (cl & speaker_LFE)   concatn(length,desc," LFE");
         if (cl & speaker_BL)    concatn(length,desc," BL");
         if (cl & speaker_BR)    concatn(length,desc," BR");
-        if (cl & speaker_FLC)   concatn(length,desc," FLC");
-        if (cl & speaker_FRC)   concatn(length,desc," FRC");
+        if (cl & speaker_FLC)   concatn(length,desc," FLC"); //FCL is also common
+        if (cl & speaker_FRC)   concatn(length,desc," FRC"); //FCR is also common
         if (cl & speaker_BC)    concatn(length,desc," BC");
         if (cl & speaker_SL)    concatn(length,desc," SL");
         if (cl & speaker_SR)    concatn(length,desc," SR");
@@ -128,9 +130,10 @@ void describe_vgmstream(VGMSTREAM* vgmstream, char* desc, int length) {
         int32_t frame_size = vgmstream->frame_size > 0 ? vgmstream->frame_size : vgmstream->interleave_block_size;
         switch (vgmstream->coding_type) {
             case coding_MSADPCM:
-            case coding_MSADPCM_int:
+            case coding_MSADPCM_mono:
             case coding_MSADPCM_ck:
             case coding_MS_IMA:
+            case coding_MS_IMA_mono:
             case coding_MC3:
             case coding_WWISE_IMA:
             case coding_REF_IMA:
@@ -232,9 +235,10 @@ void describe_vgmstream_info(VGMSTREAM* vgmstream, vgmstream_info* info) {
         int32_t frame_size = vgmstream->frame_size > 0 ? vgmstream->frame_size : vgmstream->interleave_block_size;
         switch (vgmstream->coding_type) {
         case coding_MSADPCM:
-        case coding_MSADPCM_int:
+        case coding_MSADPCM_mono:
         case coding_MSADPCM_ck:
         case coding_MS_IMA:
+        case coding_MS_IMA_mono:
         case coding_MC3:
         case coding_WWISE_IMA:
         case coding_REF_IMA:
@@ -328,8 +332,7 @@ static STREAMFILE* get_vgmstream_average_bitrate_channel_streamfile(VGMSTREAM* v
 #endif
 #if defined(VGM_USE_MP4V2) && defined(VGM_USE_FDKAAC)
     if (vgmstream->coding_type == coding_MP4_AAC) {
-        mp4_aac_codec_data *data = vgmstream->codec_data;
-        return data ? data->if_file.streamfile : NULL;
+        return mp4_aac_get_streamfile(vgmstream->codec_data);
     }
 #endif
 
@@ -449,6 +452,9 @@ fail:
 int get_vgmstream_average_bitrate(VGMSTREAM* vgmstream) {
     bitrate_info_t br = {0};
     br.count_max = BITRATE_FILES_MAX;
+
+    if (vgmstream->coding_type == coding_SILENCE)
+        return 0;
 
     return get_vgmstream_file_bitrate_main(vgmstream, &br, NULL);
 }

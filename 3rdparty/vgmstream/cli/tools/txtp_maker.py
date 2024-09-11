@@ -24,7 +24,7 @@ class Cli(object):
             "  %(prog)s * -r -fss 1\n"
             "  - make .txtp for all files in any subdirs with at least 1 subsong\n"
             "    (ignores formats without subsongs)\n\n"
-            "  %(prog)s bgm.fsb -in -fcm 2 -fms 5.0\n"
+            "  %(prog)s bgm.fsb -in -fcm 2 -fsm 5.0\n"
             "  - make .txtp for subsongs with at least 2 channels and 5 seconds\n\n"
             "  %(prog)s *.scd -r -fd -l 2\n"
             "  - make .txtp for all .scd in subdirs, ignoring dupes, one .txtp per 2ch\n\n"
@@ -53,6 +53,7 @@ class Cli(object):
                                                       "* may be inside <...> for conditional text\n"))
         p.add_argument('-z',  dest='zero_fill', help="Zero-fill subsong number (default: auto per subsongs)", type=int)
         p.add_argument('-ie', dest='no_internal_ext', help="Remove internal name's extension if any", action='store_true')
+        p.add_argument('-ip', dest='allow_internal_paths', help="Replace internal name's / paths with ~ (otherwise removed)", action='store_true')
         p.add_argument('-m',  dest='mini_txtp', help="Create mini-txtp", action='store_true')
         p.add_argument('-s',  dest='subsong_start', help="Start subsong", type=int)
         p.add_argument('-S',  dest='subsong_end', help="End subsong", type=int)
@@ -73,11 +74,13 @@ class Cli(object):
         p.add_argument('-fni', dest='include_regex', help="Filter by REGEX including matches of subsong name")
         p.add_argument('-fne', dest='exclude_regex', help="Filter by REGEX excluding matches of subsong name")
         p.add_argument('-nsc',dest='no_semicolon', help="Remove semicolon names (for songs with multinames)", action='store_true')
+        p.add_argument("-cmd","--command", help="sets any command (free text)")
+        p.add_argument("-cmdi","--command-inline", help="sets any inline command (free text)")
         p.add_argument('-v', dest='log_level', help="Verbose log level (off|debug|info, default: info)", default='info')
         args = p.parse_args()
 
         # defauls to rename (easier to use with drag-and-drop)
-        if not all([args.overwrite, args.overwrite_ignore, args.overwrite_rename]):
+        if not any([args.overwrite, args.overwrite_ignore, args.overwrite_rename]):
             args.overwrite_rename = True
         return args
 
@@ -185,8 +188,11 @@ class TxtpInfo(object):
     def _get_text(self, str):
         text = self._get_string(str, full=True)
         # stream names in CLI is printed as UTF-8 using '\xNN', so detect and transform
-        if text and '\\' in text:
-            return text.encode('ascii').decode('unicode-escape').encode('iso-8859-1').decode('utf-8')
+        try:
+            if text and '\\' in text:
+                return text.encode('ascii').decode('unicode-escape').encode('iso-8859-1').decode('utf-8')
+        except:
+            return text #odd/buggy names
         return text
 
     def _get_value(self, str):
@@ -265,20 +271,24 @@ class TxtpMaker(object):
             return None
 
         txt = self.info.stream_name
-        # remove paths #todo maybe config/replace?
-        pos = txt.rfind('\\')
-        if pos >= 0:
-            txt = txt[pos+1:]
-        pos = txt.rfind('/')
-        if pos >= 0:
-            txt = txt[pos+1:]
+        # remove paths
+        if self.cfg.allow_internal_paths:
+            txt = txt.replace("\\", "~")
+            txt = txt.replace("/", "~")
+        else:
+            pos = txt.rfind('\\')
+            if pos >= 0:
+                txt = txt[pos+1:]
+            pos = txt.rfind('/')
+            if pos >= 0:
+                txt = txt[pos+1:]
 
         # remove bad chars
         badchars = ['%', '*', '?', ':', '\"', '|', '<', '>']
         for badchar in badchars:
             txt = txt.replace(badchar, '_')
 
-        if not self.cfg.no_internal_ext:
+        if self.cfg.no_internal_ext:
             pos = txt.rfind(".")
             if pos >= 0:
                 txt = txt[:pos]
@@ -324,6 +334,13 @@ class TxtpMaker(object):
         with open(outname,"w+", encoding='utf-8') as ftxtp:
             if line:
                 ftxtp.write(line)
+                if cfg.command_inline:
+                    ftxtp.write(cfg.command_inline)
+            if cfg.command:
+                cmd = cfg.command.replace("\\n", "\n") + "\n"
+                if not line.endswith('\n'):
+                    cmd = "\n" + cmd
+                ftxtp.write(cmd)
 
         log.debug("created: " + outname)
         return
@@ -367,6 +384,7 @@ class TxtpMaker(object):
 
             outname = ''
             if cfg.base_name:
+                
                 stream_name = self._clean_stream_name()
                 internal_filename = stream_name
                 if not internal_filename:
@@ -600,6 +618,7 @@ class App(object):
             # subsongs should treat repeat names separately? pass flag?
             #maker.reset(rename_map)
 
+            processing = False
             while True:
                 try:
                     # main call to vgmstream
@@ -610,10 +629,12 @@ class App(object):
                     # basic parse of vgmstream info
                     maker.parse(output_b)
 
+                    processing = True
                 except (subprocess.CalledProcessError, ValueError) as e:
                     log.debug("ignoring CLI error in %s #%s: %s", filename_in, target_subsong, str(e))
                     errors += 1
-                    break
+                    if not processing: #stop but only if first subsong fails
+                        break
 
                 if target_subsong == subsong_start:
                     log.debug("processing %s...", filename_in_clean)
@@ -634,7 +655,7 @@ class App(object):
                 target_subsong += 1
 
                 if target_subsong % 200 == 0:
-                    log.info("%s/%s subsongs... (%s dupes, %s errors)", target_subsong, maker.info.stream_count, dupes, errors)
+                    log.info("%s/%s subsongs... (%s done, %s dupes, %s errors)", target_subsong, maker.info.stream_count, created, dupes, errors)
 
             if os.path.exists(filename_out):
                 os.remove(filename_out)

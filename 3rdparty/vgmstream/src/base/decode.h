@@ -7,12 +7,12 @@ void decode_free(VGMSTREAM* vgmstream);
 void decode_seek(VGMSTREAM* vgmstream);
 void decode_reset(VGMSTREAM* vgmstream);
 
-/* Decode samples into the buffer. Assume that we have written samples_written into the
+/* Decode samples into the buffer. Assume that we have written samples_filled into the
  * buffer already, and we have samples_to_do consecutive samples ahead of us. */
-void decode_vgmstream(VGMSTREAM* vgmstream, int samples_written, int samples_to_do, sample_t* buffer);
+void decode_vgmstream(VGMSTREAM* vgmstream, int samples_filled, int samples_to_do, sample_t* buffer);
 
-/* Detect loop start and save values, or detect loop end and restore (loop back). Returns 1 if loop was done. */
-int decode_do_loop(VGMSTREAM* vgmstream);
+/* Detect loop start and save values, or detect loop end and restore (loop back). Returns true if loop was done. */
+bool decode_do_loop(VGMSTREAM* vgmstream);
 
 /* Calculate number of consecutive samples to do (taking into account stopping for loop start and end) */
 int decode_get_samples_to_do(int samples_this_block, int samples_per_frame, VGMSTREAM* vgmstream);
@@ -28,5 +28,7 @@ int decode_get_frame_size(VGMSTREAM* vgmstream);
 int decode_get_samples_per_shortframe(VGMSTREAM* vgmstream);
 int decode_get_shortframe_size(VGMSTREAM* vgmstream);
 
+
+bool decode_uses_internal_offset_updates(VGMSTREAM* vgmstream);
 
 #endif
