@@ -6,7 +6,7 @@ dirs.ext = $(dirs.root)/3rdparty
 
 includes.dirs += $(dirs.ext)/atrac9/C/src $(dirs.ext)/mpg123/src/libmpg123 $(dirs.ext)/ffmpeg $(dirs.ext)
 
-source_dirs = src src/base src/coding src/coding/libs src/layout src/meta src/util
+source_dirs = . base coding coding/libs layout meta util
 
 includes.files = config.h 
 
