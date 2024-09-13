@@ -2045,6 +2045,15 @@ namespace Module::VGMStream
       "00|01|03 000000"       // +20
       ""_sv
     },
+    // NXOPUS, ~400
+    {
+      "NSOPUS"_id, "Nihon Falcom FDK", ".nxopus",
+      "'f'o'x'n"                   // +0
+      "?"_ss + CHANNELS8 + ANY16 + // +4
+      SAMPLERATE32LE +             // +8
+      "?{20}"_ss +                 // +c
+      SAMPLES32LE                  // +20
+    },
     // SPSD, ~360
     {
       "SPSD"_id, "Naomi SPSD", ".spsd",
