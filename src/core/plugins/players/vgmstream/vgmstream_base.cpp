@@ -2020,6 +2020,13 @@ namespace Module::VGMStream
       ""_sv,
       PluginType::MULTITRACK
     },
+    // STER, ~520
+    {
+      "STER"_id, "Alchemy STER", ".ster",
+      "'S'T'E'R"         // +0
+      "?{12}"_ss +       // +4
+      SAMPLERATE32BE     // +10
+    },
     // NXA, ~510
     {
       "NXA"_id, "Entergram NXA", ".nxa",
