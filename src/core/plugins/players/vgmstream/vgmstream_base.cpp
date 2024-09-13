@@ -2020,6 +2020,14 @@ namespace Module::VGMStream
       ""_sv,
       PluginType::MULTITRACK
     },
+    // NWA, ~540
+    {
+      "NWA"_id, "VisualArt's NWA", ".nwa",
+      "01|02 00 ??"_ss +    // +0 channels count
+      SAMPLERATE32LE +      // +4
+      "?{20}"_ss +          // +8
+      SAMPLES32LE           // +1c - really channels multiply
+    },
     // STER, ~520
     {
       "STER"_id, "Alchemy STER", ".ster",
