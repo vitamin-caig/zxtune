@@ -37,6 +37,7 @@ class RingtoneService : LifecycleService() {
         AsyncWorker(TAG)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onStart(intent: Intent?, startId: Int) {
         super.onStart(intent, startId)
         worker.execute {
