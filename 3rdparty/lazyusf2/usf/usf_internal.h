@@ -191,6 +191,32 @@ typedef struct _precomp_block
 
 struct usf_state
 {
+    // Locate most frequently used members in first 4096 (arm64) or 256*2*n (arm32) bytes
+    // r4300/r4300.c
+    unsigned int r4300emu/* = 0*/;
+    unsigned int count_per_op/* = COUNT_PER_OP_DEFAULT*/;
+    int llbit, rompause;
+    int stop;
+    long long int reg[32], hi, lo;
+    unsigned int next_interupt;
+    precomp_instr *PC;
+    long long int local_rs;
+    unsigned int delay_slot, skip_jump/* = 0*/, dyna_interp/* = 0*/, last_addr;
+    // r4300/recomp.c
+    int cycle_count;
+    // r4300/cached_interp.c
+    precomp_block *actual;
+    unsigned int jump_to_address;
+    
+    // memory/memory.c
+    unsigned int address, cpu_word;
+    unsigned char cpu_byte;
+    unsigned short cpu_hword;
+    unsigned long long cpu_dword, *rdword;
+    
+    // r4300/cp0.c
+    unsigned int g_cp0_regs[CP0_REGS_COUNT];
+
     // main/main.c
     uint32_t g_rdram[RDRAM_MAX_SIZE/4];
     
@@ -312,10 +338,6 @@ struct usf_state
     int g_gs_vi_counter/* = 0*/;
     
     // memory/memory.c
-    unsigned int address, cpu_word;
-    unsigned char cpu_byte;
-    unsigned short cpu_hword;
-    unsigned long long cpu_dword, *rdword;
     uint32_t EmptySpace[0x10000/4];
     
     void (osal_fastcall *readmem[0x10000])(usf_state_t *);
@@ -338,23 +360,10 @@ struct usf_state
     precomp_instr interp_PC;
     
     // r4300/r4300.c
-    unsigned int r4300emu/* = 0*/;
-    unsigned int count_per_op/* = COUNT_PER_OP_DEFAULT*/;
-    int llbit, rompause;
-    int stop;
-    long long int reg[32], hi, lo;
-    unsigned int next_interupt;
-    precomp_instr *PC;
-    long long int local_rs;
-    unsigned int delay_slot, skip_jump/* = 0*/, dyna_interp/* = 0*/, last_addr;
-    
     cpu_instruction_table current_instruction_table;
     
     // r4300/reset.c
     int reset_hard_job/* = 0*/;
-    
-    // r4300/cp0.c
-    unsigned int g_cp0_regs[CP0_REGS_COUNT];
     
     // r4300/cp1.c
     float *reg_cop1_simple[32];
@@ -386,8 +395,6 @@ struct usf_state
     // r4300/cached_interp.c
     char invalid_code[0x100000];
     precomp_block *blocks[0x100000];
-    precomp_block *actual;
-    unsigned int jump_to_address;
     
     // r4300/recomp.c
     precomp_instr *dst; // destination structure for the recompiled instruction
@@ -398,8 +405,6 @@ struct usf_state
     int check_nop; // next instruction is nop ?
     int delay_slot_compiled/* = 0*/;
     
-
-    int cycle_count;
 
 #ifdef DYNAREC
     int code_length; // current real recompiled code length
