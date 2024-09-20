@@ -179,6 +179,7 @@ namespace Module::Sid
         Config.fastSampling = newFastSampling;
         Config.samplingMethod = newSamplingMethod;
         Builder.filter(UseFilter = newFilter);
+        Builder.bias(0.);
 
         Config.sidEmulation = &Builder;
         CheckSidplayError(Player.config(Config));
