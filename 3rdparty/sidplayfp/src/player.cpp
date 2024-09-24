@@ -315,7 +315,7 @@ bool Player::config(const SidConfig &cfg, bool force)
     }
 
     // Only do these if we have a loaded tune
-    if (m_tune != nullptr)
+    if (m_tune != nullptr && force)
     {
         const SidTuneInfo* tuneInfo = m_tune->getInfo();
 
@@ -362,6 +362,10 @@ bool Player::config(const SidConfig &cfg, bool force)
             }
             return false;
         }
+    }
+    else if (m_tune != nullptr)
+    {
+      sidParams(m_c64.getMainCpuSpeed(), cfg.frequency, cfg.samplingMethod, cfg.fastSampling);
     }
 
     const bool isStereo = cfg.playback == SidConfig::STEREO;
