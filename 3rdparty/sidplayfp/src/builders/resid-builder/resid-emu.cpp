@@ -95,7 +95,7 @@ void ReSID::clock()
 {
     reSID::cycle_count cycles = eventScheduler->getTime(EVENT_CLOCK_PHI1) - m_accessClk;
     m_accessClk += cycles;
-    m_bufferpos += m_sid.clock(cycles, (short *) m_buffer + m_bufferpos, OUTPUTBUFFERSIZE - m_bufferpos, 1);
+    m_bufferpos += m_sid.clock(cycles, m_muted ? nullptr : (short *) m_buffer + m_bufferpos, OUTPUTBUFFERSIZE - m_bufferpos, 1);
 }
 
 void ReSID::filter(bool enable)

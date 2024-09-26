@@ -844,6 +844,17 @@ void SID::clock(cycle_count delta_t)
 // ----------------------------------------------------------------------------
 int SID::clock(cycle_count& delta_t, short* buf, int n, int interleave)
 {
+  if (!buf) {
+    int skip_samples = std::min(n, ((delta_t << FIXP_SHIFT) + sample_offset) / cycles_per_sample);
+    if (skip_samples) {
+      cycle_count end = sample_offset + cycles_per_sample * skip_samples;
+      cycle_count delta = end >> FIXP_SHIFT;
+      clock(delta);
+      sample_offset = end & FIXP_MASK;
+      delta_t -= delta;
+    }
+    return skip_samples;
+  }
   switch (sampling) {
   default:
   case SAMPLE_FAST:
@@ -856,7 +867,6 @@ int SID::clock(cycle_count& delta_t, short* buf, int n, int interleave)
     return clock_resample_fastmem(delta_t, buf, n, interleave);
   }
 }
-
 
 // ----------------------------------------------------------------------------
 // SID clocking with audio sampling - delta clocking picking nearest sample.

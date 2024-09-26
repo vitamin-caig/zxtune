@@ -75,6 +75,7 @@ protected:
 
     bool m_status;
     bool isLocked;
+    bool m_muted;
 
     std::string m_error;
 
@@ -86,6 +87,7 @@ public:
         m_bufferpos(0),
         m_status(true),
         isLocked(false),
+        m_muted(false),
         m_error("N/A") {}
     virtual ~sidemu() {}
 
@@ -110,6 +112,8 @@ public:
      * Mute/unmute voice.
      */
     virtual void voice(unsigned int num, bool mute) = 0;
+
+    virtual void mute(bool muted) { m_muted = muted; }
 
     /**
      * Set SID model.

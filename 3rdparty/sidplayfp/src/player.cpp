@@ -217,7 +217,7 @@ uint_least32_t Player::play(short *buffer, uint_least32_t count)
 
             if (m_mixer.getSid(0) != nullptr)
             {
-                if (count && (buffer != nullptr))
+                if (count)
                 {
                     // reset count in case of exceptions
                     count = 0;
