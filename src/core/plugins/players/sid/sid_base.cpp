@@ -186,11 +186,6 @@ namespace Module::Sid
       }
     }
 
-    void Stop()
-    {
-      Player.stop();
-    }
-
     uint_t GetSoundFreq() const
     {
       return Config.frequency;
@@ -231,7 +226,7 @@ namespace Module::Sid
     {
       Engine->Init(samplerate, *params);
       ApplyParameters();
-      Engine->Load(*Tune);
+      Reset();
     }
 
     Module::State::Ptr GetState() const override
@@ -241,22 +236,22 @@ namespace Module::Sid
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       const auto avail = State->ConsumeUpTo(FRAME_DURATION);
       return Engine->Render(GetSamples(avail));
     }
 
     void Reset() override
     {
-      SidParams.Reset();
-      Engine->Stop();
       State->Reset();
+      Engine->Load(*Tune);
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
       if (request < State->At())
       {
-        Engine->Stop();
+        Engine->Load(*Tune);
       }
       if (const auto toSkip = State->Seek(request))
       {
