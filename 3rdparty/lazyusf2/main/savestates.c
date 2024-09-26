@@ -133,16 +133,16 @@ static int savestates_load_m64p(usf_state_t * state, unsigned char * ptr, unsign
     read_bytes(queue, sizeof(queue));
     
     // Parse savestate
-    state->g_ri.rdram.regs[RDRAM_CONFIG_REG]       = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_DEVICE_ID_REG]    = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_DELAY_REG]        = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_MODE_REG]         = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_REF_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_REF_ROW_REG]      = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_RAS_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_MIN_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_ADDR_SELECT_REG]  = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_DEVICE_MANUF_REG] = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_CONFIG_REG]       = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_DEVICE_ID_REG]    = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_DELAY_REG]        = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_MODE_REG]         = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_REF_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_REF_ROW_REG]      = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_RAS_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_MIN_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_ADDR_SELECT_REG]  = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_DEVICE_MANUF_REG] = GETDATA(curr, uint32_t);
 
     curr += 4; /* Padding from old implementation */
     state->g_r4300.mi.regs[MI_INIT_MODE_REG] = GETDATA(curr, uint32_t);
@@ -245,7 +245,7 @@ static int savestates_load_m64p(usf_state_t * state, unsigned char * ptr, unsign
     state->g_dp.dps_regs[DPS_BUFTEST_ADDR_REG] = GETDATA(curr, uint32_t);
     state->g_dp.dps_regs[DPS_BUFTEST_DATA_REG] = GETDATA(curr, uint32_t);
 
-    COPYARRAY(state->g_rdram, curr, uint32_t, RDRAM_MAX_SIZE/4);
+    COPYARRAY(state->g_rdram.dram, curr, uint32_t, RDRAM_MAX_SIZE/4);
     COPYARRAY(state->g_sp.mem, curr, uint32_t, SP_MEM_SIZE/4);
     COPYARRAY(state->g_si.pif.ram, curr, uint8_t, PIF_RAM_SIZE);
 
@@ -435,16 +435,16 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     state->lo = GETDATA(curr, long long int);
 
     // rdram register
-    state->g_ri.rdram.regs[RDRAM_CONFIG_REG]       = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_DEVICE_ID_REG]    = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_DELAY_REG]        = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_MODE_REG]         = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_REF_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_REF_ROW_REG]      = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_RAS_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_MIN_INTERVAL_REG] = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_ADDR_SELECT_REG]  = GETDATA(curr, uint32_t);
-    state->g_ri.rdram.regs[RDRAM_DEVICE_MANUF_REG] = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_CONFIG_REG]       = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_DEVICE_ID_REG]    = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_DELAY_REG]        = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_MODE_REG]         = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_REF_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_REF_ROW_REG]      = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_RAS_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_MIN_INTERVAL_REG] = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_ADDR_SELECT_REG]  = GETDATA(curr, uint32_t);
+    state->g_rdram.regs[RDRAM_DEVICE_MANUF_REG] = GETDATA(curr, uint32_t);
 
     // sp_register
     state->g_sp.regs[SP_MEM_ADDR_REG]  = GETDATA(curr, uint32_t);
@@ -579,8 +579,8 @@ static int savestates_load_pj64(usf_state_t * state, unsigned char * ptr, unsign
     COPYARRAY(state->g_si.pif.ram, curr, uint8_t, PIF_RAM_SIZE);
 
     // RDRAM
-    memset(state->g_rdram, 0, RDRAM_MAX_SIZE);
-    COPYARRAY(state->g_rdram, curr, uint32_t, SaveRDRAMSize/4);
+    memset(state->g_rdram.dram, 0, RDRAM_MAX_SIZE);
+    COPYARRAY(state->g_rdram.dram, curr, uint32_t, SaveRDRAMSize/4);
 
     // DMEM + IMEM
     COPYARRAY(state->g_sp.mem, curr, uint32_t, SP_MEM_SIZE/4);

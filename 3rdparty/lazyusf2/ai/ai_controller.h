@@ -28,7 +28,7 @@
 #include "osal/preproc.h"
 
 struct r4300_core;
-struct ri_controller;
+struct rdram;
 struct vi_controller;
 
 enum ai_registers
@@ -61,7 +61,7 @@ struct ai_controller
     void (*push_audio_samples)(void*,const void*,size_t);
 
     struct r4300_core* r4300;
-    struct ri_controller* ri;
+    struct rdram* rdram;
     struct vi_controller* vi;
 };
 
@@ -78,7 +78,7 @@ void push_audio_samples(struct ai_controller* ai, const void* buffer, size_t siz
 
 void connect_ai(struct ai_controller* ai,
                 struct r4300_core* r4300,
-                struct ri_controller* ri,
+                struct rdram* rdram,
                 struct vi_controller* vi);
 
 void init_ai(struct ai_controller* ai);

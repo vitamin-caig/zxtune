@@ -28,7 +28,7 @@
 #include "cart_rom.h"
 
 struct r4300_core;
-struct ri_controller;
+struct rdram;
 
 enum pi_registers
 {
@@ -55,7 +55,7 @@ struct pi_controller
     struct cart_rom cart_rom;
 
     struct r4300_core* r4300;
-    struct ri_controller* ri;
+    struct rdram* rdram;
 };
 
 #include "osal/preproc.h"
@@ -68,7 +68,7 @@ static osal_inline uint32_t pi_reg(uint32_t address)
 
 void connect_pi(struct pi_controller* pi,
                 struct r4300_core* r4300,
-                struct ri_controller* ri,
+                struct rdram* rdram,
                 uint8_t* rom, size_t rom_size);
 
 void init_pi(struct pi_controller* pi);

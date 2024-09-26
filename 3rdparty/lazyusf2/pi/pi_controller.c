@@ -40,7 +40,7 @@
 #include "r4300/r4300.h"
 #include "r4300/r4300_core.h"
 #include "ri/rdram_detection_hack.h"
-#include "ri/ri_controller.h"
+#include "ri/rdram.h"
 
 #include <string.h>
 
@@ -135,7 +135,7 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
             }
 #endif
             
-            ((unsigned char*)pi->ri->rdram.dram)[ram_address^S8]=
+            ((unsigned char*)pi->rdram->dram)[ram_address^S8]=
                 pi->cart_rom.rom[rom_address^S8];
 
             if (!state->invalid_code[rdram_address1>>12])
@@ -180,7 +180,7 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
             }
 #endif
 
-            ((unsigned char*)pi->ri->rdram.dram)[ram_address^S8]=
+            ((unsigned char*)pi->rdram->dram)[ram_address^S8]=
                 pi->cart_rom.rom[rom_address^S8];
         }
     }
@@ -201,13 +201,13 @@ static void dma_pi_write(usf_state_t * state, struct pi_controller* pi)
 
 void connect_pi(struct pi_controller* pi,
                 struct r4300_core* r4300,
-                struct ri_controller* ri,
+                struct rdram* rdram,
                 uint8_t* rom, size_t rom_size)
 {
     connect_cart_rom(&pi->cart_rom, rom, rom_size);
 
     pi->r4300 = r4300;
-    pi->ri = ri;
+    pi->rdram = rdram;
 }
 
 void init_pi(struct pi_controller* pi)

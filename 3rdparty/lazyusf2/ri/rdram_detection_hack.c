@@ -24,7 +24,6 @@
 #include "usf/usf_internal.h"
 
 #include "rdram_detection_hack.h"
-#include "ri_controller.h"
 
 #include "main/main.h"
 #include "si/si_controller.h"
@@ -42,6 +41,6 @@ void force_detected_rdram_size_hack(usf_state_t * state)
         ? 0x318
         : 0x3f0;
 
-    state->g_ri.rdram.dram[address/4] = state->g_ri.rdram.dram_size;
+    state->g_rdram.dram[address/4] = state->g_rdram.dram_size;
 }
 

@@ -218,7 +218,7 @@ struct usf_state
     unsigned int g_cp0_regs[CP0_REGS_COUNT];
 
     // main/main.c
-    uint32_t g_rdram[RDRAM_MAX_SIZE/4];
+    struct rdram g_rdram;
     
     // RSP vector registers, need to be aligned to 16 bytes
     // when SSE2 or SSSE3 is enabled, or for any hope of

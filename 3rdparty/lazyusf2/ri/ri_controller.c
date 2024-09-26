@@ -27,20 +27,10 @@
 
 #include <string.h>
 
-void connect_ri(struct ri_controller* ri,
-                uint32_t* dram,
-                size_t dram_size)
-{
-    connect_rdram(&ri->rdram, dram, dram_size);
-}
-
 void init_ri(struct ri_controller* ri)
 {
     memset(ri->regs, 0, RI_REGS_COUNT*sizeof(uint32_t));
-
-    init_rdram(&ri->rdram);
 }
-
 
 uint32_t read_ri_regs(void* opaque, uint32_t address)
 {

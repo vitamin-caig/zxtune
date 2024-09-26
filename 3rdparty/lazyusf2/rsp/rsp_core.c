@@ -35,7 +35,7 @@
 #include "r4300/r4300_core.h"
 #include "r4300/interupt.h"
 #include "rdp/rdp_core.h"
-#include "ri/ri_controller.h"
+#include "ri/rdram.h"
 
 #include <string.h>
 
@@ -53,7 +53,7 @@ void dma_sp_write(struct rsp_core* sp)
     unsigned int dramaddr = sp->regs[SP_DRAM_ADDR_REG] & 0xffffff;
 
     unsigned char *spmem = (unsigned char*)sp->mem + (sp->regs[SP_MEM_ADDR_REG] & 0x1000);
-    unsigned char *dram = (unsigned char*)sp->ri->rdram.dram;
+    unsigned char *dram = (unsigned char*)sp->rdram->dram;
 
 #ifndef NO_TRIMMING
     if (sp->r4300->state->enable_trimming_mode) {
@@ -95,7 +95,7 @@ void dma_sp_read(struct rsp_core* sp)
     unsigned int dramaddr = sp->regs[SP_DRAM_ADDR_REG] & 0xffffff;
 
     unsigned char *spmem = (unsigned char*)sp->mem + (sp->regs[SP_MEM_ADDR_REG] & 0x1000);
-    unsigned char *dram = (unsigned char*)sp->ri->rdram.dram;
+    unsigned char *dram = (unsigned char*)sp->rdram->dram;
 
 #ifndef NO_TRIMMING
     if (sp->r4300->state->enable_trimming_mode) {
@@ -194,11 +194,11 @@ static void update_sp_status(struct rsp_core* sp, uint32_t w)
 void connect_rsp(struct rsp_core* sp,
                  struct r4300_core* r4300,
                  struct rdp_core* dp,
-                 struct ri_controller* ri)
+                 struct rdram* rdram)
 {
     sp->r4300 = r4300;
     sp->dp = dp;
-    sp->ri = ri;
+    sp->rdram = rdram;
 
     init_rsp_lle(r4300->state);
 }

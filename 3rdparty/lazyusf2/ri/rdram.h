@@ -40,10 +40,13 @@ enum rdram_registers
     RDRAM_REGS_COUNT
 };
 
+enum { RDRAM_MAX_SIZE = 0x800000 };
+
 struct rdram
 {
+    // Should be first member
+    uint32_t dram[RDRAM_MAX_SIZE/4];
     uint32_t regs[RDRAM_REGS_COUNT];
-    uint32_t* dram;
     size_t dram_size;
 };
 
@@ -60,7 +63,6 @@ static osal_inline uint32_t rdram_dram_address(uint32_t address)
 }
 
 void connect_rdram(struct rdram* rdram,
-                   uint32_t* dram,
                    size_t dram_size);
 
 void init_rdram(struct rdram* rdram);

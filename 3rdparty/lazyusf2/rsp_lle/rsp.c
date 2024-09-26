@@ -87,7 +87,7 @@ int32_t init_rsp_lle(usf_state_t * state)
     state->IMEM = (unsigned char *)state->g_sp.mem + 0x1000;
     
     hle_init(&state->hle,
-        (unsigned char *)state->g_rdram,
+        (unsigned char *)state->g_rdram.dram,
         state->DMEM,
         state->IMEM,
         &state->g_r4300.mi.regs[MI_INTR_REG],

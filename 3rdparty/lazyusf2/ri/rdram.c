@@ -26,17 +26,14 @@
 #include "usf/barray.h"
 
 #include "rdram.h"
-#include "ri_controller.h"
 
 #include "memory/memory.h"
 
 #include <string.h>
 
 void connect_rdram(struct rdram* rdram,
-                   uint32_t* dram,
                    size_t dram_size)
 {
-    rdram->dram = dram;
     rdram->dram_size = dram_size;
 }
 
@@ -49,60 +46,60 @@ void init_rdram(struct rdram* rdram)
 
 uint32_t read_rdram_regs(void* opaque, uint32_t address)
 {
-    struct ri_controller* ri = (struct ri_controller*)opaque;
+    struct rdram* rdram = (struct rdram*)opaque;
     uint32_t reg = rdram_reg(address);
 
-    return ri->rdram.regs[reg];
+    return rdram->regs[reg];
 }
 
 void write_rdram_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    struct ri_controller* ri = (struct ri_controller*)opaque;
+    struct rdram* rdram = (struct rdram*)opaque;
     uint32_t reg = rdram_reg(address);
 
-    masked_write(&ri->rdram.regs[reg], value, mask);
+    masked_write(&rdram->regs[reg], value, mask);
 }
 
 
 uint32_t read_rdram_dram(void* opaque, uint32_t address)
 {
-    struct ri_controller* ri = (struct ri_controller*)opaque;
+    struct rdram* rdram = (struct rdram*)opaque;
     uint32_t addr = rdram_dram_address(address);
 
-    return ri->rdram.dram[addr];
+    return rdram->dram[addr];
 }
 
 void write_rdram_dram(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    struct ri_controller* ri = (struct ri_controller*)opaque;
+    struct rdram* rdram = (struct rdram*)opaque;
     uint32_t addr = rdram_dram_address(address);
 
-    masked_write(&ri->rdram.dram[addr], value, mask);
+    masked_write(&rdram->dram[addr], value, mask);
 }
 
 #ifndef NO_TRIMMING
 uint32_t read_rdram_dram_tracked(void* opaque, uint32_t address)
 {
     usf_state_t* state = (usf_state_t*) opaque;
-    struct ri_controller* ri = &state->g_ri;
+    struct rdram* rdram = &state->g_rdram;
     uint32_t addr = rdram_dram_address(address);
 
     if (!bit_array_test(state->barray_ram_written_first, addr))
         bit_array_set(state->barray_ram_read, addr);
 
-    return ri->rdram.dram[addr];
+    return rdram->dram[addr];
 }
 
 void write_rdram_dram_tracked(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
     usf_state_t* state = (usf_state_t*) opaque;
-    struct ri_controller* ri = &state->g_ri;
+    struct rdram* rdram = &state->g_rdram;
     uint32_t addr = rdram_dram_address(address);
 
     if (mask == 0xFFFFFFFFU && !bit_array_test(state->barray_ram_read, addr))
         bit_array_set(state->barray_ram_written_first, addr);
     
-    masked_write(&ri->rdram.dram[addr], value, mask);
+    masked_write(&rdram->dram[addr], value, mask);
 }
 #endif
 

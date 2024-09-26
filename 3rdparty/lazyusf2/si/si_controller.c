@@ -35,7 +35,7 @@
 #include "r4300/interupt.h"
 #include "r4300/r4300.h"
 #include "r4300/r4300_core.h"
-#include "ri/ri_controller.h"
+#include "ri/rdram.h"
 
 #include <string.h>
 
@@ -52,7 +52,7 @@ static void dma_si_write(struct si_controller* si)
 
     for (i = 0; i < PIF_RAM_SIZE; i += 4)
     {
-        *((uint32_t*)(&si->pif.ram[i])) = sl(si->ri->rdram.dram[(si->regs[SI_DRAM_ADDR_REG]+i)/4]);
+        *((uint32_t*)(&si->pif.ram[i])) = sl(si->rdram->dram[(si->regs[SI_DRAM_ADDR_REG]+i)/4]);
     }
     
 #ifndef NO_TRIMMING
@@ -92,7 +92,7 @@ static void dma_si_read(struct si_controller* si)
 
     for (i = 0; i < PIF_RAM_SIZE; i += 4)
     {
-        si->ri->rdram.dram[(si->regs[SI_DRAM_ADDR_REG]+i)/4] = sl(*(uint32_t*)(&si->pif.ram[i]));
+        si->rdram->dram[(si->regs[SI_DRAM_ADDR_REG]+i)/4] = sl(*(uint32_t*)(&si->pif.ram[i]));
     }
 
 #ifndef NO_TRIMMING
@@ -120,10 +120,10 @@ static void dma_si_read(struct si_controller* si)
 
 void connect_si(struct si_controller* si,
                 struct r4300_core* r4300,
-                struct ri_controller* ri)
+                struct rdram* rdram)
 {
     si->r4300 = r4300;
-    si->ri = ri;
+    si->rdram = rdram;
 }
 
 void init_si(struct si_controller* si)

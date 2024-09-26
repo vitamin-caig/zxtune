@@ -104,21 +104,20 @@ static void connect_all(
         struct rsp_core* sp,
         struct ai_controller* ai,
         struct pi_controller* pi,
-        struct ri_controller* ri,
+        struct rdram* rdram,
         struct si_controller* si,
         struct vi_controller* vi,
-        uint32_t* dram,
         size_t dram_size,
         uint8_t* rom,
         size_t rom_size)
 {
     connect_r4300(r4300, state);
-    connect_rdp(dp, r4300, sp, ri);
-    connect_rsp(sp, r4300, dp, ri);
-    connect_ai(ai, r4300, ri, vi);
-    connect_pi(pi, r4300, ri, rom, rom_size);
-    connect_ri(ri, dram, dram_size);
-    connect_si(si, r4300, ri);
+    connect_rdp(dp, r4300, sp);
+    connect_rsp(sp, r4300, dp, rdram);
+    connect_ai(ai, r4300, rdram, vi);
+    connect_pi(pi, r4300, rdram, rom, rom_size);
+    connect_rdram(rdram, dram_size);
+    connect_si(si, r4300, rdram);
     connect_vi(vi, r4300);
 }
 
@@ -157,8 +156,8 @@ m64p_error main_start(usf_state_t * state)
         state->count_per_op = state->ROM_PARAMS.countperop;
 
     connect_all(state, &state->g_r4300, &state->g_dp, &state->g_sp,
-                &state->g_ai, &state->g_pi, &state->g_ri, &state->g_si, &state->g_vi,
-                state->g_rdram, (disable_extra_mem == 0) ? 0x800000 : 0x400000,
+                &state->g_ai, &state->g_pi, &state->g_rdram, &state->g_si, &state->g_vi,
+                (disable_extra_mem == 0) ? 0x800000 : 0x400000,
                 state->g_rom, state->g_rom_size);
 
     init_memory(state, (disable_extra_mem == 0) ? 0x800000 : 0x400000);

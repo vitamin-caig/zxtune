@@ -30,7 +30,7 @@
 #include "r4300/cp0.h"
 #include "r4300/r4300_core.h"
 #include "r4300/interupt.h"
-#include "ri/ri_controller.h"
+#include "ri/rdram.h"
 #include "vi/vi_controller.h"
 
 #include <string.h>
@@ -97,7 +97,7 @@ static void do_dma(struct ai_controller* ai, const struct ai_dma* dma)
     }
 
     /* push audio samples to external sink */
-    push_audio_samples(ai, &ai->ri->rdram.dram[dma->address/4], dma->length);
+    push_audio_samples(ai, &ai->rdram->dram[dma->address/4], dma->length);
 
     /* schedule end of dma event */
     update_count(ai->r4300->state);
@@ -170,11 +170,11 @@ void push_audio_samples(struct ai_controller* ai, const void* buffer, size_t siz
 
 void connect_ai(struct ai_controller* ai,
                 struct r4300_core* r4300,
-                struct ri_controller* ri,
+                struct rdram* rdram,
                 struct vi_controller* vi)
 {
     ai->r4300 = r4300;
-    ai->ri = ri;
+    ai->rdram = rdram;
     ai->vi = vi;
 }
 

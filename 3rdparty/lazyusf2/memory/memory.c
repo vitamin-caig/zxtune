@@ -242,42 +242,42 @@ static void osal_fastcall write_nomemd(usf_state_t * state)
 
 void osal_fastcall read_rdram(usf_state_t * state)
 {
-    readw(read_rdram_dram, &state->g_ri, state->address, state->rdword);
+    readw(read_rdram_dram, &state->g_rdram, state->address, state->rdword);
 }
 
 void osal_fastcall read_rdramb(usf_state_t * state)
 {
-    readb(read_rdram_dram, &state->g_ri, state->address, state->rdword);
+    readb(read_rdram_dram, &state->g_rdram, state->address, state->rdword);
 }
 
 void osal_fastcall read_rdramh(usf_state_t * state)
 {
-    readh(read_rdram_dram, &state->g_ri, state->address, state->rdword);
+    readh(read_rdram_dram, &state->g_rdram, state->address, state->rdword);
 }
 
 void osal_fastcall read_rdramd(usf_state_t * state)
 {
-    readd(read_rdram_dram, &state->g_ri, state->address, state->rdword);
+    readd(read_rdram_dram, &state->g_rdram, state->address, state->rdword);
 }
 
 void osal_fastcall write_rdram(usf_state_t * state)
 {
-    writew(write_rdram_dram, &state->g_ri, state->address, state->cpu_word);
+    writew(write_rdram_dram, &state->g_rdram, state->address, state->cpu_word);
 }
 
 void osal_fastcall write_rdramb(usf_state_t * state)
 {
-    writeb(write_rdram_dram, &state->g_ri, state->address, state->cpu_byte);
+    writeb(write_rdram_dram, &state->g_rdram, state->address, state->cpu_byte);
 }
 
 void osal_fastcall write_rdramh(usf_state_t * state)
 {
-    writeh(write_rdram_dram, &state->g_ri, state->address, state->cpu_hword);
+    writeh(write_rdram_dram, &state->g_rdram, state->address, state->cpu_hword);
 }
 
 void osal_fastcall write_rdramd(usf_state_t * state)
 {
-    writed(write_rdram_dram, &state->g_ri, state->address, state->cpu_dword);
+    writed(write_rdram_dram, &state->g_rdram, state->address, state->cpu_dword);
 }
 
 
@@ -326,42 +326,42 @@ void osal_fastcall write_rdram_trackedd(usf_state_t * state)
 
 static void osal_fastcall read_rdramreg(usf_state_t * state)
 {
-    readw(read_rdram_regs, &state->g_ri, state->address, state->rdword);
+    readw(read_rdram_regs, &state->g_rdram, state->address, state->rdword);
 }
 
 static void osal_fastcall read_rdramregb(usf_state_t * state)
 {
-    readb(read_rdram_regs, &state->g_ri, state->address, state->rdword);
+    readb(read_rdram_regs, &state->g_rdram, state->address, state->rdword);
 }
 
 static void osal_fastcall read_rdramregh(usf_state_t * state)
 {
-    readh(read_rdram_regs, &state->g_ri, state->address, state->rdword);
+    readh(read_rdram_regs, &state->g_rdram, state->address, state->rdword);
 }
 
 static void osal_fastcall read_rdramregd(usf_state_t * state)
 {
-    readd(read_rdram_regs, &state->g_ri, state->address, state->rdword);
+    readd(read_rdram_regs, &state->g_rdram, state->address, state->rdword);
 }
 
 static void osal_fastcall write_rdramreg(usf_state_t * state)
 {
-    writew(write_rdram_regs, &state->g_ri, state->address, state->cpu_word);
+    writew(write_rdram_regs, &state->g_rdram, state->address, state->cpu_word);
 }
 
 static void osal_fastcall write_rdramregb(usf_state_t * state)
 {
-    writeb(write_rdram_regs, &state->g_ri, state->address, state->cpu_byte);
+    writeb(write_rdram_regs, &state->g_rdram, state->address, state->cpu_byte);
 }
 
 static void osal_fastcall write_rdramregh(usf_state_t * state)
 {
-    writeh(write_rdram_regs, &state->g_ri, state->address, state->cpu_hword);
+    writeh(write_rdram_regs, &state->g_rdram, state->address, state->cpu_hword);
 }
 
 static void osal_fastcall write_rdramregd(usf_state_t * state)
 {
-    writed(write_rdram_regs, &state->g_ri, state->address, state->cpu_dword);
+    writed(write_rdram_regs, &state->g_rdram, state->address, state->cpu_dword);
 }
 
 
@@ -1175,6 +1175,7 @@ int init_memory(usf_state_t * state, uint32_t rdram_size)
     init_ai(&state->g_ai);
     init_pi(&state->g_pi);
     init_ri(&state->g_ri);
+    init_rdram(&state->g_rdram);
     init_si(&state->g_si);
     init_vi(&state->g_vi);
 
@@ -1260,7 +1261,7 @@ unsigned int * osal_fastcall fast_mem_access(usf_state_t * state, unsigned int a
 #endif
 
     if (address < RDRAM_MAX_SIZE)
-        return (unsigned int*)((unsigned char*)state->g_rdram + address);
+        return (unsigned int*)((unsigned char*)state->g_rdram.dram + address);
     else if (address >= 0x10000000)
     {
         if ((address - 0x10000000) < state->g_rom_size)

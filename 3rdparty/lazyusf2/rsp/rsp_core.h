@@ -26,7 +26,7 @@
 
 struct r4300_core;
 struct rdp_core;
-struct ri_controller;
+struct rdram;
 
 enum { SP_MEM_SIZE = 0x2000 };
 
@@ -63,7 +63,7 @@ struct rsp_core
 
     struct r4300_core* r4300;
     struct rdp_core* dp;
-    struct ri_controller* ri;
+    struct rdram* rdram;
 };
 
 #include "osal/preproc.h"
@@ -86,7 +86,7 @@ static osal_inline uint32_t rsp_reg2(uint32_t address)
 void connect_rsp(struct rsp_core* sp,
                  struct r4300_core* r4300,
                  struct rdp_core* dp,
-                 struct ri_controller* ri);
+                 struct rdram* rdram);
 
 void init_rsp(struct rsp_core* sp);
 

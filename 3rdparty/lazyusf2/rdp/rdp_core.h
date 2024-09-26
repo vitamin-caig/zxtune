@@ -26,7 +26,6 @@
 
 struct r4300_core;
 struct rsp_core;
-struct ri_controller;
 
 enum dpc_registers
 {
@@ -58,7 +57,6 @@ struct rdp_core
 
     struct r4300_core* r4300;
     struct rsp_core* sp;
-    struct ri_controller* ri;
 };
 
 #include "osal/preproc.h"
@@ -75,8 +73,7 @@ static osal_inline uint32_t dps_reg(uint32_t address)
 
 void connect_rdp(struct rdp_core* dp,
                  struct r4300_core* r4300,
-                 struct rsp_core* sp,
-                 struct ri_controller* ri);
+                 struct rsp_core* sp);
 
 void init_rdp(struct rdp_core* dp);
 
