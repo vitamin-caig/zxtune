@@ -101,7 +101,8 @@ namespace ZXTune
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), std::move(data));
     }
 
-    DataLocation::Ptr CreateSubtrackLocation(DataLocation::Ptr inputData, Binary::Container::Ptr content, uint_t idx) const
+    DataLocation::Ptr CreateSubtrackLocation(DataLocation::Ptr inputData, Binary::Container::Ptr content,
+                                             uint_t idx) const
     {
       return CreateNestedLocation(std::move(inputData), std::move(content), Identifier, Filename::FromIndex(idx));
     }

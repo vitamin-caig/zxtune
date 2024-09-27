@@ -460,12 +460,23 @@ namespace ZXTune::Raw
 
     Analysis::Path::Ptr GetPath() const override
     {
-      return Parent->GetPath()->Append(CreateFilename(Start));
+      auto parentPath = Parent->GetPath();
+      if (Start)
+      {
+        const auto subPath = CreateFilename(Start);
+        return parentPath->Append(subPath);
+      }
+      return parentPath;
     }
 
     Analysis::Path::Ptr GetPluginsChain() const override
     {
-      return Parent->GetPluginsChain()->Append(ID);
+      auto parentPlugins = Parent->GetPluginsChain();
+      if (Start)
+      {
+        return parentPlugins->Append(ID);
+      }
+      return parentPlugins;
     }
 
   private:
