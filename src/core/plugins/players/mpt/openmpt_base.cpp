@@ -179,7 +179,7 @@ namespace Module::Mpt
     {
       LoopsDone = 0;
       AllLoopsDuration = 0.0;
-      Current = {};
+      Update();
     }
 
   private:
