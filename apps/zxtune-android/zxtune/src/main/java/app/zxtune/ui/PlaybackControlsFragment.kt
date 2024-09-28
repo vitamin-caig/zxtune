@@ -11,13 +11,14 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import app.zxtune.R
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.utils.UiUtils
+import app.zxtune.ui.utils.whenLifecycleStarted
+import kotlinx.coroutines.launch
 
 class PlaybackControlsFragment : Fragment() {
 
@@ -31,12 +32,18 @@ class PlaybackControlsFragment : Fragment() {
         MediaModel.of(requireActivity()).run {
             val actions = Actions(view)
             val shuffle = ShuffleModeControl(view)
-            controller.observe(viewLifecycleOwner) { controller ->
-                UiUtils.setViewEnabled(view, controller != null)
-                actions.bindController(controller)
-                shuffle.bindController(controller)
+            viewLifecycleOwner.whenLifecycleStarted {
+                launch {
+                    controller.collect { controller ->
+                        UiUtils.setViewEnabled(view, controller != null)
+                        actions.bindController(controller)
+                        shuffle.bindController(controller)
+                    }
+                }
+                launch {
+                    playbackState.collect(actions::bindState)
+                }
             }
-            playbackState.observe(viewLifecycleOwner, actions::bindState)
             TrackContextMenu(this@PlaybackControlsFragment).install(view.findViewById(R.id.controls_track_menu))
         }
 

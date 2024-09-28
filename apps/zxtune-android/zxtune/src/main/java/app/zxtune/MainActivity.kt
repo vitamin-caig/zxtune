@@ -19,13 +19,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.collection.SparseArrayCompat
 import androidx.collection.contains
 import androidx.collection.getOrElse
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener
 import app.zxtune.analytics.Analytics
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.ViewPagerAdapter
+import app.zxtune.ui.utils.whenLifecycleStarted
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity(R.layout.main_activity) {
     interface PagerTabListener {
@@ -42,8 +47,10 @@ class MainActivity : AppCompatActivity(R.layout.main_activity) {
         setupUi()
 
         val ctrl = MediaModel.of(this).controller
-        ctrl.observe(this) {
-            MediaControllerCompat.setMediaController(this, it)
+        whenLifecycleStarted {
+            ctrl.collect {
+                MediaControllerCompat.setMediaController(this@MainActivity, it)
+            }
         }
 
         if (savedInstanceState == null) {
@@ -64,16 +71,18 @@ class MainActivity : AppCompatActivity(R.layout.main_activity) {
         Analytics.sendUiEvent(Analytics.UI_ACTION_CLOSE)
     }
 
-    private fun subscribeForPendingOpenRequest(ctrl: LiveData<MediaControllerCompat?>) =
+    private fun subscribeForPendingOpenRequest(ctrl: Flow<MediaControllerCompat?>) =
         intent?.takeIf { Intent.ACTION_VIEW == it.action }?.data?.let { uri ->
-            ctrl.observe(this, object : Observer<MediaControllerCompat?> {
-                override fun onChanged(value: MediaControllerCompat?) {
-                    value?.let {
-                        it.transportControls.playFromUri(uri, null)
-                        ctrl.removeObserver(this)
+            lifecycleScope.launch {
+                coroutineScope {
+                    ctrl.collect { ctrl ->
+                        ctrl?.let {
+                            it.transportControls.playFromUri(uri, null)
+                            cancel()
+                        }
                     }
                 }
-            })
+            }
         }
 
     private fun setupUi() {

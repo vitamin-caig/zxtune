@@ -21,6 +21,8 @@ import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.AsyncDifferInMainThreadRule
 import app.zxtune.ui.MainDispatcherRule
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -59,8 +61,8 @@ class PlaylistFragmentTest {
     fun `initial state`() = runTest {
         val testState = Model.createState()
         val testStateFlow = MutableStateFlow(testState)
-        val testPlaybackState = mock<LiveData<PlaybackStateCompat?>>()
-        val testMetadata = mock<LiveData<MediaMetadataCompat?>>()
+        val testPlaybackState = MutableStateFlow<PlaybackStateCompat?>(null)
+        val testMetadata = MutableStateFlow<MediaMetadataCompat?>(null)
         val modelConstruction = construct<Model> {
             on { state } doReturn testStateFlow
             on { filter } doReturn ""
@@ -77,13 +79,10 @@ class PlaylistFragmentTest {
                     val mediaModel = mediaModelConstruction.constructedInstance
                     verify(model).state
                     verify(mediaModel).playbackState
-                    verify(testPlaybackState).observe(eq(it.viewLifecycleOwner), any())
                     verify(mediaModel).metadata
-                    verify(testMetadata).observe(eq(it.viewLifecycleOwner), any())
                     verify(model).filter
                     verifyNoMoreInteractions(model, mediaModel)
                 }.close()
-                verifyNoMoreInteractions(testPlaybackState, testMetadata)
             }
         }
     }
@@ -100,8 +99,8 @@ class PlaylistFragmentTest {
             )
         }
         val testStateFlow = MutableStateFlow(Model.createState())
-        val testPlaybackState = MutableLiveData<PlaybackStateCompat>()
-        val testMetadata = MutableLiveData<MediaMetadataCompat>()
+        val testPlaybackState = MutableStateFlow<PlaybackStateCompat?>(null)
+        val testMetadata = MutableStateFlow<MediaMetadataCompat?>(null)
         val modelConstruction = construct<Model> {
             on { state } doReturn testStateFlow
             on { filter } doReturn ""
@@ -138,8 +137,8 @@ class PlaylistFragmentTest {
             Entry(3, Identifier.EMPTY, "Third entry", "second author", TimeStamp.EMPTY)
         )
         val testStateFlow = MutableStateFlow(Model.createState().withContent(content))
-        val testPlaybackState = MutableLiveData<PlaybackStateCompat>()
-        val testMetadata = MutableLiveData<MediaMetadataCompat>()
+        val testPlaybackState = MutableStateFlow<PlaybackStateCompat?>(null)
+        val testMetadata = MutableStateFlow<MediaMetadataCompat?>(null)
         val modelConstruction = construct<Model> {
             on { state } doReturn testStateFlow
             on { filter } doReturn testStateFlow.value.filter
