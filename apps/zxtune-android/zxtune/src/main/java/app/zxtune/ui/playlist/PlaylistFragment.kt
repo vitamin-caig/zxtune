@@ -7,7 +7,6 @@ package app.zxtune.ui.playlist
 
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
@@ -116,26 +115,30 @@ class PlaylistFragment : Fragment() {
                     SelectionUtils.install(panel, it, SelectionClient(adapter))
                 }
             viewLifecycleOwner.whenLifecycleStarted {
-                model.state.collect { state ->
-                    adapter.submitList(state.entries) {
-                        if (0 == adapter.itemCount) {
-                            visibility = View.GONE
-                            stub.visibility = View.VISIBLE
-                        } else {
-                            visibility = View.VISIBLE
-                            stub.visibility = View.GONE
+                launch {
+                    model.state.collect { state ->
+                        adapter.submitList(state.entries) {
+                            if (0 == adapter.itemCount) {
+                                visibility = View.GONE
+                                stub.visibility = View.VISIBLE
+                            } else {
+                                visibility = View.VISIBLE
+                                stub.visibility = View.GONE
+                            }
                         }
                     }
                 }
-            }
-            mediaModel.run {
-                playbackState.observe(viewLifecycleOwner) { state: PlaybackStateCompat? ->
-                    adapter.setIsPlaying(PlaybackStateCompat.STATE_PLAYING == state?.state)
+                launch {
+                    mediaModel.playbackState.collect { state: PlaybackStateCompat? ->
+                        adapter.setIsPlaying(PlaybackStateCompat.STATE_PLAYING == state?.state)
+                    }
                 }
-                metadata.observe(viewLifecycleOwner) { metadata: MediaMetadataCompat? ->
-                    metadata?.let {
-                        val uri = Uri.parse(it.description.mediaId)
-                        adapter.setNowPlaying(ProviderClient.findId(uri))
+                launch {
+                    mediaModel.metadata.collect { metadata ->
+                        metadata?.let {
+                            val uri = Uri.parse(it.description.mediaId)
+                            adapter.setNowPlaying(ProviderClient.findId(uri))
+                        }
                     }
                 }
             }

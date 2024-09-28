@@ -5,19 +5,31 @@
  */
 package app.zxtune.ui
 
+import android.content.ContentResolver
 import android.os.Bundle
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import app.zxtune.MainService
 import app.zxtune.R
+import app.zxtune.SharingActivity
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.utils.UiUtils
+import app.zxtune.ui.utils.bindIntent
+import app.zxtune.ui.utils.bindOnClick
+import app.zxtune.ui.utils.item
+import app.zxtune.ui.utils.whenLifecycleStarted
+import app.zxtune.utils.ifNotNulls
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 
 class PlaybackControlsFragment : Fragment() {
 
@@ -31,13 +43,25 @@ class PlaybackControlsFragment : Fragment() {
         MediaModel.of(requireActivity()).run {
             val actions = Actions(view)
             val shuffle = ShuffleModeControl(view)
-            controller.observe(viewLifecycleOwner) { controller ->
-                UiUtils.setViewEnabled(view, controller != null)
-                actions.bindController(controller)
-                shuffle.bindController(controller)
+            val menu =
+                TrackContextMenu(requireActivity(), view.findViewById(R.id.controls_track_menu))
+            viewLifecycleOwner.whenLifecycleStarted {
+                launch {
+                    controller.collect { controller ->
+                        UiUtils.setViewEnabled(view, controller != null)
+                        actions.bindController(controller)
+                        shuffle.bindController(controller)
+                    }
+                }
+                launch {
+                    playbackState.collect(actions::bindState)
+                }
+                launch {
+                    combine(controller, metadata) { ctrl, meta ->
+                        menu.bind(ctrl, meta)
+                    }.collect {}
+                }
             }
-            playbackState.observe(viewLifecycleOwner, actions::bindState)
-            TrackContextMenu(this@PlaybackControlsFragment).install(view.findViewById(R.id.controls_track_menu))
         }
 
     private class Actions(view: View) {
@@ -119,24 +143,56 @@ class PlaybackControlsFragment : Fragment() {
         }
     }
 
-    private class TrackContextMenu(fragment: Fragment) {
-        private val provider by lazy {
-            TrackMenu(fragment)
-        }
-        private lateinit var popup: PopupMenu
-
-        fun install(view: View) = view.setOnClickListener {
-            if (!this::popup.isInitialized) {
-                popup = PopupMenu(view.context, view).apply {
-                    provider.run {
-                        onCreateMenu(menu, menuInflater)
-                        onPrepareMenu(menu)
-                        setOnMenuItemClickListener(this::onMenuItemSelected)
-                    }
-                    setForceShowIcon(true)
-                }
+    private class TrackContextMenu(private val ctx: FragmentActivity, anchor: View) {
+        private val popup by lazy {
+            PopupMenu(anchor.context, anchor).apply {
+                menuInflater.inflate(R.menu.track, menu)
+                setForceShowIcon(true)
             }
-            popup.show()
+        }
+        private var setupItems: (Menu) -> Unit = { menu -> setup(menu, null, null) }
+
+        init {
+            anchor.setOnClickListener {
+                popup.apply {
+                    setupItems(menu)
+                }.show()
+            }
+        }
+
+        fun bind(controller: MediaControllerCompat?, metadata: MediaMetadataCompat?) {
+            setupItems = { menu -> setup(menu, controller, metadata) }
+        }
+
+        private fun setup(
+            menu: Menu, controller: MediaControllerCompat?, metadata: MediaMetadataCompat?
+        ) = with(menu) {
+            item(R.id.action_add).bindOnClick(ifNotNulls(controller?.transportControls,
+                metadata?.description?.mediaId?.takeUnless {
+                    it.startsWith(
+                        ContentResolver.SCHEME_CONTENT
+                    )
+                }) { ctrl, _ ->
+                {
+                    ctrl.sendCustomAction(MainService.CUSTOM_ACTION_ADD_CURRENT, null)
+                }
+            })
+            item(R.id.action_send).bindIntent(metadata?.let {
+                SharingActivity.maybeCreateSendIntent(
+                    ctx, it
+                )
+            })
+            item(R.id.action_share).bindIntent(metadata?.let {
+                SharingActivity.maybeCreateShareIntent(
+                    ctx, it
+                )
+            })
+            item(R.id.action_make_ringtone).bindOnClick(metadata?.description?.mediaUri?.let {
+                { RingtoneFragment.show(ctx, it) }
+            })
+            item(R.id.action_properties).bindOnClick(metadata?.let {
+                { InformationFragment.show(ctx, it) }
+            })
         }
     }
 }

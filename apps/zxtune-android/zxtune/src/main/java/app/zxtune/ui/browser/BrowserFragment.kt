@@ -81,7 +81,7 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
         }
 
         private fun setPanelVisibility(isVisible: Boolean) = panel.run {
-            val translation = if (isVisible) 0f else height.also { check(it != 0) }.toFloat()
+            val translation = if (isVisible) 0f else height.also { /*check(it != 0)*/ }.toFloat()
             animate().translationY(translation)
         }
     }

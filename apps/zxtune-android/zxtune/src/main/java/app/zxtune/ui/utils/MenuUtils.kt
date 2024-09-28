@@ -7,9 +7,17 @@ import androidx.annotation.IdRes
 
 internal fun Menu.item(@IdRes id: Int) = requireNotNull(findItem(id))
 
-internal var MenuItem.enableIf: Intent?
-    get() = intent
-    set(data) {
-        isEnabled = data != null
-        intent = data
-    }
+internal fun MenuItem.bindOnClick(cmd: (() -> Unit)?) {
+    isEnabled = cmd != null
+    setOnMenuItemClickListener(cmd?.run {
+        MenuItem.OnMenuItemClickListener {
+            invoke()
+            true
+        }
+    })
+}
+
+internal fun MenuItem.bindIntent(intent: Intent?) {
+    isEnabled = intent != null
+    this.intent = intent
+}

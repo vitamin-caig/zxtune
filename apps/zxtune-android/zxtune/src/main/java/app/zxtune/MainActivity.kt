@@ -19,13 +19,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.collection.SparseArrayCompat
 import androidx.collection.contains
 import androidx.collection.getOrElse
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener
 import app.zxtune.analytics.Analytics
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.ViewPagerAdapter
+import app.zxtune.ui.utils.whenLifecycleStarted
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity(R.layout.main_activity) {
     interface PagerTabListener {
@@ -41,14 +43,10 @@ class MainActivity : AppCompatActivity(R.layout.main_activity) {
 
         setupUi()
 
-        val ctrl = MediaModel.of(this).controller
-        ctrl.observe(this) {
-            MediaControllerCompat.setMediaController(this, it)
+        if (savedInstanceState != null) {
+            intent = null
         }
-
-        if (savedInstanceState == null) {
-            subscribeForPendingOpenRequest(ctrl)
-        }
+        setupMediaController();
         Analytics.sendUiEvent(Analytics.UiAction.OPEN)
 
         // TODO: move to MainApplication
@@ -64,17 +62,20 @@ class MainActivity : AppCompatActivity(R.layout.main_activity) {
         Analytics.sendUiEvent(Analytics.UiAction.CLOSE)
     }
 
-    private fun subscribeForPendingOpenRequest(ctrl: LiveData<MediaControllerCompat?>) =
-        intent?.takeIf { Intent.ACTION_VIEW == it.action }?.data?.let { uri ->
-            ctrl.observe(this, object : Observer<MediaControllerCompat?> {
-                override fun onChanged(value: MediaControllerCompat?) {
-                    value?.let {
-                        it.transportControls.playFromUri(uri, null)
-                        ctrl.removeObserver(this)
-                    }
-                }
-            })
+    private fun setupMediaController() {
+        val ctrl = MediaModel.of(this@MainActivity).controller
+        whenLifecycleStarted {
+            ctrl.collect {
+                MediaControllerCompat.setMediaController(this@MainActivity, it)
+            }
         }
+
+        intent?.takeIf { Intent.ACTION_VIEW == it.action }?.data?.let { uri ->
+            lifecycleScope.launch {
+                ctrl.last()?.transportControls?.playFromUri(uri, null)
+            }
+        }
+    }
 
     private fun setupUi() {
         requestedOrientation = resources.getInteger(R.integer.screen_orientation)

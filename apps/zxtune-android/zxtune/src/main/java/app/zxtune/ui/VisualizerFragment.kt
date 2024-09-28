@@ -17,8 +17,10 @@ import app.zxtune.R
 import app.zxtune.analytics.Analytics
 import app.zxtune.device.media.MediaModel
 import app.zxtune.preferences.Preferences
+import app.zxtune.ui.utils.whenLifecycleStarted
 import app.zxtune.ui.views.SpectrumAnalyzerView
 import app.zxtune.utils.ifNotNulls
+import kotlinx.coroutines.launch
 
 class VisualizerFragment : Fragment() {
     private val state by lazy {
@@ -35,26 +37,34 @@ class VisualizerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) =
         MediaModel.of(requireActivity()).run {
             analyzer = view.findViewById(R.id.spectrum)
-            visualizer.observe(viewLifecycleOwner, analyzer::setSource)
-            playbackState.observe(viewLifecycleOwner) { state ->
-                analyzer.setIsPlaying(PlaybackStateCompat.STATE_PLAYING == state?.state)
-            }
-            // TODO: move to model
-            metadata.observe(viewLifecycleOwner) { meta ->
-                if (meta == null) {
-                    return@observe
+            viewLifecycleOwner.whenLifecycleStarted {
+                launch {
+                    visualizer.collect(analyzer::setSource)
                 }
-                var type: String? = null
-                val uri = meta.getString(MediaMetadataCompat.METADATA_KEY_ART_URI)?.also {
-                    type = "coverart"
-                } ?: meta.getString(
-                    MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI
-                )?.also {
-                    type = "albumart"
+                launch {
+                    playbackState.collect { state ->
+                        analyzer.setIsPlaying(PlaybackStateCompat.STATE_PLAYING == state?.state)
+                    }
                 }
-                if (coverArt.setUri(uri?.let { Uri.parse(it) })) {
-                    ifNotNulls(type, meta.description?.mediaUri) { _, source ->
-                        Analytics.sendEvent("ui/image", "type" to type, "uri" to source)
+                // TODO: move to model
+                launch {
+                    metadata.collect { meta ->
+                        if (meta == null) {
+                            return@collect
+                        }
+                        var type: String? = null
+                        val uri = meta.getString(MediaMetadataCompat.METADATA_KEY_ART_URI)?.also {
+                            type = "coverart"
+                        } ?: meta.getString(
+                            MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI
+                        )?.also {
+                            type = "albumart"
+                        }
+                        if (coverArt.setUri(uri?.let { Uri.parse(it) })) {
+                            ifNotNulls(type, meta.description?.mediaUri) { _, source ->
+                                Analytics.sendEvent("ui/image", "type" to type, "uri" to source)
+                            }
+                        }
                     }
                 }
             }
