@@ -80,8 +80,10 @@ android {
         }
 
         develop {
-            initWith debug
+            minifyEnabled true
+            debuggable true
             signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules-develop.pro'
         }
     }
 
