@@ -134,5 +134,8 @@ android {
         release {
             proguardFiles 'proguard-rules.pro'
         }
+        develop {
+            proguardFiles 'proguard-rules.pro'
+        }
     }
 }
