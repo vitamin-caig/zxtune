@@ -13,6 +13,7 @@ import app.zxtune.SharingActivity
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.utils.enableIf
 import app.zxtune.ui.utils.item
+import app.zxtune.ui.utils.whenLifecycleStarted
 
 class TrackMenu(private val fragment: Fragment) : MenuProvider {
     private val activity
@@ -24,15 +25,17 @@ class TrackMenu(private val fragment: Fragment) : MenuProvider {
         menuInflater.inflate(R.menu.track, menu)
 
     override fun onPrepareMenu(menu: Menu) = menu.run {
-        model.metadata.observe(fragment.viewLifecycleOwner) { metadata ->
-            if (metadata == null) {
-                return@observe
+        fragment.viewLifecycleOwner.whenLifecycleStarted {
+            model.metadata.collect { metadata ->
+                if (metadata == null) {
+                    return@collect
+                }
+                item(R.id.action_add).isEnabled = false == isFromProvider(metadata)
+                item(R.id.action_send).enableIf =
+                    SharingActivity.maybeCreateSendIntent(activity, metadata)
+                item(R.id.action_share).enableIf =
+                    SharingActivity.maybeCreateShareIntent(activity, metadata)
             }
-            item(R.id.action_add).isEnabled = false == isFromProvider(metadata)
-            item(R.id.action_send).enableIf =
-                SharingActivity.maybeCreateSendIntent(activity, metadata)
-            item(R.id.action_share).enableIf =
-                SharingActivity.maybeCreateShareIntent(activity, metadata)
         }
     }
 

@@ -13,6 +13,7 @@ import app.zxtune.R
 import app.zxtune.core.ModuleAttributes
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.utils.UiUtils
+import app.zxtune.ui.utils.whenLifecycleStarted
 
 private const val MAX_LINES = 8
 
@@ -96,14 +97,18 @@ class BriefFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) =
-        MediaModel.of(requireActivity()).metadata.observe(viewLifecycleOwner) { metadata ->
-            UiUtils.setViewEnabled(view, metadata != null)
-            metadata?.run {
-                title.updateText(description.title)
-                subtitle.updateText(description.subtitle)
-                val strings = getString(ModuleAttributes.STRINGS)
-                details.setText(strings)
-                detailsToggle.updateVisibility(!strings.isNullOrEmpty())
+        MediaModel.of(requireActivity()).run {
+            viewLifecycleOwner.whenLifecycleStarted {
+                metadata.collect { metadata ->
+                    UiUtils.setViewEnabled(view, metadata != null)
+                    metadata?.run {
+                        title.updateText(description.title)
+                        subtitle.updateText(description.subtitle)
+                        val strings = getString(ModuleAttributes.STRINGS)
+                        details.setText(strings)
+                        detailsToggle.updateVisibility(!strings.isNullOrEmpty())
+                    }
+                }
             }
         }
 }
