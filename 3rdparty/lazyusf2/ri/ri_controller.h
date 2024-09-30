@@ -24,6 +24,8 @@
 
 #include <stdint.h>
 
+#include "rdram.h"
+
 enum ri_registers
 {
     RI_MODE_REG,
@@ -44,9 +46,14 @@ struct ri_controller
 
 #include "osal/preproc.h"
 
+static osal_inline uint32_t ri_reg(uint32_t address)
+{
+    return (address & 0xffff) >> 2;
+}
+
 void init_ri(struct ri_controller* ri);
 
-uint32_t read_ri_regs(struct ri_controller* ri, uint32_t address);
-void write_ri_regs(struct ri_controller* ri, uint32_t address, uint32_t value, uint32_t mask);
+uint32_t read_ri_regs(void* opaque, uint32_t address);
+void write_ri_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 #endif

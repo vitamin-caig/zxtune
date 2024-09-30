@@ -1066,7 +1066,7 @@ enum {
     SP_DIV_PRECISION_CURRENT
 };
 
-INLINE static void do_div(struct rsp_core* sp, int data, int sqrt, int precision)
+INLINE static void do_div(usf_state_t * state, int data, int sqrt, int precision)
 {
     int32_t addr;
     int fetch;
@@ -1099,13 +1099,13 @@ INLINE static void do_div(struct rsp_core* sp, int data, int sqrt, int precision
     fetch = div_ROM[addr];
     shift ^= 31; /* flipping shift direction from left- to right- */
     shift >>= (sqrt == SP_DIV_SQRT_YES);
-    sp->DivOut = (0x40000000 | (fetch << 14)) >> shift;
-    if (sp->DivIn == 0) /* corner case:  overflow via division by zero */
-        sp->DivOut = 0x7FFFFFFF;
-    else if (sp->DivIn == -32768) /* corner case:  signed underflow barrier */
-        sp->DivOut = 0xFFFF0000;
+    state->DivOut = (0x40000000 | (fetch << 14)) >> shift;
+    if (state->DivIn == 0) /* corner case:  overflow via division by zero */
+        state->DivOut = 0x7FFFFFFF;
+    else if (state->DivIn == -32768) /* corner case:  signed underflow barrier */
+        state->DivOut = 0xFFFF0000;
     else
-        sp->DivOut ^= (sp->DivIn < 0) ? ~0 : 0;
+        state->DivOut ^= (state->DivIn < 0) ? ~0 : 0;
     return;
 }
 #endif

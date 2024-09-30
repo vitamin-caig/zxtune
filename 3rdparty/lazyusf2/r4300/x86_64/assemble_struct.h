@@ -1,6 +1,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus - memory.h                                                *
+ *   Mupen64plus - assemble_struct.h                                       *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
+ *   Copyright (C) 2007 Richard Goedeken (Richard42)                       *
  *   Copyright (C) 2002 Hacktarux                                          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,16 +20,17 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef M64P_MEMORY_MEMORY_MMU_H
-#define M64P_MEMORY_MEMORY_MMU_H
+#ifndef M64P_R4300_ASSEMBLE_STRUCT_H
+#define M64P_R4300_ASSEMBLE_STRUCT_H
 
-#include <stdint.h>
-#include "osal/preproc.h"
-
-typedef struct io_bus io_bus;
-
-void memory_reset_tlb(io_bus*);
-void memory_map_tlb(io_bus*, int writable, uint32_t vstart, uint32_t vend, uint32_t pstart);
-void memory_unmap_tlb(io_bus*, uint32_t vstart, uint32_t vend);
-
+#ifdef DYNAREC
+typedef struct _reg_cache_struct
+{
+   int need_map;
+   void *needed_registers[8];
+   unsigned char jump_wrapper[84];
+   int need_cop1_check;
+} reg_cache_struct;
 #endif
+
+#endif /* M64P_R4300_ASSEMBLE_STRUCT_H */

@@ -42,75 +42,75 @@ unsigned char VCE;
  */
 
 #ifndef ARCH_MIN_SSE2
-unsigned short get_VCO(struct rsp_core* sp)
+unsigned short get_VCO(usf_state_t * state)
 {
     register unsigned short VCO;
 
     VCO = 0x0000
-      | (sp->ne[0xF % 8] << 0xF)
-      | (sp->ne[0xE % 8] << 0xE)
-      | (sp->ne[0xD % 8] << 0xD)
-      | (sp->ne[0xC % 8] << 0xC)
-      | (sp->ne[0xB % 8] << 0xB)
-      | (sp->ne[0xA % 8] << 0xA)
-      | (sp->ne[0x9 % 8] << 0x9)
-      | (sp->ne[0x8 % 8] << 0x8)
-      | (sp->co[0x7 % 8] << 0x7)
-      | (sp->co[0x6 % 8] << 0x6)
-      | (sp->co[0x5 % 8] << 0x5)
-      | (sp->co[0x4 % 8] << 0x4)
-      | (sp->co[0x3 % 8] << 0x3)
-      | (sp->co[0x2 % 8] << 0x2)
-      | (sp->co[0x1 % 8] << 0x1)
-      | (sp->co[0x0 % 8] << 0x0);
+      | (state->ne[0xF % 8] << 0xF)
+      | (state->ne[0xE % 8] << 0xE)
+      | (state->ne[0xD % 8] << 0xD)
+      | (state->ne[0xC % 8] << 0xC)
+      | (state->ne[0xB % 8] << 0xB)
+      | (state->ne[0xA % 8] << 0xA)
+      | (state->ne[0x9 % 8] << 0x9)
+      | (state->ne[0x8 % 8] << 0x8)
+      | (state->co[0x7 % 8] << 0x7)
+      | (state->co[0x6 % 8] << 0x6)
+      | (state->co[0x5 % 8] << 0x5)
+      | (state->co[0x4 % 8] << 0x4)
+      | (state->co[0x3 % 8] << 0x3)
+      | (state->co[0x2 % 8] << 0x2)
+      | (state->co[0x1 % 8] << 0x1)
+      | (state->co[0x0 % 8] << 0x0);
     return (VCO); /* Big endian becomes little. */
 }
-unsigned short get_VCC(struct rsp_core* sp)
+unsigned short get_VCC(usf_state_t * state)
 {
     register unsigned short VCC;
 
     VCC = 0x0000
-      | (sp->clip[0xF % 8] << 0xF)
-      | (sp->clip[0xE % 8] << 0xE)
-      | (sp->clip[0xD % 8] << 0xD)
-      | (sp->clip[0xC % 8] << 0xC)
-      | (sp->clip[0xB % 8] << 0xB)
-      | (sp->clip[0xA % 8] << 0xA)
-      | (sp->clip[0x9 % 8] << 0x9)
-      | (sp->clip[0x8 % 8] << 0x8)
-      | (sp->comp[0x7 % 8] << 0x7)
-      | (sp->comp[0x6 % 8] << 0x6)
-      | (sp->comp[0x5 % 8] << 0x5)
-      | (sp->comp[0x4 % 8] << 0x4)
-      | (sp->comp[0x3 % 8] << 0x3)
-      | (sp->comp[0x2 % 8] << 0x2)
-      | (sp->comp[0x1 % 8] << 0x1)
-      | (sp->comp[0x0 % 8] << 0x0);
+      | (state->clip[0xF % 8] << 0xF)
+      | (state->clip[0xE % 8] << 0xE)
+      | (state->clip[0xD % 8] << 0xD)
+      | (state->clip[0xC % 8] << 0xC)
+      | (state->clip[0xB % 8] << 0xB)
+      | (state->clip[0xA % 8] << 0xA)
+      | (state->clip[0x9 % 8] << 0x9)
+      | (state->clip[0x8 % 8] << 0x8)
+      | (state->comp[0x7 % 8] << 0x7)
+      | (state->comp[0x6 % 8] << 0x6)
+      | (state->comp[0x5 % 8] << 0x5)
+      | (state->comp[0x4 % 8] << 0x4)
+      | (state->comp[0x3 % 8] << 0x3)
+      | (state->comp[0x2 % 8] << 0x2)
+      | (state->comp[0x1 % 8] << 0x1)
+      | (state->comp[0x0 % 8] << 0x0);
     return (VCC); /* Big endian becomes little. */
 }
-unsigned char get_VCE(struct rsp_core* sp)
+unsigned char get_VCE(usf_state_t * state)
 {
     register unsigned char VCE;
 
     VCE = 0x00
-      | (sp->vce[07] << 0x7)
-      | (sp->vce[06] << 0x6)
-      | (sp->vce[05] << 0x5)
-      | (sp->vce[04] << 0x4)
-      | (sp->vce[03] << 0x3)
-      | (sp->vce[02] << 0x2)
-      | (sp->vce[01] << 0x1)
-      | (sp->vce[00] << 0x0);
+      | (state->vce[07] << 0x7)
+      | (state->vce[06] << 0x6)
+      | (state->vce[05] << 0x5)
+      | (state->vce[04] << 0x4)
+      | (state->vce[03] << 0x3)
+      | (state->vce[02] << 0x2)
+      | (state->vce[01] << 0x1)
+      | (state->vce[00] << 0x0);
     return (VCE); /* Big endian becomes little. */
 }
 #else
-unsigned short get_VCO(struct rsp_core* sp)
+unsigned short get_VCO(usf_state_t * state)
 {
     __m128i xmm, hi, lo;
     register unsigned short VCO;
 
-    hi = _mm_load_si128((__m128i *)sp->ne);
-    lo = _mm_load_si128((__m128i *)sp->co);
+    hi = _mm_load_si128((__m128i *)state->ne);
+    lo = _mm_load_si128((__m128i *)state->co);
 
 /*
  * Rotate Boolean storage from LSB to MSB.
@@ -122,13 +122,13 @@ unsigned short get_VCO(struct rsp_core* sp)
     VCO = _mm_movemask_epi8(xmm) & 0x0000FFFF; /* PMOVMSKB combines each MSB. */
     return (VCO);
 }
-unsigned short get_VCC(struct rsp_core* sp)
+unsigned short get_VCC(usf_state_t * state)
 {
     __m128i xmm, hi, lo;
     register unsigned short VCC;
 
-    hi = _mm_load_si128((__m128i *)sp->clip);
-    lo = _mm_load_si128((__m128i *)sp->comp);
+    hi = _mm_load_si128((__m128i *)state->clip);
+    lo = _mm_load_si128((__m128i *)state->comp);
 
 /*
  * Rotate Boolean storage from LSB to MSB.
@@ -140,13 +140,13 @@ unsigned short get_VCC(struct rsp_core* sp)
     VCC = _mm_movemask_epi8(xmm) & 0x0000FFFF; /* PMOVMSKB combines each MSB. */
     return (VCC);
 }
-unsigned char get_VCE(struct rsp_core* sp)
+unsigned char get_VCE(usf_state_t * state)
 {
     __m128i xmm, hi, lo;
     register unsigned char VCE;
 
     hi = _mm_setzero_si128();
-    lo = _mm_load_si128((__m128i *)sp->vce);
+    lo = _mm_load_si128((__m128i *)state->vce);
 
     lo = _mm_slli_epi16(lo, 15); /* Rotate Boolean storage from LSB to MSB. */
 
@@ -160,34 +160,32 @@ unsigned char get_VCE(struct rsp_core* sp)
  * CTC2 resources
  * not sure how to vectorize going the other direction into SSE2
  */
-void set_VCO(struct rsp_core* sp, unsigned short VCO)
+void set_VCO(usf_state_t * state, unsigned short VCO)
 {
     register int i;
 
     for (i = 0; i < 8; i++)
-        sp->co[i] = (VCO >> (i + 0x0)) & 1;
+        state->co[i] = (VCO >> (i + 0x0)) & 1;
     for (i = 0; i < 8; i++)
-        sp->ne[i] = (VCO >> (i + 0x8)) & 1;
+        state->ne[i] = (VCO >> (i + 0x8)) & 1;
     return; /* Little endian becomes big. */
 }
-void set_VCC(struct rsp_core* sp, unsigned short VCC)
+void set_VCC(usf_state_t * state, unsigned short VCC)
 {
     register int i;
 
     for (i = 0; i < 8; i++)
-        sp->comp[i] = (VCC >> (i + 0x0)) & 1;
+        state->comp[i] = (VCC >> (i + 0x0)) & 1;
     for (i = 0; i < 8; i++)
-        sp->clip[i] = (VCC >> (i + 0x8)) & 1;
+        state->clip[i] = (VCC >> (i + 0x8)) & 1;
     return; /* Little endian becomes big. */
 }
-/*
-void set_VCE(struct rsp_core* sp, unsigned char VCE)
+void set_VCE(usf_state_t * state, unsigned char VCE)
 {
     register int i;
 
     for (i = 0; i < 8; i++)
-        sp->vce[i] = (VCE >> i) & 1;
-    return;
+        state->vce[i] = (VCE >> i) & 1;
+    return; /* Little endian becomes big. */
 }
-*/
 #endif

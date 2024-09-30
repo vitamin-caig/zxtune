@@ -24,8 +24,7 @@
 #include "api/m64p_types.h"
 #include "api/callbacks.h"
 #include "main/main.h"
-#include "memory/memory_io.h"
-#include "usf/usf_internal.h"
+#include "memory/memory.h"
 
 #include "r4300.h"
 #include "cp0.h"
@@ -51,7 +50,7 @@
    { \
       const int take_jump = (condition); \
       const unsigned int jump_target = (destination); \
-      int64_t *link_register = (link); \
+      long long int *link_register = (link); \
       if (cop1 && check_cop1_unusable(state)) return; \
       if (link_register != &state->reg[0]) \
       { \
@@ -77,13 +76,13 @@
          update_count(state); \
       } \
       state->last_addr = state->PC->addr; \
-      if (state->next_interupt <= state->g_cp0_regs[CP0_COUNT_REG]) gen_interupt(state); \
+      if (state->cycle_count >=0) gen_interupt(state); \
    } \
    static void osal_fastcall name##_OUT(usf_state_t * state) \
    { \
       const int take_jump = (condition); \
       const unsigned int jump_target = (destination); \
-      int64_t *link_register = (link); \
+      long long int *link_register = (link); \
       if (cop1 && check_cop1_unusable(state)) return; \
       if (link_register != &state->reg[0]) \
       { \
@@ -98,9 +97,9 @@
          state->PC->ops(state); \
          update_count(state); \
          state->delay_slot=0; \
-         if (take_jump) \
+         if (take_jump && !state->skip_jump) \
          { \
-            jump_to(state, jump_target); \
+            jump_to(jump_target); \
          } \
       } \
       else \
@@ -109,25 +108,28 @@
          update_count(state); \
       } \
       state->last_addr = state->PC->addr; \
-      if (state->next_interupt <= state->g_cp0_regs[CP0_COUNT_REG]) gen_interupt(state); \
+      if (state->cycle_count >=0) gen_interupt(state); \
    } \
    static void osal_fastcall name##_IDLE(usf_state_t * state) \
    { \
       const int take_jump = (condition); \
-      int skip; \
       if (cop1 && check_cop1_unusable(state)) return; \
       if (take_jump) \
       { \
-         update_count(state); \
-         skip = state->next_interupt - state->g_cp0_regs[CP0_COUNT_REG]; \
-         if (skip > 3) state->g_cp0_regs[CP0_COUNT_REG] += (skip & 0xFFFFFFFC); \
-         else name(state); \
+         if (state->cycle_count < 0) \
+         { \
+            state->g_cp0_regs[CP0_COUNT_REG] -= state->cycle_count; \
+            state->cycle_count = 0; \
+         } \
       } \
-      else name(state); \
+      name(state); \
    }
 
-#define CHECK_MEMORY(addr) \
-   invalidate_block(state, addr);
+#define CHECK_MEMORY() \
+   if (!state->invalid_code[state->address>>12]) \
+      if (state->blocks[state->address>>12]->block[(state->address&0xFFF)/4].ops != \
+          state->current_instruction_table.NOTCOMPILED) \
+         state->invalid_code[state->address>>12] = 1;
 
 // two functions are defined from the macros above but never used
 // these prototype declarations will prevent a warning
@@ -145,16 +147,28 @@ static void osal_fastcall FIN_BLOCK(usf_state_t * state)
 {
    if (!state->delay_slot)
      {
-    jump_to(state, (state->PC-1)->addr+4);
-
+    jump_to((state->PC-1)->addr+4);
+/*#ifdef DBG
+            if (g_DebuggerActive) update_debugger(PC->addr);
+#endif
+Used by dynarec only, check should be unnecessary
+*/
     state->PC->ops(state);
+#ifdef DYNAREC
+    if (state->r4300emu == CORE_DYNAREC) dyna_jump(state);
+#endif
      }
    else
      {
     precomp_block *blk = state->actual;
     precomp_instr *inst = state->PC;
-    jump_to(state, (state->PC-1)->addr+4);
+    jump_to((state->PC-1)->addr+4);
     
+/*#ifdef DBG
+            if (g_DebuggerActive) update_debugger(PC->addr);
+#endif
+Used by dynarec only, check should be unnecessary
+*/
     if (!state->skip_jump)
       {
          state->PC->ops(state);
@@ -164,23 +178,32 @@ static void osal_fastcall FIN_BLOCK(usf_state_t * state)
     else
       state->PC->ops(state);
     
+#ifdef DYNAREC
+    if (state->r4300emu == CORE_DYNAREC) dyna_jump(state);
+#endif
      }
 }
 
 static void osal_fastcall NOTCOMPILED(usf_state_t * state)
 {
-   precomp_block* const block = state->blocks[state->PC->addr / TLB_PAGE_SIZE];
-   const uint32_t* const mem = fast_mem_access(state, block->start);
+   unsigned int *mem = fast_mem_access(state, state->blocks[state->PC->addr>>12]->start);
 
    if (mem != NULL)
-   {
-      recompile_block(state, mem, block, state->PC->addr);
-      state->PC->ops(state);
-   }
+      recompile_block(state, (int *)mem, state->blocks[state->PC->addr >> 12], state->PC->addr);
    else
-   {
       DebugMessage(state, M64MSG_ERROR, "not compiled exception");
-   }
+
+/*#ifdef DBG
+            if (g_DebuggerActive) update_debugger(PC->addr);
+#endif
+The preceeding update_debugger SHOULD be unnecessary since it should have been
+called before NOTCOMPILED would have been executed
+*/
+   state->PC->ops(state);
+#ifdef DYNAREC
+   if (state->r4300emu == CORE_DYNAREC)
+     dyna_jump(state);
+#endif
 }
 
 static void osal_fastcall NOTCOMPILED2(usf_state_t * state)
@@ -471,65 +494,65 @@ const cpu_instruction_table cached_interpreter_table = {
    NOTCOMPILED2
 };
 
-static osal_inline void osal_fastcall update_invalid_ph_addr(usf_state_t* state, uint32_t addr)
+static unsigned int osal_fastcall update_invalid_addr(usf_state_t * state, unsigned int addr)
 {
-   const uint32_t page = addr / TLB_PAGE_SIZE;
-   const uint32_t mirr_page = page ^ (0x20000000 / TLB_PAGE_SIZE);
-   if (state->invalid_code[page] != state->invalid_code[mirr_page])
-   {
-     state->invalid_code[page] = state->invalid_code[mirr_page] = 1;
-   }
-}
-
-static uint32_t osal_fastcall update_invalid_addr(usf_state_t * state, uint32_t addr)
-{
-   if (is_mapped(addr))
-   {
-      const uint32_t ph_addr = virtual_to_physical_address(state, addr, 2);
-      if (ph_addr)
-      {
-         const uint32_t page = addr / TLB_PAGE_SIZE;
-         const uint32_t ph_page = ph_addr / TLB_PAGE_SIZE;
-         if (state->invalid_code[page] != state->invalid_code[ph_page])
-         {
-           state->invalid_code[page] = state->invalid_code[ph_page] = 1;
-         }
-         update_invalid_ph_addr(state, ph_addr);
-      }
-      return ph_addr;
-   }
+   if (addr >= 0x80000000 && addr < 0xc0000000)
+     {
+    if (state->invalid_code[addr>>12]) state->invalid_code[(addr^0x20000000)>>12] = 1;
+    if (state->invalid_code[(addr^0x20000000)>>12]) state->invalid_code[addr>>12] = 1;
+    return addr;
+     }
    else
-   {
-     update_invalid_ph_addr(state, addr);
-     return addr;
-   }
+     {
+    unsigned int paddr = virtual_to_physical_address(state, addr, 2);
+    if (paddr)
+      {
+         unsigned int beg_paddr = paddr - (addr - (addr&~0xFFF));
+         update_invalid_addr(state, paddr);
+         if (state->invalid_code[(beg_paddr+0x000)>>12]) state->invalid_code[addr>>12] = 1;
+         if (state->invalid_code[(beg_paddr+0xFFC)>>12]) state->invalid_code[addr>>12] = 1;
+         if (state->invalid_code[addr>>12]) state->invalid_code[(beg_paddr+0x000)>>12] = 1;
+         if (state->invalid_code[addr>>12]) state->invalid_code[(beg_paddr+0xFFC)>>12] = 1;
+      }
+    return paddr;
+     }
 }
 
-void osal_fastcall jump_to(usf_state_t * state, uint32_t addr)
+#define addr state->jump_to_address
+void osal_fastcall jump_to_func(usf_state_t * state)
 {
-   uint32_t paddr;
+   unsigned int paddr;
    if (state->skip_jump) return;
    paddr = update_invalid_addr(state, addr);
-   if (!paddr) {return;}
-   const uint32_t page = addr / TLB_PAGE_SIZE;
-   state->actual = state->blocks[page];
-   if (state->invalid_code[page])
-   {
-      if (!state->actual)
+   if (!paddr) return;
+   state->actual = state->blocks[addr>>12];
+   if (state->invalid_code[addr>>12])
+     {
+    if (!state->blocks[addr>>12])
       {
-         state->actual = state->blocks[page] = (precomp_block *) calloc(sizeof(precomp_block), 1);
+         state->blocks[addr>>12] = (precomp_block *) malloc(sizeof(precomp_block));
+         state->actual = state->blocks[addr>>12];
+         state->blocks[addr>>12]->code = NULL;
+         state->blocks[addr>>12]->block = NULL;
+         state->blocks[addr>>12]->jumps_table = NULL;
+         state->blocks[addr>>12]->riprel_table = NULL;
       }
-      state->actual->start = addr & TLB_ADDRESS_MASK;
-      state->actual->end = state->actual->start + TLB_PAGE_SIZE;
-      init_block(state, state->actual);
-   }
-   state->PC = state->actual->block + ((addr - state->actual->start) / sizeof(uint32_t));
+    state->blocks[addr>>12]->start = addr & ~0xFFF;
+    state->blocks[addr>>12]->end = (addr & ~0xFFF) + 0x1000;
+    init_block(state, state->blocks[addr>>12]);
+     }
+   state->PC=state->actual->block+((addr-state->actual->start)>>2);
+   
+#ifdef DYNAREC
+   if (state->r4300emu == CORE_DYNAREC) dyna_jump(state);
+#endif
 }
+#undef addr
 
 void osal_fastcall init_blocks(usf_state_t * state)
 {
    int i;
-   for (i = 0; i < TLB_PAGES_COUNT; i++)
+   for (i=0; i<0x100000; i++)
    {
       state->invalid_code[i] = 1;
       state->blocks[i] = NULL;
@@ -539,7 +562,7 @@ void osal_fastcall init_blocks(usf_state_t * state)
 void osal_fastcall free_blocks(usf_state_t * state)
 {
    int i;
-   for (i = 0; i < TLB_PAGES_COUNT; i++)
+   for (i=0; i<0x100000; i++)
    {
         if (state->blocks[i])
         {

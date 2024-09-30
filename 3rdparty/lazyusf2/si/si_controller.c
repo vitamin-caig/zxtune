@@ -23,12 +23,14 @@
 
 #include "usf/usf_internal.h"
 
+#include "usf/barray.h"
+
 #include "si_controller.h"
 
 #include "api/m64p_types.h"
 #include "api/callbacks.h"
 #include "main/main.h"
-#include "memory/memory_tools.h"
+#include "memory/memory.h"
 #include "r4300/cp0.h"
 #include "r4300/interupt.h"
 #include "r4300/r4300.h"
@@ -53,6 +55,18 @@ static void dma_si_write(struct si_controller* si)
         *((uint32_t*)(&si->pif.ram[i])) = sl(si->rdram->dram[(si->regs[SI_DRAM_ADDR_REG]+i)/4]);
     }
     
+#ifndef NO_TRIMMING
+    if (si->r4300->state->enable_trimming_mode)
+    {
+        for (i = 0; i < PIF_RAM_SIZE; i += 4)
+        {
+            unsigned int ram_address = si->regs[SI_DRAM_ADDR_REG] + i;
+            if (!bit_array_test(si->r4300->state->barray_ram_written_first, ram_address / 4))
+                bit_array_set(si->r4300->state->barray_ram_read, ram_address / 4);
+        }
+    }
+#endif
+
     update_pif_write(si);
     update_count(si->r4300->state);
 
@@ -81,6 +95,18 @@ static void dma_si_read(struct si_controller* si)
         si->rdram->dram[(si->regs[SI_DRAM_ADDR_REG]+i)/4] = sl(*(uint32_t*)(&si->pif.ram[i]));
     }
 
+#ifndef NO_TRIMMING
+    if (si->r4300->state->enable_trimming_mode)
+    {
+        for (i = 0; i < PIF_RAM_SIZE; i += 4)
+        {
+            unsigned int ram_address = si->regs[SI_DRAM_ADDR_REG] + i;
+            if (!bit_array_test(si->r4300->state->barray_ram_read, ram_address / 4))
+                bit_array_set(si->r4300->state->barray_ram_written_first, ram_address / 4);
+        }
+    }
+#endif
+
     update_count(si->r4300->state);
 
     if (si->r4300->state->g_delay_si) {
@@ -107,21 +133,19 @@ void init_si(struct si_controller* si)
     init_pif(&si->pif);
 }
 
-static osal_inline uint32_t si_reg(uint32_t address)
-{
-    return (address & 0xffff) >> 2;
-}
 
-uint32_t read_si_regs(struct si_controller* si, uint32_t address)
+uint32_t read_si_regs(void* opaque, uint32_t address)
 {
-    const uint32_t reg = si_reg(address);
+    struct si_controller* si = (struct si_controller*)opaque;
+    uint32_t reg = si_reg(address);
 
     return si->regs[reg];
 }
 
-void write_si_regs(struct si_controller* si, uint32_t address, uint32_t value, uint32_t mask)
+void write_si_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    const uint32_t reg = si_reg(address);
+    struct si_controller* si = (struct si_controller*)opaque;
+    uint32_t reg = si_reg(address);
 
     switch (reg)
     {

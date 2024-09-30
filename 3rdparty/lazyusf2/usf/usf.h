@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 /* Returns the size of the base emulator state. */
-size_t usf_get_state_size();
+size_t usf_get_state_size(void);
 
 /* Clears and prepares an allocated state.
    Do not call this on a state which has already been rendering
@@ -29,6 +29,22 @@ void usf_clear(void * state);
    _enablecompare or _enablefifofull tags are present in the file. */
 void usf_set_compare(void * state, int enable);
 void usf_set_fifo_full(void * state, int enable);
+
+/* This mode will slow the emulator down to cached interpreter mode,
+   and will keep track of all ROM 32 bit words which are read, and
+   all RAM words which are read before they are written to. */
+void usf_set_trimming_mode(void * state, int enable);
+
+/* These will be the valid bit arrays, accessible using the functions
+   in barray.h, which indicate which words have been accessed up to
+   the present point in emulation, as long as the above mode is enabled.
+   If emulation has not started with trimming mode enabled, these will
+   return NULL.
+   ROM coverage array will contain as many entries as 1 per 4 bytes of
+   uploaded ROM data, while RAM coverage will contain 1 per 4 bytes of
+   system RDRAM, either 4MB or 8MB depending on the save state. */
+void * usf_get_rom_coverage_barray(void * state);
+void * usf_get_ram_coverage_barray(void * state);
 
 /* This option should speed up decoding significantly, at the expense
    of accuracy, and potentially emulation bugs. */

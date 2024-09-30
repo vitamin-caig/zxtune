@@ -21,6 +21,8 @@
 
 #include "usf/usf.h"
 
+#include "new_dynarec/new_dynarec.h"
+
 #include "usf/usf_internal.h"
 
 /* Refer to Figure 6-2 on page 155 and explanation on page B-11

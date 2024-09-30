@@ -24,7 +24,6 @@
 #include "usf/usf_internal.h"
 
 #include "rdram_detection_hack.h"
-#include "rdram.h"
 
 #include "main/main.h"
 #include "si/si_controller.h"

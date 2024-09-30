@@ -13,7 +13,7 @@
 \******************************************************************************/
 #include "vu.h"
 
-INLINE static void do_madl(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE static void do_madl(usf_state_t * state, short* VD, short* VS, short* VT)
 {
 
 #ifdef ARCH_MIN_ARM_NEON
@@ -59,7 +59,7 @@ INLINE static void do_madl(struct rsp_core* sp, short* VD, short* VS, short* VT)
 	vst1q_s16(VACC_M, (int16x8_t)v_vaccm);
 	vst1q_s16(VACC_H, (int16x8_t)v_vacch);
 	
-	SIGNED_CLAMP_AL(sp, VD);
+	SIGNED_CLAMP_AL(state, VD);
 	return;
 	
 #else
@@ -85,16 +85,16 @@ INLINE static void do_madl(struct rsp_core* sp, short* VD, short* VS, short* VT)
         VACC_M[i] = (short)(addend[i]);
     for (i = 0; i < N; i++)
         VACC_H[i] += addend[i] >> 16;
-    SIGNED_CLAMP_AL(sp, VD);
+    SIGNED_CLAMP_AL(state, VD);
     return;
 #endif
 }
 
-static void VMADL(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VMADL(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    do_madl(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    do_madl(state, state->VR[vd], state->VR[vs], ST);
     return;
 }

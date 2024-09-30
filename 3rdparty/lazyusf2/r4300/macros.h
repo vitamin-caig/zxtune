@@ -22,10 +22,6 @@
 #ifndef M64P_R4300_MACROS_H
 #define M64P_R4300_MACROS_H
 
-#define sign_extend8(a) (int64_t)((int8_t)(a))
-#define sign_extend16(a) (int64_t)((int16_t)(a))
-#define sign_extend32(a) (int64_t)((int32_t)(a))
-
 #define sign_extended(a) a = (long long)((int)a)
 #define sign_extendedb(a) a = (long long)((signed char)a)
 #define sign_extendedh(a) a = (long long)((short)a)

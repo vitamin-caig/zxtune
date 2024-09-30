@@ -1,7 +1,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus - memory.h                                                *
+ *   Mupen64plus-rsp-hle - stdbool.h                                       *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
- *   Copyright (C) 2002 Hacktarux                                          *
+ *   Copyright (C) 2014 Bobby Smiles                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -19,42 +19,28 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef M64P_MEMORY_MEMORY_TOOLS_H
-#define M64P_MEMORY_MEMORY_TOOLS_H
+/* This header is only intended to be used with msvc compilers */
 
-#include <stdint.h>
+#pragma once
 
-#ifndef M64P_BIG_ENDIAN
-#if defined(__GNUC__) && (__GNUC__ > 4  || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
-#define sl(x) __builtin_bswap32(x)
-#else
-#define sl(mot) \
-( \
-((mot & 0x000000FF) << 24) | \
-((mot & 0x0000FF00) <<  8) | \
-((mot & 0x00FF0000) >>  8) | \
-((mot & 0xFF000000) >> 24) \
-)
-#endif
-#define S8 3
-#define S16 2
-#define Sh16 1
+#if defined(_MSC_VER) && _MSC_VER < 1700
+
+typedef int _Bool;
+
+/**
+ * The standard states that "an application may undefine and then possibly redefine the macro
+ * bool, true and false". However, such feature might be withdrawn in a future version.
+ **/
+#define bool _Bool
+#define true 1
+#define false 0
+
+#define __bool_true_false_are_defined 1
 
 #else
 
-#define sl(mot) mot
-#define S8 0
-#define S16 0
-#define Sh16 0
+#include <stdbool.h>
 
 #endif
 
-#include "osal/preproc.h"
-
-static osal_inline void masked_write(uint32_t* dst, uint32_t value, uint32_t mask)
-{
-    *dst = (*dst & ~mask) | (value & mask);
-}
-
-#endif
 

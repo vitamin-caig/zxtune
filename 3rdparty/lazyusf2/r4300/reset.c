@@ -40,9 +40,7 @@ void reset_hard(usf_state_t * state)
     state->last_addr = 0xa4000040;
     state->next_interupt = 624999;
     init_interupt(state);
-#ifdef DEBUG_INFO
     if(state->r4300emu != CORE_PURE_INTERPRETER)
-#endif
     {
         free_blocks(state);
         init_blocks(state);

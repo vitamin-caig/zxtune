@@ -65,6 +65,11 @@ struct ai_controller
     struct vi_controller* vi;
 };
 
+static osal_inline uint32_t ai_reg(uint32_t address)
+{
+    return (address & 0xffff) >> 2;
+}
+
 /* This is for enablefifofull */
 void ai_fifo_queue_int(struct ai_controller* ai);
 
@@ -78,8 +83,8 @@ void connect_ai(struct ai_controller* ai,
 
 void init_ai(struct ai_controller* ai);
 
-uint32_t read_ai_regs(struct ai_controller* ai, uint32_t address);
-void write_ai_regs(struct ai_controller* ai, uint32_t address, uint32_t value, uint32_t mask);
+uint32_t read_ai_regs(void* opaque, uint32_t address);
+void write_ai_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void ai_end_of_dma_event(struct ai_controller* ai);
 

@@ -19,7 +19,7 @@
  * +1:  VT *= +1, because VS > 0 // VT ^=  0
  *      VT ^= -1, "negate" -32768 as ~+32767 (corner case hack for N64 SP)
  */
-INLINE static void do_abs(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE static void do_abs(usf_state_t * state, short* VD, short* VS, short* VT)
 {
     ALIGNED short neg[N], pos[N];
     ALIGNED short nez[N], cch[N]; /* corner case hack -- abs(-32768) == +32767 */
@@ -92,11 +92,11 @@ INLINE static void do_abs(struct rsp_core* sp, short* VD, short* VS, short* VT)
 #endif
 }
 
-static void VABS(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VABS(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    do_abs(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    do_abs(state, state->VR[vd], state->VR[vs], ST);
     return;
 }

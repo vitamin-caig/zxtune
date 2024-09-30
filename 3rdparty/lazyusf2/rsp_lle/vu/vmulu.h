@@ -25,7 +25,7 @@
 #define SEMIFRAC    (VS[i]*VT[i]*2/2 + 0x4000)
 #endif
 
-INLINE static void do_mulu(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE static void do_mulu(usf_state_t * state, short* VD, short* VS, short* VT)
 {
 
 #ifdef ARCH_MIN_ARM_NEON
@@ -75,7 +75,7 @@ INLINE static void do_mulu(struct rsp_core* sp, short* VD, short* VS, short* VT)
     for (i = 0; i < N; i++)
         VACC_H[i] = -((VACC_M[i] < 0) & (VS[i] != VT[i])); /* -32768 * -32768 */
 #if (0)
-    UNSIGNED_CLAMP(sp, VD);
+    UNSIGNED_CLAMP(state, VD);
 #else
     vector_copy(VD, VACC_M);
     for (i = 0; i < N; i++)
@@ -87,11 +87,11 @@ INLINE static void do_mulu(struct rsp_core* sp, short* VD, short* VS, short* VT)
 #endif
 }
 
-static void VMULU(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VMULU(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    do_mulu(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    do_mulu(state, state->VR[vd], state->VR[vs], ST);
     return;
 }

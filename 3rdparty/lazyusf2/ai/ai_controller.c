@@ -26,7 +26,7 @@
 #include "ai_controller.h"
 
 #include "main/rom.h"
-#include "memory/memory_tools.h"
+#include "memory/memory.h"
 #include "r4300/cp0.h"
 #include "r4300/r4300_core.h"
 #include "r4300/interupt.h"
@@ -53,12 +53,15 @@ static uint32_t get_remaining_dma_length(struct ai_controller* ai)
     if (next_ai_event == 0)
         return 0;
 
+    if ((int)(ai->r4300->state->g_cp0_regs[CP0_COUNT_REG] - next_ai_event) >= 0)
+        return 0;
+
     remaining_dma_duration = next_ai_event - ai->r4300->state->g_cp0_regs[CP0_COUNT_REG];
 
     if (remaining_dma_duration >= 0x80000000)
         return 0;
 
-    return (uint32_t)((uint64_t)remaining_dma_duration * ai->fifo[0].length / ai->fifo[0].duration);
+    return (uint32_t)((uint64_t)remaining_dma_duration * ai->fifo[0].length / ai->fifo[0].duration) & ~7;
 }
 
 static unsigned int get_dma_duration(struct ai_controller* ai)
@@ -182,14 +185,11 @@ void init_ai(struct ai_controller* ai)
     ai->samples_format_changed = 0;
 }
 
-static osal_inline uint32_t ai_reg(uint32_t address)
-{
-    return (address & 0xffff) >> 2;
-}
 
-uint32_t read_ai_regs(struct ai_controller* ai, uint32_t address)
+uint32_t read_ai_regs(void* opaque, uint32_t address)
 {
-    const uint32_t reg = ai_reg(address);
+    struct ai_controller* ai = (struct ai_controller*)opaque;
+    uint32_t reg = ai_reg(address);
 
     if (reg == AI_LEN_REG)
     {
@@ -201,21 +201,22 @@ uint32_t read_ai_regs(struct ai_controller* ai, uint32_t address)
     }
 }
 
-void write_ai_regs(struct ai_controller* ai, uint32_t address, uint32_t value, uint32_t mask)
+void write_ai_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    const uint32_t reg = ai_reg(address);
+    struct ai_controller* ai = (struct ai_controller*)opaque;
+    uint32_t reg = ai_reg(address);
 
     switch (reg)
     {
     case AI_LEN_REG:
         masked_write(&ai->regs[AI_LEN_REG], value, mask);
         fifo_push(ai);
-        break;
+        return;
 
     case AI_STATUS_REG:
         clear_rcp_interrupt(ai->r4300, MI_INTR_AI);
         ai->r4300->mi.AudioIntrReg &= ~MI_INTR_AI;
-        break;
+        return;
 
     case AI_BITRATE_REG:
     case AI_DACRATE_REG:
@@ -224,12 +225,10 @@ void write_ai_regs(struct ai_controller* ai, uint32_t address, uint32_t value, u
             ai->samples_format_changed = 1;
 
         masked_write(&ai->regs[reg], value, mask);
-        break;
-        
-    default:
-        masked_write(&ai->regs[reg], value, mask);
-        break;
+        return;
     }
+
+    masked_write(&ai->regs[reg], value, mask);
 }
 
 void ai_end_of_dma_event(struct ai_controller* ai)

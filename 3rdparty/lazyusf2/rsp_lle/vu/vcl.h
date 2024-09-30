@@ -13,7 +13,7 @@
 \******************************************************************************/
 #include "vu.h"
 
-INLINE static void do_cl(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE static void do_cl(usf_state_t * state, short* VD, short* VS, short* VT)
 {
 
     ALIGNED short eq[N], ge[N], le[N];
@@ -33,9 +33,9 @@ INLINE static void do_cl(struct rsp_core* sp, short* VD, short* VS, short* VT)
 	
 	int16x8_t vs = vld1q_s16((const int16_t *)VS);
     int16x8_t vt = vld1q_s16((const int16_t *)VT);
-	int16x8_t ne = vld1q_s16((const int16_t *)sp->ne);
-	int16x8_t co = vld1q_s16((const int16_t *)sp->co);
-	int16x8_t vce = vld1q_s16((const int16_t *)sp->vce);
+	int16x8_t ne = vld1q_s16((const int16_t *)state->ne);
+	int16x8_t co = vld1q_s16((const int16_t *)state->co);
+	int16x8_t vce = vld1q_s16((const int16_t *)state->vce);
 
 	v_vb = vs;
 	v_vc = vt;
@@ -74,7 +74,7 @@ INLINE static void do_cl(struct rsp_core* sp, short* VD, short* VS, short* VT)
 	vst1q_s16(cmp, v_cmp);
 	vst1q_s16(len, v_len);
 	
-	merge(le, cmp, len, sp->comp);
+	merge(le, cmp, len, state->comp);
 	int16x8_t sn_xor = veorq_s16(v_sn,one);
 	v_cmp = vandq_s16(v_eq,sn_xor);
 
@@ -83,7 +83,7 @@ INLINE static void do_cl(struct rsp_core* sp, short* VD, short* VS, short* VT)
 	vst1q_s16(sn, v_sn);
 	vst1q_s16(VC, v_vc);
 	
-    merge(ge, cmp, gen, sp->clip);
+    merge(ge, cmp, gen, state->clip);
 
     merge(cmp, sn, le, ge);
     merge(VACC_L, cmp, (short *)VC, VS);
@@ -92,12 +92,12 @@ INLINE static void do_cl(struct rsp_core* sp, short* VD, short* VS, short* VT)
 	int16x8_t v_ge = vld1q_s16((const int16_t *)ge);
 	int16x8_t v_le = vld1q_s16((const int16_t *)le);
 		
-	vst1q_s16(sp->clip,v_ge);
-	vst1q_s16(sp->comp,v_le);	
+	vst1q_s16(state->clip,v_ge);
+	vst1q_s16(state->comp,v_le);	
 	
-	vst1q_s16(sp->ne,zero);
-	vst1q_s16(sp->co,zero);
-	vst1q_s16(sp->vce,zero);
+	vst1q_s16(state->ne,zero);
+	vst1q_s16(state->co,zero);
+	vst1q_s16(state->vce,zero);
 	
 	return;
 
@@ -117,9 +117,9 @@ INLINE static void do_cl(struct rsp_core* sp, short* VD, short* VS, short* VT)
         le[i] = comp[i];
 */
     for (i = 0; i < N; i++)
-        eq[i] = sp->ne[i] ^ 1;
+        eq[i] = state->ne[i] ^ 1;
     for (i = 0; i < N; i++)
-        sn[i] = sp->co[i];
+        sn[i] = state->co[i];
 /*
  * Now that we have extracted all the flags, we will essentially be masking
  * them back in where they came from redundantly, unless the corresponding
@@ -140,9 +140,9 @@ INLINE static void do_cl(struct rsp_core* sp, short* VD, short* VS, short* VT)
     for (i = 0; i < N; i++)
         len[i] = lz[i] & uz[i];
     for (i = 0; i < N; i++)
-        gen[i] = gen[i] & sp->vce[i];
+        gen[i] = gen[i] & state->vce[i];
     for (i = 0; i < N; i++)
-        len[i] = len[i] & (sp->vce[i] ^ 1);
+        len[i] = len[i] & (state->vce[i] ^ 1);
     for (i = 0; i < N; i++)
         len[i] = len[i] | gen[i];
     for (i = 0; i < N; i++)
@@ -150,35 +150,35 @@ INLINE static void do_cl(struct rsp_core* sp, short* VD, short* VS, short* VT)
 
     for (i = 0; i < N; i++)
         cmp[i] = eq[i] & sn[i];
-    merge(le, cmp, len, sp->comp);
+    merge(le, cmp, len, state->comp);
 
     for (i = 0; i < N; i++)
         cmp[i] = eq[i] & (sn[i] ^ 1);
-    merge(ge, cmp, gen, sp->clip);
+    merge(ge, cmp, gen, state->clip);
 
     merge(cmp, sn, le, ge);
     merge(VACC_L, cmp, (short *)VC, VS);
     vector_copy(VD, VACC_L);
 
     for (i = 0; i < N; i++)
-        sp->clip[i] = ge[i];
+        state->clip[i] = ge[i];
     for (i = 0; i < N; i++)
-        sp->comp[i] = le[i];
+        state->comp[i] = le[i];
     for (i = 0; i < N; i++)
-        sp->ne[i] = 0;
+        state->ne[i] = 0;
     for (i = 0; i < N; i++)
-        sp->co[i] = 0;
+        state->co[i] = 0;
     for (i = 0; i < N; i++)
-        sp->vce[i] = 0;
+        state->vce[i] = 0;
     return;
 #endif
 }
 
-static void VCL(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VCL(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    do_cl(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    do_cl(state, state->VR[vd], state->VR[vs], ST);
     return;
 }

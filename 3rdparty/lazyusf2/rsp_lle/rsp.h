@@ -53,19 +53,35 @@ NOINLINE static void message(usf_state_t * state, const char* body, int priority
         DebugMessage( state, 5, "%s", body );
 }
 
+/*
+ * Update RSP configuration memory from local file resource.
+ */
+#define CHARACTERS_PER_LINE     (80)
+/* typical standard DOS text file limit per line */
+NOINLINE static void update_conf(const char* source)
+{
+    (void)source;
+}
+
+#ifdef SP_EXECUTE_LOG
+extern void step_SP_commands(usf_state_t * state, int PC, uint32_t inst);
+#endif
+
 #include "su.h"
 #include "vu/vu.h"
 
 int32_t init_rsp_lle(usf_state_t * state);
 
 /* Allocate the RSP CPU loop to its own functional space. */
-NOINLINE static void run_task(struct rsp_core * state);
+NOINLINE static void run_task(usf_state_t * state);
 #include "execute.h"
+
+void rsp_lle_run_task(usf_state_t * state);
 
 #ifdef SP_EXECUTE_LOG
 #include "matrix.h"
 
-void step_SP_commands(int PC, uint32_t inst)
+void step_SP_commands(usf_state_t * state, int PC, uint32_t inst)
 {
     const char digits[16] = {
         '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'

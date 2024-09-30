@@ -25,8 +25,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "memory/memory_tools.h"
-
 enum rdram_registers
 {
     RDRAM_CONFIG_REG,
@@ -42,38 +40,40 @@ enum rdram_registers
     RDRAM_REGS_COUNT
 };
 
+enum { RDRAM_MAX_SIZE = 0x800000 };
+
 struct rdram
 {
+    // Should be first member
+    uint32_t dram[RDRAM_MAX_SIZE/4];
     uint32_t regs[RDRAM_REGS_COUNT];
-    uint32_t* dram;
     size_t dram_size;
 };
 
 #include "osal/preproc.h"
 
-void init_rdram(struct rdram* rdram);
+static osal_inline uint32_t rdram_reg(uint32_t address)
+{
+    return (address & 0x3ff) >> 2;
+}
 
-uint32_t read_rdram_regs(struct rdram* rdram, uint32_t address);
-void write_rdram_regs(struct rdram* rdram, uint32_t address, uint32_t value, uint32_t mask);
-
-//inline most frequent calls
 static osal_inline uint32_t rdram_dram_address(uint32_t address)
 {
     return (address & 0xffffff) >> 2;
 }
 
-static osal_inline uint32_t read_rdram_dram(struct rdram* rdram, uint32_t address)
-{
-    const uint32_t addr = rdram_dram_address(address);
+void connect_rdram(struct rdram* rdram,
+                   size_t dram_size);
 
-    return rdram->dram[addr];
-}
+void init_rdram(struct rdram* rdram);
 
-static osal_inline void write_rdram_dram(struct rdram* rdram, uint32_t address, uint32_t value, uint32_t mask)
-{
-    const uint32_t addr = rdram_dram_address(address);
+uint32_t read_rdram_regs(void* opaque, uint32_t address);
+void write_rdram_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
-    masked_write(&rdram->dram[addr], value, mask);
-}
+uint32_t read_rdram_dram(void* opaque, uint32_t address);
+void write_rdram_dram(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
+
+uint32_t read_rdram_dram_tracked(void* opaque, uint32_t address);
+void write_rdram_dram_tracked(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 #endif

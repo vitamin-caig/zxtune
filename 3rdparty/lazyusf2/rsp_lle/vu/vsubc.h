@@ -13,7 +13,7 @@
 \******************************************************************************/
 #include "vu.h"
 
-INLINE static void set_bo(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE static void set_bo(usf_state_t * state, short* VD, short* VS, short* VT)
 { /* set CARRY and borrow out from difference */
 
 #ifdef ARCH_MIN_ARM_NEON
@@ -39,8 +39,8 @@ INLINE static void set_bo(struct rsp_core* sp, short* VD, short* VS, short* VT)
 	cond = vceqq_u16(vdif, (uint16x8_t)zero);
 	co2 = vnegq_s16((int16x8_t)cond);
 	
-	vst1q_s16(sp->ne, ne);
-	vst1q_s16(sp->co, co2);
+	vst1q_s16(state->ne, ne);
+	vst1q_s16(state->co, co2);
 	return;
 
 #else
@@ -54,18 +54,18 @@ INLINE static void set_bo(struct rsp_core* sp, short* VD, short* VS, short* VT)
         VACC_L[i] = VS[i] - VT[i];
     vector_copy(VD, VACC_L);
     for (i = 0; i < N; i++)
-        sp->ne[i] = (VS[i] != VT[i]);
+        state->ne[i] = (VS[i] != VT[i]);
     for (i = 0; i < N; i++)
-        sp->co[i] = (dif[i] < 0);
+        state->co[i] = (dif[i] < 0);
     return;
 #endif
 }
 
-static void VSUBC(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VSUBC(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    set_bo(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    set_bo(state, state->VR[vd], state->VR[vs], ST);
     return;
 }

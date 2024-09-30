@@ -25,7 +25,7 @@
 
 #include "api/m64p_types.h"
 #include "api/callbacks.h"
-#include "memory/memory_io.h"
+#include "memory/memory.h"
 #include "main/main.h"
 #include "osal/preproc.h"
 
@@ -43,8 +43,8 @@
 
 static void InterpretOpcode(usf_state_t * state);
 
-#define PCADDR state->PC->addr
-#define ADD_TO_PC(x) state->PC->addr += x*4;
+#define PCADDR state->interp_PC.addr
+#define ADD_TO_PC(x) state->interp_PC.addr += x*4;
 #define DECLARE_INSTRUCTION(name) static void name(usf_state_t * state, uint32_t op)
 #define DECLARE_JUMP(name, destination, condition, link, likely, cop1) \
    static void name(usf_state_t * state, uint32_t op) \
@@ -55,28 +55,28 @@ static void InterpretOpcode(usf_state_t * state);
       if (cop1 && check_cop1_unusable(state)) return; \
       if (link_register != &state->reg[0]) \
       { \
-          *link_register=state->PC->addr + 8; \
+          *link_register=state->interp_PC.addr + 8; \
           sign_extended(*link_register); \
       } \
       if (!likely || take_jump) \
       { \
-        state->PC->addr += 4; \
+        state->interp_PC.addr += 4; \
         state->delay_slot=1; \
         InterpretOpcode(state); \
         update_count(state); \
         state->delay_slot=0; \
         if (take_jump && !state->skip_jump) \
         { \
-          state->PC->addr = jump_target; \
+          state->interp_PC.addr = jump_target; \
         } \
       } \
       else \
       { \
-         state->PC->addr += 8; \
+         state->interp_PC.addr += 8; \
          update_count(state); \
       } \
-      state->last_addr = state->PC->addr; \
-      if (state->next_interupt <= state->g_cp0_regs[CP0_COUNT_REG]) gen_interupt(state); \
+      state->last_addr = state->interp_PC.addr; \
+      if (state->cycle_count >= 0) gen_interupt(state); \
    } \
    static void name##_IDLE(usf_state_t * state, uint32_t op) \
    { \
@@ -86,13 +86,15 @@ static void InterpretOpcode(usf_state_t * state);
       if (take_jump) \
       { \
          update_count(state); \
-         skip = state->next_interupt - state->g_cp0_regs[CP0_COUNT_REG]; \
-         if (skip > 3) state->g_cp0_regs[CP0_COUNT_REG] += (skip & 0xFFFFFFFC); \
-         else name(state, op); \
+         if(state->cycle_count < 0) \
+         { \
+             state->g_cp0_regs[CP0_COUNT_REG] -= state->cycle_count; \
+             state->cycle_count = 0; \
+         } \
       } \
-      else name(state, op); \
+      name(state, op); \
    }
-#define CHECK_MEMORY(addr)
+#define CHECK_MEMORY()
 
 #define RD_OF(op)      (((op) >> 11) & 0x1F)
 #define RS_OF(op)      (((op) >> 21) & 0x1F)
@@ -120,10 +122,6 @@ static void InterpretOpcode(usf_state_t * state);
 	(JUMP_OF(op) == ((addr) & UINT32_C(0x0FFFFFFF)) >> 2 \
 	 && ((addr) & UINT32_C(0x0FFFFFFF)) != UINT32_C(0x0FFFFFFC) \
 	 && *fast_mem_access(state, (addr) + 4) == 0)
-
-#define sign_extend8(a) (int64_t)((int8_t)(a))
-#define sign_extend16(a) (int64_t)((int16_t)(a))
-#define sign_extend32(a) (int64_t)((int32_t)(a))
 
 #define sign_extended(a) a = (int64_t) ((int32_t) (a))
 #define sign_extendedb(a) a = (int64_t) ((int8_t) (a))
@@ -172,7 +170,7 @@ static void InterpretOpcode(usf_state_t * state);
 
 #include "interpreter.def"
 #include <stdio.h>
-#include <inttypes.h>
+#include <stdint.h>
 
 #ifdef DEBUG_INFO
 #include "debugger/dbg_decoder.h"
@@ -185,11 +183,6 @@ void InterpretOpcode(usf_state_t * state)
 #ifdef DEBUG_INFO
     if (state->debug_log)
     {
-        fprintf(state->debug_log,
-          "$zero=%llx $at=%llx v0=%llx v1=%llx a0=%llx a1=%llx a2=%llx a3=%llx\n",
-          state->reg[0], state->reg[1], state->reg[2], state->reg[3],
-          state->reg[4], state->reg[5], state->reg[6], state->reg[7]
-        );
         char instr[256];
         char arguments[256];
         r4300_decode_op(op, instr, arguments, state->PC->addr);
@@ -745,6 +738,7 @@ void InterpretOpcode(usf_state_t * state)
 void pure_interpreter(usf_state_t * state)
 {
    state->stop = 0;
+   state->PC = &state->interp_PC;
 
    while (!state->stop)
      InterpretOpcode(state);

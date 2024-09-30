@@ -13,11 +13,12 @@
 \******************************************************************************/
 #include "vu.h"
 
-static void VMACQ(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VMACQ(usf_state_t * state, int vd, int vs, int vt, int e)
 {
+    (void)state;
     vd &= vs &= vt &= e &= 0; /* unused */
     if (vd != vs || vt != e)
         return;
-    message(sp->r4300->state, "VMACQ\nUnimplemented.", 3); /* untested, any N64 ROMs use this?? */
+    message(state, "VMACQ\nUnimplemented.", 3); /* untested, any N64 ROMs use this?? */
     return;
 }

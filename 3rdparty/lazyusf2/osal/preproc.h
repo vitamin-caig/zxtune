@@ -24,7 +24,7 @@
 #if !defined (OSAL_PREPROC_H)
 #define OSAL_PREPROC_H
 
-#if defined(WIN32) && !defined(__GNUC__)
+#if defined(WIN32) && !defined(__MINGW32__)
 
   /* macros */
   #define OSAL_BREAKPOINT_INTERRUPT __asm{ int 3 };
@@ -44,6 +44,7 @@
   #define isnan _isnan
 
 #else  /* Not WIN32 */
+
   /* macros */
   #define OSAL_BREAKPOINT_INTERRUPT __asm__(" int $3; ");
   #define ALIGN(BYTES,DATA) DATA __attribute__((aligned(BYTES)))

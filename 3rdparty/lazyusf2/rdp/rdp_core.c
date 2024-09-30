@@ -23,7 +23,7 @@
 
 #include "rdp_core.h"
 
-#include "memory/memory_tools.h"
+#include "memory/memory.h"
 #include "r4300/interupt.h"
 #include "r4300/r4300_core.h"
 #include "rsp/rsp_core.h"
@@ -71,45 +71,34 @@ void init_rdp(struct rdp_core* dp)
     memset(dp->dps_regs, 0, DPS_REGS_COUNT*sizeof(uint32_t));
 }
 
-static osal_inline uint32_t dpc_reg(uint32_t address)
-{
-    return (address & 0xffff) >> 2;
-}
 
-static osal_inline uint32_t dps_reg(uint32_t address)
+uint32_t read_dpc_regs(void* opaque, uint32_t address)
 {
-    return (address & 0xffff) >> 2;
-}
-
-uint32_t read_dpc_regs(struct rdp_core* dp, uint32_t address)
-{
-    const uint32_t reg = dpc_reg(address);
+    struct rdp_core* dp = (struct rdp_core*)opaque;
+    uint32_t reg = dpc_reg(address);
 
     return dp->dpc_regs[reg];
 }
 
-void write_dpc_regs(struct rdp_core* dp, uint32_t address, uint32_t value, uint32_t mask)
+void write_dpc_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    const uint32_t reg = dpc_reg(address);
+    struct rdp_core* dp = (struct rdp_core*)opaque;
+    uint32_t reg = dpc_reg(address);
 
     switch(reg)
     {
     case DPC_STATUS_REG:
         if (update_dpc_status(dp, value & mask) != 0)
             do_SP_Task(dp->sp);
-        break;
-        
     case DPC_CURRENT_REG:
     case DPC_CLOCK_REG:
     case DPC_BUFBUSY_REG:
     case DPC_PIPEBUSY_REG:
     case DPC_TMEM_REG:
-        break;
-        
-    default:
-        masked_write(&dp->dpc_regs[reg], value, mask);
-        break;
+        return;
     }
+
+    masked_write(&dp->dpc_regs[reg], value, mask);
 
     switch(reg)
     {
@@ -123,16 +112,18 @@ void write_dpc_regs(struct rdp_core* dp, uint32_t address, uint32_t value, uint3
 }
 
 
-uint32_t read_dps_regs(struct rdp_core* dp, uint32_t address)
+uint32_t read_dps_regs(void* opaque, uint32_t address)
 {
-    const uint32_t reg = dps_reg(address);
+    struct rdp_core* dp = (struct rdp_core*)opaque;
+    uint32_t reg = dps_reg(address);
 
     return dp->dps_regs[reg];
 }
 
-void write_dps_regs(struct rdp_core* dp, uint32_t address, uint32_t value, uint32_t mask)
+void write_dps_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask)
 {
-    const uint32_t reg = dps_reg(address);
+    struct rdp_core* dp = (struct rdp_core*)opaque;
+    uint32_t reg = dps_reg(address);
 
     masked_write(&dp->dps_regs[reg], value, mask);
 }

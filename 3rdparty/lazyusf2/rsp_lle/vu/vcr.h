@@ -13,7 +13,7 @@
 \******************************************************************************/
 #include "vu.h"
 
-INLINE static void do_cr(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE static void do_cr(usf_state_t * state, short* VD, short* VS, short* VT)
 {
     ALIGNED short ge[N], le[N], sn[N];
     ALIGNED short VC[N];
@@ -51,11 +51,11 @@ INLINE static void do_cr(struct rsp_core* sp, short* VD, short* VS, short* VT)
 	merge(VACC_L, le, VC, VS);
     vector_copy(VD, VACC_L);
 
-	vst1q_s16(sp->clip, v_ge_);
-	vst1q_s16(sp->comp, v_le_);
-	vst1q_s16(sp->ne,zero);
-	vst1q_s16(sp->co,zero);
-	vst1q_s16(sp->vce,zero);
+	vst1q_s16(state->clip, v_ge_);
+	vst1q_s16(state->comp, v_le_);
+	vst1q_s16(state->ne,zero);
+	vst1q_s16(state->co,zero);
+	vst1q_s16(state->vce,zero);
 	
 	return;
 	
@@ -87,24 +87,24 @@ INLINE static void do_cr(struct rsp_core* sp, short* VD, short* VS, short* VT)
     vector_copy(VD, VACC_L);
 
     for (i = 0; i < N; i++)
-        sp->clip[i] = ge[i];
+        state->clip[i] = ge[i];
     for (i = 0; i < N; i++)
-        sp->comp[i] = le[i];
+        state->comp[i] = le[i];
     for (i = 0; i < N; i++)
-        sp->ne[i] = 0;
+        state->ne[i] = 0;
     for (i = 0; i < N; i++)
-        sp->co[i] = 0;
+        state->co[i] = 0;
     for (i = 0; i < N; i++)
-        sp->vce[i] = 0;
+        state->vce[i] = 0;
     return;
 #endif
 }
 
-static void VCR(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VCR(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    do_cr(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    do_cr(state, state->VR[vd], state->VR[vs], ST);
     return;
 }

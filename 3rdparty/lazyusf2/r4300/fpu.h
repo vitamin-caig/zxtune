@@ -35,7 +35,6 @@
   #define M64P_FPU_INLINE static __inline
   #include <float.h>
   typedef enum { FE_TONEAREST = 0, FE_TOWARDZERO, FE_UPWARD, FE_DOWNWARD } eRoundType;
-  /*
   static void fesetround(eRoundType RoundType)
   {
     static const unsigned int msRound[4] = { _RC_NEAR, _RC_CHOP, _RC_UP, _RC_DOWN };
@@ -47,7 +46,6 @@
   static __inline double trunc(double x) { return (double) (int) x; }
   static __inline float truncf(float x) { return (float) (int) x; }
   #define isnan _isnan
-  */
 #else
   #define M64P_FPU_INLINE static inline
   #include <fenv.h>
@@ -104,19 +102,23 @@ M64P_FPU_INLINE void cvt_s_d(usf_state_t * state, double *source,float *dest)
 }
 
 M64P_FPU_INLINE void do_l_s(float *source,long long *dest,float(*func)(float)) {
-  *dest = isfinite(*source) ? (long long)func(*source) : LLONG_MAX;
+  const float val = *source;
+  *dest = isfinite(val) && val >= LLONG_MIN && val <= LLONG_MAX ? (long long)func(val) : LLONG_MAX;
 }
 
 M64P_FPU_INLINE void do_w_s(float *source,int *dest,float(*func)(float)) {
-  *dest = isfinite(*source) ? (int)func(*source) : INT_MAX;
+  const float val = *source;
+  *dest = isfinite(val) && val >= INT_MIN && val <= INT_MAX ? (int)func(val) : INT_MAX;
 }
 
 M64P_FPU_INLINE void do_l_d(double *source,long long *dest,double(*func)(double)) {
-  *dest = isfinite(*source) ? (long long)func(*source) : LLONG_MAX;
+  const double val = *source;
+  *dest = isfinite(val) && val >= LLONG_MIN && val <= LLONG_MAX ? (long long)func(val) : LLONG_MAX;
 }
 
 M64P_FPU_INLINE void do_w_d(double *source,int *dest,double(*func)(double)) {
-  *dest = isfinite(*source) ? (int)func(*source) : INT_MAX;
+  const double val = *source;
+  *dest = isfinite(val) && val >= INT_MIN && val <= INT_MAX ? (int)func(val) : INT_MAX;
 }
 
 M64P_FPU_INLINE void round_l_s(float *source,long long *dest)

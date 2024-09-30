@@ -58,13 +58,18 @@ struct vi_controller
 
 #include "osal/preproc.h"
 
+static osal_inline uint32_t vi_reg(uint32_t address)
+{
+    return (address & 0xffff) >> 2;
+}
+
 void connect_vi(struct vi_controller* vi,
                 struct r4300_core* r4300);
 
 void init_vi(struct vi_controller* vi);
 
-uint32_t read_vi_regs(struct vi_controller* vi, uint32_t address);
-void write_vi_regs(struct vi_controller* vi, uint32_t address, uint32_t value, uint32_t mask);
+uint32_t read_vi_regs(void* opaque, uint32_t address);
+void write_vi_regs(void* opaque, uint32_t address, uint32_t value, uint32_t mask);
 
 void vi_vertical_interrupt_event(struct vi_controller* vi);
 

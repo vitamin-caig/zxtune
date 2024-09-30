@@ -13,18 +13,18 @@
 \******************************************************************************/
 #include "vu.h"
 
-INLINE static void do_mrg(struct rsp_core* sp, short* VD, short* VS, short* VT)
+INLINE static void do_mrg(usf_state_t * state, short* VD, short* VS, short* VT)
 {
-    merge(VACC_L, sp->comp, VS, VT);
+    merge(VACC_L, state->comp, VS, VT);
     vector_copy(VD, VACC_L);
     return;
 }
 
-static void VMRG(struct rsp_core* sp, int vd, int vs, int vt, int e)
+static void VMRG(usf_state_t * state, int vd, int vs, int vt, int e)
 {
     ALIGNED short ST[N];
 
-    SHUFFLE_VECTOR(ST, sp->VR[vt], e);
-    do_mrg(sp, sp->VR[vd], sp->VR[vs], ST);
+    SHUFFLE_VECTOR(ST, state->VR[vt], e);
+    do_mrg(state, state->VR[vd], state->VR[vs], ST);
     return;
 }
