@@ -41,8 +41,8 @@ extern "C"
 {
 // clang-format off
 #include <3rdparty/vgmstream/config.h>
-#include <3rdparty/vgmstream/src/vgmstream.h>
-#include <3rdparty/vgmstream/src/base/plugins.h>
+#include <3rdparty/vgmstream/vgmstream.h>
+#include <3rdparty/vgmstream/base/plugins.h>
   // clang-format on
 }
 // std includes
@@ -2020,6 +2020,21 @@ namespace Module::VGMStream
       ""_sv,
       PluginType::MULTITRACK
     },
+    // NWA, ~540
+    {
+      "NWA"_id, "VisualArt's NWA", ".nwa",
+      "01|02 00 ??"_ss +    // +0 channels count
+      SAMPLERATE32LE +      // +4
+      "?{20}"_ss +          // +8
+      SAMPLES32LE           // +1c - really channels multiply
+    },
+    // STER, ~520
+    {
+      "STER"_id, "Alchemy STER", ".ster",
+      "'S'T'E'R"         // +0
+      "?{12}"_ss +       // +4
+      SAMPLERATE32BE     // +10
+    },
     // NXA, ~510
     {
       "NXA"_id, "Entergram NXA", ".nxa",
@@ -2044,6 +2059,15 @@ namespace Module::VGMStream
       "?{28}"                 // +4
       "00|01|03 000000"       // +20
       ""_sv
+    },
+    // NXOPUS, ~400
+    {
+      "NSOPUS"_id, "Nihon Falcom FDK", ".nxopus",
+      "'f'o'x'n"                   // +0
+      "?"_ss + CHANNELS8 + ANY16 + // +4
+      SAMPLERATE32LE +             // +8
+      "?{20}"_ss +                 // +c
+      SAMPLES32LE                  // +20
     },
     // SPSD, ~360
     {
