@@ -23,6 +23,7 @@ import app.zxtune.MainApplication;
 import app.zxtune.auth.Auth;
 import app.zxtune.device.PowerManagement;
 import app.zxtune.fs.api.Api;
+import app.zxtune.net.NetworkManager;
 
 public final class Provider extends ContentProvider {
 
@@ -44,7 +45,9 @@ public final class Provider extends ContentProvider {
     MainApplication.initialize(appCtx);
     final Auth.UserInfo auth = Auth.getUserInfo(appCtx);
     Api.initialize(auth);
-    final UrlsSink delegate = new Dispatcher();
+    final Dispatcher delegate = new Dispatcher();
+    NetworkManager.from(ctx).getNetworkAvailable().observeForever(delegate::onNetworkChange);
+
     final Thread thread = new Thread("IASender") {
       @Override
       public void run() {

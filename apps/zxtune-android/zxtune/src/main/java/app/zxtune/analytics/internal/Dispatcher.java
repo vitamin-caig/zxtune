@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 
 import app.zxtune.Log;
-import app.zxtune.net.NetworkManager;
 
 class Dispatcher implements UrlsSink {
 
@@ -21,7 +20,6 @@ class Dispatcher implements UrlsSink {
     this.online = new NetworkSink();
     this.offline = new BufferSink();
     current = online;
-    NetworkManager.getNetworkAvailable().observeForever(this::onNetworkChange);
   }
 
   @Override
@@ -46,7 +44,7 @@ class Dispatcher implements UrlsSink {
     }
   }
 
-  private void onNetworkChange(boolean isAvailable) {
+  void onNetworkChange(boolean isAvailable) {
     Log.d(TAG, "onNetworkChange: " + isAvailable);
     if (isAvailable) {
       if (current == offline) {
