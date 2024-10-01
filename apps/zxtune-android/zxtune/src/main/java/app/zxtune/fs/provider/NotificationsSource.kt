@@ -33,7 +33,7 @@ internal class NotificationsSource @VisibleForTesting constructor(
     }
 
     constructor(ctx: Context) : this(
-        ctx, getNetworkState(ctx), PersistentStorage.instance.setupIntent
+        ctx, NetworkManager.from(ctx).networkAvailable, PersistentStorage.instance.setupIntent
     )
 
     fun getFor(obj: VfsObject) = getNotification(obj)?.let { notification ->
@@ -80,13 +80,6 @@ internal class NotificationsSource @VisibleForTesting constructor(
         resolverNotificationUri = Query.notificationUriFor(uri)
         return persistentStorageSetupIntent.value?.let {
             Schema.Notifications.Object(ctx.getString(R.string.no_stored_playlists_access), it)
-        }
-    }
-
-    companion object {
-        private fun getNetworkState(ctx: Context): LiveData<Boolean> {
-            NetworkManager.initialize(ctx.applicationContext)
-            return NetworkManager.networkAvailable
         }
     }
 }
