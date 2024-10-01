@@ -479,13 +479,14 @@ namespace
 
     void Pause(bool pause) override
     {
-      Dbg(pause ? "Pausing {}" : "Resuming {}", Self());
       if (pause)
       {
+        Dbg("Pausing {}", Self());
         ScanJob->Pause();
       }
       else
       {
+        Dbg("Resuming {}", Self());
         ScanJob->Start();
       }
     }

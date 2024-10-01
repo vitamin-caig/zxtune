@@ -421,6 +421,9 @@ int main()
       Test(Strings::Format("String: '{}'", "str") == "String: 'str'", "String arg");
       Test(Strings::Format("{1} positional {0}", "args", 2) == "2 positional args", "Positional args");
       Test(Strings::Format("Hex {:04x}", 0xbed) == "Hex 0bed", "Formatting");
+      // Redundand arguments are ignored
+      // Test(Strings::Format("Should not compile {}") == "Should not compile", "Formatting nc");
+      // Test(Strings::Format(String("Runtime {}"), "string") == "Runtime string", "Runtime formatting");
     }
     std::cout << "---- Test for split ----" << std::endl;
     {

@@ -36,7 +36,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProSoundCreator");
 
-    const Char EDITOR[] = "Pro Sound Creator v{}";
+    constexpr auto EDITOR = "Pro Sound Creator v{}"_sv;
     const Char EDITOR_OLD[] = "Pro Sound Creator v1.00-1.03";
     const Char EDITOR_NEW[] = "Pro Sound Creator v1.04-1.07";
 

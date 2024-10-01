@@ -36,7 +36,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::GlobalTracker");
 
-    const Char EDITOR[] = "Global Tracker v1.{}";
+    constexpr auto EDITOR = "Global Tracker v1.{}"_sv;
 
     const std::size_t MIN_SIZE = 1500;
     const std::size_t MAX_SIZE = 0x2800;

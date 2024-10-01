@@ -74,8 +74,8 @@ namespace
     result.emplace_back(translate("context", "Just a message with context"));
     for (uint_t idx = 0; idx != 5; ++idx)
     {
-      result.emplace_back(Strings::Format(translate("Single form for {}", "Plural form for {}", idx), idx));
-      result.emplace_back(Strings::Format(
+      result.emplace_back(Strings::FormatRuntime(translate("Single form for {}", "Plural form for {}", idx), idx));
+      result.emplace_back(Strings::FormatRuntime(
           translate("another context", "Single form for {} with context", "Plural form for {} with context", idx),
           idx));
     }

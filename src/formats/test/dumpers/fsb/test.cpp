@@ -17,7 +17,7 @@ namespace
 {
   using namespace Formats::Archived::Fmod;
 
-  void Write(uint_t level, const char* msg)
+  void Write(uint_t level, StringView msg)
   {
     if (level)
     {
@@ -27,9 +27,9 @@ namespace
   }
 
   template<class... P>
-  void Write(uint_t level, const char* msg, P&&... params)
+  constexpr void Write(uint_t level, Strings::FormatString<P...> msg, P&&... params)
   {
-    Write(level, Strings::Format(msg, params...).c_str());
+    Write(level, Strings::Format(msg, std::forward<P>(params)...));
   }
 
   char ToHex(uint_t nib)

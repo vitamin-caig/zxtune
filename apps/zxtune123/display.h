@@ -35,7 +35,7 @@ public:
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
 
   template<class... P>
-  void Message(const char* msg, P&&... params)
+  void Message(Strings::FormatString<P...> msg, P&&... params)
   {
     Message(Strings::Format(msg, std::forward<P>(params)...));
   }

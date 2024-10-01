@@ -13,7 +13,7 @@
 
 namespace Strings
 {
-  String FormatTime(uint_t hours, uint_t minutes, uint_t seconds, uint_t frames)
+  String FormatTime(uint_t hours, uint_t minutes, uint_t seconds, uint_t frames) noexcept
   {
     return hours ? Strings::Format("{0}:{1:02}:{2:02}.{3:02}", hours, minutes, seconds, frames)
                  : Strings::Format("{0}:{1:02}.{2:02}", minutes, seconds, frames);

@@ -21,5 +21,5 @@
 template<class S, class... P>
 Error MakeFormattedError(Error::Location loc, S&& fmt, P&&... p)
 {
-  return Error(loc, Strings::Format(std::forward<S>(fmt), std::forward<P>(p)...));
+  return Error(loc, Strings::FormatRuntime(std::forward<S>(fmt), std::forward<P>(p)...));
 }

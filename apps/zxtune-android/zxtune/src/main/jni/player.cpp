@@ -339,8 +339,7 @@ namespace Player
   jobject Create(JNIEnv* env, const Module::Holder& module, uint_t samplerate)
   {
     auto ctrl = CreateControl(module, samplerate);
-    Dbg("Player::Create(module={0:#0x})={1:#0x}", static_cast<const void*>(&module),
-        static_cast<const void*>(ctrl.get()));
+    Dbg("Player::Create(module={})={}", static_cast<const void*>(&module), static_cast<const void*>(ctrl.get()));
     const auto handle = Player::Storage::Instance().Add(std::move(ctrl));
     return NativePlayerJni::Create(env, handle);
   }

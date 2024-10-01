@@ -138,7 +138,7 @@ namespace
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to select translation {}: {}", e.what());
+        Dbg("Failed to select translation {}: {}", translation, e.what());
       }
       *CurrentLocale = std::locale();
       Dbg("Selected unknown translation {}", translation);

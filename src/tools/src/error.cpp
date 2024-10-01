@@ -10,25 +10,16 @@
 
 // common includes
 #include <error_tools.h>
-// std includes
-#include <utility>
 
 namespace
 {
   String AttributesToString(Error::Location loc, StringView text) noexcept
   {
-    try
-    {
-      constexpr const Char FORMAT[] =
-          "{0}\n"
-          "@{1}\n"
-          "--------\n";
-      return Strings::Format(FORMAT, text, loc);
-    }
-    catch (const std::exception& e)
-    {
-      return e.what();
-    }
+    constexpr auto FORMAT =
+        "{0}\n"
+        "@{1}\n"
+        "--------\n"_sv;
+    return Strings::Format(FORMAT, text, loc);
   }
 }  // namespace
 

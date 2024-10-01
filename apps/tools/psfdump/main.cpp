@@ -54,7 +54,7 @@ namespace
   }
 
   template<class... P>
-  void Write(uint_t level, const char* msg, P&&... params)
+  void Write(uint_t level, Strings::FormatString<P...> msg, P&&... params)
   {
     Write(level, Strings::Format(msg, std::forward<P>(params)...));
   }

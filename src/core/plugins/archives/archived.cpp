@@ -203,13 +203,13 @@ namespace ZXTune
 
   String ProgressMessage(PluginId id, StringView path)
   {
-    return path.empty() ? Strings::Format(translate("{} processing"), id)
-                        : Strings::Format(translate("{0} processing at {1}"), id, path);
+    return path.empty() ? Strings::FormatRuntime(translate("{} processing"), id)
+                        : Strings::FormatRuntime(translate("{0} processing at {1}"), id, path);
   }
 
   String ProgressMessage(PluginId id, StringView path, StringView element)
   {
-    return path.empty() ? Strings::Format(translate("{0} processing for {1}"), id, element)
-                        : Strings::Format(translate("{0} processing for {1} at {2}"), id, element, path);
+    return path.empty() ? Strings::FormatRuntime(translate("{0} processing for {1}"), id, element)
+                        : Strings::FormatRuntime(translate("{0} processing for {1} at {2}"), id, element, path);
   }
 }  // namespace ZXTune

@@ -37,7 +37,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
 
-    const Char EDITOR[] = "VortexTracker (Pro Tracker v{}.{})";
+    constexpr auto EDITOR = "VortexTracker (Pro Tracker v{}.{})"_sv;
 
     namespace Headers
     {

@@ -347,7 +347,7 @@ namespace Formats::Archived
         {
           ExportEntry& entry = Exports[idx];
           stream.Read(entry);
-          Dbg("Exports[{}] = {class={} name={} super={} size={}}", idx, entry.Class.Value, entry.ObjectName.Value,
+          Dbg("Exports[{}] = {{class={} name={} super={} size={}}}", idx, entry.Class.Value, entry.ObjectName.Value,
               entry.Super.Value, entry.SerialSize.Value);
         }
       }
@@ -361,7 +361,7 @@ namespace Formats::Archived
         {
           ImportEntry& entry = Imports[idx];
           stream.Read(entry);
-          Dbg("Imports[{}] = {pkg={} class={} name={}}", idx, entry.ClassPackage.Value, entry.ClassName.Value,
+          Dbg("Imports[{}] = {{pkg={} class={} name={}}}", idx, entry.ClassPackage.Value, entry.ClassName.Value,
               entry.ObjectName.Value);
         }
       }

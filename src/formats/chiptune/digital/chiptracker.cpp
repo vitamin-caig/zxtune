@@ -33,7 +33,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ChipTracker");
 
-    const Char EDITOR[] = "Chip Tracker v{}";
+    constexpr auto EDITOR = "Chip Tracker v{}"_sv;
 
     // const std::size_t MAX_MODULE_SIZE = 65536;
     const std::size_t MAX_PATTERN_SIZE = 64;
