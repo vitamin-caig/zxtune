@@ -61,7 +61,7 @@
                 android:exported="true"
                 android:label="@string/prefs">
             <intent-filter>
-                <action android:name="app.zxtune.PreferencesActivity" />
+                <action android:name="${applicationId}.PreferencesActivity" />
                 <category android:name="android.intent.category.PREFERENCE" />
             </intent-filter>
         </activity>
@@ -93,43 +93,43 @@
 
         <provider
                 android:name=".playlist.Provider"
-                android:authorities="app.zxtune.playlist"
+                android:authorities="${applicationId}.playlist"
                 android:exported="false"
                 android:process=":service" />
         <provider
                 android:name=".PluginsProvider"
-                android:authorities="app.zxtune.plugins"
+                android:authorities="${applicationId}.plugins"
                 android:exported="false"
                 android:process=":service" />
         <provider
                 android:name=".analytics.internal.Provider"
-                android:authorities="app.zxtune.analytics.internal"
+                android:authorities="${applicationId}.analytics.internal"
                 android:exported="false"
                 android:process=":analytics" />
         <provider
                 android:name=".fs.provider.Provider"
-                android:authorities="app.zxtune.vfs"
+                android:authorities="${applicationId}.vfs"
                 android:exported="false"
                 android:grantUriPermissions="true"
                 android:process=":service" />
         <provider
                 android:name=".coverart.Provider"
-                android:authorities="app.zxtune.coverart"
+                android:authorities="${applicationId}.coverart"
                 android:exported="true"
                 android:process=":service"
                 tools:ignore="ExportedContentProvider" />
         <provider
                 android:name=".preferences.Provider"
-                android:authorities="app.zxtune.preferences"
+                android:authorities="${applicationId}.preferences"
                 android:exported="false"
                 android:process=":service" />
         <provider
                 android:name="androidx.startup.InitializationProvider"
-                android:authorities="app.zxtune.androidx-startup"
+                android:authorities="${applicationId}.androidx-startup"
                 android:exported="false"
                 tools:node="merge">
             <meta-data
-                    android:name="app.zxtune.ui.utils.ThemeInitializer"
+                    android:name="${applicationId}.ui.utils.ThemeInitializer"
                     android:value="androidx.startup" />
         </provider>
 
