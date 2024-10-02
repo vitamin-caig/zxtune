@@ -35,7 +35,6 @@ public class Core {
   @SuppressWarnings("SameParameterValue")
   private static Module loadModule(VfsFile file, String subpath, @Nullable ProgressCallback progress) throws IOException, ResolvingException {
     final ByteBuffer content = Vfs.read(file);
-    Analytics.setNativeCallTags(file.getUri(), subpath, content.limit());
     final Module obj = Api.instance().loadModule(makeDirectBuffer(content), subpath);
     final String[] files = obj.getAdditionalFiles();
     if (files == null || files.length == 0) {
@@ -56,7 +55,6 @@ public class Core {
   public static void detectModules(VfsFile file, ModuleDetectCallback callback, @Nullable ProgressCallback progress) throws IOException {
     final ByteBuffer content = Vfs.read(file, progress);
     final DetectCallbackAdapter adapter = new DetectCallbackAdapter(file, callback, CoverartService.get(), progress);
-    Analytics.setNativeCallTags(file.getUri(), "*", content.limit());
     Api.instance().detectModules(makeDirectBuffer(content), adapter, progress);
     adapter.finish();
   }
