@@ -11,6 +11,7 @@
 // common includes
 #include <make_ptr.h>
 #include <pointers.h>
+#include <string_view.h>
 // library includes
 #include <binary/container_factories.h>
 #include <parameters/container.h>

@@ -16,6 +16,7 @@
 // common includes
 #include <make_ptr.h>
 #include <pointers.h>
+#include <string_view.h>
 // library includes
 #include <debug/log.h>
 #include <parameters/convert.h>

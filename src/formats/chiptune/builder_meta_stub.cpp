@@ -10,6 +10,8 @@
 
 // local includes
 #include "formats/chiptune/builder_meta.h"
+// common includes
+#include <string_view.h>
 
 namespace Formats::Chiptune
 {

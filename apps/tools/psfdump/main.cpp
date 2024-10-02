@@ -21,6 +21,8 @@
 #include <formats/chiptune/emulation/ultra64soundformat.h>
 #include <strings/format.h>
 #include <time/serialize.h>
+// common includes
+#include <string_view.h>
 // std includes
 #include <fstream>
 #include <iomanip>

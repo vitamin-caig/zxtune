@@ -17,6 +17,7 @@
 #include <byteorder.h>
 #include <error_tools.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <debug/log.h>
 #include <sound/backends_parameters.h>

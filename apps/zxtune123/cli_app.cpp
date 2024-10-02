@@ -18,6 +18,7 @@
 // common includes
 #include <error_tools.h>
 #include <progress_callback.h>
+#include <string_view.h>
 // library includes
 #include <async/data_receiver.h>
 #include <async/src/event.h>

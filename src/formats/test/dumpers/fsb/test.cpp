@@ -11,6 +11,7 @@
 #include "../../utils.h"
 #include <formats/archived/fmod.h>
 #include <iomanip>
+#include <string_view.h>
 #include <strings/format.h>
 
 namespace

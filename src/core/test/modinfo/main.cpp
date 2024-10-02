@@ -17,6 +17,7 @@
 #include <parameters/container.h>
 #include <parameters/template.h>
 #include <progress_callback.h>
+#include <string_view.h>
 #include <time/serialize.h>
 
 namespace

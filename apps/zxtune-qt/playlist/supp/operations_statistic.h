@@ -12,6 +12,8 @@
 
 // local includes
 #include "operations.h"
+// common includes
+#include <string_view.h>
 
 namespace Playlist::Item
 {

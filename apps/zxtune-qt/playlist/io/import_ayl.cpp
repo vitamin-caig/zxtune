@@ -16,6 +16,7 @@
 // common includes
 #include <error.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <core/core_parameters.h>
 #include <core/plugins/archives/raw_supp.h>

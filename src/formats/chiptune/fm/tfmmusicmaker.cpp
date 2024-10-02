@@ -14,6 +14,7 @@
 // common includes
 #include <indices.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <binary/crc.h>
 #include <binary/data_builder.h>

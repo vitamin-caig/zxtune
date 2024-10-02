@@ -16,6 +16,7 @@
 #include <iterator.h>
 #include <locale_helpers.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // std includes
 #include <cctype>
 #include <stack>

@@ -24,6 +24,7 @@
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <io/api.h>
 #include <io/providers_parameters.h>

@@ -18,6 +18,7 @@
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <binary/format_factories.h>
 #include <core/plugin_attrs.h>

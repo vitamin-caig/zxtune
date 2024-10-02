@@ -30,6 +30,7 @@
 // local includes
 #include <contract.h>
 #include <error.h>
+#include <string_view.h>
 // library includes
 #include <binary/base64.h>
 #include <debug/log.h>

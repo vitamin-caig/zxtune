@@ -21,6 +21,7 @@
 #include <debug/log.h>
 #include <error.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <core/core_parameters.h>
 #include <module/attributes.h>

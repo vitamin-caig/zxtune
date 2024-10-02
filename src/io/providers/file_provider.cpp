@@ -17,6 +17,7 @@
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <binary/data_builder.h>
 #include <debug/log.h>

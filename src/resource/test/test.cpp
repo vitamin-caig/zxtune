@@ -15,6 +15,7 @@
 // common includes
 #include <error.h>
 #include <pointers.h>
+#include <string_view.h>
 // std includes
 #include <cstring>
 #include <fstream>

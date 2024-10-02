@@ -10,6 +10,7 @@
 
 #include "../../utils.h"
 #include <formats/chiptune/aym/soundtracker.h>
+#include <string_view.h>
 
 namespace
 {

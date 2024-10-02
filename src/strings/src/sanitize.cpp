@@ -13,6 +13,8 @@
 #include <strings/sanitize.h>
 #include <strings/split.h>
 #include <strings/trim.h>
+// common includes
+#include <string_view.h>
 // std includes
 #include <vector>
 

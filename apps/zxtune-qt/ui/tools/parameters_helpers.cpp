@@ -12,6 +12,7 @@
 #include "parameters_helpers.h"
 // common includes
 #include <contract.h>
+#include <string_view.h>
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>

@@ -13,6 +13,7 @@
 #include <core/plugin_attrs.h>
 // common includes
 #include <make_ptr.h>
+#include <string_view.h>
 // std includes
 #include <utility>
 

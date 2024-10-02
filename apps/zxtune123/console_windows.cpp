@@ -14,6 +14,8 @@
 
 // local includes
 #include "console.h"
+// common includes
+#include <string_view.h>
 // platform-dependent includes
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX

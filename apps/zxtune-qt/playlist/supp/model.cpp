@@ -17,6 +17,7 @@
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <async/activity.h>
 #include <debug/log.h>

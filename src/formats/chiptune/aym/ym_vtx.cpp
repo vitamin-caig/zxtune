@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <binary/dump.h>
 #include <binary/format_factories.h>

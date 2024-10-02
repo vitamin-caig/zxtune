@@ -17,6 +17,7 @@
 #include <make_ptr.h>
 #include <pointers.h>
 #include <range_checker.h>
+#include <string_view.h>
 // library includes
 #include <binary/container_factories.h>
 #include <binary/crc.h>

@@ -10,6 +10,7 @@
 
 #include "../../utils.h"
 #include <formats/chiptune/multidevice/sound98.h>
+#include <string_view.h>
 #include <time/serialize.h>
 
 namespace

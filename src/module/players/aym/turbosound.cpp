@@ -15,6 +15,7 @@
 #include <error.h>
 #include <iterator.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <module/attributes.h>
 #include <parameters/merged_accessor.h>

@@ -12,6 +12,7 @@
 #include "console.h"
 // common includes
 #include <error.h>
+#include <string_view.h>
 // library includes
 #include <platform/application.h>
 // platform-dependent includes

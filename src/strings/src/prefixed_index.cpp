@@ -12,6 +12,8 @@
 #include <strings/casing.h>
 #include <strings/conversion.h>
 #include <strings/prefixed_index.h>
+// common includes
+#include <string_view.h>
 
 namespace Strings
 {

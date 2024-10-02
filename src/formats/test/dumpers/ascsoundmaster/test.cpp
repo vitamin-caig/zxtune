@@ -12,6 +12,7 @@
 #include <formats/chiptune/aym/ascsoundmaster.h>
 #include <formats/chiptune/builder_meta.h>
 #include <formats/chiptune/builder_pattern.h>
+#include <string_view.h>
 
 namespace
 {

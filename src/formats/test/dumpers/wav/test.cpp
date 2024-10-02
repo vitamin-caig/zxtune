@@ -10,6 +10,7 @@
 
 #include "../../utils.h"
 #include <formats/chiptune/music/wav.h>
+#include <string_view.h>
 #include <strings/format.h>
 
 namespace

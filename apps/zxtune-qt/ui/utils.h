@@ -11,6 +11,7 @@
 #pragma once
 
 // common includes
+#include <string_view.h>
 #include <types.h>
 // qt includes
 #include <QtCore/QMetaType>

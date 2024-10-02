@@ -13,6 +13,7 @@
 // common includes
 #include <make_ptr.h>
 #include <pointers.h>
+#include <string_view.h>
 // std includes
 #include <cctype>
 

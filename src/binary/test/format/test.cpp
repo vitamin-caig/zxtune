@@ -14,6 +14,7 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <string_view.h>
 #include <types.h>
 
 namespace

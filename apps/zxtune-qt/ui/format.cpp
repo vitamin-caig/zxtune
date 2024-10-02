@@ -12,6 +12,8 @@
 #include <module/attributes.h>
 #include <parameters/template.h>
 #include <strings/template.h>
+// common includes
+#include <string_view.h>
 
 String GetModuleTitle(StringView format, const Parameters::Accessor& props)
 {

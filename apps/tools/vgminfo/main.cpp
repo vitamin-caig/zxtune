@@ -2,6 +2,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <pointers.h>
+#include <string_view.h>
 #include <types.h>
 // library includes
 #include <strings/format.h>

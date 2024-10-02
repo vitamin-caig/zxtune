@@ -12,7 +12,6 @@
 
 // common includes
 #include <char_type.h>
-#include <string_view.h>
 // std includes
 #include <cstdint>
 #include <cstring>
@@ -39,8 +38,6 @@ using int_t = signed int;
 
 //! @brief %String type
 using String = std::basic_string<Char>;
-
-using StringView = std::basic_string_view<Char>;
 
 // assertions
 static_assert(sizeof(uint_t) >= sizeof(uint32_t), "Invalid uint_t type");

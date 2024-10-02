@@ -16,6 +16,7 @@
 #include "ui/utils.h"
 // common includes
 #include <contract.h>
+#include <string_view.h>
 // library includes
 #include <debug/log.h>
 #include <sound/backends/alsa.h>

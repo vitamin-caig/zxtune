@@ -14,6 +14,7 @@
 // common includes
 #include <iterator.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <formats/chiptune/fm/tfc.h>
 #include <module/players/platforms.h>

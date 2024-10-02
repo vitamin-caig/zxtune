@@ -13,6 +13,7 @@
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <formats/chiptune/emulation/playstation2soundformat.h>
 #include <strings/casing.h>

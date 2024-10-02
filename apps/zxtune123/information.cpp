@@ -13,6 +13,7 @@
 #include "sound.h"
 // common includes
 #include <static_string.h>
+#include <string_view.h>
 // library includes
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>

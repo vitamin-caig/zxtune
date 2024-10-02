@@ -16,6 +16,8 @@
 // library includes
 #include <platform/version/api.h>
 #include <strings/format.h>
+// common includes
+#include <string_view.h>
 
 namespace Platform::Version
 {

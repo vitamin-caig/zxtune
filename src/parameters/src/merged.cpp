@@ -10,6 +10,7 @@
 
 // common includes
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <parameters/merged_accessor.h>
 #include <parameters/merged_container.h>

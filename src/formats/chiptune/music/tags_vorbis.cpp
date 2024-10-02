@@ -12,6 +12,7 @@
 #include "formats/chiptune/music/tags_vorbis.h"
 // common includes
 #include <byteorder.h>
+#include <string_view.h>
 // library includes
 #include <binary/base64.h>
 #include <strings/casing.h>

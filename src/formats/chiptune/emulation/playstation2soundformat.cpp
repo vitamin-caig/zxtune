@@ -13,6 +13,7 @@
 // common includes
 #include <byteorder.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <binary/compression/zlib_container.h>
 #include <binary/container_factories.h>

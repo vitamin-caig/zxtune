@@ -13,6 +13,7 @@
 // common includes
 #include <byteorder.h>
 #include <iterator.h>
+#include <string_view.h>
 #include <types.h>
 // library includes
 #include <math/bitops.h>

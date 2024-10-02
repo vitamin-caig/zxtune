@@ -14,6 +14,7 @@
 // common includes
 #include <make_ptr.h>
 #include <progress_callback.h>
+#include <string_view.h>
 // library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>

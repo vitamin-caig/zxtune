@@ -12,6 +12,7 @@
 #include "core/plugins/players/vgm/videogamemusic.h"
 // common includes
 #include <byteorder.h>
+#include <string_view.h>
 // library includes
 #include <binary/input_stream.h>
 #include <module/players/platforms.h>

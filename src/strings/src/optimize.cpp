@@ -11,6 +11,8 @@
 // library includes
 #include <strings/optimize.h>
 #include <strings/trim.h>
+// common includes
+#include <string_view.h>
 // std includes
 #include <algorithm>
 

@@ -17,6 +17,7 @@
 #include <indices.h>
 #include <make_ptr.h>
 #include <range_checker.h>
+#include <string_view.h>
 // library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>

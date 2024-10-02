@@ -10,6 +10,8 @@
 
 // local includes
 #include "log_real.h"
+// common includes
+#include <string_view.h>
 // std includes
 #include <cstdio>
 #include <cstring>

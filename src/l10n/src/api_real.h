@@ -12,6 +12,8 @@
 
 // local includes
 #include "library.h"
+// common includes
+#include <string_view.h>
 
 namespace L10n
 {

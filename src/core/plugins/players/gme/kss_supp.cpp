@@ -14,6 +14,8 @@
 #include "core/plugins/players/gme/kss_supp.h"
 // library includes
 #include <module/players/platforms.h>
+// common includes
+#include <string_view.h>
 
 namespace Module::KSS
 {

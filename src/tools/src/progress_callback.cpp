@@ -10,6 +10,8 @@
 
 // common includes
 #include <progress_callback.h>
+// common includes
+#include <string_view.h>
 
 namespace Log
 {

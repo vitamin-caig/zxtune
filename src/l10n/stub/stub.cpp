@@ -10,6 +10,7 @@
 
 // common includes
 #include <pointers.h>
+#include <string_view.h>
 // library includes
 #include <l10n/src/library.h>
 

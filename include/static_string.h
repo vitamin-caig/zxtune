@@ -10,10 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
 // std includes
 #include <array>
+#include <string_view>
 
 template<typename C, C... Chars>
 struct basic_static_string

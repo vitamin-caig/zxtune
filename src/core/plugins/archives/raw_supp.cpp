@@ -18,6 +18,7 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 #include <progress_callback.h>
+#include <string_view.h>
 // library includes
 #include <binary/container.h>
 #include <core/plugin_attrs.h>

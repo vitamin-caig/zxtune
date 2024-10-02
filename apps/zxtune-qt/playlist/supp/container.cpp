@@ -20,6 +20,7 @@
 // common includes
 #include <error.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <platform/version/api.h>
 // std includes

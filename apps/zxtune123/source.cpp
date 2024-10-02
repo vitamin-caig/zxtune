@@ -16,6 +16,7 @@
 #include <contract.h>
 #include <error_tools.h>
 #include <progress_callback.h>
+#include <string_view.h>
 // library includes
 #include <core/additional_files_resolve.h>
 #include <core/core_parameters.h>

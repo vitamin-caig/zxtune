@@ -4,6 +4,7 @@
 #include "apps/zxtune-qt/update/product.h"
 #include "apps/zxtune-qt/update/rss.h"
 // common includes
+#include <string_view.h>
 #include <types.h>
 // std includes
 #include <iostream>

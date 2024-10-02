@@ -15,6 +15,8 @@
 #include <parameters/container.h>
 #include <sound/backend.h>
 #include <time/duration.h>
+// common includes
+#include <string_view.h>
 // std includes
 #include <memory>
 #include <span>

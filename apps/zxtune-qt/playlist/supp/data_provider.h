@@ -14,6 +14,7 @@
 #include "data.h"
 // common includes
 #include <progress_callback.h>
+#include <string_view.h>
 
 namespace Playlist::Item
 {

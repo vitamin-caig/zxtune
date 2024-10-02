@@ -10,6 +10,8 @@
 
 #pragma once
 
+// common includes
+#include <string_view.h>
 // library includes
 #include <parameters/identifier.h>
 #include <parameters/types.h>

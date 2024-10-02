@@ -10,6 +10,8 @@
 
 #pragma once
 
+// common includes
+#include <string_view.h>
 // library includes
 #include <binary/container_factories.h>
 #include <binary/dump.h>

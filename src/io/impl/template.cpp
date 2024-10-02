@@ -12,6 +12,7 @@
 #include "io/impl/filesystem_path.h"
 // common includes
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <io/template.h>
 #include <strings/fields.h>

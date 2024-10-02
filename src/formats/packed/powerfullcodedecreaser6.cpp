@@ -18,6 +18,7 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 #include <pointers.h>
+#include <string_view.h>
 // library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>

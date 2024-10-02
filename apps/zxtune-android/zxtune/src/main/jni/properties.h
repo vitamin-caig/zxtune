@@ -15,6 +15,8 @@
 // library includes
 #include <parameters/accessor.h>
 #include <parameters/modifier.h>
+// common includes
+#include <string_view.h>
 // platform includes
 #include <jni.h>
 

@@ -15,6 +15,7 @@
 #include "module/players/aym/aym_properties_helper.h"
 // common includes
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <core/core_parameters.h>
 #include <module/players/properties_meta.h>

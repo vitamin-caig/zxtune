@@ -17,6 +17,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <pointers.h>
+#include <string_view.h>
 #include <types.h>
 // std includes
 #include <algorithm>

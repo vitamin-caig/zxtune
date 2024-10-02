@@ -12,6 +12,7 @@
 
 // common includes
 #include <progress_callback.h>
+#include <string_view.h>
 // library includes
 #include <math/scale.h>
 

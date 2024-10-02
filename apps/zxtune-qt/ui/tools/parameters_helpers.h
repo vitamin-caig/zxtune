@@ -14,6 +14,8 @@
 #include "ui/utils.h"
 // library includes
 #include <parameters/container.h>
+// common includes
+#include <string_view.h>
 // qt includes
 #include <QtCore/QObject>
 

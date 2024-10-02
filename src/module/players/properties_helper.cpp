@@ -16,6 +16,8 @@
 #include <sound/sound_parameters.h>
 #include <strings/join.h>
 #include <strings/trim.h>
+// common includes
+#include <string_view.h>
 
 namespace Module
 {

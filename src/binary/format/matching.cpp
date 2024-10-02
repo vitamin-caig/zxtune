@@ -12,6 +12,7 @@
 #include "binary/format/static_expression.h"
 // common includes
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <binary/format_factories.h>
 

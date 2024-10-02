@@ -12,6 +12,8 @@
 #include <binary/data_builder.h>
 #include <parameters/convert.h>
 #include <strings/conversion.h>
+// common includes
+#include <string_view.h>
 // std includes
 #include <algorithm>
 #include <cassert>

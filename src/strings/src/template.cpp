@@ -14,6 +14,7 @@
 #include <strings/template.h>
 // common includes
 #include <make_ptr.h>
+#include <string_view.h>
 // std includes
 #include <algorithm>
 #include <cassert>

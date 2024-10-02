@@ -12,6 +12,8 @@
 #include "core/plugins/players/sid/songlengths.h"
 // library includes
 #include <binary/crc.h>
+// common includes
+#include <string_view.h>
 // std includes
 #include <algorithm>
 

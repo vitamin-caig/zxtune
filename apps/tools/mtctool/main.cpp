@@ -4,6 +4,8 @@
 #include <module/attributes.h>
 #include <platform/version/api.h>
 #include <strings/format.h>
+// common includes
+#include <string_view.h>
 // std includes
 #include <fstream>
 #include <iostream>

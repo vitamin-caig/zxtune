@@ -11,6 +11,7 @@
 // common includes
 #include <contract.h>
 #include <iterator.h>
+#include <string_view.h>
 // library includes
 #include <binary/base64.h>
 

@@ -10,6 +10,8 @@
 
 #pragma once
 
+// common includes
+#include <string_view.h>
 // local includes
 #include "module/players/properties_helper.h"
 // library includes

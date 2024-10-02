@@ -3,6 +3,7 @@
 #include <iostream>
 #include <make_ptr.h>
 #include <stdexcept>
+#include <string_view.h>
 
 #ifdef _WIN32
 #  include <fcntl.h>

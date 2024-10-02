@@ -13,6 +13,7 @@
 #include "core/plugins/archives/archived.h"
 // common includes
 #include <make_ptr.h>
+#include <string_view.h>
 #include <xrange.h>
 // library includes
 #include <core/module_detect.h>

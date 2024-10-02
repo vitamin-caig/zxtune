@@ -12,6 +12,7 @@
 #include "language.h"
 // common includes
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <l10n/control.h>
 // std includes

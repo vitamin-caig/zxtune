@@ -20,6 +20,7 @@
 // common includes
 #include <contract.h>
 #include <progress_callback.h>
+#include <string_view.h>
 // library includes
 #include <core/data_location.h>
 #include <core/service.h>

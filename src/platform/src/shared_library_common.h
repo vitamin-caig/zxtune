@@ -12,6 +12,7 @@
 
 // common includes
 #include <error.h>
+#include <string_view.h>
 // library includes
 #include <platform/shared_library.h>
 

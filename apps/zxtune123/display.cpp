@@ -13,6 +13,7 @@
 #include "console.h"
 // common includes
 #include <error.h>
+#include <string_view.h>
 // library includes
 #include <module/track_state.h>
 #include <parameters/template.h>

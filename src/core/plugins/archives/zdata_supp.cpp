@@ -16,6 +16,7 @@
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // library includes
 #include <binary/base64.h>
 #include <binary/compression/zlib_container.h>

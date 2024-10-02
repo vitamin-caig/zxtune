@@ -20,6 +20,8 @@
 #include <sound/backend_attrs.h>
 #include <sound/service.h>
 #include <strings/format.h>
+// common includes
+#include <string_view.h>
 // std includes
 #include <utility>
 // qt includes

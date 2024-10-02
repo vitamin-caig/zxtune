@@ -13,6 +13,7 @@
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
+#include <string_view.h>
 // std includes
 #include <algorithm>
 #include <list>
