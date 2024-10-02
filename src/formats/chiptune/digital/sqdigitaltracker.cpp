@@ -311,8 +311,8 @@ namespace Formats::Chiptune
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
         const auto title = *Source.Title.begin() == '|' && *Source.Title.rbegin() == '|'
-                               ? StringViewCompat{Source.Title.data() + 1, &Source.Title.back()}
-                               : StringViewCompat{Source.Title.begin(), Source.Title.end()};
+                               ? MakeStringView(Source.Title.data() + 1, &Source.Title.back())
+                               : MakeStringView(Source.Title.begin(), Source.Title.end());
         meta.SetTitle(Strings::OptimizeAscii(title));
         meta.SetProgram(DESCRIPTION);
         Strings::Array names;

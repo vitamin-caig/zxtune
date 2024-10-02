@@ -97,7 +97,7 @@ namespace
   {
     if (IsQuoted(val))
     {
-      return StringViewCompat{val.begin() + 1, val.end() - 1};
+      return MakeStringView(val.begin() + 1, val.end() - 1);
     }
     return val;
   }

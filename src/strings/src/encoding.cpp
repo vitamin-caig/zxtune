@@ -908,7 +908,7 @@ namespace Strings
       std::vector<uint16_t> aligned(str.size() / 2);
       auto* target = aligned.data();
       std::memcpy(target, str.data(), aligned.size() * sizeof(*target));
-      return Utf16ToUtf8(std::basic_string_view_compat<uint16_t>{target, target + aligned.size()});
+      return Utf16ToUtf8(MakeStringView(target, target + aligned.size()));
     }
     else
     {

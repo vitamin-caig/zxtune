@@ -611,7 +611,7 @@ namespace Formats::Chiptune
           }
           else
           {
-            meta.SetTitle(Strings::OptimizeAscii(StringViewCompat{Id.Title.data(), &Id.Author.back() + 1}));
+            meta.SetTitle(Strings::OptimizeAscii(MakeStringView(Id.Title.data(), &Id.Author.back() + 1)));
           }
         }
       }

@@ -17,6 +17,7 @@
 #include <module/players/platforms.h>
 // std includes
 #include <map>
+#include <span>
 
 namespace Module::VideoGameMusic
 {
@@ -503,7 +504,7 @@ namespace Module::VideoGameMusic
       return Input.Read<le_uint32_t>();
     }
 
-    std::basic_string_view_compat<le_uint16_t> ReadUtf16()
+    std::span<const le_uint16_t> ReadUtf16()
     {
       const auto symbolsAvailable = Input.GetRestSize() / sizeof(le_uint16_t);
       const auto* begin = safe_ptr_cast<const le_uint16_t*>(Input.PeekRawData(symbolsAvailable * sizeof(le_uint16_t)));

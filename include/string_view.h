@@ -15,20 +15,6 @@
 #include <string>
 #include <string_view>
 
-namespace std
-{
-  // Workaround for Clang12 (Android)
-  template<class C>
-  class basic_string_view_compat : public basic_string_view<C>
-  {
-  public:
-    template<class It, class End>
-    basic_string_view_compat(It first, End last)
-      : basic_string_view<C>(std::to_address(first), static_cast<std::size_t>(last - first))
-    {}
-  };
-}  // namespace std
-
 constexpr auto operator"" _sv(const char* str, std::size_t size) noexcept
 {
   return std::basic_string_view<char>{str, size};
@@ -38,6 +24,15 @@ template<class Array>
 constexpr auto MakeStringView(const Array& array) noexcept
 {
   return std::basic_string_view<typename Array::value_type>(array.data(), array.size());
+}
+
+// Workaround for Clang12 (Android)
+template<class It, class End>
+auto MakeStringView(It first, End last) noexcept
+{
+  const auto* start = std::to_address(first);
+  const std::size_t size = last - first;
+  return std::basic_string_view<std::remove_cvref_t<decltype(*start)>>(start, size);
 }
 
 // TODO: Remove after c++26

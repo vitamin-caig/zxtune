@@ -71,8 +71,8 @@ namespace Formats::Chiptune
       {
         const auto COMPILATION_OF = "COMPILATION OF"_sv;
         const auto opt = Strings::TrimSpaces(MakeStringView(Optional1));
-        return Strings::EqualNoCaseAscii(opt, COMPILATION_OF) ? StringViewCompat{Id.data(), Optional1.data()}
-                                                              : StringViewCompat{Id.data(), &Optional1.back() + 1};
+        return Strings::EqualNoCaseAscii(opt, COMPILATION_OF) ? MakeStringView(Id.data(), Optional1.data())
+                                                              : MakeStringView(Id.data(), &Optional1.back() + 1);
       }
 
       uint_t GetVersion() const
@@ -332,7 +332,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          meta.SetTitle(Strings::Sanitize(StringViewCompat{id.TrackName.data(), &id.TrackAuthor.back() + 1}));
+          meta.SetTitle(Strings::Sanitize(MakeStringView(id.TrackName.data(), &id.TrackAuthor.back() + 1)));
         }
         builder.SetVersion(Source.GetVersion());
         if (Math::InRange<uint_t>(Source.FreqTableNum, PROTRACKER, NATURAL))

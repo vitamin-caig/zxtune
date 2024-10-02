@@ -97,7 +97,7 @@ namespace LexicalAnalysis
                      [](const Tokenizer::Ptr& obj) { return obj.get(); });
       for (const auto* lexemeEnd = lexemeStart + 1; !candidates.empty(); ++lexemeEnd)
       {
-        const auto lexeme = StringViewCompat{lexemeStart, lexemeEnd};
+        const auto lexeme = MakeStringView(lexemeStart, lexemeEnd);
         auto tokens = MakeRWPtr<TokensSet>(lexeme);
         std::vector<const Tokenizer*> passedCandidates;
         passedCandidates.reserve(candidates.size());

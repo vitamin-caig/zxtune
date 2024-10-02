@@ -41,7 +41,6 @@ using int_t = signed int;
 using String = std::basic_string<Char>;
 
 using StringView = std::basic_string_view<Char>;
-using StringViewCompat = std::basic_string_view_compat<Char>;
 
 // assertions
 static_assert(sizeof(uint_t) >= sizeof(uint32_t), "Invalid uint_t type");

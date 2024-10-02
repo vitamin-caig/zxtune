@@ -56,7 +56,7 @@ namespace Binary
       const auto* const strEnd = std::find(Cursor, limit, 0);
       Require(strEnd != limit);
       const auto* begin = std::exchange(Cursor, strEnd + 1);
-      return StringViewCompat{safe_ptr_cast<const Char*>(begin), safe_ptr_cast<const Char*>(strEnd)};
+      return MakeStringView(safe_ptr_cast<const Char*>(begin), safe_ptr_cast<const Char*>(strEnd));
     }
 
     //! @brief Read string till EOL
@@ -78,7 +78,7 @@ namespace Binary
         }
       }
       const auto* start = std::exchange(Cursor, nextLine);
-      return StringViewCompat{safe_ptr_cast<const Char*>(start), safe_ptr_cast<const Char*>(eolPos)};
+      return MakeStringView(safe_ptr_cast<const Char*>(start), safe_ptr_cast<const Char*>(eolPos));
     }
 
     template<class T>
