@@ -36,7 +36,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::GlobalTracker");
 
-    constexpr auto EDITOR = "Global Tracker v1.{}"_sv;
+    constexpr auto EDITOR = "Global Tracker v1.{}"sv;
 
     const std::size_t MIN_SIZE = 1500;
     const std::size_t MAX_SIZE = 0x2800;
@@ -938,7 +938,7 @@ namespace Formats::Chiptune
         "01-ff"     // uint8_t Length;
         "00-fe"     // uint8_t Loop;
         "*6&00-ba"  // uint8_t Positions[1];
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

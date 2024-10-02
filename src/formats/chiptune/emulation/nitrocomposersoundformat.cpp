@@ -52,7 +52,7 @@ namespace Formats::Chiptune
     const auto FORMAT =
         "'P'S'F"
         "25"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

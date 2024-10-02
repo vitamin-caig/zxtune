@@ -207,7 +207,7 @@ namespace Sound::AyLpt
   public:
     StringView Base() const override
     {
-      return "dlportio"_sv;
+      return "dlportio"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
@@ -217,7 +217,7 @@ namespace Sound::AyLpt
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"inpout32.dll"_sv, "inpoutx64.dll"_sv};
+      return {"inpout32.dll"sv, "inpoutx64.dll"sv};
     }
   };
 

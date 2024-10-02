@@ -70,7 +70,7 @@ namespace Formats::Packed
         "?01-ff"
         // FullLength
         "0001-ff"
-        ""_sv;
+        ""sv;
   }  // namespace Hobeta
 
   class HobetaDecoder : public Decoder

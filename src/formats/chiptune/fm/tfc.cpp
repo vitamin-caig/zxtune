@@ -85,7 +85,7 @@ namespace Formats::Chiptune
         "'T'F'M'c'o'm"
         "???"
         "32|3c"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

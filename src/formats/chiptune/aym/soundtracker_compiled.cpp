@@ -140,9 +140,9 @@ namespace Formats::Chiptune
     bool IsProgramName(StringView name)
     {
       static const std::array STANDARD_PROGRAMS_PREFIXES = {
-          "SONG BY ST COMPIL"_sv, "SONG BY MB COMPIL"_sv,  "SONG BY ST-COMPIL"_sv,
-          "SONG BY S.T.COMP"_sv,  "SONG ST BY COMPILE"_sv, "SOUND TRACKER"_sv,
-          "S.T.FULL EDITION"_sv,  "S.W.COMPILE V2.0"_sv,   "STU SONG COMPILER"_sv,
+          "SONG BY ST COMPIL"sv, "SONG BY MB COMPIL"sv,  "SONG BY ST-COMPIL"sv,
+          "SONG BY S.T.COMP"sv,  "SONG ST BY COMPILE"sv, "SOUND TRACKER"sv,
+          "S.T.FULL EDITION"sv,  "S.W.COMPILE V2.0"sv,   "STU SONG COMPILER"sv,
       };
       return std::any_of(STANDARD_PROGRAMS_PREFIXES.begin(), STANDARD_PROGRAMS_PREFIXES.end(),
                          [name](auto prefix) { return name.starts_with(prefix); });
@@ -690,7 +690,7 @@ namespace Formats::Chiptune
         "?00-08"  // uint16_t PatternsOffset;
         "?{20}"   // Id+Size
         "00-0f"   // first sample index
-        ""_sv;
+        ""sv;
 
     Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& rawData, Builder& target)
     {

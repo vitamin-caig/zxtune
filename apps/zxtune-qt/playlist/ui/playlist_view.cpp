@@ -191,8 +191,8 @@ namespace
 
     static void TrimLongMultiline(String& result, int maxLines)
     {
-      const auto SEPARATOR = "\n"_sv;
-      const auto ELLIPSIS = "<...>"_sv;
+      const auto SEPARATOR = "\n"sv;
+      const auto ELLIPSIS = "<...>"sv;
       auto lines = Strings::Split(result, SEPARATOR);
       if (lines.size() <= maxLines)
       {
@@ -208,7 +208,7 @@ namespace
     // TODO: get rid of template, build tooltip one-by-one and escape html with Qt
     static void EscapeHtml(String& result)
     {
-      if (result.size() == Strings::Find::First(result, "&<>\n"_sv))
+      if (result.size() == Strings::Find::First(result, "&<>\n"sv))
       {
         return;
       }
@@ -219,16 +219,16 @@ namespace
         switch (c)
         {
         case '&':
-          escaped += "&amp;"_sv;
+          escaped += "&amp;"sv;
           break;
         case '<':
-          escaped += "&lt;"_sv;
+          escaped += "&lt;"sv;
           break;
         case '>':
-          escaped += "&gt;"_sv;
+          escaped += "&gt;"sv;
           break;
         case '\n':
-          escaped += "<br/>"_sv;
+          escaped += "<br/>"sv;
           break;
         default:
           escaped += c;

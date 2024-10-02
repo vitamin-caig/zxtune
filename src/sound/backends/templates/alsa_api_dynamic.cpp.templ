@@ -25,13 +25,13 @@ namespace Sound::Alsa
 
     StringView Base() const override
     {
-      return "asound"_sv;
+      return "asound"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
       // deb-based + rpm-based
-      return {"libasound.so.2.0.0"_sv, "libasound.so.2"_sv};
+      return {"libasound.so.2.0.0"sv, "libasound.so.2"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override

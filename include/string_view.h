@@ -15,10 +15,7 @@
 #include <string>
 #include <string_view>
 
-constexpr auto operator"" _sv(const char* str, std::size_t size) noexcept
-{
-  return std::basic_string_view<char>{str, size};
-}
+using std::string_view_literals::operator""sv;
 
 template<class Array>
 constexpr auto MakeStringView(const Array& array) noexcept

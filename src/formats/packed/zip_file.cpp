@@ -39,7 +39,7 @@ namespace Formats::Packed
         "?00"                  // uint16_t VersionToExtract;
         "%0000xxx0 %0000x000"  // uint16_t Flags;
         "%0000x00x 00"         // uint16_t CompressionMethod;
-        ""_sv;
+        ""sv;
 
     class Container
     {

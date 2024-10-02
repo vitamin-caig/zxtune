@@ -117,23 +117,23 @@ namespace
     while (arg)
     {
       const auto cmd = *arg++;
-      if (cmd == "--track"_sv)
+      if (cmd == "--track"sv)
       {
         builder->StartTrack(track++);
       }
-      else if (cmd == "--title"_sv)
+      else if (cmd == "--title"sv)
       {
         builder->SetTitle(*arg++);
       }
-      else if (cmd == "--author"_sv)
+      else if (cmd == "--author"sv)
       {
         builder->SetAuthor(*arg++);
       }
-      else if (cmd == "--annotation"_sv)
+      else if (cmd == "--annotation"sv)
       {
         builder->SetAnnotation(*arg++);
       }
-      else if (cmd == "--property"_sv)
+      else if (cmd == "--property"sv)
       {
         const auto name = *arg++;
         const auto value = *arg++;

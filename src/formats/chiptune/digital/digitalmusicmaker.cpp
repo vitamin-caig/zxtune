@@ -577,7 +577,7 @@ namespace Formats::Chiptune
         "01-32"
         // base size
         "02-38"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

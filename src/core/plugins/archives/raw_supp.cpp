@@ -263,10 +263,10 @@ namespace ZXTune::Raw
 {
   const Debug::Stream Dbg("Core::RawScaner");
 
-  const auto PLUGIN_PREFIX = "+"_sv;
+  const auto PLUGIN_PREFIX = "+"sv;
 
   const auto ID = "RAW"_id;
-  const auto INFO = "Raw scaner"_sv;
+  const auto INFO = "Raw scaner"sv;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::SCANER;
 
   const std::size_t SCAN_STEP = 1;

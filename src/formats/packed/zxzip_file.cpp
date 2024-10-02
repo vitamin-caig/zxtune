@@ -52,7 +52,7 @@ namespace Formats::Packed
         "00-03"
         // Flags
         "%0000000x"
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {

@@ -233,7 +233,7 @@ namespace Formats::Packed
         "?{206}"                                  // skipped
         // first track
         "'T'r'a'c'k'-'I'n'f'o'\r'\n"
-        ""_sv;
+        ""sv;
   }  // namespace DSK
 
   class DSKDecoder : public Decoder

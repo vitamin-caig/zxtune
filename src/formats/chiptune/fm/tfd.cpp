@@ -69,7 +69,7 @@ namespace Formats::Chiptune
       return 0 == std::memcmp(rawData.Start(), SIGNATURE.data(), SIGNATURE.size());
     }
 
-    const auto FORMAT = "'T'F'M'D"_sv;
+    const auto FORMAT = "'T'F'M'D"sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

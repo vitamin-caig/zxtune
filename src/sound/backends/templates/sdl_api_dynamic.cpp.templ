@@ -25,12 +25,12 @@ namespace Sound::Sdl
 
     StringView Base() const override
     {
-      return "SDL"_sv;
+      return "SDL"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libSDL-1.2.so.0"_sv};
+      return {"libSDL-1.2.so.0"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override

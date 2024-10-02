@@ -50,7 +50,7 @@ namespace Formats::Packed
         "d6?"   // sub 0x1d
         "20?"   // jr nz,xx
         "2b"    // dec hl
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {

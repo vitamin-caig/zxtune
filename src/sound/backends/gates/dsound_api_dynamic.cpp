@@ -55,7 +55,7 @@ namespace Sound::DirectSound
 
   Api::Ptr LoadDynamicApi()
   {
-    auto lib = Platform::SharedLibrary::Load("dsound"_sv);
+    auto lib = Platform::SharedLibrary::Load("dsound"sv);
     return MakePtr<DynamicApi>(std::move(lib));
   }
 }  // namespace Sound::DirectSound

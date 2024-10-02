@@ -166,7 +166,7 @@ namespace Sound::Alsa
   public:
     explicit Identifier(StringView id)
     {
-      auto elements = Strings::Split(id, ":,"_sv);
+      auto elements = Strings::Split(id, ":,"sv);
       elements.resize(3);
       Interface = elements[0];
       Card = elements[1];
@@ -961,7 +961,7 @@ namespace Sound::Alsa
 
     static Ptr CreateDefault(Api::Ptr api)
     {
-      static const auto DEFAULT_DEVICE_NAME = "Default"_sv;
+      static const auto DEFAULT_DEVICE_NAME = "Default"sv;
       return MakePtr<DeviceInfo>(std::move(api), Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT,
                                  DEFAULT_DEVICE_NAME, DEFAULT_DEVICE_NAME);
     }

@@ -17,12 +17,12 @@ namespace Urls
 {
   constexpr StringView Email()
   {
-    return "zxtune@gmail.com"_sv;
+    return "zxtune@gmail.com"sv;
   }
 
   constexpr StringView Site()
   {
-    return "https://zxtune.ru/"_sv;
+    return "https://zxtune.ru/"sv;
   }
 
   inline String DownloadsFeed()
@@ -42,7 +42,7 @@ namespace Urls
 
   constexpr StringView Repository()
   {
-    return "https://bitbucket.org/zxtune/zxtune/"_sv;
+    return "https://bitbucket.org/zxtune/zxtune/"sv;
   }
 
   inline String Bugreport()

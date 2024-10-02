@@ -186,7 +186,7 @@ namespace
     {
       constexpr auto singleChar = ' ';
       constexpr auto charsetArray = " \t\n";
-      constexpr auto charsetSv = "\t\n "_sv;
+      constexpr auto charsetSv = "\t\n "sv;
       constexpr auto pred = [](Char c) { return c < ' '; };
 
       const String title(Title);
@@ -246,7 +246,7 @@ namespace
   template<class T>
   void TestJoin(const String& msg)
   {
-    const auto delimiter = ","_sv;
+    const auto delimiter = ","sv;
     std::vector<T> data;
     TestEquals("", Strings::Join(data, delimiter), "Join empty vector of " + msg);
     data.emplace_back("one");
@@ -428,12 +428,12 @@ int main()
     std::cout << "---- Test for split ----" << std::endl;
     {
       TestSplit("Empty", "", ' ', {""});
-      TestSplit("OnlyDelimiter", ",;", ";,"_sv, {""});
+      TestSplit("OnlyDelimiter", ",;", ";,"sv, {""});
       TestSplit("Single", "single", ',', {"single"});
       TestSplit("Double", "single,,double", ',', {"single", "double"});
       TestSplit("Prefix", ",,str", ',', {"str"});
       TestSplit("Suffix", "str,,", ',', {"str"});
-      TestSplit("MultiDelimiters", ":one,two/three;four.", ";/,.:"_sv, {"one", "two", "three", "four"});
+      TestSplit("MultiDelimiters", ":one,two/three;four.", ";/,.:"sv, {"one", "two", "three", "four"});
       TestSplit("Predicate", "a1bc2;d5", [](Char c) { return !std::isalpha(c); }, {"a", "bc", "d"});
     }
     std::cout << "---- Test for join ----" << std::endl;

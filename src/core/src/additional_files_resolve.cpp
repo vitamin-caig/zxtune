@@ -32,7 +32,7 @@ namespace Module
         if (newFilenames == filenames)
         {
           throw MakeFormattedError(THIS_LINE, translate("None of the additional files {} were resolved."),
-                                   Strings::Join(filenames, ","_sv));
+                                   Strings::Join(filenames, ","sv));
         }
         filenames.swap(newFilenames);
       }

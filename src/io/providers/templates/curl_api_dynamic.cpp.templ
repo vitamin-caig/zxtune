@@ -25,17 +25,17 @@ namespace IO::Curl
 
     StringView Base() const override
     {
-      return "curl"_sv;
+      return "curl"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libcurl.so.3"_sv, "libcurl.so.4"_sv};
+      return {"libcurl.so.3"sv, "libcurl.so.4"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libcurl.dll"_sv};
+      return {"libcurl.dll"sv};
     }
   };
 

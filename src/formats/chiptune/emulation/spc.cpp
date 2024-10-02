@@ -407,7 +407,7 @@ namespace Formats::Chiptune
         "1a     |00"
         "1a|1b  |00"  // has ID666
         "0a-1e  |00"  // version minor
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

@@ -44,7 +44,7 @@ namespace Formats::Image
         "09"      // add hl,bc
         "1100?"   // ld de,#4000
         "d5"      // push de
-        ""_sv;
+        ""sv;
 
     /*
       @0052 48ROM

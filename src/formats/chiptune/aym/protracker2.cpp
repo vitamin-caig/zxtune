@@ -892,7 +892,7 @@ namespace Formats::Chiptune
         "?{30}"     // char Name[30];
         "00-1f"     // uint8_t Positions[1]; at least one
         "ff|00-1f"  // next position or limit
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

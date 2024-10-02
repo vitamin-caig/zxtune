@@ -45,7 +45,7 @@ namespace Formats::Chiptune
 
       bool HasAuthor() const
       {
-        const auto BY_DELIMITER = "BY"_sv;
+        const auto BY_DELIMITER = "BY"sv;
         const auto trimId = Strings::TrimSpaces(MakeStringView(Optional2));
         return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
@@ -69,7 +69,7 @@ namespace Formats::Chiptune
 
       StringView GetProgram() const
       {
-        const auto COMPILATION_OF = "COMPILATION OF"_sv;
+        const auto COMPILATION_OF = "COMPILATION OF"sv;
         const auto opt = Strings::TrimSpaces(MakeStringView(Optional1));
         return Strings::EqualNoCaseAscii(opt, COMPILATION_OF) ? MakeStringView(Id.data(), Optional1.data())
                                                               : MakeStringView(Id.data(), &Optional1.back() + 1);
@@ -905,7 +905,7 @@ namespace Formats::Chiptune
         "(?00-d9){16}"  // std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
         "*3&00-fe"      // at least one position
         "*3"            // next position or limiter (255 % 3 == 0)
-        ""_sv;
+        ""sv;
 
     class BinaryDecoder : public Decoder
     {

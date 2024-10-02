@@ -55,7 +55,7 @@ namespace Formats::Packed
         "0c"      // inc c
         "280f"    // jr z,xxxx
         "013f03"  // ld bc,#033f
-        ""_sv;
+        ""sv;
 
     class Bitstream : private ByteStream
     {

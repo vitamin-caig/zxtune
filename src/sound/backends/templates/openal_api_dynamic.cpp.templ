@@ -25,17 +25,17 @@ namespace Sound::OpenAl
 
     StringView Base() const override
     {
-      return "openal"_sv;
+      return "openal"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libopenal.so.1"_sv, "OpenAL.framework/OpenAL"_sv};
+      return {"libopenal.so.1"sv, "OpenAL.framework/OpenAL"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"OpenAL32.dll"_sv};
+      return {"OpenAL32.dll"sv};
     }
   };
 

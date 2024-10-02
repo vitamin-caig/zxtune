@@ -54,7 +54,7 @@ namespace Formats::Chiptune
         "?"          // extra banks
         "00"         // reserved
         "%000xxxxx"  // extra chips (some of the tunes has 4th bit set)
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

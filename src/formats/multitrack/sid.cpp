@@ -60,7 +60,7 @@ namespace Formats::Multitrack
         "00|01 ?"       // BE songs count 1-256
         "??"            // BE start song
         "????"          // BE speed flag
-        ""_sv;
+        ""sv;
 
     const Char DESCRIPTION[] = "Commodore64 SID/RSID/PSID";
 

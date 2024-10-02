@@ -278,7 +278,7 @@ namespace Formats::Chiptune
         "?"             // tracks count
         "00-3f"         // samples count
         "?"             // subsongs count
-        ""_sv,
+        ""sv,
         "Abyss' Highest Experience"};
 
     const FormatTraits HVLTraits = {
@@ -292,7 +292,7 @@ namespace Formats::Chiptune
         "?"             // subsongs count
         "01-ff"         // mixgain, not zero
         "00-04"         // defstereo
-        ""_sv,
+        ""sv,
         "Hively Tracker"};
 
     class VersionedDecoder : public Decoder

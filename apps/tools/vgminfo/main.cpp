@@ -99,7 +99,7 @@ namespace
       const uint32_t size = stream.ReadDword();
       Version = stream.ReadVersion();
       ParseSN76489(stream);
-      ParseDevice("YM2413"_sv, stream);
+      ParseDevice("YM2413"sv, stream);
       const uint32_t gd3 = stream.ReadDword();
       Samples = stream.ReadDword();
       const uint32_t loopOffset = stream.ReadDword();
@@ -111,70 +111,70 @@ namespace
       if (Version >= 110)
       {
         stream.ReadDword();  // flags for sn76489
-        ParseDevice("YM2612"_sv, stream);
-        ParseDevice("YM2151"_sv, stream);
+        ParseDevice("YM2612"sv, stream);
+        ParseDevice("YM2151"sv, stream);
       }
       if (Version >= 150)
       {
         stream.ReadDword();  // vgm offset
-        ParseSimpleDevice("SegaPCM"_sv, stream);
+        ParseSimpleDevice("SegaPCM"sv, stream);
         stream.ReadDword();  // segapcm flags
       }
       if (Version >= 151)
       {
         Require(0x40 == stream.GetPos());
-        ParseSimpleDevice("RF5C68"_sv, stream);
-        ParseDevice("YM2203"_sv, stream);
-        ParseDevice("YM2608"_sv, stream);
-        ParseDevice("YM2610"_sv, stream);
-        ParseDevice("YM3812"_sv, stream);
-        ParseDevice("YM3526"_sv, stream);
-        ParseDevice("Y8950"_sv, stream);
-        ParseDevice("YMF262"_sv, stream);
-        ParseDevice("YMF278b"_sv, stream);
-        ParseDevice("YMF271"_sv, stream);
-        ParseDevice("YMZ280B"_sv, stream);
-        ParseSimpleDevice("RF5C164"_sv, stream);
-        ParseSimpleDevice("PWM"_sv, stream);
+        ParseSimpleDevice("RF5C68"sv, stream);
+        ParseDevice("YM2203"sv, stream);
+        ParseDevice("YM2608"sv, stream);
+        ParseDevice("YM2610"sv, stream);
+        ParseDevice("YM3812"sv, stream);
+        ParseDevice("YM3526"sv, stream);
+        ParseDevice("Y8950"sv, stream);
+        ParseDevice("YMF262"sv, stream);
+        ParseDevice("YMF278b"sv, stream);
+        ParseDevice("YMF271"sv, stream);
+        ParseDevice("YMZ280B"sv, stream);
+        ParseSimpleDevice("RF5C164"sv, stream);
+        ParseSimpleDevice("PWM"sv, stream);
         ParseAY8910(stream);
         stream.ReadDword();  // other flags
       }
       if (Version >= 161)
       {
         Require(0x80 == stream.GetPos());
-        ParseDevice("LR3509/PAPU"_sv, stream);
-        ParseDevice("2A03"_sv, stream);
-        ParseDevice("MultiPCM"_sv, stream);
-        ParseDevice("uPD7759"_sv, stream);
-        ParseDevice("OKIM6258"_sv, stream);
+        ParseDevice("LR3509/PAPU"sv, stream);
+        ParseDevice("2A03"sv, stream);
+        ParseDevice("MultiPCM"sv, stream);
+        ParseDevice("uPD7759"sv, stream);
+        ParseDevice("OKIM6258"sv, stream);
         stream.ReadDword();  // flags
-        ParseDevice("OKIM6295"_sv, stream);
-        ParseDevice("K051649"_sv, stream);
-        ParseDevice("K054539"_sv, stream);
-        ParseDevice("HuC6280"_sv, stream);
-        ParseDevice("C140"_sv, stream);
-        ParseDevice("K053260"_sv, stream);
-        ParseDevice("CO12294/Pokey"_sv, stream);
-        ParseSimpleDevice("QSound"_sv, stream);
+        ParseDevice("OKIM6295"sv, stream);
+        ParseDevice("K051649"sv, stream);
+        ParseDevice("K054539"sv, stream);
+        ParseDevice("HuC6280"sv, stream);
+        ParseDevice("C140"sv, stream);
+        ParseDevice("K053260"sv, stream);
+        ParseDevice("CO12294/Pokey"sv, stream);
+        ParseSimpleDevice("QSound"sv, stream);
       }
       if (Version >= 170)
       {
         Require(0xb8 == stream.GetPos());
-        ParseDevice("SCSP"_sv, stream);
+        ParseDevice("SCSP"sv, stream);
         stream.ReadDword();  // extra header offset
       }
       if (Version >= 171)
       {
         Require(0xc0 == stream.GetPos());
-        ParseSimpleDevice("WonderSwan"_sv, stream);
-        ParseSimpleDevice("VSU"_sv, stream);
-        ParseSimpleDevice("SA1099"_sv, stream);
-        ParseSimpleDevice("ES5503"_sv, stream);
+        ParseSimpleDevice("WonderSwan"sv, stream);
+        ParseSimpleDevice("VSU"sv, stream);
+        ParseSimpleDevice("SA1099"sv, stream);
+        ParseSimpleDevice("ES5503"sv, stream);
         ParseES5505(stream);
         stream.ReadDword();  // flags
-        ParseSimpleDevice("X1-010"_sv, stream);
-        ParseSimpleDevice("C352"_sv, stream);
-        ParseSimpleDevice("GA20"_sv, stream);
+        ParseSimpleDevice("X1-010"sv, stream);
+        ParseSimpleDevice("C352"sv, stream);
+        ParseSimpleDevice("GA20"sv, stream);
       }
       if (gd3)
       {
@@ -214,19 +214,19 @@ namespace
         const uint32_t flg = data & 0xc0000000;
         if (flg == 0xc0000000)
         {
-          AddDevice("T6Ww28"_sv, data ^ flg);
+          AddDevice("T6Ww28"sv, data ^ flg);
         }
         else
         {
-          AddDevice("SN76489"_sv, data);
+          AddDevice("SN76489"sv, data);
         }
       }
     }
 
     void ParseAY8910(Stream& stream)
     {
-      const StringView AY_CHIPS[] = {"AY8910"_sv, "AY8912"_sv, "AY8913"_sv, "AY8930"_sv};
-      const StringView YM_CHIPS[] = {"YM2140"_sv, "YM3439"_sv, "YMZ284"_sv, "YMZ294"_sv};
+      const StringView AY_CHIPS[] = {"AY8910"sv, "AY8912"sv, "AY8913"sv, "AY8930"sv};
+      const StringView YM_CHIPS[] = {"YM2140"sv, "YM3439"sv, "YMZ284"sv, "YMZ294"sv};
       const uint32_t clk = stream.ReadDword();
       const uint32_t type = stream.ReadDword();
       if (clk)
@@ -239,7 +239,7 @@ namespace
         }
         else
         {
-          AddDevice("AY8910"_sv, clk);
+          AddDevice("AY8910"sv, clk);
         }
       }
     }
@@ -249,7 +249,7 @@ namespace
       if (const uint32_t data = stream.ReadDword())
       {
         const bool isES5506 = data & 0x80000000;
-        AddDevice(isES5506 ? "ES5506"_sv : "ES5505"_sv, data & 0x3fffffff);
+        AddDevice(isES5506 ? "ES5506"sv : "ES5505"sv, data & 0x3fffffff);
       }
     }
 
@@ -295,17 +295,17 @@ namespace
       }
       stream.ReadDword();  // ver
       stream.ReadDword();  // size
-      ReadTag("Title(eng)"_sv, stream);
-      ReadTag("Title(jap)"_sv, stream);
-      ReadTag("Game(eng)"_sv, stream);
-      ReadTag("Game(jap)"_sv, stream);
-      ReadTag("System(eng)"_sv, stream);
-      ReadTag("System(jap)"_sv, stream);
-      ReadTag("Author(eng)"_sv, stream);
-      ReadTag("Author(jap)"_sv, stream);
-      ReadTag("Released"_sv, stream);
-      ReadTag("RippedBy"_sv, stream);
-      ReadTag("Notes"_sv, stream);
+      ReadTag("Title(eng)"sv, stream);
+      ReadTag("Title(jap)"sv, stream);
+      ReadTag("Game(eng)"sv, stream);
+      ReadTag("Game(jap)"sv, stream);
+      ReadTag("System(eng)"sv, stream);
+      ReadTag("System(jap)"sv, stream);
+      ReadTag("Author(eng)"sv, stream);
+      ReadTag("Author(jap)"sv, stream);
+      ReadTag("Released"sv, stream);
+      ReadTag("RippedBy"sv, stream);
+      ReadTag("Notes"sv, stream);
     }
 
     void ReadTag(StringView name, Stream& stream)

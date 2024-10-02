@@ -37,7 +37,7 @@ namespace Formats::Packed
         "????"  // crc
         "????"  // packed size
         "????"  // unpacked size
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Packed::Decoder
     {

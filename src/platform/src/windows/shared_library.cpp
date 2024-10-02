@@ -64,7 +64,7 @@ namespace Platform::Details
     return ::GetLastError();
   }
 
-  const auto SUFFIX = ".dll"_sv;
+  const auto SUFFIX = ".dll"sv;
 
   String BuildLibraryFilename(StringView name)
   {

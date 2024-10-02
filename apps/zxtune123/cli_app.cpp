@@ -57,7 +57,7 @@ namespace
 
   String GetFilenameTemplate(const Parameters::Accessor& params)
   {
-    auto res = Parameters::GetString(params, "filename"_sv);
+    auto res = Parameters::GetString(params, "filename"sv);
     if (res.empty())
     {
       throw Error(THIS_LINE, "Output filename template is not specified.");
@@ -112,29 +112,29 @@ namespace
                                                                             const Parameters::Accessor& modeParams)
   {
     const auto optimization =
-        Parameters::GetInteger<uint_t>(modeParams, "optimization"_sv, Module::Conversion::DEFAULT_OPTIMIZATION);
+        Parameters::GetInteger<uint_t>(modeParams, "optimization"sv, Module::Conversion::DEFAULT_OPTIMIZATION);
     std::unique_ptr<Module::Conversion::Parameter> param;
-    if (mode == "psg"_sv)
+    if (mode == "psg"sv)
     {
       param = std::make_unique<Module::Conversion::PSGConvertParam>(optimization);
     }
-    else if (mode == "zx50"_sv)
+    else if (mode == "zx50"sv)
     {
       param = std::make_unique<Module::Conversion::ZX50ConvertParam>(optimization);
     }
-    else if (mode == "txt"_sv)
+    else if (mode == "txt"sv)
     {
       param = std::make_unique<Module::Conversion::TXTConvertParam>();
     }
-    else if (mode == "debugay"_sv)
+    else if (mode == "debugay"sv)
     {
       param = std::make_unique<Module::Conversion::DebugAYConvertParam>(optimization);
     }
-    else if (mode == "aydump"_sv)
+    else if (mode == "aydump"sv)
     {
       param = std::make_unique<Module::Conversion::AYDumpConvertParam>(optimization);
     }
-    else if (mode == "fym"_sv)
+    else if (mode == "fym"sv)
     {
       param = std::make_unique<Module::Conversion::FYMConvertParam>(optimization);
     }
@@ -216,7 +216,7 @@ namespace
     Convertor(const Parameters::Accessor& params, DisplayComponent& display)
       : Pipe(HolderAndData::Receiver::CreateStub())
     {
-      const auto mode = params.FindString("mode"_sv);
+      const auto mode = params.FindString("mode"sv);
       if (!mode)
       {
         throw Error(THIS_LINE, "Conversion mode is not specified.");

@@ -132,7 +132,7 @@ namespace Sound::Win32
 
   Api::Ptr LoadDynamicApi()
   {
-    auto lib = Platform::SharedLibrary::Load("winmm"_sv);
+    auto lib = Platform::SharedLibrary::Load("winmm"sv);
     return MakePtr<DynamicApi>(std::move(lib));
   }
 }  // namespace Sound::Win32

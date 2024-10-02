@@ -48,7 +48,7 @@ namespace Formats::Packed
       const auto HEADER_FORMAT =
           "'h'r'2"     // ID
           "%x0110001"  // Flag
-          ""_sv;
+          ""sv;
 
       struct FormatHeader
       {
@@ -74,7 +74,7 @@ namespace Formats::Packed
       const auto HEADER_FORMAT =
           "'H'r's't'2"  // ID
           "%00x00xxx"   // Flag
-          ""_sv;
+          ""sv;
 
       struct FormatHeader
       {

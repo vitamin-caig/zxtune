@@ -445,7 +445,7 @@ namespace Module::Xmp
     {
       "DTT"_id
       ,
-      "'D's'k'T"_sv
+      "'D's'k'T"sv
       ,
       &dtt_loader
     },
@@ -456,7 +456,7 @@ namespace Module::Xmp
       "'F'O'R'M"
       "????"
       "'E'M'O'D"
-      ""_sv
+      ""sv
       ,
       &emod_loader
     },
@@ -469,7 +469,7 @@ namespace Module::Xmp
       "14-ff"     //(year-1980)*2
       "00-79"     //cpu and card (really separate)
       "?"
-      ""_sv
+      ""sv
       ,
       &fnk_loader
     },
@@ -479,7 +479,7 @@ namespace Module::Xmp
       ,
       "'G'T'K"
       "00-03"
-      ""_sv
+      ""sv
       ,
       &gtk_loader
     },
@@ -501,7 +501,7 @@ namespace Module::Xmp
       "00-01"   //zero
       "?{128}"  //orders
       "???3c"   //magic
-      ""_sv
+      ""sv
       ,
       &ims_loader
     },
@@ -510,7 +510,7 @@ namespace Module::Xmp
       "LIQ"_id
       ,
       "'L'i'q'u'i'd' 'M'o'd'u'l'e':"
-      ""_sv
+      ""sv
       ,
       &liq_loader
     },
@@ -520,7 +520,7 @@ namespace Module::Xmp
       ,
       "'M'E'D"
       "02"
-      ""_sv
+      ""sv
       ,
       &med2_loader
     },
@@ -530,7 +530,7 @@ namespace Module::Xmp
       ,
       "'M'E'D"
       "03"
-      ""_sv
+      ""sv
       ,
       &med3_loader
     },
@@ -539,7 +539,7 @@ namespace Module::Xmp
       ,
       "'M'E'D"
       "04"
-      ""_sv
+      ""sv
       ,
       &med4_loader
     },
@@ -551,7 +551,7 @@ namespace Module::Xmp
       ,
       "'N'O"
       "0000"
-      ""_sv
+      ""sv
       ,
       &no_loader
     },
@@ -563,7 +563,7 @@ namespace Module::Xmp
       ,
       "'R'T'M'M"
       "20"
-      ""_sv
+      ""sv
       ,
       &rtm_loader
     },
@@ -578,7 +578,7 @@ namespace Module::Xmp
       "00?"              //BE number of samples (assume 255 is enough)
       "0001-80"          //BE count of positions (1-128)
       "0001-80"          //BE count of saved patterns (1-128)
-      ""_sv
+      ""sv
       ,
       &stim_loader
     },
@@ -599,7 +599,7 @@ namespace Module::Xmp
       "?{32}"
       //+60
       "'S'C'R'M"
-      ""_sv
+      ""sv
       ,
       &stx_loader
     },
@@ -609,7 +609,7 @@ namespace Module::Xmp
       "TCB"_id
       ,
       "'A'N' 'C'O'O'L('.|'!)"
-      ""_sv
+      ""sv
       ,
       &tcb_loader
     },

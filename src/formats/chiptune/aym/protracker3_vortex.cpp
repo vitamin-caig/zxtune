@@ -37,21 +37,21 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
 
-    constexpr auto EDITOR = "VortexTracker (Pro Tracker v{}.{})"_sv;
+    constexpr auto EDITOR = "VortexTracker (Pro Tracker v{}.{})"sv;
 
     namespace Headers
     {
-      const auto MODULE = "Module"_sv;
-      const auto ORNAMENT = "Ornament"_sv;
-      const auto SAMPLE = "Sample"_sv;
-      const auto PATTERN = "Pattern"_sv;
+      const auto MODULE = "Module"sv;
+      const auto ORNAMENT = "Ornament"sv;
+      const auto SAMPLE = "Sample"sv;
+      const auto PATTERN = "Pattern"sv;
 
-      const auto VERSION = "Version"_sv;
-      const auto TITLE = "Title"_sv;
-      const auto AUTHOR = "Author"_sv;
-      const auto NOTETABLE = "NoteTable"_sv;
-      const auto SPEED = "Speed"_sv;
-      const auto PLAYORDER = "PlayOrder"_sv;
+      const auto VERSION = "Version"sv;
+      const auto TITLE = "Title"sv;
+      const auto AUTHOR = "Author"sv;
+      const auto NOTETABLE = "NoteTable"sv;
+      const auto SPEED = "Speed"sv;
+      const auto PLAYORDER = "PlayOrder"sv;
     }  // namespace Headers
 
     /*
@@ -308,7 +308,7 @@ namespace Formats::Chiptune
         , Valid(false)
       {
         const auto start = '[' + Category;
-        const auto stop = "]"_sv;
+        const auto stop = "]"sv;
         if (hdr.starts_with(start) && hdr.ends_with(stop))
         {
           Valid = true;
@@ -464,7 +464,7 @@ namespace Formats::Chiptune
           Dbg(" {}={}", entry.Name, entry.Value);
           if (Strings::EqualNoCaseAscii(entry.Name, Headers::VERSION))
           {
-            constexpr auto VERSION = "3."_sv;
+            constexpr auto VERSION = "3."sv;
             Require(entry.Value.starts_with(VERSION));
             const String minorVal = entry.Value.substr(VERSION.size());
             const auto minor = Strings::ConvertTo<uint_t>(minorVal);
@@ -674,7 +674,7 @@ namespace Formats::Chiptune
           switch (fields.size())
           {
           case 5:
-            Require(fields[4] == "L"_sv);
+            Require(fields[4] == "L"sv);
             Looped = true;
             [[fallthrough]];
           case 4:
@@ -1207,7 +1207,7 @@ namespace Formats::Chiptune
     };
 
     const Char DESCRIPTION[] = "VortexTracker II";
-    const auto FORMAT = "'['M'o'd'u'l'e']"_sv;
+    const auto FORMAT = "'['M'o'd'u'l'e']"sv;
 
     const std::size_t MIN_SIZE = 256;
 

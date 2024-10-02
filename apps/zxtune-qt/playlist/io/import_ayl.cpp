@@ -242,12 +242,12 @@ namespace
 
     static bool CheckForParametersBegin(StringView line)
     {
-      return line == "<"_sv;
+      return line == "<"sv;
     }
 
     static bool CheckForParametersEnd(StringView line)
     {
-      return line == ">"_sv;
+      return line == ">"sv;
     }
 
     static void SplitParametersString(StringView line, Strings::Map& parameters)
@@ -435,7 +435,7 @@ namespace
   {
     // for AY files FormatSpec is subtune index
     const auto ext = GetExtension(item.Path);
-    if (Strings::EqualNoCaseAscii(ext, "ay"_sv))
+    if (Strings::EqualNoCaseAscii(ext, "ay"sv))
     {
       const auto subPath = Formats::Archived::MultitrackArchives::CreateFilename(formatSpec);
       item.Path = AppendSubpath(item.Path, subPath);
@@ -446,7 +446,7 @@ namespace
   {
     // offset for YM/VTX cannot be applied
     const auto ext = GetExtension(item.Path);
-    if (!Strings::EqualNoCaseAscii(ext, "vtx"_sv) && !Strings::EqualNoCaseAscii(ext, "ym"_sv))
+    if (!Strings::EqualNoCaseAscii(ext, "vtx"sv) && !Strings::EqualNoCaseAscii(ext, "ym"sv))
     {
       assert(offset);
       const auto subPath = ZXTune::Raw::CreateFilename(offset);

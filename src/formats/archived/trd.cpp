@@ -44,7 +44,7 @@ namespace Formats::Archived
         "?"                // deleted files
         "20-7f{8}"         // title
         "000000"           // reserved
-        ""_sv;
+        ""sv;
 
     // hints
     const std::size_t MODULE_SIZE = 655360;

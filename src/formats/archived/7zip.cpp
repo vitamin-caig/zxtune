@@ -53,7 +53,7 @@ namespace Formats::Archived
     const auto FORMAT =
         "'7'z bc af 27 1c"  // signature
         "00 ?"              // version
-        ""_sv;
+        ""sv;
 
     class LzmaContext : private ISzAlloc
     {

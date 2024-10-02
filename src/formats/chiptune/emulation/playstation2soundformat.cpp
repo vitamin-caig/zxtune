@@ -147,7 +147,7 @@ namespace Formats::Chiptune
 
       void Parse(Builder& target)
       {
-        ParseDir(0, "/"_sv, target);
+        ParseDir(0, "/"sv, target);
       }
 
     private:
@@ -218,7 +218,7 @@ namespace Formats::Chiptune
     const auto FORMAT =
         "'P'S'F"
         "02"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

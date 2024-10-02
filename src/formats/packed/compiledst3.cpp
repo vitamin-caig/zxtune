@@ -83,7 +83,7 @@ namespace Formats::Packed
         "22??"  // ld (xxxx),hl
         "22??"  // ld (xxxx),hl
         "23"    // inc hl
-        ""_sv;
+        ""sv;
 
     bool IsInfoEmpty(const RawInformation& info)
     {

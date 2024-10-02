@@ -43,7 +43,7 @@ namespace Formats::Archived
         "????"                                // time
         "%00xxxxxx"                           // attr/0x20
         "00-03"                               // level
-        ""_sv;
+        ""sv;
 
     class InputStreamWrapper
     {

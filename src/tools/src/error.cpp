@@ -18,7 +18,7 @@ namespace
     constexpr auto FORMAT =
         "{0}\n"
         "@{1}\n"
-        "--------\n"_sv;
+        "--------\n"sv;
     return Strings::Format(FORMAT, text, loc);
   }
 }  // namespace

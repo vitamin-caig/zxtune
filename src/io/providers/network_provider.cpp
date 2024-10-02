@@ -204,10 +204,10 @@ namespace IO::Network
   };
 
   // uri-related constants
-  const auto SCHEME_SIGN = "://"_sv;
-  const auto SCHEME_HTTP = "http"_sv;
-  const auto SCHEME_HTTPS = "https"_sv;
-  const auto SCHEME_FTP = "ftp"_sv;
+  const auto SCHEME_SIGN = "://"sv;
+  const auto SCHEME_HTTP = "http"sv;
+  const auto SCHEME_HTTPS = "https"sv;
+  const auto SCHEME_FTP = "ftp"sv;
 
   const Char SUBPATH_DELIMITER = '#';
 

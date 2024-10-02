@@ -25,17 +25,17 @@ namespace Sound::VorbisEnc
 
     StringView Base() const override
     {
-      return "vorbisenc"_sv;
+      return "vorbisenc"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libvorbisenc.so.2"_sv};
+      return {"libvorbisenc.so.2"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libvorbisenc-2.dll"_sv};
+      return {"libvorbisenc-2.dll"sv};
     }
   };
 

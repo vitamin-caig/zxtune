@@ -63,7 +63,7 @@ namespace Formats::Packed
         "10fc"  // djnz xx
         "2b"    // dec hl
         "18cf"  // jr xx
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {

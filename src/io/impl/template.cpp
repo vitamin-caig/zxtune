@@ -36,8 +36,8 @@ namespace IO
     {
       const auto path = Details::FromString(val);
       const auto root = path.root_directory();
-      const auto thisDir = "."_sv;
-      const auto parentDir = ".."_sv;
+      const auto thisDir = "."sv;
+      const auto parentDir = ".."sv;
       String res;
       for (const auto& it : path)
       {

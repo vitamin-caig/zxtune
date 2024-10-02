@@ -33,7 +33,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ChipTracker");
 
-    constexpr auto EDITOR = "Chip Tracker v{}"_sv;
+    constexpr auto EDITOR = "Chip Tracker v{}"sv;
 
     // const std::size_t MAX_MODULE_SIZE = 65536;
     const std::size_t MAX_PATTERN_SIZE = 64;
@@ -459,7 +459,7 @@ namespace Formats::Chiptune
         "(?00-bb?00-bb){16}"  // samples descriptions
         "?{21}"               // uint8_t Reserved[21];
         "(20-7f{8}){16}"      // sample names
-        ""_sv;
+        ""sv;
 
     const Char DESCRIPTION[] = "Chip Tracker";
 

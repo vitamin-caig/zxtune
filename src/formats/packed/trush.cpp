@@ -57,7 +57,7 @@ namespace Formats::Packed
         "01??"         // ld bc,xxxx ;size of body
         "d5"           // push de
         "c3??"         // jp xxxx
-        ""_sv;
+        ""sv;
 
     const std::size_t HEAD_SIZE = 0x27;
 
@@ -100,7 +100,7 @@ namespace Formats::Packed
                 "?"      //ei/nop |         |
                 "?"      //ret    |         | nop
                 */
-        ""_sv;
+        ""sv;
 
     const std::size_t BODY_SIZE = 0xce;
 

@@ -27,12 +27,12 @@ namespace Sound::PulseAudio
 
     StringView Base() const override
     {
-      return "pulse-simple"_sv;
+      return "pulse-simple"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libpulse-simple.so.0"_sv, "libpulse-simple.so.0.1"_sv, "libpulse-simple.so.0.1.0"_sv};
+      return {"libpulse-simple.so.0"sv, "libpulse-simple.so.0.1"sv, "libpulse-simple.so.0.1.0"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override

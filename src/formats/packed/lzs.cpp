@@ -106,7 +106,7 @@ namespace Formats::Packed
                   "?"       // di/ei
                   "c3??"    // jp xxxx (0x0052)
                   */
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {

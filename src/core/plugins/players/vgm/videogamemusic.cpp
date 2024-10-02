@@ -525,15 +525,15 @@ namespace Module::VideoGameMusic
       // clang-format off
         static const PlatformName PLATFORMS[] =
         {
-          {"Sega Master System"_sv, Platforms::SEGA_MASTER_SYSTEM},
-          {"Sega Game Gear"_sv, Platforms::GAME_GEAR},
-          {"Sega Mega Drive"_sv, Platforms::SEGA_GENESIS},
-          {"Sega Genesis"_sv, Platforms::SEGA_GENESIS},
-          {"Sega Game 1000"_sv, Platforms::SG_1000},
-          {"Sega Computer 3000"_sv, Platforms::SEGA_MASTER_SYSTEM},
-          {"Sega System 16"_sv, Platforms::SEGA_MASTER_SYSTEM},
-          {"Coleco"_sv, Platforms::COLECOVISION},
-          {"BBC M"_sv, Platforms::BBC_MICRO},
+          {"Sega Master System"sv, Platforms::SEGA_MASTER_SYSTEM},
+          {"Sega Game Gear"sv, Platforms::GAME_GEAR},
+          {"Sega Mega Drive"sv, Platforms::SEGA_GENESIS},
+          {"Sega Genesis"sv, Platforms::SEGA_GENESIS},
+          {"Sega Game 1000"sv, Platforms::SG_1000},
+          {"Sega Computer 3000"sv, Platforms::SEGA_MASTER_SYSTEM},
+          {"Sega System 16"sv, Platforms::SEGA_MASTER_SYSTEM},
+          {"Coleco"sv, Platforms::COLECOVISION},
+          {"BBC M"sv, Platforms::BBC_MICRO},
         };
       // clang-format on
       for (const auto& pair : PLATFORMS)

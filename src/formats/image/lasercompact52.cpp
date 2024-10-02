@@ -273,7 +273,7 @@ namespace Formats::Image
     const auto FORMAT =
         // Signature
         "'L'C'M'P'5"
-        ""_sv;
+        ""sv;
   }  // namespace LaserCompact52
 
   class LaserCompact52Decoder : public Decoder

@@ -271,9 +271,9 @@ namespace Formats::Chiptune
     const auto FORMAT =
         "'M'T'C'1"
         "00 00-10 ? ?"  // max 1Mb
-        ""_sv;
+        ""sv;
 
-    const auto PROPERTY_DELIMITER = "="_sv;
+    const auto PROPERTY_DELIMITER = "="sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

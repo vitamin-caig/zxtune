@@ -430,7 +430,7 @@ namespace Formats::Chiptune
         // patterns size
         // Real pattern size may be from 01 but I don't know any modules with such patterns size
         "20-40"
-        ""_sv;
+        ""sv;
 
     Formats::Chiptune::Container::Ptr ParseUncompiled(const Binary::Container& rawData, Builder& target)
     {

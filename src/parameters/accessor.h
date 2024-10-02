@@ -70,7 +70,7 @@ namespace Parameters
     return false;
   }
 
-  inline auto GetString(const Accessor& src, Identifier name, StringView defVal = ""_sv)
+  inline auto GetString(const Accessor& src, Identifier name, StringView defVal = ""sv)
   {
     if (auto val = src.FindString(name))
     {

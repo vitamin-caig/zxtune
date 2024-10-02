@@ -249,7 +249,7 @@ namespace Formats::Chiptune
         "'3         |'a"
         "00-04      |'C"
         "00-0a      |00"  // streaminfo metatag
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

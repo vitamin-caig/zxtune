@@ -25,17 +25,17 @@ namespace Sound::Ogg
 
     StringView Base() const override
     {
-      return "ogg"_sv;
+      return "ogg"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libogg.so.0"_sv};
+      return {"libogg.so.0"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libogg-0.dll"_sv};
+      return {"libogg-0.dll"sv};
     }
   };
 

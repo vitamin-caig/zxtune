@@ -34,7 +34,7 @@ namespace Formats::Archived
         "?"          // uint8_t UsedInLastSector;
         "??"         // uint16_t ArchiveSectors;
         "%0000000x"  // uint8_t Catalogue;
-        ""_sv;
+        ""sv;
 
     const std::size_t MAX_MODULE_SIZE = 655360;
 

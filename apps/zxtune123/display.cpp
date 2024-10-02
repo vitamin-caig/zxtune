@@ -45,7 +45,7 @@ namespace
       "Playing: [Fullpath]\n"
       "Type:    [Type]\tContainer: [Container]\tProgram: [Program]\n"
       "Title:   [Title]\n"
-      "Author:  [Author]\n"_sv;
+      "Author:  [Author]\n"sv;
   // Exact type for Strings::Format
   constexpr std::string_view ITEM_INFO_ADDON = "\nTime:    {0}\tLoop duration:  {1}\n\n";
   constexpr std::string_view TRACKING_FORMAT =

@@ -41,7 +41,7 @@ namespace Formats::Image
         "47"      // ld b,a
         "7e"      // ld a,(hl)
         "3045"    // jr nc,xx
-        ""_sv;
+        ""sv;
 
     /*
       @1fc6 48ROM

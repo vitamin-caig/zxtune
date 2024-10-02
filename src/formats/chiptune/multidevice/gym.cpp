@@ -50,7 +50,7 @@ namespace Formats::Chiptune
 
     const auto FORMAT =
         "'G'Y'M'X"  // signature
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

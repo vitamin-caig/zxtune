@@ -312,7 +312,7 @@ namespace Formats::Chiptune
         "?{126}"     // other ptrs
         "20-7f{10}"  // title
         "%xxxxxxx0"  // doubled last position
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

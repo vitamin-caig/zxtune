@@ -25,17 +25,17 @@ namespace Sound::Vorbis
 
     StringView Base() const override
     {
-      return "vorbis"_sv;
+      return "vorbis"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libvorbis.so.0"_sv};
+      return {"libvorbis.so.0"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libvorbis-0.dll"_sv};
+      return {"libvorbis-0.dll"sv};
     }
   };
 

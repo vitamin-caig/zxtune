@@ -933,7 +933,7 @@ namespace Formats::Chiptune
         "?00|60-fb"
         // pattern1 offset minimal
         "?00-01|60-fc"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

@@ -29,7 +29,7 @@ namespace
 
   bool ParseFilename(StringView path, L10n::Translation& trans)
   {
-    const auto& elements = Strings::Split(path, R"(/\)"_sv);
+    const auto& elements = Strings::Split(path, R"(/\)"sv);
     if (elements.size() == PATH_ELEMENTS)
     {
       const auto& filename = elements[FILENAME_POS];

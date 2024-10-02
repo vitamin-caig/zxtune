@@ -32,7 +32,7 @@ namespace Module::XSF
   public:
     explicit FilePath(StringView str)
     {
-      const auto& elements = Strings::Split(str, R"(/\)"_sv);
+      const auto& elements = Strings::Split(str, R"(/\)"sv);
       Components.assign(elements.begin(), elements.end());
     }
 
@@ -62,7 +62,7 @@ namespace Module::XSF
 
     String ToString() const
     {
-      return Strings::Join(Components, "/"_sv);
+      return Strings::Join(Components, "/"sv);
     }
 
   private:
@@ -131,7 +131,7 @@ namespace Module::XSF
 
     void SetTag(String name, String value) override
     {
-      if (name == "_refresh"_sv)
+      if (name == "_refresh"sv)
       {
         GetMeta().RefreshRate = Strings::ConvertTo<uint_t>(value);
       }

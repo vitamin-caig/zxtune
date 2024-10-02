@@ -1125,7 +1125,7 @@ namespace Formats::Chiptune
         "(?05-2d|66-ff){33}"  // ornaments
         "00-1f?"              // at least one position
         "ff|00-1f"            // next position or end
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

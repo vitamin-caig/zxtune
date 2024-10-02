@@ -32,7 +32,7 @@ namespace Formats::Packed
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
     const Char DESCRIPTION[] = "Hrust v1.x";
-    const auto FORMAT = "'H'R"_sv;
+    const auto FORMAT = "'H'R"sv;
 
     struct RawHeader
     {

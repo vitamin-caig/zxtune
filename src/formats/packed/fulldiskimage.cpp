@@ -208,7 +208,7 @@ namespace Formats::Packed
         "%0000000x"  // uint8_t ReadOnly;
         "28-64 00"   // uint16_t Cylinders;
         "01-02 00"   // uint16_t Sides;
-        ""_sv;
+        ""sv;
   }  // namespace FullDiskImage
 
   class FullDiskImageDecoder : public Decoder

@@ -90,7 +90,7 @@ namespace Formats::Packed
         "d1"      // pop de
         "e1"      // pop hl
         "22??"    // ld (xxxx),hl
-        ""_sv;
+        ""sv;
 
     uint_t GetPatternsCount(const RawHeader& hdr, std::size_t maxSize)
     {

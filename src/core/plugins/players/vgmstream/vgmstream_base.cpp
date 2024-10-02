@@ -799,7 +799,7 @@ namespace Module::VGMStream
       "'A'F'S'2"           // +0
       "?{4}"               // +4
       "01-ff 000000"       // +8 le32 subsongs count, assume 1..255
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     {
@@ -807,20 +807,20 @@ namespace Module::VGMStream
       "'C'P'K' "           // +0
       "?{12}"              // +4
       "'@'U'T'F"           // +10
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // AAX, ~5.3k
     {
       "AAX"_id, "CRI AAX", ".aax",
       "'@'U'T'F"         // +0 sign
-      ""_sv
+      ""sv
     },
     // ACB, ~3.7k
     {
       "ACB"_id, "CRI Atom Cursheet Binary", ".acb",
       "'@'U'T'F"           // +0
-      " "_sv,              // <- to not to confuse with AAX format
+      " "sv,              // <- to not to confuse with AAX format
       PluginType::MULTITRACK
     },
     // AIX, ~2.3k
@@ -830,7 +830,7 @@ namespace Module::VGMStream
       "????"                 // +4
       "01 00 00 14"          // +8
       "00 00 08 00"          // +c
-      ""_sv
+      ""sv
     },
     // AHX, ~90 requires MPEG_DECODER
     {
@@ -853,7 +853,7 @@ namespace Module::VGMStream
       "CSTM"_id, "Nintendo CSTM", ".bcstm",
       "'C'S'T'M"        // +0 sign
       "ff fe"           // +4 BOM
-      ""_sv
+      ""sv
     },
     // STRM, ~14.4k
     {
@@ -876,14 +876,14 @@ namespace Module::VGMStream
       "RSTM"_id, "Nintendo RSTM", ".brstm", // also .brstmspm, but only one example at joshw
       "'R'S'T'M"         // +0 sign
       "feff 00|01 01|00" // +4
-      ""_sv
+      ""sv
     },
     // FSTM, ~10.8k
     {
       "FSTM"_id, "Nintendo FSTM", ".bfstm",
       "'F'S'T'M"        // +0 sign
       "fe|ff ff|fe"     // +4 BOM
-      ""_sv
+      ""sv
     },
     // DSP, ~10.4k, more strict checks
     {
@@ -897,7 +897,7 @@ namespace Module::VGMStream
       "000000 00|02"           // +18 initial offset 0/2
       "?{32}"                  // +1c
       "0000"                   // +3c gain
-      ""_sv
+      ""sv
     },
     {
       "DSP"_id, "Nintendo ADPCM (LE)", ".adpcm",
@@ -910,7 +910,7 @@ namespace Module::VGMStream
       "00|02 000000"           // +18 le initial offset 0/2
       "?{32}"                  // +1c
       "0000"                   // +3c gain
-      ""_sv
+      ""sv
     },
     // CWAV, ~6.9k
     {
@@ -918,7 +918,7 @@ namespace Module::VGMStream
       "'C'W'A'V"                // +0 signature
       "fffe4000"                // +4
       "00 00-01 00-01 02"
-      ""_sv
+      ""sv
     },
     // ADP, ~3k
     {
@@ -931,7 +931,7 @@ namespace Module::VGMStream
       "00-3c"                   // +3 == +1
       "?{28}"                   // +4  total x20
       "){10}"
-      ""_sv
+      ""sv
     },
     // BWAV, ~2.9k
     {
@@ -946,7 +946,7 @@ namespace Module::VGMStream
       "FWAV"_id, "Nintendo FWAV", ".fwav", // also .bfwav,.bfwavnsmbu
       "'F'W'A'V"        // +0 sign
       "fe|ff ff|fe"     // +4 BOM
-      ""_sv
+      ""sv
     },
     // SWAV, ~1.8k
     {
@@ -964,14 +964,14 @@ namespace Module::VGMStream
       "RWAV"_id, "Nintendo RWAV", ".rwav",
       "'R'W'A'V"                // +0 signature
       "feff0102"                // +4
-      ""_sv
+      ""sv
     },
     // THP, ~1k
     {
       "THP"_id, "Nintendo THP", ".thp",
       "'T'H'P 00"      // +0
       "0001 00|10 00"  // +4 version
-      ""_sv
+      ""sv
     },
     // OPUS, ~650 init_vgmstream_opus with offset=0
     {
@@ -990,7 +990,7 @@ namespace Module::VGMStream
       "????"                             // +4 rest size
       "00 00|01"                         // +8 be codec
       // other fields are really endian-dependent
-      ""_sv
+      ""sv
     },
 
     //Sony
@@ -1010,13 +1010,13 @@ namespace Module::VGMStream
       "????"
       "'C'D'X'A"
       "'f'm't' "
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     {
       "XA"_id, "Sony XA (raw)", ".xa",
       "00ff{10}00"
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // VAG, ~13.6k - also filename-based quirks
@@ -1027,13 +1027,13 @@ namespace Module::VGMStream
       "'G|'A"
       "'A|'G"
       "'V|'1|'2|'i|'p|'V"
-      ""_sv
+      ""sv
     },
     // XVAG, ~4.6k
     {
       "XVAG"_id, "Sony XVAG", ".xvag",
       "'X'V'A'G"        // +0
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // MSF, ~3.6k
@@ -1063,7 +1063,7 @@ namespace Module::VGMStream
       "'R'X'W'S"        // +0
       "?{12}"           // +4
       "'F'O'R'M"        // +10
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     {
@@ -1089,14 +1089,14 @@ namespace Module::VGMStream
       "BNK"_id, "Sony BNK (LE)", ".bnk",
       "03000000"                     // +0
       "02|03 000000"                 // +4
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     {
       "BNK"_id, "Sony BNK (BE)", ".bnk",
       "00000003"                    // +0
       "000000 02|03"                // +4
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
 
@@ -1110,7 +1110,7 @@ namespace Module::VGMStream
       "'A|'W"
       "'V|'M"
       "'E|'A"
-      ""_sv
+      ""sv
     },
     // BNK, ~160
     {
@@ -1119,7 +1119,7 @@ namespace Module::VGMStream
       "'K|'K"
       "'B|'H"
       "'K|'D"
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
 
@@ -1131,7 +1131,7 @@ namespace Module::VGMStream
       "'H|'E|'F|'G|'D|'I|'S|'E|'M|'R|'J|'J|'P|'B"
       "'l|'N|'R|'E|'E|'T|'P|'S|'X|'U|'A|'P|'L|'R"
       //"????"              // +4 header size
-      ""_sv
+      ""sv
     },
     // SNR, ~4.5k
     {
@@ -1146,7 +1146,7 @@ namespace Module::VGMStream
       // 1 bit loop flag
       // 29 bits samples count
       "%00xxxxxx|%01xxxxxx|%10xxxxxx"
-      ""_sv,
+      ""sv,
       // Too weak signature, if multifile, may hide another formats
       //PluginType::MULTIFILE  // <- usually additional file name depends on base one
     },
@@ -1159,7 +1159,7 @@ namespace Module::VGMStream
       "???"
       // tt l samples29...
       "%00xxxxxx|%01xxxxxx|%10xxxxxx"
-      ""_sv
+      ""sv
     },
     // SNU, ~900
     /*{ TODO: enable after fix in hanging calculate_eaac_size
@@ -1176,7 +1176,7 @@ namespace Module::VGMStream
       // 1 bit loop flag
       // 29 bits samples count
       "%00xxxxxx|%01xxxxxx|%10xxxxxx"
-      ""_sv
+      ""sv
     },*/
     // MPF, ~480 - multitrack+multifile
     /*{
@@ -1185,13 +1185,13 @@ namespace Module::VGMStream
       "'F|'D"
       "'D|'F"
       "'x|'P"
-      ""_sv
+      ""sv
     },*/
     // BNK, ~300
     {
       "BNK"_id, "Electronic Arts BNK", ".bnk",
       "'B'N'K 'l|'b"         // +0
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
 
@@ -1201,7 +1201,7 @@ namespace Module::VGMStream
       "M4A"_id, "Apple QuickTime Container", ".m4a",
       "000000?"                   // +0
       "'f't'y'p"                  // +4
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // AIFF, ~2k
@@ -1210,7 +1210,7 @@ namespace Module::VGMStream
       "'F'O'R'M"       // +0
       "????"           // +4
       "'A'I'F'F"       // +8
-      ""_sv
+      ""sv
     },
     // AIFC, ~1.3k
     {
@@ -1218,14 +1218,14 @@ namespace Module::VGMStream
       "'F'O'R'M"       // +0
       "????"           // +4
       "'A'I'F'C"       // +8
-      ""_sv
+      ""sv
     },
     // CAF, ~620
     {
       "CAF"_id, "Apple Core Audio Format File", ".caf",
       "'c'a'f'f"       // +0
       "00010000"       // +4
-      ""_sv
+      ""sv
     },
 
     //Ubisoft
@@ -1237,7 +1237,7 @@ namespace Module::VGMStream
       "1b   |1f      |21|22         |23|25         |27|28"
       "01|02|00      |00|00|ff      |00|01         |01|03"
       "00   |08|10|11|0c|0d|15|1b|1e|08|08|0a|19|1d|02|03"
-      ""_sv,
+      ""sv,
       PluginType::MULTIFILE
     },
     // RAK, ~3.5k TODO: merge after parallel formats implementation
@@ -1246,7 +1246,7 @@ namespace Module::VGMStream
       "'R'A'K'I"                  // +0
       "?{28}"                     // +4
       "'f'm't' "                  // +20
-      ""_sv
+      ""sv
     },
     {
       "RAK"_id, "Ubisoft RAKI (modified)", ".rak",
@@ -1254,7 +1254,7 @@ namespace Module::VGMStream
       "'R'A'K'I"                  // +0+4
       "?{28}"                     // +4+4
       "'f'm't' "                  // +20+4
-      ""_sv
+      ""sv
     },
     // LWAV, LyN ~1.7k, Jade ~840
     {
@@ -1262,7 +1262,7 @@ namespace Module::VGMStream
       "'R'I'F'F"       // +0
       "????"           // +4
       "'W'A'V'E"       // +8
-      ""_sv
+      ""sv
     },
     {
       "LWAV"_id, "Ubisoft LyN", ".lwav",
@@ -1270,7 +1270,7 @@ namespace Module::VGMStream
       "?{16}"           // +4
       "'R'I'F'F"        // +14
       "'W'A'V'E"        // +18
-      ""_sv
+      ""sv
     },
     // CKD, ~1k, endian-dependend fields
     {
@@ -1281,7 +1281,7 @@ namespace Module::VGMStream
       "?{8}"            // +c
       "00   |01| 02|55|66" // +14 BE+LE
       "02|55|66| 00   |01"
-      ""_sv
+      ""sv
     },
 
     //Konami
@@ -1312,7 +1312,7 @@ namespace Module::VGMStream
       "IFS"_id, "Konami Arcade Games Container", ".ifs",
       "6cad8f89"        // +0
       "0003"            // +4
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // SVAG, ~1k
@@ -1332,7 +1332,7 @@ namespace Module::VGMStream
       "????"                 // +24
       "'W'A'V'E"             // +28
       "'f'm't' "             // +2c
-      ""_sv
+      ""sv
     },
     // KCEY, ~200
     {
@@ -1357,7 +1357,7 @@ namespace Module::VGMStream
     {
       "KVS"_id, "Koei Tecmo KVS", ".kvs",
       "'K'O'V'S"
-      ""_sv
+      ""sv
     },
     // KTSS, ~2.5k
     {
@@ -1396,7 +1396,7 @@ namespace Module::VGMStream
     {
       "SAB"_id, "Square Enix SAB", ".sab",
       "'s'a'b'f"       // +0
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // AKB, ~2.1k
@@ -1413,7 +1413,7 @@ namespace Module::VGMStream
     {
       "MAB"_id, "Square Enix MAB", ".mab",
       "'m'a'b'f"       // +0
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // AKB, ~1k
@@ -1422,14 +1422,14 @@ namespace Module::VGMStream
       "'A'K'B'2"        // +0
       "?{8}"            // +4
       "01|02"           // +c table count
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // SCD, ~980
     {
       "SCD"_id, "Square Enix SCD", ".scd",
       "'S'E'D'B'S'S'C'F"   // +0
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // BGW, ~330
@@ -1437,7 +1437,7 @@ namespace Module::VGMStream
       "BGW"_id, "Square Enix BGW", ".bgw",
       "'B'G'M'S't'r'e'a'm 000000" // +0
       "00|03 000000"              // +c codec
-      ""_sv
+      ""sv
     },
 
     //Namco
@@ -1450,7 +1450,7 @@ namespace Module::VGMStream
       "'I'D'S'P"          // +0+188
       "????"              // +4+188
       "00 00 00 01-08"    // +8+188, channels
-      ""_sv
+      ""sv
     },
     // NPS, ~770
     {
@@ -1494,7 +1494,7 @@ namespace Module::VGMStream
       "'N'U'S'3"          // +0
       "????"              // +4
       "'B'A'N'K'T'O'C' "  // +8
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     {
@@ -1506,7 +1506,7 @@ namespace Module::VGMStream
       "00   |00"
       // +4
       "00000000"
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
 
@@ -1542,7 +1542,7 @@ namespace Module::VGMStream
     {
       "DSPW"_id, "Capcom DSPW", ".dspw",
       "'D'S'P'W"        // +0
-      ""_sv
+      ""sv
     },
     // DVI, ~100
     {
@@ -1561,7 +1561,7 @@ namespace Module::VGMStream
       "0000 1f-bb ?" // +0
       "?{8}"         // +4
       "000000 01-08" // +c
-      ""_sv
+      ""sv
     },
     {
       "MUL"_id, "Crystal Dynamics MUL (BE)", ".mul",
@@ -1570,7 +1570,7 @@ namespace Module::VGMStream
       "? 1f-bb 0000" // +0
       "?{8}"         // +4
       "01-08 000000" // +c
-      ""_sv
+      ""sv
     },
 
     //Microsoft
@@ -1578,7 +1578,7 @@ namespace Module::VGMStream
     {
       "XMA"_id, "Microsoft XMA", ".xma",
       "'R'I'F'F"         // +0
-      ""_sv
+      ""sv
     },
     // XWB, ~8.5k
     {
@@ -1588,7 +1588,7 @@ namespace Module::VGMStream
       "'B|'N"
       "'N|'B"
       "'D|'W"
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // XWM, ~900
@@ -1597,7 +1597,7 @@ namespace Module::VGMStream
       "'R'I'F'F"          // +0
       "????"              // +4
       "'X'W'M'A"          // +8
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // XNB, ~590
@@ -1605,7 +1605,7 @@ namespace Module::VGMStream
       "XNB"_id, "Microsoft XNA Game Studio XNB", ".xnb",
       "'X'N'B ?"          // +0
       "04|05"             // +4
-      ""_sv,
+      ""sv,
       PluginType::MULTIFILE // also multitrack, but no samples
     },
 
@@ -1618,7 +1618,7 @@ namespace Module::VGMStream
       "'H'E'A'D"           // +8
       "'E'R"               // +c
       "01|02 00"           // +e channels
-      ""_sv
+      ""sv
     },
     // PDT, ~440
     {
@@ -1627,7 +1627,7 @@ namespace Module::VGMStream
       "000000 02|04"       // +4 be 2/4
       "00007d00"           // +8 be 0x7d00
       "000000 02|04"       // +c be 2/04
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // H4M, ~170
@@ -1637,7 +1637,7 @@ namespace Module::VGMStream
       "'3|'5 000000"       // +8
       "?{4}"               // +c
       "00000044"           // +10
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
 
@@ -1654,7 +1654,7 @@ namespace Module::VGMStream
       "?? 00-0f 00"  // +8 le frames up to 0x100000
       "?{28}"        // +c
       "01-ff 000000" // +28 le total subsongs 1..255
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // SMK, ~190
@@ -1663,7 +1663,7 @@ namespace Module::VGMStream
       "'S'M'K '2|'4"   // +0
       "?{8}"           // +4
       "?? 00-0f 00"    // +c le frames up to 0x100000
-      ""_sv
+      ""sv
       //PluginType::MULTITRACK <- really no multitrack samples...
     },
 
@@ -1701,7 +1701,7 @@ namespace Module::VGMStream
       "0a|00"        // +18
       "0000"
       "00|0a"
-      ""_sv
+      ""sv
     },
 
     //Retro Studios
@@ -1711,7 +1711,7 @@ namespace Module::VGMStream
       "'R'F'R'M"               // +0
       "?{16}"                  // +4
       "'C'S'M'P"               // +14
-      ""_sv
+      ""sv
     },
     // DSP, ~150
     {
@@ -1743,7 +1743,7 @@ namespace Module::VGMStream
       "00|03|04|05"          // +8 be/le 3/4/5
       "0000"
       "00|03|04|05"
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     {
@@ -1751,7 +1751,7 @@ namespace Module::VGMStream
       "'W'A'V'E"             // +0
       "0000004c"             // +4
       // "DATA" @ 4c
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
 
@@ -1760,7 +1760,7 @@ namespace Module::VGMStream
     {
       "FSB"_id, "FMOD Sample Bank (v1-v5)", ".fsb",
       "'F'S'B '1-'5"               // +0 sign
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // GENH, ~15.3k
@@ -1791,19 +1791,19 @@ namespace Module::VGMStream
     {
       "IDSP"_id, "Various IDSP", ".idsp",
       "'I'D'S'P"          // +0
-      ""_sv
+      ""sv
     },
     // ACM, ~3.1k
     {
       "ACM"_id, "InterPlay ACM", ".acm",
       "97 28 03 01"               // +0
-      ""_sv
+      ""sv
     },
     // OPUS, ~3k
     {
       "OPUS"_id, "Various OPUS containers", ".opus",
       "'O'P'U'S"    // +0
-      ""_sv
+      ""sv
     },
     // XA, ~2.8k conflicts with 'Nintendo ADPCM (LE)'
     {
@@ -1828,14 +1828,14 @@ namespace Module::VGMStream
       "'M'U'S'X"       // +0
       "????"           // +4
       "01|c9|04-06|0a" // +8 version
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // RPGMVO, ~1.7k
     {
       "RPGMVO"_id, "Encrypted OGG Vorbis", ".rpgmvo",
       "'R'P'G'M'V 000000" // +0
-      ""_sv
+      ""sv
     },
     {
       "LOGG"_id, "Encrypted OGG Vorbis", ".logg",
@@ -1843,7 +1843,7 @@ namespace Module::VGMStream
       "44|32|86|75"
       "44|53|86|6f"
       "30|44|c5|71"
-      ""_sv
+      ""sv
     },
     {
       "LOGG"_id, "Corrupted OGG Vorbis", ".logg",
@@ -1854,7 +1854,7 @@ namespace Module::VGMStream
       "00-52|54-ff"  // !'S
       "?{54}"
       "'O'g'g'S"     // +3a
-      ""_sv
+      ""sv
     },
     // OPUS, ~1.7k
     {
@@ -1862,7 +1862,7 @@ namespace Module::VGMStream
       "'O'g'g'S"     // +0
       "?{24}"        // +4
       "'O'p'u's'H'e'a'd" // +1c assume one-lace first page
-      ""_sv
+      ""sv
     },
     // RWS, ~1.7k
     {
@@ -1871,7 +1871,7 @@ namespace Module::VGMStream
       "????"           // +4 file size
       "????"           // +8
       "0e080000"       // +c
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // XWC, ~1400
@@ -1885,7 +1885,7 @@ namespace Module::VGMStream
       "90"
       "00"
       "00"
-      ""_sv
+      ""sv
     },
     // AUD (new), ~1.2k
     {
@@ -1937,7 +1937,7 @@ namespace Module::VGMStream
       "'D|'A"
       "'A|'D"
       "'T|'A"
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // ZSS, ~800
@@ -1949,7 +1949,7 @@ namespace Module::VGMStream
       "'C|'B|'S|'C"
       "' |'O|'2|'U"
       "' |'X|' |'B"
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // SEB, ~740
@@ -1967,7 +1967,7 @@ namespace Module::VGMStream
       "'s|'b|'i|'c|'b"
       "'2|'x|'i|'_|'3"
       "00"
-      ""_sv
+      ""sv
     },
     // WAVE, ~660
     {
@@ -1977,7 +1977,7 @@ namespace Module::VGMStream
       "ec|b7"
       "fe|e5"
       "00|01 ???"                // +4 version
-      ""_sv
+      ""sv
     },
     // IMUSE, ~650
     {
@@ -1986,7 +1986,7 @@ namespace Module::VGMStream
       "'O|'C"
       "'M"
       "'P"
-      ""_sv
+      ""sv
     },
     // VGS, ~650
     {
@@ -2017,7 +2017,7 @@ namespace Module::VGMStream
       // v1 "DIR "@0x30
       // v2 no stable parts
       // v3 no stable parts
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // NWA, ~540
@@ -2040,7 +2040,7 @@ namespace Module::VGMStream
       "NXA"_id, "Entergram NXA", ".nxa",
       "'N'X'A'1"             // +0
       "01|02 000000"         // +4 type
-      ""_sv
+      ""sv
     },
     // STR, ~500
     {
@@ -2058,7 +2058,7 @@ namespace Module::VGMStream
       "'I'K'M 00"             // +0
       "?{28}"                 // +4
       "00|01|03 000000"       // +20
-      ""_sv
+      ""sv
     },
     // NXOPUS, ~400
     {
@@ -2092,7 +2092,7 @@ namespace Module::VGMStream
     {
       "VXN"_id, "Gameloft VXN", ".vxn",
       "'V'o'x'N"            // +0
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // GCA, ~260
@@ -2139,7 +2139,7 @@ namespace Module::VGMStream
       "02|00"
       "00|08"
       "00|00"
-      ""_sv
+      ""sv
     },
     // SADL, ~230
     {
@@ -2147,7 +2147,7 @@ namespace Module::VGMStream
       "'s'a'd'l"                      // +0
       "?{47}"                         // +4
       "%0000xxxx|%0111xxxx|%1011xxxx" // +33 flags
-      ""_sv
+      ""sv
     },
     // ADS, ~220
     {
@@ -2168,7 +2168,7 @@ namespace Module::VGMStream
       "'T|'N|'H"
       "'R|'D|'D"
       "'L|'S|'R"
-      ""_sv
+      ""sv
     },
     // CKS, ~180
     {
@@ -2185,7 +2185,7 @@ namespace Module::VGMStream
     {
       "CAF"_id, "tri-Crescendo CAF", ".caf",
       "'C'A'F' "               // +0
-      ""_sv
+      ""sv
     },
     // ISD, ~170
     {
@@ -2194,7 +2194,7 @@ namespace Module::VGMStream
       "67|e7|a7"
       "87|87|47"
       "53|d3|53"
-      ""_sv
+      ""sv
     },
     // YDSP, ~170
     {
@@ -2231,14 +2231,14 @@ namespace Module::VGMStream
       "ADP"_id, "Xilam DERF", ".adp",
       "'D'E'R'F"              // +0
       "01|02 000000"          // +4 le channels, up to 2
-      ""_sv
+      ""sv
     },
     // SDF, ~45
     {
       "SDF"_id, "Beyond Reality SDF", ".sdf",
       "'S'D'F 00"                     // +0
       "03000000"                      // +4
-      ""_sv
+      ""sv
     },
     // ZSD, ~40
     {
@@ -2256,7 +2256,7 @@ namespace Module::VGMStream
       "'F|'t"
       "'D|'x"
       "'L|'s"
-      ""_sv
+      ""sv
     },
 
     //  FFMPEG-based
@@ -2264,33 +2264,33 @@ namespace Module::VGMStream
     {
       "APE"_id, "Monkey's Audio", ".ape",
       "'M'A'C' "            // +0
-      ""_sv
+      ""sv
     },
     // ASF, ~10k - TODO: multitrack
     {
       "ASF"_id, "Windows Media Audio", ".asf",
       "30 26 B2 75 8E 66 CF 11 A6 D9 00 AA 00 62 CE 6C" // +0 asf guid
-      ""_sv,
+      ""sv,
       PluginType::MULTITRACK
     },
     // TAK, ~7.8k
     {
       "TAK"_id, "Tom's lossless Audio Kompressor", ".tak",
       "'t'B'a'K"      // +0
-      ""_sv
+      ""sv
     },
     // AAC, ~4k
     {
       "AAC"_id, "Advanced Audio Coding (raw ADTS)", ".aac",
       // https://wiki.multimedia.cx/index.php/ADTS
       "%11111111 %1111x00x" // +0 w & 0xfff6 == 0xfff0
-      ""_sv
+      ""sv
     },
     // OMA, ~2.5k
     {
       "OMA"_id, "Sony OpenMG audio", ".oma",
       "'e'a'3"
-      ""_sv
+      ""sv
     },
     // MPC, ~2k
     {
@@ -2299,7 +2299,7 @@ namespace Module::VGMStream
       "'P"
       "'+   |'C"
       "07|17|'K"
-      ""_sv
+      ""sv
     },
     // AC3, ~650
     {
@@ -2313,7 +2313,7 @@ namespace Module::VGMStream
       // bitstream id5 0..10 (normal ac3) mode3 any
       // %00000xxx-%01010xxx
       "00-57"
-      ""_sv
+      ""sv
     },
 
     //Unsupported

@@ -25,17 +25,17 @@ namespace Sound::Flac
 
     StringView Base() const override
     {
-      return "FLAC"_sv;
+      return "FLAC"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libFLAC.so.7"_sv, "libFLAC.so.8"_sv};
+      return {"libFLAC.so.7"sv, "libFLAC.so.8"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libFLAC.dll"_sv};
+      return {"libFLAC.dll"sv};
     }
   };
 

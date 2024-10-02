@@ -58,55 +58,55 @@ namespace
       const Identifier zeroId = zero;
       Test("zero.IsEmpty", zeroId.IsEmpty(), true);
       Test("zero.IsPath", zeroId.IsPath(), false);
-      Test("zero.Name()", zeroId.Name(), ""_sv);
-      Test("zero.RelativeTo(zero)", zeroId.RelativeTo(zero), ""_sv);
-      Test("zero.RelativeTo(one)", zeroId.RelativeTo(one), ""_sv);
-      Test("zero.RelativeTo(two)", zeroId.RelativeTo(two), ""_sv);
-      Test("zero.RelativeTo(three)", zeroId.RelativeTo(three), ""_sv);
-      Test("zero.Append(one)", zeroId.Append(one), "one"_sv);
+      Test("zero.Name()", zeroId.Name(), ""sv);
+      Test("zero.RelativeTo(zero)", zeroId.RelativeTo(zero), ""sv);
+      Test("zero.RelativeTo(one)", zeroId.RelativeTo(one), ""sv);
+      Test("zero.RelativeTo(two)", zeroId.RelativeTo(two), ""sv);
+      Test("zero.RelativeTo(three)", zeroId.RelativeTo(three), ""sv);
+      Test("zero.Append(one)", zeroId.Append(one), "one"sv);
     }
 
     {
       const Identifier oneId = one;
       Test("one.IsEmpty", oneId.IsEmpty(), false);
       Test("one.IsPath", oneId.IsPath(), false);
-      Test("one.Name()", oneId.Name(), "one"_sv);
-      Test("one.RelativeTo(zero)", oneId.RelativeTo(zero), ""_sv);
-      Test("one.RelativeTo(one)", oneId.RelativeTo(one), ""_sv);
-      Test("one.RelativeTo(two)", oneId.RelativeTo(two), ""_sv);
-      Test("one.RelativeTo(three)", oneId.RelativeTo(three), ""_sv);
-      Test("one + one", one + one, "one.one"_sv);
-      Test("one + two", one + two, "one.one.two"_sv);
-      Test("one + three", one + three, "one.one.two.three"_sv);
-      Test("one.Append(zero)", oneId.Append(zero), "one"_sv);
+      Test("one.Name()", oneId.Name(), "one"sv);
+      Test("one.RelativeTo(zero)", oneId.RelativeTo(zero), ""sv);
+      Test("one.RelativeTo(one)", oneId.RelativeTo(one), ""sv);
+      Test("one.RelativeTo(two)", oneId.RelativeTo(two), ""sv);
+      Test("one.RelativeTo(three)", oneId.RelativeTo(three), ""sv);
+      Test("one + one", one + one, "one.one"sv);
+      Test("one + two", one + two, "one.one.two"sv);
+      Test("one + three", one + three, "one.one.two.three"sv);
+      Test("one.Append(zero)", oneId.Append(zero), "one"sv);
     }
 
     {
       const Identifier twoId = two;
       Test("two.IsEmpty", twoId.IsEmpty(), false);
       Test("two.IsPath", twoId.IsPath(), true);
-      Test("two.Name()", twoId.Name(), "two"_sv);
-      Test("two.RelativeTo(zero)", twoId.RelativeTo(zero), ""_sv);
-      Test("two.RelativeTo(one)", twoId.RelativeTo(one), "two"_sv);
-      Test("two.RelativeTo(two)", twoId.RelativeTo(two), ""_sv);
-      Test("two.RelativeTo(three)", twoId.RelativeTo(three), ""_sv);
-      Test("two + one", two + one, "one.two.one"_sv);
-      Test("two + two", two + two, "one.two.one.two"_sv);
-      Test("two + three", two + three, "one.two.one.two.three"_sv);
+      Test("two.Name()", twoId.Name(), "two"sv);
+      Test("two.RelativeTo(zero)", twoId.RelativeTo(zero), ""sv);
+      Test("two.RelativeTo(one)", twoId.RelativeTo(one), "two"sv);
+      Test("two.RelativeTo(two)", twoId.RelativeTo(two), ""sv);
+      Test("two.RelativeTo(three)", twoId.RelativeTo(three), ""sv);
+      Test("two + one", two + one, "one.two.one"sv);
+      Test("two + two", two + two, "one.two.one.two"sv);
+      Test("two + three", two + three, "one.two.one.two.three"sv);
     }
 
     {
       const Identifier threeId = three;
       Test("three.IsEmpty", threeId.IsEmpty(), false);
       Test("three.IsPath", threeId.IsPath(), true);
-      Test("three.Name()", threeId.Name(), "three"_sv);
-      Test("three.RelativeTo(zero)", threeId.RelativeTo(zero), ""_sv);
-      Test("three.IsSubpathOf(one)", threeId.RelativeTo(one), "two.three"_sv);
-      Test("three.IsSubpathOf(two)", threeId.RelativeTo(two), "three"_sv);
-      Test("three.IsSubpathOf(three)", threeId.RelativeTo(three), ""_sv);
-      Test("three + one", three + one, "one.two.three.one"_sv);
-      Test("three + two", three + two, "one.two.three.one.two"_sv);
-      Test("three + three", three + three, "one.two.three.one.two.three"_sv);
+      Test("three.Name()", threeId.Name(), "three"sv);
+      Test("three.RelativeTo(zero)", threeId.RelativeTo(zero), ""sv);
+      Test("three.IsSubpathOf(one)", threeId.RelativeTo(one), "two.three"sv);
+      Test("three.IsSubpathOf(two)", threeId.RelativeTo(two), "three"sv);
+      Test("three.IsSubpathOf(three)", threeId.RelativeTo(three), ""sv);
+      Test("three + one", three + one, "one.two.three.one"sv);
+      Test("three + two", three + two, "one.two.three.one.two"sv);
+      Test("three + three", three + three, "one.two.three.one.two.three"sv);
     }
   }
 

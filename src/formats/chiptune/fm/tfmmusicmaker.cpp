@@ -409,7 +409,7 @@ namespace Formats::Chiptune
     };
 
     // ver1 0.1..0.4/0.5..1.2
-    const StringView Version05::DESCRIPTION = "TFM Music Maker v0.1-1.2"_sv;
+    const StringView Version05::DESCRIPTION = "TFM Music Maker v0.1-1.2"sv;
     const StringView Version05::FORMAT =
         // use more strict detection due to lack of format
         "11-13|21-25|32-35|42-46|52-57|62-68|76-79|87-89|98-9a|a6-a8"
@@ -419,15 +419,15 @@ namespace Formats::Chiptune
         "06-08|86-88"             // creation date year is between 2006 and 2008
         "%00001000-%11111101|80"  // month/2 between 0 and 5, day between 1 and 31
         "06-08|86-88|80"          // save date year is between 2006 and 2008 or saved at 16th (marker,marker)
-        ""_sv;
+        ""sv;
 
-    const StringView Version13::DESCRIPTION = "TFM Music Maker v1.3+"_sv;
+    const StringView Version13::DESCRIPTION = "TFM Music Maker v1.3+"sv;
     const StringView Version13::FORMAT =
         "'T'F'M'f'm't'V'2"  // signature
         "01-0f"             // even speed
         "01-0f|80"          // odd speed or marker
         "01-0f|81-8f"       // interleave or repeat
-        ""_sv;
+        ""sv;
 
     static_assert(sizeof(PackedDate) * alignof(PackedDate) == 2, "Invalid layout");
     static_assert(sizeof(RawInstrument) * alignof(RawInstrument) == 42, "Invalid layout");

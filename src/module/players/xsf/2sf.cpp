@@ -110,7 +110,7 @@ namespace Module::TwoSF
       // TODO: interpolation
       for (const auto& tag : meta.Tags)
       {
-        if (tag.first == "_clockdown"_sv)
+        if (tag.first == "_clockdown"sv)
         {
           clockDown = std::atoi(tag.second.c_str());
         }
@@ -131,19 +131,19 @@ namespace Module::TwoSF
 
     int* FindTagTarget(StringView name)
     {
-      if (name == "_frames"_sv)
+      if (name == "_frames"sv)
       {
         return &State.initial_frames;
       }
-      else if (name == "_vio2sf_sync_type"_sv)
+      else if (name == "_vio2sf_sync_type"sv)
       {
         return &State.sync_type;
       }
-      else if (name == "_vio2sf_arm9_clockdown_level"_sv)
+      else if (name == "_vio2sf_arm9_clockdown_level"sv)
       {
         return &State.arm9_clockdown_level;
       }
-      else if (name == "_vio2sf_arm7_clockdown_level"_sv)
+      else if (name == "_vio2sf_arm7_clockdown_level"sv)
       {
         return &State.arm7_clockdown_level;
       }

@@ -36,7 +36,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProSoundCreator");
 
-    constexpr auto EDITOR = "Pro Sound Creator v{}"_sv;
+    constexpr auto EDITOR = "Pro Sound Creator v{}"sv;
     const Char EDITOR_OLD[] = "Pro Sound Creator v1.00-1.03";
     const Char EDITOR_NEW[] = "Pro Sound Creator v1.04-1.07";
 
@@ -103,7 +103,7 @@ namespace Formats::Chiptune
 
       bool HasAuthor() const
       {
-        const auto BY_DELIMITER = "BY"_sv;
+        const auto BY_DELIMITER = "BY"sv;
         const auto trimId = Strings::TrimSpaces(MakeStringView(Identifier3));
         return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
@@ -1116,7 +1116,7 @@ namespace Formats::Chiptune
         "03-1f"    // uint8_t Tempo;
         "50-9000"  // uint16_t OrnamentsTableOffset;
         "08-cf00"  // first sample
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

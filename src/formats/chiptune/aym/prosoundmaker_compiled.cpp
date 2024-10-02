@@ -1002,7 +1002,7 @@ namespace Formats::Chiptune
         "? 00-04"  // uint16_t OrnamentsOffset;
         // 0x79b + MAX_ORNAMENTS_COUNT(0x20) * (2 + 2 + MAX_ORNAMENT_SIZE(0x22)) = 0xc1b
         "? 00-05"  // uint16_t PatternsOffset;
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

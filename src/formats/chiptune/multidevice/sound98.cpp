@@ -55,7 +55,7 @@ namespace Formats::Chiptune
         "00000000"  // not compressed
         "???00"     // offset to tag
         "??0000"    // offset to data
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -98,10 +98,10 @@ namespace Formats::Chiptune
     namespace Tags
     {
       const uint8_t SIGNATURE[] = {'[', 'S', '9', '8', ']'};
-      const auto TITLE = "title"_sv;
-      const auto ARTIST = "artist"_sv;
-      const auto GAME = "game"_sv;
-      const auto COMMENT = "comment"_sv;
+      const auto TITLE = "title"sv;
+      const auto ARTIST = "artist"sv;
+      const auto GAME = "game"sv;
+      const auto COMMENT = "comment"sv;
 
       bool Match(StringView str, StringView tag)
       {

@@ -52,7 +52,7 @@ namespace Formats::Chiptune
         // version
         "00-09|10-19|20-29|30-39|40-49|50-59|60-69|70-71"
         "01 00 00"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -206,7 +206,7 @@ namespace Formats::Chiptune
         const auto ripper = ReadUTF16Sanitized(input);
         target.SetAuthor(DispatchString(authorEn, DispatchString(authorJa, ripper)));
         const auto comment = ReadUTF16(input);
-        if (const auto splitted = Strings::Split(comment, "\r\n"_sv); !splitted.empty())
+        if (const auto splitted = Strings::Split(comment, "\r\n"sv); !splitted.empty())
         {
           Strings::Array strings(splitted.size());
           std::transform(splitted.begin(), splitted.end(), strings.begin(), &Strings::Sanitize);

@@ -381,7 +381,7 @@ namespace Formats::Packed
                           "?"           // uint8_t Sides;
                           "??"          // uint16_t CRC;
                           */
-        ""_sv;
+        ""sv;
   }  // namespace TeleDiskImage
 
   class TeleDiskImageDecoder : public Decoder

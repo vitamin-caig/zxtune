@@ -42,7 +42,7 @@ namespace Formats::Packed
         "??"          // uint16_t CRC;
         "74"          // uint8_t Type;
         "?%1xxxxxxx"  // uint16_t Flags;
-        ""_sv;
+        ""sv;
 
     class Container
     {

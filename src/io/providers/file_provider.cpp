@@ -113,8 +113,8 @@ namespace IO::File
   };
 
   // uri-related constants
-  const auto SCHEME_SIGN = "://"_sv;
-  const auto SCHEME_FILE = "file"_sv;
+  const auto SCHEME_SIGN = "://"sv;
+  const auto SCHEME_FILE = "file"sv;
   const Char SUBPATH_DELIMITER = '\?';
 
   class FileIdentifier : public Identifier

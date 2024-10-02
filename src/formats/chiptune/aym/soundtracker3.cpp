@@ -700,7 +700,7 @@ namespace Formats::Chiptune
         "?01-08"  // uint16_t SamplesOffset;
         "?01-0a"  // uint16_t OrnamentsOffset;
         "?02-16"  // uint16_t PatternsOffset;
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::SoundTracker::Decoder
     {

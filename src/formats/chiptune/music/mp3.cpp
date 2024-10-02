@@ -32,15 +32,15 @@ namespace Formats::Chiptune
     {
       void ParseKey(StringView key, StringView value, MetaBuilder& target)
       {
-        if (key == "Artist"_sv)
+        if (key == "Artist"sv)
         {
           target.SetAuthor(Strings::Sanitize(value));
         }
-        else if (key == "Title"_sv)
+        else if (key == "Title"sv)
         {
           target.SetTitle(Strings::Sanitize(value));
         }
-        else if (key == "Comment"_sv)
+        else if (key == "Comment"sv)
         {
           target.SetComment(Strings::SanitizeMultiline(value));
         }
@@ -474,7 +474,7 @@ namespace Formats::Chiptune
                                            "%0xxxxxxx"
                                            "%0xxxxxxx"
                                            */
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

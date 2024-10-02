@@ -45,7 +45,7 @@ namespace Formats::Archived
         "00-04"      // minor
         "00-10"      // machineId
         "%0000000x"  // flags
-        ""_sv;
+        ""sv;
 
     struct DataBlockDescription
     {

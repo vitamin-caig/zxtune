@@ -387,7 +387,7 @@ namespace Formats::Archived
         "73"    // uint8_t Type;
         "??"    // uint16_t Flags;
         "0d00"  // uint16_t Size
-        ""_sv;
+        ""sv;
   }  // namespace Rar
 
   class RarDecoder : public Decoder

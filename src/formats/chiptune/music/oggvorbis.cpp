@@ -380,7 +380,7 @@ namespace Formats::Chiptune
         "00{8}"     // position
         "?{4}"      // serial
         "00000000"  // page
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

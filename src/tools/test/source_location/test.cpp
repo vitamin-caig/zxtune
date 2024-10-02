@@ -17,14 +17,14 @@ constexpr const auto SECOND_LINE = ThisLine();  // DO NOT MOVE!!!
 
 int main()
 {
-  static_assert(0 == Debug::Hash(""_sv), "Wrong empty string hash");
-  static_assert(33 * 5381 + 49 == Debug::Hash("1"_sv), "Wrong single char string hash");
-  static_assert(33 * (5381 * 33 + 49) + 65 == Debug::Hash("1A"_sv), "Wrong two chars string hash");
+  static_assert(0 == Debug::Hash(""sv), "Wrong empty string hash");
+  static_assert(33 * 5381 + 49 == Debug::Hash("1"sv), "Wrong single char string hash");
+  static_assert(33 * (5381 * 33 + 49) + 65 == Debug::Hash("1A"sv), "Wrong two chars string hash");
 
   constexpr const auto file = ThisFile();
   std::cout << "ThisFile::Location() = " << file.Location() << std::endl;
   std::cout << "ThisFile::Tag() = " << file.Tag() << std::endl;
-  static_assert(file.Location() == "src/tools/test/source_location/test.cpp"_sv, "Wrong this file name");
+  static_assert(file.Location() == "src/tools/test/source_location/test.cpp"sv, "Wrong this file name");
   static_assert(file.Tag() + 2 == SECOND_LINE.Tag(), "Lines should be numbered from 1");
 
   constexpr const auto line = ThisLine();  // line 30
@@ -44,6 +44,6 @@ int main()
   std::cout << "NestedFunc::Location() = " << nestedFunc.Location() << std::endl;
   std::cout << "NestedFunc::Tag() = " << nestedFunc.Tag() << std::endl;
   static_assert(nestedFunc.Line() == 13, "Wrong nested func line");
-  static_assert(nestedFunc.Location() == "src/tools/test/source_location/nested.h"_sv, "Wrong nested func file name");
+  static_assert(nestedFunc.Location() == "src/tools/test/source_location/nested.h"sv, "Wrong nested func file name");
   return 0;
 }

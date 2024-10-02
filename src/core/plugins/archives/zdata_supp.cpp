@@ -233,7 +233,7 @@ namespace ZXTune::Zdata
 namespace ZXTune::Zdata
 {
   const auto ID = "ZDATA"_id;
-  const auto INFO = "Zdata"_sv;
+  const auto INFO = "Zdata"sv;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::ARCHIVE;
 }  // namespace ZXTune::Zdata
 

@@ -215,7 +215,7 @@ namespace Formats::Chiptune
         "%xxx00000 00-01 0000"  // timediv
         "? 01-ff ? 00"          // maxtime
         "01-06 000000"          // gdnum
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

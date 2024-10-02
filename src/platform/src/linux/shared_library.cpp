@@ -56,7 +56,7 @@ namespace Platform::Details
     void* const Handle;
   };
 
-  const auto SUFFIX = ".so"_sv;
+  const auto SUFFIX = ".so"sv;
 
   String BuildLibraryFilename(StringView name)
   {

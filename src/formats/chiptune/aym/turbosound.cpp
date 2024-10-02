@@ -44,7 +44,7 @@ namespace Formats::Chiptune
         "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
         "?%0xxxxxxx"                     // uint16_t Size2;
         "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
-        ""_sv;
+        ""sv;
 
     class StubBuilder : public Builder
     {

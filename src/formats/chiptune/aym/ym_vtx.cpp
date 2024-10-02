@@ -371,7 +371,7 @@ namespace Formats::Chiptune
         "'Y'M"
         "'2-'6"
         "'!|'b"
-        ""_sv;
+        ""sv;
 
     Formats::Chiptune::Container::Ptr ParsePacked(const Binary::Container& rawData, Builder& target)
     {
@@ -407,7 +407,7 @@ namespace Formats::Chiptune
         "????"        // time+date
         "%00x00xxx"   // attribute
         "00"          // level
-        ""_sv;
+        ""sv;
 
     class YMDecoder : public Formats::Chiptune::YM::Decoder
     {
@@ -645,7 +645,7 @@ namespace Formats::Chiptune
         "??"                          // loop
         "??01-9800"                   // clockrate
         "19-64"                       // intfreq, 25..100Hz
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::YM::Decoder
     {

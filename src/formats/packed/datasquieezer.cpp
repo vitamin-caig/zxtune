@@ -150,7 +150,7 @@ namespace Formats::Packed
                       "d9"        // exx
                       "c9"        // ret
                   */
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {

@@ -100,7 +100,7 @@ namespace Formats::Chiptune
 
       bool HasAuthor() const
       {
-        const auto BY_DELIMITER = "BY"_sv;
+        const auto BY_DELIMITER = "BY"sv;
         const auto trimId = Strings::TrimSpaces(MakeStringView(Identifier2));
         return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
@@ -310,14 +310,14 @@ namespace Formats::Chiptune
     };
 
     const VersionTraits Version0::TRAITS = {255, 0x2400,  //~9k
-                                            "ASC Sound Master v0.x"_sv,
+                                            "ASC Sound Master v0.x"sv,
                                             "03-32"     // tempo
                                             "09-ab 00"  // patterns
                                             "? 00-21"   // samples
                                             "? 00-22"   // ornaments
                                             "01-64"     // length
                                             "00-1f"     // first position
-                                            ""_sv,
+                                            ""sv,
                                             &HeaderTraits::Create<RawHeaderVer0>};
 
     struct Version1
@@ -327,7 +327,7 @@ namespace Formats::Chiptune
     };
 
     const VersionTraits Version1::TRAITS = {256, 0x3a00,  //~15k
-                                            "ASC Sound Master v1.x"_sv,
+                                            "ASC Sound Master v1.x"sv,
                                             "03-32"     // tempo
                                             "00-63"     // loop
                                             "0a-ac 00"  // patterns
@@ -335,7 +335,7 @@ namespace Formats::Chiptune
                                             "? 00-37"   // ornaments
                                             "01-64"     // length
                                             "00-1f"     // first position
-                                            ""_sv,
+                                            ""sv,
                                             &HeaderTraits::Create<RawHeaderVer1>};
 
     class StubBuilder : public Builder

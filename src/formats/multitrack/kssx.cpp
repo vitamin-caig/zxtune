@@ -69,7 +69,7 @@ namespace Formats::Multitrack
         "?"          // extra banks
         "00|0c-10"   // extra header size
         "%0x0xxxxx"  // extra chips
-        ""_sv;
+        ""sv;
 
     const Char DESCRIPTION[] = "KSS Extended Music Format";
 

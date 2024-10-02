@@ -174,7 +174,7 @@ namespace Sound::File
     String ReplaceBackendId(StringView property) const
     {
       // TODO: think about better solution
-      static const auto GENERIC_ID = ".file."_sv;
+      static const auto GENERIC_ID = ".file."sv;
       const auto pos = property.find(GENERIC_ID);
       Require(pos != property.npos);
       auto result = String{property};

@@ -61,7 +61,7 @@ namespace Formats::Multitrack
         "01-ff"  // 1 song minimum
         "01-ff"  // first song
         // do not pay attention to addresses
-        ""_sv;
+        ""sv;
 
     const Char DESCRIPTION[] = "GameBoy Sound";
 

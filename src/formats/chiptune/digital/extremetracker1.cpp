@@ -611,7 +611,7 @@ namespace Formats::Chiptune
         // samples. Hi addr is usually 7e-ff, but some tracks has another values (40)
         "(?? ?? 51|53|54|56|57 00-10 00-7c ? ?{8}){16}"
         // patterns
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

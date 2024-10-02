@@ -448,7 +448,7 @@ namespace Formats::Chiptune
         "ff{10}"
         "????????"  //"ae7eae7e51000000"
         "20{8}"
-        ""_sv;
+        ""sv;
 
     const uint64_t Z80_FREQ = 3500000;
     // step is not changed in AY and SounDrive versions

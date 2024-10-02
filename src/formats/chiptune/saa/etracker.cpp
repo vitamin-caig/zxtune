@@ -893,7 +893,7 @@ namespace Formats::Chiptune
         "(?00-7f)"
         "(?00-7f)"
         "'E'T'r'a'c'k'e'r' '('C')' 'B'Y' 'E'S'I'."
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

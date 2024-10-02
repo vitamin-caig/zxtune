@@ -34,7 +34,7 @@ namespace Formats::Chiptune
         "??"            //+a +b
         "01-04"         // tempo
         "01"            //+d
-        ""_sv;
+        ""sv;
 
     const std::size_t MIN_SIZE = 0x30;
 

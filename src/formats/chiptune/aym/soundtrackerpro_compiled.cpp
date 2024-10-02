@@ -859,7 +859,7 @@ namespace Formats::Chiptune
         "?00-27"  // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
         "?00-27"  // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
         "?00-27"  // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::SoundTrackerPro::Decoder
     {

@@ -517,7 +517,7 @@ namespace Formats::Chiptune
         uint8_t FreeRAM;
         uint8_t Padding3[5];
         */
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

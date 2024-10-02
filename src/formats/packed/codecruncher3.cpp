@@ -137,7 +137,7 @@ namespace Formats::Packed
                     "?"       // ei/nop
                     "c3??"    // jp xxxx
                 */
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {

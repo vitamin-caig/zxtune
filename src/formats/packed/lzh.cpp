@@ -150,7 +150,7 @@ namespace Formats::Packed
       }
     };
 
-    const StringView Version1::DESCRIPTION = "LZH Compressor v1.4"_sv;
+    const StringView Version1::DESCRIPTION = "LZH Compressor v1.4"sv;
     const StringView Version1::DEPACKER_PATTERN =
         "?"     // di/ei
         "21??"  // ld hl,xxxx depacker body src
@@ -181,9 +181,9 @@ namespace Formats::Packed
         "7b"    // ld a,e
         "96"    // sub (hl)
         "6f"    // ld l,a
-        ""_sv;
+        ""sv;
 
-    const StringView Version2::DESCRIPTION = "LZH Compressor v2.4"_sv;
+    const StringView Version2::DESCRIPTION = "LZH Compressor v2.4"sv;
     const StringView Version2::DEPACKER_PATTERN =
         "?"     // di/ei
         "21??"  // ld hl,xxxx depacker body src
@@ -213,7 +213,7 @@ namespace Formats::Packed
         "7b"    // ld a,e
         "96"    // sub (hl)
         "6f"    // ld l,a
-        ""_sv;
+        ""sv;
 
     static_assert(sizeof(Version1::RawHeader) * alignof(Version1::RawHeader) == 0x58, "Invalid layout");
     static_assert(offsetof(Version1::RawHeader, DepackerBody) == 0x17, "Invalid layout");

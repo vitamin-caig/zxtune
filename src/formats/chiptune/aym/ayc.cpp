@@ -91,7 +91,7 @@ namespace Formats::Chiptune
         "01|04 2e00"          // assume first chunk is right after header
         "(01|04 ?00-80){13}"  // no more than 32k
         "ff{6}"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

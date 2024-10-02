@@ -68,7 +68,7 @@ namespace Platform::Version
   String GetProgramVersionString()
   {
     // 1- program name, 2- program version, 3- build date 4- platform, 5- architecture, 6- architecture version
-    constexpr auto PROGRAM_VERSION_STRING = "{} {} {} {}-{} {}"_sv;
+    constexpr auto PROGRAM_VERSION_STRING = "{} {} {} {}-{} {}"sv;
     return Strings::Format(PROGRAM_VERSION_STRING, GetProgramTitle(), GetProgramVersion(), GetBuildDate(),
                            GetBuildPlatform(), GetBuildArchitecture(), GetBuildArchitectureVersion());
   }

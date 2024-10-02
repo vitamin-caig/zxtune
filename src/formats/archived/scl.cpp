@@ -32,7 +32,7 @@ namespace Formats::Archived
     const auto FORMAT =
         "'S'I'N'C'L'A'I'R"
         "01-ff"
-        ""_sv;
+        ""sv;
 
     const std::size_t BYTES_PER_SECTOR = 256;
 

@@ -285,7 +285,7 @@ namespace Formats::Chiptune
         "????"             // data rate
         "??"               // arbitraty block size
         "00|01-20 00"      // 1-32 bits per sample and 0 for special formats
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

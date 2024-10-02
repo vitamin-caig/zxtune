@@ -50,7 +50,7 @@ namespace Formats::Packed
         "16?"     // ld d,xx
         "31??"    // ld sp,xxxx   ;start of moved packed (data = +0x24)
         "c1"      // pop bc
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {

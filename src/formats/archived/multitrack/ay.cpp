@@ -77,7 +77,7 @@ namespace Formats::Archived
 
       File::Ptr FindFile(StringView name) const override
       {
-        const auto rawName = Strings::PrefixedIndex::Parse("@"_sv, name);
+        const auto rawName = Strings::PrefixedIndex::Parse("@"sv, name);
         const auto ayIndex = MultitrackArchives::ParseFilename(name);
         if (!rawName.IsValid() && !ayIndex)
         {
@@ -109,7 +109,7 @@ namespace Formats::Archived
     const auto HEADER_FORMAT =
         "'Z'X'A'Y"  // uint8_t Signature[4];
         "'E'M'U'L"  // only one type is supported now
-        ""_sv;
+        ""sv;
   }  // namespace MultiAY
 
   class MultiAYDecoder : public Decoder

@@ -212,7 +212,7 @@ namespace Formats::Chiptune
         "??"        // misc offset
         "00"        // first module
         "00"        // last module
-        ""_sv;
+        ""sv;
 
     const Char DESCRIPTION[] = "AY/EMUL";
 

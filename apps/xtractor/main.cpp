@@ -658,11 +658,11 @@ namespace
 
 namespace
 {
-  const auto TEMPLATE_FIELD_FILENAME = "Filename"_sv;
-  const auto TEMPLATE_FIELD_PATH = "Path"_sv;
-  const auto TEMPLATE_FIELD_FLATPATH = "FlatPath"_sv;
-  const auto TEMPLATE_FIELD_SUBPATH = "Subpath"_sv;
-  const auto TEMPLATE_FIELD_FLATSUBPATH = "FlatSubpath"_sv;
+  const auto TEMPLATE_FIELD_FILENAME = "Filename"sv;
+  const auto TEMPLATE_FIELD_PATH = "Path"sv;
+  const auto TEMPLATE_FIELD_FLATPATH = "FlatPath"sv;
+  const auto TEMPLATE_FIELD_SUBPATH = "Subpath"sv;
+  const auto TEMPLATE_FIELD_FLATSUBPATH = "FlatSubpath"sv;
 
   const auto DEFAULT_TARGET_NAME_TEMPLATE =
       Strings::Format("XTractor/[{0}]/[{1}]", TEMPLATE_FIELD_FILENAME, TEMPLATE_FIELD_SUBPATH);
@@ -719,8 +719,8 @@ namespace
 
     String GetFieldValue(StringView fieldName) const override
     {
-      static const auto SUBPATH_DELIMITER = "/"_sv;
-      static const auto FLATPATH_DELIMITER = "_"_sv;
+      static const auto SUBPATH_DELIMITER = "/"sv;
+      static const auto FLATPATH_DELIMITER = "_"sv;
 
       if (fieldName == TEMPLATE_FIELD_FILENAME)
       {

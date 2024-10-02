@@ -18,7 +18,7 @@
 
 namespace Binary::FormatDSL
 {
-  const auto HEX_TOKENS = "xX0123456789abcdefABCDEF"_sv;
+  const auto HEX_TOKENS = "xX0123456789abcdefABCDEF"sv;
   const auto HEXDIGITS = HEX_TOKENS.substr(2);
   const auto DIGITS = HEXDIGITS.substr(0, 10);
 
@@ -27,7 +27,7 @@ namespace Binary::FormatDSL
   public:
     LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      static const auto SPACES = " \n\t\r"_sv;
+      static const auto SPACES = " \n\t\r"sv;
       return lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(SPACES) ? LexicalAnalysis::INVALID_TOKEN
                                                                                : DELIMITER;
     }

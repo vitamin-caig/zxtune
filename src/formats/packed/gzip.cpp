@@ -98,7 +98,7 @@ namespace Formats::Packed
         "????"       // modtime
         "?"          // extra flags
         "?"          // OS
-        ""_sv;
+        ""sv;
   }  // namespace Gzip
 
   class GzipDecoder : public Decoder

@@ -495,7 +495,7 @@ namespace Formats::Chiptune
         "00-63"
         // length
         "01-64"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

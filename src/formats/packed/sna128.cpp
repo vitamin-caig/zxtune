@@ -134,7 +134,7 @@ namespace Formats::Packed
         "? 40-ff"  // sp
         "00-02"    // im mode
         "00-07"    // border
-        ""_sv;
+        ""sv;
   }  // namespace Sna128
 
   class Sna128Decoder : public Decoder

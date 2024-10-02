@@ -146,11 +146,11 @@ namespace Module::USF
     {
       for (const auto& tag : meta.Tags)
       {
-        if (tag.first == "_enablecompare"_sv)
+        if (tag.first == "_enablecompare"sv)
         {
           ::usf_set_compare(Emu.GetRaw(), true);
         }
-        else if (tag.first == "_enablefifofull"_sv)
+        else if (tag.first == "_enablefifofull"sv)
         {
           ::usf_set_fifo_full(Emu.GetRaw(), true);
         }

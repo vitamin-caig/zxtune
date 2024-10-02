@@ -77,7 +77,7 @@ namespace Formats::Packed
         "22??"  // ld (xxxx),hl
         "19"    // add hl,de
         "19"    // add hl,de
-        ""_sv;
+        ""sv;
 
     uint_t GetPatternsCount(const RawHeader& hdr, std::size_t maxSize)
     {

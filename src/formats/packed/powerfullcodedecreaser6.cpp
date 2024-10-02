@@ -124,7 +124,7 @@ namespace Formats::Packed
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
     };
 
-    const StringView Version61::DESCRIPTION = "Powerfull Code Decreaser v6.1"_sv;
+    const StringView Version61::DESCRIPTION = "Powerfull Code Decreaser v6.1"sv;
     const StringView Version61::DEPACKER_PATTERN =
         "?"       // di/nop
         "21??"    // ld hl,xxxx 0xc017   depacker src
@@ -161,9 +161,9 @@ namespace Formats::Packed
         "12"      // ld (de),a
         "13"      // inc de
         "18f1"    // jr ...
-        ""_sv;
+        ""sv;
 
-    const StringView Version61i::DESCRIPTION = "Powerfull Code Decreaser v6.1i"_sv;
+    const StringView Version61i::DESCRIPTION = "Powerfull Code Decreaser v6.1i"sv;
     const StringView Version61i::DEPACKER_PATTERN =
         "?"       // di/nop
         "21??"    // ld hl,xxxx 0x7017   depacker src
@@ -194,9 +194,9 @@ namespace Formats::Packed
         "12"      // ld (de),a
         "13"      // inc de
         "18f1"    // jr ...
-        ""_sv;
+        ""sv;
 
-    const StringView Version62::DESCRIPTION = "Powerfull Code Decreaser v6.2"_sv;
+    const StringView Version62::DESCRIPTION = "Powerfull Code Decreaser v6.2"sv;
     const StringView Version62::DEPACKER_PATTERN =
         "?"       // di/nop
         "21??"    // ld hl,xxxx 0x6026   depacker src
@@ -227,7 +227,7 @@ namespace Formats::Packed
         "12"      // ld (de),a
         "13"      // inc de
         "18f1"    // jr ...
-        ""_sv;
+        ""sv;
 
     template<class Version>
     class Container

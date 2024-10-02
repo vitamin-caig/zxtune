@@ -68,7 +68,7 @@ namespace Formats::Chiptune
     const auto FORMAT =
         "'P'S'G"  // uint8_t Sign[3];
         "1a"      // uint8_t Marker;
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

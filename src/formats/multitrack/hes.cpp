@@ -58,7 +58,7 @@ namespace Formats::Multitrack
         "'D'A'T'A"   // data signature
         "? ? 0x 00"  // 1MB size limit
         "? ? 0x 00"  // 1MB size limit
-        ""_sv;
+        ""sv;
 
     const Char DESCRIPTION[] = "Home Entertainment System";
 

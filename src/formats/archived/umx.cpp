@@ -40,7 +40,7 @@ namespace Formats::Archived
         "??0000 ????"  // names
         "??0000 ????"  // exports
         "??0000 ????"  // imports
-        ""_sv;
+        ""sv;
 
     using SignatureType = std::array<uint8_t, 4>;
 

@@ -41,15 +41,15 @@ namespace Formats::Multitrack
         "'T|'M|'T|'N|'F|'E|'S|'P|'S|'I|'S|'A|'V|'M"
         "'H|'E|'E|'G|'S|'R|'C|'E|'T|'T|'I|'Y|'O|'E"
         "'O|' |' |'S|'O|'E|' |' |'P|' |'C|'E|'X|' "
-        ""_sv;
+        ""sv;
 
     const Char DESCRIPTION[] = "Slight Atari Player Sound Format";
 
     using TextSignatureType = std::array<uint8_t, 5>;
 
     const TextSignatureType TEXT_SIGNATURE = {{'S', 'A', 'P', 0x0d, 0x0a}};
-    const auto SONGS = "SONGS"_sv;
-    const auto DEFSONG = "DEFSONG"_sv;
+    const auto SONGS = "SONGS"sv;
+    const auto DEFSONG = "DEFSONG"sv;
 
     using BinarySignatureType = std::array<uint8_t, 2>;
     const BinarySignatureType BINARY_SIGNATURE = {{0xff, 0xff}};

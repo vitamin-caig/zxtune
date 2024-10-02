@@ -18,7 +18,7 @@
 
 namespace ZXTune
 {
-  const auto ARCHIVE_PLUGIN_PREFIX = "+un"_sv;
+  const auto ARCHIVE_PLUGIN_PREFIX = "+un"sv;
 
   String EncodeArchivePluginToPath(PluginId pluginId)
   {

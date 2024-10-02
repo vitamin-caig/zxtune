@@ -71,7 +71,7 @@ namespace Formats::Multitrack
         "'I'N'F'O"
         // gme supports nfs load/init address starting from 0x8000 or zero
         "(? 80-ff){2}"
-        ""_sv;
+        ""sv;
 
     const Char DESCRIPTION[] = "Extended Nintendo Sound Format";
 

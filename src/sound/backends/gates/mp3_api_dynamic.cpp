@@ -25,17 +25,17 @@ namespace Sound::Mp3
 
     StringView Base() const override
     {
-      return "mp3lame"_sv;
+      return "mp3lame"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libmp3lame.so.0"_sv};
+      return {"libmp3lame.so.0"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libmp3lame.dll"_sv, "libmp3lame-0.dll"_sv};
+      return {"libmp3lame.dll"sv, "libmp3lame-0.dll"sv};
     }
   };
 
