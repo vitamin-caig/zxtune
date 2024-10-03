@@ -40,7 +40,7 @@ class ApplicationMenu(private val activity: FragmentActivity) : MenuProvider {
 
         R.id.action_about -> {
             AboutFragment.show(activity)
-            Analytics.sendUiEvent(Analytics.UI_ACTION_ABOUT)
+            Analytics.sendUiEvent(Analytics.UiAction.ABOUT)
             true
         }
 
@@ -68,7 +68,7 @@ class ApplicationMenu(private val activity: FragmentActivity) : MenuProvider {
     // TODO: find proper intent or hide menuitem if no sutable
     private fun rate() {
         if (tryOpenIntent(makeGooglePlayIntent()) || tryOpenIntent(makeMarketIntent())) {
-            Analytics.sendUiEvent(Analytics.UI_ACTION_RATE)
+            Analytics.sendUiEvent(Analytics.UiAction.RATE)
         }
     }
 
@@ -89,7 +89,7 @@ class ApplicationMenu(private val activity: FragmentActivity) : MenuProvider {
     }
 
     private fun quit(): Unit = activity.run {
-        Analytics.sendUiEvent(Analytics.UI_ACTION_QUIT)
+        Analytics.sendUiEvent(Analytics.UiAction.QUIT)
         stopService(MainService.createIntent(this, null))
         finishAffinity()
         exitProcess(0)

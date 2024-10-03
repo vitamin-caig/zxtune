@@ -61,7 +61,7 @@ class RingtoneService : LifecycleService() {
             convert(item.module, seconds, target)
             setAsRingtone(item, seconds, target)
         }
-        Analytics.sendSocialEvent(source, "app.zxtune", Analytics.SOCIAL_ACTION_RINGTONE)
+        Analytics.sendSocialEvent(source, "app.zxtune", Analytics.SocialAction.RINGTONE)
     }.onFailure {
         LOG.w(it) { "Failed to create ringtone" }
         makeToast(it)

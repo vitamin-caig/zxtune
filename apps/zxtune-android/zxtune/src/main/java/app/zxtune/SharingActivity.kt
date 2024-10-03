@@ -125,7 +125,7 @@ private val MediaMetadataCompat.contentUrl
     )
 
 private fun guessSocialAction(extra: Bundle) = when {
-    extra.getParcelable<Uri>(Intent.EXTRA_STREAM) != null -> Analytics.SOCIAL_ACTION_SEND
-    extra.getString(Intent.EXTRA_TEXT) != null -> Analytics.SOCIAL_ACTION_SHARE
+    extra.getParcelable<Uri>(Intent.EXTRA_STREAM) != null -> Analytics.SocialAction.SEND
+    extra.getString(Intent.EXTRA_TEXT) != null -> Analytics.SocialAction.SHARE
     else -> null
 }

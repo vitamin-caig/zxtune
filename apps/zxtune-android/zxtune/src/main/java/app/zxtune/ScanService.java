@@ -55,7 +55,7 @@ public class ScanService extends IntentService {
       final ProviderClient client = ProviderClient.create(ctx);
       client.addItem(new app.zxtune.playlist.Item(source));
       client.notifyChanges();
-      Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_ADD, 1);
+      Analytics.sendPlaylistEvent(Analytics.PlaylistAction.ADD, 1);
     } catch (Exception error) {
       Log.w(TAG, error, "Failed to add item to playlist");
     }
@@ -66,7 +66,7 @@ public class ScanService extends IntentService {
     intent.setAction(ScanService.ACTION_START);
     intent.putExtra(ScanService.EXTRA_PATHS, uris);
     context.startService(intent);
-    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_ADD, uris.length);
+    Analytics.sendPlaylistEvent(Analytics.PlaylistAction.ADD, uris.length);
   }
 
   /**

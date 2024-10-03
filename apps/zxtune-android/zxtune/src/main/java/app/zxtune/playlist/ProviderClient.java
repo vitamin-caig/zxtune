@@ -96,12 +96,12 @@ public final class ProviderClient {
 
   public void delete(long[] ids) {
     deleteItems(PlaylistQuery.selectionFor(ids));
-    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_DELETE, ids.length);
+    Analytics.sendPlaylistEvent(Analytics.PlaylistAction.DELETE, ids.length);
   }
 
   public void deleteAll() {
     deleteItems(null);
-    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_DELETE, 0);
+    Analytics.sendPlaylistEvent(Analytics.PlaylistAction.DELETE, 0);
   }
 
   private void deleteItems(@Nullable String selection) {
@@ -112,13 +112,13 @@ public final class ProviderClient {
   public void move(long id, int delta) {
     Provider.move(resolver, id, delta);
     notifyChanges();
-    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_MOVE, 1);
+    Analytics.sendPlaylistEvent(Analytics.PlaylistAction.MOVE, 1);
   }
 
   public void sort(SortBy by, SortOrder order) {
     Provider.sort(resolver, by.name(), order.name());
     notifyChanges();
-    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_SORT,
+    Analytics.sendPlaylistEvent(Analytics.PlaylistAction.SORT,
         100 * by.ordinal() + order.ordinal());
   }
 
@@ -157,6 +157,6 @@ public final class ProviderClient {
 
   public void savePlaylist(String id, @CheckForNull long[] ids) throws Exception {
       Provider.save(resolver, id, ids);
-      Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_SAVE, ids != null ? ids.length : 0);
+      Analytics.sendPlaylistEvent(Analytics.PlaylistAction.SAVE, ids != null ? ids.length : 0);
   }
 }

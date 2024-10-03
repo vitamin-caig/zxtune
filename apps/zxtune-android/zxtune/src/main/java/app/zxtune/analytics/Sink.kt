@@ -11,14 +11,14 @@ internal interface Sink {
     // elapsed => tag
     fun sendTrace(id: String, points: LongSparseArray<String>)
     fun sendPlayEvent(item: PlayableItem, player: Player)
-    fun sendBrowserEvent(path: Uri, @Analytics.BrowserAction action: Int)
-    fun sendSocialEvent(path: Uri, app: String, @Analytics.SocialAction action: Int)
-    fun sendUiEvent(@Analytics.UiAction action: Int)
+    fun sendBrowserEvent(path: Uri, action: Analytics.BrowserAction)
+    fun sendSocialEvent(path: Uri, app: String, action: Analytics.SocialAction)
+    fun sendUiEvent(action: Analytics.UiAction)
 
     //! @param scopeSize - uris count for add, selection size else
     //TODO: cleanup
-    fun sendPlaylistEvent(@Analytics.PlaylistAction action: Int, param: Int)
-    fun sendVfsEvent(id: String, scope: String, @Analytics.VfsAction action: Int, duration: Long)
+    fun sendPlaylistEvent(action: Analytics.PlaylistAction, param: Int)
+    fun sendVfsEvent(id: String, scope: String, action: Analytics.VfsAction, duration: Long)
     fun sendNoTracksFoundEvent(uri: Uri)
     fun sendDbMetrics(name: String, size: Long, tablesRows: HashMap<String, Long>)
 

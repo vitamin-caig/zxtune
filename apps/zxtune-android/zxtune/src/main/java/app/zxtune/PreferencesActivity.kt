@@ -40,7 +40,7 @@ class PreferencesActivity : AppCompatActivity(),
             }
         }
 
-        Analytics.sendUiEvent(Analytics.UI_ACTION_PREFERENCES)
+        Analytics.sendUiEvent(Analytics.UiAction.PREFERENCES)
     }
 
     override fun onPreferenceStartFragment(

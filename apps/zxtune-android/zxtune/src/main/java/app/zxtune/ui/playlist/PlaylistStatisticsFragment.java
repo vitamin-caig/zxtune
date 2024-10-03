@@ -38,7 +38,7 @@ public class PlaylistStatisticsFragment extends DialogFragment {
     final Bundle args = new Bundle();
     args.putLongArray(IDS_KEY, ids);
     res.setArguments(args);
-    Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_STATISTICS, ids != null ? ids.length : 0);
+    Analytics.sendPlaylistEvent(Analytics.PlaylistAction.STATISTICS, ids != null ? ids.length : 0);
     return res;
   }
 
