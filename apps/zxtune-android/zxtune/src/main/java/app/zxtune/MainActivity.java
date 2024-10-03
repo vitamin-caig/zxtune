@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
     if (savedInstanceState == null) {
       subscribeForPendingOpenRequest(ctrl);
     }
-    Analytics.sendUiEvent(Analytics.UI_ACTION_OPEN);
+    Analytics.sendUiEvent(Analytics.UiAction.OPEN);
 
     if (!BuildConfig.BUILD_TYPE.equals("release")) {
       StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().build());
@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
   public void onDestroy() {
     super.onDestroy();
 
-    Analytics.sendUiEvent(Analytics.UI_ACTION_CLOSE);
+    Analytics.sendUiEvent(Analytics.UiAction.CLOSE);
   }
 
   private void subscribeForPendingOpenRequest(LiveData<MediaControllerCompat> ctrl) {

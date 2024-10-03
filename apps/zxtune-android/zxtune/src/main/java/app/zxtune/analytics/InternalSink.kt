@@ -44,8 +44,7 @@ internal class InternalSink(ctx: Context) : Sink {
             }
             item.module.run {
                 addParam(
-                    "type",
-                    getProperty(ModuleAttributes.TYPE, UrlsBuilder.DEFAULT_STRING_VALUE)
+                    "type", getProperty(ModuleAttributes.TYPE, UrlsBuilder.DEFAULT_STRING_VALUE)
                 )
                 addParam(
                     "container",
@@ -64,48 +63,44 @@ internal class InternalSink(ctx: Context) : Sink {
             send(it)
         }
 
-    override fun sendBrowserEvent(path: Uri, @BrowserAction action: Int) =
-        UrlsBuilder("ui/browser/${serializeBrowserAction(action)}").apply {
+    override fun sendBrowserEvent(path: Uri, action: BrowserAction) =
+        UrlsBuilder("ui/browser/${action.key}").apply {
             addUri(path)
         }.let {
             send(it)
         }
 
-    override fun sendSocialEvent(path: Uri, app: String, @SocialAction action: Int) =
-        UrlsBuilder("ui/${serializeSocialAction(action)}").apply {
+    override fun sendSocialEvent(path: Uri, app: String, action: SocialAction) =
+        UrlsBuilder("ui/${action.key}").apply {
             addUri(path)
         }.let {
             send(it)
         }
 
-    override fun sendUiEvent(@UiAction action: Int) =
-        send(UrlsBuilder("ui/${serializeUiAction(action)}"))
+    override fun sendUiEvent(action: UiAction) = send(UrlsBuilder("ui/${action.key}"))
 
-    override fun sendPlaylistEvent(@PlaylistAction action: Int, param: Int) =
-        UrlsBuilder("ui/playlist/${serializePlaylistAction(action)}").apply {
-            if (action == Analytics.PLAYLIST_ACTION_SORT) {
+    override fun sendPlaylistEvent(action: PlaylistAction, param: Int) =
+        UrlsBuilder("ui/playlist/${action.key}").apply {
+            if (action == PlaylistAction.SORT) {
                 addParam("by", SortBy.entries.toTypedArray()[param / 100].name)
                 addParam("order", ProviderClient.SortOrder.entries.toTypedArray()[param % 100].name)
             } else {
                 addParam(
-                    "count",
-                    if (param != 0) param.toLong() else UrlsBuilder.DEFAULT_LONG_VALUE
+                    "count", if (param != 0) param.toLong() else UrlsBuilder.DEFAULT_LONG_VALUE
                 )
             }
         }.let {
             send(it)
         }
 
-    override fun sendVfsEvent(
-        id: String, scope: String, @VfsAction action: Int,
-        duration: Long
-    ) = UrlsBuilder("vfs/${serializeVfsAction(action)}").apply {
-        addParam("id", id)
-        addParam("scope", scope)
-        addParam("duration", duration)
-    }.let {
-        send(it)
-    }
+    override fun sendVfsEvent(id: String, scope: String, action: VfsAction, duration: Long) =
+        UrlsBuilder("vfs/${action.key}").apply {
+            addParam("id", id)
+            addParam("scope", scope)
+            addParam("duration", duration)
+        }.let {
+            send(it)
+        }
 
     override fun sendNoTracksFoundEvent(uri: Uri) = UrlsBuilder("track/notfound").apply {
         addUri(uri)
@@ -154,57 +149,5 @@ internal class InternalSink(ctx: Context) : Sink {
 
     companion object {
         private val LOG = Logger(InternalSink::class.java.name)
-
-        private fun serializeBrowserAction(@BrowserAction action: Int): String {
-            return when (action) {
-                Analytics.BROWSER_ACTION_BROWSE -> "browse"
-                Analytics.BROWSER_ACTION_BROWSE_PARENT -> "up"
-                Analytics.BROWSER_ACTION_SEARCH -> "search"
-                else -> ""
-            }
-        }
-
-        private fun serializeSocialAction(@SocialAction action: Int): String {
-            return when (action) {
-                Analytics.SOCIAL_ACTION_RINGTONE -> "ringtone"
-                Analytics.SOCIAL_ACTION_SHARE -> "share"
-                Analytics.SOCIAL_ACTION_SEND -> "send"
-                else -> ""
-            }
-        }
-
-        private fun serializeUiAction(@UiAction action: Int): String {
-            return when (action) {
-                Analytics.UI_ACTION_OPEN -> "open"
-                Analytics.UI_ACTION_CLOSE -> "close"
-                Analytics.UI_ACTION_PREFERENCES -> "preferences"
-                Analytics.UI_ACTION_RATE -> "rate"
-                Analytics.UI_ACTION_ABOUT -> "about"
-                Analytics.UI_ACTION_QUIT -> "quit"
-                else -> ""
-            }
-        }
-
-        private fun serializePlaylistAction(@PlaylistAction action: Int): String {
-            return when (action) {
-                Analytics.PLAYLIST_ACTION_ADD -> "add"
-                Analytics.PLAYLIST_ACTION_DELETE -> "delete"
-                Analytics.PLAYLIST_ACTION_MOVE -> "move"
-                Analytics.PLAYLIST_ACTION_SORT -> "sort"
-                Analytics.PLAYLIST_ACTION_SAVE -> "save"
-                Analytics.PLAYLIST_ACTION_STATISTICS -> "statistics"
-                else -> ""
-            }
-        }
-
-        private fun serializeVfsAction(@VfsAction action: Int): String {
-            return when (action) {
-                Analytics.VFS_ACTION_REMOTE_FETCH -> "remote"
-                Analytics.VFS_ACTION_REMOTE_FALLBACK -> "remote_fallback"
-                Analytics.VFS_ACTION_CACHED_FETCH -> "cache"
-                Analytics.VFS_ACTION_CACHED_FALLBACK -> "cache_fallback"
-                else -> ""
-            }
-        }
     }
 }

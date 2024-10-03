@@ -27,27 +27,27 @@ public class CommandExecutor {
 
   public final void executeQuery(String scope, QueryCommand cmd) throws IOException {
     final Analytics.VfsTrace trace = Analytics.VfsTrace.create(id, scope);
-    final int action = executeQueryImpl(cmd);
+    final Analytics.VfsAction action = executeQueryImpl(cmd);
     trace.send(action);
   }
 
-  private int executeQueryImpl(QueryCommand cmd) throws IOException {
+  private Analytics.VfsAction executeQueryImpl(QueryCommand cmd) throws IOException {
     if (cmd.isCacheExpired()) {
       return refreshAndQuery(cmd);
     } else {
       cmd.queryFromCache();
-      return Analytics.VFS_ACTION_CACHED_FETCH;
+      return Analytics.VfsAction.CACHED_FETCH;
     }
   }
 
-  private int refreshAndQuery(QueryCommand cmd) throws IOException {
+  private Analytics.VfsAction refreshAndQuery(QueryCommand cmd) throws IOException {
     try {
       cmd.updateCache();
       cmd.queryFromCache();
-      return Analytics.VFS_ACTION_REMOTE_FETCH;
+      return Analytics.VfsAction.REMOTE_FETCH;
     } catch (IOException e) {
       if (cmd.queryFromCache()) {
-        return Analytics.VFS_ACTION_CACHED_FALLBACK;
+        return Analytics.VfsAction.CACHED_FALLBACK;
       } else {
         throw e;
       }
@@ -58,18 +58,18 @@ public class CommandExecutor {
     final Analytics.VfsTrace trace = Analytics.VfsTrace.create(id, scope);
     final T cached = cmd.fetchFromCache();
     if (cached != null) {
-      trace.send(Analytics.VFS_ACTION_CACHED_FETCH);
+      trace.send(Analytics.VfsAction.CACHED_FETCH);
       return cached;
     }
     final T remote = cmd.updateCache();
-    trace.send(Analytics.VFS_ACTION_REMOTE_FETCH);
+    trace.send(Analytics.VfsAction.REMOTE_FETCH);
     return remote;
   }
 
   public final ByteBuffer executeDownloadCommand(DownloadCommand cmd,
                                                  @Nullable ProgressCallback progress) throws IOException {
     final Analytics.VfsTrace trace = Analytics.VfsTrace.create(id, "file");
-    int action = Analytics.VFS_ACTION_CACHED_FETCH;
+    Analytics.VfsAction action = Analytics.VfsAction.CACHED_FETCH;
     HttpObject remote = null;
     try {
       final File cache = cmd.getCache();
@@ -80,7 +80,7 @@ public class CommandExecutor {
           if (isEmpty || needUpdate(cache, remote)) {
             Log.d(TAG, "Download %s to %s", remote.getUri(), cache.getAbsolutePath());
             download(remote, cache, progress);
-            trace.send(Analytics.VFS_ACTION_REMOTE_FETCH);
+            trace.send(Analytics.VfsAction.REMOTE_FETCH);
           } else {
             Log.d(TAG, "Update timestamp of %s", cache.getAbsolutePath());
             Io.touch(cache);
@@ -91,7 +91,7 @@ public class CommandExecutor {
           if (!isEmpty) {
             Io.touch(cache);
           }
-          action = Analytics.VFS_ACTION_CACHED_FALLBACK;
+          action = Analytics.VfsAction.CACHED_FALLBACK;
         }
       }
       if (cache.canRead()) {
@@ -106,7 +106,7 @@ public class CommandExecutor {
       remote = cmd.getRemote();
     }
     final ByteBuffer result = download(remote, progress);
-    trace.send(Analytics.VFS_ACTION_REMOTE_FALLBACK);
+    trace.send(Analytics.VfsAction.REMOTE_FALLBACK);
     return result;
   }
 

@@ -116,17 +116,17 @@ class Model @VisibleForTesting internal constructor(
     }
 
     fun browse(uri: Uri) {
-        Analytics.sendBrowserEvent(uri, Analytics.BROWSER_ACTION_BROWSE)
+        Analytics.sendBrowserEvent(uri, Analytics.BrowserAction.BROWSE)
         executeAsync(BrowseTask(lazyOf(uri)))
     }
 
     fun browse(uri: Lazy<Uri>) = executeAsync(BrowseTask(uri))
 
     fun browseParent() = state.value?.takeIf { it.breadcrumbs.size > 1 }?.run {
-        Analytics.sendBrowserEvent(uri, Analytics.BROWSER_ACTION_BROWSE_PARENT)
+        Analytics.sendBrowserEvent(uri, Analytics.BrowserAction.BROWSE_PARENT)
         executeAsync(BrowseParentTask(breadcrumbs))
     } ?: run {
-        Analytics.sendBrowserEvent(Uri.EMPTY, Analytics.BROWSER_ACTION_BROWSE_PARENT)
+        Analytics.sendBrowserEvent(Uri.EMPTY, Analytics.BrowserAction.BROWSE_PARENT)
         browse(Uri.EMPTY)
     }
 
@@ -135,7 +135,7 @@ class Model @VisibleForTesting internal constructor(
     } ?: Unit
 
     fun search(query: String) = state.value?.run {
-        Analytics.sendBrowserEvent(uri, Analytics.BROWSER_ACTION_SEARCH)
+        Analytics.sendBrowserEvent(uri, Analytics.BrowserAction.SEARCH)
         executeAsync(
             SearchTask(this, query)
         )
