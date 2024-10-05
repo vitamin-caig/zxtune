@@ -5,41 +5,29 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.LruCache
-import androidx.annotation.MainThread
-import androidx.annotation.WorkerThread
+import android.widget.ImageView
+import androidx.annotation.DrawableRes
 import androidx.core.util.lruCache
+import androidx.tracing.traceAsync
 import app.zxtune.Logger
-import app.zxtune.Releaseable
-import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicInteger
+import app.zxtune.utils.ifNotNulls
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class BitmapReference(obj: Bitmap?) : Releaseable {
-    private val refCount = AtomicInteger(1)
-    var bitmap: Bitmap? = obj
-        get() = if (refCount.get() != 0) field else null
-        private set
-
+class BitmapReference(val bitmap: Bitmap?) {
     val usedMemorySize
         get() = bitmap?.usedMemorySize ?: 0
-
-    override fun release() {
-        if (0 == refCount.decrementAndGet()) {
-            bitmap?.recycle()
-            bitmap = null
-        }
-    }
-
-    fun clone() = apply {
-        refCount.incrementAndGet()
-    }
 }
 
 class BitmapLoader(
-    tag: String,
+    private val tag: String,
     ctx: Context,
     maxSize: Int? = null,
     maxUsedMemory: Int? = null,
-    private val maxImageSize: Int? = null
+    private val maxImageSize: Int? = null,
+    private val readDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val resizeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
 
     init {
@@ -50,51 +38,65 @@ class BitmapLoader(
 
     private val log = Logger("${BitmapLoader::class.java.name}[$tag]")
     private val resolver = ctx.contentResolver
-    private val executor = Executors.newCachedThreadPool()
 
     private val cache: LruCache<Uri, BitmapReference> = maxSize?.let {
         lruCache(it, onEntryRemoved = { _, key, oldValue, _ ->
             log.d { "Remove cached bitmap for $key (${oldValue.usedMemorySize} bytes)" }
-            oldValue.release()
         })
     } ?: lruCache(requireNotNull(maxUsedMemory),
         sizeOf = { _, value -> value.usedMemorySize },
         onEntryRemoved = { _, key, oldValue, _ ->
             log.d { "Remove cached bitmap for $key (${oldValue.usedMemorySize} bytes)" }
-            oldValue.release()
         })
 
-    @MainThread
-    fun getCached(uri: Uri) = cache.get(uri)?.clone().also {
-        log.d { "Reused cached bitmap for $uri" }
+    fun getCached(uri: Uri) = cache.get(uri)?.also {
+        log.d { "Reused cached bitmap for $uri (${it.usedMemorySize} bytes)" }
     }
 
-    @MainThread
-    fun get(uri: Uri, @WorkerThread onResult: (BitmapReference) -> Unit) {
-        getCached(uri)?.let {
-            onResult(it)
-            return
+    suspend fun load(uri: Uri) = traceAsync("load $tag", tag.hashCode()) {
+        loadAndResize(uri)
+    }.also {
+        log.d {
+            it.bitmap?.run {
+                "Cache bitmap for $uri ($usedMemorySize bytes, ${width}x${height})"
+            } ?: "Cache no bitmap for $uri"
         }
-        executor.submit {
-            val ref = BitmapReference(resolver.openInputStream(uri)?.use {
-                val bitmap = BitmapFactory.decodeStream(it)
-                if (maxImageSize != null) {
-                    bitmap.fitScaledTo(maxImageSize, maxImageSize).also { res ->
-                        if (res != bitmap) {
-                            bitmap.recycle()
-                        }
-                    }
-                } else {
-                    bitmap
-                }
-            })
-            log.d {
-                ref.bitmap?.run {
-                    "Cache bitmap for $uri ($usedMemorySize bytes, ${width}x${height})"
-                } ?: "Cache no bitmap for $uri"
-            }
-            cache.put(uri, ref)
-            onResult(ref.clone())
+        cache.put(uri, it)
+    }
+
+    private suspend fun loadAndResize(uri: Uri) = runCatching {
+        val bitmap = loadBitmap(uri)
+        ifNotNulls(bitmap, maxImageSize) { it, size ->
+            resize(it, size)
+        } ?: bitmap
+    }.onFailure { log.w(it) { "Failed to load image" } }.getOrNull().let {
+        BitmapReference(it)
+    }
+
+    private suspend fun loadBitmap(uri: Uri) = withContext(readDispatcher) {
+        // TODO: use ImageDecoder.Source, @see ImageView.getDrawableFromUri
+        resolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it)
         }
     }
+
+    private suspend fun resize(bitmap: Bitmap, size: Int) = withContext(resizeDispatcher) {
+        bitmap.fitScaledTo(size, size).also { res ->
+            if (res != bitmap) {
+                bitmap.recycle()
+            }
+        }
+    }
+}
+
+sealed interface ImageSource {
+    fun applyTo(img: ImageView)
+}
+
+class BitmapSource(val src: Bitmap) : ImageSource {
+    override fun applyTo(img: ImageView) = img.setImageBitmap(src)
+}
+
+class ResourceSource(@DrawableRes val src: Int) : ImageSource {
+    override fun applyTo(img: ImageView) = img.setImageResource(src)
 }
