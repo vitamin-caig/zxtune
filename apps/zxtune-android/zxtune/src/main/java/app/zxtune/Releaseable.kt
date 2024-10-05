@@ -20,9 +20,8 @@ object ReleaseableStub : Releaseable {
     override fun release() {}
 }
 
-inline fun <R> Releaseable.use(block: () -> R): R =
-    try {
-        block()
-    } finally {
-        release()
-    }
+inline fun <R, T : Releaseable> T.use(block: T.() -> R) = try {
+    this.block()
+} finally {
+    release()
+}
