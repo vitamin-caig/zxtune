@@ -13,11 +13,17 @@ import app.zxtune.auth.Auth
 import app.zxtune.device.PowerManagement.Companion.dozeEnabled
 import app.zxtune.fs.api.Api
 import app.zxtune.net.NetworkManager
-import java.io.IOException
-import java.util.concurrent.LinkedBlockingQueue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class Provider : ContentProvider() {
-    private val queue = LinkedBlockingQueue<String>(1024)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO.limitedParallelism(1))
+    private lateinit var sink: UrlsSink
 
     override fun onCreate(): Boolean {
         val ctx = context ?: return false
@@ -25,28 +31,20 @@ class Provider : ContentProvider() {
         MainApplication.initialize(appCtx)
         val auth = Auth.getUserInfo(ctx)
         Api.initialize(auth)
-        val delegate = Dispatcher().apply {
+        sink = Dispatcher().apply {
             NetworkManager.from(appCtx).networkAvailable.observeForever(this::onNetworkChange)
         }
 
-        object : Thread("IASender") {
-            override fun run() {
-                try {
-                    doSending(queue, delegate)
-                } catch (e: Exception) {
-                    LOG.w(e) { "Stopped IASender thread" }
-                }
-            }
-        }.apply {
-            isDaemon = true
-            start()
-        }
         sendSystemInfoEvent()
         sendSystemConfigurationEvent(ctx)
         if (auth.isInitial) {
             sendInitialInstallationEvent()
         }
         return true
+    }
+
+    override fun shutdown() {
+        scope.cancel()
     }
 
     private fun sendSystemInfoEvent() = UrlsBuilder("system/info").apply {
@@ -131,7 +129,13 @@ class Provider : ContentProvider() {
         return null
     }
 
-    private fun doPush(url: String) = queue.offer(url)
+    private fun doPush(url: String) = scope.launch {
+        runCatching {
+            sink.push(url)
+        }.onFailure {
+            LOG.w(it) { "Failed to push $url" }
+        }
+    }
 
     companion object {
         private val LOG = Logger(Provider::class.java.name)
@@ -140,13 +144,5 @@ class Provider : ContentProvider() {
 
         val URI: Uri = Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
             .authority("app.zxtune.analytics.internal").build()
-
-        @Throws(InterruptedException::class, IOException::class)
-        private fun doSending(queue: LinkedBlockingQueue<String>, output: UrlsSink) {
-            while (true) {
-                val url = queue.take()
-                output.push(url)
-            }
-        }
     }
 }
