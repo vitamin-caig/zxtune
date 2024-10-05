@@ -7,17 +7,23 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import app.zxtune.Logger
 import app.zxtune.MainApplication
 import app.zxtune.auth.Auth
 import app.zxtune.device.PowerManagement.Companion.dozeEnabled
 import app.zxtune.fs.api.Api
 import app.zxtune.net.NetworkManager
-import java.io.IOException
-import java.util.concurrent.LinkedBlockingQueue
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 
 class Provider : ContentProvider() {
-    private val queue = LinkedBlockingQueue<String>(1024)
+    private val channel =
+        Channel<String>(capacity = 1000, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     override fun onCreate(): Boolean {
         val ctx = context ?: return false
@@ -29,17 +35,17 @@ class Provider : ContentProvider() {
             NetworkManager.from(appCtx).networkAvailable.observeForever(this::onNetworkChange)
         }
 
-        object : Thread("IASender") {
-            override fun run() {
-                try {
-                    doSending(queue, delegate)
-                } catch (e: Exception) {
-                    LOG.w(e) { "Stopped IASender thread" }
-                }
+        ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.IO) {
+            LOG.d { "Start IASender" }
+            for (url in channel) {
+                delegate.push(url)
             }
-        }.apply {
-            isDaemon = true
-            start()
+        }.invokeOnCompletion {
+            if (it == null || it is CancellationException) {
+                LOG.d { "Stop IASender" }
+            } else {
+                LOG.w(it) { "Terminated IASender" }
+            }
         }
         sendSystemInfoEvent()
         sendSystemConfigurationEvent(ctx)
@@ -131,7 +137,7 @@ class Provider : ContentProvider() {
         return null
     }
 
-    private fun doPush(url: String) = queue.offer(url)
+    private fun doPush(url: String) = channel.trySend(url)
 
     companion object {
         private val LOG = Logger(Provider::class.java.name)
@@ -140,13 +146,5 @@ class Provider : ContentProvider() {
 
         val URI: Uri = Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
             .authority("app.zxtune.analytics.internal").build()
-
-        @Throws(InterruptedException::class, IOException::class)
-        private fun doSending(queue: LinkedBlockingQueue<String>, output: UrlsSink) {
-            while (true) {
-                val url = queue.take()
-                output.push(url)
-            }
-        }
     }
 }
