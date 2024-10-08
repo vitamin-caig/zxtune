@@ -20,8 +20,10 @@ import app.zxtune.fs.VfsFile
 import app.zxtune.fs.VfsObject
 import app.zxtune.net.NetworkManager
 import app.zxtune.ui.MainDispatcherRule
-import app.zxtune.utils.AsyncWorker
 import app.zxtune.utils.ProgressCallback
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -358,10 +360,10 @@ class ClientProviderTest {
     }
 
     @Test
-    fun `client interruption`() {
+    fun `client interruption`() = runTest {
         val signal = CancellationSignal()
-        AsyncWorker("unused").execute {
-            Thread.sleep(1000)
+        launch(Dispatchers.IO) {
+            delay(1000)
             signal.cancel()
         }
         val ex = assertThrows<Exception> {
