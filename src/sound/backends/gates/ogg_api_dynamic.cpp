@@ -53,7 +53,7 @@ namespace Sound::Ogg
       Debug::Log("Sound::Backend::Ogg", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     int ogg_stream_init(ogg_stream_state *os, int serialno) override
     {
@@ -97,7 +97,7 @@ namespace Sound::Ogg
       return func(og);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

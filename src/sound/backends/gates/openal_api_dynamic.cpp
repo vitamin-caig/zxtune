@@ -53,7 +53,7 @@ namespace Sound::OpenAl
       Debug::Log("Sound::Backend::OpenAL", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     ALCdevice* alcOpenDevice(const ALCchar* devicename) override
     {
@@ -209,7 +209,7 @@ namespace Sound::OpenAl
       return func();
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

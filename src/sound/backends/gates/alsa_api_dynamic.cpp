@@ -54,7 +54,7 @@ namespace Sound::Alsa
       Debug::Log("Sound::Backend::Alsa", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     const char * snd_asoundlib_version () override
     {
@@ -406,7 +406,7 @@ namespace Sound::Alsa
       return func(obj);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

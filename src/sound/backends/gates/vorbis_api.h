@@ -23,7 +23,7 @@ namespace Sound::Vorbis
     using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
-// clang-format off
+    // clang-format off
 
     virtual int vorbis_block_clear(vorbis_block *vb) = 0;
     virtual int vorbis_block_init(vorbis_dsp_state *v, vorbis_block *vb) = 0;
@@ -42,9 +42,9 @@ namespace Sound::Vorbis
     virtual void vorbis_comment_add_tag(vorbis_comment *vc, const char *tag, const char *contents) = 0;
     virtual void vorbis_comment_clear(vorbis_comment *vc) = 0;
     virtual void vorbis_comment_init(vorbis_comment *vc) = 0;
-// clang-format on
+    // clang-format on
   };
 
-  //throw exception in case of error
+  // throw exception in case of error
   Api::Ptr LoadDynamicApi();
 }  // namespace Sound::Vorbis

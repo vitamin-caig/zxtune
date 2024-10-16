@@ -23,7 +23,7 @@ namespace Sound::PulseAudio
     using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
-// clang-format off
+    // clang-format off
 
     virtual const char* pa_get_library_version() = 0;
     virtual const char* pa_strerror(int error) = 0;
@@ -31,9 +31,9 @@ namespace Sound::PulseAudio
     virtual int pa_simple_write(pa_simple* s, const void* data, size_t bytes, int* error) = 0;
     virtual int pa_simple_flush(pa_simple* s, int* error) = 0;
     virtual void pa_simple_free(pa_simple* s) = 0;
-// clang-format on
+    // clang-format on
   };
 
-  //throw exception in case of error
+  // throw exception in case of error
   Api::Ptr LoadDynamicApi();
 }  // namespace Sound::PulseAudio

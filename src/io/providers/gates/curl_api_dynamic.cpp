@@ -53,7 +53,7 @@ namespace IO::Curl
       Debug::Log("IO::Provider::Network", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     char* curl_version() override
     {
@@ -118,7 +118,7 @@ namespace IO::Curl
       return func(curl, info, opaqueResult);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

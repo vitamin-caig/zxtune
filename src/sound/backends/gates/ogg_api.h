@@ -23,7 +23,7 @@ namespace Sound::Ogg
     using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
-// clang-format off
+    // clang-format off
 
     virtual int ogg_stream_init(ogg_stream_state *os, int serialno) = 0;
     virtual int ogg_stream_clear(ogg_stream_state *os) = 0;
@@ -31,9 +31,9 @@ namespace Sound::Ogg
     virtual int ogg_stream_pageout(ogg_stream_state *os, ogg_page *og) = 0;
     virtual int ogg_stream_flush(ogg_stream_state *os, ogg_page *og) = 0;
     virtual int ogg_page_eos(const ogg_page *og) = 0;
-// clang-format on
+    // clang-format on
   };
 
-  //throw exception in case of error
+  // throw exception in case of error
   Api::Ptr LoadDynamicApi();
 }  // namespace Sound::Ogg

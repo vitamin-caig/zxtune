@@ -12,7 +12,7 @@
       Debug::Log("<TMPL_VAR NAME=DEBUGMODULE>", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 <TMPL_LOOP NAME=FUNCTIONS>
     <TMPL_VAR NAME=DECLARATION> override
     {
@@ -21,7 +21,7 @@
       return func(<TMPL_VAR NAME=PARAMNAMES>);
     }
 </TMPL_LOOP>
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

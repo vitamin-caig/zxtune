@@ -24,7 +24,7 @@ namespace Sound::Flac
     using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
-// clang-format off
+    // clang-format off
 
     virtual FLAC__StreamEncoder* FLAC__stream_encoder_new() = 0;
     virtual void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder) = 0;
@@ -43,9 +43,9 @@ namespace Sound::Flac
     virtual FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, const char *field_value) = 0;
     virtual FLAC__bool FLAC__metadata_object_vorbiscomment_append_comment(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy) = 0;
     virtual FLAC__StreamEncoderState 	FLAC__stream_encoder_get_state(const FLAC__StreamEncoder *encoder) = 0;
-// clang-format on
+    // clang-format on
   };
 
-  //throw exception in case of error
+  // throw exception in case of error
   Api::Ptr LoadDynamicApi();
 }  // namespace Sound::Flac

@@ -53,7 +53,7 @@ namespace Sound::Mp3
       Debug::Log("Sound::Backend::Mp3", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     const char* get_lame_version() override
     {
@@ -195,7 +195,7 @@ namespace Sound::Mp3
       return func(ctx, comment);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

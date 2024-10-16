@@ -32,7 +32,7 @@ namespace Sound::Win32
       Debug::Log("Sound::Backend::Win32", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     UINT waveOutGetNumDevs() override
     {
@@ -125,7 +125,7 @@ namespace Sound::Win32
       return func(hwo, dwVolume);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

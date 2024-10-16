@@ -32,7 +32,7 @@ namespace Sound::DirectSound
       Debug::Log("Sound::Backend::DirectSound", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     HRESULT DirectSoundEnumerateW(LPDSENUMCALLBACKW cb, LPVOID param) override
     {
@@ -48,7 +48,7 @@ namespace Sound::DirectSound
       return func(pcGuidDevice, ppDS, pUnkOuter);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

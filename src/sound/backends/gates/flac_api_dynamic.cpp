@@ -53,7 +53,7 @@ namespace Sound::Flac
       Debug::Log("Sound::Backend::Flac", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     FLAC__StreamEncoder* FLAC__stream_encoder_new() override
     {
@@ -174,7 +174,7 @@ namespace Sound::Flac
       return func(encoder);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

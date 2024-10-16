@@ -55,7 +55,7 @@ namespace Sound::PulseAudio
       Debug::Log("Sound::Backend::PulseAudio", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     const char* pa_get_library_version() override
     {
@@ -99,7 +99,7 @@ namespace Sound::PulseAudio
       return func(s);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

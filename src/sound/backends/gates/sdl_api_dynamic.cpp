@@ -53,7 +53,7 @@ namespace Sound::Sdl
       Debug::Log("Sound::Backend::Sdl", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     char* SDL_GetError() override
     {
@@ -125,7 +125,7 @@ namespace Sound::Sdl
       return func();
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

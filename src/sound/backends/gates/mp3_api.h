@@ -23,7 +23,7 @@ namespace Sound::Mp3
     using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
-// clang-format off
+    // clang-format off
 
     virtual const char* get_lame_version() = 0;
     virtual lame_t lame_init() = 0;
@@ -45,9 +45,9 @@ namespace Sound::Mp3
     virtual void id3tag_set_title(lame_t ctx, const char* title) = 0;
     virtual void id3tag_set_artist(lame_t ctx, const char* artist) = 0;
     virtual void id3tag_set_comment(lame_t ctx, const char* comment) = 0;
-// clang-format on
+    // clang-format on
   };
 
-  //throw exception in case of error
+  // throw exception in case of error
   Api::Ptr LoadDynamicApi();
 }  // namespace Sound::Mp3

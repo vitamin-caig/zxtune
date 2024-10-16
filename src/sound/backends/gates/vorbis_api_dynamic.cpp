@@ -53,7 +53,7 @@ namespace Sound::Vorbis
       Debug::Log("Sound::Backend::Ogg", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     int vorbis_block_clear(vorbis_block *vb) override
     {
@@ -174,7 +174,7 @@ namespace Sound::Vorbis
       return func(vc);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

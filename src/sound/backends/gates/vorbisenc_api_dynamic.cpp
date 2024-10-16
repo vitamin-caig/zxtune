@@ -53,7 +53,7 @@ namespace Sound::VorbisEnc
       Debug::Log("Sound::Backend::Ogg", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     int vorbis_encode_init(vorbis_info *vi, long channels, long rate, long max_bitrate, long nominal_bitrate, long min_bitrate) override
     {
@@ -69,7 +69,7 @@ namespace Sound::VorbisEnc
       return func(vi, channels, rate, base_quality);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };
