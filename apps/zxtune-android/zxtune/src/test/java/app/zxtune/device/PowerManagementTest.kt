@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.PowerManager
 import android.provider.Settings
 import app.zxtune.Features
-import app.zxtune.fs.provider.assertThrows
+import app.zxtune.assertThrows
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith

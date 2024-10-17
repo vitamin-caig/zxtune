@@ -1,7 +1,7 @@
 package app.zxtune.fs.local
 
 import android.net.Uri
-import app.zxtune.fs.provider.assertThrows
+import app.zxtune.assertThrows
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
