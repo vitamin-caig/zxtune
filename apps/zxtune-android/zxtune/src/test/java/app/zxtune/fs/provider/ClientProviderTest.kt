@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import app.zxtune.Features
 import app.zxtune.TestUtils.flushEvents
 import app.zxtune.TestUtils.mockCollectorOf
+import app.zxtune.assertThrows
 import app.zxtune.fs.TestDir
 import app.zxtune.fs.TestFile
 import app.zxtune.fs.VfsDir
