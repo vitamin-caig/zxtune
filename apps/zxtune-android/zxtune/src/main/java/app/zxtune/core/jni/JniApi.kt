@@ -17,7 +17,7 @@ internal class JniApi : Api {
         NativeLoader.loadLibrary(LIBRARY_NAME) { this.forcedInit() }
     }
 
-    private val loggingOptions = LoggingOptionsAdapter(JniOptions.instance())
+    private val loggingOptions = LoggingOptionsAdapter(JniOptions)
 
     private external fun forcedInit()
 
