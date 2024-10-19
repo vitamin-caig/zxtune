@@ -1,11 +1,22 @@
 package app.zxtune.core.jni
 
+import androidx.annotation.VisibleForTesting
+import app.zxtune.Logger
 import app.zxtune.core.Module
 import app.zxtune.core.PropertiesContainer
 import app.zxtune.core.ResolvingException
 import app.zxtune.utils.ProgressCallback
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.internal.AtomicOp
+import kotlinx.coroutines.runBlocking
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater
 
 /**
  * TODO: make interface and provide by IoC singleton
@@ -48,22 +59,40 @@ interface Api {
      */
     fun getOptions(): PropertiesContainer
 
-    private object Holder {
-        val INSTANCE = AtomicReference<Api>()
-    }
-
     companion object {
-        @JvmStatic
-        fun instance(): Api {
-            if (Holder.INSTANCE.get() == null) {
-                DelayLoadApi(Holder.INSTANCE).initialize {}
+        private val LOG = Logger(Api::class.java.name)
+
+        // TODO: simplify after instance() removal
+        @OptIn(DelicateCoroutinesApi::class)
+        private fun createLoader() = GlobalScope.async(Dispatchers.Default, CoroutineStart.LAZY) {
+            runCatching {
+                JniApi.create()
+            }.getOrElse {
+                ErrorApi(it)
             }
-            return Holder.INSTANCE.get()!!
         }
 
+        @VisibleForTesting
+        val loaderCache = AtomicReference<Deferred<Api>>()
+        private val loader: Deferred<Api>
+            get() = loaderCache.updateAndGet { prev ->
+                prev ?: createLoader()
+            }
+
+        @Deprecated("Use new async api")
         @JvmStatic
-        fun load(cb: Runnable) {
-            DelayLoadApi(Holder.INSTANCE).initialize(cb)
+        fun instance() = runBlocking {
+            if (!loader.isCompleted) {
+                LOG.d { "Waiting for native library loading" }
+                Thread.dumpStack()
+                val startWaiting = System.currentTimeMillis()
+                loader.invokeOnCompletion {
+                    LOG.d { "Finished waiting (${System.currentTimeMillis() - startWaiting}ms)" }
+                }
+            }
+            loader.await()
         }
+
+        fun load() = loader
     }
 }
