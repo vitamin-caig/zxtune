@@ -13,8 +13,6 @@ import android.graphics.PixelFormat
 import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.os.Build
-import android.os.Handler
-import android.os.HandlerThread
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -22,11 +20,14 @@ import androidx.annotation.ColorInt
 import androidx.core.content.res.use
 import app.zxtune.Logger
 import app.zxtune.R
+import app.zxtune.analytics.Analytics
 import app.zxtune.playback.Visualizer
-import app.zxtune.playback.stubs.VisualizerStub
-import java.lang.ref.WeakReference
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlin.math.max
 import kotlin.math.min
 
@@ -34,19 +35,74 @@ private val LOG = Logger("SpectrumAnalyzer")
 
 class SpectrumAnalyzerView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
-) : SurfaceView(context, attrs, defStyleAttr), SurfaceHolder.Callback {
-    private val source = DispatchingVisualizer()
-    private val visualizer: SpectrumVisualizer
-    private val renderer: RenderThread
+) : SurfaceView(context, attrs, defStyleAttr) {
+    private val visualizer = context.theme.obtainStyledAttributes(
+        attrs, R.styleable.AnalyzerView, defStyleAttr, 0
+    ).use {
+        createSpectrumVisualizer(it)
+    }
+    private val surfaceLock = Mutex(true)
+    private val visibilityLock = Mutex(false)
+    private val callback = object : SurfaceHolder.Callback {
+        override fun surfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {
+            val padLeft = paddingLeft
+            val padRight = paddingRight
+            val padTop = paddingTop
+            val padBottom = paddingBottom
+            val padHorizontal = padLeft + padRight
+            val padVertical = padTop + padBottom
+            val visibleRect = if (padHorizontal < w && padVertical < h) {
+                Rect(padLeft, padTop, w - padRight, h - padBottom)
+            } else {
+                Rect(0, 0, w, h)
+            }
+            LOG.d { "surfaceChanged(${w}x${h} visible=${visibleRect})" }
+            visualizer.sizeChanged(visibleRect)
+        }
+
+        override fun surfaceCreated(holder: SurfaceHolder) = surfaceLock.unlock().also {
+            LOG.d { "surfaceCreated" }
+        }
+
+        override fun surfaceDestroyed(holder: SurfaceHolder) =
+            runBlocking { surfaceLock.lock() }.also {
+                LOG.d { "surfaceDestroyed" }
+            }
+    }
+    private val vblank = object {
+        private val maxFrameDuration = 1_000_000L / UPDATE_FPS
+        var lostFrames = 0
+            private set
+        var doneFrames = 0
+        private var totalDuration = 0L
+        val avgDuration
+            get() = totalDuration / doneFrames.coerceAtLeast(1)
+        private var lastFrameTime = 0L
+
+        suspend fun sync() {
+            val now = now()
+            val passed = now - lastFrameTime
+            if (passed > maxFrameDuration) {
+                ++lostFrames;
+                lastFrameTime = now
+            } else {
+                delay((maxFrameDuration - passed) / 1_000)
+                totalDuration += passed
+                ++doneFrames
+                lastFrameTime = now()
+            }
+        }
+
+        private fun now() = System.nanoTime() / 1_000
+    }
 
     init {
-        visualizer = context.theme.obtainStyledAttributes(
-            attrs, R.styleable.AnalyzerView, defStyleAttr, 0
-        ).use {
-            createSpectrumVisualizer(it)
+        setZOrderOnTop(true)
+        setLayerType(LAYER_TYPE_HARDWARE, null)
+        holder.run {
+            setFormat(PixelFormat.TRANSPARENT)
+            addCallback(callback)
         }
-        renderer = RenderThread(source, visualizer)
-        init()
     }
 
     private fun createSpectrumVisualizer(a: TypedArray) = SpectrumVisualizer(
@@ -55,230 +111,137 @@ class SpectrumAnalyzerView @JvmOverloads constructor(
         minBarWidth = a.getDimensionPixelSize(R.styleable.AnalyzerView_spectrumMinBarWidth, 3)
     )
 
-    private fun init() {
-        setZOrderOnTop(true)
-        setLayerType(LAYER_TYPE_HARDWARE, null)
-        holder.run {
-            setFormat(PixelFormat.TRANSPARENT)
-            addCallback(this@SpectrumAnalyzerView)
-        }
-    }
-
-    fun setSource(src: Visualizer?) {
-        if (source.setDelegate(src)) {
-            renderer.update()
-        }
-    }
-
-    fun setIsPlaying(playing: Boolean) {
-        if (source.setIsUpdating(playing)) {
-            renderer.update()
-        }
-    }
-
-    fun setIsUpdating(updating: Boolean) {
-        renderer.isActive = updating
-    }
-
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {
-        val padLeft = paddingLeft
-        val padRight = paddingRight
-        val padTop = paddingTop
-        val padBottom = paddingBottom
-        val padHorizontal = padLeft + padRight
-        val padVertical = padTop + padBottom
-        val visibleRect = if (padHorizontal < w && padVertical < h) {
-            Rect(padLeft, padTop, w - padRight, h - padBottom)
-        } else {
-            Rect(0, 0, w, h)
-        }
-        visualizer.sizeChanged(visibleRect)
-    }
-
-    override fun surfaceCreated(holder: SurfaceHolder) = renderer.setHolder(holder)
-
-    override fun surfaceDestroyed(holder: SurfaceHolder) = renderer.setHolder(null)
-
-    private class RenderThread(private val src: Visualizer, private val dst: SpectrumVisualizer) {
-        private val thread by lazy {
-            HandlerThread("Visualizer").apply {
-                start()
-            }
-        }
-        private val handler by lazy {
-            Handler(thread.looper)
-        }
-
-        private val buffer = ByteArray(dst.maxBarsCount)
-        private var drawTask: DrawTask? = null
-        private val scheduled = AtomicReference<DrawTask>()
-        var isActive: Boolean = true
-            set(value) {
-                if (value != field) {
-                    field = value
-                    if (value) {
-                        drawTask?.schedule()
-                    } else {
-                        drawTask?.cancel()
+    suspend fun drawFrom(src: Visualizer) = withContext(Dispatchers.Default) {
+        LOG.d { "drawFrom($src)" }
+        while (visualizer.update(src)) {
+            vblank.sync()
+            visibilityLock.withLock {
+                surfaceLock.withLock {
+                    holder.onCanvas { canvas ->
+                        canvas.drawColor(0, PorterDuff.Mode.CLEAR)
+                        visualizer.draw(canvas)
                     }
                 }
             }
-
-        fun setHolder(holder: SurfaceHolder?) {
-            handler.postAtFrontOfQueue {
-                drawTask?.cancel()
-                drawTask = holder?.let {
-                    DrawTask(WeakReference(it))
-                }
-                update()
-            }
         }
+        LOG.d { "drawFrom finished" }
+    }
 
-        fun update() {
-            if (isActive) {
-                drawTask?.schedule()
-            }
-        }
-
-        private inner class DrawTask(private val weakHolder: WeakReference<SurfaceHolder>) :
-            Runnable {
-            override fun run() {
-                if (!scheduled.compareAndSet(this, null)) {
-                    return
-                }
-                val holder = weakHolder.get() ?: return
-                schedule()
-                if (update()) {
-                    draw(holder)
-                } else {
-                    cancel()
-                }
-            }
-
-            fun schedule() {
-                if (scheduled.compareAndSet(null, this)) {
-                    handler.postDelayed(this, (1000 / UPDATE_FPS).toLong())
-                }
-            }
-
-            fun cancel() {
-                if (scheduled.compareAndSet(this, null)) {
-                    handler.removeCallbacks(this)
-                }
-            }
-
-            private fun update(): Boolean {
-                val bars = src.getSpectrum(buffer)
-                return if (bars != 0) {
-                    dst.update(bars, buffer)
-                    true
-                } else {
-                    dst.update()
-                }
-            }
-
-            private fun draw(holder: SurfaceHolder) = holder.onCanvas { canvas ->
-                canvas.drawColor(0, PorterDuff.Mode.CLEAR)
-                dst.draw(canvas)
+    suspend fun setIsUpdating(isUpdating: Boolean) {
+        if (isUpdating == visibilityLock.holdsLock(this)) {
+            if (isUpdating) {
+                visibilityLock.unlock()
+            } else {
+                visibilityLock.lock(this)
             }
         }
     }
 
-    private class SpectrumVisualizer(
-        @ColorInt barColor: Int, val maxBarsCount: Int, private val minBarWidth: Int
-    ) {
-        private val visibleRect = Rect()
-        private val barRect = Rect()
-        private val paint = Paint().apply {
-            color = barColor
+    fun reportStatistics() {
+        val avgDuration = vblank.avgDuration
+        LOG.d {
+            "${vblank.doneFrames}@${avgDuration}uS done, ${vblank.lostFrames} lost"
         }
-        private var barWidth = minBarWidth
-        private var values = IntArray(1)
-
-        fun sizeChanged(visible: Rect) {
-            visibleRect.set(visible)
-            barRect.bottom = visibleRect.bottom
-            val width = visibleRect.width()
-            barWidth = max(width / maxBarsCount, minBarWidth)
-            val bars = max(width / barWidth, 1)
-            values = IntArray(bars)
-        }
-
-        fun draw(canvas: Canvas) {
-            barRect.left = visibleRect.left
-            barRect.right = barRect.left + barWidth - BAR_PADDING
-            val height = visibleRect.height()
-            for (level in values) {
-                if (level != 0) {
-                    barRect.top = visibleRect.top + height - level * height / MAX_LEVEL
-                    canvas.drawRect(barRect, paint)
-                }
-                barRect.offset(barWidth, 0)
-            }
-        }
-
-        fun update(channels: Int, levels: ByteArray) {
-            var band = 0
-            val lim = min(channels, values.size)
-            while (band < lim) {
-                values[band] = max(values[band] - FALL_SPEED, levels[band].toInt())
-                ++band
-            }
-        }
-
-        fun update(): Boolean {
-            var result = false
-            for (band in values.indices) {
-                if (values[band] >= FALL_SPEED) {
-                    values[band] -= FALL_SPEED
-                    result = true
-                } else {
-                    values[band] = 0
-                }
-            }
-            return result
-        }
+        Analytics.sendEvent(
+            "ui/visualizer",
+            "bars" to visualizer.bars,
+            "w" to visualizer.visibleRect.width(),
+            "h" to visualizer.visibleRect.height(),
+            "frames" to vblank.doneFrames,
+            "resync" to vblank.lostFrames,
+            "avg" to avgDuration,
+            "hw" to useHardwareCanvas,
+        )
     }
 
     companion object {
-        private const val MAX_LEVEL = 100
-        private const val BAR_PADDING = 1
-        private const val FALL_SPEED = 2
-        private const val UPDATE_FPS = 30
+        const val UPDATE_FPS = 30
     }
 }
 
-private class DispatchingVisualizer : Visualizer {
+private class SpectrumVisualizer(
+    @ColorInt barColor: Int, private val maxBarsCount: Int, private val minBarWidth: Int
+) {
+    var bars = maxBarsCount
+        private set
+    private val levels = ByteArray(maxBarsCount)
+    val visibleRect = Rect()
+    private val barRect = Rect()
+    private val paint = Paint().apply {
+        color = barColor
+    }
+    private var barWidth = minBarWidth
+    private var values = IntArray(1)
 
-    private var delegate: Visualizer = VisualizerStub.instance()
-    private var isUpdating: Boolean = true
+    fun sizeChanged(visible: Rect) {
+        visibleRect.set(visible)
+        barRect.bottom = visibleRect.bottom
+        val width = visibleRect.width()
+        barWidth = max(width / maxBarsCount, minBarWidth)
+        bars = max(width / barWidth, 1)
+        values = IntArray(bars)
+    }
 
-    fun setDelegate(update: Visualizer?): Boolean {
-        val value = update ?: VisualizerStub.instance()
-        return if (delegate != value) {
-            delegate = value
-            true
-        } else {
-            false
+    fun draw(canvas: Canvas) {
+        barRect.left = visibleRect.left
+        barRect.right = barRect.left + barWidth - BAR_PADDING
+        val height = visibleRect.height()
+        for (level in values) {
+            if (level != 0) {
+                barRect.top = visibleRect.top + height - level * height / MAX_LEVEL
+                canvas.drawRect(barRect, paint)
+            }
+            barRect.offset(barWidth, 0)
         }
     }
 
-    fun setIsUpdating(update: Boolean) = if (isUpdating != update) {
-        isUpdating = update
-        true
-    } else {
-        false
+    fun update(src: Visualizer): Boolean {
+        val bars = src.getSpectrum(levels)
+        return if (bars != 0) {
+            update(bars)
+            true
+        } else {
+            update()
+        }
     }
 
-    override fun getSpectrum(levels: ByteArray) = if (isUpdating) {
-        delegate.getSpectrum(levels)
-    } else {
-        0
+    private fun update(channels: Int) {
+        var band = 0
+        val lim = min(channels, values.size)
+        while (band < lim) {
+            values[band] = max(values[band] - FALL_SPEED, levels[band].toInt())
+            ++band
+        }
+    }
+
+    private fun update(): Boolean {
+        var result = false
+        for (band in values.indices) {
+            if (values[band] >= FALL_SPEED) {
+                values[band] -= FALL_SPEED
+                result = true
+            } else {
+                values[band] = 0
+            }
+        }
+        return result
+    }
+
+    companion object {
+        private const val FALL_SPEED = 2
+        private const val MAX_LEVEL = 100
+        private const val BAR_PADDING = 1
     }
 }
 
+private val useHardwareCanvas
+    get() = Build.VERSION.SDK_INT >= 26
+
+private val SurfaceHolder.canvas: Canvas?
+    get() = if (useHardwareCanvas) lockHardwareCanvas() else lockCanvas()
+
 private fun SurfaceHolder.onCanvas(block: (Canvas) -> Unit) = runCatching {
-    val canvas = if (Build.VERSION.SDK_INT >= 26) lockHardwareCanvas() else lockCanvas()
+    val canvas = canvas ?: return@runCatching
     block(canvas)
     unlockCanvasAndPost(canvas)
 }.onFailure {
