@@ -178,7 +178,7 @@ class Model @VisibleForTesting internal constructor(
     val playbackEvents
         get() = _toPlay.receiveAsFlow()
 
-    fun initialize(uri: Lazy<Uri>) {
+    fun initialize(uri: Uri) {
         if (_state.value.uri == Uri.EMPTY) {
             executeAsync(BrowseTask(uri))
         }
@@ -186,7 +186,7 @@ class Model @VisibleForTesting internal constructor(
 
     fun browse(uri: Uri) {
         Analytics.sendBrowserEvent(uri, Analytics.BrowserAction.BROWSE)
-        executeAsync(BrowseTask(lazyOf(uri)))
+        executeAsync(BrowseTask(uri))
     }
 
     fun browseParent() = _state.value.takeIf { it.breadcrumbs.size > 1 }?.run {
@@ -260,10 +260,7 @@ class Model @VisibleForTesting internal constructor(
         breadcrumbs: List<BreadcrumbsEntry>, entries: List<ListingEntry>
     ) = _content.emit(Content(breadcrumbs, entries))
 
-    private inner class BrowseTask(private val uriSource: Lazy<Uri>) : AsyncOperation {
-
-        private val uri: Uri
-            get() = uriSource.value
+    private inner class BrowseTask(private val uri: Uri) : AsyncOperation {
 
         override val description
             get() = "browse ${uri.takeUnless { it == Uri.EMPTY }?.toString() ?: "root"}"

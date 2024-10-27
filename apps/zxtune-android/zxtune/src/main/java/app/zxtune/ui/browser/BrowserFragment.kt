@@ -24,8 +24,7 @@ import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.selection.Selection
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
@@ -38,6 +37,7 @@ import app.zxtune.R
 import app.zxtune.ResultActivity
 import app.zxtune.ui.utils.SelectionUtils
 import app.zxtune.ui.utils.whenLifecycleStarted
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
@@ -68,6 +68,8 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
         get() = activity?.let { MediaControllerCompat.getMediaController(it) }
     private val listingLayoutManager
         get() = listing.layoutManager as LinearLayoutManager
+    private val scope
+        get() = viewLifecycleOwner.lifecycleScope
 
     private class NotificationView(view: View) {
         private val panel = view.findViewById<TextView>(R.id.browser_notification)
@@ -100,9 +102,9 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
         breadcrumbs = setupBreadcrumbs(view)
         listing = setupListing(view)
         search = setupSearchView(model, view)
-        model.initialize(lazy {
-            stateStorage.currentPath
-        })
+        scope.launch {
+            model.initialize(stateStorage.getCurrentPath())
+        }
         viewLifecycleOwner.whenLifecycleStarted {
             launch {
                 trackState(model.state)
@@ -122,6 +124,11 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
                 }
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        storeCurrentViewPosition()
     }
 
     private fun showError(msg: String) = activity?.let {
@@ -174,12 +181,6 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
                     )
                 }
             listingStub = view.findViewById(R.id.browser_stub)
-            lifecycle.addObserver(object : DefaultLifecycleObserver {
-                override fun onStop(owner: LifecycleOwner) {
-                    storeCurrentViewPosition()
-                    lifecycle.removeObserver(this)
-                }
-            })
         }
 
     private suspend fun trackProgress(src: Flow<Int?>, view: ProgressBar) = src.collect { prg ->
@@ -206,8 +207,10 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
         } else {
             storeCurrentViewPosition()
             adapter.submitList(state.entries) {
-                stateStorage.currentPath = state.uri
-                restoreCurrentViewPosition()
+                scope.launch {
+                    val pos = stateStorage.updateCurrentPath(state.uri)
+                    setCurrentViewPosition(pos)
+                }
             }
         }
         val hasContent = state.entries.isNotEmpty()
@@ -230,12 +233,14 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
 
     private fun storeCurrentViewPosition() = listingLayoutManager.findFirstVisibleItemPosition()
         .takeIf { it != RecyclerView.NO_POSITION }?.let { pos ->
-            stateStorage.currentViewPosition = pos
+            // Use MainScope to store data despite fragment destruction
+            MainScope().launch {
+                stateStorage.updateCurrentPosition(pos)
+            }
         }
 
-    private fun restoreCurrentViewPosition() = listingLayoutManager.scrollToPositionWithOffset(
-        stateStorage.currentViewPosition, 0
-    )
+    private fun setCurrentViewPosition(pos: Int) =
+        listingLayoutManager.scrollToPositionWithOffset(pos, 0)
 
     private fun setupSearchView(model: Model, view: View) =
         view.findViewById<SearchView>(R.id.browser_search).apply {

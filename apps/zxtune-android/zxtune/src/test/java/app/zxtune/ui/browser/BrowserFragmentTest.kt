@@ -1,6 +1,5 @@
 package app.zxtune.ui.browser
 
-import android.content.Context
 import android.net.Uri
 import android.view.ViewGroup
 import android.widget.Button
@@ -14,9 +13,11 @@ import app.zxtune.TestUtils.construct
 import app.zxtune.TestUtils.constructedInstance
 import app.zxtune.TestUtils.flushEvents
 import app.zxtune.ui.AsyncDifferInMainThreadRule
+import app.zxtune.ui.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -35,18 +36,21 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.stub
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyBlocking
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import org.robolectric.annotation.Implementation
-import org.robolectric.annotation.Implements
 
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowState::class])
 class BrowserFragmentTest {
 
     @get:Rule
     val mainThreadDiffer = AsyncDifferInMainThreadRule()
+
+    private val dispatcher = StandardTestDispatcher()
+
+    // to inject to fragment model operations
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val persistentState = mock<State>()
 
@@ -55,7 +59,7 @@ class BrowserFragmentTest {
 
     @Before
     fun setUp() {
-        ShadowState.instance = persistentState
+        State.create = { persistentState }
         reset(*mocks)
     }
 
@@ -77,7 +81,7 @@ class BrowserFragmentTest {
         val playbackEventsFlow = mock<Flow<Uri>>()
         val path = Uri.parse("")
         persistentState.stub {
-            on { currentPath } doReturn path
+            onBlocking { getCurrentPath() } doReturn path
         }
         construct<Model> {
             on { state } doReturn stateFlow
@@ -86,7 +90,7 @@ class BrowserFragmentTest {
             on { errors } doReturn errorsFlow
             on { playbackEvents } doReturn playbackEventsFlow
             on { initialize(any()) } doAnswer {
-                it.getArgument<Lazy<Uri>>(0).value
+                it.getArgument<Uri>(0)
                 Unit
             }
         }.use { modelConstruction ->
@@ -94,7 +98,9 @@ class BrowserFragmentTest {
                 flushEvents()
                 val model = modelConstruction.constructedInstance
                 verify(model).initialize(any())
-                verify(persistentState).currentPath
+                verifyBlocking(persistentState) {
+                    getCurrentPath()
+                }
                 verify(model).state
                 verify(model).progress
                 verify(model).notification
@@ -119,7 +125,8 @@ class BrowserFragmentTest {
     fun `with content and state`() = runTest {
         val listingState = makeState(3, 2, 3)
         persistentState.stub {
-            on { currentPath } doReturn listingState.uri
+            onBlocking { getCurrentPath() } doReturn listingState.uri
+            onBlocking { updateCurrentPath(any()) } doReturn 0
         }
         construct<Model> {
             on { state } doReturn MutableStateFlow(listingState)
@@ -166,6 +173,7 @@ class BrowserFragmentTest {
                 it.requireActivity().onBackPressed()
                 flushEvents()
             }.close()
+            flushEvents()
             inOrder(persistentState, model) {
                 verify(model).browse(Uri.EMPTY)
                 verify(model).browse(listingState.breadcrumbs[0].uri)
@@ -174,7 +182,9 @@ class BrowserFragmentTest {
                 verify(model).cancelSearch()
                 verify(model).browseParent()
                 // at close()
-                verify(persistentState).currentViewPosition = 0
+                verifyBlocking(persistentState) {
+                    updateCurrentPosition(0)
+                }
                 //verify(model).onClear()
             }
             //verifyNoMoreInteractions(modelConstruction.constructedInstance)
@@ -185,7 +195,7 @@ class BrowserFragmentTest {
     fun `progress state`() = runTest {
         val operationProgress = MutableStateFlow<Int?>(null)
         persistentState.stub {
-            on { currentPath } doReturn Uri.EMPTY
+            onBlocking { getCurrentPath() } doReturn Uri.EMPTY
         }
         construct<Model> {
             on { state } doReturn mock()
@@ -219,13 +229,17 @@ class BrowserFragmentTest {
                 }
             }.close()
         }
+        verifyBlocking(persistentState) {
+            getCurrentPath()
+        }
     }
 
     @Test
     fun `search filtering`() = runTest {
         val listingState = MutableStateFlow(makeState(5, 3, 4))
         persistentState.stub {
-            on { currentPath } doReturn listingState.value.uri
+            onBlocking { getCurrentPath() } doReturn listingState.value.uri
+            onBlocking { updateCurrentPath(any()) } doReturn 0
         }
         construct<Model> {
             on { state } doReturn listingState
@@ -275,9 +289,22 @@ class BrowserFragmentTest {
                 }
                 //verifyNoMoreInteractions(model)
             }.close()
-            clearInvocations(*mocks)
+            flushEvents()
         }
-    }/* TODO: investigate for touch events emulating
+        inOrder(persistentState) {
+            verifyBlocking(persistentState) {
+                getCurrentPath()
+            }
+            verifyBlocking(persistentState) {
+                updateCurrentPath(listingState.value.uri)
+            }
+            verifyBlocking(persistentState) {
+                updateCurrentPosition(0)
+            }
+        }
+    }
+
+    /* TODO: investigate for touch events emulating
     @Test
     fun `selection mode`() {
     }
@@ -329,16 +356,5 @@ class BrowserFragmentTest {
                 )
             )
         }
-    }
-}
-
-@Implements(State::class)
-internal class ShadowState {
-    companion object {
-        internal lateinit var instance: State
-
-        @JvmStatic
-        @Implementation
-        fun create(ctx: Context): State = instance
     }
 }
