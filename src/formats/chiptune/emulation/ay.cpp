@@ -16,7 +16,6 @@
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
-#include <range_checker.h>
 #include <string_view.h>
 // library includes
 #include <binary/container_factories.h>
@@ -27,6 +26,7 @@
 #include <formats/chiptune.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
+#include <tools/range_checker.h>
 // std includes
 #include <array>
 #include <cstring>

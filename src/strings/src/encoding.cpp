@@ -12,12 +12,12 @@
 #include "strings/src/utf8.h"
 // common includes
 #include <byteorder.h>
-#include <iterator.h>
 #include <string_view.h>
 #include <types.h>
 // library includes
 #include <math/bitops.h>
 #include <strings/encoding.h>
+#include <tools/iterators.h>
 // std includes
 #include <algorithm>
 #include <array>

@@ -14,12 +14,12 @@
 #include "binary/format/syntax.h"
 // common includes
 #include <contract.h>
-#include <iterator.h>
 #include <make_ptr.h>
 #include <pointers.h>
 #include <string_view.h>
 // library includes
 #include <math/numeric.h>
+#include <tools/iterators.h>
 // std includes
 #include <cctype>
 #include <functional>

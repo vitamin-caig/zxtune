@@ -16,7 +16,7 @@
 #include "playlist/supp/model.h"
 #include "playlist/supp/scanner.h"
 // common includes
-#include <iterator.h>
+#include <tools/iterators.h>
 // qt includes
 #include <QtCore/QObject>
 

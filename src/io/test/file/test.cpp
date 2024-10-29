@@ -13,7 +13,7 @@
 #include <src/io/providers_parameters.h>
 
 #include <error.h>
-#include <progress_callback.h>
+#include <tools/progress_callback.h>
 
 #include <parameters/container.h>
 

@@ -11,11 +11,11 @@
 // local includes
 #include "formats/archived/trdos_utils.h"
 // common includes
-#include <locale_helpers.h>
 #include <string_view.h>
 // library includes
 #include <strings/encoding.h>
 #include <strings/optimize.h>
+#include <tools/locale_helpers.h>
 // std includes
 #include <algorithm>
 

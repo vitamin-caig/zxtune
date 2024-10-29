@@ -13,7 +13,6 @@
 #include "sound/backends/l10n.h"
 // common includes
 #include <make_ptr.h>
-#include <progress_callback.h>
 #include <string_view.h>
 // library includes
 #include <async/data_receiver.h>
@@ -26,6 +25,7 @@
 #include <parameters/convert.h>
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
+#include <tools/progress_callback.h>
 // std includes
 #include <memory>
 #include <utility>

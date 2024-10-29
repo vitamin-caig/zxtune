@@ -11,10 +11,10 @@
 #pragma once
 
 // common includes
-#include <progress_callback.h>
 #include <string_view.h>
 // library includes
 #include <math/scale.h>
+#include <tools/progress_callback.h>
 
 //! @brief Namespace is used for logging and other informational purposes
 namespace Log

@@ -13,7 +13,7 @@
 // local includes
 #include "formats/chiptune/aym/soundtrackerpro.h"
 // common includes
-#include <indices.h>
+#include <tools/indices.h>
 // std includes
 #include <cassert>
 

@@ -14,10 +14,7 @@
 // common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <indices.h>
-#include <iterator.h>
 #include <make_ptr.h>
-#include <range_checker.h>
 #include <string_view.h>
 // library includes
 #include <binary/format_factories.h>
@@ -26,6 +23,9 @@
 #include <strings/format.h>
 #include <strings/optimize.h>
 #include <strings/trim.h>
+#include <tools/indices.h>
+#include <tools/iterators.h>
+#include <tools/range_checker.h>
 // std includes
 #include <array>
 #include <cctype>

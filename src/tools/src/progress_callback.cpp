@@ -9,9 +9,8 @@
  **/
 
 // common includes
-#include <progress_callback.h>
-// common includes
 #include <string_view.h>
+#include <tools/progress_callback.h>
 
 namespace Log
 {

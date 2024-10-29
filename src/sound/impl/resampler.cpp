@@ -11,9 +11,9 @@
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
-#include <xrange.h>
 // library includes
 #include <sound/resampler.h>
+#include <tools/xrange.h>
 
 extern "C"
 {

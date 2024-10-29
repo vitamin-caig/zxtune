@@ -17,7 +17,6 @@
 // common includes
 #include <error_tools.h>
 #include <make_ptr.h>
-#include <progress_callback.h>
 #include <string_view.h>
 // library includes
 #include <binary/container.h>
@@ -30,6 +29,7 @@
 #include <time/duration.h>
 #include <time/serialize.h>
 #include <time/timer.h>
+#include <tools/progress_callback.h>
 // std includes
 #include <algorithm>
 #include <array>

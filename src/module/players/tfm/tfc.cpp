@@ -12,7 +12,6 @@
 #include "module/players/tfm/tfc.h"
 #include "module/players/tfm/tfm_base_stream.h"
 // common includes
-#include <iterator.h>
 #include <make_ptr.h>
 #include <string_view.h>
 // library includes
@@ -21,6 +20,7 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
+#include <tools/iterators.h>
 // std includes
 #include <algorithm>
 #include <array>

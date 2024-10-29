@@ -18,7 +18,6 @@
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-#include <progress_callback.h>
 #include <string_view.h>
 // library includes
 #include <core/additional_files_resolve.h>
@@ -37,6 +36,7 @@
 #include <strings/encoding.h>
 #include <strings/format.h>
 #include <strings/template.h>
+#include <tools/progress_callback.h>
 // std includes
 #include <deque>
 #include <mutex>

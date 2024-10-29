@@ -16,9 +16,9 @@
 #include <module/track_information.h>
 #include <parameters/container.h>
 #include <parameters/template.h>
-#include <progress_callback.h>
 #include <string_view.h>
 #include <time/serialize.h>
+#include <tools/progress_callback.h>
 
 namespace
 {

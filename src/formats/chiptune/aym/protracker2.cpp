@@ -14,15 +14,15 @@
 // common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <indices.h>
 #include <make_ptr.h>
 #include <pointers.h>
-#include <range_checker.h>
 // library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
+#include <tools/indices.h>
+#include <tools/range_checker.h>
 // std includes
 #include <array>
 

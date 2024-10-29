@@ -19,12 +19,12 @@
 #include "properties.h"
 // common includes
 #include <contract.h>
-#include <progress_callback.h>
 #include <string_view.h>
 // library includes
 #include <core/data_location.h>
 #include <core/service.h>
 #include <module/additional_files.h>
+#include <tools/progress_callback.h>
 
 namespace
 {

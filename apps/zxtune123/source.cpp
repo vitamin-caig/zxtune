@@ -15,7 +15,6 @@
 // common includes
 #include <contract.h>
 #include <error_tools.h>
-#include <progress_callback.h>
 #include <string_view.h>
 // library includes
 #include <core/additional_files_resolve.h>
@@ -31,6 +30,7 @@
 #include <platform/application.h>
 #include <strings/array.h>
 #include <time/elapsed.h>
+#include <tools/progress_callback.h>
 // std includes
 #include <iomanip>
 #include <iostream>

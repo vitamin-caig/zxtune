@@ -10,7 +10,6 @@
 
 // common includes
 #include <make_ptr.h>
-#include <progress_callback.h>
 #include <string_view.h>
 // library includes
 #include <analysis/path.h>
@@ -34,6 +33,7 @@
 #include <strings/format.h>
 #include <strings/join.h>
 #include <strings/template.h>
+#include <tools/progress_callback.h>
 // std includes
 #include <iostream>
 #include <locale>

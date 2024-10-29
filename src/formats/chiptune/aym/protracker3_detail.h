@@ -13,7 +13,7 @@
 // local includes
 #include "formats/chiptune/aym/protracker3.h"
 // common includes
-#include <indices.h>
+#include <tools/indices.h>
 
 namespace Formats::Chiptune::ProTracker3
 {

@@ -10,11 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <data_streaming.h>
-// library includes
 #include <sound/chunk.h>
 #include <sound/multichannel_sample.h>
+#include <tools/data_streaming.h>
 
 namespace Sound
 {

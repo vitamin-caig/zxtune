@@ -12,7 +12,6 @@
 #include "formats/chiptune/fm/tfmmusicmaker.h"
 #include "formats/chiptune/container.h"
 // common includes
-#include <indices.h>
 #include <make_ptr.h>
 #include <string_view.h>
 // library includes
@@ -23,6 +22,7 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/sanitize.h>
+#include <tools/indices.h>
 // std includes
 #include <array>
 #include <cassert>

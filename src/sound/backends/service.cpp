@@ -15,7 +15,6 @@
 #include "sound/backends/storage.h"
 // common includes
 #include <error_tools.h>
-#include <locale_helpers.h>
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
@@ -24,6 +23,7 @@
 #include <sound/service.h>
 #include <strings/array.h>
 #include <strings/split.h>
+#include <tools/locale_helpers.h>
 
 namespace Sound
 {

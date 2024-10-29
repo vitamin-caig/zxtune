@@ -10,12 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <iterator.h>
-// library includes
 #include <l10n/markup.h>
 #include <sound/backend_attrs.h>
 #include <strings/array.h>
+#include <tools/iterators.h>
 
 namespace Sound::Alsa
 {

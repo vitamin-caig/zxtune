@@ -14,13 +14,13 @@
 // common includes
 #include <make_ptr.h>
 #include <string_view.h>
-#include <xrange.h>
 // library includes
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/archived/multitrack/filename.h>
 #include <module/players/properties_helper.h>
+#include <tools/xrange.h>
 // std includes
 #include <utility>
 

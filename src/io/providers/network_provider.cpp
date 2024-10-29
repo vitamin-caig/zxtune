@@ -17,7 +17,6 @@
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-#include <progress_callback.h>
 #include <string_view.h>
 // library includes
 #include <binary/container_factories.h>
@@ -25,6 +24,7 @@
 #include <debug/log.h>
 #include <io/providers_parameters.h>
 #include <parameters/accessor.h>
+#include <tools/progress_callback.h>
 // std includes
 #include <cstring>
 #include <utility>

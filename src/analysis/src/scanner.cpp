@@ -10,11 +10,11 @@
 
 // common includes
 #include <contract.h>
-#include <iterator.h>
 #include <make_ptr.h>
 // library includes
 #include <analysis/scanner.h>
 #include <debug/log.h>
+#include <tools/iterators.h>
 // std includes
 #include <deque>
 #include <list>

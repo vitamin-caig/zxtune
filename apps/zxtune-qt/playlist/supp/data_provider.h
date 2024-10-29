@@ -13,8 +13,8 @@
 // local includes
 #include "data.h"
 // common includes
-#include <progress_callback.h>
 #include <string_view.h>
+#include <tools/progress_callback.h>
 
 namespace Playlist::Item
 {

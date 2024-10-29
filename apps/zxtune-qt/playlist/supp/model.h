@@ -14,7 +14,7 @@
 #include "data.h"
 #include "playlist/io/container.h"
 // common includes
-#include <progress_callback.h>
+#include <tools/progress_callback.h>
 // std includes
 #include <map>
 #include <set>

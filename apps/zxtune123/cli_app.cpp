@@ -17,7 +17,6 @@
 #include "source.h"
 // common includes
 #include <error_tools.h>
-#include <progress_callback.h>
 #include <string_view.h>
 // library includes
 #include <async/data_receiver.h>
@@ -39,6 +38,7 @@
 #include <sound/sound_parameters.h>
 #include <time/duration.h>
 #include <time/timer.h>
+#include <tools/progress_callback.h>
 // std includes
 #include <algorithm>
 #include <cctype>

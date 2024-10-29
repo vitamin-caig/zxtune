@@ -14,12 +14,12 @@
 #include "capabilities.h"
 // common includes
 #include <error.h>
-#include <iterator.h>
 // library includes
 #include <binary/data.h>
 #include <module/holder.h>
 #include <parameters/container.h>
 #include <time/duration.h>
+#include <tools/iterators.h>
 // std includes
 #include <variant>
 

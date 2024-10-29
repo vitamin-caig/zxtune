@@ -13,7 +13,7 @@
 #include <io/api.h>
 #include <iostream>
 #include <parameters/container.h>
-#include <progress_callback.h>
+#include <tools/progress_callback.h>
 #include <types.h>
 
 int main(int argc, char* argv[])
