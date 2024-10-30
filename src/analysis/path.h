@@ -11,8 +11,8 @@
 #pragma once
 
 // common includes
+#include <string_type.h>
 #include <string_view.h>
-#include <types.h>
 // std includes
 #include <span>
 

@@ -10,8 +10,8 @@
 
 // common includes
 #include <static_string.h>
+#include <string_type.h>
 #include <string_view.h>
-#include <types.h>
 // std includes
 #include <algorithm>
 #include <cctype>

@@ -12,6 +12,7 @@
 
 // common includes
 #include <source_location.h>
+#include <string_type.h>
 // std includes
 #include <memory>
 

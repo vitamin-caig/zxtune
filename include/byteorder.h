@@ -13,6 +13,8 @@
 // common includes
 #include <bit>
 #include <types.h>
+// std includes
+#include <cstring>
 
 //! @brief Checking if current platform is Little-Endian
 constexpr bool isLE()

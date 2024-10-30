@@ -12,6 +12,8 @@
 
 // library includes
 #include <time/duration.h>
+// common includes
+#include <string_type.h>
 // std includes
 #include <memory>
 #include <vector>

@@ -49,8 +49,6 @@
 // boost includes
 #include <boost/program_options.hpp>
 
-using std::string_literals::operator""s;
-
 namespace
 {
   String GetModuleId(const Parameters::Accessor& props)

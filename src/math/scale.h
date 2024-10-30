@@ -10,10 +10,13 @@
 
 #pragma once
 
+// common includes
+#include <types.h>
 // library includes
 #include <math/bitops.h>
 // std includes
 #include <cassert>
+#include <utility>
 
 namespace Math
 {

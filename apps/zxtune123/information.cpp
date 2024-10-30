@@ -67,7 +67,7 @@ namespace
     {
       if (cap->first == caps)
       {
-        return ' ' + String{cap->second};
+        return " "s + cap->second;
       }
     }
     return " unknown";

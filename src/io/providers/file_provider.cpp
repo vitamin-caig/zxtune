@@ -50,7 +50,7 @@ namespace
     {
       const auto restPart = dotPos != in.npos ? in.substr(dotPos) : StringView();
       // TODO: Concat(StringView...)
-      return String{filename} + '~' + restPart;
+      return filename + "~"s + restPart;
     }
     return in;
   }

@@ -12,6 +12,7 @@
 
 // common includes
 #include <byteorder.h>
+#include <string_type.h>
 
 namespace Formats::Packed::Rar
 {

@@ -92,7 +92,7 @@ namespace Formats::Multitrack
         else
         {
           // TODO: Concat(StringView...)
-          Lines.emplace_back(String{name} + " " + value);
+          Lines.emplace_back(name + " "s + value);
         }
       }
 

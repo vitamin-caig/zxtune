@@ -9,6 +9,7 @@
  **/
 
 #include <byteorder.h>
+#include <string_type.h>
 #include <tools/iterators.h>
 #include <tools/range_checker.h>
 

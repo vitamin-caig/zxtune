@@ -51,8 +51,8 @@ namespace Module::ASAP
       : Module(::ASAP_New())
       , Track(track)
     {
-      CheckError(::ASAP_Load(Module, String("dummy.").append(id).c_str(),
-                             static_cast<const unsigned char*>(data.Start()), data.Size()),
+      CheckError(::ASAP_Load(Module, "dummy."s.append(id).c_str(), static_cast<const unsigned char*>(data.Start()),
+                             data.Size()),
                  "ASAP_Load");
       Reset();  // required for subsequential calls
       Info = ::ASAP_GetInfo(Module);

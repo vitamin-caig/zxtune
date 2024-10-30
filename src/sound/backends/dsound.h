@@ -11,7 +11,7 @@
 #pragma once
 
 // common includes
-#include <types.h>
+#include <string_type.h>
 // library includes
 #include <l10n/markup.h>
 #include <sound/backend_attrs.h>

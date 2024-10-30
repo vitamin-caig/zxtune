@@ -24,7 +24,7 @@ namespace
     Stream result(String{name}.c_str(), std::ios::binary);
     if (!result)
     {
-      throw std::runtime_error(String("Failed to open ").append(name));
+      throw std::runtime_error("Failed to open "s + name);
     }
     return result;
   }

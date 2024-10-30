@@ -30,9 +30,9 @@ namespace Platform
 {
   String GetCurrentImageFilename()
   {
-    const HMODULE mod = GetCurrentModule();
+    const auto mod = GetCurrentModule();
     String result(MAX_PATH + 1, ' ');
-    const uint_t size = ::GetModuleFileName(mod, result.data(), static_cast<DWORD>(MAX_PATH));
+    const auto size = ::GetModuleFileName(mod, result.data(), static_cast<DWORD>(MAX_PATH));
     result.resize(size);
     return result;
   }

@@ -11,7 +11,7 @@
 #pragma once
 
 // common includes
-#include <types.h>
+#include <string_type.h>
 // std includes
 #include <set>
 

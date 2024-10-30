@@ -11,6 +11,7 @@
 #pragma once
 
 // common includes
+#include <string_type.h>
 #include <types.h>
 // library includes
 #include <binary/data.h>

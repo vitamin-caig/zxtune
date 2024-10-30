@@ -11,11 +11,12 @@
 #pragma once
 
 // common includes
+#include <string_type.h>
 #include <string_view.h>
-#include <types.h>
 
 namespace Urls
 {
+  // TODO: use Strings::Concat
   constexpr StringView Email()
   {
     return "zxtune@gmail.com"sv;
@@ -28,17 +29,17 @@ namespace Urls
 
   inline String DownloadsFeed()
   {
-    return String{Site()} + "downloads.xml";
+    return Site() + "downloads.xml"s;
   }
 
   inline String Help()
   {
-    return String{Site()} + "manuals/zxtune-qt/";
+    return Site() + "manuals/zxtune-qt/"s;
   }
 
   inline String Faq()
   {
-    return String{Site()} + "faq/";
+    return Site() + "faq/"s;
   }
 
   constexpr StringView Repository()
@@ -48,6 +49,6 @@ namespace Urls
 
   inline String Bugreport()
   {
-    return String{Repository()} + "issues/new";
+    return Repository() + "issues/new"s;
   }
 }  // namespace Urls

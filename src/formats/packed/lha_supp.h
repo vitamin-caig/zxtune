@@ -10,6 +10,8 @@
 
 #pragma once
 
+// common includes
+#include <string_type.h>
 // library includes
 #include <formats/packed.h>
 

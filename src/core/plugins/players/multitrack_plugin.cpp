@@ -265,7 +265,7 @@ namespace ZXTune
                             Module::MultitrackFactory::Ptr factory)
       : MultitrackBasePlugin(id, Capabilities::Container::Type::MULTITRACK | Capabilities::Category::CONTAINER,
                              std::move(decoder), std::move(factory))
-      , Descr(String{"Multitrack "} + Decoder->GetDescription())
+      , Descr("Multitrack "s + Decoder->GetDescription())
     {}
 
     StringView Description() const override

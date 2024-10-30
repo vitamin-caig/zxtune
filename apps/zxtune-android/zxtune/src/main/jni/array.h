@@ -14,6 +14,8 @@
 #include <types.h>
 // library includes
 #include <binary/view.h>
+// std includes
+#include <cstring>
 // platform includes
 #include <jni.h>
 

@@ -62,7 +62,7 @@ namespace Platform::Details
   String BuildLibraryFilename(StringView name)
   {
     // TODO: Concat(StringView...)
-    return String("lib").append(name).append(SUFFIX);
+    return "lib"s + name + SUFFIX;
   }
 
   Error LoadSharedLibrary(const String& fileName, SharedLibrary::Ptr& res)
