@@ -10,8 +10,6 @@
 
 #pragma once
 
-// common includes
-#include <char_type.h>
 // std includes
 #include <cstdint>
 #include <cstring>
@@ -37,7 +35,7 @@ using int_t = signed int;
 /// String-related types
 
 //! @brief %String type
-using String = std::basic_string<Char>;
+using String = std::string;
 
 // assertions
 static_assert(sizeof(uint_t) >= sizeof(uint32_t), "Invalid uint_t type");

@@ -33,7 +33,7 @@ namespace
     }
   }
 
-  Char ToLower(Char in)
+  char ToLower(char in)
   {
     return std::tolower(in);
   }

@@ -19,7 +19,7 @@
 #include <memory>
 
 // standart stream
-extern std::basic_ostream<Char>& StdOut;
+extern std::ostream& StdOut;
 
 namespace Platform
 {

@@ -16,11 +16,7 @@
 // std includes
 #include <locale>
 
-#ifdef UNICODE
-std::basic_ostream<Char>& StdOut = std::wcout;
-#else
-std::basic_ostream<Char>& StdOut = std::cout;
-#endif
+std::ostream& StdOut = std::cout;
 
 namespace
 {

@@ -128,7 +128,7 @@ namespace
           return false;
         }
         const QXmlStreamAttributes attributes = XML.attributes();
-        if (attributes.value(QLatin1String(XSPF::VERSION_ATTR)) != XSPF::VERSION_VALUE)
+        if (attributes.value(XSPF::VERSION_ATTR) != XSPF::VERSION_VALUE)
         {
           Dbg("  unknown format version");
         }
@@ -299,7 +299,7 @@ namespace
           XML.skipCurrentElement();
         }
         const QXmlStreamAttributes attributes = XML.attributes();
-        const QStringRef& propName = attributes.value(QLatin1String(XSPF::EXTENDED_PROPERTY_NAME_ATTR));
+        const QStringRef& propName = attributes.value(XSPF::EXTENDED_PROPERTY_NAME_ATTR);
         const QString& propValue = XML.readElementText();
         const String propNameStr = FromQString(propName.toString());
         const String propValStr = ConvertString(propValue);
@@ -312,7 +312,7 @@ namespace
     bool CheckForZXTuneExtension()
     {
       const QXmlStreamAttributes attributes = XML.attributes();
-      return attributes.value(QLatin1String(XSPF::APPLICATION_ATTR)) == Playlist::APPLICATION_ID;
+      return attributes.value(XSPF::APPLICATION_ATTR) == Playlist::APPLICATION_ID;
     }
 
     String ConvertString(const QString& input) const

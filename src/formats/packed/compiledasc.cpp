@@ -204,7 +204,7 @@ namespace Formats::Packed
       const auto* const ignoreStart = authorStart + 20;
       const auto* const titleStart = ignoreStart + 4;
       const auto* const end = titleStart + 20;
-      const auto isVisible = [](Char c) { return c > ' '; };
+      const auto isVisible = [](auto c) { return c > ' '; };
       return std::none_of(authorStart, ignoreStart, isVisible) && std::none_of(titleStart, end, isVisible);
     }
   }  // namespace CompiledASC

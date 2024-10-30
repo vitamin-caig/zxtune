@@ -187,7 +187,7 @@ namespace
       constexpr auto singleChar = ' ';
       constexpr auto charsetArray = " \t\n";
       constexpr auto charsetSv = "\t\n "sv;
-      constexpr auto pred = [](Char c) { return c < ' '; };
+      constexpr auto pred = [](auto c) { return c < ' '; };
 
       const String title(Title);
       TestEquals(CharRef, Strings::Trim(Input, singleChar), "Trim single char on " + title);
@@ -434,7 +434,7 @@ int main()
       TestSplit("Prefix", ",,str", ',', {"str"});
       TestSplit("Suffix", "str,,", ',', {"str"});
       TestSplit("MultiDelimiters", ":one,two/three;four.", ";/,.:"sv, {"one", "two", "three", "four"});
-      TestSplit("Predicate", "a1bc2;d5", [](Char c) { return !std::isalpha(c); }, {"a", "bc", "d"});
+      TestSplit("Predicate", "a1bc2;d5", [](auto c) { return !std::isalpha(c); }, {"a", "bc", "d"});
     }
     std::cout << "---- Test for join ----" << std::endl;
     {

@@ -25,19 +25,19 @@
 
 namespace
 {
-  const Char PARAMETERS_DELIMITER = ',';
+  const auto PARAMETERS_DELIMITER = ',';
 
-  const Char CONFIG_FILENAME[] = "zxtune.conf";
+  const auto CONFIG_FILENAME = "zxtune.conf"sv;
 
   // try to search config in homedir, if defined
   String GetDefaultConfigFile()
   {
 #ifdef _WIN32
-    static const Char ENV_HOMEDIR[] = "APPDATA";
-    static const Char PATH[] = "\\zxtune\\";
+    static const char ENV_HOMEDIR[] = "APPDATA";
+    const auto PATH = "\\zxtune\\"sv;
 #else
-    static const Char ENV_HOMEDIR[] = "HOME";
-    static const Char PATH[] = "/.zxtune/";
+    static const char ENV_HOMEDIR[] = "HOME";
+    const auto PATH = "/.zxtune/"sv;
 #endif
     String dir;
     if (const auto* homeDir = ::getenv(ENV_HOMEDIR))
@@ -71,7 +71,7 @@ namespace
     for (auto it = str.begin(), lim = str.end(); it != lim; ++it)
     {
       bool doApply = false;
-      const Char sym(*it);
+      const auto sym(*it);
       switch (mode)
       {
       case IN_NOWHERE:
@@ -145,7 +145,7 @@ namespace
   {
     const String configName(filename.empty() ? CONFIG_FILENAME : filename);
 
-    using FileStream = std::basic_ifstream<Char>;
+    using FileStream = std::ifstream;
     std::unique_ptr<FileStream> configFile(new FileStream(configName.c_str()));
     if (!*configFile)
     {
@@ -162,15 +162,15 @@ namespace
     }
 
     String lines;
-    std::vector<Char> buffer(1024);
+    std::string buffer(1024, '\0');
     for (;;)
     {
       configFile->getline(buffer.data(), buffer.size());
       if (const std::streamsize lineSize = configFile->gcount())
       {
         const auto endof = buffer.cbegin() + lineSize - 1;
-        const auto beginof = std::find_if(buffer.cbegin(), endof, [](Char c) { return !std::isspace(c); });
-        if (beginof != endof && *beginof != Char('#'))
+        const auto beginof = std::find_if(buffer.cbegin(), endof, [](auto c) { return !std::isspace(c); });
+        if (beginof != endof && *beginof != '#')
         {
           if (!lines.empty())
           {

@@ -147,7 +147,7 @@ namespace Binary::FormatDSL
   public:
     LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      static const Char OPERATIONS_STR[] = {RANGE_TEXT,  CONJUNCTION_TEXT, DISJUNCTION_TEXT, QUANTOR_BEGIN,
+      static const char OPERATIONS_STR[] = {RANGE_TEXT,  CONJUNCTION_TEXT, DISJUNCTION_TEXT, QUANTOR_BEGIN,
                                             QUANTOR_END, GROUP_BEGIN,      GROUP_END};
       static const StringView OPERATIONS(OPERATIONS_STR, sizeof(OPERATIONS_STR));
       return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(OPERATIONS) ? LexicalAnalysis::INVALID_TOKEN

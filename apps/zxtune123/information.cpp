@@ -49,7 +49,7 @@ namespace
     {
       if (cap->first & caps)
       {
-        result += Char(' ');
+        result += ' ';
         result += cap->second;
         caps ^= cap->first;
       }
@@ -67,7 +67,7 @@ namespace
     {
       if (cap->first == caps)
       {
-        return Char(' ') + String{cap->second};
+        return ' ' + String{cap->second};
       }
     }
     return " unknown";
@@ -272,14 +272,14 @@ namespace
       : Name(name)
     {}
 
-    OptionDesc(Parameters::Identifier name, const Char* descr, ValueType def)
+    OptionDesc(Parameters::Identifier name, const char* descr, ValueType def)
       : Name(name)
       , Desc(descr)
       , Default(std::move(def))
     {}
 
     StringView Name;
-    const Char* const Desc = nullptr;
+    const char* const Desc = nullptr;
     ValueType Default;
 
     String Describe() const
@@ -439,7 +439,7 @@ namespace
     }
   }
 
-  using AttrType = std::pair<StringView, const Char*>;
+  using AttrType = std::pair<StringView, const char*>;
   void ShowAttribute(const AttrType& arg)
   {
     StdOut << Strings::Format(" {0:<20}- {1}", arg.first, arg.second) << std::endl;

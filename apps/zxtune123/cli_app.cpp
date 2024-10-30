@@ -49,6 +49,8 @@
 // boost includes
 #include <boost/program_options.hpp>
 
+using std::string_literals::operator""s;
+
 namespace
 {
   String GetModuleId(const Parameters::Accessor& props)
@@ -433,18 +435,18 @@ namespace
         String configFile;
         options_description options(
             Strings::Format("Usage:\n{0} <Informational keys>\n{0} <Options> <files>...\n\nKeys", args[0]));
-        const Char HELP_KEY[] = "help";
-        const Char VERSION_KEY[] = "version";
-        const Char ABOUT_KEY[] = "about";
-        const Char CONFIG_KEY[] = "config";
-        const Char CONVERT_KEY[] = "convert";
+        const auto HELP_KEY = "help"s;
+        const auto VERSION_KEY = "version"s;
+        const auto ABOUT_KEY = "about"s;
+        const auto CONFIG_KEY = "config"s;
+        const auto CONVERT_KEY = "convert"s;
         {
           auto opt = options.add_options();
-          opt(HELP_KEY, "show this message");
-          opt(VERSION_KEY, "show version");
-          opt(ABOUT_KEY, "show information about program");
-          opt(CONFIG_KEY, value<String>(&configFile), "configuration file");
-          opt(CONVERT_KEY, value<String>(&ConvertParams),
+          opt(HELP_KEY.c_str(), "show this message");
+          opt(VERSION_KEY.c_str(), "show version");
+          opt(ABOUT_KEY.c_str(), "show information about program");
+          opt(CONFIG_KEY.c_str(), value<String>(&configFile), "configuration file");
+          opt(CONVERT_KEY.c_str(), value<String>(&ConvertParams),
               "Perform conversion instead of playback.\n"
               "Parameter is map with the next mandatory parameters:\n"
               " mode - specify conversion mode. Currently supported are: raw,psg,zx50,txt,aydump,fym\n"

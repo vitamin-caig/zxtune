@@ -190,7 +190,7 @@ namespace Formats::Chiptune
         const auto* end = start + std::min(maxSize, Stream.GetRestSize());
         const auto* limit = std::find(start, end, 0);
         Stream.Skip(limit - start + (limit != end));
-        return {safe_ptr_cast<const Char*>(start), static_cast<std::size_t>(limit - start)};
+        return {safe_ptr_cast<const char*>(start), static_cast<std::size_t>(limit - start)};
       }
 
       bool ReadTagSignature()

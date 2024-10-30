@@ -49,5 +49,5 @@ namespace Analysis
     virtual Ptr GetParent() const = 0;
   };
 
-  Path::Ptr ParsePath(StringView str, Char separator);
+  Path::Ptr ParsePath(StringView str, char separator);
 }  // namespace Analysis

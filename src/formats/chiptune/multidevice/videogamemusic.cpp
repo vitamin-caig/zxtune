@@ -221,18 +221,18 @@ namespace Formats::Chiptune
         {
           if (utf <= 0x7f)
           {
-            value += static_cast<Char>(utf);
+            value += static_cast<uint8_t>(utf);
           }
           else if (utf <= 0x7ff)
           {
-            value += static_cast<Char>(0xc0 | ((utf & 0x3c0) >> 6));
-            value += static_cast<Char>(0x80 | (utf & 0x3f));
+            value += static_cast<uint8_t>(0xc0 | ((utf & 0x3c0) >> 6));
+            value += static_cast<uint8_t>(0x80 | (utf & 0x3f));
           }
           else
           {
-            value += static_cast<Char>(0xe0 | ((utf & 0xf000) >> 12));
-            value += static_cast<Char>(0x80 | ((utf & 0x0fc0) >> 6));
-            value += static_cast<Char>(0x80 | ((utf & 0x003f)));
+            value += static_cast<uint8_t>(0xe0 | ((utf & 0xf000) >> 12));
+            value += static_cast<uint8_t>(0x80 | ((utf & 0x0fc0) >> 6));
+            value += static_cast<uint8_t>(0x80 | ((utf & 0x003f)));
           }
         }
         return value;

@@ -67,7 +67,7 @@ namespace
     return Strings::ToAutoUtf8(err.code().message());
   }
 
-  inline bool IsNotFSSymbol(Char sym)
+  inline bool IsNotFSSymbol(char sym)
   {
     return std::iscntrl(sym) || sym == '*' || sym == '\?' || sym == '%' || sym == ':' || sym == '|' || sym == '\"'
            || sym == '<' || sym == '>' || sym == '\\' || sym == '/';
@@ -116,7 +116,7 @@ namespace IO::File
   // uri-related constants
   const auto SCHEME_SIGN = "://"sv;
   const auto SCHEME_FILE = "file"sv;
-  const Char SUBPATH_DELIMITER = '\?';
+  const auto SUBPATH_DELIMITER = '\?';
 
   class FileIdentifier : public Identifier
   {
@@ -349,7 +349,7 @@ namespace IO::File
   String SanitizePathComponent(String input)
   {
     input = Strings::Trim(input, &IsNotFSSymbol);
-    std::replace_if(input.begin(), input.end(), &IsNotFSSymbol, Char('_'));
+    std::replace_if(input.begin(), input.end(), &IsNotFSSymbol, '_');
     return ApplyOSFilenamesRestrictions(std::move(input));
   }
 

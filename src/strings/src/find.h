@@ -21,7 +21,7 @@ namespace Strings
   namespace Find
   {
     template<class T>
-    concept CharPredicate = requires(T f, Char c)
+    concept CharPredicate = requires(T f, typename StringView::value_type c)
     {
       f(c);
     };

@@ -24,6 +24,7 @@
 #include <strings/casing.h>
 #include <strings/map.h>
 // std includes
+#include <algorithm>
 #include <array>
 
 namespace Formats::Archived

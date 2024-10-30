@@ -210,7 +210,7 @@ namespace IO::Network
   const auto SCHEME_HTTPS = "https"sv;
   const auto SCHEME_FTP = "ftp"sv;
 
-  const Char SUBPATH_DELIMITER = '#';
+  const auto SUBPATH_DELIMITER = '#';
 
   auto IsSupportedScheme(StringView scheme)
   {

@@ -14,32 +14,30 @@
 #include <string_view.h>
 #include <types.h>
 // qt includes
+#include <QtCore/QLatin1String>
 #include <QtCore/QMetaType>
 #include <QtCore/QObject>
 #include <QtCore/QString>
 
-inline QString ToQString(const String& str)
-{
-#ifdef UNICODE
-  return QString::fromStdWString(str);
-#else
-  return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
-#endif
-}
-
-inline QString ToQString(StringView str)
+inline auto ToQString(StringView str)
 {
   return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
 }
 
-inline String FromQString(const QString& str)
+inline auto ToLatin(StringView str)
 {
-#ifdef UNICODE
-  return str.toStdWString();
-#else
-  const QByteArray& raw = str.toUtf8();
-  return raw.constData();
-#endif
+  return QLatin1String{str.data(), static_cast<int>(str.size())};
+}
+
+inline auto FromQString(const QString& str)
+{
+  const auto& raw = str.toUtf8();
+  return String{raw.constData(), static_cast<std::size_t>(raw.size())};
+}
+
+inline constexpr auto operator"" _latin(const char* txt, std::size_t size)
+{
+  return QLatin1String(txt, size);
 }
 
 template<class T>

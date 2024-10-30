@@ -17,6 +17,6 @@ namespace Strings
 {
   StringView TrimSpaces(StringView str)
   {
-    return Trim(str, [](Char c) { return c <= ' '; });
+    return Trim(str, [](auto c) { return c <= ' '; });
   }
 }  // namespace Strings

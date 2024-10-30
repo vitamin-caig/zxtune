@@ -10,8 +10,6 @@
 
 #pragma once
 
-// local includes
-#include <char_type.h>
 // std includes
 #include <memory>
 #include <string>
@@ -19,7 +17,7 @@
 
 using std::string_view_literals::operator""sv;
 
-using StringView = std::basic_string_view<Char>;
+using StringView = std::string_view;
 
 template<class Array>
 constexpr auto MakeStringView(const Array& array) noexcept

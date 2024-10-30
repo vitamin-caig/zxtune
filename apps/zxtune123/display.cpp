@@ -190,7 +190,7 @@ namespace
 
     void ShowPlaybackStatus(Time::Milliseconds played, Sound::PlaybackControl::State state)
     {
-      const Char MARKER = '\x1';
+      const auto MARKER = '\x1';
       String data = Strings::Format(PLAYBACK_STATUS, Time::ToString(played), MARKER);
       const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
       const String::size_type markerPos = data.find(MARKER);
@@ -203,7 +203,7 @@ namespace
       DynamicLines += PLAYING_HEIGHT;
     }
 
-    static Char StateSymbol(Sound::PlaybackControl::State state)
+    static char StateSymbol(Sound::PlaybackControl::State state)
     {
       switch (state)
       {
