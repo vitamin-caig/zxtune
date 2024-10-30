@@ -50,4 +50,6 @@ source_files := $(addsuffix .c,$(source_files))
 
 source_files += $(addprefix player/,playerbase.cpp s98player.cpp vgmplayer.cpp vgmplayer_cmdhandler.cpp helper.c dblk_compr.c)
 
+defines += HAVE_STDINT_H
+
 include $(dirs.root)/makefile.mak

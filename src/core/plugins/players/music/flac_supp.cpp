@@ -25,7 +25,6 @@
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 // 3rdparty
-#define FLAC__NO_DLL
 #include <3rdparty/FLAC/stream_decoder.h>
 
 namespace Module::Flac

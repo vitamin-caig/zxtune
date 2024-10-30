@@ -28,7 +28,6 @@
 // std includes
 #include <utility>
 // 3rdparty includes
-#define BUILDING_STATIC
 #include <3rdparty/xmp/include/xmp.h>
 #include <3rdparty/xmp/src/xmp_private.h>
 

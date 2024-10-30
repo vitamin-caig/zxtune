@@ -24,8 +24,6 @@
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 // 3rdparty
-#define MINIMP3_IMPLEMENTATION
-#define MINIMP3_NONSTANDARD_BUT_LOGICAL
 #include <3rdparty/minimp3/minimp3.h>
 
 namespace Module::Mp3

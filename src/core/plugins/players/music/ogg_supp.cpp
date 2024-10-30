@@ -25,7 +25,6 @@
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 // 3rdparty
-#define OV_EXCLUDE_STATIC_CALLBACKS
 #include <3rdparty/vorbis/vorbisfile.h>
 // std includes
 #include <algorithm>

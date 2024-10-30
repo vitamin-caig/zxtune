@@ -32,7 +32,6 @@
 #include <memory>
 #include <utility>
 // 3rdparty includes
-#define BUILDING_STATIC
 #include <3rdparty/openmpt/libopenmpt/libopenmpt.hpp>
 
 namespace Module::Mpt

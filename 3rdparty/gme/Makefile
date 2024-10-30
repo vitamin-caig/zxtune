@@ -36,4 +36,6 @@ source_files += $(addprefix gme/,Kss_Emu.cpp Kss_Core.cpp Kss_Cpu.cpp Kss_Scc_Ap
 source_files += $(addprefix gme/,Resampler.cpp Fir_Resampler.cpp Dual_Resampler.cpp \
                  )
 
+defines += HAVE_STDINT_H
+
 include $(dirs.root)/makefile.mak

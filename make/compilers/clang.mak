@@ -48,10 +48,6 @@ CXX_MODE_FLAGS += --sysroot=$(dir.sysroot)
 LD_MODE_FLAGS += --sysroot=$(dir.sysroot)
 endif
 
-DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch))
-INCLUDES_DIRS = $(foreach i,$(sort $(includes.dirs) $(includes.dirs.$(platform)) $(includes.dirs.$(notdir $1))),$(abspath $(i)))
-INCLUDES_FILES = $(foreach f,$(includes.files) $(includes.files.$(platform)),$(abspath $(f)))
-
 #setup flags
 CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
 	$(addprefix -D,$(DEFINES)) \
@@ -59,7 +55,7 @@ CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platfor
 	-W -Wall -Wextra -pipe \
 	$(addprefix -I,$(INCLUDES_DIRS)) $(addprefix -include ,$(INCLUDES_FILES))
 
-CXXFLAGS = $(CCFLAGS) -std=c++20 -fvisibility-inlines-hidden
+CXXFLAGS = $(CCFLAGS) -std=c++20 -Wno-gnu-string-literal-operator-template -fvisibility-inlines-hidden
 
 ARFLAGS := crus
 LDFLAGS = $(LD_MODE_FLAGS) $($(platform).ld.flags) $($(platform).$(arch).ld.flags) $(ld_flags)
@@ -77,8 +73,8 @@ link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
 	$(if $(libraries.dynamic),-L$(output_dir) $(addprefix -l,$(libraries.dynamic)),)
 
 #specify postlink command- generate pdb file
-postlink_cmd ?= $(tools.objcopy) --only-keep-debug $@ $@.pdb && $(sleep_cmd) && \
-	$(tools.objcopy) --strip-all $@ && $(sleep_cmd) && \
+postlink_cmd ?= $(tools.objcopy) --only-keep-debug $@ $@.pdb && \
+	$(tools.objcopy) --strip-all $@ && \
 	$(tools.objcopy) --add-gnu-debuglink=$@.pdb $@
 
 #include generated dependensies
