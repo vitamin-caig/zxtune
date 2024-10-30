@@ -925,7 +925,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const Char DESCRIPTION[] = "Global Tracker v1.x";
+    const auto DESCRIPTION = "Global Tracker v1.x"sv;
     const auto FORMAT =
         "03-0f"     // uint8_t Tempo;
         "???"       // uint8_t ID[3];
@@ -947,7 +947,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

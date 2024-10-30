@@ -24,7 +24,7 @@ namespace Formats::Chiptune
 {
   namespace NitroComposerSoundFormat
   {
-    const Char DESCRIPTION[] = "Nitro Composer Sound Format";
+    const auto DESCRIPTION = "Nitro Composer Sound Format";
 
     using SignatureType = std::array<uint8_t, 4>;
     const SignatureType SAVESTATE_SIGNATURE = {{'S', 'A', 'V', 'E'}};
@@ -61,7 +61,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

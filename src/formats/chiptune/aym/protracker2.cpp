@@ -32,7 +32,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProTracker2");
 
-    const Char PROGRAM[] = "Pro Tracker v2.x";
+    const auto PROGRAM = "Pro Tracker v2.x"sv;
 
     const std::size_t MIN_SIZE = 100;
     const std::size_t MAX_SIZE = 0x3800;
@@ -901,7 +901,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

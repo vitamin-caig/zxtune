@@ -29,7 +29,7 @@ namespace Formats::Packed
     const std::size_t MIN_SIZE = 0x20;  // TODO
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "CharPres";
+    const auto DESCRIPTION = "CharPres"sv;
     const auto DEPACKER_PATTERN =
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
@@ -238,7 +238,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(CharPres::DEPACKER_PATTERN, CharPres::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return CharPres::DESCRIPTION;
     }

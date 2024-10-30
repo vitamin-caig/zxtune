@@ -106,10 +106,9 @@ namespace
       }
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'m', 'p', '3', '\0'};
-      return ID;
+      return "mp3"sv;
     }
 
     QString GetDescription() const override

@@ -31,7 +31,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "Hrum v3.x";
+    const auto DESCRIPTION = "Hrum v3.x"sv;
     const auto DEPACKER_PATTERN =
         "?"       // di/nop
         "ed73??"  // ld (xxxx),sp
@@ -298,7 +298,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(Hrum::DEPACKER_PATTERN, Hrum::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Hrum::DESCRIPTION;
     }

@@ -281,7 +281,7 @@ namespace
   {
     if (const IO::Identifier::Ptr id = provider.Resolve(cs.Uri))
     {
-      const std::string pid = provider.Id() + ' ';
+      const auto pid = String{provider.Id()} + " ";
       Test(pid + cs.Name + " (scheme)", id->Scheme(), cs.Scheme);
       Test(pid + cs.Name + " (path)", id->Path(), cs.Path);
       Test(pid + cs.Name + " (filename)", id->Filename(), cs.Filename);

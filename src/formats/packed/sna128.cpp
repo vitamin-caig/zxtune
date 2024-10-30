@@ -126,7 +126,7 @@ namespace Formats::Packed
       return CreateContainer(result.CaptureResult(), origSize);
     }
 
-    const Char DESCRIPTION[] = "SNA 128k";
+    const auto DESCRIPTION = "SNA 128k"sv;
     const auto FORMAT =
         "?{19}"
         "00|01|02|03|04|ff"  // iff. US saves 0x00/0x04/0xff instead of normal 0x00..0x03 flags
@@ -144,7 +144,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(Sna128::FORMAT, Sna128::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Sna128::DESCRIPTION;
     }

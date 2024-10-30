@@ -247,7 +247,7 @@ namespace Formats::Chiptune
 {
   namespace MultiTrackContainer
   {
-    const Char DESCRIPTION[] = "Multitrack Container";
+    const auto DESCRIPTION = "Multitrack Container"sv;
 
     class StubBuilder : public Builder
     {
@@ -283,7 +283,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

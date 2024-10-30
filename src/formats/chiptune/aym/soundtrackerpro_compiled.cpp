@@ -34,7 +34,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SoundTrackerProCompiled");
 
-    const Char PROGRAM[] = "Sound Tracker Pro";
+    const auto PROGRAM = "Sound Tracker Pro"sv;
 
     using namespace SoundTrackerPro;
 
@@ -853,8 +853,8 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const Char DESCRIPTION[] = "Sound Tracker Pro Compiled";
-    const StringView FORMAT =
+    const auto DESCRIPTION = "Sound Tracker Pro Compiled"sv;
+    const auto FORMAT =
         "03-0f"   // uint8_t Tempo; 3..15
         "?00-26"  // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
         "?00-27"  // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
@@ -869,7 +869,7 @@ namespace Formats::Chiptune
         : Header(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

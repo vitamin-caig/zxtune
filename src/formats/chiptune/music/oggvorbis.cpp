@@ -326,7 +326,7 @@ namespace Formats::Chiptune
 
   namespace OggVorbis
   {
-    const Char DESCRIPTION[] = "OGG Vorbis";
+    const auto DESCRIPTION = "OGG Vorbis"sv;
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
     {
@@ -389,7 +389,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

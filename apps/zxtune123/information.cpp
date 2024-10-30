@@ -475,13 +475,16 @@ namespace
 
   void ShowFreqtables()
   {
-    static const String FREQTABLES[] = {
+    static const StringView FREQTABLES[] = {
         Module::TABLE_SOUNDTRACKER,       Module::TABLE_PROTRACKER2,        Module::TABLE_PROTRACKER3_3,
         Module::TABLE_PROTRACKER3_4,      Module::TABLE_PROTRACKER3_3_ASM,  Module::TABLE_PROTRACKER3_4_ASM,
         Module::TABLE_PROTRACKER3_3_REAL, Module::TABLE_PROTRACKER3_4_REAL, Module::TABLE_ASM,
         Module::TABLE_SOUNDTRACKER_PRO,   Module::TABLE_NATURAL_SCALED};
-    StdOut << "Supported frequency tables: ";
-    std::copy(FREQTABLES, std::end(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));
+    StdOut << "Supported frequency tables:";
+    for (const auto& table : FREQTABLES)
+    {
+      StdOut << ' ' << table;
+    }
     StdOut << std::endl;
   }
 

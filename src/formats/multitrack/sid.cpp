@@ -62,7 +62,7 @@ namespace Formats::Multitrack
         "????"          // BE speed flag
         ""sv;
 
-    const Char DESCRIPTION[] = "Commodore64 SID/RSID/PSID";
+    const auto DESCRIPTION = "Commodore64 SID/RSID/PSID"sv;
 
     class Container : public Binary::BaseContainer<Multitrack::Container>
     {
@@ -116,7 +116,7 @@ namespace Formats::Multitrack
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

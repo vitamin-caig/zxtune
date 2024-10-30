@@ -27,7 +27,7 @@
 
 namespace Module::TFC
 {
-  const Char PROGRAM_PREFIX[] = "TurboFM Compiler v";
+  const auto PROGRAM_PREFIX = "TurboFM Compiler v"sv;
 
   class ChannelData
   {

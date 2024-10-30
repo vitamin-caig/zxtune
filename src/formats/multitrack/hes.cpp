@@ -60,7 +60,7 @@ namespace Formats::Multitrack
         "? ? 0x 00"  // 1MB size limit
         ""sv;
 
-    const Char DESCRIPTION[] = "Home Entertainment System";
+    const auto DESCRIPTION = "Home Entertainment System"sv;
 
     const std::size_t MIN_SIZE = 256;
 
@@ -115,7 +115,7 @@ namespace Formats::Multitrack
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

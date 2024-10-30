@@ -63,7 +63,7 @@ namespace Formats::Multitrack
         // do not pay attention to addresses
         ""sv;
 
-    const Char DESCRIPTION[] = "GameBoy Sound";
+    const auto DESCRIPTION = "GameBoy Sound"sv;
 
     const std::size_t MIN_SIZE = 256;
 
@@ -124,7 +124,7 @@ namespace Formats::Multitrack
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

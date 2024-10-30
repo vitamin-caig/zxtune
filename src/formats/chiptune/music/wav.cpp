@@ -28,7 +28,7 @@ namespace Formats::Chiptune
 {
   namespace Wav
   {
-    const Char DESCRIPTION[] = "Waveform Audio File Format";
+    const auto DESCRIPTION = "Waveform Audio File Format"sv;
 
     // http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
     namespace Chunks
@@ -295,7 +295,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

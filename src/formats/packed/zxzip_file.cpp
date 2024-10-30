@@ -34,7 +34,7 @@ namespace Formats::Packed
   {
     const std::size_t MIN_SIZE = 0x16 + 32;
 
-    const Char DESCRIPTION[] = "ZXZip";
+    const auto DESCRIPTION = "ZXZip"sv;
     const auto HEADER_PATTERN =
         // Filename
         "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
@@ -594,7 +594,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(ZXZip::HEADER_PATTERN, ZXZip::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return ZXZip::DESCRIPTION;
     }

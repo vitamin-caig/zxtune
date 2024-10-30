@@ -25,7 +25,7 @@ namespace Formats::Chiptune
 {
   namespace GYM
   {
-    const Char DESCRIPTION[] = "Genesis YM2612 (unpacked)";
+    const auto DESCRIPTION = "Genesis YM2612 (unpacked)"sv;
 
     using SignatureType = std::array<uint8_t, 4>;
     using StringType = std::array<uint8_t, 32>;
@@ -59,7 +59,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

@@ -24,7 +24,7 @@ namespace Formats::Chiptune
 {
   namespace NintendoDSSoundFormat
   {
-    const Char DESCRIPTION[] = "Nintendo DS Sound Format";
+    const auto DESCRIPTION = "Nintendo DS Sound Format"sv;
 
     using SignatureType = std::array<uint8_t, 4>;
     const SignatureType SAVESTATE_SIGNATURE = {{'S', 'A', 'V', 'E'}};
@@ -73,7 +73,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

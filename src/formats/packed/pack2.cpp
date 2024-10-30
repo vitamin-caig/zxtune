@@ -28,7 +28,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "Pack v2.x";
+    const auto DESCRIPTION = "Pack v2.x"sv;
     const auto DEPACKER_PATTERN =
         "21??"  // ld hl,xxxx end of packed
         "11??"  // ld de,xxxx end of unpacked
@@ -254,7 +254,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(Pack2::DEPACKER_PATTERN, Pack2::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Pack2::DESCRIPTION;
     }

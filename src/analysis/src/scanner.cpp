@@ -243,7 +243,7 @@ namespace Analysis
 
     void Schedule(typename Traits::Decoder::Ptr decoder, std::size_t delta)
     {
-      const String id = decoder->GetDescription();
+      const auto id = decoder->GetDescription();
       if (delta != Window.Size())
       {
         const std::size_t nextPos = Window.GetOffset() + delta;

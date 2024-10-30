@@ -67,7 +67,7 @@ namespace Formats::Packed
     static_assert(offsetof(RawPlayer, Information) == 12, "Invalid layout");
     static_assert(offsetof(RawPlayer, Initialization) == 67, "Invalid layout");
 
-    const Char DESCRIPTION[] = "Sound Tracker v3.x Compiled player";
+    const auto DESCRIPTION = "Sound Tracker v3.x Compiled player"sv;
 
     const auto FORMAT =
         "21??"  // ld hl,ModuleAddr
@@ -101,7 +101,7 @@ namespace Formats::Packed
       : Player(Binary::CreateFormat(CompiledST3::FORMAT, sizeof(CompiledST3::RawPlayer)))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return CompiledST3::DESCRIPTION;
     }

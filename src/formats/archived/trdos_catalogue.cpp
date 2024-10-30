@@ -42,7 +42,7 @@ namespace TRDos
     }
     // xxx.x and
     // xxx    '.x should be merged
-    static const Char SATTELITE_SEQ[] = {'\'', '.', '\0'};
+    const auto SATTELITE_SEQ = "'."sv;
     const String::size_type apPos(rh.GetName().find(SATTELITE_SEQ));
     const bool isSatelite = apPos != String::npos;
     if (!isSatelite)

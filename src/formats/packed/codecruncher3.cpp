@@ -27,7 +27,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "CodeCruncher v3.x";
+    const auto DESCRIPTION = "CodeCruncher v3.x"sv;
     const auto DEPACKER_PATTERN =
         // classic depacker
         "?"       // di/nop
@@ -331,7 +331,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(CodeCruncher3::DEPACKER_PATTERN, CodeCruncher3::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return CodeCruncher3::DESCRIPTION;
     }

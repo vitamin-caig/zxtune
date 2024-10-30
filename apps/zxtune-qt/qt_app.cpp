@@ -63,7 +63,7 @@ namespace Platform
 {
   namespace Version
   {
-    extern const Char PROGRAM_NAME[] = "zxtune-qt";
+    const StringView PROGRAM_NAME = "zxtune-qt"sv;
   }
 
   std::unique_ptr<Application> Application::Create()

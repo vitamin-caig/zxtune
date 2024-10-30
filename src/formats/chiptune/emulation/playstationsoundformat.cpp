@@ -73,7 +73,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::PSF");
 
-    const Char DESCRIPTION[] = "Playstation Sound Format";
+    const auto DESCRIPTION = "Playstation Sound Format"sv;
 
     const std::size_t HEADER_SIZE = 2048;
 
@@ -179,7 +179,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

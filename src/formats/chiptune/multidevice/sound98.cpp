@@ -28,7 +28,7 @@ namespace Formats::Chiptune
 {
   namespace Sound98
   {
-    const Char DESCRIPTION[] = "Sound 98";
+    const auto DESCRIPTION = "Sound 98"sv;
 
     const uint32_t VER0 = 0x53393830;
     const uint32_t VER1 = 0x53393831;
@@ -65,7 +65,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

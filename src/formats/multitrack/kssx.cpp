@@ -71,7 +71,7 @@ namespace Formats::Multitrack
         "%0x0xxxxx"  // extra chips
         ""sv;
 
-    const Char DESCRIPTION[] = "KSS Extended Music Format";
+    const auto DESCRIPTION = "KSS Extended Music Format"sv;
 
     const ExtraHeader STUB_EXTRA_HEADER = {~uint32_t(0), 0, 0, 0};
 
@@ -116,7 +116,7 @@ namespace Formats::Multitrack
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

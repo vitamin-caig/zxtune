@@ -1244,9 +1244,9 @@ namespace Formats::Chiptune
         , Header(Binary::CreateFormat(version.Format, version.MinSize))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
-        return String{Version.Description};
+        return Version.Description;
       }
 
       Binary::Format::Ptr GetFormat() const override

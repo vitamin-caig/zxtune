@@ -24,7 +24,7 @@ namespace Formats::Chiptune
 {
   namespace Flac
   {
-    const Char DESCRIPTION[] = "Free Lossless Audio Codec";
+    const auto DESCRIPTION = "Free Lossless Audio Codec"sv;
 
     // https://www.xiph.org/flac/format
     class Format
@@ -258,7 +258,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

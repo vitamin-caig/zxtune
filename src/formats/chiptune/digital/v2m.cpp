@@ -23,7 +23,7 @@ namespace Formats::Chiptune
 {
   namespace V2m
   {
-    const Char DESCRIPTION[] = "Farbrausch V2 Synthesizer System";
+    const auto DESCRIPTION = "Farbrausch V2 Synthesizer System"sv;
 
     class Format
     {
@@ -224,7 +224,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

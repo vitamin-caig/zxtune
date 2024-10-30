@@ -381,7 +381,7 @@ namespace Module::Vortex
     State PlayerState;
   };
 
-  String GetFreqTable(NoteTable table, uint_t version)
+  StringView GetFreqTable(NoteTable table, uint_t version)
   {
     switch (table)
     {

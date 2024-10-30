@@ -115,7 +115,7 @@ namespace IO
       , StatusValue(std::move(status))
     {}
 
-    String Id() const override
+    StringView Id() const override
     {
       return IdValue;
     }
@@ -146,7 +146,7 @@ namespace IO
     }
 
   private:
-    const String IdValue;
+    const StringView IdValue;
     const char* const DescrValue;
     const Error StatusValue;
   };

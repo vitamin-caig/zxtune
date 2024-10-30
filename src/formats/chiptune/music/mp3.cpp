@@ -26,7 +26,7 @@ namespace Formats::Chiptune
 {
   namespace Mp3
   {
-    const Char DESCRIPTION[] = "MPEG Audio Layer";
+    const auto DESCRIPTION = "MPEG Audio Layer"sv;
 
     // http://wiki.hydrogenaud.io/index.php?title=APEv2_specification
     namespace ApeTag
@@ -484,7 +484,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

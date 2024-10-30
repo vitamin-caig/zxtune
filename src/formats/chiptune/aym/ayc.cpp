@@ -85,7 +85,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const Char DESCRIPTION[] = "CPC AYC";
+    const auto DESCRIPTION = "CPC AYC"sv;
     const auto FORMAT =
         "?00-75"              // 10 min approx
         "01|04 2e00"          // assume first chunk is right after header
@@ -100,7 +100,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

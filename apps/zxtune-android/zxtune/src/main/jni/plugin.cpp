@@ -81,7 +81,7 @@ namespace Plugin
     {
       const auto caps = plug.Capabilities();
       const auto id = String{plug.Id()};
-      const auto desc = plug.Description();
+      const auto desc = String{plug.Description()};
 
       // TODO: remove hardcode
       using namespace ZXTune::Capabilities;

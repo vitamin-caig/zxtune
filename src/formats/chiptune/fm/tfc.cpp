@@ -26,7 +26,7 @@ namespace Formats::Chiptune
 {
   namespace TFC
   {
-    const Char DESCRIPTION[] = "TurboFM Compiled Dump";
+    const auto DESCRIPTION = "TurboFM Compiled Dump"sv;
 
     using SignatureType = std::array<uint8_t, 6>;
 
@@ -95,7 +95,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

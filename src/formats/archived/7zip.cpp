@@ -50,7 +50,7 @@ namespace Formats::Archived
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
-    const Char DESCRIPTION[] = "7zip";
+    const auto DESCRIPTION = "7zip"sv;
     const auto FORMAT =
         "'7'z bc af 27 1c"  // signature
         "00 ?"              // version
@@ -340,7 +340,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(SevenZip::FORMAT, SevenZip::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return SevenZip::DESCRIPTION;
     }

@@ -27,7 +27,7 @@ namespace Formats::Archived
 {
   namespace Hrip
   {
-    const Char DESCRIPTION[] = "Hrip (Hrust RiP archiver)";
+    const auto DESCRIPTION = "Hrip (Hrust RiP archiver)"sv;
     const auto FORMAT =
         "'H'R'i"     // uint8_t ID[3];//'HRi'
         "01-ff"      // uint8_t FilesCount;
@@ -134,8 +134,8 @@ namespace Formats::Archived
       else
       {
         assert(!"Hrip file without name");
-        static const Char DEFAULT_HRIP_FILENAME[] = {'N', 'O', 'N', 'A', 'M', 'E', 0};
-        return DEFAULT_HRIP_FILENAME;
+        const auto DEFAULT_HRIP_FILENAME = "NONAME"sv;
+        return String{DEFAULT_HRIP_FILENAME};
       }
     }
 
@@ -182,7 +182,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(Hrip::FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Hrip::DESCRIPTION;
     }

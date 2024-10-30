@@ -33,7 +33,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "MicroSpace Packer v1.x";
+    const auto DESCRIPTION = "MicroSpace Packer v1.x"sv;
     const auto DEPACKER_PATTERN = "'M's'P'k"sv;
 
     struct RawHeader
@@ -228,7 +228,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(MSPack::DEPACKER_PATTERN, MSPack::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return MSPack::DESCRIPTION;
     }

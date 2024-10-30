@@ -22,7 +22,7 @@ namespace Formats::Chiptune
 {
   namespace RasterMusicTracker
   {
-    const Char DESCRIPTION[] = "Raster Music Tracker";
+    const auto DESCRIPTION = "Raster Music Tracker"sv;
 
     // as for ASAP limitations
     // Details: http://atariki.krap.pl/index.php/RMT_%28format_pliku%29
@@ -45,7 +45,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

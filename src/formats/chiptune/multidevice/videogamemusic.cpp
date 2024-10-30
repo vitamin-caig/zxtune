@@ -25,7 +25,7 @@ namespace Formats::Chiptune
 {
   namespace VideoGameMusic
   {
-    const Char DESCRIPTION[] = "Video Game Music";
+    const auto DESCRIPTION = "Video Game Music"sv;
 
     const uint32_t SIGNATURE = 0x56676d20;
 
@@ -61,7 +61,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

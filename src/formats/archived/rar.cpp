@@ -376,7 +376,7 @@ namespace Formats::Archived
       const uint_t FilesCount;
     };
 
-    const Char DESCRIPTION[] = "RAR";
+    const auto DESCRIPTION = "RAR"sv;
     const auto FORMAT =
         // file marker
         "5261"  // uint16_t CRC;   "Ra"
@@ -398,7 +398,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(Rar::FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Rar::DESCRIPTION;
     }

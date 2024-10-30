@@ -38,10 +38,9 @@ namespace
       Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'s', 'd', 'l', '\0'};
-      return ID;
+      return "sdl"sv;
     }
 
     QString GetDescription() const override

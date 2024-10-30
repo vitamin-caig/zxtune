@@ -61,10 +61,9 @@ namespace
       Require(connect(devices, &QComboBox::currentTextChanged, this, &Win32OptionsWidget::DeviceNameChanged));
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'w', 'i', 'n', '3', '2', '\0'};
-      return ID;
+      return "win32"sv;
     }
 
     QString GetDescription() const override

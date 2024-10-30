@@ -32,7 +32,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProDigiTracker");
 
-    const Char DESCRIPTION[] = "ProDigi Tracker v0.0x";
+    const auto DESCRIPTION = "ProDigi Tracker v0.0x"sv;
 
     const uint_t ORNAMENTS_COUNT = 11;
     const uint_t SAMPLES_COUNT = 16;
@@ -526,7 +526,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

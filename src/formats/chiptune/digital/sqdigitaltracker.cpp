@@ -34,7 +34,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SQDigitalTracker");
 
-    const Char DESCRIPTION[] = "SQ Digital Tracker";
+    const auto DESCRIPTION = "SQ Digital Tracker"sv;
 
     // const std::size_t MAX_MODULE_SIZE = 0x4400 + 8 * 0x4000;
     const std::size_t MAX_POSITIONS_COUNT = 100;
@@ -505,7 +505,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

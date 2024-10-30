@@ -33,9 +33,9 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::DigitalStudio");
 
-    const Char DESCRIPTION[] = "Digital Studio";
-    const Char VERSION_AY[] = " (AY)";
-    const Char VERSION_DAC[] = " (Covox/SD)";
+    const auto DESCRIPTION = "Digital Studio"sv;
+    const auto VERSION_AY = " (AY)"sv;
+    const auto VERSION_DAC = " (Covox/SD)"sv;
 
     const std::size_t COMPILED_MODULE_SIZE = 0x1c200;
     const std::size_t MODULE_SIZE = 0x1b200;
@@ -463,7 +463,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

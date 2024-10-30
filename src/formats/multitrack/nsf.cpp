@@ -68,7 +68,7 @@ namespace Formats::Multitrack
         "(? 80-ff){2}"
         ""sv;
 
-    const Char DESCRIPTION[] = "NES Sound Format";
+    const auto DESCRIPTION = "NES Sound Format"sv;
 
     const std::size_t MIN_SIZE = 256;
 
@@ -133,7 +133,7 @@ namespace Formats::Multitrack
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

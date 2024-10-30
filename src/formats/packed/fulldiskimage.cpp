@@ -202,7 +202,7 @@ namespace Formats::Packed
       std::size_t UsedSize = 0;
     };
 
-    const Char DESCRIPTION[] = "FDI (Full Disk Image)";
+    const auto DESCRIPTION = "FDI (Full Disk Image)"sv;
     const auto FORMAT_PATTERN =
         "'F'D'I"     // uint8_t ID[3]
         "%0000000x"  // uint8_t ReadOnly;
@@ -218,7 +218,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(FullDiskImage::FORMAT_PATTERN))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return FullDiskImage::DESCRIPTION;
     }

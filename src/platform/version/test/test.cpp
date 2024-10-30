@@ -13,7 +13,7 @@
 
 namespace Platform::Version
 {
-  extern const Char PROGRAM_NAME[] = {'T', 'e', 's', 't', 0};
+  const StringView PROGRAM_NAME = "Test";
 }
 
 int main()

@@ -367,7 +367,7 @@ namespace Formats::Chiptune
       return {};
     }
 
-    const Char DESCRIPTION[] = "YM (ST-Sound Project)";
+    const auto DESCRIPTION = "YM (ST-Sound Project)"sv;
     const auto FORMAT =
         "'Y'M"
         "'2-'6"
@@ -398,7 +398,7 @@ namespace Formats::Chiptune
       return {};
     }
 
-    const Char PACKED_DESCRIPTION[] = "YM (ST-Sound Project) Packed";
+    const auto PACKED_DESCRIPTION = "YM (ST-Sound Project) Packed"sv;
     const auto PACKED_FORMAT =
         "16-ff"       // header size
         "?"           // header sum
@@ -418,7 +418,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }
@@ -459,7 +459,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(PACKED_FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return PACKED_DESCRIPTION;
       }
@@ -639,7 +639,7 @@ namespace Formats::Chiptune
       return {};
     }
 
-    const Char DESCRIPTION[] = "VTX (Vortex Project)";
+    const auto DESCRIPTION = "VTX (Vortex Project)"sv;
     const auto FORMAT =
         "('a|'A|'y|'Y)('y|'Y|'m|'M)"  // type
         "00-06"                       // layout
@@ -655,7 +655,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

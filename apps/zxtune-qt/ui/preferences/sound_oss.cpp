@@ -44,10 +44,9 @@ namespace
       Parameters::StringValue::Bind(*mixer, *Options, MIXER, MIXER_DEFAULT);
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'o', 's', 's', '\0'};
-      return ID;
+      return "oss"sv;
     }
 
     QString GetDescription() const override

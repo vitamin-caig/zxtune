@@ -56,7 +56,7 @@ namespace Formats::Packed
 
     const uint8_t POS_END_MARKER = 0xff;
 
-    const Char DESCRIPTION[] = "Pro Tracker v2.40 Phantom Family player";
+    const auto DESCRIPTION = "Pro Tracker v2.40 Phantom Family player"sv;
 
     const auto FORMAT =
         "21??"  // ld hl,xxxx
@@ -101,7 +101,7 @@ namespace Formats::Packed
       , Decoder(Formats::Chiptune::CreateProTracker2Decoder())
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return CompiledPT24::DESCRIPTION;
     }

@@ -96,17 +96,17 @@ namespace Sound::Flac
 
     void SetTitle(const String& title) override
     {
-      Meta.AddTag(File::TITLE_TAG, title);
+      Meta.AddTag(String{File::TITLE_TAG}, title);
     }
 
     void SetAuthor(const String& author) override
     {
-      Meta.AddTag(File::AUTHOR_TAG, author);
+      Meta.AddTag(String{File::AUTHOR_TAG}, author);
     }
 
     void SetComment(const String& comment) override
     {
-      Meta.AddTag(File::COMMENT_TAG, comment);
+      Meta.AddTag(String{File::COMMENT_TAG}, comment);
     }
 
     void FlushMetadata() override

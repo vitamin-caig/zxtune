@@ -367,7 +367,7 @@ namespace Formats::Packed
       }
     }
 
-    const Char DESCRIPTION[] = "TD0 (TeleDisk Image)";
+    const auto DESCRIPTION = "TD0 (TeleDisk Image)"sv;
     const auto FORMAT_PATTERN =
         "('T|'t)('D|'d)"  // uint8_t ID[2]
         "00"              // uint8_t Sequence;
@@ -391,7 +391,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(TeleDiskImage::FORMAT_PATTERN, TeleDiskImage::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return TeleDiskImage::DESCRIPTION;
     }

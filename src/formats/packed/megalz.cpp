@@ -30,7 +30,7 @@ namespace Formats::Packed
     const std::size_t MIN_SIZE = 256;
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "MegaLZ";
+    const auto DESCRIPTION = "MegaLZ"sv;
     // assume that packed data are located right after depacked
     // prologue is ignored due to standard absense
     const auto DEPACKER_PATTERN =
@@ -209,7 +209,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(MegaLZ::DEPACKER_PATTERN, MegaLZ::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return MegaLZ::DESCRIPTION;
     }

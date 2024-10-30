@@ -606,7 +606,7 @@ namespace Platform
 {
   namespace Version
   {
-    extern const Char PROGRAM_NAME[] = "zxtune123";
+    const StringView PROGRAM_NAME = "zxtune123"sv;
   }
 
   std::unique_ptr<Application> Application::Create()

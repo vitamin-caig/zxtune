@@ -64,7 +64,7 @@ namespace Formats::Chiptune
       return 0 == std::memcmp(header->Sign, SIGNATURE, sizeof(SIGNATURE)) && MARKER == header->Marker;
     }
 
-    const Char DESCRIPTION[] = "Programmable Sound Generator";
+    const auto DESCRIPTION = "Programmable Sound Generator"sv;
     const auto FORMAT =
         "'P'S'G"  // uint8_t Sign[3];
         "1a"      // uint8_t Marker;
@@ -77,7 +77,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

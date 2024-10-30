@@ -293,7 +293,7 @@ namespace IO::Network
       : Api(std::move(api))
     {}
 
-    String Id() const override
+    StringView Id() const override
     {
       return PROVIDER_IDENTIFIER;
     }

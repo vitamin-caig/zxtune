@@ -23,7 +23,7 @@ namespace Platform::Version
 {
   String GetProgramTitle()
   {
-    return PROGRAM_NAME;
+    return String{PROGRAM_NAME};
   }
 
   String GetProgramVersion()

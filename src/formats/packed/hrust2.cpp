@@ -44,7 +44,7 @@ namespace Formats::Packed
 
     namespace Version1
     {
-      const Char DESCRIPTION[] = "Hrust v2.1";
+      const auto DESCRIPTION = "Hrust v2.1"sv;
       const auto HEADER_FORMAT =
           "'h'r'2"     // ID
           "%x0110001"  // Flag
@@ -70,7 +70,7 @@ namespace Formats::Packed
 
     namespace Version3
     {
-      const Char DESCRIPTION[] = "Hrust v2.3";
+      const auto DESCRIPTION = "Hrust v2.3"sv;
       const auto HEADER_FORMAT =
           "'H'r's't'2"  // ID
           "%00x00xxx"   // Flag
@@ -577,7 +577,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(Hrust2::Version1::HEADER_FORMAT, Hrust2::Version1::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Hrust2::Version1::DESCRIPTION;
     }
@@ -613,7 +613,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(Hrust2::Version3::HEADER_FORMAT, Hrust2::Version3::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Hrust2::Version3::DESCRIPTION;
     }

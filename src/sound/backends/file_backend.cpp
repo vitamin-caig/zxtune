@@ -34,7 +34,7 @@ namespace Sound::File
 {
   const Debug::Stream Dbg("Sound::Backend::FileBase");
 
-  const Char DEFAULT_COMMENT[] = "Created using ZXTune toolkit";
+  const auto DEFAULT_COMMENT = "Created using ZXTune toolkit"sv;
 
   class StateFieldsSource : public Strings::SkipFieldsSource
   {
@@ -247,7 +247,7 @@ namespace Sound::File
       }
       else
       {
-        stream.SetComment(DEFAULT_COMMENT);
+        stream.SetComment(String{DEFAULT_COMMENT});
       }
       stream.FlushMetadata();
     }

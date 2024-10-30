@@ -23,7 +23,7 @@ namespace Formats::Image
 {
   namespace ASCScreenCrusher
   {
-    const Char DESCRIPTION[] = "ASC ScreenCrasher";
+    const auto DESCRIPTION = "ASC ScreenCrasher"sv;
     const auto DEPACKER_PATTERN =
         "f3"      // di
         "cd5200"  // call #0052
@@ -205,7 +205,7 @@ namespace Formats::Image
       : Depacker(Binary::CreateFormat(ASCScreenCrusher::DEPACKER_PATTERN, ASCScreenCrusher::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return ASCScreenCrusher::DESCRIPTION;
     }

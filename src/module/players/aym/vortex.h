@@ -27,7 +27,7 @@ namespace Module::Vortex
     NATURAL
   };
 
-  String GetFreqTable(NoteTable table, uint_t version);
+  StringView GetFreqTable(NoteTable table, uint_t version);
 
   using Formats::Chiptune::ProTracker3::Sample;
   using Formats::Chiptune::ProTracker3::Ornament;

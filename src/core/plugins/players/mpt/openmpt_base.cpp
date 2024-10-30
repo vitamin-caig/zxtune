@@ -311,7 +311,7 @@ namespace Module::Mpt
   {
     const ZXTune::PluginId Id;
     const StringView Format;
-    const char* const Description;
+    const StringView Description;
   };
 
   class Decoder : public Formats::Chiptune::Decoder
@@ -322,7 +322,7 @@ namespace Module::Mpt
       , Fmt(Binary::CreateMatchOnlyFormat(Desc.Format))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Desc.Description;
     }
@@ -440,7 +440,7 @@ namespace Module::Mpt
       ,
       "'E'x't'e'n'd'e'd' 'M'o'd'u'l'e':' "sv
       ,
-      "FastTracker II"
+      "FastTracker II"sv
       //, "XM"
     },
     {
@@ -452,7 +452,7 @@ namespace Module::Mpt
       "'M | '."
       ""sv
       ,
-      "Impulse Tracker"
+      "Impulse Tracker"sv
       //, "IT"
     },
     {
@@ -467,7 +467,7 @@ namespace Module::Mpt
       "'S'C'R'M"
       ""sv
       ,
-      "ScreamTracker 3"
+      "ScreamTracker 3"sv
       //, "S3M"
     },
     {
@@ -484,7 +484,7 @@ namespace Module::Mpt
       "00-40|58" // global volume or placeholder
       ""sv
       ,
-      "ScreamTracker 2"
+      "ScreamTracker 2"sv
       //, STM
     },
     {
@@ -493,7 +493,7 @@ namespace Module::Mpt
       "'M'M'D '0-'3" // signature
       ""sv
       ,
-      "OctaMED / MED Soundstudio"
+      "OctaMED / MED Soundstudio"sv
       //, MED
     },
     {
@@ -511,7 +511,7 @@ namespace Module::Mpt
       "01-20"  // numChannels
       ""sv
       ,
-      "MultiTracker"
+      "MultiTracker"sv
       //, MTM
     },
     {
@@ -521,7 +521,7 @@ namespace Module::Mpt
       "00-1f"    // version
       ""sv
       ,
-      "Digitrakker"
+      "Digitrakker"sv
       //, "MDL"
     },
     {
@@ -531,7 +531,7 @@ namespace Module::Mpt
       "00-03"    // trkVerHi
       ""sv
       ,
-      "DigiBooster Pro"
+      "DigiBooster Pro"sv
       //, "DBM"
     },
     {
@@ -542,7 +542,7 @@ namespace Module::Mpt
       "0d0a1a"     // eof
       ""sv
       ,
-      "Farandole Composer"
+      "Farandole Composer"sv
       //, "FAR"
     },
     {
@@ -553,7 +553,7 @@ namespace Module::Mpt
       "01" // versionHigh
       ""sv
       ,
-      "Extreme's Tracker"
+      "Extreme's Tracker"sv
       //, "AMS"
     },
     {
@@ -561,7 +561,7 @@ namespace Module::Mpt
       ,
       "'A'M'S'h'd'r 1a"sv
       ,
-      "Velvet Studio"
+      "Velvet Studio"sv
       //, "AMS2"
     },
     {
@@ -571,7 +571,7 @@ namespace Module::Mpt
       "(20-7f){4}"  // iff id
       ""sv
       ,
-      "Oktalyzer"
+      "Oktalyzer"sv
       //, "OKT"
     },
     {
@@ -589,7 +589,7 @@ namespace Module::Mpt
       "'P'T'M'F" // magic
       ""sv
       ,
-      "PolyTracker"
+      "PolyTracker"sv
       //, "PTM"
     },
     {
@@ -599,7 +599,7 @@ namespace Module::Mpt
       "'1-'4"
       ""sv
       ,
-      "UltraTracker"
+      "UltraTracker"sv
       //, "ULT"
     },
     {
@@ -609,7 +609,7 @@ namespace Module::Mpt
       "01-0a"     // version
       ""sv
       ,
-      "X-Tracker"
+      "X-Tracker"sv
       //, "DMF"
     },
     {
@@ -632,7 +632,7 @@ namespace Module::Mpt
       "00-10 00" // num channels <= 16
       ""sv
       ,
-      "Digital Sound Interface Kit RIFF"
+      "Digital Sound Interface Kit RIFF"sv
       //, "DSM"
     },
     {
@@ -643,7 +643,7 @@ namespace Module::Mpt
       "01-3f" // numSamples
       ""sv
       ,
-      "ASYLUM Music Format"
+      "ASYLUM Music Format"sv
       //, "AMF_Asylum"
     },
     {
@@ -656,7 +656,7 @@ namespace Module::Mpt
       "00-20"   // channels
       ""sv
       ,
-      "DSMI / Digital Sound And Music Interface"
+      "DSMI / Digital Sound And Music Interface"sv
       //, "AMF_DSMI"
     },
     {
@@ -667,7 +667,7 @@ namespace Module::Mpt
       "'F'I'L'E" // fileInfoID
       ""sv
       ,
-      "Epic MegaGames MASI"
+      "Epic MegaGames MASI"sv
       //, "PSM"
     },
     {
@@ -685,7 +685,7 @@ namespace Module::Mpt
       "? 00-01"    // channelsReal
       ""sv
       ,
-      "Epic MegaGames MASI (Old Version)"
+      "Epic MegaGames MASI (Old Version)"sv
       //, "PSM16"
     },
     {
@@ -702,7 +702,7 @@ namespace Module::Mpt
       "01-40 00"  // numChannels
       ""sv
       ,
-      "Mad Tracker 2.xx"
+      "Mad Tracker 2.xx"sv
       //, "MT2"
     },
     // ITP not supported due to external files
@@ -721,7 +721,7 @@ namespace Module::Mpt
       "01-09 00"   // originalFormat
       ""sv
       ,
-      "BWSB Soundsystem"
+      "BWSB Soundsystem"sv
       //, "GDM"
     },
     {
@@ -738,7 +738,7 @@ namespace Module::Mpt
       "(?{15} 00-02){32}"  // channels
       ""sv
       ,
-      "Imago Orpheus"
+      "Imago Orpheus"sv
       //, "IMF"
     },
     {
@@ -749,7 +749,7 @@ namespace Module::Mpt
       "01-08"  // numChannels
       ""sv
       ,
-      "Digi Booster"
+      "Digi Booster"sv
       //, "DIGI"
     },
     {
@@ -760,7 +760,7 @@ namespace Module::Mpt
       "00"             // type
       ""sv
       ,
-      "Digital Tracker / Digital Home Studio"
+      "Digital Tracker / Digital Home Studio"sv
       //, "DTM"
     },
     {
@@ -773,7 +773,7 @@ namespace Module::Mpt
       "01-20"     // num channels 1..32
       ""sv
       ,
-      "Disorder Tracker 2"
+      "Disorder Tracker 2"sv
       //, "PLM"
     },
     {
@@ -783,7 +783,7 @@ namespace Module::Mpt
       "'A'M 'F|'  'F|' "
       ""sv
       ,
-      "Galaxy Sound System"
+      "Galaxy Sound System"sv
       //, "AM"
     },
     {
@@ -794,7 +794,7 @@ namespace Module::Mpt
       "'M'O'D'L"
       ""sv
       ,
-      "ProTracker 3.6"
+      "ProTracker 3.6"sv
       //, "PT36"
     },
     // no examples for MUS_KM
@@ -807,7 +807,7 @@ namespace Module::Mpt
       "(?{8} ?{8} %000000xx{3}){8}" // channels
       ""sv
       ,
-      "Davey W Taylor's FM Tracker"
+      "Davey W Taylor's FM Tracker"sv
       //, "FMT"
     },
     {
@@ -817,7 +817,7 @@ namespace Module::Mpt
       "'S 'O 'N 'G" // magic
       ""sv
       ,
-      "SoundFX 1.x"
+      "SoundFX 1.x"sv
       //, "SFX"
     },
     {
@@ -827,7 +827,7 @@ namespace Module::Mpt
       "'S 'O '3 '1" // magic
       ""sv
       ,
-      "SoundFX 2.0 / MultiMedia Sound"
+      "SoundFX 2.0 / MultiMedia Sound"sv
       //, "SFX"
     },
     {
@@ -843,7 +843,7 @@ namespace Module::Mpt
       "00 32"    // midi count == 50
       ""sv
       ,
-      "Soundtracker Pro II"
+      "Soundtracker Pro II"sv
       //, "STP"
     },
     {
@@ -856,7 +856,7 @@ namespace Module::Mpt
       "('.|'!   |'T|'S|'D|'T|'.|'A   |'1   |00   |'4-'8|'4-'9|'N   |'H|'N|'4-'9)"
       ""sv
       ,
-      "Generic MOD-compatible"
+      "Generic MOD-compatible"sv
       //, "MOD"
     },
     {
@@ -867,7 +867,7 @@ namespace Module::Mpt
       "00"
       ""sv
       ,
-      "MnemoTroN SoundTracker (MOD-compatible)"
+      "MnemoTroN SoundTracker (MOD-compatible)"sv
       //, "ICE"
     },
     {
@@ -877,7 +877,7 @@ namespace Module::Mpt
       "'I'T'1'0"
       ""sv
       ,
-      "Ice Tracker (MOD-compatible)"
+      "Ice Tracker (MOD-compatible)"sv
       //, "ICE"
     },
     {
@@ -893,7 +893,7 @@ namespace Module::Mpt
       "(00-3f){128}"// breaks
       ""sv
       ,
-      "669 Composer / UNIS 669"
+      "669 Composer / UNIS 669"sv
       //, "669"
     },
     {
@@ -913,7 +913,7 @@ namespace Module::Mpt
       "){32}" // instruments
       ""sv
       ,
-      "Composer 670"
+      "Composer 670"sv
       //, "C67"
     },
     {
@@ -923,7 +923,7 @@ namespace Module::Mpt
       "00-05"  // version
       ""sv
       ,
-      "Un4seen MO3"
+      "Un4seen MO3"sv
       //, "MO3"
     },
     {
@@ -943,7 +943,7 @@ namespace Module::Mpt
       "(00-3f){128}"    //order
       ""sv
       ,
-      "Ultimate Soundtracker / etc (MOD Compatible)"
+      "Ultimate Soundtracker / etc (MOD Compatible)"sv
       //, "M15"
     },
     {
@@ -956,7 +956,7 @@ namespace Module::Mpt
       "? 00-10"           //le tracks up to 4096
       ""sv
       ,
-      "Digital Symphony"
+      "Digital Symphony"sv
       //, "DSYM"
     },
     {
@@ -966,7 +966,7 @@ namespace Module::Mpt
       "00000001"          //be version==1
       ""sv
       ,
-      "Symphonie"
+      "Symphonie"sv
       //, "SYMMOD"
     }
   };

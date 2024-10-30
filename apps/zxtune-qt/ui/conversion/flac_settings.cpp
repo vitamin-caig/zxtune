@@ -47,10 +47,9 @@ namespace
                          ZXTune::Sound::Backends::Flac::COMPRESSION_DEFAULT);
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'f', 'l', 'a', 'c', '\0'};
-      return ID;
+      return "flac"sv;
     }
 
     QString GetDescription() const override

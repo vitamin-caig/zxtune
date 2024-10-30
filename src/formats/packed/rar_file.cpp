@@ -37,7 +37,7 @@ namespace Formats::Packed
   {
     const Debug::Stream Dbg("Formats::Packed::Rar");
 
-    const Char DESCRIPTION[] = "RAR";
+    const auto DESCRIPTION = "RAR"sv;
     const auto HEADER_PATTERN =
         "??"          // uint16_t CRC;
         "74"          // uint8_t Type;
@@ -279,7 +279,7 @@ namespace Formats::Packed
       , Decoder(MakePtr<Rar::DispatchedCompressedFile>())
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Rar::DESCRIPTION;
     }

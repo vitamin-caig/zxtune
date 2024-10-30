@@ -269,7 +269,7 @@ namespace Formats::Image
       std::unique_ptr<Binary::Dump> Result;
     };
 
-    const Char DESCRIPTION[] = "LaserCompact 5.2";
+    const auto DESCRIPTION = "LaserCompact 5.2"sv;
     const auto FORMAT =
         // Signature
         "'L'C'M'P'5"
@@ -283,7 +283,7 @@ namespace Formats::Image
       : Format(Binary::CreateFormat(LaserCompact52::FORMAT, LaserCompact52::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return LaserCompact52::DESCRIPTION;
     }

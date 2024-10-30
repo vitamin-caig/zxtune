@@ -19,7 +19,7 @@
 
 namespace
 {
-  const Char SEARCH_NAMESPACE[] = {'S', 'e', 'a', 'r', 'c', 'h', '\0'};
+  const auto SEARCH_NAMESPACE = "Search"sv;
 
   // TODO: extract to common place
   void UpdateRecent(QComboBox& box)

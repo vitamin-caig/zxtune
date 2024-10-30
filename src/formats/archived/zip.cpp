@@ -323,7 +323,7 @@ namespace Formats::Archived
       : FileDecoder(Formats::Packed::CreateZipDecoder())
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return FileDecoder->GetDescription();
     }

@@ -350,7 +350,7 @@ namespace Module::Xmp
       , Fmt(Binary::CreateMatchOnlyFormat(Desc.Format))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return xmp_get_loader_name(Desc.Loader);
     }

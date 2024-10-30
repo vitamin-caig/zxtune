@@ -204,6 +204,7 @@ namespace Formats::Chiptune
       void AddBlock(uint16_t /*addr*/, Binary::View /*data*/) override {}
     };
 
+    const auto DESCRIPTION = "AY/EMUL"sv;
     const auto HEADER_FORMAT =
         "'Z'X'A'Y"  // uint8_t Signature[4];
         "'E'M'U'L"  // only one type is supported now
@@ -215,8 +216,6 @@ namespace Formats::Chiptune
         "00"        // last module
         ""sv;
 
-    const Char DESCRIPTION[] = "AY/EMUL";
-
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
@@ -224,7 +223,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(HEADER_FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

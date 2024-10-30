@@ -90,7 +90,7 @@ namespace Formats::Packed
 
     const std::size_t MIN_SIZE = sizeof(Header) + 2 + sizeof(Footer);
 
-    const Char DESCRIPTION[] = "GZip";
+    const auto DESCRIPTION = "GZip"sv;
     const auto FORMAT =
         "1f 8b"      // signature
         "08"         // compression method
@@ -108,7 +108,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(Gzip::FORMAT, Gzip::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Gzip::DESCRIPTION;
     }

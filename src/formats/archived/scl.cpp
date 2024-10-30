@@ -28,7 +28,7 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::SCL");
 
-    const Char DESCRIPTION[] = "SCL (SINCLAIR)";
+    const auto DESCRIPTION = "SCL (SINCLAIR)"sv;
     const auto FORMAT =
         "'S'I'N'C'L'A'I'R"
         "01-ff"
@@ -143,7 +143,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(SCL::FORMAT, SCL::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return SCL::DESCRIPTION;
     }

@@ -38,8 +38,8 @@ namespace Formats::Chiptune
     const Debug::Stream Dbg("Formats::Chiptune::ProSoundCreator");
 
     constexpr auto EDITOR = "Pro Sound Creator v{}"sv;
-    const Char EDITOR_OLD[] = "Pro Sound Creator v1.00-1.03";
-    const Char EDITOR_NEW[] = "Pro Sound Creator v1.04-1.07";
+    const auto EDITOR_OLD = "Pro Sound Creator v1.00-1.03"sv;
+    const auto EDITOR_NEW = "Pro Sound Creator v1.04-1.07"sv;
 
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x4200;
@@ -507,13 +507,15 @@ namespace Formats::Chiptune
 
     Traits GetOldVersionTraits(const RawHeader& hdr)
     {
-      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, MakeStringView(hdr.Id.Version)) : EDITOR_OLD;
+      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, MakeStringView(hdr.Id.Version))
+                                          : String{EDITOR_OLD};
       return {std::move(programName), 0, 0};
     }
 
     Traits GetNewVersionTraits(const RawHeader& hdr)
     {
-      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, MakeStringView(hdr.Id.Version)) : EDITOR_NEW;
+      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, MakeStringView(hdr.Id.Version))
+                                          : String{EDITOR_NEW};
       return {std::move(programName), hdr.OrnamentsTableOffset, sizeof(hdr)};
     }
 
@@ -1109,7 +1111,7 @@ namespace Formats::Chiptune
       return data.SubView(0, MAX_MODULE_SIZE);
     }
 
-    const Char DESCRIPTION[] = "Pro Sound Creator v1.xx";
+    const auto DESCRIPTION = "Pro Sound Creator v1.xx"sv;
     const auto FORMAT =
         "?{69}"    // Id
         "?00"      // uint16_t SamplesStart;TODO
@@ -1126,7 +1128,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_MODULE_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

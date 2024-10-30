@@ -21,7 +21,7 @@ namespace Formats::Chiptune
 {
   namespace GameBoyAdvanceSoundFormat
   {
-    const Char DESCRIPTION[] = "GameBoy Advance Sound Format";
+    const auto DESCRIPTION = "GameBoy Advance Sound Format"sv;
 
     /*
     Offset         Size    Description
@@ -52,7 +52,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

@@ -1207,7 +1207,7 @@ namespace Formats::Chiptune
       Builder& Target;
     };
 
-    const Char DESCRIPTION[] = "VortexTracker II";
+    const auto DESCRIPTION = "VortexTracker II"sv;
     const auto FORMAT = "'['M'o'd'u'l'e']"sv;
 
     const std::size_t MIN_SIZE = 256;
@@ -1251,7 +1251,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

@@ -24,7 +24,7 @@ namespace ZXTune
     //! Identification string
     virtual PluginId Id() const = 0;
     //! Textual description
-    virtual String Description() const = 0;
+    virtual StringView Description() const = 0;
     //! Plugin capabilities @see plugin_attrs.h
     virtual uint_t Capabilities() const = 0;
   };

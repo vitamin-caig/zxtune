@@ -41,8 +41,6 @@
 
 namespace
 {
-  const Char DELIMITERS[] = {',', ';', ':', '\0'};
-
   void OutputString(uint_t width, StringView text)
   {
     const auto curSize = text.size();

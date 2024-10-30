@@ -604,7 +604,7 @@ namespace ZXTune::Raw
       return Delegate->Id();
     }
 
-    String Description() const override
+    StringView Description() const override
     {
       return Delegate->Description();
     }
@@ -761,9 +761,9 @@ namespace ZXTune::Raw
       return ID;
     }
 
-    String Description() const override
+    StringView Description() const override
     {
-      return String{INFO};
+      return INFO;
     }
 
     uint_t Capabilities() const override

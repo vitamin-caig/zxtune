@@ -76,7 +76,7 @@ namespace Formats::Archived
       : FileDecoder(Formats::Packed::CreateZXZipDecoder())
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return FileDecoder->GetDescription();
     }

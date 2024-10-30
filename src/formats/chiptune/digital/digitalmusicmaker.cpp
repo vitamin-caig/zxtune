@@ -33,7 +33,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::DigitalMusicMaker");
 
-    const Char DESCRIPTION[] = "Digital Music Maker v1.x";
+    const auto DESCRIPTION = "Digital Music Maker v1.x"sv;
 
     // const std::size_t MAX_POSITIONS_COUNT = 0x32;
     // const std::size_t MAX_PATTERN_SIZE = 64;
@@ -586,7 +586,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

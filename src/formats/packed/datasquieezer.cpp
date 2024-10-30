@@ -29,7 +29,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "DataSqueezer v4.x";
+    const auto DESCRIPTION = "DataSqueezer v4.x"sv;
     /*
        classic depacker
        bitstream:
@@ -425,7 +425,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(DataSquieezer::DEPACKER_PATTERN, DataSquieezer::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return DataSquieezer::DESCRIPTION;
     }

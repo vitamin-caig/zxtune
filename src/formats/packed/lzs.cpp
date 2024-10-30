@@ -30,7 +30,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "ASC LZS Pack";
+    const auto DESCRIPTION = "ASC LZS Pack"sv;
     const auto DEPACKER_PATTERN =
         "cd??"    // call xxxx
         "?"       // di/nop
@@ -282,7 +282,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(LZS::DEPACKER_PATTERN, LZS::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return LZS::DESCRIPTION;
     }

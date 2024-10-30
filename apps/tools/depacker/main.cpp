@@ -62,9 +62,9 @@ namespace
   class AutoDecoder : public Formats::Packed::Decoder
   {
   public:
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
-      return "Autodetect";
+      return "Autodetect"sv;
     }
 
     Binary::Format::Ptr GetFormat() const override

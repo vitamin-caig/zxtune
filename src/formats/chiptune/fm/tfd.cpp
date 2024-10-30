@@ -24,7 +24,7 @@ namespace Formats::Chiptune
 {
   namespace TFD
   {
-    const Char DESCRIPTION[] = "TurboFM Dump";
+    const auto DESCRIPTION = "TurboFM Dump"sv;
 
     enum
     {
@@ -78,7 +78,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

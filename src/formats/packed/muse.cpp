@@ -29,7 +29,7 @@ namespace Formats::Packed
   {
     const Debug::Stream Dbg("Formats::Packed::Muse");
 
-    const Char DESCRIPTION[] = "MUSE Compressor";
+    const auto DESCRIPTION = "MUSE Compressor"sv;
     const auto HEADER_PATTERN =
         "'M'U'S'E"
         "de ad be|ba af|be"
@@ -46,7 +46,7 @@ namespace Formats::Packed
         : Depacker(Binary::CreateFormat(HEADER_PATTERN))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

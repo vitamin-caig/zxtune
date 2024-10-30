@@ -28,7 +28,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "ESV Cruncher";
+    const auto DESCRIPTION = "ESV Cruncher"sv;
     const auto DEPACKER_PATTERN =
         //$=6978
         // depack to 9900/61a8
@@ -405,7 +405,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(ESVCruncher::DEPACKER_PATTERN, ESVCruncher::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return ESVCruncher::DESCRIPTION;
     }

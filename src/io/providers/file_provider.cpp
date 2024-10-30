@@ -420,12 +420,12 @@ namespace IO::File
   }
 
   ///////////////////////////////////////
-  const Char IDENTIFIER[] = "file";
+  const auto IDENTIFIER = "file"sv;
 
   class DataProvider : public IO::DataProvider
   {
   public:
-    String Id() const override
+    StringView Id() const override
     {
       return IDENTIFIER;
     }

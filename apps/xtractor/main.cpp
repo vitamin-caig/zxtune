@@ -51,7 +51,7 @@ namespace
 
 namespace Platform::Version
 {
-  extern const Char PROGRAM_NAME[] = "xtractor";
+  const StringView PROGRAM_NAME = "xtractor"sv;
 }
 
 namespace Analysis
@@ -541,7 +541,7 @@ namespace
     void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset,
                Formats::Archived::Container::Ptr data) override
     {
-      const String name = decoder.GetDescription();
+      const auto name = decoder.GetDescription();
       Dbg("Found {0} in {1} bytes at {2}", name, data->Size(), offset);
       auto archNode = Analysis::CreateSubnode(Root, data, name, offset);
       const ScanFiles walker(ToScan, std::move(archNode));
@@ -551,7 +551,7 @@ namespace
     void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset,
                Formats::Packed::Container::Ptr data) override
     {
-      const String name = decoder.GetDescription();
+      const auto name = decoder.GetDescription();
       Dbg("Found {0} in {1} bytes at {2}", name, data->PackedSize(), offset);
       auto packNode = Analysis::CreateSubnode(Root, std::move(data), name, offset);
       ToScan.ApplyData(std::move(packNode));
@@ -559,7 +559,7 @@ namespace
 
     void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data) override
     {
-      const String name = decoder.GetDescription();
+      const auto name = decoder.GetDescription();
       Dbg("Found {0} in {1} bytes at {2}", name, data->OriginalSize(), offset);
       auto imageNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+{}.image", offset));
       ToStore.ApplyData(std::move(imageNode));
@@ -568,7 +568,7 @@ namespace
     void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset,
                Formats::Chiptune::Container::Ptr data) override
     {
-      const String name = decoder.GetDescription();
+      const auto name = decoder.GetDescription();
       Dbg("Found {0} in {1} bytes at {2}", name, data->Size(), offset);
       auto chiptuneNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+{}.chiptune", offset));
       ToStore.ApplyData(std::move(chiptuneNode));

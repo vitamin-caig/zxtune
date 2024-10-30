@@ -13,7 +13,7 @@
 
 namespace Platform::Version
 {
-  extern const Char PROGRAM_NAME[] = {'m', 't', 'c', 't', 'o', 'o', 'l', 0};
+  const StringView PROGRAM_NAME = "mtctool"sv;
 }
 
 namespace

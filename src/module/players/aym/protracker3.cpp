@@ -27,7 +27,7 @@ namespace Module::ProTracker3
 {
   using ModuleData = Vortex::ModuleData;
 
-  const Char TURBOSOUND_COMMENT[] = "TurboSound module";
+  const auto TURBOSOUND_COMMENT = "TurboSound module"sv;
 
   class DataBuilder : public Formats::Chiptune::ProTracker3::Builder
   {
@@ -52,7 +52,7 @@ namespace Module::ProTracker3
 
     void SetNoteTable(Formats::Chiptune::ProTracker3::NoteTable table) override
     {
-      const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(table), Data->Version);
+      const auto freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(table), Data->Version);
       Properties.SetFrequencyTable(freqTable);
     }
 

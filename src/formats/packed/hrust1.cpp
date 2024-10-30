@@ -31,7 +31,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "Hrust v1.x";
+    const auto DESCRIPTION = "Hrust v1.x"sv;
     const auto FORMAT = "'H'R"sv;
 
     struct RawHeader
@@ -416,7 +416,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(Hrust1::FORMAT, Hrust1::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Hrust1::DESCRIPTION;
     }

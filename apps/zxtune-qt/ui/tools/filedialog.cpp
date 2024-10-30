@@ -20,7 +20,7 @@
 
 namespace
 {
-  const Char FILEDIALOG_NAMESPACE[] = {'F', 'i', 'l', 'e', 'D', 'i', 'a', 'l', 'o', 'g', '\0'};
+  const auto FILEDIALOG_NAMESPACE = "FileDialog"sv;
 
   int GetFilterIndex(const QStringList& filters, const QString& filter)
   {

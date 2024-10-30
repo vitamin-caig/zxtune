@@ -19,7 +19,7 @@ namespace Formats::Chiptune
 {
   namespace SegaSaturnSoundFormat
   {
-    const Char DESCRIPTION[] = "Sega Saturn Sound Format";
+    const auto DESCRIPTION = "Sega Saturn Sound Format"sv;
     const auto FORMAT =
         "'P'S'F"
         "11"
@@ -32,7 +32,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

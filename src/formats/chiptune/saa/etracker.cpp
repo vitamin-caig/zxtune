@@ -30,7 +30,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ETracker");
 
-    const Char DESCRIPTION[] = "E-Tracker v1.x";
+    const auto DESCRIPTION = "E-Tracker v1.x"sv;
 
     const std::size_t MIN_SIZE = 96;
     const std::size_t MAX_SIZE = 0x8000;
@@ -902,7 +902,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

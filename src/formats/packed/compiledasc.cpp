@@ -108,7 +108,7 @@ namespace Formats::Packed
     struct VersionTraits
     {
       const std::size_t MinSize;
-      const Char* Description;
+      const StringView Description;
       const StringView Format;
       const CreatePlayerFunc CreatePlayer;
       const ParseFunc Parse;
@@ -144,7 +144,7 @@ namespace Formats::Packed
                                      ""_ss;
     const VersionTraits VERSION0 = {
         sizeof(PlayerVer0),
-        "ASC Sound Master v0.x player",
+        "ASC Sound Master v0.x player"sv,
         VERSION0_FORMAT,
         &PlayerTraits::Create<PlayerVer0>,
         &Formats::Chiptune::ASCSoundMaster::Ver0::Parse,
@@ -165,7 +165,7 @@ namespace Formats::Packed
                                      ""_ss;
     const VersionTraits VERSION1 = {
         sizeof(PlayerVer0),
-        "ASC Sound Master v1.x player",
+        "ASC Sound Master v1.x player"sv,
         VERSION1_FORMAT,
         &PlayerTraits::Create<PlayerVer0>,
         &Formats::Chiptune::ASCSoundMaster::Ver1::Parse,
@@ -187,7 +187,7 @@ namespace Formats::Packed
         ""_ss;
     const VersionTraits VERSION2 = {
         sizeof(PlayerVer2),
-        "ASC Sound Master v2.x player",
+        "ASC Sound Master v2.x player"sv,
         VERSION2_FORMAT,
         &PlayerTraits::Create<PlayerVer2>,
         &Formats::Chiptune::ASCSoundMaster::Ver1::Parse,
@@ -217,7 +217,7 @@ namespace Formats::Packed
       , Player(Binary::CreateFormat(Version.Format, Version.MinSize))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Version.Description;
     }

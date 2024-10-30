@@ -33,7 +33,7 @@ namespace Formats::Packed
   {
     const Debug::Stream Dbg("Formats::Packed::Zip");
 
-    const Char DESCRIPTION[] = "ZIP";
+    const auto DESCRIPTION = "ZIP"sv;
     const auto HEADER_PATTERN =
         "504b0304"             // uint32_t Signature;
         "?00"                  // uint16_t VersionToExtract;
@@ -307,7 +307,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(Zip::HEADER_PATTERN, sizeof(Zip::LocalFileHeader)))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Zip::DESCRIPTION;
     }

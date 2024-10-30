@@ -33,7 +33,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProSoundMakerCompiled");
 
-    const Char PROGRAM[] = "Pro Sound Maker";
+    const auto PROGRAM = "Pro Sound Maker"sv;
 
     using namespace ProSoundMaker;
 
@@ -1012,7 +1012,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

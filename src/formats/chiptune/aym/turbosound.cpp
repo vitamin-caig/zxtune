@@ -37,7 +37,7 @@ namespace Formats::Chiptune
 
     static_assert(sizeof(Footer) * alignof(Footer) == 16, "Invalid layout");
 
-    const Char DESCRIPTION[] = "TurboSound";
+    const auto DESCRIPTION = "TurboSound"sv;
     const auto FOOTER_FORMAT =
         "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
         "?%0xxxxxxx"                     // uint16_t Size1;
@@ -145,7 +145,7 @@ namespace Formats::Chiptune
         : Format(MakePtr<FooterFormat>())
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

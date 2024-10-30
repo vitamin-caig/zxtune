@@ -31,7 +31,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "Trush Compressor v3.x";
+    const auto DESCRIPTION = "Trush Compressor v3.x"sv;
     // Head and tail are delimited by optional signature (some versions store additional code there)
 
     // At least two different prefixes
@@ -297,7 +297,7 @@ namespace Formats::Packed
                                                Trush::HEAD_SIZE, Trush::MAX_HEAD_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Trush::DESCRIPTION;
     }

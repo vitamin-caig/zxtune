@@ -19,7 +19,7 @@ namespace Formats::Chiptune
 {
   namespace DreamcastSoundFormat
   {
-    const Char DESCRIPTION[] = "Dreamcast Sound Format";
+    const auto DESCRIPTION = "Dreamcast Sound Format"sv;
 
     const auto FORMAT =
         "'P'S'F"
@@ -33,7 +33,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

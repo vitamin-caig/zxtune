@@ -35,7 +35,7 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::Lha");
 
-    const Char DESCRIPTION[] = "LHA (LHArc)";
+    const auto DESCRIPTION = "LHA (LHArc)"sv;
     const auto FORMAT =
         "??"                                  // size+sum/size/size len
         "'-('l|'p)('z|'h|'m)('s|'d|'0-'7)'-"  // method, see lha_decoder.c for all available
@@ -236,7 +236,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(Lha::FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Lha::DESCRIPTION;
     }

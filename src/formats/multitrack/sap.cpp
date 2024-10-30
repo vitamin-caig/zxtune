@@ -44,7 +44,7 @@ namespace Formats::Multitrack
         "'O|' |' |'S|'O|'E|' |' |'P|' |'C|'E|'X|' "
         ""sv;
 
-    const Char DESCRIPTION[] = "Slight Atari Player Sound Format";
+    const auto DESCRIPTION = "Slight Atari Player Sound Format"sv;
 
     using TextSignatureType = std::array<uint8_t, 5>;
 
@@ -165,7 +165,7 @@ namespace Formats::Multitrack
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

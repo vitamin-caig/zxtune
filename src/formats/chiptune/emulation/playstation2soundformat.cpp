@@ -30,7 +30,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::PSF2");
 
-    const Char DESCRIPTION[] = "Playstation2 Sound Format";
+    const auto DESCRIPTION = "Playstation2 Sound Format"sv;
 
     struct DirectoryEntry
     {
@@ -228,7 +228,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

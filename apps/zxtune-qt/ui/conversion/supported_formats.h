@@ -11,7 +11,7 @@
 #pragma once
 
 // common includes
-#include <types.h>
+#include <string_view.h>
 // library includes
 #include <strings/array.h>
 // qt includes
@@ -28,7 +28,7 @@ namespace UI
   public:
     static SupportedFormatsWidget* Create(QWidget& parent);
 
-    virtual String GetSelectedId() const = 0;
+    virtual StringView GetSelectedId() const = 0;
     virtual QString GetDescription() const = 0;
 
     static Strings::Array GetSoundTypes();

@@ -150,7 +150,7 @@ namespace
 
     void UpdateSettingsDescription()
     {
-      const String type = TargetFormat->GetSelectedId();
+      const auto type = TargetFormat->GetSelectedId();
       for (auto& wid : BackendSettings)
       {
         wid.second->setVisible(false);
@@ -174,7 +174,7 @@ namespace
     UI::State::Ptr State;
     UI::FilenameTemplateWidget* const TargetTemplate;
     UI::SupportedFormatsWidget* const TargetFormat;
-    using BackendIdToSettings = std::map<String, UI::BackendSettingsWidget*>;
+    using BackendIdToSettings = std::map<StringView, UI::BackendSettingsWidget*>;
     BackendIdToSettings BackendSettings;
   };
 

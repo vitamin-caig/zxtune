@@ -25,7 +25,7 @@ namespace Formats::Chiptune
 {
   namespace KSS
   {
-    const Char DESCRIPTION[] = "KSS Music Format";
+    const auto DESCRIPTION = "KSS Music Format"sv;
 
     using SignatureType = std::array<uint8_t, 4>;
 
@@ -63,7 +63,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

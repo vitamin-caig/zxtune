@@ -23,11 +23,11 @@ namespace Module
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core_players");
 
   // prefix for reverted frequency tables
-  const Char REVERT_TABLE_MARK = '~';
+  const auto REVERT_TABLE_MARK = '~';
 
   struct FreqTableEntry
   {
-    const Char* const Name;
+    const StringView Name;
     const FrequencyTable Table;
   };
 

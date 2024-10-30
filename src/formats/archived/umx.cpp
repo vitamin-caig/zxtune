@@ -32,7 +32,7 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::UMX");
 
-    const Char DESCRIPTION[] = "UMX (Unreal Music eXperience)";
+    const auto DESCRIPTION = "UMX (Unreal Music eXperience)"sv;
     const auto FORMAT =
         "c1832a9e"     // signature
         "? 00"         // version
@@ -527,7 +527,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(UMX::FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return UMX::DESCRIPTION;
     }

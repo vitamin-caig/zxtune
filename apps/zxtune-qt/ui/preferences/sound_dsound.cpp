@@ -48,10 +48,9 @@ namespace
       Require(connect(devices, &QComboBox::currentTextChanged, this, &DirectSoundOptionsWidget::DeviceChanged));
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'d', 's', 'o', 'u', 'n', 'd', '\0'};
-      return ID;
+      return "dsound"sv;
     }
 
     QString GetDescription() const override

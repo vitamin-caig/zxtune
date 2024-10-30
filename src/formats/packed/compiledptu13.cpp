@@ -59,7 +59,7 @@ namespace Formats::Packed
 
     static_assert(sizeof(RawHeader) * alignof(RawHeader) == 202, "Invalid layout");
 
-    const Char DESCRIPTION[] = "Pro Tracker Utility v1.3 player";
+    const auto DESCRIPTION = "Pro Tracker Utility v1.3 player"sv;
 
     const auto FORMAT =
         "21??"    // ld hl,xxxx +0x665
@@ -113,7 +113,7 @@ namespace Formats::Packed
           Binary::CreateFormat(CompiledPTU13::FORMAT, CompiledPTU13::PLAYER_SIZE + sizeof(CompiledPTU13::RawHeader)))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return CompiledPTU13::DESCRIPTION;
     }

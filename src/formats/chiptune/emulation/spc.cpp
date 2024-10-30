@@ -36,7 +36,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SPC");
 
-    const Char DESCRIPTION[] = "SNES SPC700";
+    const auto DESCRIPTION = "SNES SPC700"sv;
 
     using SignatureType = std::array<uint8_t, 28>;
     const SignatureType SIGNATURE = {{'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ', 'S', 'o',
@@ -417,7 +417,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, sizeof(RawHeader)))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

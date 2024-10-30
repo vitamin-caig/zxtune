@@ -451,6 +451,7 @@ namespace Formats::Chiptune
       return sizeof(*header) + patternsCount * sizeof(Pattern) <= data.Size();
     }
 
+    const auto DESCRIPTION = "Chip Tracker"sv;
     const auto FORMAT =
         "'C'H'I'P'v"          // uint8_t Signature[5];
         "3x2e3x"              // char Version[3];
@@ -462,8 +463,6 @@ namespace Formats::Chiptune
         "(20-7f{8}){16}"      // sample names
         ""sv;
 
-    const Char DESCRIPTION[] = "Chip Tracker";
-
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
@@ -471,7 +470,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

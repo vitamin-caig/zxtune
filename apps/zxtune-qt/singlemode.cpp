@@ -31,7 +31,7 @@ namespace
 
 namespace
 {
-  const QString SERVER_NAME(Platform::Version::PROGRAM_NAME);
+  const QString SERVER_NAME = ToQString(Platform::Version::PROGRAM_NAME);
 
   const QDataStream::Version STREAM_VERSION = QDataStream::Qt_4_6;  // compatible with up to 4.9
 

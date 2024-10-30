@@ -24,7 +24,7 @@ namespace Formats::Image
 {
   namespace LaserCompact40
   {
-    const Char DESCRIPTION[] = "LaserCompact 4.0";
+    const auto DESCRIPTION = "LaserCompact 4.0"sv;
     const auto DEPACKER_PATTERN =
         "0ef9"    // ld c,#f9
         "0d"      // dec c
@@ -234,7 +234,7 @@ namespace Formats::Image
       : Depacker(Binary::CreateFormat(LaserCompact40::DEPACKER_PATTERN, LaserCompact40::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return LaserCompact40::DESCRIPTION;
     }

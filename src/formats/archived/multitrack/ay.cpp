@@ -106,7 +106,7 @@ namespace Formats::Archived
       }
     };
 
-    const Char DESCRIPTION[] = "Multi-AY/EMUL";
+    const auto DESCRIPTION = "Multi-AY/EMUL"sv;
     const auto HEADER_FORMAT =
         "'Z'X'A'Y"  // uint8_t Signature[4];
         "'E'M'U'L"  // only one type is supported now
@@ -120,7 +120,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(MultiAY::HEADER_FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return MultiAY::DESCRIPTION;
     }

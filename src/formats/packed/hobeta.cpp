@@ -60,7 +60,7 @@ namespace Formats::Packed
       return header->CRC == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff);
     }
 
-    const Char DESCRIPTION[] = "Hobeta";
+    const auto DESCRIPTION = "Hobeta"sv;
     const auto FORMAT =
         // Filename
         "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
@@ -80,7 +80,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(Hobeta::FORMAT, Hobeta::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Hobeta::DESCRIPTION;
     }

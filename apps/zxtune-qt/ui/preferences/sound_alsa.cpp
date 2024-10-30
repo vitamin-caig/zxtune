@@ -77,10 +77,9 @@ namespace
       Require(connect(devices, &QComboBox::currentTextChanged, this, &AlsaOptionsWidget::DeviceChanged));
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'a', 'l', 's', 'a', '\0'};
-      return ID;
+      return "alsa"sv;
     }
 
     QString GetDescription() const override

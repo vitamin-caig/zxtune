@@ -207,7 +207,7 @@ namespace Formats::Packed
       Formats::ImageBuilder& Target;
     };
 
-    const Char DESCRIPTION[] = "DSK Image";
+    const auto DESCRIPTION = "DSK Image"sv;
     const auto FORMAT =
         "'M|'E"
         "'V|'X"
@@ -243,7 +243,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(DSK::FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return DSK::DESCRIPTION;
     }
