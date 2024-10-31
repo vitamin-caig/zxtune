@@ -10,13 +10,13 @@
 
 #include "module/players/properties_helper.h"
 
-#include <binary/crc.h>
-#include <module/attributes.h>
-#include <sound/sound_parameters.h>
-#include <strings/join.h>
-#include <strings/trim.h>
+#include "binary/crc.h"
+#include "module/attributes.h"
+#include "sound/sound_parameters.h"
+#include "strings/join.h"
+#include "strings/trim.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 namespace Module
 {

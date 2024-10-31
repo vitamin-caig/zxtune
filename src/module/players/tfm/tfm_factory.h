@@ -12,8 +12,8 @@
 
 #include "module/players/tfm/tfm_chiptune.h"
 
-#include <binary/container.h>
-#include <parameters/container.h>
+#include "binary/container.h"
+#include "parameters/container.h"
 
 namespace Module::TFM
 {

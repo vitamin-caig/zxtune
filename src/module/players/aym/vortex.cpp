@@ -10,9 +10,9 @@
 
 #include "module/players/aym/vortex.h"
 
-#include <math/numeric.h>
+#include "math/numeric.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <array>
 #include <utility>

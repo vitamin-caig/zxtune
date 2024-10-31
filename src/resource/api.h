@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <binary/container.h>
+#include "binary/container.h"
 
-#include <string_view.h>
-#include <types.h>
+#include "string_view.h"
+#include "types.h"
 
 namespace Resource
 {

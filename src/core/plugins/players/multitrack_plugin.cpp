@@ -11,16 +11,16 @@
 #include "core/plugins/players/multitrack_plugin.h"
 
 #include "core/plugins/archives/archived.h"
-#include <formats/archived/multitrack/filename.h>
-#include <module/players/properties_helper.h>
+#include "formats/archived/multitrack/filename.h"
+#include "module/players/properties_helper.h"
 
-#include <core/module_detect.h>
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <tools/xrange.h>
+#include "core/module_detect.h"
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "tools/xrange.h"
 
-#include <make_ptr.h>
-#include <string_view.h>
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <utility>
 

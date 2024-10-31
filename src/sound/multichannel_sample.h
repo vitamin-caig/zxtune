@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <sound/sample.h>
+#include "sound/sample.h"
 
 #include <array>
 

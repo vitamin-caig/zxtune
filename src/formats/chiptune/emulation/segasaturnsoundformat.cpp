@@ -10,9 +10,9 @@
 
 #include "formats/chiptune/emulation/segasaturnsoundformat.h"
 
-#include <binary/format_factories.h>
+#include "binary/format_factories.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 namespace Formats::Chiptune
 {

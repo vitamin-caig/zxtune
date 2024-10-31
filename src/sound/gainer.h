@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <sound/gain.h>
-#include <sound/receiver.h>
+#include "sound/gain.h"
+#include "sound/receiver.h"
 
 namespace Sound
 {

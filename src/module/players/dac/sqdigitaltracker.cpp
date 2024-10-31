@@ -10,14 +10,14 @@
 
 #include "module/players/dac/sqdigitaltracker.h"
 
+#include "devices/dac/sample_factories.h"
+#include "formats/chiptune/digital/sqdigitaltracker.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
-#include <devices/dac/sample_factories.h>
-#include <formats/chiptune/digital/sqdigitaltracker.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_meta.h>
-#include <module/players/simple_orderlist.h>
-#include <module/players/tracking.h>
+#include "module/players/platforms.h"
+#include "module/players/properties_meta.h"
+#include "module/players/simple_orderlist.h"
+#include "module/players/tracking.h"
 
 #include <array>
 

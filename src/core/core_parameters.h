@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <zxtune.h>
+#include "zxtune.h"
 
-#include <parameters/types.h>
+#include "parameters/types.h"
 
 namespace Parameters::ZXTune::Core
 {

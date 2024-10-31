@@ -15,8 +15,8 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "mixing.ui.h"
 
-#include <sound/mixer_parameters.h>
-#include <sound/sample.h>
+#include "sound/mixer_parameters.h"
+#include "sound/sample.h"
 
 #include <QtWidgets/QLabel>
 

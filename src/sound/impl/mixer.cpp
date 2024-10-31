@@ -10,12 +10,12 @@
 
 #include "sound/impl/mixer_core.h"
 
-#include <l10n/api.h>
-#include <math/numeric.h>
-#include <sound/matrix_mixer.h>
+#include "l10n/api.h"
+#include "math/numeric.h"
+#include "sound/matrix_mixer.h"
 
-#include <error_tools.h>
-#include <make_ptr.h>
+#include "error_tools.h"
+#include "make_ptr.h"
 
 #include <algorithm>
 #include <numeric>

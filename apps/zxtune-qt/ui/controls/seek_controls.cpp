@@ -15,9 +15,9 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "seek_controls.ui.h"
 
-#include <time/serialize.h>
+#include "time/serialize.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <QtGui/QCursor>
 #include <QtWidgets/QToolTip>

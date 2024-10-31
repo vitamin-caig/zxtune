@@ -12,7 +12,7 @@
 
 #include "apps/zxtune-qt/ui/mainwindow.h"
 
-#include <parameters/container.h>
+#include "parameters/container.h"
 
 class DesktopMainWindow : public MainWindow
 {

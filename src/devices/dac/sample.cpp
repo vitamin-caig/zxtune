@@ -8,9 +8,9 @@
  *
  **/
 
-#include <devices/dac/sample_factories.h>
+#include "devices/dac/sample_factories.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <cmath>
 #include <cstring>

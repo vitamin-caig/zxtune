@@ -12,7 +12,7 @@
 
 #include "formats/chiptune/digital/digital.h"
 
-#include <tools/indices.h>
+#include "tools/indices.h"
 
 namespace Formats::Chiptune::Digital
 {

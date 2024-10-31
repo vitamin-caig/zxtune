@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <contract.h>
-#include <types.h>
+#include "contract.h"
+#include "types.h"
 
 #include <algorithm>
 #include <functional>

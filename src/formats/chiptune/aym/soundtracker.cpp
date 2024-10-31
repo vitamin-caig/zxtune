@@ -11,13 +11,13 @@
 #include "formats/chiptune/aym/soundtracker_detail.h"
 #include "formats/chiptune/container.h"
 
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
 
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <array>
 

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "renderers.h"
-#include "volume_table.h"
+#include "devices/aym/src/renderers.h"
+#include "devices/aym/src/volume_table.h"
 
-#include <parameters/tracking_helper.h>
+#include "parameters/tracking_helper.h"
 
 namespace Devices::AYM
 {

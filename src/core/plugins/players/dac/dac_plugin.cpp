@@ -11,13 +11,13 @@
 #include "core/plugins/players/dac/dac_plugin.h"
 
 #include "core/plugins/players/plugin.h"
-#include <module/players/dac/dac_base.h>
-#include <module/players/dac/dac_parameters.h>
+#include "module/players/dac/dac_base.h"
+#include "module/players/dac/dac_parameters.h"
 
-#include <core/plugin_attrs.h>
-#include <sound/mixer_factory.h>
+#include "core/plugin_attrs.h"
+#include "sound/mixer_factory.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <utility>
 

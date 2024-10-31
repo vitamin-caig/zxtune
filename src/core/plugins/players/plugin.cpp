@@ -10,13 +10,13 @@
 
 #include "core/plugins/players/plugin.h"
 
-#include <module/players/properties_helper.h>
+#include "module/players/properties_helper.h"
 
-#include <core/module_detect.h>
-#include <core/plugin_attrs.h>
-#include <module/attributes.h>
+#include "core/module_detect.h"
+#include "core/plugin_attrs.h"
+#include "module/attributes.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <utility>
 

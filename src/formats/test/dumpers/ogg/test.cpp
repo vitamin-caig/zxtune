@@ -8,13 +8,12 @@
  *
  **/
 
-#include "../../utils.h"
+#include "formats/chiptune/music/oggvorbis.h"
+#include "formats/test/utils.h"
 
-#include <formats/chiptune/music/oggvorbis.h>
+#include "strings/format.h"
 
-#include <strings/format.h>
-
-#include <string_view.h>
+#include "string_view.h"
 
 namespace
 {

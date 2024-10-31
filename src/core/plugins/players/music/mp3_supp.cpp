@@ -10,20 +10,20 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-#include <formats/chiptune/music/mp3.h>
-#include <module/players/properties_helper.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
+#include "formats/chiptune/music/mp3.h"
+#include "module/players/properties_helper.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
 
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <sound/resampler.h>
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "sound/resampler.h"
 
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
 
-#include <3rdparty/minimp3/minimp3.h>
+#include "3rdparty/minimp3/minimp3.h"
 
 namespace Module::Mp3
 {

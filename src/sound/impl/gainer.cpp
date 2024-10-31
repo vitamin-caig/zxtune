@@ -8,11 +8,12 @@
  *
  **/
 
-#include <math/fixedpoint.h>
-#include <math/numeric.h>
-#include <sound/gainer.h>
+#include "sound/gainer.h"
 
-#include <make_ptr.h>
+#include "math/fixedpoint.h"
+#include "math/numeric.h"
+
+#include "make_ptr.h"
 
 namespace Sound
 {

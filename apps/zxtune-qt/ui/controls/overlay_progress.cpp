@@ -10,7 +10,7 @@
 
 #include "apps/zxtune-qt/ui/controls/overlay_progress.h"
 
-#include <time/elapsed.h>
+#include "time/elapsed.h"
 
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>

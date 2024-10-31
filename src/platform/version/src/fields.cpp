@@ -8,10 +8,11 @@
  *
  **/
 
-#include <platform/version/api.h>
-#include <platform/version/fields.h>
+#include "platform/version/fields.h"
 
-#include <string_view.h>
+#include "platform/version/api.h"
+
+#include "string_view.h"
 
 namespace Platform::Version
 {

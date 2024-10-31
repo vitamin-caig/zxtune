@@ -14,13 +14,13 @@
 #include "formats/packed/hrust1_bitstream.h"
 #include "formats/packed/pack_utils.h"
 
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-#include <math/numeric.h>
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
 
 #include <algorithm>
 #include <cstring>

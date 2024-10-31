@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <tools/progress_callback.h>
+#include "tools/progress_callback.h"
 
 class QString;
 namespace Playlist::IO

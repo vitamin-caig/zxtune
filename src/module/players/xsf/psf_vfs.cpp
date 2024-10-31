@@ -10,13 +10,13 @@
 
 #include "module/players/xsf/psf_vfs.h"
 
-#include <formats/chiptune/emulation/playstation2soundformat.h>
+#include "formats/chiptune/emulation/playstation2soundformat.h"
 
-#include <strings/casing.h>
+#include "strings/casing.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Module::PSF
 {

@@ -22,11 +22,11 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "container_view.ui.h"
 
-#include <debug/log.h>
+#include "debug/log.h"
 
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>

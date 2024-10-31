@@ -10,8 +10,8 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/ay/aym_plugin.h"
-#include <formats/chiptune/aym/globaltracker.h>
-#include <module/players/aym/globaltracker.h>
+#include "formats/chiptune/aym/globaltracker.h"
+#include "module/players/aym/globaltracker.h"
 
 namespace ZXTune
 {

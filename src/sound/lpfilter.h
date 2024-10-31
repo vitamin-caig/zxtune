@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <math/fixedpoint.h>
-#include <math/numeric.h>
-#include <sound/sample.h>
+#include "math/fixedpoint.h"
+#include "math/numeric.h"
+#include "sound/sample.h"
 
 #include <cmath>
 

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <math/scale.h>
+#include "math/scale.h"
 
 namespace Math
 {

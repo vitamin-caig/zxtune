@@ -8,15 +8,16 @@
  *
  **/
 
+#include "strings/encoding.h"
+
 #include "strings/src/utf8.h"
 
-#include <math/bitops.h>
-#include <strings/encoding.h>
-#include <tools/iterators.h>
+#include "math/bitops.h"
+#include "tools/iterators.h"
 
-#include <byteorder.h>
-#include <string_view.h>
-#include <types.h>
+#include "byteorder.h"
+#include "string_view.h"
+#include "types.h"
 
 #include <algorithm>
 #include <array>

@@ -16,11 +16,11 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "supported_formats.ui.h"
 
-#include <sound/service.h>
-#include <strings/map.h>
+#include "sound/service.h"
+#include "strings/map.h"
 
-#include <contract.h>
-#include <string_view.h>
+#include "contract.h"
+#include "string_view.h"
 
 #include <QtWidgets/QRadioButton>
 

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <formats/image.h>
+#include "formats/image.h"
 
 namespace Formats::Image
 {

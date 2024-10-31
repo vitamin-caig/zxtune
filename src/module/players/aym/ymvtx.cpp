@@ -13,13 +13,13 @@
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
 #include "module/players/aym/aym_properties_helper.h"
-#include <module/players/properties_meta.h>
+#include "module/players/properties_meta.h"
 
-#include <core/core_parameters.h>
-#include <strings/conversion.h>
+#include "core/core_parameters.h"
+#include "strings/conversion.h"
 
-#include <make_ptr.h>
-#include <string_view.h>
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <utility>
 

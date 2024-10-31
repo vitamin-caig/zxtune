@@ -12,7 +12,7 @@
 
 #include "apps/zxtune-qt/playlist/supp/operations.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 namespace Playlist::Item
 {

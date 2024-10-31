@@ -8,25 +8,25 @@
  *
  **/
 
-#include "sound.h"
+#include "apps/zxtune123/sound.h"
 
-#include "config.h"
+#include "apps/zxtune123/config.h"
 
-#include <core/core_parameters.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/serialize.h>
-#include <platform/application.h>
-#include <sound/backends_parameters.h>
-#include <sound/render_params.h>
-#include <sound/service.h>
-#include <sound/sound_parameters.h>
-#include <strings/array.h>
-#include <strings/map.h>
+#include "core/core_parameters.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/serialize.h"
+#include "platform/application.h"
+#include "sound/backends_parameters.h"
+#include "sound/render_params.h"
+#include "sound/service.h"
+#include "sound/sound_parameters.h"
+#include "strings/array.h"
+#include "strings/map.h"
 
-#include <error_tools.h>
-#include <string_view.h>
+#include "error_tools.h"
+#include "string_view.h"
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>

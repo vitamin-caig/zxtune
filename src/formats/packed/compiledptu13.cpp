@@ -12,11 +12,11 @@
 #include "formats/chiptune/metainfo.h"
 #include "formats/packed/container.h"
 
-#include <binary/format_factories.h>
-#include <debug/log.h>
+#include "binary/format_factories.h"
+#include "debug/log.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "make_ptr.h"
 
 #include <array>
 

@@ -12,19 +12,19 @@
 
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <parameters/src/names_set.h>
+#include "parameters/src/names_set.h"
 
-#include <binary/container_factories.h>
-#include <parameters/convert.h>
-#include <parameters/delegated.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/tools.h>
-#include <parameters/tracking.h>
+#include "binary/container_factories.h"
+#include "parameters/convert.h"
+#include "parameters/delegated.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/tools.h"
+#include "parameters/tracking.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-#include <string_view.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QSettings>

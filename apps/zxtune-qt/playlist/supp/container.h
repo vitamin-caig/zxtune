@@ -12,7 +12,7 @@
 
 #include "apps/zxtune-qt/playlist/supp/controller.h"
 
-#include <parameters/accessor.h>
+#include "parameters/accessor.h"
 
 #include <QtCore/QObject>
 

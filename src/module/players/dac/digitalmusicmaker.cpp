@@ -10,16 +10,16 @@
 
 #include "module/players/dac/digitalmusicmaker.h"
 
+#include "devices/dac/sample_factories.h"
+#include "formats/chiptune/digital/digitalmusicmaker.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
-#include <devices/dac/sample_factories.h>
-#include <formats/chiptune/digital/digitalmusicmaker.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_meta.h>
-#include <module/players/simple_orderlist.h>
-#include <module/players/tracking.h>
+#include "module/players/platforms.h"
+#include "module/players/properties_meta.h"
+#include "module/players/simple_orderlist.h"
+#include "module/players/tracking.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <array>
 

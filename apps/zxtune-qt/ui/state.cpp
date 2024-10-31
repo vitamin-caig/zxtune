@@ -14,12 +14,12 @@
 #include "apps/zxtune-qt/ui/parameters.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <debug/log.h>
-#include <parameters/convert.h>
+#include "debug/log.h"
+#include "parameters/convert.h"
 
-#include <make_ptr.h>
-#include <pointers.h>
-#include <string_view.h>
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
 
 #include <QtCore/QByteArray>
 #include <QtWidgets/QAbstractButton>

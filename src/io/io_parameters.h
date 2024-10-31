@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <zxtune.h>
+#include "zxtune.h"
 
 namespace Parameters::ZXTune::IO
 {

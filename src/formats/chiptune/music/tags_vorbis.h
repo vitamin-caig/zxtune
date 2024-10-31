@@ -12,7 +12,7 @@
 
 #include "formats/chiptune/builder_meta.h"
 
-#include <binary/input_stream.h>
+#include "binary/input_stream.h"
 
 namespace Formats::Chiptune::Vorbis
 {

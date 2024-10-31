@@ -8,8 +8,9 @@
  *
  **/
 
-#include <debug/log.h>
-#include <platform/tools.h>
+#include "platform/tools.h"
+
+#include "debug/log.h"
 
 #include <dlfcn.h>
 #include <sys/stat.h>

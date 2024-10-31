@@ -10,12 +10,12 @@
 
 #include "formats/chiptune/metainfo.h"
 
-#include <binary/data_builder.h>
-#include <binary/input_stream.h>
+#include "binary/data_builder.h"
+#include "binary/input_stream.h"
 
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <map>
 #include <set>

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <devices/aym/dumper.h>
+#include "devices/aym/dumper.h"
 
 namespace Devices::AYM
 {

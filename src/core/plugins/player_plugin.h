@@ -12,10 +12,10 @@
 
 #include "core/src/location.h"
 
-#include <analysis/result.h>
-#include <core/plugin.h>
-#include <module/holder.h>
-#include <parameters/container.h>
+#include "analysis/result.h"
+#include "core/plugin.h"
+#include "module/holder.h"
+#include "parameters/container.h"
 
 namespace Module
 {

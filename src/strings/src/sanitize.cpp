@@ -8,12 +8,13 @@
  *
  **/
 
-#include <strings/encoding.h>
-#include <strings/sanitize.h>
-#include <strings/split.h>
-#include <strings/trim.h>
+#include "strings/sanitize.h"
 
-#include <string_view.h>
+#include "strings/encoding.h"
+#include "strings/split.h"
+#include "strings/trim.h"
+
+#include "string_view.h"
 
 #include <vector>
 

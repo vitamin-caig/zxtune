@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "device.h"
-#include "volume_table.h"
+#include "devices/aym/src/device.h"
+#include "devices/aym/src/volume_table.h"
 
 #include <array>
 

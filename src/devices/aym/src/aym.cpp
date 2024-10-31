@@ -11,7 +11,7 @@
 #include "devices/aym/src/psg.h"
 #include "devices/aym/src/soundchip.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <utility>
 

@@ -15,11 +15,11 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "playback_options.ui.h"
 
-#include <core/core_parameters.h>
-#include <parameters/merged_accessor.h>
-#include <sound/sound_parameters.h>
+#include "core/core_parameters.h"
+#include "parameters/merged_accessor.h"
+#include "sound/sound_parameters.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <utility>
 

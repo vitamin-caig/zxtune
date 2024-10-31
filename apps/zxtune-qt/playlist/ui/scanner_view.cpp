@@ -13,9 +13,9 @@
 #include "apps/zxtune-qt/playlist/supp/scanner.h"
 #include "scanner_view.ui.h"
 
-#include <debug/log.h>
+#include "debug/log.h"
 
-#include <contract.h>
+#include "contract.h"
 
 namespace
 {

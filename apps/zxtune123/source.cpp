@@ -8,30 +8,30 @@
  *
  **/
 
-#include "source.h"
+#include "apps/zxtune123/source.h"
 
-#include "config.h"
-#include "console.h"
+#include "apps/zxtune123/config.h"
+#include "apps/zxtune123/console.h"
 
-#include <module/properties/path.h>
+#include "module/properties/path.h"
 
-#include <core/additional_files_resolve.h>
-#include <core/core_parameters.h>
-#include <core/data_location.h>
-#include <core/plugin.h>
-#include <core/plugin_attrs.h>
-#include <core/service.h>
-#include <io/api.h>
-#include <io/providers_parameters.h>
-#include <parameters/merged_container.h>
-#include <platform/application.h>
-#include <strings/array.h>
-#include <time/elapsed.h>
-#include <tools/progress_callback.h>
+#include "core/additional_files_resolve.h"
+#include "core/core_parameters.h"
+#include "core/data_location.h"
+#include "core/plugin.h"
+#include "core/plugin_attrs.h"
+#include "core/service.h"
+#include "io/api.h"
+#include "io/providers_parameters.h"
+#include "parameters/merged_container.h"
+#include "platform/application.h"
+#include "strings/array.h"
+#include "time/elapsed.h"
+#include "tools/progress_callback.h"
 
-#include <contract.h>
-#include <error_tools.h>
-#include <string_view.h>
+#include "contract.h"
+#include "error_tools.h"
+#include "string_view.h"
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>

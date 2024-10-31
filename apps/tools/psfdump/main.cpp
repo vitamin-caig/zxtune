@@ -8,20 +8,20 @@
  *
  **/
 
-#include <formats/chiptune/emulation/gameboyadvancesoundformat.h>
-#include <formats/chiptune/emulation/nintendodssoundformat.h>
-#include <formats/chiptune/emulation/playstation2soundformat.h>
-#include <formats/chiptune/emulation/playstationsoundformat.h>
-#include <formats/chiptune/emulation/portablesoundformat.h>
-#include <formats/chiptune/emulation/ultra64soundformat.h>
+#include "formats/chiptune/emulation/gameboyadvancesoundformat.h"
+#include "formats/chiptune/emulation/nintendodssoundformat.h"
+#include "formats/chiptune/emulation/playstation2soundformat.h"
+#include "formats/chiptune/emulation/playstationsoundformat.h"
+#include "formats/chiptune/emulation/portablesoundformat.h"
+#include "formats/chiptune/emulation/ultra64soundformat.h"
 
-#include <binary/compression/zlib_container.h>
-#include <binary/data_builder.h>
-#include <strings/format.h>
-#include <time/serialize.h>
+#include "binary/compression/zlib_container.h"
+#include "binary/data_builder.h"
+#include "strings/format.h"
+#include "time/serialize.h"
 
-#include <make_ptr.h>
-#include <string_view.h>
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <fstream>
 #include <iomanip>

@@ -8,7 +8,7 @@
  *
  **/
 
-#include <platform/tools.h>
+#include "platform/tools.h"
 
 #include <windows.h>
 

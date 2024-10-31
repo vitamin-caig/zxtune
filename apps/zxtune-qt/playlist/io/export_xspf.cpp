@@ -13,16 +13,16 @@
 #include "apps/zxtune-qt/playlist/io/tags/xspf.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <core/plugins/archives/zdata_supp.h>
-#include <zxtune.h>
+#include "core/plugins/archives/zdata_supp.h"
+#include "zxtune.h"
 
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <parameters/convert.h>
-#include <sound/sound_parameters.h>
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "parameters/convert.h"
+#include "sound/sound_parameters.h"
 
-#include <error_tools.h>
-#include <string_view.h>
+#include "error_tools.h"
+#include "string_view.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>

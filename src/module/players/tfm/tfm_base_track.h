@@ -11,7 +11,7 @@
 #pragma once
 
 #include "module/players/tfm/tfm_chiptune.h"
-#include <module/players/tracking.h>
+#include "module/players/tracking.h"
 
 namespace Module::TFM
 {

@@ -12,8 +12,8 @@
 
 #include "module/players/xsf/xsf_metainformation.h"
 
-#include <binary/container.h>
-#include <strings/array.h>
+#include "binary/container.h"
+#include "strings/array.h"
 
 namespace Module::XSF
 {

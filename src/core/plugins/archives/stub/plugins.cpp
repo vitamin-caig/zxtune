@@ -8,7 +8,7 @@
  *
  **/
 
-#include <core/plugins/archives/plugins_list.h>
+#include "core/plugins/archives/plugins_list.h"
 
 namespace ZXTune
 {

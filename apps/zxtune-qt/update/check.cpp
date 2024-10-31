@@ -18,12 +18,12 @@
 #include "apps/zxtune-qt/update/product.h"
 #include "apps/zxtune-qt/urls.h"
 
-#include <debug/log.h>
-#include <platform/version/fields.h>
+#include "debug/log.h"
+#include "platform/version/fields.h"
 
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
 
 #include <QtCore/QPointer>
 #include <QtCore/QTimer>

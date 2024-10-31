@@ -15,13 +15,13 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "sound_alsa.ui.h"
 
-#include <sound/backends/alsa.h>
+#include "sound/backends/alsa.h"
 
-#include <debug/log.h>
-#include <sound/backends_parameters.h>
+#include "debug/log.h"
+#include "sound/backends_parameters.h"
 
-#include <contract.h>
-#include <string_view.h>
+#include "contract.h"
+#include "string_view.h"
 
 namespace
 {

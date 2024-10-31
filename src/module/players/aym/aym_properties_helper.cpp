@@ -10,9 +10,9 @@
 
 #include "module/players/aym/aym_properties_helper.h"
 
-#include <core/core_parameters.h>
+#include "core/core_parameters.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 #include <cassert>
 

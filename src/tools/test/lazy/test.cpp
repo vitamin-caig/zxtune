@@ -8,9 +8,9 @@
  *
  **/
 
-#include <lazy.h>
-#include <make_ptr.h>
-#include <string_type.h>
+#include "lazy.h"
+#include "make_ptr.h"
+#include "string_type.h"
 
 #include <iostream>
 #include <memory>

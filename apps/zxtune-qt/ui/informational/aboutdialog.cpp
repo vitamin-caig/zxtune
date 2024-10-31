@@ -14,7 +14,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "apps/zxtune-qt/urls.h"
 
-#include <platform/version/api.h>
+#include "platform/version/api.h"
 
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDialog>

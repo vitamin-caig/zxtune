@@ -8,12 +8,12 @@
  *
  **/
 
-#include "console.h"
+#include "apps/zxtune123/console.h"
 
-#include <platform/application.h>
+#include "platform/application.h"
 
-#include <error.h>
-#include <string_view.h>
+#include "error.h"
+#include "string_view.h"
 
 #include <sys/ioctl.h>
 #include <termios.h>

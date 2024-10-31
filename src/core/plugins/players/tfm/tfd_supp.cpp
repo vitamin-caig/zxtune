@@ -10,8 +10,8 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/tfm/tfm_plugin.h"
-#include <formats/chiptune/fm/tfd.h>
-#include <module/players/tfm/tfd.h>
+#include "formats/chiptune/fm/tfd.h"
+#include "module/players/tfm/tfd.h"
 
 namespace ZXTune
 {

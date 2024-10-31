@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <sound/receiver.h>
+#include "sound/receiver.h"
 
 namespace Sound
 {

@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "array.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/array.h"
 
-#include <parameters/accessor.h>
-#include <parameters/modifier.h>
+#include "parameters/accessor.h"
+#include "parameters/modifier.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 #include <jni.h>
 

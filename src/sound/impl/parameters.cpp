@@ -8,10 +8,10 @@
  *
  **/
 
-#include <sound/backends_parameters.h>
-#include <sound/gain.h>
-#include <sound/mixer_parameters.h>
-#include <sound/sound_parameters.h>
+#include "sound/backends_parameters.h"
+#include "sound/gain.h"
+#include "sound/mixer_parameters.h"
+#include "sound/sound_parameters.h"
 
 namespace
 {

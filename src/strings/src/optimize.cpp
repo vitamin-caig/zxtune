@@ -8,10 +8,11 @@
  *
  **/
 
-#include <strings/optimize.h>
-#include <strings/trim.h>
+#include "strings/optimize.h"
 
-#include <string_view.h>
+#include "strings/trim.h"
+
+#include "string_view.h"
 
 #include <algorithm>
 

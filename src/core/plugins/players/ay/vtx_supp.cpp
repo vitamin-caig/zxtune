@@ -10,7 +10,7 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/ay/aym_plugin.h"
-#include <module/players/aym/ymvtx.h>
+#include "module/players/aym/ymvtx.h"
 
 namespace ZXTune
 {

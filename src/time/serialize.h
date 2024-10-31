@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <strings/format.h>
-#include <time/duration.h>
+#include "strings/format.h"
+#include "time/duration.h"
 
 namespace Time
 {

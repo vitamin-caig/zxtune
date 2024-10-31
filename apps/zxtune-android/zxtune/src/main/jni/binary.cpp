@@ -8,14 +8,14 @@
  *
  **/
 
-#include "binary.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/binary.h"
 
-#include "exception.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/exception.h"
 
-#include <binary/container_factories.h>
+#include "binary/container_factories.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 namespace Binary
 {

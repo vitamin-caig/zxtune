@@ -10,9 +10,9 @@
 
 #include "module/players/dac/dac_parameters.h"
 
-#include <core/core_parameters.h>
+#include "core/core_parameters.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <utility>
 

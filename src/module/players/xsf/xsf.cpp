@@ -10,16 +10,16 @@
 
 #include "module/players/xsf/xsf.h"
 
-#include <formats/chiptune/emulation/portablesoundformat.h>
+#include "formats/chiptune/emulation/portablesoundformat.h"
 
-#include <strings/casing.h>
-#include <strings/conversion.h>
-#include <strings/join.h>
-#include <strings/split.h>
+#include "strings/casing.h"
+#include "strings/conversion.h"
+#include "strings/join.h"
+#include "strings/split.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Module::XSF
 {

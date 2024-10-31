@@ -10,12 +10,12 @@
 
 #include "formats/chiptune/emulation/nitrocomposersoundformat.h"
 
-#include <binary/compression/zlib_container.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
+#include "binary/compression/zlib_container.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "make_ptr.h"
 
 #include <array>
 

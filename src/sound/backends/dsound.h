@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include <l10n/markup.h>
-#include <sound/backend_attrs.h>
-#include <tools/iterators.h>
+#include "l10n/markup.h"
+#include "sound/backend_attrs.h"
+#include "tools/iterators.h"
 
-#include <string_type.h>
+#include "string_type.h"
 
 namespace Sound::DirectSound
 {

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <math/fixedpoint.h>
-#include <time/instant.h>
+#include "math/fixedpoint.h"
+#include "time/instant.h"
 
 namespace Time
 {

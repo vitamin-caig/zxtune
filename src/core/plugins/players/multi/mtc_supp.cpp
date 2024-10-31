@@ -11,20 +11,20 @@
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/multi/multi_base.h"
 #include "core/plugins/players/plugin.h"
-#include <formats/chiptune/multidevice/multitrackcontainer.h>
-#include <module/players/properties_helper.h>
+#include "formats/chiptune/multidevice/multitrackcontainer.h"
+#include "module/players/properties_helper.h"
 
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/merged_container.h>
-#include <parameters/serialize.h>
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/merged_container.h"
+#include "parameters/serialize.h"
 
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <algorithm>
 #include <list>

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <binary/view.h>
-#include <formats/chiptune.h>
+#include "binary/view.h"
+#include "formats/chiptune.h"
 
 namespace Formats::Chiptune
 {

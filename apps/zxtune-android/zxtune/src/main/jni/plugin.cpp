@@ -8,11 +8,13 @@
  *
  **/
 
-#include "defines.h"
-#include "properties.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/plugin.h"
 
-#include <core/plugin.h>
-#include <core/plugin_attrs.h>
+#include "apps/zxtune-android/zxtune/src/main/jni/defines.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/properties.h"
+
+#include "core/plugin.h"
+#include "core/plugin_attrs.h"
 
 namespace
 {

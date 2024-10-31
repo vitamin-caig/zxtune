@@ -12,9 +12,9 @@
 
 #include "core/plugins/archive_plugin.h"
 
-#include <formats/archived.h>
+#include "formats/archived.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 namespace ZXTune
 {

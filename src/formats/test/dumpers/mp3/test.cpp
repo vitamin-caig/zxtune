@@ -8,15 +8,14 @@
  *
  **/
 
-#include "../../utils.h"
+#include "formats/chiptune/music/mp3.h"
+#include "formats/test/utils.h"
 
-#include <formats/chiptune/music/mp3.h>
+#include "strings/format.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
-#include <strings/format.h>
-#include <time/duration.h>
-#include <time/instant.h>
-
-#include <string_view.h>
+#include "string_view.h"
 
 namespace
 {

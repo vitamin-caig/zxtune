@@ -31,12 +31,12 @@
 #include "apps/zxtune-qt/urls.h"
 #include "mainwindow.ui.h"
 
-#include <debug/log.h>
-#include <platform/version/api.h>
-#include <strings/format.h>
+#include "debug/log.h"
+#include "platform/version/api.h"
+#include "strings/format.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <QtCore/QUrl>
 #include <QtGui/QCloseEvent>

@@ -8,18 +8,18 @@
  *
  **/
 
-#include <module/players/pipeline.h>
+#include "module/players/pipeline.h"
 
-#include <debug/log.h>
-#include <module/holder.h>
-#include <module/loop.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/tracking_helper.h>
-#include <sound/gainer.h>
-#include <sound/render_params.h>
-#include <sound/sound_parameters.h>
+#include "debug/log.h"
+#include "module/holder.h"
+#include "module/loop.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/tracking_helper.h"
+#include "sound/gainer.h"
+#include "sound/render_params.h"
+#include "sound/sound_parameters.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <algorithm>
 

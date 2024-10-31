@@ -12,9 +12,9 @@
 
 #include "core/src/location.h"
 
-#include <analysis/result.h>
-#include <core/module_detect.h>
-#include <core/plugin.h>
+#include "analysis/result.h"
+#include "core/module_detect.h"
+#include "core/plugin.h"
 
 namespace Parameters
 {

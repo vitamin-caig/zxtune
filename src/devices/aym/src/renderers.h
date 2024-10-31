@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <devices/aym/chip.h>
-#include <devices/details/renderers.h>
+#include "devices/aym/chip.h"
+#include "devices/details/renderers.h"
 
 namespace Devices::AYM
 {

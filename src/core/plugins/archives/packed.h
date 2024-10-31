@@ -12,7 +12,7 @@
 
 #include "core/plugins/archive_plugin.h"
 
-#include <formats/packed.h>
+#include "formats/packed.h"
 
 namespace ZXTune
 {

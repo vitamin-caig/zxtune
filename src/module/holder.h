@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <module/information.h>
-#include <module/renderer.h>
-#include <parameters/accessor.h>
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/accessor.h"
 
 namespace Module
 {

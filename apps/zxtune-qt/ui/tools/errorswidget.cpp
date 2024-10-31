@@ -13,7 +13,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "errorswidget.ui.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <QtGui/QPainter>
 #include <QtWidgets/QLabel>

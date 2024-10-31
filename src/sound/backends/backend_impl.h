@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <module/holder.h>
-#include <module/state.h>
-#include <sound/backend.h>
-#include <sound/chunk.h>
+#include "module/holder.h"
+#include "module/state.h"
+#include "sound/backend.h"
+#include "sound/chunk.h"
 
 namespace Sound
 {

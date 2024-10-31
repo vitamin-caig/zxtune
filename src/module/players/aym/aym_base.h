@@ -12,7 +12,7 @@
 
 #include "module/players/aym/aym_chiptune.h"
 
-#include <module/holder.h>
+#include "module/holder.h"
 
 namespace Module::AYM
 {

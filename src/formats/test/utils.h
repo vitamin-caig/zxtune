@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include <formats/archived/decoders.h>
-#include <formats/packed/decoders.h>
+#include "formats/archived/decoders.h"
+#include "formats/packed/decoders.h"
 
-#include <binary/data_builder.h>
-#include <strings/conversion.h>
-#include <strings/split.h>
+#include "binary/data_builder.h"
+#include "strings/conversion.h"
+#include "strings/split.h"
 
-#include <pointers.h>
-#include <types.h>
+#include "pointers.h"
+#include "types.h"
 
 #include <cstring>
 #include <fstream>

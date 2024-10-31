@@ -12,8 +12,8 @@
 
 #include "module/players/iterator.h"
 
-#include <module/information.h>
-#include <time/duration.h>
+#include "module/information.h"
+#include "time/duration.h"
 
 namespace Module
 {

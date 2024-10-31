@@ -12,9 +12,9 @@
 
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <parameters/container.h>
+#include "parameters/container.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 #include <QtCore/QObject>
 

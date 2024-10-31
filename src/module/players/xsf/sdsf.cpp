@@ -10,20 +10,20 @@
 
 #include "module/players/xsf/sdsf.h"
 
+#include "module/players/platforms.h"
+#include "module/players/streaming.h"
 #include "module/players/xsf/xsf.h"
-#include <module/players/platforms.h>
-#include <module/players/streaming.h>
 
-#include <binary/compression/zlib_container.h>
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <sound/resampler.h>
+#include "binary/compression/zlib_container.h"
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "sound/resampler.h"
 
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
 
-#include <3rdparty/ht/Core/sega.h>
+#include "3rdparty/ht/Core/sega.h"
 
 #include <list>
 

@@ -12,12 +12,12 @@
 
 #include "core/plugins/players/ay/aym_conversion.h"
 #include "core/plugins/players/plugin.h"
-#include <module/players/aym/aym_base.h>
-#include <module/players/aym/aym_parameters.h>
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_parameters.h"
 
-#include <core/plugin_attrs.h>
+#include "core/plugin_attrs.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <utility>
 

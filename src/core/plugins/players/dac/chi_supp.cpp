@@ -10,10 +10,10 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/dac/dac_plugin.h"
-#include <formats/chiptune/digital/chiptracker.h>
-#include <module/players/dac/chiptracker.h>
+#include "formats/chiptune/digital/chiptracker.h"
+#include "module/players/dac/chiptracker.h"
 
-#include <core/plugin_attrs.h>
+#include "core/plugin_attrs.h"
 
 namespace ZXTune
 {

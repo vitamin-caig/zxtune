@@ -8,13 +8,13 @@
  *
  **/
 
-#include "config.h"
+#include "apps/zxtune123/config.h"
 
-#include <parameters/serialize.h>
-#include <strings/map.h>
+#include "parameters/serialize.h"
+#include "strings/map.h"
 
-#include <error_tools.h>
-#include <string_view.h>
+#include "error_tools.h"
+#include "string_view.h"
 
 #include <algorithm>
 #include <cassert>

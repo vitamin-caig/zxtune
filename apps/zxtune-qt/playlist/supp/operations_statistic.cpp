@@ -13,7 +13,7 @@
 #include "apps/zxtune-qt/playlist/supp/operations_helpers.h"
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 namespace
 {

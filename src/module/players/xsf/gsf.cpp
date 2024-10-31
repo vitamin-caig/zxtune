@@ -10,20 +10,20 @@
 
 #include "module/players/xsf/gsf.h"
 
+#include "module/players/platforms.h"
+#include "module/players/streaming.h"
 #include "module/players/xsf/gsf_rom.h"
 #include "module/players/xsf/xsf.h"
-#include <module/players/platforms.h>
-#include <module/players/streaming.h>
 
-#include <binary/compression/zlib_container.h>
-#include <debug/log.h>
-#include <module/attributes.h>
+#include "binary/compression/zlib_container.h"
+#include "debug/log.h"
+#include "module/attributes.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
 
-#include <3rdparty/mgba/defines.h>
+#include "3rdparty/mgba/defines.h"
 
 #include <mgba/core/blip_buf.h>
 #include <mgba/core/core.h>

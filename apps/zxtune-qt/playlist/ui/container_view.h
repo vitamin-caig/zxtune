@@ -13,7 +13,7 @@
 #include "apps/zxtune-qt/playlist/supp/controller.h"
 #include "apps/zxtune-qt/playlist/supp/data.h"
 
-#include <parameters/container.h>
+#include "parameters/container.h"
 
 #include <QtWidgets/QWidget>
 

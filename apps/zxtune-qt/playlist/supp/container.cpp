@@ -18,11 +18,11 @@
 #include "apps/zxtune-qt/ui/tools/errordialog.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <platform/version/api.h>
+#include "platform/version/api.h"
 
-#include <error.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <utility>
 

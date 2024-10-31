@@ -12,11 +12,11 @@
 
 #include "formats/chiptune/container.h"
 
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <strings/sanitize.h>
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "strings/sanitize.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <array>
 

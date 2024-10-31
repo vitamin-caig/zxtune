@@ -12,7 +12,7 @@
 
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <debug/log.h>
+#include "debug/log.h"
 
 #include <QtCore/QXmlStreamReader>
 

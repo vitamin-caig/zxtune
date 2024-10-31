@@ -10,10 +10,10 @@
 
 #include "formats/chiptune/container.h"
 
-#include <binary/container_base.h>
-#include <binary/crc.h>
+#include "binary/container_base.h"
+#include "binary/crc.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <cassert>
 #include <utility>

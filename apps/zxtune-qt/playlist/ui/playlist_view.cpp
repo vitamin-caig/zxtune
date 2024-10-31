@@ -28,17 +28,17 @@
 #include "apps/zxtune-qt/ui/tools/filedialog.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <binary/base64.h>
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <parameters/template.h>
-#include <strings/join.h>
-#include <strings/split.h>
-#include <strings/template.h>
+#include "binary/base64.h"
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "parameters/template.h"
+#include "strings/join.h"
+#include "strings/split.h"
+#include "strings/template.h"
 
-#include <contract.h>
-#include <error.h>
-#include <string_view.h>
+#include "contract.h"
+#include "error.h"
+#include "string_view.h"
 
 #include <QtCore/QBuffer>
 #include <QtCore/QIdentityProxyModel>

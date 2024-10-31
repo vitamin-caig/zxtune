@@ -11,12 +11,12 @@
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
 
-#include <binary/format_factories.h>
-#include <debug/log.h>
+#include "binary/format_factories.h"
+#include "debug/log.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
 
 #include <cstring>
 #include <numeric>

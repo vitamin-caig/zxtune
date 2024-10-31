@@ -8,11 +8,11 @@
  *
  **/
 
-#include "chip.h"
+#include "devices/tfm.h"
 
-#include <devices/tfm.h>
+#include "devices/fm/chip.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <array>
 #include <functional>

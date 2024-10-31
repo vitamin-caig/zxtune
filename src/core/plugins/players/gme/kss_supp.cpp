@@ -10,10 +10,10 @@
 
 #include "core/plugins/players/gme/kss_supp.h"
 
-#include <module/players/platforms.h>
+#include "module/players/platforms.h"
 
-#include <contract.h>
-#include <string_view.h>
+#include "contract.h"
+#include "string_view.h"
 
 namespace Module::KSS
 {

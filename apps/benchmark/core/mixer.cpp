@@ -10,8 +10,8 @@
 
 #include "mixer.h"
 
-#include <sound/matrix_mixer.h>
-#include <time/timer.h>
+#include "sound/matrix_mixer.h"
+#include "time/timer.h"
 
 namespace Benchmark::Mixer
 {

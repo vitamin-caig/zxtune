@@ -15,12 +15,12 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "sound_dsound.ui.h"
 
-#include <sound/backends/dsound.h>
+#include "sound/backends/dsound.h"
 
-#include <debug/log.h>
-#include <sound/backends_parameters.h>
+#include "debug/log.h"
+#include "sound/backends_parameters.h"
 
-#include <contract.h>
+#include "contract.h"
 
 namespace
 {

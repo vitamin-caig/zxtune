@@ -10,21 +10,21 @@
 
 #include "formats/chiptune/emulation/portablesoundformat.h"
 
-#include <formats/chiptune/container.h>
+#include "formats/chiptune/container.h"
 
-#include <binary/crc.h>
-#include <binary/data_builder.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <strings/casing.h>
-#include <strings/prefixed_index.h>
-#include <strings/sanitize.h>
-#include <strings/trim.h>
-#include <time/duration.h>
+#include "binary/crc.h"
+#include "binary/data_builder.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "strings/casing.h"
+#include "strings/prefixed_index.h"
+#include "strings/sanitize.h"
+#include "strings/trim.h"
+#include "time/duration.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <set>
 

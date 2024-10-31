@@ -10,10 +10,10 @@
 
 #include "module/players/xsf/xsf_metainformation.h"
 
-#include <module/players/properties_helper.h>
+#include "module/players/properties_helper.h"
 
-#include <parameters/modifier.h>
-#include <sound/sound_parameters.h>
+#include "parameters/modifier.h"
+#include "sound/sound_parameters.h"
 
 namespace Module::XSF
 {

@@ -15,16 +15,16 @@
 #include "apps/zxtune-qt/supp/thread_utils.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <async/activity.h>
-#include <debug/log.h>
-#include <math/bitops.h>
-#include <parameters/template.h>
-#include <time/serialize.h>
-#include <tools/progress_callback_helpers.h>
+#include "async/activity.h"
+#include "debug/log.h"
+#include "math/bitops.h"
+#include "parameters/template.h"
+#include "time/serialize.h"
+#include "tools/progress_callback_helpers.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/QMimeData>

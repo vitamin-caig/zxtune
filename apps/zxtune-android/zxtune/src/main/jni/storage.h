@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "exception.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/exception.h"
 
-#include <pointers.h>
+#include "pointers.h"
 
 #include <map>
 #include <mutex>

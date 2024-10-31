@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <formats/chiptune.h>
+#include "formats/chiptune.h"
 
-#include <string_type.h>
-#include <types.h>
+#include "string_type.h"
+#include "types.h"
 
 #include <memory>
 

@@ -10,17 +10,17 @@
 
 #include "module/players/xsf/xsf_factory.h"
 
+#include "module/players/duration.h"
+#include "module/players/properties_helper.h"
 #include "module/players/xsf/xsf.h"
-#include <module/players/duration.h>
-#include <module/players/properties_helper.h>
 
-#include <debug/log.h>
-#include <module/additional_files.h>
+#include "debug/log.h"
+#include "module/additional_files.h"
 
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Module::XSF
 {

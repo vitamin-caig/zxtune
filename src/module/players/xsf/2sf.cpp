@@ -10,24 +10,24 @@
 
 #include "module/players/xsf/2sf.h"
 
+#include "formats/chiptune/emulation/nintendodssoundformat.h"
+#include "module/players/platforms.h"
+#include "module/players/streaming.h"
 #include "module/players/xsf/memory_region.h"
 #include "module/players/xsf/xsf.h"
-#include <formats/chiptune/emulation/nintendodssoundformat.h>
-#include <module/players/platforms.h>
-#include <module/players/streaming.h>
 
-#include <binary/compression/zlib_container.h>
-#include <debug/log.h>
-#include <math/bitops.h>
-#include <module/attributes.h>
-#include <sound/resampler.h>
+#include "binary/compression/zlib_container.h"
+#include "debug/log.h"
+#include "math/bitops.h"
+#include "module/attributes.h"
+#include "sound/resampler.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
-#include <3rdparty/vio2sf/desmume/SPU.h>
-#include <3rdparty/vio2sf/desmume/state.h>
+#include "3rdparty/vio2sf/desmume/SPU.h"
+#include "3rdparty/vio2sf/desmume/state.h"
 
 #include <list>
 

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <strings/array.h>
+#include "strings/array.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 #include <QtWidgets/QWidget>
 

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <math/scale.h>
-#include <tools/progress_callback.h>
+#include "math/scale.h"
+#include "tools/progress_callback.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 //! @brief Namespace is used for logging and other informational purposes
 namespace Log

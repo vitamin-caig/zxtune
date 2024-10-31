@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <string_view.h>
-#include <types.h>
+#include "string_view.h"
+#include "types.h"
 
 //! @brief Namespace is used for logging and other informational purposes
 namespace Log

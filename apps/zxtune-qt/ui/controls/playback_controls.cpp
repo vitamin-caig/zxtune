@@ -13,7 +13,7 @@
 #include "apps/zxtune-qt/supp/playback_supp.h"
 #include "playback_controls.ui.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <QtWidgets/QMenu>
 

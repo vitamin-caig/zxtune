@@ -10,9 +10,9 @@
 
 #include "binary/format/grammar.h"
 
-#include <make_ptr.h>
-#include <pointers.h>
-#include <string_view.h>
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
 
 #include <cctype>
 

@@ -10,20 +10,20 @@
 
 #include "module/players/dac/abysshighestexperience.h"
 
-#include <formats/chiptune/digital/abysshighestexperience.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_meta.h>
+#include "formats/chiptune/digital/abysshighestexperience.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_meta.h"
 
-#include <binary/container_factories.h>
-#include <debug/log.h>
-#include <module/track_information.h>
-#include <module/track_state.h>
+#include "binary/container_factories.h"
+#include "debug/log.h"
+#include "module/track_information.h"
+#include "module/track_state.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
 
-#include <3rdparty/hvl/hvl_replay.h>
+#include "3rdparty/hvl/hvl_replay.h"
 
 namespace Module::AHX
 {

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <core/plugin_attrs.h>
+#include "core/plugin_attrs.h"
 
 namespace ZXTune
 {

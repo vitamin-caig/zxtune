@@ -10,18 +10,18 @@
 
 #include "sound/backends/backend_impl.h"
 
+#include "module/players/pipeline.h"
 #include "sound/backends/l10n.h"
-#include <module/players/pipeline.h>
-#include <sound/impl/fft_analyzer.h>
+#include "sound/impl/fft_analyzer.h"
 
-#include <async/worker.h>
-#include <debug/log.h>
-#include <sound/render_params.h>
-#include <sound/sound_parameters.h>
+#include "async/worker.h"
+#include "debug/log.h"
+#include "sound/render_params.h"
+#include "sound/sound_parameters.h"
 
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <pointers.h>
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "pointers.h"
 
 #include <atomic>
 #include <utility>

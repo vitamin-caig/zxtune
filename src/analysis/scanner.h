@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include <binary/container.h>
-#include <formats/archived.h>
-#include <formats/chiptune.h>
-#include <formats/image.h>
-#include <formats/packed.h>
+#include "binary/container.h"
+#include "formats/archived.h"
+#include "formats/chiptune.h"
+#include "formats/image.h"
+#include "formats/packed.h"
 
 namespace Analysis
 {

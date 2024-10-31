@@ -8,13 +8,14 @@
  *
  **/
 
-#include <binary/compression/zlib.h>
-#include <binary/compression/zlib_stream.h>
-#include <math/numeric.h>
+#include "binary/compression/zlib.h"
 
-#include <error.h>
+#include "binary/compression/zlib_stream.h"
+#include "math/numeric.h"
 
-#include <3rdparty/zlib/zlib.h>
+#include "error.h"
+
+#include "3rdparty/zlib/zlib.h"
 
 namespace Binary::Compression::Zlib
 {

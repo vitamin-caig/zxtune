@@ -10,10 +10,10 @@
 
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 
-#include <debug/log.h>
-#include <math/numeric.h>
+#include "debug/log.h"
+#include "math/numeric.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <random>
 #include <utility>

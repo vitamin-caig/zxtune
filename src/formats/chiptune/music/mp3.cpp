@@ -13,12 +13,12 @@
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/music/tags_id3.h"
 
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <strings/sanitize.h>
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "strings/sanitize.h"
 
-#include <make_ptr.h>
-#include <string_view.h>
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <array>
 

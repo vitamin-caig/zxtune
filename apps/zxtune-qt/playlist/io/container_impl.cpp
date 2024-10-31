@@ -10,14 +10,14 @@
 
 #include "apps/zxtune-qt/playlist/io/container_impl.h"
 
-#include <module/properties/path.h>
+#include "module/properties/path.h"
 
-#include <debug/log.h>
-#include <parameters/merged_accessor.h>
+#include "debug/log.h"
+#include "parameters/merged_accessor.h"
 
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
 
 #include <mutex>
 #include <utility>

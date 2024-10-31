@@ -13,11 +13,11 @@
 #include "module/players/streaming.h"
 #include "module/players/tracking.h"
 
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <sound/mixer_factory.h>
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "sound/mixer_factory.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 namespace Module
 {

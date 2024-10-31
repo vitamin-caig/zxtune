@@ -12,8 +12,8 @@
 
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <debug/log.h>
-#include <platform/version/api.h>
+#include "debug/log.h"
+#include "platform/version/api.h"
 
 #include <QtCore/QFileInfo>
 

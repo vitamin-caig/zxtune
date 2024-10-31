@@ -11,9 +11,9 @@
 #pragma once
 
 #include "module/players/aym/aym_chiptune.h"
-#include <module/players/tracking.h>
+#include "module/players/tracking.h"
 
-#include <module/renderer.h>
+#include "module/renderer.h"
 
 namespace Module::AYM
 {

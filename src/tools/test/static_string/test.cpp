@@ -8,9 +8,9 @@
  *
  **/
 
-#include <static_string.h>
-#include <string_type.h>
-#include <string_view.h>
+#include "static_string.h"
+#include "string_type.h"
+#include "string_view.h"
 
 #include <algorithm>
 #include <cctype>

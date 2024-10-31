@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <parameters/accessor.h>
-#include <strings/array.h>
+#include "parameters/accessor.h"
+#include "strings/array.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QPointer>

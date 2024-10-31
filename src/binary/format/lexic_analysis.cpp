@@ -10,9 +10,9 @@
 
 #include "binary/format/lexic_analysis.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <algorithm>
 #include <list>

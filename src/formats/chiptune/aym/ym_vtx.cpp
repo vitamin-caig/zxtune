@@ -10,19 +10,19 @@
 
 #include "formats/chiptune/aym/ym.h"
 #include "formats/chiptune/container.h"
-#include <formats/packed/lha_supp.h>
+#include "formats/packed/lha_supp.h"
 
-#include <binary/dump.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/optimize.h>
+#include "binary/dump.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/optimize.h"
 
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <array>
 #include <cstring>

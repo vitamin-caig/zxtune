@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <sound/analyzer.h>
-#include <sound/sample.h>
+#include "sound/analyzer.h"
+#include "sound/sample.h"
 
 namespace Sound
 {

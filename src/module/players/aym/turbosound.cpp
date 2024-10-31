@@ -11,17 +11,17 @@
 #include "module/players/aym/turbosound.h"
 
 #include "module/players/streaming.h"
-#include <parameters/src/names_set.h>
+#include "parameters/src/names_set.h"
 
-#include <module/attributes.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/visitor.h>
-#include <sound/mixer_factory.h>
-#include <tools/iterators.h>
+#include "module/attributes.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/visitor.h"
+#include "sound/mixer_factory.h"
+#include "tools/iterators.h"
 
-#include <error.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <map>
 #include <set>

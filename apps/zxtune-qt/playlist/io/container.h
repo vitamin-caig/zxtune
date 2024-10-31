@@ -12,8 +12,8 @@
 
 #include "apps/zxtune-qt/playlist/supp/data.h"
 
-#include <parameters/accessor.h>
-#include <parameters/identifier.h>
+#include "parameters/accessor.h"
+#include "parameters/identifier.h"
 
 #include <QtCore/QLatin1String>
 

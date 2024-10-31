@@ -10,13 +10,13 @@
 
 #include "core/plugins/players/vgm/videogamemusic.h"
 
-#include <module/players/platforms.h>
+#include "module/players/platforms.h"
 
-#include <binary/input_stream.h>
+#include "binary/input_stream.h"
 
-#include <byteorder.h>
-#include <string_type.h>
-#include <string_view.h>
+#include "byteorder.h"
+#include "string_type.h"
+#include "string_view.h"
 
 #include <map>
 #include <span>

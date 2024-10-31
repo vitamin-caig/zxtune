@@ -8,12 +8,13 @@
  *
  **/
 
-#include <analysis/scanner.h>
-#include <debug/log.h>
-#include <tools/iterators.h>
+#include "analysis/scanner.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "debug/log.h"
+#include "tools/iterators.h"
+
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <deque>
 #include <list>

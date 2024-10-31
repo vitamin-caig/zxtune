@@ -8,9 +8,9 @@
  *
  **/
 
-#include <sound/impl/fft_analyzer.h>
+#include "sound/impl/fft_analyzer.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <algorithm>
 #include <array>

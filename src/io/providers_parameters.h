@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <io/io_parameters.h>
-#include <parameters/types.h>
+#include "io/io_parameters.h"
+#include "parameters/types.h"
 
 namespace Parameters::ZXTune::IO::Providers
 {

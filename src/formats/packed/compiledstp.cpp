@@ -11,12 +11,12 @@
 #include "formats/chiptune/aym/soundtrackerpro.h"
 #include "formats/packed/container.h"
 
-#include <binary/format_factories.h>
-#include <debug/log.h>
+#include "binary/format_factories.h"
+#include "debug/log.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <algorithm>
 #include <array>

@@ -11,9 +11,9 @@
 #pragma once
 
 #include "core/plugins/player_plugin.h"
-#include <module/players/tfm/tfm_factory.h>
+#include "module/players/tfm/tfm_factory.h"
 
-#include <formats/chiptune.h>
+#include "formats/chiptune.h"
 
 namespace ZXTune
 {

@@ -10,24 +10,24 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-#include <formats/chiptune/container.h>
-#include <module/players/properties_helper.h>
+#include "formats/chiptune/container.h"
+#include "module/players/properties_helper.h"
 
-#include <binary/format_factories.h>
-#include <core/core_parameters.h>
-#include <core/plugin_attrs.h>
-#include <module/track_information.h>
-#include <module/track_state.h>
-#include <parameters/tracking_helper.h>
-#include <strings/sanitize.h>
-#include <time/duration.h>
+#include "binary/format_factories.h"
+#include "core/core_parameters.h"
+#include "core/plugin_attrs.h"
+#include "module/track_information.h"
+#include "module/track_state.h"
+#include "parameters/tracking_helper.h"
+#include "strings/sanitize.h"
+#include "time/duration.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
-#include <3rdparty/xmp/include/xmp.h>
-#include <3rdparty/xmp/src/xmp_private.h>
+#include "3rdparty/xmp/include/xmp.h"
+#include "3rdparty/xmp/src/xmp_private.h"
 
 #include <utility>
 

@@ -14,8 +14,8 @@
 #include "apps/zxtune-qt/ui/styles.h"
 #include "volume_control.ui.h"
 
-#include <contract.h>
-#include <error.h>
+#include "contract.h"
+#include "error.h"
 
 #include <ctime>
 #include <numeric>

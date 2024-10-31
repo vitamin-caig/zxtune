@@ -15,7 +15,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "z80.ui.h"
 
-#include <core/core_parameters.h>
+#include "core/core_parameters.h"
 
 #include <utility>
 

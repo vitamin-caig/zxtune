@@ -10,11 +10,11 @@
 
 #include "module/players/dac/sampletracker.h"
 
+#include "formats/chiptune/digital/sampletracker.h"
 #include "module/players/dac/dac_simple.h"
-#include <formats/chiptune/digital/sampletracker.h>
-#include <module/players/platforms.h>
+#include "module/players/platforms.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 namespace Module::SampleTracker
 {

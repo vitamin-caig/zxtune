@@ -8,30 +8,30 @@
  *
  **/
 
-#include "information.h"
+#include "apps/zxtune123/information.h"
 
-#include "sound.h"
+#include "apps/zxtune123/sound.h"
 
-#include <core/core_parameters.h>
-#include <core/freq_tables.h>
-#include <core/plugin.h>
-#include <core/plugin_attrs.h>
-#include <core/plugins_parameters.h>
-#include <io/io_parameters.h>
-#include <io/provider.h>
-#include <io/providers_parameters.h>
-#include <module/attributes.h>
-#include <platform/application.h>
-#include <sound/backend.h>
-#include <sound/backend_attrs.h>
-#include <sound/backends_parameters.h>
-#include <sound/mixer_parameters.h>
-#include <sound/service.h>
-#include <sound/sound_parameters.h>
-#include <strings/format.h>
+#include "core/core_parameters.h"
+#include "core/freq_tables.h"
+#include "core/plugin.h"
+#include "core/plugin_attrs.h"
+#include "core/plugins_parameters.h"
+#include "io/io_parameters.h"
+#include "io/provider.h"
+#include "io/providers_parameters.h"
+#include "module/attributes.h"
+#include "platform/application.h"
+#include "sound/backend.h"
+#include "sound/backend_attrs.h"
+#include "sound/backends_parameters.h"
+#include "sound/mixer_parameters.h"
+#include "sound/service.h"
+#include "sound/sound_parameters.h"
+#include "strings/format.h"
 
-#include <static_string.h>
-#include <string_view.h>
+#include "static_string.h"
+#include "string_view.h"
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>

@@ -10,10 +10,10 @@
 
 #include "formats/archived/fmod.h"
 
-#include <binary/input_stream.h>
-#include <strings/format.h>
+#include "binary/input_stream.h"
+#include "strings/format.h"
 
-#include <byteorder.h>
+#include "byteorder.h"
 
 namespace Formats::Archived::Fmod
 {

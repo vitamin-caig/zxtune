@@ -1,5 +1,8 @@
 #pragma once
 
+#include "string_type.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <functional>
 #include <ostream>

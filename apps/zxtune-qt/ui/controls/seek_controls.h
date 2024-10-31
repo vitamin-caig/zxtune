@@ -12,7 +12,7 @@
 
 #include "apps/zxtune-qt/playlist/supp/data.h"
 
-#include <sound/backend.h>
+#include "sound/backend.h"
 
 #include <QtWidgets/QWidget>
 

@@ -12,12 +12,12 @@
 
 #include "binary/format/grammar.h"
 
-#include <tools/iterators.h>
-#include <tools/locale_helpers.h>
+#include "tools/iterators.h"
+#include "tools/locale_helpers.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <cctype>
 #include <stack>

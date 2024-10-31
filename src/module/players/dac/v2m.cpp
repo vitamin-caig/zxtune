@@ -10,20 +10,20 @@
 
 #include "module/players/dac/v2m.h"
 
-#include <formats/chiptune/digital/v2m.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
+#include "formats/chiptune/digital/v2m.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
 
-#include <debug/log.h>
-#include <sound/resampler.h>
+#include "debug/log.h"
+#include "sound/resampler.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
-#include <3rdparty/v2m/src/sounddef.h>
-#include <3rdparty/v2m/src/v2mconv.h>
-#include <3rdparty/v2m/src/v2mplayer.h>
+#include "3rdparty/v2m/src/sounddef.h"
+#include "3rdparty/v2m/src/v2mconv.h"
+#include "3rdparty/v2m/src/v2mplayer.h"
 
 #include <algorithm>
 #include <array>

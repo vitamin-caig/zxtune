@@ -8,12 +8,13 @@
  *
  **/
 
+#include "core/additional_files_resolve.h"
+
 #include "core/src/l10n.h"
 
-#include <core/additional_files_resolve.h>
-#include <strings/join.h>
+#include "strings/join.h"
 
-#include <error_tools.h>
+#include "error_tools.h"
 
 namespace Module
 {

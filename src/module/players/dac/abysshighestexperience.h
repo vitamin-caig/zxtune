@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <formats/chiptune/digital/abysshighestexperience.h>
-#include <module/players/factory.h>
+#include "formats/chiptune/digital/abysshighestexperience.h"
+#include "module/players/factory.h"
 
 namespace Module::AHX
 {

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "player_plugin.h"
-#include "registrator.h"
+#include "core/plugins/player_plugin.h"
+#include "core/plugins/registrator.h"
 
 namespace ZXTune
 {

@@ -12,30 +12,30 @@
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/multitrack_plugin.h"
 #include "core/plugins/players/plugin.h"
-#include <formats/chiptune/container.h>
-#include <module/players/duration.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_helper.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
+#include "formats/chiptune/container.h"
+#include "module/players/duration.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
 
-#include <binary/container_base.h>
-#include <binary/crc.h>
-#include <binary/format_factories.h>
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <formats/multitrack.h>
-#include <math/numeric.h>
-#include <module/additional_files.h>
-#include <module/attributes.h>
-#include <sound/resampler.h>
-#include <strings/sanitize.h>
+#include "binary/container_base.h"
+#include "binary/crc.h"
+#include "binary/format_factories.h"
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "formats/multitrack.h"
+#include "math/numeric.h"
+#include "module/additional_files.h"
+#include "module/attributes.h"
+#include "sound/resampler.h"
+#include "strings/sanitize.h"
 
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <static_string.h>
-#include <string_view.h>
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "static_string.h"
+#include "string_view.h"
 
 #include <algorithm>
 #include <array>
@@ -46,9 +46,9 @@
 extern "C"
 {
 // clang-format off
-#include <3rdparty/vgmstream/config.h>
-#include <3rdparty/vgmstream/vgmstream.h>
-#include <3rdparty/vgmstream/base/plugins.h>
+#include "3rdparty/vgmstream/config.h"
+#include "3rdparty/vgmstream/vgmstream.h"
+#include "3rdparty/vgmstream/base/plugins.h"
   // clang-format on
 }
 

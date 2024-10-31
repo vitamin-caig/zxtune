@@ -16,11 +16,11 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "mp3_settings.ui.h"
 
-#include <math/numeric.h>
-#include <sound/backends_parameters.h>
+#include "math/numeric.h"
+#include "sound/backends_parameters.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <utility>
 

@@ -10,9 +10,9 @@
 
 #include "module/players/dac/dac_base.h"
 
-#include <sound/multichannel_sample.h>
+#include "sound/multichannel_sample.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 namespace Module
 {

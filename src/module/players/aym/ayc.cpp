@@ -10,16 +10,16 @@
 
 #include "module/players/aym/ayc.h"
 
+#include "formats/chiptune/aym/ayc.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
-#include <formats/chiptune/aym/ayc.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_helper.h>
+#include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
 
-#include <core/core_parameters.h>
+#include "core/core_parameters.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 namespace Module::AYC
 {

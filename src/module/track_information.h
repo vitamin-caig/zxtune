@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <module/information.h>
+#include "module/information.h"
 
 namespace Module
 {

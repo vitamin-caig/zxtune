@@ -14,8 +14,8 @@
 #include "apps/zxtune-qt/ui/state.h"
 #include "search_dialog.ui.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 namespace
 {

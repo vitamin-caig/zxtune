@@ -8,15 +8,15 @@
  *
  **/
 
-#include "path.h"
+#include "module/properties/path.h"
 
-#include <io/api.h>
-#include <module/attributes.h>
-#include <parameters/visitor.h>
+#include "io/api.h"
+#include "module/attributes.h"
+#include "parameters/visitor.h"
 
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Module
 {

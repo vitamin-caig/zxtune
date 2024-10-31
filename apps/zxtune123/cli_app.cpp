@@ -8,37 +8,37 @@
  *
  **/
 
-#include "config.h"
-#include "console.h"
-#include "display.h"
-#include "information.h"
-#include "sound.h"
-#include "source.h"
+#include "apps/zxtune123/config.h"
+#include "apps/zxtune123/console.h"
+#include "apps/zxtune123/display.h"
+#include "apps/zxtune123/information.h"
+#include "apps/zxtune123/sound.h"
+#include "apps/zxtune123/source.h"
 
-#include <async/src/event.h>
-#include <module/conversion/api.h>
-#include <module/conversion/types.h>
+#include "async/src/event.h"
+#include "module/conversion/api.h"
+#include "module/conversion/parameters.h"
 
-#include <async/data_receiver.h>
-#include <binary/container_factories.h>
-#include <binary/crc.h>
-#include <core/core_parameters.h>
-#include <core/plugin.h>
-#include <core/plugin_attrs.h>
-#include <io/api.h>
-#include <io/template.h>
-#include <module/attributes.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/template.h>
-#include <platform/application.h>
-#include <platform/version/api.h>
-#include <sound/sound_parameters.h>
-#include <time/duration.h>
-#include <time/timer.h>
-#include <tools/progress_callback.h>
+#include "async/data_receiver.h"
+#include "binary/container_factories.h"
+#include "binary/crc.h"
+#include "core/core_parameters.h"
+#include "core/plugin.h"
+#include "core/plugin_attrs.h"
+#include "io/api.h"
+#include "io/template.h"
+#include "module/attributes.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/template.h"
+#include "platform/application.h"
+#include "platform/version/api.h"
+#include "sound/sound_parameters.h"
+#include "time/duration.h"
+#include "time/timer.h"
+#include "tools/progress_callback.h"
 
-#include <error_tools.h>
-#include <string_view.h>
+#include "error_tools.h"
+#include "string_view.h"
 
 #include <boost/program_options.hpp>
 

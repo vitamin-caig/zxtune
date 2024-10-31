@@ -12,7 +12,7 @@
 
 #include "mixer.ui.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <utility>
 

@@ -8,7 +8,7 @@
  *
  **/
 
-#include "../utils.h"
+#include "formats/test/utils.h"
 
 namespace
 {

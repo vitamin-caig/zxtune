@@ -10,15 +10,15 @@
 
 #include "formats/packed/container.h"
 
-#include <binary/compression/zlib_stream.h>
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <formats/packed.h>
+#include "binary/compression/zlib_stream.h"
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "formats/packed.h"
 
-#include <byteorder.h>
-#include <error.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "error.h"
+#include "make_ptr.h"
 
 #include <array>
 

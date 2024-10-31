@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <byteorder.h>
-#include <string_type.h>
+#include "byteorder.h"
+#include "string_type.h"
 
 namespace Formats::Packed::Rar
 {

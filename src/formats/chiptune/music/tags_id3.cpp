@@ -10,9 +10,9 @@
 
 #include "formats/chiptune/music/tags_id3.h"
 
-#include <strings/sanitize.h>
+#include "strings/sanitize.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 #include <array>
 

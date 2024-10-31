@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <formats/chiptune/aym/protracker3.h>
-#include <module/players/factory.h>
+#include "formats/chiptune/aym/protracker3.h"
+#include "module/players/factory.h"
 
 namespace Module::ProTracker3
 {

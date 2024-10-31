@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include <devices/dac/sample.h>
+#include "devices/dac/sample.h"
 
-#include <math/fixedpoint.h>
-#include <sound/mixer.h>
-#include <time/instant.h>
+#include "math/fixedpoint.h"
+#include "sound/mixer.h"
+#include "time/instant.h"
 
 #include <memory>
 

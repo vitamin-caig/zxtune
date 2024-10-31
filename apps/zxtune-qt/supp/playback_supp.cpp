@@ -14,13 +14,13 @@
 #include "apps/zxtune-qt/supp/thread_utils.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <parameters/merged_accessor.h>
-#include <sound/service.h>
+#include "parameters/merged_accessor.h"
+#include "sound/service.h"
 
-#include <contract.h>
-#include <error.h>
-#include <lazy.h>
-#include <pointers.h>
+#include "contract.h"
+#include "error.h"
+#include "lazy.h"
+#include "pointers.h"
 
 #include <QtCore/QTimer>
 

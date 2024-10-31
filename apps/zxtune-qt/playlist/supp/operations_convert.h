@@ -13,9 +13,9 @@
 #include "apps/zxtune-qt/playlist/supp/conversion.h"
 #include "apps/zxtune-qt/playlist/supp/operations.h"
 
-#include <sound/service.h>
+#include "sound/service.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 namespace Playlist::Item
 {

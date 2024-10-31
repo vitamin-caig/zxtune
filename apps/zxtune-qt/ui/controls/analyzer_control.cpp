@@ -12,9 +12,9 @@
 
 #include "apps/zxtune-qt/supp/playback_supp.h"
 
-#include <sound/analyzer.h>
+#include "sound/analyzer.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <QtCore/QEvent>
 #include <QtCore/QTimer>

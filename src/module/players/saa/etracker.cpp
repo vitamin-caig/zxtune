@@ -10,13 +10,13 @@
 
 #include "module/players/saa/etracker.h"
 
+#include "formats/chiptune/saa/etracker.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_meta.h"
 #include "module/players/saa/saa_base.h"
-#include <formats/chiptune/saa/etracker.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_meta.h>
-#include <module/players/simple_orderlist.h>
+#include "module/players/simple_orderlist.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <array>
 

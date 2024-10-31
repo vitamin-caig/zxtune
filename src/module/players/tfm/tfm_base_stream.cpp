@@ -10,9 +10,9 @@
 
 #include "module/players/tfm/tfm_base_stream.h"
 
-#include <module/players/streaming.h>
+#include "module/players/streaming.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <utility>
 

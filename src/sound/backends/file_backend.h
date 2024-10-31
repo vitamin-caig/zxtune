@@ -12,8 +12,8 @@
 
 #include "sound/backends/backend_impl.h"
 
-#include <binary/output_stream.h>
-#include <sound/receiver.h>
+#include "binary/output_stream.h"
+#include "sound/receiver.h"
 
 namespace Sound
 {

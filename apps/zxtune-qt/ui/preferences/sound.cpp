@@ -20,14 +20,14 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "sound.ui.h"
 
-#include <math/numeric.h>
-#include <sound/backend_attrs.h>
-#include <sound/backends_parameters.h>
-#include <sound/service.h>
-#include <sound/sound_parameters.h>
-#include <strings/map.h>
+#include "math/numeric.h"
+#include "sound/backend_attrs.h"
+#include "sound/backends_parameters.h"
+#include "sound/service.h"
+#include "sound/sound_parameters.h"
+#include "strings/map.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <utility>
 

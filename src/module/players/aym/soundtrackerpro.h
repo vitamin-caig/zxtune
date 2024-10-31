@@ -10,8 +10,8 @@
 
 #pragma once
 
+#include "formats/chiptune/aym/soundtrackerpro.h"
 #include "module/players/aym/aym_factory.h"
-#include <formats/chiptune/aym/soundtrackerpro.h>
 
 namespace Module::SoundTrackerPro
 {

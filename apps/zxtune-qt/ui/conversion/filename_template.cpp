@@ -18,9 +18,9 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "filename_template.ui.h"
 
-#include <io/providers_parameters.h>
+#include "io/providers_parameters.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <QtGui/QCloseEvent>
 #include <QtWidgets/QDialogButtonBox>

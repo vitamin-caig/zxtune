@@ -8,11 +8,11 @@
  *
  **/
 
-#include <math/numeric.h>
-#include <sound/gainer.h>
+#include "math/numeric.h"
+#include "sound/gainer.h"
 
-#include <contract.h>
-#include <error_tools.h>
+#include "contract.h"
+#include "error_tools.h"
 
 #include <algorithm>
 #include <iostream>

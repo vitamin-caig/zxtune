@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "storage.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/storage.h"
 
-#include <module/holder.h>
-#include <parameters/container.h>
+#include "module/holder.h"
+#include "parameters/container.h"
 
 #include <jni.h>
 

@@ -10,9 +10,8 @@
 
 #pragma once
 
-#include "generators.h"
-
-#include <devices/aym/chip.h>
+#include "devices/aym/chip.h"
+#include "devices/aym/src/generators.h"
 
 namespace Devices::AYM
 {

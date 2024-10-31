@@ -11,12 +11,12 @@
 #include "core/plugins/players/tfm/tfm_plugin.h"
 
 #include "core/plugins/players/plugin.h"
-#include <module/players/tfm/tfm_base.h>
-#include <module/players/tfm/tfm_parameters.h>
+#include "module/players/tfm/tfm_base.h"
+#include "module/players/tfm/tfm_parameters.h"
 
-#include <core/plugin_attrs.h>
+#include "core/plugin_attrs.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <utility>
 

@@ -10,25 +10,25 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-#include <formats/chiptune/emulation/spc.h>
-#include <module/players/duration.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
+#include "formats/chiptune/emulation/spc.h"
+#include "module/players/duration.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
 
-#include <binary/container_factories.h>
-#include <core/plugin_attrs.h>
-#include <core/plugins_parameters.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <sound/resampler.h>
+#include "binary/container_factories.h"
+#include "core/plugin_attrs.h"
+#include "core/plugins_parameters.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "sound/resampler.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
-#include <3rdparty/snesspc/snes_spc/SNES_SPC.h>
-#include <3rdparty/snesspc/snes_spc/SPC_Filter.h>
+#include "3rdparty/snesspc/snes_spc/SNES_SPC.h"
+#include "3rdparty/snesspc/snes_spc/SPC_Filter.h"
 
 namespace Module::SPC
 {

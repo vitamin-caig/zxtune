@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <string_type.h>
-#include <string_view.h>
+#include "string_type.h"
+#include "string_view.h"
 
 #include <QtCore/QLatin1String>
 #include <QtCore/QMetaType>

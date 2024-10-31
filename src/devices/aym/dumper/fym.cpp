@@ -10,12 +10,12 @@
 
 #include "devices/aym/dumper/dump_builder.h"
 
-#include <binary/compression/zlib_stream.h>
-#include <binary/data_builder.h>
+#include "binary/compression/zlib_stream.h"
+#include "binary/data_builder.h"
 
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <utility>
 

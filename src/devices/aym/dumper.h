@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include <binary/data.h>
-#include <devices/aym.h>
-#include <time/duration.h>
+#include "binary/data.h"
+#include "devices/aym.h"
+#include "time/duration.h"
 
-#include <string_type.h>
+#include "string_type.h"
 
 #include <memory>
 

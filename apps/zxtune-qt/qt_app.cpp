@@ -14,10 +14,10 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "apps/zxtune-qt/urls.h"
 
-#include <platform/application.h>
-#include <platform/version/api.h>
+#include "platform/application.h"
+#include "platform/version/api.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <QtWidgets/QApplication>
 

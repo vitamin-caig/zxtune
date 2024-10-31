@@ -12,9 +12,9 @@
 
 #include "core/plugins/archive_plugin.h"
 #include "core/plugins/player_plugin.h"
-#include <module/players/factory.h>
+#include "module/players/factory.h"
 
-#include <formats/multitrack.h>
+#include "formats/multitrack.h"
 
 namespace Module
 {

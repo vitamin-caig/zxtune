@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <devices/tfm.h>
-#include <parameters/accessor.h>
+#include "devices/tfm.h"
+#include "parameters/accessor.h"
 
 namespace Module::TFM
 {

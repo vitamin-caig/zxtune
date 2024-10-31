@@ -10,10 +10,10 @@
 
 #include "module/players/aym/aym_base_track.h"
 
-#include <math/numeric.h>
-#include <parameters/tracking_helper.h>
+#include "math/numeric.h"
+#include "parameters/tracking_helper.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <utility>
 

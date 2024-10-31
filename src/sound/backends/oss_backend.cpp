@@ -13,15 +13,15 @@
 #include "sound/backends/oss.h"
 #include "sound/backends/storage.h"
 
-#include <debug/log.h>
-#include <sound/backends_parameters.h>
-#include <sound/render_params.h>
-#include <sound/sound_parameters.h>
+#include "debug/log.h"
+#include "sound/backends_parameters.h"
+#include "sound/render_params.h"
+#include "sound/sound_parameters.h"
 
-#include <byteorder.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "byteorder.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <fcntl.h>
 #include <sys/ioctl.h>

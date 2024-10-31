@@ -10,18 +10,18 @@
 
 #include "module/players/aym/prosoundmaker.h"
 
+#include "formats/chiptune/aym/prosoundmaker.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_properties_helper.h"
-#include <formats/chiptune/aym/prosoundmaker.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_meta.h>
-#include <module/players/simple_orderlist.h>
+#include "module/players/platforms.h"
+#include "module/players/properties_meta.h"
+#include "module/players/simple_orderlist.h"
 
-#include <math/numeric.h>
+#include "math/numeric.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <array>
 #include <optional>

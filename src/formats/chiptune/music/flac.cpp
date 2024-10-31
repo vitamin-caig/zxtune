@@ -14,11 +14,11 @@
 #include "formats/chiptune/music/tags_id3.h"
 #include "formats/chiptune/music/tags_vorbis.h"
 
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "make_ptr.h"
 
 namespace Formats::Chiptune
 {

@@ -10,9 +10,9 @@
 
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
-#include <formats/packed/decoders.h>
+#include "formats/packed/decoders.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 namespace Formats::Archived
 {

@@ -10,8 +10,9 @@
 
 #pragma once
 
-#include "enumerator.h"
 #include "gates/curl_api.h"
+
+#include "io/providers/enumerator.h"
 
 namespace IO
 {

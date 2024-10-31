@@ -10,12 +10,12 @@
 
 #include "formats/image/container.h"
 
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <formats/image.h>
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "formats/image.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <memory>
 

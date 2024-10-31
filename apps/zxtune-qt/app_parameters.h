@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <parameters/identifier.h>
-#include <parameters/types.h>
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 
 namespace Parameters::ZXTuneQT
 {

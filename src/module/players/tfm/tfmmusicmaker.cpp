@@ -10,15 +10,15 @@
 
 #include "module/players/tfm/tfmmusicmaker.h"
 
+#include "module/players/properties_helper.h"
+#include "module/players/properties_meta.h"
+#include "module/players/simple_orderlist.h"
 #include "module/players/tfm/tfm_base.h"
 #include "module/players/tfm/tfm_base_track.h"
-#include <module/players/properties_helper.h>
-#include <module/players/properties_meta.h>
-#include <module/players/simple_orderlist.h>
 
-#include <math/fixedpoint.h>
+#include "math/fixedpoint.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <array>
 #include <memory>

@@ -13,7 +13,7 @@
 #include "apps/zxtune-qt/playlist/io/container_impl.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <QtCore/QStringList>
 

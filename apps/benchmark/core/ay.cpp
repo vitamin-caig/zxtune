@@ -10,10 +10,10 @@
 
 #include "ay.h"
 
-#include <sound/matrix_mixer.h>
-#include <time/timer.h>
+#include "sound/matrix_mixer.h"
+#include "time/timer.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 namespace
 {

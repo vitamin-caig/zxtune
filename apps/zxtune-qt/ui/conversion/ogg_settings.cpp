@@ -16,9 +16,9 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "ogg_settings.ui.h"
 
-#include <sound/backends_parameters.h>
+#include "sound/backends_parameters.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <utility>
 

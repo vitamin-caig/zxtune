@@ -10,10 +10,10 @@
 
 #include "devices/aym/dumper/dump_builder.h"
 
-#include <binary/data_builder.h>
+#include "binary/data_builder.h"
 
-#include <make_ptr.h>
-#include <string_view.h>
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace
 {

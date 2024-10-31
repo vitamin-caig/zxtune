@@ -8,20 +8,20 @@
  *
  **/
 
-#include "display.h"
+#include "apps/zxtune123/display.h"
 
-#include "console.h"
+#include "apps/zxtune123/console.h"
 
-#include <module/track_state.h>
-#include <parameters/template.h>
-#include <platform/application.h>
-#include <strings/format.h>
-#include <strings/template.h>
-#include <time/duration.h>
-#include <time/serialize.h>
+#include "module/track_state.h"
+#include "parameters/template.h"
+#include "platform/application.h"
+#include "strings/format.h"
+#include "strings/template.h"
+#include "time/duration.h"
+#include "time/serialize.h"
 
-#include <error.h>
-#include <string_view.h>
+#include "error.h"
+#include "string_view.h"
 
 #include <boost/program_options.hpp>
 

@@ -10,21 +10,21 @@
 
 #include "module/players/aym/ayemul.h"
 
+#include "formats/chiptune/emulation/ay.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_properties_helper.h"
-#include <formats/chiptune/emulation/ay.h>
-#include <module/players/duration.h>
-#include <module/players/properties_helper.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
+#include "module/players/duration.h"
+#include "module/players/properties_helper.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
 
-#include <core/core_parameters.h>
-#include <debug/log.h>
-#include <devices/beeper.h>
-#include <devices/z80.h>
+#include "core/core_parameters.h"
+#include "debug/log.h"
+#include "devices/beeper.h"
+#include "devices/z80.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <algorithm>
 #include <utility>

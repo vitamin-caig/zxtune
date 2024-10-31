@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <module/players/properties_helper.h>
+#include "module/players/properties_helper.h"
 
 namespace Module::DAC
 {

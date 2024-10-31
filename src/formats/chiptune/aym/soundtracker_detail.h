@@ -12,7 +12,7 @@
 
 #include "formats/chiptune/aym/soundtracker.h"
 
-#include <tools/indices.h>
+#include "tools/indices.h"
 
 #include <algorithm>
 #include <cassert>

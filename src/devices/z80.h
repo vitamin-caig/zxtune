@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <binary/view.h>
-#include <time/oscillator.h>
+#include "binary/view.h"
+#include "time/oscillator.h"
 
-#include <types.h>
+#include "types.h"
 
 #include <array>
 #include <memory>

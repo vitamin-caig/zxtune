@@ -10,21 +10,21 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-#include <formats/chiptune/music/oggvorbis.h>
-#include <module/players/properties_helper.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
+#include "formats/chiptune/music/oggvorbis.h"
+#include "module/players/properties_helper.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
 
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <sound/resampler.h>
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "sound/resampler.h"
 
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
 
-#include <3rdparty/vorbis/vorbisfile.h>
+#include "3rdparty/vorbis/vorbisfile.h"
 
 #include <algorithm>
 #include <unordered_map>

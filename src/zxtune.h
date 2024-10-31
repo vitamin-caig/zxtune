@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <parameters/identifier.h>
+#include "parameters/identifier.h"
 
 namespace Parameters::ZXTune
 {

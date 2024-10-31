@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include <module/holder.h>
-#include <parameters/container.h>
-#include <sound/backend.h>
-#include <time/duration.h>
+#include "module/holder.h"
+#include "parameters/container.h"
+#include "sound/backend.h"
+#include "time/duration.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 #include <memory>
 #include <span>

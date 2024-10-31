@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <devices/aym/chip.h>
+#include "devices/aym/chip.h"
 
-#include <time/duration.h>
+#include "time/duration.h"
 
 namespace Benchmark::AY
 {

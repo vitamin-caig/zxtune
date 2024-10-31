@@ -8,10 +8,10 @@
  *
  **/
 
-#include <debug/log.h>
-#include <platform/application.h>
+#include "debug/log.h"
+#include "platform/application.h"
 
-#include <error.h>
+#include "error.h"
 
 #include <locale>
 
@@ -24,9 +24,9 @@ namespace
 
 // TODO: extract to different sources
 #ifdef _WIN32
-#  include <strings/encoding.h>
+#  include "strings/encoding.h"
 
-#  include <pointers.h>
+#  include "pointers.h"
 
 #  include <windows.h>
 

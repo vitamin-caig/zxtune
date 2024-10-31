@@ -12,9 +12,9 @@
 
 #include "formats/chiptune/builder_meta.h"
 
-#include <formats/chiptune.h>
+#include "formats/chiptune.h"
 
-#include <types.h>
+#include "types.h"
 
 namespace Formats::Chiptune
 {

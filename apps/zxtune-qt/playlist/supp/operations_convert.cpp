@@ -15,21 +15,21 @@
 #include "apps/zxtune-qt/supp/playback_supp.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <async/src/event.h>
+#include "async/src/event.h"
 
-#include <io/api.h>
-#include <io/template.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/template.h>
-#include <sound/backend.h>
-#include <sound/backends_parameters.h>
-#include <sound/sound_parameters.h>
-#include <tools/progress_callback_helpers.h>
+#include "io/api.h"
+#include "io/template.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/template.h"
+#include "sound/backend.h"
+#include "sound/backends_parameters.h"
+#include "sound/sound_parameters.h"
+#include "tools/progress_callback_helpers.h"
 
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <numeric>
 

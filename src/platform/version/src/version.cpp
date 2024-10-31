@@ -13,10 +13,10 @@
 #include "platform/version/src/os.h"
 #include "platform/version/src/toolset.h"
 
-#include <platform/version/api.h>
-#include <strings/format.h>
+#include "platform/version/api.h"
+#include "strings/format.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 namespace Platform::Version
 {

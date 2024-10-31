@@ -8,9 +8,8 @@
  *
  **/
 
-#include "../../utils.h"
-
-#include <formats/chiptune/aym/protracker3.h>
+#include "formats/chiptune/aym/protracker3.h"
+#include "formats/test/utils.h"
 
 namespace
 {

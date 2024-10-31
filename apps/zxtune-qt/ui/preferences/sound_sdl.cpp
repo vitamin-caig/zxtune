@@ -14,9 +14,9 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "sound_sdl.ui.h"
 
-#include <sound/backends_parameters.h>
+#include "sound/backends_parameters.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <utility>
 

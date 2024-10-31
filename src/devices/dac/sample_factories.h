@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <devices/dac/sample.h>
+#include "devices/dac/sample.h"
 
-#include <binary/view.h>
+#include "binary/view.h"
 
 namespace Devices::DAC
 {

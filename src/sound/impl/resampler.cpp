@@ -8,15 +8,16 @@
  *
  **/
 
-#include <sound/resampler.h>
-#include <tools/xrange.h>
+#include "sound/resampler.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "tools/xrange.h"
+
+#include "contract.h"
+#include "make_ptr.h"
 
 extern "C"
 {
-#include <3rdparty/lazyusf2/usf/resampler.h>
+#include "3rdparty/lazyusf2/usf/resampler.h"
 }
 
 namespace Sound

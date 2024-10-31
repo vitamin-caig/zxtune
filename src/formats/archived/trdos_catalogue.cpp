@@ -10,13 +10,13 @@
 
 #include "formats/archived/trdos_catalogue.h"
 
-#include <binary/container_base.h>
-#include <binary/container_factories.h>
-#include <binary/data_builder.h>
-#include <strings/format.h>
+#include "binary/container_base.h"
+#include "binary/container_factories.h"
+#include "binary/data_builder.h"
+#include "strings/format.h"
 
-#include <make_ptr.h>
-#include <string_view.h>
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <algorithm>
 #include <cassert>

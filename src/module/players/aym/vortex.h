@@ -10,8 +10,8 @@
 
 #pragma once
 
+#include "formats/chiptune/aym/protracker3.h"
 #include "module/players/aym/aym_base_track.h"
-#include <formats/chiptune/aym/protracker3.h>
 
 namespace Module::Vortex
 {

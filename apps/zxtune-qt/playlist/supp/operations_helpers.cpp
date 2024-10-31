@@ -12,7 +12,7 @@
 
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 
-#include <tools/progress_callback_helpers.h>
+#include "tools/progress_callback_helpers.h"
 
 namespace
 {

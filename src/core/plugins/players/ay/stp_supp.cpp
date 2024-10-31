@@ -10,8 +10,8 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/ay/aym_plugin.h"
-#include <formats/chiptune/aym/soundtrackerpro.h>
-#include <module/players/aym/soundtrackerpro.h>
+#include "formats/chiptune/aym/soundtrackerpro.h"
+#include "module/players/aym/soundtrackerpro.h"
 
 namespace ZXTune
 {

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <error.h>
+#include "error.h"
 
 class QString;
 void ShowErrorMessage(const QString& title, const Error& err);

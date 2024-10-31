@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <core/freq_tables.h>
+#include "core/freq_tables.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 namespace Module
 {

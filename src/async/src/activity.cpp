@@ -8,12 +8,12 @@
  *
  **/
 
+#include "async/activity.h"
+
 #include "async/src/event.h"
 
-#include <async/activity.h>
-
-#include <make_ptr.h>
-#include <pointers.h>
+#include "make_ptr.h"
+#include "pointers.h"
 
 #include <cassert>
 #include <thread>

@@ -13,7 +13,7 @@
 #include "module/players/aym/aym_chiptune.h"
 #include "module/players/stream_model.h"
 
-#include <contract.h>
+#include "contract.h"
 
 namespace Module::AYM
 {

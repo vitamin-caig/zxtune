@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "library.h"
+#include "l10n/src/library.h"
 
-#include <string_type.h>
-#include <string_view.h>
+#include "string_type.h"
+#include "string_view.h"
 
 namespace L10n
 {

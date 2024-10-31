@@ -11,10 +11,10 @@
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/ay/aym_conversion.h"
 #include "core/plugins/players/plugin.h"
-#include <formats/chiptune/emulation/ay.h>
-#include <module/players/aym/ayemul.h>
+#include "formats/chiptune/emulation/ay.h"
+#include "module/players/aym/ayemul.h"
 
-#include <core/plugin_attrs.h>
+#include "core/plugin_attrs.h"
 
 namespace ZXTune
 {

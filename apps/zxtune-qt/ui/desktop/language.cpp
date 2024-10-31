@@ -12,10 +12,10 @@
 
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <l10n/control.h>
+#include "l10n/control.h"
 
-#include <make_ptr.h>
-#include <string_view.h>
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLocale>

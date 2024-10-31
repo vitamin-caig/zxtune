@@ -10,9 +10,9 @@
 
 #pragma once
 
+#include "formats/chiptune/digital/digital.h"
 #include "module/players/dac/dac_base.h"
 #include "module/players/dac/dac_properties_helper.h"
-#include <formats/chiptune/digital/digital.h>
 
 namespace Module::DAC
 {

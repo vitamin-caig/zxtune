@@ -12,7 +12,7 @@
 
 #include "formats/chiptune/aym/protracker3.h"
 
-#include <tools/indices.h>
+#include "tools/indices.h"
 
 namespace Formats::Chiptune::ProTracker3
 {

@@ -10,8 +10,8 @@
 
 #pragma once
 
+#include "formats/chiptune/aym/ym.h"
 #include "module/players/aym/aym_factory.h"
-#include <formats/chiptune/aym/ym.h>
 
 namespace Module::YMVTX
 {

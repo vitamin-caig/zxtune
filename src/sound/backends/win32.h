@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include <l10n/markup.h>
-#include <sound/backend_attrs.h>
-#include <tools/iterators.h>
+#include "l10n/markup.h"
+#include "sound/backend_attrs.h"
+#include "tools/iterators.h"
 
-#include <types.h>
+#include "types.h"
 
 namespace Sound::Win32
 {

@@ -12,12 +12,12 @@
 
 #include "formats/chiptune/container.h"
 
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <math/numeric.h>
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "math/numeric.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "make_ptr.h"
 
 namespace Formats::Chiptune
 {

@@ -10,15 +10,14 @@
  *
  **/
 
-#include "device.h"
+#include "devices/details/renderers.h"
+#include "devices/saa/device.h"
 
-#include <devices/details/renderers.h>
+#include "parameters/tracking_helper.h"
+#include "sound/lpfilter.h"
 
-#include <parameters/tracking_helper.h>
-#include <sound/lpfilter.h>
-
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <cassert>
 #include <cmath>

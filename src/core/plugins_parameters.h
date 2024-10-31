@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <core/core_parameters.h>
+#include "core/core_parameters.h"
 
 namespace Parameters::ZXTune::Core::Plugins
 {

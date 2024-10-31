@@ -11,13 +11,13 @@
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
 
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <tools/range_checker.h>
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "tools/range_checker.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <cstring>
 #include <numeric>

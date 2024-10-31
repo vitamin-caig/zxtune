@@ -17,16 +17,16 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "properties_dialog.ui.h"
 
-#include <core/core_parameters.h>
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <parameters/delegated.h>
-#include <parameters/merged_accessor.h>
+#include "core/core_parameters.h"
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "parameters/delegated.h"
+#include "parameters/merged_accessor.h"
 
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QComboBox>

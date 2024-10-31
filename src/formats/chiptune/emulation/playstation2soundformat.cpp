@@ -10,16 +10,16 @@
 
 #include "formats/chiptune/emulation/playstation2soundformat.h"
 
-#include <binary/compression/zlib_container.h>
-#include <binary/container_factories.h>
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
+#include "binary/compression/zlib_container.h"
+#include "binary/container_factories.h"
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <map>
 

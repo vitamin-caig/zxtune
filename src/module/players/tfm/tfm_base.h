@@ -12,7 +12,7 @@
 
 #include "module/players/tfm/tfm_chiptune.h"
 
-#include <module/renderer.h>
+#include "module/renderer.h"
 
 namespace Module::TFM
 {

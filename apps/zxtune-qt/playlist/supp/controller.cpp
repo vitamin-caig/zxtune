@@ -16,11 +16,11 @@
 #include "apps/zxtune-qt/supp/thread_utils.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <debug/log.h>
+#include "debug/log.h"
 
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
 
 #include <QtWidgets/QMessageBox>
 

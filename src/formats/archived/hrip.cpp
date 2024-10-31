@@ -10,12 +10,12 @@
 
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
-#include <formats/packed/decoders.h>
+#include "formats/packed/decoders.h"
 
-#include <binary/format_factories.h>
+#include "binary/format_factories.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "make_ptr.h"
 
 #include <algorithm>
 #include <cassert>

@@ -10,14 +10,14 @@
 
 #pragma once
 
+#include "formats/chiptune/builder_pattern.h"
 #include "module/players/iterator.h"
 #include "module/players/track_model.h"
-#include <formats/chiptune/builder_pattern.h>
 
-#include <module/track_information.h>
-#include <module/track_state.h>
+#include "module/track_information.h"
+#include "module/track_state.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 #include <algorithm>
 #include <array>

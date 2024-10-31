@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <module/renderer.h>
-#include <parameters/accessor.h>
+#include "module/renderer.h"
+#include "parameters/accessor.h"
 
 namespace Module
 {

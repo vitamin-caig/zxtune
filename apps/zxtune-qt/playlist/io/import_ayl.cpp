@@ -13,23 +13,23 @@
 #include "apps/zxtune-qt/playlist/io/tags/ayl.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <core/plugins/archives/raw_supp.h>
-#include <devices/aym/chip.h>
-#include <formats/archived/multitrack/filename.h>
+#include "core/plugins/archives/raw_supp.h"
+#include "devices/aym/chip.h"
+#include "formats/archived/multitrack/filename.h"
 
-#include <core/core_parameters.h>
-#include <debug/log.h>
-#include <io/api.h>
-#include <module/attributes.h>
-#include <parameters/convert.h>
-#include <parameters/serialize.h>
-#include <sound/sound_parameters.h>
-#include <strings/casing.h>
-#include <tools/progress_callback_helpers.h>
+#include "core/core_parameters.h"
+#include "debug/log.h"
+#include "io/api.h"
+#include "module/attributes.h"
+#include "parameters/convert.h"
+#include "parameters/serialize.h"
+#include "sound/sound_parameters.h"
+#include "strings/casing.h"
+#include "tools/progress_callback_helpers.h"
 
-#include <error.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>

@@ -10,8 +10,8 @@
 
 #include "module/players/duration.h"
 
-#include <core/plugins_parameters.h>
-#include <parameters/accessor.h>
+#include "core/plugins_parameters.h"
+#include "parameters/accessor.h"
 
 namespace Module
 {

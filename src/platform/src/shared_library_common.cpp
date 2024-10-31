@@ -8,13 +8,13 @@
  *
  **/
 
-#include "shared_library_common.h"
+#include "platform/src/shared_library_common.h"
 
-#include <debug/log.h>
-#include <l10n/api.h>
+#include "debug/log.h"
+#include "l10n/api.h"
 
-#include <error_tools.h>
-#include <string_view.h>
+#include "error_tools.h"
+#include "string_view.h"
 
 namespace
 {

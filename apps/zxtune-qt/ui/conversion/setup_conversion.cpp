@@ -23,14 +23,14 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "setup_conversion.ui.h"
 
-#include <io/api.h>
-#include <io/providers_parameters.h>
-#include <parameters/merged_accessor.h>
-#include <sound/backends_parameters.h>
+#include "io/api.h"
+#include "io/providers_parameters.h"
+#include "parameters/merged_accessor.h"
+#include "sound/backends_parameters.h"
 
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <QtCore/QThread>
 #include <QtGui/QCloseEvent>

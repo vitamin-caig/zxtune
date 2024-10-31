@@ -8,12 +8,13 @@
  *
  **/
 
-#include <l10n/api.h>
-#include <l10n/control.h>
-#include <resource/api.h>
-#include <strings/split.h>
+#include "l10n/control.h"
 
-#include <string_view.h>
+#include "l10n/api.h"
+#include "resource/api.h"
+#include "strings/split.h"
+
+#include "string_view.h"
 
 #include <vector>
 

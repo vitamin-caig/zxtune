@@ -10,10 +10,10 @@
 
 #include "sound/backends/gates/dsound_api.h"
 
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 namespace Sound::DirectSound
 {

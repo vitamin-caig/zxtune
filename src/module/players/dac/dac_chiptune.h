@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include <module/players/iterator.h>
-#include <module/players/track_model.h>
+#include "module/players/iterator.h"
+#include "module/players/track_model.h"
 
-#include <devices/dac.h>
-#include <parameters/accessor.h>
+#include "devices/dac.h"
+#include "parameters/accessor.h"
 
 namespace Module::DAC
 {

@@ -10,14 +10,14 @@
 
 #include "module/players/tfm/tfd.h"
 
+#include "formats/chiptune/fm/tfd.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
 #include "module/players/tfm/tfm_base_stream.h"
-#include <formats/chiptune/fm/tfd.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_helper.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 namespace Module::TFD
 {

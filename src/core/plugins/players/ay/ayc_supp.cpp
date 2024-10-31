@@ -10,8 +10,8 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/ay/aym_plugin.h"
-#include <formats/chiptune/aym/ayc.h>
-#include <module/players/aym/ayc.h>
+#include "formats/chiptune/aym/ayc.h"
+#include "module/players/aym/ayc.h"
 
 namespace ZXTune
 {

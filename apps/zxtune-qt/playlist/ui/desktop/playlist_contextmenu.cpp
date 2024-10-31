@@ -26,14 +26,14 @@
 #include "no_items_contextmenu.ui.h"
 #include "single_item_contextmenu.ui.h"
 
-#include <strings/map.h>
-#include <strings/set.h>
-#include <time/serialize.h>
+#include "strings/map.h"
+#include "strings/set.h"
+#include "time/serialize.h"
 
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <QtGui/QClipboard>
 #include <QtWidgets/QApplication>

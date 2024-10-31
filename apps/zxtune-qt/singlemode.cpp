@@ -13,10 +13,10 @@
 #include "apps/zxtune-qt/app_parameters.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <debug/log.h>
-#include <platform/version/api.h>
+#include "debug/log.h"
+#include "platform/version/api.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/QDir>

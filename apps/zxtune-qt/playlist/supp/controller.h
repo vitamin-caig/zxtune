@@ -15,7 +15,7 @@
 #include "apps/zxtune-qt/playlist/supp/model.h"
 #include "apps/zxtune-qt/playlist/supp/scanner.h"
 
-#include <tools/iterators.h>
+#include "tools/iterators.h"
 
 #include <QtCore/QObject>
 

@@ -19,10 +19,10 @@
 #include "apps/zxtune-qt/update/parameters.h"
 #include "interface.ui.h"
 
-#include <math/numeric.h>
+#include "math/numeric.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 #include <QtWidgets/QRadioButton>
 

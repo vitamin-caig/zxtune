@@ -11,12 +11,12 @@
 #include "formats/packed/container.h"
 #include "formats/packed/image_utils.h"
 
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <formats/packed.h>
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "formats/packed.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "make_ptr.h"
 
 #include <array>
 

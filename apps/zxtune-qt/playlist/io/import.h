@@ -13,7 +13,7 @@
 #include "apps/zxtune-qt/playlist/io/container.h"
 #include "apps/zxtune-qt/playlist/supp/data_provider.h"
 
-#include <tools/progress_callback.h>
+#include "tools/progress_callback.h"
 
 class QString;
 class QStringList;

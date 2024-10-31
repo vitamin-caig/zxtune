@@ -15,29 +15,29 @@
 #include "apps/zxtune-qt/ui/format.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <module/properties/path.h>
+#include "module/properties/path.h"
 
-#include <core/additional_files_resolve.h>
-#include <core/data_location.h>
-#include <core/plugin.h>
-#include <core/plugin_attrs.h>
-#include <core/service.h>
-#include <debug/log.h>
-#include <io/api.h>
-#include <module/attributes.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/merged_container.h>
-#include <parameters/template.h>
-#include <parameters/tracking.h>
-#include <strings/encoding.h>
-#include <strings/format.h>
-#include <strings/template.h>
-#include <tools/progress_callback.h>
+#include "core/additional_files_resolve.h"
+#include "core/data_location.h"
+#include "core/plugin.h"
+#include "core/plugin_attrs.h"
+#include "core/service.h"
+#include "debug/log.h"
+#include "io/api.h"
+#include "module/attributes.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/merged_container.h"
+#include "parameters/template.h"
+#include "parameters/tracking.h"
+#include "strings/encoding.h"
+#include "strings/format.h"
+#include "strings/template.h"
+#include "tools/progress_callback.h"
 
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <deque>
 #include <mutex>

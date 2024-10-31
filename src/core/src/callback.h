@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <core/module_detect.h>
+#include "core/module_detect.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 namespace Module
 {

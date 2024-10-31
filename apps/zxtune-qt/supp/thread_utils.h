@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <contract.h>
+#include "contract.h"
 
 #include <QtCore/QMetaObject>
 #include <QtCore/QPointer>

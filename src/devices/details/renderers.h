@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <devices/details/clock_source.h>
+#include "devices/details/clock_source.h"
 
-#include <sound/chunk.h>
-#include <sound/lpfilter.h>
+#include "sound/chunk.h"
+#include "sound/lpfilter.h"
 
 namespace Devices::Details
 {

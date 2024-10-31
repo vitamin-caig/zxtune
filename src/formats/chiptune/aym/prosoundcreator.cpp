@@ -12,20 +12,20 @@
 
 #include "formats/chiptune/container.h"
 
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <strings/casing.h>
-#include <strings/format.h>
-#include <strings/optimize.h>
-#include <strings/trim.h>
-#include <tools/indices.h>
-#include <tools/iterators.h>
-#include <tools/range_checker.h>
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "strings/casing.h"
+#include "strings/format.h"
+#include "strings/optimize.h"
+#include "strings/trim.h"
+#include "tools/indices.h"
+#include "tools/iterators.h"
+#include "tools/range_checker.h"
 
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 #include <array>
 #include <cctype>

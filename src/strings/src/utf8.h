@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <string_type.h>
-#include <string_view.h>
-#include <types.h>
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
 namespace Strings
 {

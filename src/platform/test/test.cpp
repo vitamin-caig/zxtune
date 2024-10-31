@@ -8,9 +8,9 @@
  *
  **/
 
-#include <platform/tools.h>
+#include "platform/tools.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <iostream>
 

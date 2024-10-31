@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "expression.h"
+#include "binary/format/expression.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <array>
 #include <vector>

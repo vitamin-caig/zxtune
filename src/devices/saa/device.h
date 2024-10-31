@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "generators.h"
+#include "devices/saa/generators.h"
 
 namespace Devices::SAA
 {

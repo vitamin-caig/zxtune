@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <formats/chiptune.h>
+#include "formats/chiptune.h"
 
-#include <string_view.h>
-#include <types.h>
+#include "string_view.h"
+#include "types.h"
 
 namespace Formats::Chiptune
 {

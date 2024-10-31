@@ -10,11 +10,11 @@
 
 #include "formats/archived/trdos_utils.h"
 
-#include <strings/encoding.h>
-#include <strings/optimize.h>
-#include <tools/locale_helpers.h>
+#include "strings/encoding.h"
+#include "strings/optimize.h"
+#include "tools/locale_helpers.h"
 
-#include <string_view.h>
+#include "string_view.h"
 
 #include <algorithm>
 

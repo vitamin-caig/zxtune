@@ -10,12 +10,12 @@
 
 #include "formats/chiptune/music/tags_vorbis.h"
 
-#include <binary/base64.h>
-#include <strings/casing.h>
-#include <strings/sanitize.h>
+#include "binary/base64.h"
+#include "strings/casing.h"
+#include "strings/sanitize.h"
 
-#include <byteorder.h>
-#include <string_view.h>
+#include "byteorder.h"
+#include "string_view.h"
 
 #include <array>
 

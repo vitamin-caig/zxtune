@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <devices/aym/chip.h>
+#include "devices/aym/chip.h"
 
-#include <core/freq_tables.h>
-#include <parameters/accessor.h>
+#include "core/freq_tables.h"
+#include "parameters/accessor.h"
 
 namespace Module::AYM
 {

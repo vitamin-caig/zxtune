@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <sound/chunk.h>
-#include <sound/multichannel_sample.h>
-#include <tools/data_streaming.h>
+#include "sound/chunk.h"
+#include "sound/multichannel_sample.h"
+#include "tools/data_streaming.h"
 
 namespace Sound
 {

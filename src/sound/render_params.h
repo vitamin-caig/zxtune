@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <module/loop.h>
-#include <parameters/accessor.h>
+#include "module/loop.h"
+#include "parameters/accessor.h"
 
 namespace Sound
 {

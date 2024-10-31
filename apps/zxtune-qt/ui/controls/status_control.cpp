@@ -14,9 +14,9 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "status_control.ui.h"
 
-#include <module/track_state.h>
+#include "module/track_state.h"
 
-#include <contract.h>
+#include "contract.h"
 
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QLabel>

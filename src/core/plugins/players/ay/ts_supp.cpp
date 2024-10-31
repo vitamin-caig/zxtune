@@ -10,16 +10,16 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-#include <formats/chiptune/aym/turbosound.h>
-#include <module/players/aym/aym_base.h>
-#include <module/players/aym/turbosound.h>
-#include <module/players/properties_helper.h>
-#include <module/players/tracking.h>
+#include "formats/chiptune/aym/turbosound.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/turbosound.h"
+#include "module/players/properties_helper.h"
+#include "module/players/tracking.h"
 
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
 
-#include <make_ptr.h>
+#include "make_ptr.h"
 
 namespace Module::TS
 {

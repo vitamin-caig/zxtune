@@ -13,13 +13,13 @@
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/music/tags_vorbis.h"
 
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <math/bitops.h>
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "math/bitops.h"
 
-#include <byteorder.h>
-#include <make_ptr.h>
+#include "byteorder.h"
+#include "make_ptr.h"
 
 #include <array>
 #include <cctype>

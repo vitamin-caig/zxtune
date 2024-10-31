@@ -10,10 +10,10 @@
 
 #include "module/players/xsf/gsf_rom.h"
 
-#include <formats/chiptune/emulation/gameboyadvancesoundformat.h>
+#include "formats/chiptune/emulation/gameboyadvancesoundformat.h"
 
-#include <contract.h>
-#include <make_ptr.h>
+#include "contract.h"
+#include "make_ptr.h"
 
 namespace Module::GSF
 {

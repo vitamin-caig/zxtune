@@ -10,10 +10,10 @@
 
 #include "core/src/location.h"
 
-#include <module/attributes.h>
+#include "module/attributes.h"
 
-#include <make_ptr.h>
-#include <string_view.h>
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace ZXTune
 {
