@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "data_provider.h"
+#include "apps/zxtune-qt/playlist/supp/data_provider.h"
 // qt includes
 #include <QtCore/QThread>
 

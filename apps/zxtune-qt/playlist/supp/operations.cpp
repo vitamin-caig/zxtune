@@ -9,9 +9,9 @@
  **/
 
 // local includes
-#include "operations.h"
-#include "operations_helpers.h"
-#include "storage.h"
+#include "apps/zxtune-qt/playlist/supp/operations.h"
+#include "apps/zxtune-qt/playlist/supp/operations_helpers.h"
+#include "apps/zxtune-qt/playlist/supp/storage.h"
 // common includes
 #include <make_ptr.h>
 // library includes

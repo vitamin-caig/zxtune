@@ -9,9 +9,9 @@
  **/
 
 // local includes
-#include "session.h"
-#include "container.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/playlist/supp/session.h"
+#include "apps/zxtune-qt/playlist/supp/container.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <contract.h>
 #include <make_ptr.h>

@@ -9,8 +9,8 @@
  **/
 
 // local includes
-#include "analyzer_control.h"
-#include "supp/playback_supp.h"
+#include "apps/zxtune-qt/ui/controls/analyzer_control.h"
+#include "apps/zxtune-qt/supp/playback_supp.h"
 // common includes
 #include <contract.h>
 // library includes

@@ -9,17 +9,17 @@
  **/
 
 // local includes
-#include "preferencesdialog.h"
-#include "aym.h"
-#include "interface.h"
-#include "mixing.h"
-#include "plugins.h"
+#include "apps/zxtune-qt/ui/preferences/preferencesdialog.h"
+#include "apps/zxtune-qt/ui/preferences/aym.h"
+#include "apps/zxtune-qt/ui/preferences/interface.h"
+#include "apps/zxtune-qt/ui/preferences/mixing.h"
+#include "apps/zxtune-qt/ui/preferences/plugins.h"
+#include "apps/zxtune-qt/ui/preferences/saa.h"
+#include "apps/zxtune-qt/ui/preferences/sid.h"
+#include "apps/zxtune-qt/ui/preferences/sound.h"
+#include "apps/zxtune-qt/ui/preferences/z80.h"
+#include "apps/zxtune-qt/ui/state.h"
 #include "preferencesdialog.ui.h"
-#include "saa.h"
-#include "sid.h"
-#include "sound.h"
-#include "ui/state.h"
-#include "z80.h"
 // std includes
 #include <algorithm>
 // std includes

@@ -9,8 +9,8 @@
  **/
 
 // local includes
-#include "language.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/ui/desktop/language.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <make_ptr.h>
 #include <string_view.h>

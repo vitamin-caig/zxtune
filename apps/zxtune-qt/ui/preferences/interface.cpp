@@ -9,15 +9,15 @@
  **/
 
 // local includes
-#include "interface.h"
+#include "apps/zxtune-qt/ui/preferences/interface.h"
+#include "apps/zxtune-qt/playlist/parameters.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/desktop/language.h"
+#include "apps/zxtune-qt/ui/parameters.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
+#include "apps/zxtune-qt/update/parameters.h"
 #include "interface.ui.h"
-#include "playlist/parameters.h"
-#include "supp/options.h"
-#include "ui/desktop/language.h"
-#include "ui/parameters.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
-#include "update/parameters.h"
 // common includes
 #include <contract.h>
 #include <make_ptr.h>

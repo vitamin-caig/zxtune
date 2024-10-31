@@ -11,9 +11,7 @@
 #pragma once
 
 // local includes
-#include "playlist/supp/model.h"
-// std includes
-//#include <set>
+#include "apps/zxtune-qt/playlist/supp/model.h"
 // qt includes
 #include <QtWidgets/QItemDelegate>
 #include <QtWidgets/QTableView>

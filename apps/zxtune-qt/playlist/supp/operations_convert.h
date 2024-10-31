@@ -11,8 +11,8 @@
 #pragma once
 
 // local includes
-#include "conversion.h"
-#include "operations.h"
+#include "apps/zxtune-qt/playlist/supp/conversion.h"
+#include "apps/zxtune-qt/playlist/supp/operations.h"
 // library includes
 #include <sound/service.h>
 // common includes

@@ -9,9 +9,9 @@
  **/
 
 // local includes
-#include "singlemode.h"
-#include "app_parameters.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/singlemode.h"
+#include "apps/zxtune-qt/app_parameters.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <contract.h>
 // library includes
@@ -22,6 +22,7 @@
 #include <QtCore/QDir>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
+// std includes
 #include <memory>
 
 namespace

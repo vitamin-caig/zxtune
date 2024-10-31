@@ -9,14 +9,14 @@
  **/
 
 // local includes
-#include "container.h"
-#include "controller.h"
-#include "playlist/io/export.h"
-#include "playlist/io/import.h"
-#include "scanner.h"
-#include "storage.h"
-#include "ui/tools/errordialog.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/playlist/supp/container.h"
+#include "apps/zxtune-qt/playlist/io/export.h"
+#include "apps/zxtune-qt/playlist/io/import.h"
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+#include "apps/zxtune-qt/playlist/supp/scanner.h"
+#include "apps/zxtune-qt/playlist/supp/storage.h"
+#include "apps/zxtune-qt/ui/tools/errordialog.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <error.h>
 #include <make_ptr.h>

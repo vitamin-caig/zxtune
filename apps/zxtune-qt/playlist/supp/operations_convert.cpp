@@ -9,11 +9,11 @@
  **/
 
 // local includes
-#include "operations_convert.h"
-#include "operations_helpers.h"
-#include "storage.h"
-#include <apps/zxtune-qt/supp/playback_supp.h>
-#include <apps/zxtune-qt/ui/utils.h>
+#include "apps/zxtune-qt/playlist/supp/operations_convert.h"
+#include "apps/zxtune-qt/playlist/supp/operations_helpers.h"
+#include "apps/zxtune-qt/playlist/supp/storage.h"
+#include "apps/zxtune-qt/supp/playback_supp.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <contract.h>
 #include <error_tools.h>

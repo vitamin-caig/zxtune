@@ -9,11 +9,11 @@
  **/
 
 // local includes
-#include "data_provider.h"
-#include "playlist/parameters.h"
-#include "supp/thread_utils.h"
-#include "ui/format.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/playlist/supp/data_provider.h"
+#include "apps/zxtune-qt/playlist/parameters.h"
+#include "apps/zxtune-qt/supp/thread_utils.h"
+#include "apps/zxtune-qt/ui/format.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <contract.h>
 #include <error_tools.h>

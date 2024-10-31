@@ -11,8 +11,8 @@
 #pragma once
 
 // local includes
-#include "product.h"
-#include "rss.h"
+#include "apps/zxtune-qt/update/product.h"
+#include "apps/zxtune-qt/update/rss.h"
 // std includes
 #include <memory>
 

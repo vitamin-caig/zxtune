@@ -9,10 +9,10 @@
  **/
 
 // local includes
-#include "status_control.h"
+#include "apps/zxtune-qt/ui/controls/status_control.h"
+#include "apps/zxtune-qt/supp/playback_supp.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "status_control.ui.h"
-#include "supp/playback_supp.h"
-#include "ui/utils.h"
 // common includes
 #include <contract.h>
 // library includes

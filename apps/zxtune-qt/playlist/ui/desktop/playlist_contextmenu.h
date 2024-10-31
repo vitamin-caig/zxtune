@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "playlist/ui/contextmenu.h"
+#include "apps/zxtune-qt/playlist/ui/contextmenu.h"
 // qt includes
 #include <QtCore/QObject>
 

@@ -9,7 +9,7 @@
  **/
 
 // local includes
-#include "downloads.h"
+#include "apps/zxtune-qt/update/downloads.h"
 #include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <make_ptr.h>

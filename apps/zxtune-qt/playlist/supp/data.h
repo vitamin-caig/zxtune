@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "capabilities.h"
+#include "apps/zxtune-qt/playlist/supp/capabilities.h"
 // common includes
 #include <error.h>
 // library includes

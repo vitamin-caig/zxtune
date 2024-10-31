@@ -9,7 +9,7 @@
  **/
 
 // local includes
-#include "overlay_progress.h"
+#include "apps/zxtune-qt/ui/controls/overlay_progress.h"
 // library includes
 #include <time/elapsed.h>
 // std includes

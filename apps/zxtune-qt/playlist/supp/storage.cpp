@@ -9,7 +9,7 @@
  **/
 
 // local includes
-#include "storage.h"
+#include "apps/zxtune-qt/playlist/supp/storage.h"
 // common includes
 #include <make_ptr.h>
 // library includes

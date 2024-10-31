@@ -9,8 +9,8 @@
  **/
 
 // local includes
-#include "scanner_view.h"
-#include "playlist/supp/scanner.h"
+#include "apps/zxtune-qt/playlist/ui/scanner_view.h"
+#include "apps/zxtune-qt/playlist/supp/scanner.h"
 #include "scanner_view.ui.h"
 // common includes
 #include <contract.h>

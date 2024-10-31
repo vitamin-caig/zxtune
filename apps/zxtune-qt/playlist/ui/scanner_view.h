@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "playlist/supp/scanner.h"
+#include "apps/zxtune-qt/playlist/supp/scanner.h"
 // qt includes
 #include <QtWidgets/QWidget>
 

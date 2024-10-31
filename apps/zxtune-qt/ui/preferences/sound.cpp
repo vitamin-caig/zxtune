@@ -9,16 +9,16 @@
  **/
 
 // local includes
-#include "sound.h"
+#include "apps/zxtune-qt/ui/preferences/sound.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/preferences/sound_alsa.h"
+#include "apps/zxtune-qt/ui/preferences/sound_dsound.h"
+#include "apps/zxtune-qt/ui/preferences/sound_oss.h"
+#include "apps/zxtune-qt/ui/preferences/sound_sdl.h"
+#include "apps/zxtune-qt/ui/preferences/sound_win32.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "sound.ui.h"
-#include "sound_alsa.h"
-#include "sound_dsound.h"
-#include "sound_oss.h"
-#include "sound_sdl.h"
-#include "sound_win32.h"
-#include "supp/options.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
 // common includes
 #include <contract.h>
 // library includes

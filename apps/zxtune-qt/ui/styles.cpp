@@ -9,7 +9,7 @@
  **/
 
 // local includes
-#include "styles.h"
+#include "apps/zxtune-qt/ui/styles.h"
 // qt includes
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QProxyStyle>

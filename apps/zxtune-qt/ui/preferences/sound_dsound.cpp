@@ -9,11 +9,11 @@
  **/
 
 // local includes
-#include "sound_dsound.h"
+#include "apps/zxtune-qt/ui/preferences/sound_dsound.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "sound_dsound.ui.h"
-#include "supp/options.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
 // common includes
 #include <contract.h>
 // library includes

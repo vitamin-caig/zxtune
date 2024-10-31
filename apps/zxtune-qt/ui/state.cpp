@@ -9,10 +9,10 @@
  **/
 
 // local includes
-#include "state.h"
-#include "parameters.h"
-#include "supp/options.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/ui/state.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/parameters.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <make_ptr.h>
 #include <pointers.h>

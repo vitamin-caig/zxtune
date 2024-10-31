@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "ui/utils.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // library includes
 #include <parameters/container.h>
 // common includes

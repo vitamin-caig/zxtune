@@ -9,6 +9,4 @@ ui_files += sound_alsa sound_dsound sound_oss sound_sdl sound_win32
 
 ts_files := ui_preferences
 
-includes.dirs += ../..
-
 include $(dirs.root)/makefile.mak

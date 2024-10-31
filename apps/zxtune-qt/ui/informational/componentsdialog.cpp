@@ -9,10 +9,10 @@
  **/
 
 // local includes
-#include "componentsdialog.h"
+#include "apps/zxtune-qt/ui/informational/componentsdialog.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "componentsdialog.ui.h"
-#include "supp/options.h"
-#include "ui/utils.h"
 // library includes
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>

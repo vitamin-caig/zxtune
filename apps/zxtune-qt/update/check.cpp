@@ -9,14 +9,14 @@
  **/
 
 // local includes
-#include "check.h"
+#include "apps/zxtune-qt/update/check.h"
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/tools/errordialog.h"
 #include "apps/zxtune-qt/ui/utils.h"
+#include "apps/zxtune-qt/update/downloads.h"
+#include "apps/zxtune-qt/update/parameters.h"
+#include "apps/zxtune-qt/update/product.h"
 #include "apps/zxtune-qt/urls.h"
-#include "downloads.h"
-#include "parameters.h"
-#include "product.h"
 // common includes
 #include <contract.h>
 #include <error.h>

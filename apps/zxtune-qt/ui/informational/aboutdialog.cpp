@@ -9,10 +9,10 @@
  **/
 
 // local includes
-#include "aboutdialog.h"
+#include "apps/zxtune-qt/ui/informational/aboutdialog.h"
 #include "aboutdialog.ui.h"
-#include "ui/utils.h"
-#include "urls.h"
+#include "apps/zxtune-qt/ui/utils.h"
+#include "apps/zxtune-qt/urls.h"
 // library includes
 #include <platform/version/api.h>
 // std includes

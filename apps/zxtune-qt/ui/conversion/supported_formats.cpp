@@ -9,12 +9,12 @@
  **/
 
 // local includes
-#include "supported_formats.h"
-#include "parameters.h"
-#include "supp/options.h"
+#include "apps/zxtune-qt/ui/conversion/supported_formats.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/conversion/parameters.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "supported_formats.ui.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
 // common includes
 #include <contract.h>
 #include <string_view.h>

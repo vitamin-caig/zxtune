@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "app_parameters.h"
+#include "apps/zxtune-qt/app_parameters.h"
 
 namespace Parameters::ZXTuneQT::Playlist
 {

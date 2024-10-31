@@ -9,18 +9,19 @@
  **/
 
 // local includes
-#include "setup_conversion.h"
-#include "filename_template.h"
-#include "flac_settings.h"
-#include "mp3_settings.h"
-#include "ogg_settings.h"
+#include "apps/zxtune-qt/ui/conversion/setup_conversion.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/conversion/backend_settings.h"
+#include "apps/zxtune-qt/ui/conversion/filename_template.h"
+#include "apps/zxtune-qt/ui/conversion/flac_settings.h"
+#include "apps/zxtune-qt/ui/conversion/mp3_settings.h"
+#include "apps/zxtune-qt/ui/conversion/ogg_settings.h"
+#include "apps/zxtune-qt/ui/conversion/supported_formats.h"
+#include "apps/zxtune-qt/ui/state.h"
+#include "apps/zxtune-qt/ui/tools/filedialog.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "setup_conversion.ui.h"
-#include "supp/options.h"
-#include "supported_formats.h"
-#include "ui/state.h"
-#include "ui/tools/filedialog.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
 // common includes
 #include <contract.h>
 #include <make_ptr.h>

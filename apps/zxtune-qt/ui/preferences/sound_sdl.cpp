@@ -9,10 +9,10 @@
  **/
 
 // local includes
-#include "sound_sdl.h"
+#include "apps/zxtune-qt/ui/preferences/sound_sdl.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "sound_sdl.ui.h"
-#include "supp/options.h"
-#include "ui/tools/parameters_helpers.h"
 // common includes
 #include <contract.h>
 // library includes

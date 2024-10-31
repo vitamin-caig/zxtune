@@ -9,10 +9,10 @@
  **/
 
 // local includes
-#include "container.h"
-#include "export.h"
-#include "tags/xspf.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/playlist/io/container.h"
+#include "apps/zxtune-qt/playlist/io/export.h"
+#include "apps/zxtune-qt/playlist/io/tags/xspf.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <error_tools.h>
 #include <string_view.h>

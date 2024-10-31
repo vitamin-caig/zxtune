@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "model.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
 
 namespace Playlist::Item
 {

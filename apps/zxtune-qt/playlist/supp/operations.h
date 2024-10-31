@@ -11,8 +11,8 @@
 #pragma once
 
 // local includes
-#include "controller.h"
-#include "model.h"
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
 // qt includes
 #include <QtCore/QObject>
 

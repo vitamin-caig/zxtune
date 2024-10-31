@@ -9,8 +9,8 @@
  **/
 
 // local includes
-#include "options.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <contract.h>
 #include <make_ptr.h>

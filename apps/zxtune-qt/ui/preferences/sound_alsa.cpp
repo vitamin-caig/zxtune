@@ -10,10 +10,10 @@
 
 // local includes
 #include "sound_alsa.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "sound_alsa.ui.h"
-#include "supp/options.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
 // common includes
 #include <contract.h>
 #include <string_view.h>

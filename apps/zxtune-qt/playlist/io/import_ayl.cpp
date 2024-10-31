@@ -9,10 +9,10 @@
  **/
 
 // local includes
-#include "container_impl.h"
-#include "import.h"
-#include "tags/ayl.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/playlist/io/container_impl.h"
+#include "apps/zxtune-qt/playlist/io/import.h"
+#include "apps/zxtune-qt/playlist/io/tags/ayl.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <error.h>
 #include <make_ptr.h>

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <playlist/supp/operations.h>
+#include "apps/zxtune-qt/playlist/supp/operations.h"
 
 class QWidget;
 

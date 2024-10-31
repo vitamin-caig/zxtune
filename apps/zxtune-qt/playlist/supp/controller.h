@@ -11,10 +11,10 @@
 #pragma once
 
 // local includes
-#include "data_provider.h"
-#include "playlist/io/container.h"
-#include "playlist/supp/model.h"
-#include "playlist/supp/scanner.h"
+#include "apps/zxtune-qt/playlist/io/container.h"
+#include "apps/zxtune-qt/playlist/supp/data_provider.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
+#include "apps/zxtune-qt/playlist/supp/scanner.h"
 // common includes
 #include <tools/iterators.h>
 // qt includes

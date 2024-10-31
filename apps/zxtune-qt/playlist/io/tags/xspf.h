@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ui/utils.h"
+#include "apps/zxtune-qt/ui/utils.h"
 
 namespace XSPF
 {

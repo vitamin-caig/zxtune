@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "mainwindow.h"
+#include "apps/zxtune-qt/ui/mainwindow.h"
 // library includes
 #include <parameters/container.h>
 

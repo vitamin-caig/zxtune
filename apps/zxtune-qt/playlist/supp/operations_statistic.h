@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "operations.h"
+#include "apps/zxtune-qt/playlist/supp/operations.h"
 // common includes
 #include <string_view.h>
 

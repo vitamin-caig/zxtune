@@ -9,11 +9,11 @@
  **/
 
 // local includes
-#include "seek_controls.h"
+#include "apps/zxtune-qt/ui/controls/seek_controls.h"
+#include "apps/zxtune-qt/supp/playback_supp.h"
+#include "apps/zxtune-qt/ui/styles.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "seek_controls.ui.h"
-#include "supp/playback_supp.h"
-#include "ui/styles.h"
-#include "ui/utils.h"
 // common includes
 #include <contract.h>
 // library includes
@@ -21,6 +21,7 @@
 // qt includes
 #include <QtGui/QCursor>
 #include <QtWidgets/QToolTip>
+// std includes
 #include <memory>
 
 namespace

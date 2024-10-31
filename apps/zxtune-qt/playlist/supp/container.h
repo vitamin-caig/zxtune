@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "controller.h"
+#include "apps/zxtune-qt/playlist/supp/controller.h"
 // library includes
 #include <parameters/accessor.h>
 // qt includes

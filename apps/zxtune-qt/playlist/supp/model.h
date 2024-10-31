@@ -11,8 +11,8 @@
 #pragma once
 
 // local includes
-#include "data.h"
-#include "playlist/io/container.h"
+#include "apps/zxtune-qt/playlist/io/container.h"
+#include "apps/zxtune-qt/playlist/supp/data.h"
 // common includes
 #include <tools/progress_callback.h>
 // std includes

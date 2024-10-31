@@ -9,7 +9,7 @@
  **/
 
 // local includes
-#include "container_impl.h"
+#include "apps/zxtune-qt/playlist/io/container_impl.h"
 // common includes
 #include <contract.h>
 #include <error.h>

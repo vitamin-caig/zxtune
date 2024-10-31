@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "container.h"
+#include "apps/zxtune-qt/playlist/supp/container.h"
 
 namespace Playlist
 {

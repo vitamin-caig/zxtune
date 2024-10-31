@@ -9,9 +9,9 @@
  **/
 
 // local includes
-#include "playback_controls.h"
+#include "apps/zxtune-qt/ui/controls/playback_controls.h"
+#include "apps/zxtune-qt/supp/playback_supp.h"
 #include "playback_controls.ui.h"
-#include "supp/playback_supp.h"
 // common includes
 #include <contract.h>
 // std includes

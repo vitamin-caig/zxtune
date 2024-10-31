@@ -11,7 +11,7 @@
 #pragma once
 
 // local includes
-#include "ui/parameters.h"
+#include "apps/zxtune-qt/ui/parameters.h"
 
 namespace Parameters::ZXTuneQT::UI::Export
 {

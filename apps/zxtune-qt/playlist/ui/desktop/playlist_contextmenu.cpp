@@ -9,22 +9,22 @@
  **/
 
 // local includes
-#include "playlist_contextmenu.h"
+#include "apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.h"
+#include "apps/zxtune-qt/playlist/supp/operations.h"
+#include "apps/zxtune-qt/playlist/supp/operations_convert.h"
+#include "apps/zxtune-qt/playlist/supp/operations_statistic.h"
+#include "apps/zxtune-qt/playlist/supp/storage.h"
+#include "apps/zxtune-qt/playlist/ui/contextmenu.h"
+#include "apps/zxtune-qt/playlist/ui/desktop/properties_dialog.h"
+#include "apps/zxtune-qt/playlist/ui/desktop/search_dialog.h"
+#include "apps/zxtune-qt/playlist/ui/table_view.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/conversion/filename_template.h"
+#include "apps/zxtune-qt/ui/conversion/setup_conversion.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "multiple_items_contextmenu.ui.h"
 #include "no_items_contextmenu.ui.h"
-#include "playlist/supp/operations.h"
-#include "playlist/supp/operations_convert.h"
-#include "playlist/supp/operations_statistic.h"
-#include "playlist/supp/storage.h"
-#include "playlist/ui/contextmenu.h"
-#include "playlist/ui/table_view.h"
-#include "properties_dialog.h"
-#include "search_dialog.h"
 #include "single_item_contextmenu.ui.h"
-#include "supp/options.h"
-#include "ui/conversion/filename_template.h"
-#include "ui/conversion/setup_conversion.h"
-#include "ui/utils.h"
 // common includes
 #include <contract.h>
 #include <error.h>

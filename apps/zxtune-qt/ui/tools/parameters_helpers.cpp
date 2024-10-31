@@ -9,7 +9,7 @@
  **/
 
 // local includes
-#include "parameters_helpers.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 // common includes
 #include <contract.h>
 #include <string_view.h>

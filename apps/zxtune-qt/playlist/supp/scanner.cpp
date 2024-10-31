@@ -9,9 +9,9 @@
  **/
 
 // local includes
-#include "scanner.h"
-#include "playlist/io/import.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/playlist/supp/scanner.h"
+#include "apps/zxtune-qt/playlist/io/import.h"
+#include "apps/zxtune-qt/ui/utils.h"
 // common includes
 #include <contract.h>
 #include <error.h>
@@ -24,10 +24,10 @@
 // std includes
 #include <memory>
 #include <mutex>
+#include <utility>
 // qt includes
 #include <QtCore/QDirIterator>
 #include <QtCore/QStringList>
-#include <utility>
 
 namespace
 {

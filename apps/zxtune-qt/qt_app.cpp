@@ -9,11 +9,11 @@
  **/
 
 // local includes
-#include "singlemode.h"
-#include "supp/options.h"
-#include "ui/factory.h"
-#include "ui/utils.h"
-#include "urls.h"
+#include "apps/zxtune-qt/singlemode.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/factory.h"
+#include "apps/zxtune-qt/ui/utils.h"
+#include "apps/zxtune-qt/urls.h"
 // common includes
 #include <contract.h>
 // library includes
