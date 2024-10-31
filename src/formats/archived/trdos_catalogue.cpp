@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/archived/trdos_catalogue.h"
-// common includes
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <binary/data_builder.h>
 #include <strings/format.h>
-// std includes
+
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cstring>

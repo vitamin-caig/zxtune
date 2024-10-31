@@ -8,18 +8,17 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/soundtracker_detail.h"
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
+
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+
 #include <array>
 
 namespace Formats::Chiptune

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <async/job.h>
 
 namespace Async

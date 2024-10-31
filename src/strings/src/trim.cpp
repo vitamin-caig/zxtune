@@ -8,9 +8,8 @@
  *
  **/
 
-// library includes
 #include <strings/trim.h>
-// common includes
+
 #include <string_view.h>
 
 namespace Strings

@@ -10,9 +10,8 @@
 
 #pragma once
 
-// local includes
 #include "library.h"
-// common includes
+
 #include <string_type.h>
 #include <string_view.h>
 

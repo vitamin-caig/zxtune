@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-// library includes
 #include <binary/container.h>
 #include <binary/format.h>
-// std includes
+
+#include <string_view.h>
+
 #include <memory>
 
 namespace Formats::Packed

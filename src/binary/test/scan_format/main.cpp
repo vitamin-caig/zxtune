@@ -8,15 +8,14 @@
  *
  **/
 
-// common includes
-#include <error_tools.h>
-#include <types.h>
-// library includes
 #include <binary/format_factories.h>
 #include <io/api.h>
 #include <parameters/container.h>
 #include <tools/progress_callback.h>
-// std includes
+
+#include <error_tools.h>
+#include <types.h>
+
 #include <ctime>
 #include <iostream>
 

@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
+#include <formats/chiptune.h>
+
 #include <string_type.h>
 #include <types.h>
-// library includes
-#include <formats/chiptune.h>
-// std includes
+
 #include <memory>
 
 namespace Formats::Multitrack

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <binary/container.h>
 #include <binary/format.h>
 

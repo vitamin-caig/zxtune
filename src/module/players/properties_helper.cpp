@@ -8,15 +8,14 @@
  *
  **/
 
-// local includes
 #include "module/players/properties_helper.h"
-// library includes
+
 #include <binary/crc.h>
 #include <module/attributes.h>
 #include <sound/sound_parameters.h>
 #include <strings/join.h>
 #include <strings/trim.h>
-// common includes
+
 #include <string_view.h>
 
 namespace Module

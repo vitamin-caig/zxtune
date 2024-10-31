@@ -8,11 +8,10 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-// library includes
 #include <async/progress.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <condition_variable>
 #include <mutex>
 

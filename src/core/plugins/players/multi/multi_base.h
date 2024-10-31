@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
 #include <module/holder.h>
-// std includes
+
 #include <vector>
 
 namespace Module::Multi

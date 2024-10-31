@@ -8,11 +8,10 @@
  *
  **/
 
-// local includes
 #include "formats/archived/multitrack/filename.h"
-// library includes
+
 #include <strings/prefixed_index.h>
-// common includes
+
 #include <string_view.h>
 
 namespace Formats::Archived::MultitrackArchives

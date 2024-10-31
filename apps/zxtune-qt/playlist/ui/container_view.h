@@ -10,12 +10,11 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/controller.h"
 #include "apps/zxtune-qt/playlist/supp/data.h"
-// library includes
+
 #include <parameters/container.h>
-// qt includes
+
 #include <QtWidgets/QWidget>
 
 class QMenu;

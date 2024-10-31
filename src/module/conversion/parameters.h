@@ -10,7 +10,6 @@
 
 #pragma once
 
-// common includes
 #include <pointers.h>
 #include <types.h>
 

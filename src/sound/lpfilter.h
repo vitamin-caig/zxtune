@@ -10,11 +10,10 @@
 
 #pragma once
 
-// library includes
 #include <math/fixedpoint.h>
 #include <math/numeric.h>
 #include <sound/sample.h>
-// std includes
+
 #include <cmath>
 
 namespace Sound

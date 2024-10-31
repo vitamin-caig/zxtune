@@ -9,9 +9,11 @@
  **/
 
 #include <async/worker.h>
+
 #include <error.h>
-#include <iostream>
 #include <pointers.h>
+
+#include <iostream>
 #include <thread>
 
 bool operator!=(const Error& lh, const Error& rh)

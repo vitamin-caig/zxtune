@@ -8,21 +8,20 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/zip_supp.h"
-// common includes
-#include <error.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
+
 #include <binary/compression/zlib_stream.h>
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/packed.h>
-// std includes
+
+#include <error.h>
+#include <make_ptr.h>
+#include <pointers.h>
+
 #include <algorithm>
 #include <cassert>
 #include <memory>

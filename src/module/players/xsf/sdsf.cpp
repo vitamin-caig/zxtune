@@ -8,24 +8,24 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/sdsf.h"
+
 #include "module/players/xsf/xsf.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
+#include <module/players/platforms.h>
+#include <module/players/streaming.h>
+
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <module/attributes.h>
-#include <module/players/platforms.h>
-#include <module/players/streaming.h>
 #include <sound/resampler.h>
-// std includes
-#include <list>
-// 3rdparty includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+
 #include <3rdparty/ht/Core/sega.h>
+
+#include <list>
 
 namespace Module::SDSF
 {

@@ -8,27 +8,26 @@
  *
  **/
 
-// local includes
 #include "sound/backends/alsa.h"
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/gates/alsa_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/volume_control.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <strings/split.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <utility>
 
 namespace Sound::Alsa

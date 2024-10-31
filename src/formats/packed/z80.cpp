@@ -8,18 +8,17 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/packed.h>
-// std includes
+
+#include <byteorder.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <array>
 #include <numeric>
 #include <utility>

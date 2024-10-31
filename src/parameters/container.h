@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <parameters/accessor.h>
 #include <parameters/modifier.h>
 

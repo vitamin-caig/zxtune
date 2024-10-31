@@ -10,11 +10,9 @@
 
 #pragma once
 
-// local includes
 #include "devices/aym/src/generators.h"
-// library includes
 #include <devices/aym/chip.h>
-// std includes
+
 #include <array>
 #include <cassert>
 

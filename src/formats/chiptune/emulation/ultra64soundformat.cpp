@@ -8,15 +8,14 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/ultra64soundformat.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
+
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-// std includes
+
+#include <byteorder.h>
+#include <make_ptr.h>
+
 #include <array>
 
 namespace Formats::Chiptune

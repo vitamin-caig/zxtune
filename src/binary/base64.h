@@ -10,13 +10,12 @@
 
 #pragma once
 
-// common includes
+#include <binary/dump.h>
+#include <binary/view.h>
+
 #include <string_type.h>
 #include <string_view.h>
 #include <types.h>
-// library includes
-#include <binary/dump.h>
-#include <binary/view.h>
 
 namespace Binary::Base64
 {

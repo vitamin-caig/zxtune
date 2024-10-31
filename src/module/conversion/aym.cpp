@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "api.h"
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/container_factories.h>
-#include <core/core_parameters.h>
+
 #include <devices/aym/dumper.h>
-#include <l10n/api.h>
-#include <module/attributes.h>
 #include <module/conversion/types.h>
 #include <module/players/aym/aym_base.h>
-// std includes
+
+#include <binary/container_factories.h>
+#include <core/core_parameters.h>
+#include <l10n/api.h>
+#include <module/attributes.h>
+
+#include <error_tools.h>
+#include <make_ptr.h>
+
 #include <utility>
 
 namespace Module

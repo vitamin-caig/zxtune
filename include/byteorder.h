@@ -10,10 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <bit>
 #include <types.h>
-// std includes
+
+#include <bit>
 #include <cstring>
 
 //! @brief Checking if current platform is Little-Endian

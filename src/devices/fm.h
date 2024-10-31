@@ -10,13 +10,12 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
 #include <sound/chunk.h>
 #include <time/instant.h>
 #include <tools/data_streaming.h>
-// std includes
+
+#include <types.h>
+
 #include <array>
 #include <memory>
 

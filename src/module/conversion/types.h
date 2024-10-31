@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "parameters.h"
 
 namespace Module::Conversion

@@ -10,10 +10,9 @@
 
 #pragma once
 
-// common includes
 #include <string_type.h>
 #include <string_view.h>
-// std includes
+
 #include <map>
 #include <stdexcept>
 

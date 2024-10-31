@@ -8,15 +8,14 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/psg.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
-// common includes
-#include <make_ptr.h>
-// library includes
 #include <formats/chiptune/aym/psg.h>
 #include <module/players/properties_helper.h>
+
+#include <make_ptr.h>
 
 namespace Module::PSG
 {

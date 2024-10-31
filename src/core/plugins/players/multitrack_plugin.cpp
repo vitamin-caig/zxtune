@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/multitrack_plugin.h"
+
 #include "core/plugins/archives/archived.h"
-// common includes
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+#include <formats/archived/multitrack/filename.h>
+#include <module/players/properties_helper.h>
+
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <formats/archived/multitrack/filename.h>
-#include <module/players/properties_helper.h>
 #include <tools/xrange.h>
-// std includes
+
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <utility>
 
 namespace ZXTune

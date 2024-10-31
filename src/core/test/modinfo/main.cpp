@@ -10,15 +10,17 @@
 
 #include <binary/container_factories.h>
 #include <core/service.h>
-#include <error_tools.h>
 #include <io/api.h>
-#include <iostream>
 #include <module/track_information.h>
 #include <parameters/container.h>
 #include <parameters/template.h>
-#include <string_view.h>
 #include <time/serialize.h>
 #include <tools/progress_callback.h>
+
+#include <error_tools.h>
+#include <string_view.h>
+
+#include <iostream>
 
 namespace
 {

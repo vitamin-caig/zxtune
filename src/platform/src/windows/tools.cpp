@@ -8,9 +8,8 @@
  *
  **/
 
-// library includes
 #include <platform/tools.h>
-// platform includes
+
 #include <windows.h>
 
 namespace

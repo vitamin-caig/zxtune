@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "module/players/stream_model.h"
 #include "module/players/tfm/tfm_chiptune.h"
 

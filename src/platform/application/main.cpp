@@ -8,12 +8,11 @@
  *
  **/
 
-// common includes
-#include <error.h>
-// library includes
 #include <debug/log.h>
 #include <platform/application.h>
-// std includes
+
+#include <error.h>
+
 #include <locale>
 
 std::ostream& StdOut = std::cout;
@@ -25,8 +24,10 @@ namespace
 
 // TODO: extract to different sources
 #ifdef _WIN32
-#  include <pointers.h>
 #  include <strings/encoding.h>
+
+#  include <pointers.h>
+
 #  include <windows.h>
 
 Strings::Array ParseArgv(int, const char**)

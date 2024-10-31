@@ -8,16 +8,16 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/preferences/sound_sdl.h"
+
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "sound_sdl.ui.h"
-// common includes
-#include <contract.h>
-// library includes
+
 #include <sound/backends_parameters.h>
-// std includes
+
+#include <contract.h>
+
 #include <utility>
 
 namespace

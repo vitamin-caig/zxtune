@@ -10,9 +10,7 @@
 
 #pragma once
 
-// std includes
 #include <algorithm>
-// std includes
 #include <type_traits>
 
 namespace Math

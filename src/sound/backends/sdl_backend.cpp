@@ -10,23 +10,22 @@
 
 #define DECLSPEC
 
-// local includes
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/gates/sdl_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/sdl.h"
 #include "sound/backends/storage.h"
-// common includes
-#include <byteorder.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
+
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-// std includes
+
+#include <byteorder.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+
 #include <condition_variable>
 #include <utility>
 

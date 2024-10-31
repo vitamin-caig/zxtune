@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/protracker3.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/aym/turbosound.h"
 #include "module/players/aym/vortex.h"
-// common includes
-#include <pointers.h>
-// library includes
 #include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+
 #include <parameters/tracking_helper.h>
+
+#include <pointers.h>
 
 namespace Module::ProTracker3
 {

@@ -10,13 +10,12 @@
 
 #pragma once
 
-// local includes
 #include "module/players/xsf/xsf_file.h"
 #include "module/players/xsf/xsf_metainformation.h"
-// common includes
-#include <string_view.h>
-// library includes
+
 #include <formats/chiptune.h>
+
+#include <string_view.h>
 
 namespace Module::XSF
 {

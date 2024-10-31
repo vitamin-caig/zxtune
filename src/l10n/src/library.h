@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
+#include <binary/data.h>
+
 #include <string_type.h>
 #include <string_view.h>
-// library includes
-#include <binary/data.h>
-// std includes
+
 #include <memory>
 
 namespace L10n

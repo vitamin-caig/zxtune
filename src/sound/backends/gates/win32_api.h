@@ -10,10 +10,9 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-dependent includes
 #include <windows.h>
+
+#include <memory>
 
 namespace Sound::Win32
 {

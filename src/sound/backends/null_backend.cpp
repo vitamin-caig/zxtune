@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/storage.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <l10n/markup.h>
 #include <sound/backend_attrs.h>
+
+#include <make_ptr.h>
 
 namespace Sound::Null
 {

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <sound/analyzer.h>
 #include <sound/sample.h>
 

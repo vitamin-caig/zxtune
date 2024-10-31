@@ -8,10 +8,9 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/music/ffmpeg_decoder.h"
 #include "core/plugins/players/music/wav_supp.h"
-// common includes
+
 #include <contract.h>
 #include <make_ptr.h>
 

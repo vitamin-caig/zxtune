@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
+#include <strings/fields.h>
+
 #include <contract.h>
 #include <string_view.h>
-// library includes
-#include <strings/fields.h>
-// std includes
+
 #include <set>
 #include <type_traits>
 #include <vector>

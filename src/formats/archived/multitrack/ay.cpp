@@ -8,17 +8,17 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
 #include <formats/archived/multitrack/filename.h>
 #include <formats/chiptune/emulation/ay.h>
+
+#include <binary/container_base.h>
+#include <binary/format_factories.h>
 #include <strings/prefixed_index.h>
-// std includes
+
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <algorithm>
 #include <utility>
 

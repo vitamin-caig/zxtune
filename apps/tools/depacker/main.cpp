@@ -1,9 +1,12 @@
-#include <binary/data_builder.h>
 #include <formats/packed/decoders.h>
-#include <iostream>
+
+#include <binary/data_builder.h>
+
 #include <make_ptr.h>
-#include <stdexcept>
 #include <string_view.h>
+
+#include <iostream>
+#include <stdexcept>
 
 #ifdef _WIN32
 #  include <fcntl.h>

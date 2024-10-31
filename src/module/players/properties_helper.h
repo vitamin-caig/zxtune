@@ -10,13 +10,12 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-// library includes
 #include <formats/chiptune.h>
 #include <parameters/modifier.h>
 #include <strings/array.h>
 #include <time/duration.h>
+
+#include <string_view.h>
 
 namespace Module
 {

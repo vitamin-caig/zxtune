@@ -1,12 +1,12 @@
-// library includes
-#include <binary/data_builder.h>
 #include <formats/chiptune/multidevice/multitrackcontainer.h>
+
+#include <binary/data_builder.h>
 #include <module/attributes.h>
 #include <platform/version/api.h>
 #include <strings/format.h>
-// common includes
+
 #include <string_view.h>
-// std includes
+
 #include <fstream>
 #include <iostream>
 #include <stdexcept>

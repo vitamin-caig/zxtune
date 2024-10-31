@@ -10,9 +10,7 @@
 
 #pragma once
 
-// local includes
 #include "module/players/tfm/tfm_chiptune.h"
-// library includes
 #include <module/players/tracking.h>
 
 namespace Module::TFM

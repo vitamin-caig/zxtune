@@ -8,13 +8,12 @@
  *
  **/
 
-// library includes
 #include <math/numeric.h>
 #include <sound/gainer.h>
-// common includes
+
 #include <contract.h>
 #include <error_tools.h>
-// std includes
+
 #include <algorithm>
 #include <iostream>
 

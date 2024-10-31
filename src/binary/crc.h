@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <binary/view.h>
 
 namespace Binary

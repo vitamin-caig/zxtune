@@ -10,9 +10,8 @@
 
 #pragma once
 
-// common includes
 #include <string_type.h>
-// std includes
+
 #include <set>
 
 namespace Strings

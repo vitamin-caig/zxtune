@@ -8,15 +8,14 @@
  *
  **/
 
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
 #include <debug/log.h>
 #include <l10n/api.h>
 #include <strings/map.h>
-// boost includes
+
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <boost/locale/gnu_gettext.hpp>
 #include <boost/locale/util.hpp>
 

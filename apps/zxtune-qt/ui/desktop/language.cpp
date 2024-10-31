@@ -8,21 +8,21 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/desktop/language.h"
+
 #include "apps/zxtune-qt/ui/utils.h"
-// common includes
+
+#include <l10n/control.h>
+
 #include <make_ptr.h>
 #include <string_view.h>
-// library includes
-#include <l10n/control.h>
-// std includes
-#include <map>
-#include <set>
-// qt includes
+
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLocale>
 #include <QtCore/QTranslator>
+
+#include <map>
+#include <set>
 
 namespace
 {

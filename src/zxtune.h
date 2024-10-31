@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <parameters/identifier.h>
 
 namespace Parameters::ZXTune

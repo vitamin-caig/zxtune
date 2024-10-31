@@ -8,15 +8,15 @@
  *
  **/
 
-// common includes
+#include <formats/chiptune/container.h>
+
+#include <binary/format_factories.h>
+#include <binary/input_stream.h>
+
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <formats/chiptune/container.h>
 
 namespace Formats::Chiptune
 {

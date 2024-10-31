@@ -8,14 +8,14 @@
  *
  **/
 
-// library includes
 #include <debug/log.h>
 #include <platform/tools.h>
-// platform includes
+
 #include <dlfcn.h>
 #include <errno.h>
-#include <mach-o/dyld.h>
 #include <unistd.h>
+
+#include <mach-o/dyld.h>
 
 namespace
 {

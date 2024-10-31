@@ -8,8 +8,9 @@
  *
  **/
 
-#include <algorithm>
 #include <io/providers/providers_factories.h>
+
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 

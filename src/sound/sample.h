@@ -10,7 +10,6 @@
 
 #pragma once
 
-// common includes
 #include <types.h>
 
 namespace Sound

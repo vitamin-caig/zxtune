@@ -8,12 +8,11 @@
  *
  **/
 
-// local includes
 #include "devices/aym/dumper/dump_builder.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <binary/data_builder.h>
+
+#include <make_ptr.h>
 
 namespace Devices::AYM
 {

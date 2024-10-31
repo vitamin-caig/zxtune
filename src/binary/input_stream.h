@@ -10,16 +10,15 @@
 
 #pragma once
 
-// library includes
 #include <binary/container.h>
 #include <binary/view.h>
-// common includes
+
 #include <byteorder.h>
 #include <contract.h>
 #include <pointers.h>
 #include <string_view.h>
 #include <types.h>
-// std includes
+
 #include <algorithm>
 #include <cstring>
 #include <utility>

@@ -9,10 +9,13 @@
  **/
 
 #include "../../utils.h"
+
 #include <formats/chiptune/emulation/spc.h>
-#include <string_view.h>
+
 #include <strings/format.h>
 #include <time/serialize.h>
+
+#include <string_view.h>
 
 namespace
 {

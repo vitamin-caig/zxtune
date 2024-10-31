@@ -10,10 +10,9 @@
 
 #pragma once
 
-// common includes
 #include <string_view.h>
 #include <types.h>
-// std includes
+
 #include <algorithm>
 
 namespace Strings

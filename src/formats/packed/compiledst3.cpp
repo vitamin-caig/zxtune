@@ -8,16 +8,15 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/soundtracker.h"
 #include "formats/packed/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
+
 #include <binary/format_factories.h>
 #include <debug/log.h>
-// std includes
+
+#include <byteorder.h>
+#include <make_ptr.h>
+
 #include <algorithm>
 #include <array>
 

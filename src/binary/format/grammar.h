@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "lexic_analysis.h"
 
 namespace Binary::FormatDSL

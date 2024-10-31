@@ -8,12 +8,11 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-// library includes
 #include <async/coroutine.h>
 #include <async/worker.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <utility>
 
 namespace Async

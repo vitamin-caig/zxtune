@@ -9,8 +9,10 @@
  **/
 
 #include <async/activity.h>
-#include <iostream>
+
 #include <make_ptr.h>
+
+#include <iostream>
 #include <thread>
 
 bool operator!=(const Error& lh, const Error& rh)

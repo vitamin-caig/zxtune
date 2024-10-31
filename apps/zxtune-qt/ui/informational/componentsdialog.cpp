@@ -8,25 +8,25 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/informational/componentsdialog.h"
+
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "componentsdialog.ui.h"
-// library includes
+
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <io/provider.h>
 #include <sound/backend_attrs.h>
 #include <sound/service.h>
 #include <strings/format.h>
-// common includes
+
 #include <string_view.h>
-// std includes
-#include <utility>
-// qt includes
+
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDialog>
+
+#include <utility>
 
 namespace
 {

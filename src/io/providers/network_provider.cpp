@@ -8,24 +8,24 @@
  *
  **/
 
-// local includes
 #include "io/providers/network_provider.h"
+
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
 #include "io/providers/gates/curl_api.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/container_factories.h>
 #include <binary/data_builder.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
 #include <parameters/accessor.h>
 #include <tools/progress_callback.h>
-// std includes
+
+#include <contract.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <cstring>
 #include <utility>
 

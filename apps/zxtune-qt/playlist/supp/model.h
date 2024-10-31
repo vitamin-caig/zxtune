@@ -10,16 +10,15 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/playlist/io/container.h"
 #include "apps/zxtune-qt/playlist/supp/data.h"
-// common includes
+
 #include <tools/progress_callback.h>
-// std includes
+
+#include <QtCore/QAbstractItemModel>
+
 #include <map>
 #include <set>
-// qt includes
-#include <QtCore/QAbstractItemModel>
 
 namespace Playlist
 {

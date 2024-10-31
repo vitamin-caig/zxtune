@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
 #include <sound/backend.h>
-// qt includes
+
 #include <QtWidgets/QWidget>
 
 class PlaybackSupport;

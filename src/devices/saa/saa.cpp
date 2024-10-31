@@ -10,16 +10,16 @@
  *
  **/
 
-// local includes
 #include "device.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
+
 #include <devices/details/renderers.h>
+
 #include <parameters/tracking_helper.h>
 #include <sound/lpfilter.h>
-// std includes
+
+#include <contract.h>
+#include <make_ptr.h>
+
 #include <cassert>
 #include <cmath>
 #include <functional>

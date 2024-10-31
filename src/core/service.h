@@ -10,13 +10,12 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-// library includes
 #include <binary/container.h>
-#include <core/module_detect.h>  // DetectCallback
+#include <core/module_detect.h>
 #include <module/holder.h>
 #include <parameters/container.h>
+
+#include <string_view.h>
 
 namespace ZXTune
 {

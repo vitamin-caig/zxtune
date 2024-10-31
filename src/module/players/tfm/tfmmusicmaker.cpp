@@ -8,18 +8,18 @@
  *
  **/
 
-// local includes
 #include "module/players/tfm/tfmmusicmaker.h"
+
 #include "module/players/tfm/tfm_base.h"
 #include "module/players/tfm/tfm_base_track.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <math/fixedpoint.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-// std includes
+
+#include <math/fixedpoint.h>
+
+#include <make_ptr.h>
+
 #include <array>
 #include <memory>
 

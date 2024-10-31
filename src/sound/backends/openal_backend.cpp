@@ -8,23 +8,22 @@
  *
  **/
 
-// local includes
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/gates/openal_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/openal.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/volume_control.h"
-// common includes
-#include <byteorder.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
+
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
-// std includes
+
+#include <byteorder.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+
 #include <functional>
 #include <memory>
 #include <thread>

@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
+#include <binary/format.h>
+
 #include <string_view.h>
 #include <types.h>
-// library includes
-#include <binary/format.h>
 
 namespace Binary
 {

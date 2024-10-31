@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "core/src/location.h"
-// common includes
+
+#include <module/attributes.h>
+
 #include <make_ptr.h>
 #include <string_view.h>
-// library includes
-#include <module/attributes.h>
 
 namespace ZXTune
 {

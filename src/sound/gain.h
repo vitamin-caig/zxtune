@@ -10,7 +10,6 @@
 
 #pragma once
 
-// common includes
 #include <math/fixedpoint.h>
 
 namespace Sound

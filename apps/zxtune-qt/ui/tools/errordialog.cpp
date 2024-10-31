@@ -8,12 +8,12 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/tools/errordialog.h"
+
 #include "apps/zxtune-qt/ui/utils.h"
-// qt includes
+
 #include <QtWidgets/QMessageBox>
-// std includes
+
 #include <utility>
 
 void ShowErrorMessage(const QString& title, const Error& err)

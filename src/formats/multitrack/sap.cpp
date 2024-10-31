@@ -8,13 +8,6 @@
  *
  **/
 
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-#include <string_view.h>
-// library includes
 #include <binary/container_base.h>
 #include <binary/crc.h>
 #include <binary/data_builder.h>
@@ -23,7 +16,13 @@
 #include <formats/multitrack.h>
 #include <strings/array.h>
 #include <strings/conversion.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+#include <pointers.h>
+#include <string_view.h>
+
 #include <array>
 #include <map>
 #include <utility>

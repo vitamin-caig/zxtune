@@ -10,10 +10,9 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-dependent includes
 #include <pulse/simple.h>
+
+#include <memory>
 
 namespace Sound::PulseAudio
 {

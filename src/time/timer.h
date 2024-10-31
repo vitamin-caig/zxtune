@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
 #include <time/duration.h>
-// std includes
+
 #include <ctime>
 #include <type_traits>
 

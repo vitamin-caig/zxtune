@@ -8,7 +8,6 @@
  *
  **/
 
-// library includes
 #include <sound/backends_parameters.h>
 #include <sound/gain.h>
 #include <sound/mixer_parameters.h>

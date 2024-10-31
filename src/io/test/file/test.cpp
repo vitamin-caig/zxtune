@@ -8,14 +8,14 @@
  *
  **/
 
+#include <parameters/container.h>
+#include <tools/progress_callback.h>
+
+#include <error.h>
+
 #include <src/io/api.h>
 #include <src/io/providers/file_provider.h>
 #include <src/io/providers_parameters.h>
-
-#include <error.h>
-#include <tools/progress_callback.h>
-
-#include <parameters/container.h>
 
 #include <iostream>
 #include <limits>

@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-// library includes
 #include <strings/array.h>
-// qt includes
+
+#include <string_view.h>
+
 #include <QtWidgets/QWidget>
 
 namespace UI

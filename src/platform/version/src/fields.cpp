@@ -8,10 +8,9 @@
  *
  **/
 
-// local includes
 #include <platform/version/api.h>
 #include <platform/version/fields.h>
-// common includes
+
 #include <string_view.h>
 
 namespace Platform::Version

@@ -8,13 +8,10 @@
  *
  **/
 
-// local includes
 #include "sound.h"
+
 #include "config.h"
-// common includes
-#include <error_tools.h>
-#include <string_view.h>
-// library includes
+
 #include <core/core_parameters.h>
 #include <debug/log.h>
 #include <math/numeric.h>
@@ -27,16 +24,19 @@
 #include <sound/sound_parameters.h>
 #include <strings/array.h>
 #include <strings/map.h>
-// std includes
+
+#include <error_tools.h>
+#include <string_view.h>
+
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/value_semantic.hpp>
+
 #include <algorithm>
 #include <cctype>
 #include <iostream>
 #include <list>
 #include <sstream>
 #include <utility>
-// boost includes
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/value_semantic.hpp>
 
 namespace
 {

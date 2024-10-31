@@ -8,16 +8,10 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/ay.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/container_factories.h>
 #include <binary/crc.h>
 #include <binary/data_builder.h>
@@ -27,7 +21,13 @@
 #include <math/numeric.h>
 #include <strings/optimize.h>
 #include <tools/range_checker.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+#include <pointers.h>
+#include <string_view.h>
+
 #include <array>
 #include <cstring>
 #include <list>

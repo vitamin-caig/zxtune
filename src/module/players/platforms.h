@@ -9,7 +9,6 @@
  **/
 #pragma once
 
-// common includes
 #include <types.h>
 
 // use ascii letters

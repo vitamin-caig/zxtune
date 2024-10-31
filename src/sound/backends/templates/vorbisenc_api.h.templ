@@ -10,10 +10,9 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-specific includes
 #include <vorbis/vorbisenc.h>
+
+#include <memory>
 
 namespace Sound::VorbisEnc
 {

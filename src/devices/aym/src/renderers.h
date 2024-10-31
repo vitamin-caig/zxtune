@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <devices/aym/chip.h>
 #include <devices/details/renderers.h>
 

@@ -8,8 +8,8 @@
  *
  **/
 
-// local includes
 #include "module.h"
+
 #include "array.h"
 #include "binary.h"
 #include "debug.h"
@@ -17,14 +17,14 @@
 #include "global_options.h"
 #include "player.h"
 #include "properties.h"
-// common includes
-#include <contract.h>
-#include <string_view.h>
-// library includes
+
 #include <core/data_location.h>
 #include <core/service.h>
 #include <module/additional_files.h>
 #include <tools/progress_callback.h>
+
+#include <contract.h>
+#include <string_view.h>
 
 namespace
 {

@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "io/impl/l10n.h"
 
 namespace IO

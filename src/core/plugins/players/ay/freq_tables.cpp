@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/ay/freq_tables_internal.h"
-// common includes
+
+#include <l10n/api.h>
+
 #include <error_tools.h>
 #include <string_view.h>
-// library includes
-#include <l10n/api.h>
-// std includes
+
 #include <algorithm>
 
 namespace Module

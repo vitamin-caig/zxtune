@@ -10,11 +10,10 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-specific includes
 #include <3rdparty/curl/curl.h>
 #include <3rdparty/curl/easy.h>
+
+#include <memory>
 
 namespace IO::Curl
 {

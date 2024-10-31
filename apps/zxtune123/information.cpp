@@ -8,13 +8,10 @@
  *
  **/
 
-// local includes
 #include "information.h"
+
 #include "sound.h"
-// common includes
-#include <static_string.h>
-#include <string_view.h>
-// library includes
+
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
 #include <core/plugin.h>
@@ -32,12 +29,15 @@
 #include <sound/service.h>
 #include <sound/sound_parameters.h>
 #include <strings/format.h>
-// std includes
-#include <iostream>
-#include <variant>
-// boost includes
+
+#include <static_string.h>
+#include <string_view.h>
+
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
+
+#include <iostream>
+#include <variant>
 
 namespace
 {

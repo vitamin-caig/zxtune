@@ -1,6 +1,5 @@
 #pragma once
 
-// std includes
 #include <algorithm>
 #include <functional>
 #include <ostream>

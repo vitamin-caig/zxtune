@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/data.h"
-// library includes
+
 #include <sound/backend.h>
-// qt includes
+
 #include <QtCore/QThread>
 
 class PlaybackSupport : public QObject

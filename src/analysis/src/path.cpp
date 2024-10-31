@@ -8,16 +8,15 @@
  *
  **/
 
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
 #include <analysis/path.h>
 #include <strings/array.h>
 #include <strings/join.h>
 #include <strings/split.h>
-// std includes
+
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <functional>
 
 namespace Analysis

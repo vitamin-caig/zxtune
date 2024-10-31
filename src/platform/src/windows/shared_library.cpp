@@ -8,19 +8,18 @@
  *
  **/
 
-// local includes
 #include "platform/src/shared_library_common.h"
-// common includes
+
+#include <l10n/api.h>
+
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
 #include <string_view.h>
-// library includes
-#include <l10n/api.h>
-// std includes
-#include <algorithm>
-// platform includes
+
 #include <windows.h>
+
+#include <algorithm>
 
 namespace
 {

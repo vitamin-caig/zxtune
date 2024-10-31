@@ -7,13 +7,12 @@
  * @author liushuyu011@gmail.com
  *
  **/
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-// library includes
-#include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
 #include <module/players/xsf/ncsf.h>
+
+#include <core/plugin_attrs.h>
 
 namespace ZXTune
 {

@@ -10,9 +10,7 @@
 
 #pragma once
 
-// std includes
 #include <memory>
-// platform-dependent includes
 #define NOMINMAX
 #include <dsound.h>
 

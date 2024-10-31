@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "debug.h"
 
 const Debug::Stream Dbg("");

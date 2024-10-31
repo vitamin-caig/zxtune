@@ -8,9 +8,11 @@
  *
  **/
 
-#include <contract.h>
-#include <iostream>
 #include <platform/tools.h>
+
+#include <contract.h>
+
+#include <iostream>
 
 int main()
 {

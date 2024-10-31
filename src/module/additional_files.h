@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-// library includes
 #include <binary/container.h>
 #include <strings/array.h>
+
+#include <string_view.h>
 
 namespace Module
 {

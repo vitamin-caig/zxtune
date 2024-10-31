@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
 #include "expression.h"
-// common includes
+
 #include <contract.h>
-// std includes
+
 #include <array>
 #include <vector>
 

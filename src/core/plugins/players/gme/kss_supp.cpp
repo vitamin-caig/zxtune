@@ -8,13 +8,11 @@
  *
  **/
 
-// library includes
-#include <contract.h>
-// local includes
 #include "core/plugins/players/gme/kss_supp.h"
-// library includes
+
 #include <module/players/platforms.h>
-// common includes
+
+#include <contract.h>
 #include <string_view.h>
 
 namespace Module::KSS

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "module/players/xsf/xsf_factory.h"
 
 namespace Module::USF

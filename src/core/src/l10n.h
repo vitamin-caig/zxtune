@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <l10n/api.h>
 
 namespace Module

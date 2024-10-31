@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "apps/benchmark/core/benchmark.h"
-// std includes
-#include <cmath>
-#include <sstream>
-// system includes
+
 #include <android/log.h>
 #include <jni.h>
+
+#include <cmath>
+#include <sstream>
 
 namespace
 {

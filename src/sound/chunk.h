@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
 #include <sound/sample.h>
-// std includes
+
 #include <cassert>
 #include <cstring>
 #include <vector>

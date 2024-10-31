@@ -8,16 +8,15 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/nitrocomposersoundformat.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
+
 #include <binary/compression/zlib_container.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-// std includes
+
+#include <byteorder.h>
+#include <make_ptr.h>
+
 #include <array>
 
 namespace Formats::Chiptune

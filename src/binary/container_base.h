@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
 #include <binary/container.h>
-// std includes
+
 #include <type_traits>
 
 namespace Binary

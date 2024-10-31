@@ -10,9 +10,8 @@
 
 #pragma once
 
-// common includes
 #include <error.h>
-// common includes
+
 #include <QtWidgets/QWidget>
 
 namespace UI

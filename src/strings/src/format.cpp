@@ -8,7 +8,6 @@
  *
  **/
 
-// common includes
 #include <strings/format.h>
 
 namespace Strings

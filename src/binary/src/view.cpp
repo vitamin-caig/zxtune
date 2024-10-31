@@ -8,7 +8,6 @@
  *
  **/
 
-// library includes
 #include <binary/data.h>
 #include <binary/view.h>
 

@@ -8,17 +8,17 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/io/container_impl.h"
-// common includes
+
+#include <module/properties/path.h>
+
+#include <debug/log.h>
+#include <parameters/merged_accessor.h>
+
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <module/properties/path.h>
-#include <parameters/merged_accessor.h>
-// std includes
+
 #include <mutex>
 #include <utility>
 

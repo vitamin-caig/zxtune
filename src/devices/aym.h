@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
 #include <time/instant.h>
-// std includes
+
+#include <types.h>
+
 #include <array>
 #include <memory>
 #include <vector>

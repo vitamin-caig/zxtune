@@ -10,7 +10,6 @@
 
 #pragma once
 
-// std includes
 #include <array>
 #include <string_view>
 

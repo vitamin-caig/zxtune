@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "io/providers/enumerator.h"
 #include "io/providers/network_provider.h"
 

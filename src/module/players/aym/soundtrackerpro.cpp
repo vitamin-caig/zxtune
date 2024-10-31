@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/soundtrackerpro.h"
+
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_properties_helper.h"
-// common includes
-#include <make_ptr.h>
-// library includes
 #include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <array>
 
 namespace Module::SoundTrackerPro

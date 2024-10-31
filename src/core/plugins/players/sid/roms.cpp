@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/sid/roms.h"
 
 namespace Module::Sid

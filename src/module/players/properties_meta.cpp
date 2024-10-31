@@ -8,10 +8,10 @@
  *
  **/
 
-// local includes
 #include "module/players/properties_meta.h"
+
 #include "module/attributes.h"
-// common includes
+
 #include <string_view.h>
 
 namespace Module

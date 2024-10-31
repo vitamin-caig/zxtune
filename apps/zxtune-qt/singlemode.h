@@ -10,10 +10,9 @@
 
 #pragma once
 
-// library includes
 #include <parameters/accessor.h>
 #include <strings/array.h>
-// qt includes
+
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
 

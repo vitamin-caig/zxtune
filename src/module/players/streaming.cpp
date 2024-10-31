@@ -8,12 +8,12 @@
  *
  **/
 
-// local includes
 #include "module/players/streaming.h"
+
 #include "module/players/stream_model.h"
-// common includes
+
 #include <make_ptr.h>
-// std includes
+
 #include <utility>
 
 namespace Module

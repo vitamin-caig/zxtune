@@ -10,11 +10,11 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/data.h"
-// common includes
-#include <string_view.h>
+
 #include <tools/progress_callback.h>
+
+#include <string_view.h>
 
 namespace Playlist::Item
 {

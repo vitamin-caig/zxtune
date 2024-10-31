@@ -8,21 +8,19 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/state.h"
+
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/parameters.h"
 #include "apps/zxtune-qt/ui/utils.h"
-// common includes
+
+#include <debug/log.h>
+#include <parameters/convert.h>
+
 #include <make_ptr.h>
 #include <pointers.h>
 #include <string_view.h>
-// library includes
-#include <debug/log.h>
-#include <parameters/convert.h>
-// std includes
-#include <utility>
-// qt includes
+
 #include <QtCore/QByteArray>
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QComboBox>
@@ -31,6 +29,8 @@
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QTabWidget>
+
+#include <utility>
 
 namespace
 {

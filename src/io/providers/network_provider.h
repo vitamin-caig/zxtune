@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
+#include <l10n/markup.h>
+
 #include <string_view.h>
 #include <types.h>
-// library includes
-#include <l10n/markup.h>
 
 namespace IO::Network
 {

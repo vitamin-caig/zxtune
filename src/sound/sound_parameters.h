@@ -10,9 +10,9 @@
 
 #pragma once
 
-// library includes
-#include <parameters/types.h>
 #include <zxtune.h>
+
+#include <parameters/types.h>
 
 namespace Parameters::ZXTune::Sound
 {

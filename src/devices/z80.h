@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
 #include <binary/view.h>
 #include <time/oscillator.h>
-// std includes
+
+#include <types.h>
+
 #include <array>
 #include <memory>
 

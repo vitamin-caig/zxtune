@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "archive_plugin.h"
 #include "registrator.h"
 

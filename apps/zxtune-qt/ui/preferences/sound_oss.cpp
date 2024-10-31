@@ -8,18 +8,18 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/preferences/sound_oss.h"
+
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "sound_oss.ui.h"
-// common includes
-#include <contract.h>
-// library includes
+
 #include <sound/backends_parameters.h>
-// qt includes
+
+#include <contract.h>
+
 #include <QtWidgets/QFileDialog>
-// std includes
+
 #include <utility>
 
 namespace

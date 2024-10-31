@@ -8,7 +8,6 @@
  *
  **/
 
-// common includes
 #include <types.h>
 
 namespace Module::Sid

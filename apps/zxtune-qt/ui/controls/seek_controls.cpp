@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/controls/seek_controls.h"
+
 #include "apps/zxtune-qt/supp/playback_supp.h"
 #include "apps/zxtune-qt/ui/styles.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "seek_controls.ui.h"
-// common includes
-#include <contract.h>
-// library includes
+
 #include <time/serialize.h>
-// qt includes
+
+#include <contract.h>
+
 #include <QtGui/QCursor>
 #include <QtWidgets/QToolTip>
-// std includes
+
 #include <memory>
 
 namespace

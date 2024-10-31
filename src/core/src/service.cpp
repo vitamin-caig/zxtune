@@ -8,22 +8,21 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archive_plugin.h"
 #include "core/plugins/player_plugin.h"
 #include "core/src/callback.h"
 #include "core/src/l10n.h"
 #include "core/src/location.h"
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <core/additional_files_resolve.h>
 #include <core/service.h>
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <strings/map.h>
+
+#include <error_tools.h>
+#include <make_ptr.h>
+#include <string_view.h>
 
 namespace ZXTune
 {

@@ -8,11 +8,10 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-// library includes
 #include <devices/dac/sample_factories.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <cmath>
 #include <cstring>
 #include <numeric>

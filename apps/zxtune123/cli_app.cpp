@@ -8,19 +8,18 @@
  *
  **/
 
-// local includes
 #include "config.h"
 #include "console.h"
 #include "display.h"
 #include "information.h"
 #include "sound.h"
 #include "source.h"
-// common includes
-#include <error_tools.h>
-#include <string_view.h>
-// library includes
-#include <async/data_receiver.h>
+
 #include <async/src/event.h>
+#include <module/conversion/api.h>
+#include <module/conversion/types.h>
+
+#include <async/data_receiver.h>
 #include <binary/container_factories.h>
 #include <binary/crc.h>
 #include <core/core_parameters.h>
@@ -29,8 +28,6 @@
 #include <io/api.h>
 #include <io/template.h>
 #include <module/attributes.h>
-#include <module/conversion/api.h>
-#include <module/conversion/types.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/template.h>
 #include <platform/application.h>
@@ -39,15 +36,18 @@
 #include <time/duration.h>
 #include <time/timer.h>
 #include <tools/progress_callback.h>
-// std includes
+
+#include <error_tools.h>
+#include <string_view.h>
+
+#include <boost/program_options.hpp>
+
 #include <algorithm>
 #include <cctype>
 #include <functional>
 #include <limits>
 #include <memory>
 #include <numeric>
-// boost includes
-#include <boost/program_options.hpp>
 
 namespace
 {

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/ui/conversion/backend_settings.h"
 
 namespace UI

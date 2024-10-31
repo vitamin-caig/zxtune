@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <module/players/factory.h>
 
 namespace Module::AYEMUL

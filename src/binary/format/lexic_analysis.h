@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
+#include <math/bitops.h>
+
 #include <string_view.h>
 #include <types.h>
-// library includes
-#include <math/bitops.h>
-// std includes
+
 #include <cassert>
 #include <memory>
 

@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "module/players/dac/dac_parameters.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <core/core_parameters.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <utility>
 
 namespace Module::DAC

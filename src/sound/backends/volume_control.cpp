@@ -8,10 +8,10 @@
  *
  **/
 
-// local includes
 #include "sound/backends/volume_control.h"
+
 #include "sound/backends/l10n.h"
-// common includes
+
 #include <make_ptr.h>
 
 namespace Sound

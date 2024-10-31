@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
 #include "exception.h"
-// common includes
+
 #include <pointers.h>
-// std includes
+
 #include <map>
 #include <mutex>
 

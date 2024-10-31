@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <binary/view.h>
 #include <core/data_location.h>
 

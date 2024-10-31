@@ -8,25 +8,26 @@
  *
  **/
 
-// local includes
 #include "player.h"
+
 #include "array.h"
+#include "contract.h"
 #include "debug.h"
 #include "defines.h"
 #include "exception.h"
 #include "global_options.h"
 #include "module.h"
 #include "properties.h"
-// common includes
-#include "contract.h"
+
+#include <module/players/pipeline.h>
+#include <sound/impl/fft_analyzer.h>
+
+#include <parameters/merged_accessor.h>
+#include <sound/mixer_factory.h>
+
 #include <make_ptr.h>
 #include <pointers.h>
-// library includes
-#include <module/players/pipeline.h>
-#include <parameters/merged_accessor.h>
-#include <sound/impl/fft_analyzer.h>
-#include <sound/mixer_factory.h>
-// std includes
+
 #include <atomic>
 #include <ctime>
 #include <deque>

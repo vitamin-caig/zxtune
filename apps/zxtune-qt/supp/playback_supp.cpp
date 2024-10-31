@@ -8,23 +8,23 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/supp/playback_supp.h"
+
 #include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/supp/thread_utils.h"
 #include "apps/zxtune-qt/ui/utils.h"
-// common includes
+
+#include <parameters/merged_accessor.h>
+#include <sound/service.h>
+
 #include <contract.h>
 #include <error.h>
 #include <lazy.h>
 #include <pointers.h>
-// library includes
-#include <parameters/merged_accessor.h>
-#include <sound/service.h>
-// std includes
-#include <utility>
-// qt includes
+
 #include <QtCore/QTimer>
+
+#include <utility>
 
 namespace
 {

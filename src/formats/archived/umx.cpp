@@ -9,21 +9,20 @@
  *
  **/
 
-// local includes
 #include "formats/archived/decoders.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <strings/casing.h>
 #include <strings/map.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <algorithm>
 #include <array>
 

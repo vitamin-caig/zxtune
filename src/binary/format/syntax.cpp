@@ -8,16 +8,17 @@
  *
  **/
 
-// local includes
 #include "binary/format/syntax.h"
+
 #include "binary/format/grammar.h"
-// common includes
+
+#include <tools/iterators.h>
+#include <tools/locale_helpers.h>
+
 #include <contract.h>
 #include <make_ptr.h>
 #include <string_view.h>
-#include <tools/iterators.h>
-#include <tools/locale_helpers.h>
-// std includes
+
 #include <cctype>
 #include <stack>
 #include <utility>

@@ -10,9 +10,7 @@
 
 #pragma once
 
-// local includes
 #include "module/players/aym/aym_factory.h"
-// library includes
 #include <formats/chiptune/aym/soundtrackerpro.h>
 
 namespace Module::SoundTrackerPro

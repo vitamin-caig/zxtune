@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-// library includes
 #include <binary/data.h>
 #include <binary/output_stream.h>
+
+#include <string_view.h>
 
 namespace Parameters
 {

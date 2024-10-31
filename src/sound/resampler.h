@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <sound/receiver.h>
 
 namespace Sound

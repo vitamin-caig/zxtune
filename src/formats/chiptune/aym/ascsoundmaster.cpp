@@ -8,16 +8,11 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/ascsoundmaster.h"
+
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/metainfo.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
@@ -26,7 +21,12 @@
 #include <strings/trim.h>
 #include <tools/indices.h>
 #include <tools/range_checker.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <array>
 #include <cstring>
 

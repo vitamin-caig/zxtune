@@ -9,12 +9,12 @@
  **/
 
 #include "core/plugins/players/music/wav_supp.h"
-// common includes
+
+#include <math/numeric.h>
+
 #include <contract.h>
 #include <make_ptr.h>
-// library includes
-#include <math/numeric.h>
-// std includes
+
 #include <array>
 
 namespace Module::Wav

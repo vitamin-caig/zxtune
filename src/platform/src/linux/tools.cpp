@@ -8,14 +8,13 @@
  *
  **/
 
-// library includes
 #include <debug/log.h>
 #include <platform/tools.h>
-// platform includes
+
 #include <dlfcn.h>
 #include <sys/stat.h>
 #include <unistd.h>
-// std includes
+
 #include <cerrno>
 #include <vector>
 

@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/conversion/supported_formats.h"
+
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/conversion/parameters.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "supported_formats.ui.h"
-// common includes
-#include <contract.h>
-#include <string_view.h>
-// library includes
+
 #include <sound/service.h>
 #include <strings/map.h>
-// qt includes
+
+#include <contract.h>
+#include <string_view.h>
+
 #include <QtWidgets/QRadioButton>
 
 namespace

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <analysis/path.h>
 #include <binary/container.h>
 

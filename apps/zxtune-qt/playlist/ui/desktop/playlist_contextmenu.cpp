@@ -8,8 +8,8 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.h"
+
 #include "apps/zxtune-qt/playlist/supp/operations.h"
 #include "apps/zxtune-qt/playlist/supp/operations_convert.h"
 #include "apps/zxtune-qt/playlist/supp/operations_statistic.h"
@@ -25,16 +25,16 @@
 #include "multiple_items_contextmenu.ui.h"
 #include "no_items_contextmenu.ui.h"
 #include "single_item_contextmenu.ui.h"
-// common includes
+
+#include <strings/map.h>
+#include <strings/set.h>
+#include <time/serialize.h>
+
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
 #include <string_view.h>
-// library includes
-#include <strings/map.h>
-#include <strings/set.h>
-#include <time/serialize.h>
-// qt includes
+
 #include <QtGui/QClipboard>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMenu>

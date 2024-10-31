@@ -8,10 +8,8 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/tfm/tfm_plugin.h"
-// library includes
 #include <module/players/tfm/tfmmusicmaker.h>
 
 namespace ZXTune

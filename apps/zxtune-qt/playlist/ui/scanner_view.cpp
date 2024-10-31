@@ -8,14 +8,14 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/ui/scanner_view.h"
+
 #include "apps/zxtune-qt/playlist/supp/scanner.h"
 #include "scanner_view.ui.h"
-// common includes
-#include <contract.h>
-// library includes
+
 #include <debug/log.h>
+
+#include <contract.h>
 
 namespace
 {

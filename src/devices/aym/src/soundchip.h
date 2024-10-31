@@ -10,10 +10,9 @@
 
 #pragma once
 
-// local includes
 #include "renderers.h"
 #include "volume_table.h"
-// library includes
+
 #include <parameters/tracking_helper.h>
 
 namespace Devices::AYM

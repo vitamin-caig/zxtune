@@ -8,14 +8,14 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/psg.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <binary/format_factories.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <cstddef>
 #include <cstring>
 

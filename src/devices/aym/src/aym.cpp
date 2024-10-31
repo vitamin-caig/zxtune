@@ -8,12 +8,11 @@
  *
  **/
 
-// local includes
 #include "devices/aym/src/psg.h"
 #include "devices/aym/src/soundchip.h"
-// common includes
+
 #include <make_ptr.h>
-// std includes
+
 #include <utility>
 
 namespace Devices::AYM

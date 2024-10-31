@@ -8,17 +8,13 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archives/raw_supp.h"
+
 #include "core/plugins/archives/archived.h"
 #include <core/plugins/archive_plugins_registrator.h>
 #include <core/plugins/archives/l10n.h>
 #include <core/plugins/players/plugin.h>
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/container.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
@@ -30,7 +26,11 @@
 #include <time/serialize.h>
 #include <time/timer.h>
 #include <tools/progress_callback.h>
-// std includes
+
+#include <error_tools.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <algorithm>
 #include <array>
 #include <list>

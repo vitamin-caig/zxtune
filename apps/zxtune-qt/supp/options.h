@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <parameters/container.h>
 
 class GlobalOptions

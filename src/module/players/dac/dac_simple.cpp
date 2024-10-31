@@ -8,16 +8,15 @@
  *
  **/
 
-// local includes
 #include "module/players/dac/dac_simple.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <devices/dac/sample_factories.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <module/players/tracking.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <utility>
 
 namespace Module::DAC

@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archives/l10n.h"
 
 namespace ZXTune

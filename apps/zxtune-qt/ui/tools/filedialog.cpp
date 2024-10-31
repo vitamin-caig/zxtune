@@ -8,14 +8,14 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/tools/filedialog.h"
+
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/state.h"
 #include "apps/zxtune-qt/ui/utils.h"
-// qt includes
+
 #include <QtWidgets/QFileDialog>
-// std includes
+
 #include <utility>
 
 namespace

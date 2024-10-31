@@ -8,17 +8,12 @@
  *
  **/
 
-// local includes
 #include "io/providers/file_provider.h"
+
 #include "io/impl/filesystem_path.h"
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/data_builder.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
@@ -26,12 +21,17 @@
 #include <strings/encoding.h>
 #include <strings/format.h>
 #include <strings/trim.h>
-// std includes
-#include <cctype>
-#include <fstream>
-// boost includes
+
+#include <contract.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+
+#include <cctype>
+#include <fstream>
 
 #undef min
 

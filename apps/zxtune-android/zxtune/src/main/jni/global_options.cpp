@@ -8,8 +8,8 @@
  *
  **/
 
-// local includes
 #include "global_options.h"
+
 #include "defines.h"
 #include "properties.h"
 

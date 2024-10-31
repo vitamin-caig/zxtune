@@ -8,16 +8,15 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/music/tags_vorbis.h"
-// common includes
-#include <byteorder.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/base64.h>
 #include <strings/casing.h>
 #include <strings/sanitize.h>
-// std includes
+
+#include <byteorder.h>
+#include <string_view.h>
+
 #include <array>
 
 namespace Formats::Chiptune::Vorbis

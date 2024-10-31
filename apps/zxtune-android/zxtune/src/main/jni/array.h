@@ -10,14 +10,13 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
 #include <binary/view.h>
-// std includes
-#include <cstring>
-// platform includes
+
+#include <types.h>
+
 #include <jni.h>
+
+#include <cstring>
 
 namespace Jni
 {

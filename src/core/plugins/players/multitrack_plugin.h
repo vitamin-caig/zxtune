@@ -10,12 +10,11 @@
 
 #pragma once
 
-// local includes
 #include "core/plugins/archive_plugin.h"
 #include "core/plugins/player_plugin.h"
-// library includes
-#include <formats/multitrack.h>
 #include <module/players/factory.h>
+
+#include <formats/multitrack.h>
 
 namespace Module
 {

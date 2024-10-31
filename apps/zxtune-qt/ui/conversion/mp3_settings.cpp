@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/conversion/mp3_settings.h"
+
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/conversion/backend_settings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "mp3_settings.ui.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
+
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
-// std includes
+
+#include <contract.h>
+#include <make_ptr.h>
+
 #include <utility>
 
 namespace

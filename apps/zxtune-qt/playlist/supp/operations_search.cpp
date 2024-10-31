@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/operations_search.h"
+
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 #include "apps/zxtune-qt/ui/utils.h"
-// common includes
+
+#include <tools/progress_callback_helpers.h>
+
 #include <contract.h>
 #include <make_ptr.h>
 #include <string_view.h>
-// library includes
-#include <tools/progress_callback_helpers.h>
-// std includes
-#include <utility>
-// qt includes
+
 #include <QtCore/QRegExp>
+
+#include <utility>
 
 namespace
 {

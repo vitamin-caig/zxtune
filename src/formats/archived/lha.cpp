@@ -8,23 +8,23 @@
  *
  **/
 
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+#include <formats/packed/lha_supp.h>
+#include <formats/packed/pack_utils.h>
+
 #include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/archived.h>
-#include <formats/packed/lha_supp.h>
-#include <formats/packed/pack_utils.h>
 #include <strings/encoding.h>
 #include <strings/map.h>
-// 3rdparty includes
+
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <3rdparty/lhasa/lib/public/lhasa.h>
-// std includes
+
 #include <cstring>
 #include <list>
 #include <numeric>

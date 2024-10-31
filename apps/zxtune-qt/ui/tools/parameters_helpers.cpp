@@ -8,17 +8,14 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
-// common includes
-#include <contract.h>
-#include <string_view.h>
-// library includes
+
 #include <debug/log.h>
 #include <math/numeric.h>
-// std includes
-#include <utility>
-// qt includes
+
+#include <contract.h>
+#include <string_view.h>
+
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QComboBox>
@@ -26,6 +23,8 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QSpinBox>
+
+#include <utility>
 
 namespace
 {

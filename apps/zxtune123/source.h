@@ -10,13 +10,12 @@
 
 #pragma once
 
-// library includes
 #include <binary/data.h>
 #include <module/holder.h>
 #include <parameters/container.h>
-// common includes
+
 #include <string_view.h>
-// std includes
+
 #include <memory>
 #include <stdexcept>
 

@@ -8,11 +8,10 @@
  *
  **/
 
-// library included
 #include <strings/casing.h>
-// common includes
+
 #include <string_view.h>
-// std includes
+
 #include <algorithm>
 #include <cctype>
 

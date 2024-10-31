@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/io/import.h"
+
 #include "apps/zxtune-qt/playlist/io/container_impl.h"
 #include "apps/zxtune-qt/ui/utils.h"
-// common includes
+
 #include <make_ptr.h>
-// qt includes
+
 #include <QtCore/QStringList>
 
 namespace

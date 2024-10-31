@@ -9,9 +9,12 @@
  **/
 
 #include "../../utils.h"
+
 #include <formats/chiptune/music/oggvorbis.h>
-#include <string_view.h>
+
 #include <strings/format.h>
+
+#include <string_view.h>
 
 namespace
 {

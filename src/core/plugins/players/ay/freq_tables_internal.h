@@ -10,10 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-// library includes
 #include <core/freq_tables.h>
+
+#include <string_view.h>
 
 namespace Module
 {

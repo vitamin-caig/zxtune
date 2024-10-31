@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <binary/container.h>
 #include <formats/archived.h>
 #include <formats/chiptune.h>

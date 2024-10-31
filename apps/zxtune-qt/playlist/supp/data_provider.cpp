@@ -8,18 +8,15 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/data_provider.h"
+
 #include "apps/zxtune-qt/playlist/parameters.h"
 #include "apps/zxtune-qt/supp/thread_utils.h"
 #include "apps/zxtune-qt/ui/format.h"
 #include "apps/zxtune-qt/ui/utils.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
+#include <module/properties/path.h>
+
 #include <core/additional_files_resolve.h>
 #include <core/data_location.h>
 #include <core/plugin.h>
@@ -28,7 +25,6 @@
 #include <debug/log.h>
 #include <io/api.h>
 #include <module/attributes.h>
-#include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/merged_container.h>
 #include <parameters/template.h>
@@ -37,7 +33,12 @@
 #include <strings/format.h>
 #include <strings/template.h>
 #include <tools/progress_callback.h>
-// std includes
+
+#include <contract.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <deque>
 #include <mutex>
 

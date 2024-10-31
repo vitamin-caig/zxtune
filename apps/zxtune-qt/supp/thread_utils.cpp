@@ -8,9 +8,8 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/supp/thread_utils.h"
-// qt includes
+
 #include <QtCore/QCoreApplication>
 #include <QtCore/QThread>
 

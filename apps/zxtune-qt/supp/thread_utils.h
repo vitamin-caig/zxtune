@@ -10,14 +10,13 @@
 
 #pragma once
 
-// common includes
 #include <contract.h>
-// std includes
-#include <functional>
-// qt includes
+
 #include <QtCore/QMetaObject>
 #include <QtCore/QPointer>
 #include <QtCore/QThreadPool>
+
+#include <functional>
 
 class IOThread
 {

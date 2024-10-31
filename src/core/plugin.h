@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <core/plugin_attrs.h>
 
 namespace ZXTune

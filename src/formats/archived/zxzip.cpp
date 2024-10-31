@@ -8,13 +8,11 @@
  *
  **/
 
-// local includes
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
-// common includes
-#include <make_ptr.h>
-// library includes
 #include <formats/packed/decoders.h>
+
+#include <make_ptr.h>
 
 namespace Formats::Archived
 {

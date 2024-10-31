@@ -10,12 +10,11 @@
 
 #pragma once
 
-// local includes
 #include "storage.h"
-// library includes
+
 #include <module/holder.h>
 #include <parameters/container.h>
-// platform includes
+
 #include <jni.h>
 
 namespace Player

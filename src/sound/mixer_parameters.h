@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <sound/sound_parameters.h>
 
 namespace Parameters::ZXTune::Sound::Mixer

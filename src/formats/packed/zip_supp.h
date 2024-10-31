@@ -10,9 +10,8 @@
 
 #pragma once
 
-// common includes
 #include <byteorder.h>
-// std includes
+
 #include <cstddef>
 
 namespace Formats::Packed::Zip

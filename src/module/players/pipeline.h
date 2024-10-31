@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <module/renderer.h>
 #include <parameters/accessor.h>
 

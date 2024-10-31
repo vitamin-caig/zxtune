@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include <types.h>
 
 namespace AYL

@@ -10,13 +10,12 @@
 
 #pragma once
 
-// common includes
-#include <error.h>
-// library includes
 #include <module/state.h>
 #include <sound/analyzer.h>
 #include <sound/backend_attrs.h>
 #include <sound/gain.h>
+
+#include <error.h>
 
 namespace Sound
 {

@@ -8,15 +8,10 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/prosoundcreator.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <strings/casing.h>
@@ -26,7 +21,12 @@
 #include <tools/indices.h>
 #include <tools/iterators.h>
 #include <tools/range_checker.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <array>
 #include <cctype>
 #include <cstring>

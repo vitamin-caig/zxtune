@@ -10,9 +10,8 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/model.h"
-// qt includes
+
 #include <QtWidgets/QItemDelegate>
 #include <QtWidgets/QTableView>
 

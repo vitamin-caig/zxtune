@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <binary/data_builder.h>
 #include <binary/input_stream.h>
 

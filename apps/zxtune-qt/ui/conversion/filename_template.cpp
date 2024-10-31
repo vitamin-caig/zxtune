@@ -8,8 +8,8 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/conversion/filename_template.h"
+
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/conversion/parameters.h"
 #include "apps/zxtune-qt/ui/state.h"
@@ -17,17 +17,17 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "filename_template.ui.h"
-// common includes
-#include <contract.h>
-// library includes
+
 #include <io/providers_parameters.h>
-// qt includes
+
+#include <contract.h>
+
 #include <QtGui/QCloseEvent>
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QVBoxLayout>
-// std includes
+
 #include <utility>
 
 namespace

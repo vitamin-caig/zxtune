@@ -12,7 +12,7 @@ constexpr const auto SECOND_LINE = ThisLine();  // DO NOT MOVE!!!
  **/
 
 #include "NESTED.h"
-// std includes
+
 #include <iostream>
 
 int main()

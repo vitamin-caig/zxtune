@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "binary/format/details.h"
 #include "binary/format/static_expression.h"
-// common includes
+
+#include <binary/format_factories.h>
+#include <math/numeric.h>
+
 #include <contract.h>
 #include <make_ptr.h>
 #include <string_view.h>
-// library includes
-#include <binary/format_factories.h>
-#include <math/numeric.h>
-// std includes
+
 #include <array>
 #include <atomic>
 #include <limits>

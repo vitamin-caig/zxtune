@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <math/fixedpoint.h>
 
 namespace Devices::Details

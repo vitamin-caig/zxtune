@@ -10,16 +10,16 @@
 
 #pragma once
 
-// common includes
-#include <pointers.h>
-#include <types.h>
-// library includes
-#include <binary/data_builder.h>
 #include <formats/archived/decoders.h>
 #include <formats/packed/decoders.h>
+
+#include <binary/data_builder.h>
 #include <strings/conversion.h>
 #include <strings/split.h>
-// std includes
+
+#include <pointers.h>
+#include <types.h>
+
 #include <cstring>
 #include <fstream>
 #include <iostream>

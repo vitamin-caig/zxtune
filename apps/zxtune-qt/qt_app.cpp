@@ -8,20 +8,19 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/singlemode.h"
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/factory.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "apps/zxtune-qt/urls.h"
-// common includes
-#include <contract.h>
-// library includes
+
 #include <platform/application.h>
 #include <platform/version/api.h>
-// qt includes
+
+#include <contract.h>
+
 #include <QtWidgets/QApplication>
-// std includes
+
 #include <utility>
 
 namespace

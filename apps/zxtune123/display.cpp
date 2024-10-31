@@ -8,13 +8,10 @@
  *
  **/
 
-// local includes
 #include "display.h"
+
 #include "console.h"
-// common includes
-#include <error.h>
-#include <string_view.h>
-// library includes
+
 #include <module/track_state.h>
 #include <parameters/template.h>
 #include <platform/application.h>
@@ -22,10 +19,13 @@
 #include <strings/template.h>
 #include <time/duration.h>
 #include <time/serialize.h>
-// std includes
-#include <thread>
-// boost includes
+
+#include <error.h>
+#include <string_view.h>
+
 #include <boost/program_options.hpp>
+
+#include <thread>
 
 namespace
 {

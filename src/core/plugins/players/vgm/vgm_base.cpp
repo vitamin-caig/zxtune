@@ -8,32 +8,31 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/vgm/videogamemusic.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/container_factories.h>
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
 #include <formats/chiptune/multidevice/sound98.h>
 #include <formats/chiptune/multidevice/videogamemusic.h>
-#include <math/numeric.h>
-#include <module/attributes.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
-// 3rdparty includes
+
+#include <binary/container_factories.h>
+#include <core/plugin_attrs.h>
+#include <debug/log.h>
+#include <math/numeric.h>
+#include <module/attributes.h>
+
+#include <contract.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+
 #include <3rdparty/vgm/player/s98player.hpp>
 #include <3rdparty/vgm/player/vgmplayer.hpp>
 #include <3rdparty/vgm/utils/DataLoader.h>
-// std includes
+
 #include <map>
 
 namespace Module::LibVGM

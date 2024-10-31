@@ -8,10 +8,9 @@
  *
  **/
 
-// local includes
 #include "defines.h"
 #include "properties.h"
-// library includes
+
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 

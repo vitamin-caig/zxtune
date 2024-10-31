@@ -10,10 +10,9 @@
 
 #pragma once
 
-// common includes
 #include <pointers.h>
 #include <types.h>
-// std includes
+
 #include <type_traits>
 #include <vector>
 

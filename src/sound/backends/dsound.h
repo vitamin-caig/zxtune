@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
-#include <string_type.h>
-// library includes
 #include <l10n/markup.h>
 #include <sound/backend_attrs.h>
 #include <tools/iterators.h>
+
+#include <string_type.h>
 
 namespace Sound::DirectSound
 {

@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
 #include <parameters/modifier.h>
-// common includes
+
 #include <string_view.h>
 
 void ParseConfigFile(StringView filename, Parameters::Modifier& result);

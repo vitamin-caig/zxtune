@@ -10,9 +10,8 @@
 
 #pragma once
 
-// local includes
 #include "sound/backends/backend_impl.h"
-// library includes
+
 #include <binary/output_stream.h>
 #include <sound/receiver.h>
 

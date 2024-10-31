@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "ay.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <sound/matrix_mixer.h>
 #include <time/timer.h>
+
+#include <make_ptr.h>
 
 namespace
 {

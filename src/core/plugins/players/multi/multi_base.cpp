@@ -8,15 +8,14 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/multi/multi_base.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
+
 #include <parameters/merged_accessor.h>
 #include <parameters/visitor.h>
-// std includes
+
+#include <contract.h>
+#include <make_ptr.h>
+
 #include <algorithm>
 
 namespace Module

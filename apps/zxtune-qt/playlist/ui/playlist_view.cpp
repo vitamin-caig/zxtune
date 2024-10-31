@@ -8,8 +8,8 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/ui/playlist_view.h"
+
 #include "apps/zxtune-qt/playlist/io/export.h"
 #include "apps/zxtune-qt/playlist/parameters.h"
 #include "apps/zxtune-qt/playlist/supp/container.h"
@@ -27,11 +27,7 @@
 #include "apps/zxtune-qt/ui/tools/errorswidget.h"
 #include "apps/zxtune-qt/ui/tools/filedialog.h"
 #include "apps/zxtune-qt/ui/utils.h"
-// local includes
-#include <contract.h>
-#include <error.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/base64.h>
 #include <debug/log.h>
 #include <module/attributes.h>
@@ -39,9 +35,11 @@
 #include <strings/join.h>
 #include <strings/split.h>
 #include <strings/template.h>
-// std includes
-#include <utility>
-// qt includes
+
+#include <contract.h>
+#include <error.h>
+#include <string_view.h>
+
 #include <QtCore/QBuffer>
 #include <QtCore/QIdentityProxyModel>
 #include <QtCore/QMimeData>
@@ -54,6 +52,8 @@
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QVBoxLayout>
+
+#include <utility>
 
 namespace
 {

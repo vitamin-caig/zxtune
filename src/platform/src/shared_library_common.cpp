@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "shared_library_common.h"
-// common includes
-#include <error_tools.h>
-#include <string_view.h>
-// library includes
+
 #include <debug/log.h>
 #include <l10n/api.h>
+
+#include <error_tools.h>
+#include <string_view.h>
 
 namespace
 {

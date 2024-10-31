@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/saa/etracker.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
+
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <tools/indices.h>
 #include <tools/range_checker.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+
 #include <array>
 
 namespace Formats::Chiptune

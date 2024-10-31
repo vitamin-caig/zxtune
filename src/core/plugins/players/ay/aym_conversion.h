@@ -10,10 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
 #include <core/plugin_attrs.h>
+
+#include <types.h>
 
 namespace Module
 {

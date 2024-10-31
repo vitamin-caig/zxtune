@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "module/players/iterator.h"
 
 namespace Module

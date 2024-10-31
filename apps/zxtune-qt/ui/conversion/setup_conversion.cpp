@@ -8,8 +8,8 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/conversion/setup_conversion.h"
+
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/conversion/backend_settings.h"
 #include "apps/zxtune-qt/ui/conversion/filename_template.h"
@@ -22,16 +22,16 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "setup_conversion.ui.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <io/api.h>
 #include <io/providers_parameters.h>
 #include <parameters/merged_accessor.h>
 #include <sound/backends_parameters.h>
-// qt includes
+
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <QtCore/QThread>
 #include <QtGui/QCloseEvent>
 #include <QtWidgets/QPushButton>

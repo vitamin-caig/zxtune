@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/ui/parameters.h"
 
 namespace Parameters::ZXTuneQT::UI::Export

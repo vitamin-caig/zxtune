@@ -10,9 +10,7 @@
 
 #pragma once
 
-// local includes
 #include "module/players/aym/aym_base_track.h"
-// library includes
 #include <formats/chiptune/aym/protracker3.h>
 
 namespace Module::Vortex

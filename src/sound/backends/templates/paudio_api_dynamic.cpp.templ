@@ -8,15 +8,14 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/paudio_api.h"
-// common includes
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
-// platform-dependent includes
+
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <pulse/error.h>
 
 namespace Sound::PulseAudio

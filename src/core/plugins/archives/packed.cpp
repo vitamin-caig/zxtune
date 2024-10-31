@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archives/packed.h"
+
 #include <core/plugin_attrs.h>
-// common includes
+
 #include <make_ptr.h>
 #include <string_view.h>
-// std includes
+
 #include <utility>
 
 namespace ZXTune

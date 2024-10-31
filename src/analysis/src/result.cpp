@@ -8,11 +8,10 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-// library includes
 #include <analysis/result.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <utility>
 
 namespace Analysis

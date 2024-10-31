@@ -8,36 +8,41 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/multitrack_plugin.h"
 #include "core/plugins/players/plugin.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <static_string.h>
-#include <string_view.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/crc.h>
-#include <binary/format_factories.h>
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
 #include <formats/chiptune/container.h>
-#include <formats/multitrack.h>
-#include <math/numeric.h>
-#include <module/additional_files.h>
-#include <module/attributes.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
+
+#include <binary/container_base.h>
+#include <binary/crc.h>
+#include <binary/format_factories.h>
+#include <core/plugin_attrs.h>
+#include <debug/log.h>
+#include <formats/multitrack.h>
+#include <math/numeric.h>
+#include <module/additional_files.h>
+#include <module/attributes.h>
 #include <sound/resampler.h>
 #include <strings/sanitize.h>
-// 3rdparty includes
+
+#include <contract.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+#include <static_string.h>
+#include <string_view.h>
+
+#include <algorithm>
+#include <array>
+#include <map>
+#include <set>
+#include <utility>
+
 extern "C"
 {
 // clang-format off
@@ -46,12 +51,6 @@ extern "C"
 #include <3rdparty/vgmstream/base/plugins.h>
   // clang-format on
 }
-// std includes
-#include <algorithm>
-#include <array>
-#include <map>
-#include <set>
-#include <utility>
 
 namespace Module::VGMStream
 {

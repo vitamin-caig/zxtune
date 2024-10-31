@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/aym_properties_helper.h"
-// core includes
+
 #include <core/core_parameters.h>
-// common includes
+
 #include <string_view.h>
-// std includes
+
 #include <cassert>
 
 namespace Module::AYM

@@ -10,12 +10,10 @@
 
 #pragma once
 
-// local includes
 #include "module/players/aym/aym_chiptune.h"
 #include "module/players/stream_model.h"
-// common includes
+
 #include <contract.h>
-// library includes
 
 namespace Module::AYM
 {

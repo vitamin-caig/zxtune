@@ -8,20 +8,19 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/playstation2soundformat.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/compression/zlib_container.h>
 #include <binary/container_factories.h>
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
-// std includes
+
+#include <byteorder.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <map>
 
 namespace Formats::Chiptune

@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
+#include <formats/archived.h>
+
 #include <string_view.h>
 #include <types.h>
-// library includes
-#include <formats/archived.h>
 
 namespace TRDos
 {

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <devices/tfm.h>
 #include <parameters/accessor.h>
 

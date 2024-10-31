@@ -8,15 +8,14 @@
  *
  **/
 
-// local includes
 #include "binary/format/details.h"
-// common includes
+
+#include <binary/format_factories.h>
+
 #include <contract.h>
 #include <make_ptr.h>
 #include <types.h>
-// library includes
-#include <binary/format_factories.h>
-// std includes
+
 #include <algorithm>
 
 namespace Binary

@@ -8,30 +8,30 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/io/container.h"
 #include "apps/zxtune-qt/playlist/io/export.h"
 #include "apps/zxtune-qt/playlist/io/tags/xspf.h"
 #include "apps/zxtune-qt/ui/utils.h"
-// common includes
-#include <error_tools.h>
-#include <string_view.h>
-// library includes
+
 #include <core/plugins/archives/zdata_supp.h>
+#include <zxtune.h>
+
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <parameters/convert.h>
 #include <sound/sound_parameters.h>
-#include <zxtune.h>
-// std includes
-#include <memory>
-#include <set>
-// qt includes
+
+#include <error_tools.h>
+#include <string_view.h>
+
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
 #include <QtCore/QXmlStreamWriter>
+
+#include <memory>
+#include <set>
 
 namespace
 {

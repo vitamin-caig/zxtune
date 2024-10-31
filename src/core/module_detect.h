@@ -10,14 +10,12 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-// library includes
 #include <binary/container.h>
 #include <module/holder.h>
 #include <parameters/container.h>
 
-// forward declarations
+#include <string_view.h>
+
 namespace Log
 {
   class ProgressCallback;

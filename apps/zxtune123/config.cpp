@@ -8,15 +8,14 @@
  *
  **/
 
-// local includes
 #include "config.h"
-// common includes
-#include <error_tools.h>
-#include <string_view.h>
-// library includes
+
 #include <parameters/serialize.h>
 #include <strings/map.h>
-// std includes
+
+#include <error_tools.h>
+#include <string_view.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>

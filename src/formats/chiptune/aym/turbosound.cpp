@@ -8,15 +8,15 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/turbosound.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
+
 #include <binary/format_factories.h>
 #include <math/numeric.h>
+
+#include <byteorder.h>
+#include <make_ptr.h>
 
 namespace Formats::Chiptune
 {

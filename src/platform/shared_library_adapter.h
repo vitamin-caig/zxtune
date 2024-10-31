@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
 #include <platform/shared_library.h>
-// std includes
+
 #include <map>
 
 namespace Platform

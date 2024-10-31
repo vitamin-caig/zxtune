@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/dsound_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
+
+#include <make_ptr.h>
 
 namespace Sound::DirectSound
 {

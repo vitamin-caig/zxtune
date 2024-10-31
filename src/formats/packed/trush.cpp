@@ -10,19 +10,18 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/hrust1_bitstream.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
+
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-// std includes
+
+#include <byteorder.h>
+#include <make_ptr.h>
+#include <pointers.h>
+
 #include <cstring>
 
 namespace Formats::Packed

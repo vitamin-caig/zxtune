@@ -8,12 +8,11 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/styles.h"
-// qt includes
+
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QProxyStyle>
-// std includes
+
 #include <utility>
 
 namespace UI

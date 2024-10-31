@@ -10,10 +10,9 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/update/product.h"
 #include "apps/zxtune-qt/update/rss.h"
-// std includes
+
 #include <memory>
 
 namespace Downloads

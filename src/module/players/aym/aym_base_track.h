@@ -10,10 +10,9 @@
 
 #pragma once
 
-// local includes
 #include "module/players/aym/aym_chiptune.h"
-// library includes
 #include <module/players/tracking.h>
+
 #include <module/renderer.h>
 
 namespace Module::AYM

@@ -8,16 +8,16 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/vgm/videogamemusic.h"
-// common includes
+
+#include <module/players/platforms.h>
+
+#include <binary/input_stream.h>
+
 #include <byteorder.h>
 #include <string_type.h>
 #include <string_view.h>
-// library includes
-#include <binary/input_stream.h>
-#include <module/players/platforms.h>
-// std includes
+
 #include <map>
 #include <span>
 

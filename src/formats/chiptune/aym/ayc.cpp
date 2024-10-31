@@ -8,18 +8,18 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/ayc.h"
+
 #include "formats/chiptune/container.h"
-// common includes
+
+#include <binary/dump.h>
+#include <binary/format_factories.h>
+
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
-// library includes
-#include <binary/dump.h>
-#include <binary/format_factories.h>
-// std includes
+
 #include <array>
 #include <cstring>
 

@@ -8,15 +8,14 @@
  *
  **/
 
-// local includes
 // Used information from http://sourceforge.net/p/predef/wiki/Home/
 #include "platform/version/src/arch.h"
 #include "platform/version/src/os.h"
 #include "platform/version/src/toolset.h"
-// library includes
+
 #include <platform/version/api.h>
 #include <strings/format.h>
-// common includes
+
 #include <string_view.h>
 
 namespace Platform::Version

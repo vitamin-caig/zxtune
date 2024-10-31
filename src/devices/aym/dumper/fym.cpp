@@ -8,16 +8,15 @@
  *
  **/
 
-// local includes
 #include "devices/aym/dumper/dump_builder.h"
-// common includes
+
+#include <binary/compression/zlib_stream.h>
+#include <binary/data_builder.h>
+
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
-// library includes
-#include <binary/compression/zlib_stream.h>
-#include <binary/data_builder.h>
-// std includes
+
 #include <utility>
 
 namespace Devices::AYM

@@ -10,12 +10,12 @@
 
 #pragma once
 
-// library includes
 #include <devices/dac/sample.h>
+
 #include <math/fixedpoint.h>
 #include <sound/mixer.h>
 #include <time/instant.h>
-// std includes
+
 #include <memory>
 
 // supporting for multichannel sample-based DAC

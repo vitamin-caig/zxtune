@@ -8,35 +8,32 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/gme/kss_supp.h"
 #include "core/plugins/players/multitrack_plugin.h"
 #include "core/plugins/players/plugin.h"
-// common includes
+#include <formats/chiptune/decoders.h>
+#include <formats/multitrack/decoders.h>
+#include <module/players/duration.h>
+#include <module/players/platforms.h>
+#include <module/players/properties_helper.h>
+#include <module/players/streaming.h>
+
+#include <binary/compression/zlib_stream.h>
+#include <binary/format_factories.h>
+#include <core/plugin_attrs.h>
+#include <debug/log.h>
+#include <math/numeric.h>
+#include <module/attributes.h>
+#include <strings/optimize.h>
+
 #include <byteorder.h>
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
 #include <string_view.h>
-// library includes
-#include <binary/compression/zlib_stream.h>
-#include <binary/format_factories.h>
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <formats/chiptune/decoders.h>
-#include <formats/multitrack/decoders.h>
-#include <math/numeric.h>
-#include <module/attributes.h>
-#include <module/players/duration.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_helper.h>
-#include <module/players/streaming.h>
-#include <strings/optimize.h>
-// std includes
-#include <map>
-// 3rdparty includes
+
 #include <3rdparty/gme/gme/Gbs_Emu.h>
 #include <3rdparty/gme/gme/Gym_Emu.h>
 #include <3rdparty/gme/gme/Hes_Emu.h>
@@ -45,6 +42,8 @@
 #include <3rdparty/gme/gme/Nsfe_Emu.h>
 #include <3rdparty/gme/gme/Sap_Emu.h>
 #include <3rdparty/gme/gme/Vgm_Emu.h>
+
+#include <map>
 
 namespace Module::GME
 {

@@ -8,19 +8,19 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/ymvtx.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
 #include "module/players/aym/aym_properties_helper.h"
-// common includes
+#include <module/players/properties_meta.h>
+
+#include <core/core_parameters.h>
+#include <strings/conversion.h>
+
 #include <make_ptr.h>
 #include <string_view.h>
-// library includes
-#include <core/core_parameters.h>
-#include <module/players/properties_meta.h>
-#include <strings/conversion.h>
-// std includes
+
 #include <utility>
 
 namespace Module::YMVTX

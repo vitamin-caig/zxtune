@@ -10,10 +10,9 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/playlist/io/container.h"
 #include "apps/zxtune-qt/playlist/supp/data_provider.h"
-// common includes
+
 #include <tools/progress_callback.h>
 
 class QString;

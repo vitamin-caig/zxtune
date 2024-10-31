@@ -8,13 +8,12 @@
  *
  **/
 
-// common includes
-#include <error.h>
-// library includes
 #include <binary/compression/zlib.h>
 #include <binary/compression/zlib_stream.h>
 #include <math/numeric.h>
-// 3rd-party includes
+
+#include <error.h>
+
 #include <3rdparty/zlib/zlib.h>
 
 namespace Binary::Compression::Zlib

@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
-#include <devices/dac.h>
 #include <devices/details/freq_table.h>
-// common includes
+
+#include <devices/dac.h>
+#include <math/numeric.h>
+#include <parameters/tracking_helper.h>
+
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
-// library includes
-#include <math/numeric.h>
-#include <parameters/tracking_helper.h>
-// std includes
+
 #include <array>
 #include <cmath>
 

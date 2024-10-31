@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
 #include <parameters/container.h>
-// qt includes
+
 #include <QtWidgets/QWidget>
 
 namespace UI

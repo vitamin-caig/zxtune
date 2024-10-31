@@ -8,23 +8,23 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/usf.h"
+
 #include "module/players/xsf/xsf.h"
-// common includes
+#include <module/players/platforms.h>
+#include <module/players/streaming.h>
+
+#include <debug/log.h>
+#include <module/attributes.h>
+#include <sound/resampler.h>
+
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <module/players/platforms.h>
-#include <module/players/streaming.h>
-#include <sound/resampler.h>
-// std includes
-#include <list>
-// 3rdparty includes
+
 #include <3rdparty/lazyusf2/usf/usf.h>
+
+#include <list>
 
 namespace Module::USF
 {

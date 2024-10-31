@@ -8,22 +8,21 @@
  *
  **/
 
-// local includes
 #include "sound/backends/file_backend.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
+
 #include <binary/dump.h>
 #include <l10n/markup.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/render_params.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+
 #include <algorithm>
 #include <cstring>
 

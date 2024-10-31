@@ -8,9 +8,7 @@
  *
  **/
 
-// common includes
 #include <error_tools.h>
-// common includes
 #include <string_view.h>
 
 namespace

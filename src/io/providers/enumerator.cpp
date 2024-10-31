@@ -8,19 +8,19 @@
  *
  **/
 
-// local includes
 #include "io/providers/enumerator.h"
+
 #include "io/impl/l10n.h"
 #include "io/providers/providers_list.h"
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <debug/log.h>
 #include <io/api.h>
 #include <strings/map.h>
-// std includes
+
+#include <error_tools.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <algorithm>
 #include <list>
 

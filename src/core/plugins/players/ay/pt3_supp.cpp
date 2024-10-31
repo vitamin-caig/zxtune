@@ -8,11 +8,9 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/ay/aym_conversion.h"
 #include "core/plugins/players/plugin.h"
-// library includes
 #include <module/players/aym/protracker3.h>
 
 namespace ZXTune

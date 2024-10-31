@@ -10,9 +10,8 @@
 
 #pragma once
 
-// local includes
 #include "formats/chiptune/digital/digital.h"
-// common includes
+
 #include <tools/indices.h>
 
 namespace Formats::Chiptune::Digital

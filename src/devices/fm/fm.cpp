@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "chip.h"
 
 namespace Devices::FM

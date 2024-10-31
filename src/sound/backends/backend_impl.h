@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <module/holder.h>
 #include <module/state.h>
 #include <sound/backend.h>

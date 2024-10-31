@@ -8,14 +8,9 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/protracker3_detail.h"
 #include "formats/chiptune/container.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -27,7 +22,11 @@
 #include <strings/sanitize.h>
 #include <strings/split.h>
 #include <strings/trim.h>
-// std includes
+
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <array>
 #include <cctype>
 #include <sstream>

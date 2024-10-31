@@ -8,18 +8,18 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/informational/aboutdialog.h"
+
 #include "aboutdialog.ui.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "apps/zxtune-qt/urls.h"
-// library includes
+
 #include <platform/version/api.h>
-// std includes
-#include <utility>
-// qt includes
+
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDialog>
+
+#include <utility>
 
 namespace
 {

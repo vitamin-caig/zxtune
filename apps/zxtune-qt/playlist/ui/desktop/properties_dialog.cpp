@@ -8,26 +8,26 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/ui/desktop/properties_dialog.h"
+
 #include "apps/zxtune-qt/playlist/supp/capabilities.h"
 #include "apps/zxtune-qt/playlist/ui/table_view.h"
 #include "apps/zxtune-qt/ui/preferences/aym.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "properties_dialog.ui.h"
-// common includes
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <core/core_parameters.h>
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <parameters/delegated.h>
 #include <parameters/merged_accessor.h>
-// qt includes
+
+#include <contract.h>
+#include <error.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLabel>

@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "formats/archived/fmod.h"
-// common includes
-#include <byteorder.h>
-// library includes
+
 #include <binary/input_stream.h>
 #include <strings/format.h>
+
+#include <byteorder.h>
 
 namespace Formats::Archived::Fmod
 {

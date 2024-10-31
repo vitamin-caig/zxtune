@@ -10,13 +10,12 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-#include <types.h>
-// library includes
 #include <binary/container.h>
 #include <strings/map.h>
-// std includes
+
+#include <string_view.h>
+#include <types.h>
+
 #include <memory>
 
 namespace Module::PSF

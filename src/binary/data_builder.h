@@ -10,13 +10,12 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-// library includes
 #include <binary/container_factories.h>
 #include <binary/dump.h>
 #include <binary/view.h>
-// std includes
+
+#include <string_view.h>
+
 #include <cstring>
 #include <type_traits>
 

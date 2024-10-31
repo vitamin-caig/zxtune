@@ -8,8 +8,8 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/preferences/interface.h"
+
 #include "apps/zxtune-qt/playlist/parameters.h"
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/desktop/language.h"
@@ -18,14 +18,14 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "apps/zxtune-qt/update/parameters.h"
 #include "interface.ui.h"
-// common includes
+
+#include <math/numeric.h>
+
 #include <contract.h>
 #include <make_ptr.h>
-// library includes
-#include <math/numeric.h>
-// qt includes
+
 #include <QtWidgets/QRadioButton>
-// std includes
+
 #include <utility>
 
 namespace

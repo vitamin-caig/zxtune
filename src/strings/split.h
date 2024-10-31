@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-// library includes
 #include <strings/src/find.h>
-// std includes
+
+#include <string_view.h>
+
 #include <vector>
 
 namespace Strings

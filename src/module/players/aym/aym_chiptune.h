@@ -10,15 +10,14 @@
 
 #pragma once
 
-// local includes
 #include "module/players/aym/aym_parameters.h"
 #include "module/players/stream_model.h"
 #include "module/players/track_model.h"
-// library includes
-#include <devices/aym.h>
 #include <module/players/iterator.h>
 #include <module/players/streaming.h>
 #include <module/players/tracking.h>
+
+#include <devices/aym.h>
 
 namespace Module::AYM
 {

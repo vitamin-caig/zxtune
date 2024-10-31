@@ -10,7 +10,6 @@
 
 #pragma once
 
-// common includes
 #include <tools/progress_callback.h>
 
 class QString;

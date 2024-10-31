@@ -8,9 +8,8 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/memory_region.h"
-// std includes
+
 #include <cstring>
 
 namespace Module

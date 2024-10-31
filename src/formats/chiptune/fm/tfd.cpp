@@ -8,16 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/fm/tfd.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <strings/sanitize.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <array>
 
 namespace Formats::Chiptune

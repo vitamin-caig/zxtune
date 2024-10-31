@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "defines.h"
 #include "module.h"
 #include "player.h"
 #include "plugin.h"
-// library includes
+
 #include <core/plugin.h>
-// platform includes
+
 #include <jni.h>
 
 const jint JNI_VERSION = JNI_VERSION_1_6;

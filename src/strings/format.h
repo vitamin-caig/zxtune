@@ -10,13 +10,12 @@
 
 #pragma once
 
-// common includes
 #include <string_type.h>
 #include <types.h>
-// std includes
-#include <utility>
-// other includes
+
 #include <3rdparty/fmt/include/fmt/core.h>
+
+#include <utility>
 
 namespace Strings
 {

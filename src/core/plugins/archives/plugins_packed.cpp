@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/archives/packed.h"
 #include "core/plugins/archives/plugins.h"
-// library includes
-#include <core/plugin_attrs.h>
 #include <formats/packed/decoders.h>
+
+#include <core/plugin_attrs.h>
 
 namespace ZXTune
 {

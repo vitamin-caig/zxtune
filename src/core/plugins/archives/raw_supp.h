@@ -10,7 +10,6 @@
 
 #pragma once
 
-// common includes
 #include <string_type.h>
 
 namespace ZXTune::Raw

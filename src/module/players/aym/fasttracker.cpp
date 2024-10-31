@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/fasttracker.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_properties_helper.h"
-// common includes
-#include <make_ptr.h>
-// library includes
 #include <formats/chiptune/aym/fasttracker.h>
-#include <math/numeric.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-// std includes
+
+#include <math/numeric.h>
+
+#include <make_ptr.h>
+
 #include <array>
 
 namespace Module::FastTracker

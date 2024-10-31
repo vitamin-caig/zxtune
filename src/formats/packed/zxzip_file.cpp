@@ -10,20 +10,19 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
+
 #include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+#include <pointers.h>
+
 #include <array>
 #include <cstring>
 #include <iterator>

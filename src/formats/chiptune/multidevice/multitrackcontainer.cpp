@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/multidevice/multitrackcontainer.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
+#include <formats/chiptune/container.h>
+
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <formats/chiptune/container.h>
 #include <math/numeric.h>
 #include <strings/sanitize.h>
-// std includes
+
+#include <byteorder.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <array>
 #include <utility>
 

@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
+#include <binary/container.h>
+
 #include <string_view.h>
 #include <types.h>
-// library includes
-#include <binary/container.h>
 
 namespace Resource
 {

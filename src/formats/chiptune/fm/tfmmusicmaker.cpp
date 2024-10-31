@@ -8,13 +8,10 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/fm/tfmmusicmaker.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/crc.h>
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
@@ -23,7 +20,10 @@
 #include <math/numeric.h>
 #include <strings/sanitize.h>
 #include <tools/indices.h>
-// std includes
+
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <array>
 #include <cassert>
 

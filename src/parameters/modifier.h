@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <parameters/visitor.h>
 
 namespace Parameters

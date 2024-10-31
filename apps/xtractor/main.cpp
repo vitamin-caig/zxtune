@@ -8,22 +8,19 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+#include <formats/archived/decoders.h>
+#include <formats/chiptune/decoders.h>
+#include <formats/image/decoders.h>
+#include <formats/packed/decoders.h>
+#include <io/impl/filesystem_path.h>
+
 #include <analysis/path.h>
 #include <analysis/result.h>
 #include <analysis/scanner.h>
 #include <async/data_receiver.h>
 #include <binary/format_factories.h>
 #include <debug/log.h>
-#include <formats/archived/decoders.h>
-#include <formats/chiptune/decoders.h>
-#include <formats/image/decoders.h>
-#include <formats/packed/decoders.h>
 #include <io/api.h>
-#include <io/impl/filesystem_path.h>
 #include <io/providers_parameters.h>
 #include <parameters/container.h>
 #include <platform/application.h>
@@ -34,15 +31,18 @@
 #include <strings/join.h>
 #include <strings/template.h>
 #include <tools/progress_callback.h>
-// std includes
+
+#include <make_ptr.h>
+#include <string_view.h>
+
+#include <boost/program_options.hpp>
+
 #include <iostream>
 #include <locale>
 #include <map>
 #include <memory>
 #include <numeric>
 #include <set>
-// boost includes
-#include <boost/program_options.hpp>
 
 namespace
 {

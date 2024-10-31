@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <devices/aym/dumper.h>
 
 namespace Devices::AYM

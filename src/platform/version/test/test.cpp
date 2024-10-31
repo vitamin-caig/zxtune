@@ -8,8 +8,9 @@
  *
  **/
 
-#include <iostream>
 #include <platform/version/api.h>
+
+#include <iostream>
 
 namespace Platform::Version
 {

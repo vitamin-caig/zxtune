@@ -8,16 +8,15 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/metainfo.h"
-// common includes
+
+#include <binary/data_builder.h>
+#include <binary/input_stream.h>
+
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
-// library includes
-#include <binary/data_builder.h>
-#include <binary/input_stream.h>
-// std includes
+
 #include <map>
 #include <set>
 

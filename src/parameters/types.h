@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
-#include <string_type.h>
-#include <types.h>
-// library includes
 #include <binary/data.h>
 #include <binary/view.h>
+
+#include <string_type.h>
+#include <types.h>
 
 //! @brief Namespace is used to keep parameters-working related types and functions
 namespace Parameters

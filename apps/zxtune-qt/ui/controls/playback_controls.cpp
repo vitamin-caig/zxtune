@@ -8,17 +8,17 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/controls/playback_controls.h"
+
 #include "apps/zxtune-qt/supp/playback_supp.h"
 #include "playback_controls.ui.h"
-// common includes
+
 #include <contract.h>
-// std includes
+
+#include <QtWidgets/QMenu>
+
 #include <cassert>
 #include <utility>
-// qt includes
-#include <QtWidgets/QMenu>
 
 namespace
 {

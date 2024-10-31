@@ -8,12 +8,11 @@
  *
  **/
 
-// local includes
 #include "z80.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <time/timer.h>
+
+#include <make_ptr.h>
 
 namespace
 {

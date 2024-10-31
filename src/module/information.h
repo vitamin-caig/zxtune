@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
 #include <time/duration.h>
-// std includes
+
+#include <types.h>
+
 #include <memory>
 
 namespace Module

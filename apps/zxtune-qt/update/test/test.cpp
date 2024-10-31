@@ -1,19 +1,18 @@
-// local includes
 #include "apps/zxtune-qt/ui/utils.h"
 #include "apps/zxtune-qt/update/downloads.h"
 #include "apps/zxtune-qt/update/product.h"
 #include "apps/zxtune-qt/update/rss.h"
-// common includes
+
 #include <string_view.h>
 #include <types.h>
-// std includes
-#include <iostream>
-#include <stdexcept>
-// qt includes
+
 #include <QtCore/QByteArray>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
+
+#include <iostream>
+#include <stdexcept>
 
 namespace
 {

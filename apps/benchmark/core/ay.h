@@ -10,8 +10,8 @@
 
 #pragma once
 
-// library includes
 #include <devices/aym/chip.h>
+
 #include <time/duration.h>
 
 namespace Benchmark::AY

@@ -8,8 +8,6 @@
  *
  **/
 
-#include <iostream>
-#include <string_view.h>
 #include <strings/casing.h>
 #include <strings/conversion.h>
 #include <strings/encoding.h>
@@ -24,6 +22,10 @@
 #include <strings/split.h>
 #include <strings/template.h>
 #include <strings/trim.h>
+
+#include <string_view.h>
+
+#include <iostream>
 
 template<class T>
 std::ostream& operator<<(std::ostream& o, const std::vector<T>& arr)

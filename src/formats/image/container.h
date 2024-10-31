@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
 #include <binary/dump.h>
 #include <formats/image.h>
+
+#include <types.h>
 
 namespace Formats::Image
 {

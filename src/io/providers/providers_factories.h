@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "enumerator.h"
 #include "gates/curl_api.h"
 

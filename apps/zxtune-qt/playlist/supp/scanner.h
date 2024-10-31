@@ -10,9 +10,8 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/data_provider.h"
-// qt includes
+
 #include <QtCore/QThread>
 
 namespace Playlist

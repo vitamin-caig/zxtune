@@ -9,9 +9,10 @@
  **/
 
 #include <binary/base64.h>
-#include <iostream>
 #include <parameters/convert.h>
 #include <strings/format.h>
+
+#include <iostream>
 
 std::ostream& operator<<(std::ostream& s, const Binary::Dump& d)
 {

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// qt includes
 #include <QtCore/QPointer>
 #include <QtWidgets/QMainWindow>
 

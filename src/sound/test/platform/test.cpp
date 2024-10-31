@@ -8,12 +8,14 @@
  *
  **/
 
-#include <iostream>
 #include <sound/backends/alsa.h>
 #include <sound/backends/dsound.h>
 #include <sound/backends/openal.h>
 #include <sound/backends/win32.h>
+
 #include <strings/format.h>
+
+#include <iostream>
 
 namespace
 {

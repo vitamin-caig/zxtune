@@ -9,6 +9,7 @@
  **/
 
 #include <analysis/path.h>
+
 #include <iostream>
 
 namespace

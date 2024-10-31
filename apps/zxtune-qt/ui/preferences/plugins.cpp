@@ -8,17 +8,17 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/preferences/plugins.h"
+
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "plugins.ui.h"
-// common includes
-#include <contract.h>
-// library includes
+
 #include <core/plugins_parameters.h>
-// std includes
+
+#include <contract.h>
+
 #include <utility>
 
 namespace

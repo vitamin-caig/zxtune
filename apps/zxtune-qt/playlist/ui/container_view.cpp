@@ -8,8 +8,8 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/ui/container_view.h"
+
 #include "apps/zxtune-qt/playlist/io/export.h"
 #include "apps/zxtune-qt/playlist/parameters.h"
 #include "apps/zxtune-qt/playlist/supp/container.h"
@@ -21,21 +21,21 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "container_view.ui.h"
-// common includes
+
+#include <debug/log.h>
+
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-// std includes
-#include <cassert>
-#include <utility>
-// qt includes
+
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
 #include <QtCore/QTimer>
 #include <QtGui/QContextMenuEvent>
 #include <QtWidgets/QMenu>
+
+#include <cassert>
+#include <utility>
 
 namespace
 {

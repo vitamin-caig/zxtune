@@ -8,8 +8,8 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/ui/preferences/preferencesdialog.h"
+
 #include "apps/zxtune-qt/ui/preferences/aym.h"
 #include "apps/zxtune-qt/ui/preferences/interface.h"
 #include "apps/zxtune-qt/ui/preferences/mixing.h"
@@ -20,15 +20,14 @@
 #include "apps/zxtune-qt/ui/preferences/z80.h"
 #include "apps/zxtune-qt/ui/state.h"
 #include "preferencesdialog.ui.h"
-// std includes
-#include <algorithm>
-// std includes
-#include <utility>
-// qt includes
+
 #include <QtGui/QCloseEvent>
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QVBoxLayout>
+
+#include <algorithm>
+#include <utility>
 
 namespace
 {

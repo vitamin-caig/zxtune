@@ -8,12 +8,12 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/ui/desktop/search_dialog.h"
+
 #include "apps/zxtune-qt/playlist/ui/table_view.h"
 #include "apps/zxtune-qt/ui/state.h"
 #include "search_dialog.ui.h"
-// common includes
+
 #include <contract.h>
 #include <make_ptr.h>
 

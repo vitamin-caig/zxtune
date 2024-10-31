@@ -8,23 +8,22 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/ym.h"
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+#include <formats/packed/lha_supp.h>
+
 #include <binary/dump.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
-#include <formats/packed/lha_supp.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <array>
 #include <cstring>
 

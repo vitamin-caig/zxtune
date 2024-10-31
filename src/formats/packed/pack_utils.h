@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
 #include <binary/data_builder.h>
 #include <binary/dump.h>
-// std includes
+
+#include <types.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cstring>

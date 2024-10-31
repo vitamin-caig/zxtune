@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "core/src/l10n.h"
-// common includes
-#include <error_tools.h>
-// library includes
+
 #include <core/additional_files_resolve.h>
 #include <strings/join.h>
+
+#include <error_tools.h>
 
 namespace Module
 {

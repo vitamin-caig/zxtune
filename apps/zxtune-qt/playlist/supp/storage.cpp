@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/storage.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <debug/log.h>
 #include <math/numeric.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <random>
 #include <utility>
 

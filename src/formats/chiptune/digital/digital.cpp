@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/digital/digital.h"
 
 namespace Formats::Chiptune::Digital

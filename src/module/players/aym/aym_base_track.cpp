@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/aym_base_track.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <utility>
 
 namespace Module::AYM

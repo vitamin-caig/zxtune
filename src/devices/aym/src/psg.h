@@ -10,10 +10,9 @@
 
 #pragma once
 
-// local includes
 #include "device.h"
 #include "volume_table.h"
-// std includes
+
 #include <array>
 
 namespace Devices::AYM

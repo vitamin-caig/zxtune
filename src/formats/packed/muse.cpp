@@ -8,19 +8,18 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
-// common includes
-#include <error.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
+
 #include <binary/compression/zlib_container.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/packed.h>
-// std includes
+
+#include <error.h>
+#include <make_ptr.h>
+#include <pointers.h>
+
 #include <memory>
 
 namespace Formats::Packed

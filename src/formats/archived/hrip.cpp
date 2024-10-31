@@ -8,16 +8,15 @@
  *
  **/
 
-// local includes
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
-// common includes
+#include <formats/packed/decoders.h>
+
+#include <binary/format_factories.h>
+
 #include <byteorder.h>
 #include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed/decoders.h>
-// std includes
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "formats/packed/pack_utils.h"
 
 // Hrust1-compatible bitstream:

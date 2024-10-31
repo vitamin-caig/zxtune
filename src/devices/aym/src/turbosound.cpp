@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "devices/aym/src/psg.h"
 #include "devices/aym/src/soundchip.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <devices/turbosound.h>
-// std includes
+
+#include <make_ptr.h>
+
 #include <utility>
 
 namespace Devices::TurboSound

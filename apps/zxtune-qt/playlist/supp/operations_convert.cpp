@@ -8,19 +8,15 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/operations_convert.h"
+
 #include "apps/zxtune-qt/playlist/supp/operations_helpers.h"
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 #include "apps/zxtune-qt/supp/playback_supp.h"
 #include "apps/zxtune-qt/ui/utils.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <async/src/event.h>
+
 #include <io/api.h>
 #include <io/template.h>
 #include <parameters/merged_accessor.h>
@@ -29,7 +25,12 @@
 #include <sound/backends_parameters.h>
 #include <sound/sound_parameters.h>
 #include <tools/progress_callback_helpers.h>
-// std includes
+
+#include <contract.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <numeric>
 
 namespace

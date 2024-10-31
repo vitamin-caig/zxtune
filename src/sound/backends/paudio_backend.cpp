@@ -8,23 +8,22 @@
  *
  **/
 
-// local includes
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/gates/paudio_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/paudio.h"
 #include "sound/backends/storage.h"
-// common includes
-#include <byteorder.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <platform/version/api.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
+
+#include <byteorder.h>
+#include <error_tools.h>
+#include <make_ptr.h>
+#include <string_view.h>
 
 namespace Sound::PulseAudio
 {

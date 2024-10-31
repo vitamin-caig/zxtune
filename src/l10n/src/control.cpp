@@ -8,14 +8,13 @@
  *
  **/
 
-// library includes
 #include <l10n/api.h>
 #include <l10n/control.h>
 #include <resource/api.h>
 #include <strings/split.h>
-// common includes
+
 #include <string_view.h>
-// std includes
+
 #include <vector>
 
 namespace

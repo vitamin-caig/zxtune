@@ -8,16 +8,16 @@
  *
  **/
 
-// common includes
+#include <formats/chiptune/container.h>
+
+#include <binary/format_factories.h>
+#include <math/numeric.h>
+
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/chiptune/container.h>
-#include <math/numeric.h>
-// std includes
+
 #include <array>
 #include <cstring>
 

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// common included
 #include <string_type.h>
 #include <string_view.h>
 

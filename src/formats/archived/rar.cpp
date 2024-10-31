@@ -8,18 +8,18 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+#include <formats/packed/decoders.h>
+#include <formats/packed/rar_supp.h>
+
 #include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/archived.h>
-#include <formats/packed/decoders.h>
-#include <formats/packed/rar_supp.h>
-// std includes
+
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <cstring>
 #include <deque>
 #include <memory>

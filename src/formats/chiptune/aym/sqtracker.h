@@ -10,13 +10,12 @@
 
 #pragma once
 
-// local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
-// library includes
+
 #include <formats/chiptune.h>
-// std includes
+
 #include <array>
 
 namespace Formats::Chiptune

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <module/information.h>
 
 namespace Module

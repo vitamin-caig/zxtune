@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "sound/backends/file_backend.h"
 #include "sound/backends/gates/ogg_api.h"
 #include "sound/backends/gates/vorbis_api.h"
@@ -16,15 +15,15 @@
 #include "sound/backends/l10n.h"
 #include "sound/backends/ogg.h"
 #include "sound/backends/storage.h"
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
+
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
-// std includes
+
+#include <error_tools.h>
+#include <make_ptr.h>
+
 #include <algorithm>
 #include <ctime>
 

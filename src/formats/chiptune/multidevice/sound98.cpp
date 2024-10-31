@@ -8,21 +8,21 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/multidevice/sound98.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
+#include <formats/chiptune/container.h>
+
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <formats/chiptune/container.h>
 #include <math/numeric.h>
 #include <strings/casing.h>
 #include <strings/sanitize.h>
 #include <strings/trim.h>
 #include <tools/range_checker.h>
+
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
 
 namespace Formats::Chiptune
 {

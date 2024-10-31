@@ -8,12 +8,11 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/segasaturnsoundformat.h"
-// common includes
-#include <make_ptr.h>
-// library includes
+
 #include <binary/format_factories.h>
+
+#include <make_ptr.h>
 
 namespace Formats::Chiptune
 {

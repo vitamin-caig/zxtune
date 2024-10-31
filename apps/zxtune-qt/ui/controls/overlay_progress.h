@@ -10,7 +10,6 @@
 
 #pragma once
 
-// qt includes
 #include <QtWidgets/QWidget>
 
 class OverlayProgress : public QWidget

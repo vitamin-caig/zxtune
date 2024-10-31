@@ -8,22 +8,21 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/image_utils.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
+#include <formats/packed/lha_supp.h>
+
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/packed.h>
-#include <formats/packed/lha_supp.h>
 #include <math/numeric.h>
-// std includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+
 #include <cstring>
 #include <numeric>
 

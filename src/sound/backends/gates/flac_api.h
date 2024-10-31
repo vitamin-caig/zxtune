@@ -10,11 +10,10 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-dependent includes
 #include <FLAC/metadata.h>
 #include <FLAC/stream_encoder.h>
+
+#include <memory>
 
 namespace Sound::Flac
 {

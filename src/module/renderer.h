@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <module/state.h>
 #include <sound/chunk.h>
 

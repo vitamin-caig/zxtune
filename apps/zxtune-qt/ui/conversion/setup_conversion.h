@@ -10,10 +10,9 @@
 
 #pragma once
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/conversion.h"
 #include "apps/zxtune-qt/playlist/supp/data.h"
-// qt includes
+
 #include <QtWidgets/QDialog>
 
 namespace UI

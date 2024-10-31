@@ -8,7 +8,6 @@
  *
  **/
 
-// common includes
 #include <binary/crc.h>
 
 namespace Binary

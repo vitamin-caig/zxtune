@@ -10,9 +10,8 @@
 
 #pragma once
 
-// local includes
 #include "module/players/xsf/xsf_metainformation.h"
-// library includes
+
 #include <binary/container.h>
 #include <strings/array.h>
 

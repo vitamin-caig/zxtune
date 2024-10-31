@@ -10,7 +10,6 @@
 
 #pragma once
 
-// library includes
 #include <formats/archived.h>
 
 namespace Formats::Archived

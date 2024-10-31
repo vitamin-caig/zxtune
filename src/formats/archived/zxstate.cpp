@@ -8,14 +8,8 @@
  *
  **/
 
-// local includes
 #include "formats/archived/zxstate_supp.h"
-// common includes
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
+
 #include <binary/compression/zlib_container.h>
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
@@ -26,7 +20,12 @@
 #include <formats/archived.h>
 #include <strings/format.h>
 #include <strings/map.h>
-// std includes
+
+#include <contract.h>
+#include <error.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <array>
 #include <cstring>
 #include <list>

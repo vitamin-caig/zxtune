@@ -8,12 +8,6 @@
  *
  **/
 
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <string_view.h>
-// library includes
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
@@ -21,10 +15,15 @@
 #include <formats/archived.h>
 #include <strings/encoding.h>
 #include <strings/map.h>
-// 3rdparty includes
+
+#include <byteorder.h>
+#include <contract.h>
+#include <make_ptr.h>
+#include <string_view.h>
+
 #include <3rdparty/lzma/C/7z.h>
 #include <3rdparty/lzma/C/7zCrc.h>
-// std includes
+
 #include <cstring>
 #include <list>
 #include <numeric>

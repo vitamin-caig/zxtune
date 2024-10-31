@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
+
+#include <binary/format_factories.h>
+#include <formats/packed.h>
+
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-// std includes
+
 #include <numeric>
 
 namespace Formats::Packed

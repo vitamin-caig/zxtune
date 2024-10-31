@@ -9,12 +9,15 @@
  **/
 
 #include <binary/format/expression.h>
-#include <error_tools.h>
+
 #include <io/api.h>
-#include <iostream>
 #include <parameters/container.h>
 #include <tools/progress_callback.h>
+
+#include <error_tools.h>
 #include <types.h>
+
+#include <iostream>
 
 int main(int argc, char* argv[])
 {

@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/gameboyadvancesoundformat.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
+
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
+
+#include <byteorder.h>
+#include <make_ptr.h>
 
 namespace Formats::Chiptune
 {

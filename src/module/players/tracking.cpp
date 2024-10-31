@@ -8,12 +8,11 @@
  *
  **/
 
-// local includes
 #include "module/players/tracking.h"
-// common includes
+
 #include <make_ptr.h>
 #include <pointers.h>
-// std includes
+
 #include <memory>
 
 namespace Module

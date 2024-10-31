@@ -8,10 +8,10 @@
  *
  **/
 
-// local includes
 #include "apps/zxtune-qt/playlist/supp/operations_helpers.h"
+
 #include "apps/zxtune-qt/playlist/supp/storage.h"
-// library includes
+
 #include <tools/progress_callback_helpers.h>
 
 namespace
