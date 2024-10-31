@@ -11,9 +11,11 @@
 #include "module/players/tfm/tfm_parameters.h"
 
 #include "core/core_parameters.h"
+#include "parameters/identifier.h"
 
 #include "make_ptr.h"
 
+#include <memory>
 #include <utility>
 
 namespace Module::TFM

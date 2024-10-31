@@ -13,6 +13,10 @@
 #include "module/loop.h"
 #include "parameters/accessor.h"
 
+#include "types.h"
+
+#include <memory>
+
 namespace Sound
 {
   //! @brief Input parameters for rendering

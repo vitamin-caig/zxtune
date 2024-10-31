@@ -15,22 +15,40 @@
 #include "apps/zxtune-android/zxtune/src/main/jni/defines.h"
 #include "apps/zxtune-android/zxtune/src/main/jni/exception.h"
 #include "apps/zxtune-android/zxtune/src/main/jni/global_options.h"
-#include "apps/zxtune-android/zxtune/src/main/jni/module.h"
 #include "apps/zxtune-android/zxtune/src/main/jni/properties.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/storage.h"
 
 #include "module/players/pipeline.h"
 #include "sound/impl/fft_analyzer.h"
 
+#include "debug/log.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "module/state.h"
+#include "parameters/container.h"
 #include "parameters/merged_accessor.h"
-#include "sound/mixer_factory.h"
+#include "sound/analyzer.h"
+#include "sound/chunk.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "contract.h"
+#include "error.h"
 #include "make_ptr.h"
 #include "pointers.h"
 
+#include <jni.h>
+
+#include <algorithm>
 #include <atomic>
+#include <cstring>
 #include <ctime>
 #include <deque>
+#include <exception>
+#include <mutex>
+#include <utility>
+#include <vector>
 
 namespace
 {

@@ -13,12 +13,14 @@
 #include "core/plugins/players/ay/aym_conversion.h"
 #include "core/plugins/players/plugin.h"
 #include "module/players/aym/aym_base.h"
-#include "module/players/aym/aym_parameters.h"
+#include "module/players/factory.h"
 
 #include "core/plugin_attrs.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
+#include <memory>
 #include <utility>
 
 namespace Module

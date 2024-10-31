@@ -15,7 +15,12 @@
 #include "debug/log.h"
 #include "platform/version/api.h"
 
+#include "string_type.h"
+#include "string_view.h"
+
 #include <QtCore/QFileInfo>
+
+#include <algorithm>
 
 namespace
 {

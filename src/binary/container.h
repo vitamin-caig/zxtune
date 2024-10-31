@@ -10,7 +10,10 @@
 
 #pragma once
 
-#include "binary/data.h"
+#include "binary/data.h"  // IWYU pragma: export
+
+#include <cstddef>
+#include <memory>
 
 namespace Binary
 {

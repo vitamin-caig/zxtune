@@ -11,11 +11,19 @@
 #include "formats/archived/fmod.h"
 #include "formats/test/utils.h"
 
+#include "binary/container.h"
+#include "binary/view.h"
 #include "strings/format.h"
 
 #include "string_view.h"
+#include "types.h"
 
+#include <algorithm>
+#include <exception>
 #include <iomanip>
+#include <iostream>
+#include <memory>
+#include <utility>
 
 namespace
 {

@@ -10,6 +10,9 @@
 
 #include "formats/chiptune/digital/digital.h"
 
+#include "formats/chiptune/builder_meta.h"
+#include "formats/chiptune/builder_pattern.h"
+
 namespace Formats::Chiptune::Digital
 {
   class StubBuilder : public Builder

@@ -75,6 +75,7 @@ FixNamespaceComments: true
 #  qt/boost includes
 #  system includes
 #  std includes
+CommentPragmas: '^ IWYU pragma:'
 SortIncludes: true
 IncludeBlocks: Regroup
 IncludeIsMainRegex: '$'

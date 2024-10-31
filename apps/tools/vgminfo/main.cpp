@@ -4,12 +4,13 @@
 #include "byteorder.h"
 #include "contract.h"
 #include "pointers.h"
-#include "string_view.h"
-#include "types.h"
 
-#include <fstream>
+#include <exception>
+#include <fstream>  // IWYU pragma: keep
 #include <iostream>
 #include <set>
+#include <stdexcept>
+#include <utility>
 
 namespace
 {

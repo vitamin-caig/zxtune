@@ -10,6 +10,7 @@
 
 #include "module/players/xsf/memory_region.h"
 
+#include <algorithm>
 #include <cstring>
 
 namespace Module

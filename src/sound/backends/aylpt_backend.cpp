@@ -15,20 +15,29 @@
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 
+#include "binary/data.h"
 #include "debug/log.h"
 #include "devices/aym.h"
+#include "l10n/api.h"
+#include "module/holder.h"
+#include "module/state.h"
+#include "parameters/accessor.h"
 #include "platform/shared_library.h"
-#include "sound/backends_parameters.h"
+#include "sound/backend.h"
+#include "sound/backend_attrs.h"
+#include "sound/chunk.h"
+#include "time/instant.h"
 
-#include "byteorder.h"
-#include "error_tools.h"
+#include "error.h"
 #include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
 
-#include <algorithm>
-#include <cstring>
+#include <chrono>
+#include <memory>
 #include <thread>
 #include <utility>
+#include <vector>
 
 namespace Sound::AyLpt
 {

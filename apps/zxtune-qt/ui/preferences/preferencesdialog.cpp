@@ -21,13 +21,14 @@
 #include "apps/zxtune-qt/ui/state.h"
 #include "preferencesdialog.ui.h"
 
+#include <QtCore/QEvent>
 #include <QtGui/QCloseEvent>
-#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QDialog>
 #include <QtWidgets/QTabWidget>
-#include <QtWidgets/QVBoxLayout>
 
 #include <algorithm>
-#include <utility>
+#include <iterator>
+#include <memory>
 
 namespace
 {

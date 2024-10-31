@@ -13,6 +13,9 @@
 #include "binary/container.h"
 #include "binary/format.h"
 
+#include <cstddef>
+#include <memory>
+
 namespace Analysis
 {
   //! Abstract data detection result

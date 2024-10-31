@@ -13,6 +13,10 @@
 #include "formats/chiptune/aym/soundtracker.h"
 #include "module/players/aym/soundtracker.h"
 
+#include "core/plugin_attrs.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterST3Support(PlayerPluginsRegistrator& registrator)

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/playlist/supp/data.h"
+#include "time/instant.h"
 
-#include "sound/backend.h"
-
-#include <QtWidgets/QWidget>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtWidgets/QWidget>  // IWYU pragma: export
 
 class PlaybackSupport;
 

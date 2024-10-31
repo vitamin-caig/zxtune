@@ -10,22 +10,32 @@
 
 #include "formats/chiptune/digital/digitalstudio.h"
 
+#include "formats/chiptune/builder_meta.h"
+#include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/digital/digital_detail.h"
 
 #include "binary/dump.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "math/numeric.h"
+#include "strings/array.h"
 #include "strings/optimize.h"
+#include "tools/indices.h"
 #include "tools/range_checker.h"
 
 #include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
 
+#include <algorithm>
 #include <array>
 #include <cstring>
+#include <exception>
+#include <memory>
+#include <utility>
 
 namespace Formats::Chiptune
 {

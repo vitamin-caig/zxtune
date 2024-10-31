@@ -13,15 +13,13 @@
 #include "strings/src/utf8.h"
 
 #include "math/bitops.h"
-#include "tools/iterators.h"
 
 #include "byteorder.h"
 #include "string_view.h"
-#include "types.h"
 
 #include <algorithm>
 #include <array>
-#include <cassert>
+#include <cstring>
 #include <limits>
 #include <vector>
 
@@ -847,6 +845,7 @@ namespace Strings
     static uint32_t GetUnicode(uint_t s1, uint_t s2)
     {
 #include "strings/src/sjis2unicode.inc"
+
       const auto lo = s2 - MIN_LO;
       if (s1 >= 0xe0)
       {

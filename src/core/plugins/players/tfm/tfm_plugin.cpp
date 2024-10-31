@@ -11,13 +11,21 @@
 #include "core/plugins/players/tfm/tfm_plugin.h"
 
 #include "core/plugins/players/plugin.h"
+#include "module/players/factory.h"
 #include "module/players/tfm/tfm_base.h"
+#include "module/players/tfm/tfm_chiptune.h"
 #include "module/players/tfm/tfm_parameters.h"
 
 #include "core/plugin_attrs.h"
+#include "devices/tfm.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
+#include <memory>
 #include <utility>
 
 namespace Module

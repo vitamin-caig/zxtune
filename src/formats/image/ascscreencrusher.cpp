@@ -10,13 +10,20 @@
 
 #include "formats/image/container.h"
 
+#include "binary/dump.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "formats/image.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
 
+#include <algorithm>
+#include <exception>
 #include <memory>
+#include <utility>
 
 namespace Formats::Image
 {

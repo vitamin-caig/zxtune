@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "binary/container.h"
+#include "binary/container.h"  // IWYU pragma: export
 #include "binary/format.h"
 
 #include "string_type.h"

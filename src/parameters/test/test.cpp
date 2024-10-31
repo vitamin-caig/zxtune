@@ -9,14 +9,22 @@
  **/
 
 #include "binary/container_factories.h"
+#include "binary/data.h"
+#include "binary/dump.h"
+#include "binary/view.h"
 #include "parameters/container.h"
 #include "parameters/convert.h"
+#include "parameters/identifier.h"
 #include "parameters/types.h"
 
+#include "string_type.h"
 #include "string_view.h"
 
+#include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <memory>
+#include <optional>
 
 template<class T>
 std::ostream& operator<<(std::ostream& s, const std::vector<T>& v)

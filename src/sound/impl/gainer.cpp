@@ -10,10 +10,14 @@
 
 #include "sound/gainer.h"
 
+#include "math/bitops.h"
 #include "math/fixedpoint.h"
 #include "math/numeric.h"
+#include "sound/chunk.h"
 
 #include "make_ptr.h"
+
+#include <algorithm>
 
 namespace Sound
 {

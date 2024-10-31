@@ -15,7 +15,7 @@
 #include "string_view.h"
 
 #include <algorithm>
-#include <list>
+#include <utility>
 #include <vector>
 
 namespace LexicalAnalysis

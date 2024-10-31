@@ -10,18 +10,39 @@
 
 #include "module/players/aym/protracker3.h"
 
+#include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_chiptune.h"
+#include "module/players/aym/aym_parameters.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/aym/turbosound.h"
 #include "module/players/aym/vortex.h"
 #include "module/players/platforms.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
+#include "module/players/stream_model.h"
 
+#include "core/freq_tables.h"
+#include "devices/aym.h"
+#include "devices/turbosound.h"
+#include "parameters/container.h"
 #include "parameters/tracking_helper.h"
+#include "time/duration.h"
 
-#include "pointers.h"
+#include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
+
+#include <algorithm>
+#include <memory>
+#include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::ProTracker3
 {

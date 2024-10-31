@@ -10,13 +10,24 @@
 
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 
+#include "apps/zxtune-qt/playlist/supp/capabilities.h"
+
 #include "debug/log.h"
 #include "math/numeric.h"
+#include "tools/iterators.h"
 
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
 
+#include <algorithm>
+#include <cassert>
+#include <iterator>
+#include <list>
+#include <map>
 #include <random>
 #include <utility>
+#include <vector>
 
 namespace
 {

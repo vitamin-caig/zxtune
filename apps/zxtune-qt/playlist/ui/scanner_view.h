@@ -12,7 +12,8 @@
 
 #include "apps/zxtune-qt/playlist/supp/scanner.h"
 
-#include <QtWidgets/QWidget>
+#include <QtCore/QString>
+#include <QtWidgets/QWidget>  // IWYU pragma: export
 
 namespace Playlist::UI
 {

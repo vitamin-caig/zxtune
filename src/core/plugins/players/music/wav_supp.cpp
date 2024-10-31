@@ -13,18 +13,31 @@
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "formats/chiptune/music/wav.h"
+#include "module/players/factory.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
 
+#include "binary/container.h"
 #include "binary/dump.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "sound/receiver.h"
 #include "sound/resampler.h"
+#include "time/instant.h"
 
 #include "contract.h"
-#include "error_tools.h"
 #include "make_ptr.h"
+#include "string_view.h"
+
+#include <algorithm>
+#include <array>
+#include <cstring>
+#include <exception>
 
 namespace Module::Wav
 {

@@ -15,8 +15,8 @@
 #include "apps/zxtune-qt/playlist/supp/container.h"
 #include "apps/zxtune-qt/playlist/supp/controller.h"
 #include "apps/zxtune-qt/playlist/supp/model.h"
+#include "apps/zxtune-qt/playlist/supp/operations.h"
 #include "apps/zxtune-qt/playlist/supp/scanner.h"
-#include "apps/zxtune-qt/playlist/supp/storage.h"
 #include "apps/zxtune-qt/playlist/ui/contextmenu.h"
 #include "apps/zxtune-qt/playlist/ui/scanner_view.h"
 #include "apps/zxtune-qt/playlist/ui/search.h"
@@ -28,32 +28,60 @@
 #include "apps/zxtune-qt/ui/tools/filedialog.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
+#include "strings/src/find.h"
+
 #include "binary/base64.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "module/attributes.h"
+#include "parameters/identifier.h"
 #include "parameters/template.h"
+#include "parameters/types.h"
+#include "strings/fields.h"
 #include "strings/join.h"
 #include "strings/split.h"
 #include "strings/template.h"
 
 #include "contract.h"
 #include "error.h"
-#include "string_view.h"
+#include "types.h"
 
 #include <QtCore/QBuffer>
+#include <QtCore/QByteArray>
+#include <QtCore/QDataStream>
+#include <QtCore/QIODevice>
 #include <QtCore/QIdentityProxyModel>
+#include <QtCore/QList>
 #include <QtCore/QMimeData>
+#include <QtCore/QModelIndex>
+#include <QtCore/QNonConstOverload>
+#include <QtCore/QSize>
 #include <QtCore/QUrl>
+#include <QtCore/QVariant>
+#include <QtCore/QtCore>
 #include <QtGui/QClipboard>
+#include <QtGui/QContextMenuEvent>
 #include <QtGui/QDragEnterEvent>
+#include <QtGui/QDropEvent>
+#include <QtGui/QHideEvent>
 #include <QtGui/QKeyEvent>
+#include <QtGui/QKeySequence>
+#include <QtGui/QPixmap>
+#include <QtGui/QResizeEvent>
+#include <QtGui/QShowEvent>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QInputDialog>
-#include <QtWidgets/QProgressBar>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QVBoxLayout>
 
+#include <algorithm>
+#include <cassert>
+#include <iterator>
+#include <map>
+#include <memory>
 #include <utility>
+#include <vector>
 
 namespace
 {

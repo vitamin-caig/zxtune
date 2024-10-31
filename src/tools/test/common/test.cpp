@@ -14,7 +14,13 @@
 #include "byteorder.h"
 #include "string_type.h"
 
+#include <stdint.h>
+
+#include <cstring>
 #include <iostream>
+#include <memory>
+#include <typeinfo>
+#include <utility>
 
 namespace
 {

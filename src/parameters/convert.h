@@ -10,8 +10,11 @@
 
 #pragma once
 
+#include "binary/data.h"
+#include "binary/view.h"
 #include "parameters/types.h"
 
+#include "string_type.h"
 #include "string_view.h"
 
 #include <optional>

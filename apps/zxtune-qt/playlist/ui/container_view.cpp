@@ -10,11 +10,10 @@
 
 #include "apps/zxtune-qt/playlist/ui/container_view.h"
 
-#include "apps/zxtune-qt/playlist/io/export.h"
 #include "apps/zxtune-qt/playlist/parameters.h"
 #include "apps/zxtune-qt/playlist/supp/container.h"
 #include "apps/zxtune-qt/playlist/supp/controller.h"
-#include "apps/zxtune-qt/playlist/supp/scanner.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
 #include "apps/zxtune-qt/playlist/supp/session.h"
 #include "apps/zxtune-qt/playlist/ui/playlist_view.h"
 #include "apps/zxtune-qt/ui/tools/filedialog.h"
@@ -23,18 +22,31 @@
 #include "container_view.ui.h"
 
 #include "debug/log.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 
 #include "contract.h"
-#include "error.h"
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
+#include <QtCore/QEvent>
+#include <QtCore/QFileInfo>
+#include <QtCore/QFileInfoList>
+#include <QtCore/QNonConstOverload>
+#include <QtCore/QStringList>
 #include <QtCore/QTimer>
+#include <QtCore/QtCore>
 #include <QtGui/QContextMenuEvent>
+#include <QtWidgets/QAction>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QTabWidget>
 
 #include <cassert>
+#include <memory>
+#include <type_traits>
 #include <utility>
 
 namespace

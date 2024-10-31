@@ -13,15 +13,31 @@
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/conversion/backend_settings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
-#include "apps/zxtune-qt/ui/utils.h"
 #include "mp3_settings.ui.h"
 
 #include "math/numeric.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 #include "sound/backends_parameters.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
 
+#include <QtCore/QByteArrayData>
+#include <QtCore/QLatin1String>
+#include <QtCore/QNonConstOverload>
+#include <QtCore/QString>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QSlider>
+
+#include <algorithm>
+#include <iterator>
+#include <memory>
+#include <string>
 #include <utility>
 
 namespace

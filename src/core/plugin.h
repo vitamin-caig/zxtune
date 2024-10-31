@@ -12,6 +12,9 @@
 
 #include "core/plugin_attrs.h"
 
+#include "string_view.h"
+#include "types.h"
+
 namespace ZXTune
 {
   //! @brief Basic plugin interface

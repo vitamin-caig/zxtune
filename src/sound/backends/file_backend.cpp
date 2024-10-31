@@ -15,18 +15,28 @@
 #include "async/data_receiver.h"
 #include "debug/log.h"
 #include "io/api.h"
-#include "io/providers_parameters.h"
 #include "io/template.h"
+#include "l10n/api.h"
 #include "module/attributes.h"
 #include "module/track_state.h"
 #include "parameters/convert.h"
+#include "parameters/identifier.h"
 #include "parameters/template.h"
+#include "parameters/types.h"
+#include "sound/backend.h"
 #include "sound/backends_parameters.h"
+#include "sound/chunk.h"
+#include "strings/fields.h"
+#include "strings/template.h"
 #include "tools/progress_callback.h"
 
+#include "contract.h"
+#include "error.h"
 #include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <cassert>
 #include <memory>
 #include <utility>
 

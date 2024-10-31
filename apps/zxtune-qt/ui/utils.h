@@ -13,10 +13,10 @@
 #include "string_type.h"
 #include "string_view.h"
 
-#include <QtCore/QLatin1String>
+#include <QtCore/QLatin1String>  // IWYU pragma: export
 #include <QtCore/QMetaType>
 #include <QtCore/QObject>
-#include <QtCore/QString>
+#include <QtCore/QString>  // IWYU pragma: export
 
 inline auto ToQString(StringView str)
 {

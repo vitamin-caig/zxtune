@@ -14,9 +14,8 @@
 #include "strings/optimize.h"
 #include "tools/locale_helpers.h"
 
-#include "string_view.h"
-
 #include <algorithm>
+#include <iterator>
 
 namespace TRDos
 {

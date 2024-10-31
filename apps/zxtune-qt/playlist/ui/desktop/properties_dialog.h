@@ -11,11 +11,20 @@
 #pragma once
 
 #include "apps/zxtune-qt/playlist/supp/model.h"
-#include "apps/zxtune-qt/playlist/supp/operations_search.h"
 
-#include <QtWidgets/QDialog>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtWidgets/QDialog>  // IWYU pragma: export
 
-class QAbstractButton;
+#include <memory>
+
+class QWidget;
+
+namespace Playlist::Item
+{
+  class Data;
+}  // namespace Playlist::Item
+
 namespace Playlist::UI
 {
   class PropertiesDialog : public QDialog

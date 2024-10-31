@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <vorbis/codec.h>
+#include <vorbis/codec.h>  // IWYU pragma: export
 
 #include <memory>
 

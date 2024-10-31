@@ -16,18 +16,34 @@
 #include "sound/backends/volume_control.h"
 
 #include "debug/log.h"
+#include "l10n/api.h"
 #include "math/numeric.h"
+#include "module/holder.h"
+#include "parameters/accessor.h"
+#include "parameters/identifier.h"
+#include "sound/backend.h"
+#include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
+#include "sound/chunk.h"
+#include "sound/gain.h"
 #include "sound/render_params.h"
+#include "strings/array.h"
 
-#include "byteorder.h"
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
 
-#include <functional>
+#include <chrono>
+#include <cstring>
 #include <memory>
 #include <thread>
 #include <utility>
+
+namespace Module
+{
+  class State;
+}  // namespace Module
 
 namespace Sound::OpenAl
 {

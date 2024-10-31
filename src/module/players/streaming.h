@@ -13,11 +13,18 @@
 #include "module/players/iterator.h"
 
 #include "module/information.h"
+#include "module/state.h"  // IWYU pragma: export
 #include "time/duration.h"
+#include "time/instant.h"
+
+#include "types.h"
+
+#include <memory>
 
 namespace Module
 {
   class StreamModel;
+
   Information::Ptr CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel& model);
   StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, const StreamModel& model);
 

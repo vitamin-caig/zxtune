@@ -8,14 +8,22 @@
  *
  **/
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/music/mp3.h"
 #include "formats/test/utils.h"
 
+#include "binary/view.h"
+#include "formats/chiptune.h"
+#include "strings/array.h"
 #include "strings/format.h"
 #include "time/duration.h"
 #include "time/instant.h"
 
 #include "string_view.h"
+
+#include <exception>
+#include <iostream>
+#include <memory>
 
 namespace
 {

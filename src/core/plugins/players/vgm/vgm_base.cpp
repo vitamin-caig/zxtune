@@ -14,26 +14,51 @@
 #include "formats/chiptune/multidevice/sound98.h"
 #include "formats/chiptune/multidevice/videogamemusic.h"
 #include "module/players/duration.h"
-#include "module/players/platforms.h"
+#include "module/players/factory.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
 
 #include "binary/container_factories.h"
+#include "binary/data.h"
+#include "binary/view.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
 #include "math/numeric.h"
-#include "module/attributes.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "sound/chunk.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "contract.h"
-#include "error_tools.h"
+#include "error.h"
 #include "make_ptr.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
+#include "3rdparty/vgm/emu/Resampler.h"
+#include "3rdparty/vgm/emu/snddef.h"
+#include "3rdparty/vgm/player/playerbase.hpp"
 #include "3rdparty/vgm/player/s98player.hpp"
 #include "3rdparty/vgm/player/vgmplayer.hpp"
+#include "3rdparty/vgm/stdtype.h"
 #include "3rdparty/vgm/utils/DataLoader.h"
 
-#include <map>
+#include <algorithm>
+#include <cstring>
+#include <exception>
+#include <memory>
+#include <utility>
+#include <vector>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::LibVGM
 {

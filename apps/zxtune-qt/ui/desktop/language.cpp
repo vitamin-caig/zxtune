@@ -12,17 +12,27 @@
 
 #include "apps/zxtune-qt/ui/utils.h"
 
+#include "l10n/src/library.h"
+
+#include "binary/data.h"
 #include "l10n/control.h"
 
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
 
 #include <QtCore/QCoreApplication>
+#include <QtCore/QFunctionPointer>
+#include <QtCore/QLatin1Char>
 #include <QtCore/QLocale>
 #include <QtCore/QTranslator>
 
+#include <algorithm>
+#include <functional>
 #include <map>
 #include <set>
+#include <utility>
+#include <vector>
 
 namespace
 {

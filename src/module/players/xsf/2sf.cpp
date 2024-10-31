@@ -14,22 +14,39 @@
 #include "module/players/platforms.h"
 #include "module/players/streaming.h"
 #include "module/players/xsf/memory_region.h"
-#include "module/players/xsf/xsf.h"
+#include "module/players/xsf/xsf_file.h"
+#include "module/players/xsf/xsf_metainformation.h"
 
 #include "binary/compression/zlib_container.h"
+#include "binary/container.h"
+#include "binary/dump.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "math/bitops.h"
 #include "module/attributes.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "sound/chunk.h"
+#include "sound/receiver.h"
 #include "sound/resampler.h"
+#include "strings/array.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "pointers.h"
 #include "string_view.h"
 
-#include "3rdparty/vio2sf/desmume/SPU.h"
 #include "3rdparty/vio2sf/desmume/state.h"
+#include "3rdparty/vio2sf/desmume/types.h"
 
+#include <cstdlib>
 #include <list>
+#include <memory>
+#include <utility>
 
 namespace Module::TwoSF
 {

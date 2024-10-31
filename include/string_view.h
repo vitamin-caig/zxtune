@@ -12,7 +12,7 @@
 
 #include <memory>
 #include <string>
-#include <string_view>
+#include <string_view>  // IWYU pragma: export
 
 using std::string_view_literals::operator""sv;
 

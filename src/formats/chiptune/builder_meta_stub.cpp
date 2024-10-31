@@ -10,6 +10,8 @@
 
 #include "formats/chiptune/builder_meta.h"
 
+#include "strings/array.h"
+
 #include "string_view.h"
 
 namespace Formats::Chiptune

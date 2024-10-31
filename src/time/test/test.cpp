@@ -12,9 +12,12 @@
 #include "time/instant.h"
 #include "time/serialize.h"
 
-#include "static_string.h"
+#include "string_type.h"
+
+#include <stdint.h>
 
 #include <iostream>
+#include <type_traits>
 
 namespace
 {

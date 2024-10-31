@@ -10,22 +10,32 @@
 
 #include "formats/chiptune/fm/tfmmusicmaker.h"
 
+#include "formats/chiptune/builder_meta.h"
+#include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/container.h"
 
 #include "binary/crc.h"
 #include "binary/data_builder.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "math/numeric.h"
+#include "strings/array.h"
 #include "strings/sanitize.h"
 #include "tools/indices.h"
 
+#include "byteorder.h"
+#include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
+#include <cstring>
+#include <exception>
+#include <utility>
 
 namespace Formats::Chiptune
 {

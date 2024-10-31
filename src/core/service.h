@@ -11,11 +11,17 @@
 #pragma once
 
 #include "binary/container.h"
-#include "core/module_detect.h"
 #include "module/holder.h"
 #include "parameters/container.h"
 
 #include "string_view.h"
+
+#include <memory>
+
+namespace Module
+{
+  class DetectCallback;
+}  // namespace Module
 
 namespace ZXTune
 {

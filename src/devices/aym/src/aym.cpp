@@ -8,12 +8,19 @@
  *
  **/
 
+#include "devices/aym.h"
+
+#include "devices/aym/chip.h"
 #include "devices/aym/src/psg.h"
 #include "devices/aym/src/soundchip.h"
 
+#include "sound/chunk.h"
+
 #include "make_ptr.h"
+#include "types.h"
 
 #include <utility>
+#include <vector>
 
 namespace Devices::AYM
 {

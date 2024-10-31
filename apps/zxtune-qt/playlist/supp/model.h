@@ -10,15 +10,21 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/playlist/io/container.h"
 #include "apps/zxtune-qt/playlist/supp/data.h"
 
-#include "tools/progress_callback.h"
-
-#include <QtCore/QAbstractItemModel>
+#include <QtCore/QAbstractItemModel>  // IWYU pragma: export
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtCore/QStringList>
 
 #include <map>
+#include <memory>
 #include <set>
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
 
 namespace Playlist
 {

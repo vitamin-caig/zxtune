@@ -11,10 +11,14 @@
 #pragma once
 
 #include "sound/analyzer.h"
-#include "sound/sample.h"
+
+#include <cstddef>
+#include <memory>
 
 namespace Sound
 {
+  struct Sample;
+
   //! @brief %Sound analyzer interface
   class FFTAnalyzer : public Analyzer
   {

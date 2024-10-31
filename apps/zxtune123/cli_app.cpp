@@ -15,39 +15,53 @@
 #include "apps/zxtune123/sound.h"
 #include "apps/zxtune123/source.h"
 
-#include "async/src/event.h"
 #include "module/conversion/api.h"
 #include "module/conversion/parameters.h"
 
 #include "async/data_receiver.h"
+#include "binary/container.h"
 #include "binary/container_factories.h"
 #include "binary/crc.h"
-#include "core/core_parameters.h"
-#include "core/plugin.h"
-#include "core/plugin_attrs.h"
 #include "io/api.h"
 #include "io/template.h"
+#include "math/fixedpoint.h"
 #include "module/attributes.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "module/state.h"
+#include "parameters/container.h"
 #include "parameters/merged_accessor.h"
 #include "parameters/template.h"
 #include "platform/application.h"
 #include "platform/version/api.h"
-#include "sound/sound_parameters.h"
-#include "time/duration.h"
+#include "sound/backend.h"
+#include "sound/chunk.h"
+#include "sound/gain.h"
+#include "strings/array.h"
+#include "strings/fields.h"
+#include "strings/format.h"
+#include "strings/template.h"
+#include "time/instant.h"
 #include "time/timer.h"
+#include "tools/data_streaming.h"
 #include "tools/progress_callback.h"
 
+#include "contract.h"
 #include "error_tools.h"
+#include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
 #include <algorithm>
-#include <cctype>
-#include <functional>
-#include <limits>
+#include <exception>
 #include <memory>
-#include <numeric>
+#include <optional>
+#include <ostream>
+#include <utility>
 
 namespace
 {

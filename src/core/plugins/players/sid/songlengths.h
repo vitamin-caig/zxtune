@@ -11,6 +11,7 @@
 #include "time/duration.h"
 
 #include "string_view.h"
+#include "types.h"
 
 namespace Module::Sid
 {

@@ -11,16 +11,22 @@
 #include "apps/zxtune-qt/singlemode.h"
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/factory.h"
+#include "apps/zxtune-qt/ui/mainwindow.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "apps/zxtune-qt/urls.h"
 
+#include "parameters/container.h"
 #include "platform/application.h"
 #include "platform/version/api.h"
+#include "strings/array.h"
 
 #include "contract.h"
+#include "string_view.h"
 
+#include <QtCore/QByteArrayData>
 #include <QtWidgets/QApplication>
 
+#include <memory>
 #include <utility>
 
 namespace

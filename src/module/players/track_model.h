@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "module/track_state.h"
+#include "module/track_state.h"  // IWYU pragma: export
 #include "tools/iterators.h"
 
 #include "types.h"

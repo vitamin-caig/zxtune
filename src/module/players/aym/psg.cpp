@@ -11,11 +11,23 @@
 #include "module/players/aym/psg.h"
 
 #include "formats/chiptune/aym/psg.h"
-#include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/properties_helper.h"
 
+#include "devices/aym.h"
+#include "parameters/container.h"
+
 #include "make_ptr.h"
+#include "types.h"
+
+#include <memory>
+#include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::PSG
 {

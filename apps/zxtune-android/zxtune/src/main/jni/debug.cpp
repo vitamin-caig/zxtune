@@ -10,4 +10,6 @@
 
 #include "apps/zxtune-android/zxtune/src/main/jni/debug.h"
 
+#include "string_view.h"
+
 const Debug::Stream Dbg("");

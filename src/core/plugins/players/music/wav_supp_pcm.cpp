@@ -10,10 +10,17 @@
 
 #include "core/plugins/players/music/wav_supp.h"
 
+#include "binary/input_stream.h"
+#include "binary/view.h"
+#include "sound/chunk.h"
+
 #include "contract.h"
 #include "make_ptr.h"
+#include "types.h"
 
+#include <algorithm>
 #include <array>
+#include <utility>
 
 namespace Module::Wav
 {

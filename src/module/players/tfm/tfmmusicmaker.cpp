@@ -10,18 +10,34 @@
 
 #include "module/players/tfm/tfmmusicmaker.h"
 
+#include "formats/chiptune/builder_pattern.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
-#include "module/players/tfm/tfm_base.h"
 #include "module/players/tfm/tfm_base_track.h"
+#include "module/players/tfm/tfm_chiptune.h"
+#include "module/players/tracking.h"
 
 #include "math/fixedpoint.h"
+#include "module/track_information.h"
+#include "parameters/container.h"
+#include "time/duration.h"
+#include "time/instant.h"
+#include "tools/iterators.h"
 
 #include "make_ptr.h"
+#include "types.h"
 
+#include <algorithm>
 #include <array>
+#include <cassert>
 #include <memory>
+#include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::TFMMusicMaker
 {

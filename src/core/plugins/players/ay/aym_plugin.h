@@ -15,8 +15,12 @@
 
 #include "formats/chiptune.h"
 
+#include "types.h"
+
 namespace ZXTune
 {
+  class PluginId;
+
   PlayerPlugin::Ptr CreatePlayerPlugin(PluginId id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
                                        Module::AYM::Factory::Ptr factory);
   PlayerPlugin::Ptr CreateTrackPlayerPlugin(PluginId id, Formats::Chiptune::Decoder::Ptr decoder,

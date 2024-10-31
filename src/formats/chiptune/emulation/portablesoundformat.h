@@ -10,10 +10,16 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-
 #include "formats/chiptune.h"
 #include "time/duration.h"
+
+#include "string_type.h"
+#include "types.h"
+
+namespace Formats::Chiptune
+{
+  class MetaBuilder;
+}  // namespace Formats::Chiptune
 
 namespace Formats::Chiptune::PortableSoundFormat
 {

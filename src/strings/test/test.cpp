@@ -23,9 +23,15 @@
 #include "strings/template.h"
 #include "strings/trim.h"
 
-#include "string_view.h"
+#include "types.h"
+
+#include <ctype.h>
 
 #include <iostream>
+#include <memory>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 template<class T>
 std::ostream& operator<<(std::ostream& o, const std::vector<T>& arr)

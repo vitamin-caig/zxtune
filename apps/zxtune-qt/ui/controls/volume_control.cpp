@@ -10,16 +10,24 @@
 
 #include "apps/zxtune-qt/ui/controls/volume_control.h"
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/supp/playback_supp.h"
 #include "apps/zxtune-qt/ui/styles.h"
 #include "volume_control.ui.h"
 
+#include "math/fixedpoint.h"
+#include "sound/backend.h"
+#include "sound/gain.h"
+
 #include "contract.h"
 #include "error.h"
 
-#include <ctime>
-#include <numeric>
-#include <utility>
+#include <QtCore/QByteArrayData>
+#include <QtCore/QEvent>
+#include <QtWidgets/QSlider>
+
+#include <algorithm>
+#include <memory>
 
 namespace
 {

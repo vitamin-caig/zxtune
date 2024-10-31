@@ -10,7 +10,11 @@
 
 #pragma once
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/playlist/supp/model.h"
+
+#include <cstddef>
+#include <memory>
 
 namespace Playlist::Item
 {

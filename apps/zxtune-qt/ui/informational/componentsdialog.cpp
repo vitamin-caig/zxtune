@@ -17,16 +17,28 @@
 #include "core/plugin.h"
 #include "core/plugin_attrs.h"
 #include "io/provider.h"
+#include "sound/backend.h"
 #include "sound/backend_attrs.h"
 #include "sound/service.h"
 #include "strings/format.h"
 
+#include "error.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <QtCore/QStringList>
+#include <QtCore/QtCore>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDialog>
+#include <QtWidgets/QTreeWidgetItem>
 
+#include <algorithm>
+#include <cassert>
+#include <map>
+#include <memory>
+#include <span>
 #include <utility>
+#include <vector>
 
 namespace
 {

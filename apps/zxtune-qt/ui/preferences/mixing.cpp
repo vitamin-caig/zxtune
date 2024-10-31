@@ -12,15 +12,20 @@
 
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/preferences/mixer.h"
-#include "apps/zxtune-qt/ui/utils.h"
 #include "mixing.ui.h"
 
+#include "parameters/container.h"
 #include "sound/mixer_parameters.h"
 #include "sound/sample.h"
 
-#include <QtWidgets/QLabel>
+#include "types.h"
 
-#include <utility>
+#include <QtCore/QEvent>
+#include <QtCore/QLatin1String>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QVBoxLayout>
+
+#include <memory>
 
 namespace
 {

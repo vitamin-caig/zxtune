@@ -8,23 +8,34 @@
  *
  **/
 
+#include "formats/chiptune/aym/soundtracker.h"
 #include "formats/chiptune/aym/soundtracker_detail.h"
+#include "formats/chiptune/builder_meta.h"
+#include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/container.h"
+#include "formats/chiptune/objects.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "formats/chiptune.h"
 #include "math/numeric.h"
 #include "strings/optimize.h"
+#include "tools/indices.h"
 #include "tools/iterators.h"
 #include "tools/range_checker.h"
 
 #include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
 
 #include <algorithm>
 #include <array>
+#include <exception>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace Formats::Chiptune
 {

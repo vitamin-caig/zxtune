@@ -11,15 +11,16 @@
 #pragma once
 
 #include "apps/zxtune-qt/playlist/supp/controller.h"
+#include "apps/zxtune-qt/playlist/supp/data.h"
 
-#include <QtWidgets/QWidget>
+#include "parameters/accessor.h"
+
+#include <QtCore/QString>
+#include <QtCore/QStringList>
+#include <QtWidgets/QWidget>  // IWYU pragma: export
 
 namespace Playlist
 {
-  namespace Item
-  {
-    class Data;
-  }
 
   namespace UI
   {

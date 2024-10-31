@@ -9,23 +9,31 @@
  **/
 
 #include "formats/chiptune/aym/ym.h"
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/container.h"
 #include "formats/packed/lha_supp.h"
 
 #include "binary/dump.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "formats/chiptune.h"
+#include "formats/packed.h"
 #include "math/numeric.h"
 #include "strings/optimize.h"
 
 #include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
 
+#include <algorithm>
 #include <array>
 #include <cstring>
+#include <exception>
+#include <memory>
+#include <utility>
 
 namespace Formats::Chiptune
 {

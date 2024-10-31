@@ -9,18 +9,25 @@
  **/
 
 #include "binary/format/details.h"
+#include "binary/format/expression.h"
 #include "binary/format/static_expression.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "math/numeric.h"
 
 #include "contract.h"
 #include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <limits>
+#include <memory>
+#include <utility>
 #include <vector>
 
 namespace Binary

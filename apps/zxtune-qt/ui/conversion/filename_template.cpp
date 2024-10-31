@@ -19,16 +19,27 @@
 #include "filename_template.ui.h"
 
 #include "io/providers_parameters.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 
 #include "contract.h"
 
-#include <QtGui/QCloseEvent>
+#include <QtCore/QLatin1Char>
+#include <QtCore/QtCore>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QDialog>
 #include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QToolButton>
 #include <QtWidgets/QVBoxLayout>
 
-#include <utility>
+#include <initializer_list>
+#include <memory>
+#include <type_traits>
 
 namespace
 {

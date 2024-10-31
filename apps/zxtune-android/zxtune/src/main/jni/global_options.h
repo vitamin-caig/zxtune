@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "parameters/container.h"
-
 namespace Parameters
 {
+  class Container;
+
   Container& GlobalOptions();
-}
+}  // namespace Parameters

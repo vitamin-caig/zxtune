@@ -11,17 +11,29 @@
 #include "module/players/pipeline.h"
 
 #include "debug/log.h"
+#include "math/fixedpoint.h"
 #include "module/holder.h"
+#include "module/information.h"
 #include "module/loop.h"
+#include "module/state.h"
+#include "parameters/identifier.h"
 #include "parameters/merged_accessor.h"
 #include "parameters/tracking_helper.h"
+#include "parameters/types.h"
+#include "sound/chunk.h"
+#include "sound/gain.h"
 #include "sound/gainer.h"
 #include "sound/render_params.h"
 #include "sound/sound_parameters.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "make_ptr.h"
+#include "string_view.h"
 
 #include <algorithm>
+#include <memory>
+#include <utility>
 
 namespace Module
 {

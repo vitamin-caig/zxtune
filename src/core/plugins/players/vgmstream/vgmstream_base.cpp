@@ -13,42 +13,56 @@
 #include "core/plugins/players/multitrack_plugin.h"
 #include "core/plugins/players/plugin.h"
 #include "formats/chiptune/container.h"
-#include "module/players/duration.h"
-#include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
-#include "module/players/properties_meta.h"
-#include "module/players/streaming.h"
 
 #include "binary/container_base.h"
 #include "binary/crc.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
 #include "formats/multitrack.h"
 #include "math/numeric.h"
 #include "module/additional_files.h"
-#include "module/attributes.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "module/state.h"
+#include "parameters/container.h"
+#include "sound/chunk.h"
+#include "sound/receiver.h"
 #include "sound/resampler.h"
+#include "strings/array.h"
 #include "strings/sanitize.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "contract.h"
-#include "error_tools.h"
+#include "error.h"
 #include "make_ptr.h"
+#include "pointers.h"
 #include "static_string.h"
-#include "string_view.h"
+#include "types.h"
 
 #include <algorithm>
 #include <array>
-#include <map>
+#include <cstring>
+#include <exception>
+#include <iterator>
+#include <memory>
 #include <set>
 #include <utility>
 
 extern "C"
 {
-// clang-format off
-#include "3rdparty/vgmstream/config.h"
-#include "3rdparty/vgmstream/vgmstream.h"
+  // clang-format off
+#include "3rdparty/vgmstream/config.h" // IWYU pragma: keep
 #include "3rdparty/vgmstream/base/plugins.h"
+#include "3rdparty/vgmstream/vgmstream.h"
+#include "3rdparty/vgmstream/streamfile.h"
+#include "3rdparty/vgmstream/streamtypes.h"
+#include "3rdparty/vgmstream/vgmstream_types.h"
   // clang-format on
 }
 

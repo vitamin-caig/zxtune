@@ -10,13 +10,18 @@
 
 #include "parameters/accessor.h"
 #include "parameters/delegated.h"
+#include "parameters/types.h"
+#include "sound/gain.h"
 #include "sound/matrix_mixer.h"
 #include "sound/mixer_parameters.h"
+#include "sound/sample.h"
 #include "sound/sound_parameters.h"
 
 #include "make_ptr.h"
+#include "types.h"
 
 #include <array>
+#include <memory>
 #include <utility>
 
 namespace Sound

@@ -10,9 +10,12 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/ui/mainwindow.h"
+#include "apps/zxtune-qt/ui/mainwindow.h"  // IWYU pragma: export
 
 #include "parameters/container.h"
+
+#include <QtCore/QObject>
+#include <QtCore/QString>
 
 class DesktopMainWindow : public MainWindow
 {

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "string_type.h"
+#include "string_type.h"  // IWYU pragma: export
 
-#include <set>
+#include <set>  // IWYU pragma: export
 
 namespace Strings
 {

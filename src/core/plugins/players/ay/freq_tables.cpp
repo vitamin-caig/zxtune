@@ -8,14 +8,18 @@
  *
  **/
 
+#include "core/freq_tables.h"
+
 #include "core/plugins/players/ay/freq_tables_internal.h"
 
 #include "l10n/api.h"
 
 #include "error_tools.h"
+#include "string_type.h"
 #include "string_view.h"
 
 #include <algorithm>
+#include <iterator>
 
 namespace Module
 {

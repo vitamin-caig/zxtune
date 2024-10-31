@@ -11,12 +11,20 @@
 #pragma once
 
 #include "module/holder.h"
-#include "module/state.h"
+#include "parameters/accessor.h"
 #include "sound/backend.h"
-#include "sound/chunk.h"
+
+#include <memory>
+
+namespace Module
+{
+  class State;
+}  // namespace Module
 
 namespace Sound
 {
+  struct Chunk;
+
   class BackendWorker
   {
   public:

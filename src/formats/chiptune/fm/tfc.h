@@ -10,15 +10,17 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-
 #include "formats/chiptune.h"
 
 #include "string_view.h"
 #include "types.h"
 
+#include <memory>
+
 namespace Formats::Chiptune
 {
+  class MetaBuilder;
+
   namespace TFC
   {
     class Builder

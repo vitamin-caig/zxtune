@@ -15,6 +15,11 @@
 #include "formats/archived/multitrack/decoders.h"
 
 #include "core/plugin_attrs.h"
+#include "formats/archived.h"
+
+#include "types.h"
+
+#include <utility>
 
 namespace ZXTune
 {

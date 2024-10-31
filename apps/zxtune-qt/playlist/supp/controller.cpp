@@ -19,10 +19,16 @@
 #include "debug/log.h"
 
 #include "contract.h"
-#include "error.h"
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
 
+#include <QtCore/QPointer>
+#include <QtCore/QtCore>
 #include <QtWidgets/QMessageBox>
+
+#include <stdlib.h>
+#include <time.h>
 
 #include <utility>
 

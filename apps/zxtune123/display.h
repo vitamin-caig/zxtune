@@ -13,11 +13,12 @@
 #include "module/holder.h"
 #include "sound/backend.h"
 #include "strings/format.h"
-#include "time/duration.h"
+#include "time/instant.h"
 
 #include "string_view.h"
 
 #include <memory>
+#include <utility>
 
 // forward declarations
 namespace boost::program_options

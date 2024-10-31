@@ -9,8 +9,9 @@
  **/
 
 #include "error.h"
+#include "string_type.h"
+#include "string_view.h"
 
-#include <iomanip>
 #include <iostream>
 
 namespace

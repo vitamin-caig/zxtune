@@ -10,6 +10,8 @@
 
 #include "module/players/properties_meta.h"
 
+#include "module/players/properties_helper.h"
+
 #include "module/attributes.h"
 
 #include "string_view.h"

@@ -10,10 +10,18 @@
 
 #pragma once
 
-#include "module/players/saa/saa_parameters.h"
+#include "module/players/iterator.h"  // IWYU pragma: export
 #include "module/players/tracking.h"
 
+#include "devices/saa.h"
 #include "module/holder.h"
+#include "parameters/accessor.h"
+#include "time/duration.h"
+
+#include "types.h"
+
+#include <array>
+#include <memory>
 
 namespace Module::SAA
 {

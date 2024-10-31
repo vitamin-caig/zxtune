@@ -13,6 +13,10 @@
 #include "formats/chiptune/aym/fasttracker.h"
 #include "module/players/aym/fasttracker.h"
 
+#include "core/plugin_attrs.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterFTCSupport(PlayerPluginsRegistrator& registrator)

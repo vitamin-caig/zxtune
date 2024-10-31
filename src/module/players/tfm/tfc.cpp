@@ -14,16 +14,30 @@
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
-#include "module/players/streaming.h"
 #include "module/players/tfm/tfm_base_stream.h"
+#include "module/players/tfm/tfm_chiptune.h"
 
+#include "devices/fm.h"
+#include "devices/tfm.h"
+#include "parameters/container.h"
+#include "time/duration.h"
 #include "tools/iterators.h"
 
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
 
 #include <algorithm>
 #include <array>
+#include <memory>
+#include <utility>
+#include <vector>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::TFC
 {

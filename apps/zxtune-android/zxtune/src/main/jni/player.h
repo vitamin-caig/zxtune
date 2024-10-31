@@ -12,10 +12,22 @@
 
 #include "apps/zxtune-android/zxtune/src/main/jni/storage.h"
 
-#include "module/holder.h"
-#include "parameters/container.h"
+#include "time/base.h"
+
+#include "types.h"
 
 #include <jni.h>
+
+#include <memory>
+
+namespace Module
+{
+  class Holder;
+}  // namespace Module
+namespace Parameters
+{
+  class Modifier;
+}  // namespace Parameters
 
 namespace Player
 {

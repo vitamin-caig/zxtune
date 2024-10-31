@@ -11,14 +11,16 @@
 #include "sound/impl/mixer_core.h"
 
 #include "l10n/api.h"
-#include "math/numeric.h"
+#include "sound/gain.h"
 #include "sound/matrix_mixer.h"
+#include "sound/sample.h"
 
-#include "error_tools.h"
+#include "error.h"
 #include "make_ptr.h"
+#include "string_view.h"
 
 #include <algorithm>
-#include <numeric>
+#include <array>
 
 namespace Sound
 {

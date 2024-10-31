@@ -10,9 +10,14 @@
 
 #include "formats/chiptune/emulation/dreamcastsoundformat.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 
 #include "make_ptr.h"
+#include "string_view.h"
+
+#include <memory>
 
 namespace Formats::Chiptune
 {

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <OpenAL/al.h>
-#include <OpenAL/alc.h>
+#include <OpenAL/al.h>   // IWYU pragma: export
+#include <OpenAL/alc.h>  // IWYU pragma: export
 
 #include <memory>
 

@@ -10,11 +10,15 @@
 
 #include "apps/zxtune-qt/update/rss.h"
 
-#include "apps/zxtune-qt/ui/utils.h"
-
 #include "debug/log.h"
 
+#include "string_view.h"
+
+#include <QtCore/QLatin1String>
+#include <QtCore/QStringRef>
+#include <QtCore/QXmlStreamAttributes>
 #include <QtCore/QXmlStreamReader>
+#include <QtCore/Qt>
 
 namespace
 {

@@ -41,7 +41,8 @@ namespace L10n
     virtual String GetText(const char* single, const char* plural, int count) const = 0;
 
     //! @brief Same functions with context specified
-    //! @note Specified design is limited by messages' collecting utilities workflow (context should be specified exactly near the message)
+    //! @note Specified design is limited by messages' collecting utilities workflow (context should be specified
+    //! exactly near the message)
     virtual String GetText(const char* context, const char* text) const = 0;
     virtual String GetText(const char* context, const char* single, const char* plural, int count) const = 0;
   };

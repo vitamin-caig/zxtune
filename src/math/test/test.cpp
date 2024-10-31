@@ -8,9 +8,12 @@
  *
  **/
 
+#include "math/bitops.h"
 #include "math/scale.h"
 
 #include "string_type.h"
+
+#include <stdint.h>
 
 #include <iostream>
 

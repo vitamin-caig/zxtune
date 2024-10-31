@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "string_type.h"
+#include "string_type.h"  // IWYU pragma: export
 #include "types.h"
 
 #include "3rdparty/fmt/include/fmt/core.h"

@@ -14,6 +14,11 @@
 #include "formats/packed/decoders.h"
 
 #include "core/plugin_attrs.h"
+#include "formats/packed.h"
+
+#include "types.h"
+
+#include <utility>
 
 namespace ZXTune
 {

@@ -15,6 +15,8 @@
 
 #include "core/plugin_attrs.h"
 
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterDSTSupport(PlayerPluginsRegistrator& registrator)

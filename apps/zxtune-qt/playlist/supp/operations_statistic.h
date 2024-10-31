@@ -10,9 +10,16 @@
 
 #pragma once
 
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
 #include "apps/zxtune-qt/playlist/supp/operations.h"
 
+#include "time/duration.h"
+
 #include "string_view.h"
+
+#include <cstddef>
+#include <memory>
 
 namespace Playlist::Item
 {

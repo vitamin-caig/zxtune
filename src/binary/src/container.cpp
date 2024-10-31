@@ -8,16 +8,19 @@
  *
  **/
 
-#include "binary/container_factories.h"
+#include "binary/container.h"
 
-#include "contract.h"
+#include "binary/container_factories.h"
+#include "binary/data.h"
+#include "binary/dump.h"
+#include "binary/view.h"
+
 #include "make_ptr.h"
 
 #include <algorithm>
 #include <cassert>
-#include <cstring>
-#include <limits>
-#include <type_traits>
+#include <memory>
+#include <utility>
 
 namespace Binary
 {

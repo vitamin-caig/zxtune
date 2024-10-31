@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "module/players/iterator.h"
+#include "module/players/iterator.h"  // IWYU pragma: export
 
 #include "devices/tfm.h"
 #include "module/information.h"

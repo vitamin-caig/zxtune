@@ -16,13 +16,23 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "supported_formats.ui.h"
 
+#include "parameters/container.h"
+#include "parameters/identifier.h"
+#include "sound/backend.h"
 #include "sound/service.h"
 #include "strings/map.h"
 
 #include "contract.h"
+#include "error.h"
 #include "string_view.h"
 
 #include <QtWidgets/QRadioButton>
+
+#include <algorithm>
+#include <memory>
+#include <span>
+#include <type_traits>
+#include <utility>
 
 namespace
 {

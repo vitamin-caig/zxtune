@@ -14,10 +14,12 @@
 #include "strings/conversion.h"
 
 #include "string_view.h"
+#include "types.h"
 
 #include <algorithm>
 #include <cassert>
 #include <cctype>
+#include <iterator>
 
 namespace
 {

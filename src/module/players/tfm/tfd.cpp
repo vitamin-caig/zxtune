@@ -14,10 +14,23 @@
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
-#include "module/players/streaming.h"
 #include "module/players/tfm/tfm_base_stream.h"
+#include "module/players/tfm/tfm_chiptune.h"
+
+#include "devices/tfm.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
+#include "types.h"
+
+#include <memory>
+#include <utility>
+#include <vector>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::TFD
 {

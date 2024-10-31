@@ -8,26 +8,52 @@
  *
  **/
 
+#include "ogg/config_types.h"
+#include "vorbis/codec.h"
+
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "formats/chiptune/music/oggvorbis.h"
+#include "module/players/factory.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
 
+#include "binary/data.h"
+#include "binary/view.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
 #include "math/numeric.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "sound/chunk.h"
+#include "sound/receiver.h"
 #include "sound/resampler.h"
+#include "time/instant.h"
 
 #include "contract.h"
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
 
 #include "3rdparty/vorbis/vorbisfile.h"
 
+#include <stdio.h>
+
 #include <algorithm>
+#include <cstring>
+#include <exception>
+#include <memory>
 #include <unordered_map>
+#include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::Ogg
 {

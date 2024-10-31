@@ -13,15 +13,18 @@
 #include "formats/chiptune/container.h"
 
 #include "binary/dump.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 
 #include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
-#include "pointers.h"
+#include "string_view.h"
 
+#include <algorithm>
 #include <array>
-#include <cstring>
+#include <exception>
+#include <utility>
 
 namespace Formats::Chiptune
 {

@@ -11,15 +11,31 @@
 #include "core/plugins/archives/archived.h"
 
 #include "core/plugins/archives/l10n.h"
+#include "core/src/location.h"
 
+#include "analysis/path.h"
+#include "analysis/result.h"
+#include "binary/format.h"
+#include "core/data_location.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
+#include "l10n/api.h"
+#include "math/scale.h"
 #include "module/attributes.h"
 #include "strings/format.h"
 #include "tools/progress_callback.h"
 
 #include "make_ptr.h"
 #include "string_view.h"
+
+#include <memory>
+#include <span>
+#include <utility>
+
+namespace Parameters
+{
+  class Accessor;
+}  // namespace Parameters
 
 namespace ZXTune
 {

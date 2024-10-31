@@ -17,6 +17,7 @@
 #include <QtCore/QThreadPool>
 
 #include <functional>
+#include <utility>
 
 class IOThread
 {

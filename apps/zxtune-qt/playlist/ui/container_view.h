@@ -10,12 +10,13 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/playlist/supp/controller.h"
 #include "apps/zxtune-qt/playlist/supp/data.h"
 
 #include "parameters/container.h"
 
-#include <QtWidgets/QWidget>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtWidgets/QWidget>  // IWYU pragma: export
 
 class QMenu;
 class QStringList;

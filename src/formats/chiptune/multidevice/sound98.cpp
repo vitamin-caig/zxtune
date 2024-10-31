@@ -10,19 +10,29 @@
 
 #include "formats/chiptune/multidevice/sound98.h"
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/container.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "math/numeric.h"
 #include "strings/casing.h"
 #include "strings/sanitize.h"
 #include "strings/trim.h"
 #include "tools/range_checker.h"
 
+#include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "pointers.h"
+
+#include <algorithm>
+#include <cstring>
+#include <exception>
+#include <memory>
+#include <utility>
 
 namespace Formats::Chiptune
 {

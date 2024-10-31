@@ -8,16 +8,25 @@
  *
  **/
 
+#include "l10n/src/library.h"
+
+#include "binary/data.h"
 #include "debug/log.h"
-#include "l10n/api.h"
 #include "strings/map.h"
 
 #include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
 
 #include <boost/locale/gnu_gettext.hpp>
+#include <boost/locale/message.hpp>
+#include <boost/locale/time_zone.hpp>
 #include <boost/locale/util.hpp>
+
+#include <exception>
+#include <locale>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace
 {

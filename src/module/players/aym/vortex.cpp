@@ -10,7 +10,9 @@
 
 #include "module/players/aym/vortex.h"
 
+#include "core/freq_tables.h"
 #include "math/numeric.h"
+#include "tools/iterators.h"
 
 #include "make_ptr.h"
 

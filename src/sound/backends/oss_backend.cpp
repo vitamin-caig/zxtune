@@ -14,27 +14,45 @@
 #include "sound/backends/storage.h"
 
 #include "debug/log.h"
+#include "l10n/api.h"
+#include "math/fixedpoint.h"
+#include "module/holder.h"
+#include "parameters/accessor.h"
+#include "parameters/identifier.h"
+#include "sound/backend.h"
+#include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
+#include "sound/chunk.h"
+#include "sound/gain.h"
 #include "sound/render_params.h"
-#include "sound/sound_parameters.h"
 
 #include "byteorder.h"
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "pointers.h"
+#include "string_type.h"
 #include "string_view.h"
 
 #include <fcntl.h>
+#include <poll.h>
 #include <sys/ioctl.h>
-#include <sys/poll.h>
 #include <sys/soundcard.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <algorithm>
 #include <array>
+#include <cassert>
 #include <cerrno>
 #include <cstring>
+#include <memory>
 #include <mutex>
+#include <utility>
+#include <vector>
+
+namespace Module
+{
+  class State;
+}  // namespace Module
 
 namespace Sound::Oss
 {

@@ -11,6 +11,9 @@
 #pragma once
 
 #include "apps/zxtune-qt/playlist/supp/container.h"
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+
+#include <memory>
 
 namespace Playlist
 {

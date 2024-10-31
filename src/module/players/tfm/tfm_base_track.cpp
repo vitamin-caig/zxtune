@@ -12,7 +12,9 @@
 
 #include "make_ptr.h"
 
+#include <cassert>
 #include <utility>
+#include <vector>
 
 namespace
 {

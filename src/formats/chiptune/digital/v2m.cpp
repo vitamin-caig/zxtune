@@ -10,14 +10,23 @@
 
 #include "formats/chiptune/digital/v2m.h"
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/container.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "math/numeric.h"
 
 #include "byteorder.h"
 #include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
+#include <algorithm>
+#include <exception>
+#include <memory>
 
 namespace Formats::Chiptune
 {

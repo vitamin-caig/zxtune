@@ -11,6 +11,8 @@
 #include "sound/backends/oss.h"
 #include "sound/backends/storage.h"
 
+#include "sound/backend_attrs.h"
+
 namespace Sound
 {
   void RegisterOssBackend(BackendsStorage& storage)

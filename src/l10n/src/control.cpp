@@ -10,12 +10,16 @@
 
 #include "l10n/control.h"
 
-#include "l10n/api.h"
+#include "l10n/src/library.h"
+
+#include "binary/data.h"
 #include "resource/api.h"
 #include "strings/split.h"
 
-#include "string_view.h"
+#include "string_type.h"
 
+#include <algorithm>
+#include <utility>
 #include <vector>
 
 namespace

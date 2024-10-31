@@ -13,7 +13,7 @@
 #include "binary/dump.h"
 #include "binary/view.h"
 
-#include "types.h"
+#include <utility>
 
 namespace Module
 {

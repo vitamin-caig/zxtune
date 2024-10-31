@@ -17,6 +17,8 @@
 
 namespace Strings
 {
+  class FieldsSource;
+
   //! @brief Interface optimized for fast template instantiation with different parameters
   class Template
   {

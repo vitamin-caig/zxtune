@@ -15,6 +15,10 @@
 #include "binary/view.h"
 #include "sound/chunk.h"
 
+#include "contract.h"
+#include "types.h"
+
+#include <memory>
 #include <utility>
 
 namespace Module::Wav

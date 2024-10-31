@@ -14,11 +14,19 @@
 #include "mixer.h"
 #include "z80.h"
 
+#include "devices/aym/chip.h"
+
 #include "binary/dump.h"
+#include "devices/z80.h"
 #include "strings/format.h"
+#include "time/duration.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+
+#include <stdint.h>
+
+#include <iterator>
 
 namespace Benchmark
 {
@@ -35,12 +43,12 @@ namespace Benchmark
         : Interpolate(interpolate)
       {}
 
-      std::string Category() const override
+      String Category() const override
       {
         return "AY chip emulation";
       }
 
-      std::string Name() const override
+      String Name() const override
       {
         switch (Interpolate)
         {
@@ -79,12 +87,12 @@ namespace Benchmark
     class MemoryPerformanceTest : public Benchmark::PerformanceTest
     {
     public:
-      std::string Category() const override
+      String Category() const override
       {
         return "Z80 emulation";
       }
 
-      std::string Name() const override
+      String Name() const override
       {
         return "Memory access";
       }
@@ -112,12 +120,12 @@ namespace Benchmark
     class IoPerformanceTest : public Benchmark::PerformanceTest
     {
     public:
-      std::string Category() const override
+      String Category() const override
       {
         return "Z80 emulation";
       }
 
-      std::string Name() const override
+      String Name() const override
       {
         return "I/O ports access";
       }
@@ -176,12 +184,12 @@ namespace Benchmark
         : Channels(channels)
       {}
 
-      std::string Category() const override
+      String Category() const override
       {
         return "Mixer";
       }
 
-      std::string Name() const override
+      String Name() const override
       {
         return Strings::Format("{}-channels", Channels);
       }

@@ -13,8 +13,13 @@
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
 
+#include "binary/container_factories.h"
 #include "binary/crc.h"
+#include "binary/data_builder.h"
+#include "binary/dump.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "formats/packed.h"
 #include "math/numeric.h"
 
@@ -22,10 +27,13 @@
 #include "contract.h"
 #include "make_ptr.h"
 #include "pointers.h"
+#include "string_view.h"
 
+#include <algorithm>
 #include <array>
-#include <cstring>
-#include <iterator>
+#include <cassert>
+#include <exception>
+#include <memory>
 
 namespace Formats::Packed
 {

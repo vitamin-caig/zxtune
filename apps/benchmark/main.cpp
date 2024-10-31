@@ -10,6 +10,8 @@
 
 #include "core/benchmark.h"
 
+#include "string_type.h"
+
 #include <iostream>
 
 namespace
@@ -19,7 +21,7 @@ namespace
   public:
     void OnPerformanceTest(const Benchmark::PerformanceTest& test) override
     {
-      const std::string cat = test.Category();
+      const auto cat = test.Category();
       if (cat != LastCategory)
       {
         std::cout << "Test for " << cat << std::endl;
@@ -29,7 +31,7 @@ namespace
     }
 
   private:
-    std::string LastCategory;
+    String LastCategory;
   };
 }  // namespace
 

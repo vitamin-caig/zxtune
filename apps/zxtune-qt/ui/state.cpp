@@ -14,14 +14,22 @@
 #include "apps/zxtune-qt/ui/parameters.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
+#include "binary/data.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "parameters/container.h"
 #include "parameters/convert.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 
 #include "make_ptr.h"
-#include "pointers.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
 
 #include <QtCore/QByteArray>
+#include <QtCore/QObject>
+#include <QtCore/Qt>
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QDialog>
@@ -29,7 +37,10 @@
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QTabWidget>
+#include <QtWidgets/QWidget>
 
+#include <list>
+#include <optional>
 #include <utility>
 
 namespace

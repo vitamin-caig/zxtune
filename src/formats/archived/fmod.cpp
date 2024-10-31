@@ -14,6 +14,13 @@
 #include "strings/format.h"
 
 #include "byteorder.h"
+#include "contract.h"
+
+#include <algorithm>
+#include <cstring>
+#include <exception>
+#include <memory>
+#include <vector>
 
 namespace Formats::Archived::Fmod
 {

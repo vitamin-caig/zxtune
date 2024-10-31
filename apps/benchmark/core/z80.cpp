@@ -14,6 +14,8 @@
 
 #include "make_ptr.h"
 
+#include <utility>
+
 namespace
 {
   class Z80Parameters : public Devices::Z80::ChipParameters

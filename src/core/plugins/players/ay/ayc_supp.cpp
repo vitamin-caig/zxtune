@@ -13,6 +13,10 @@
 #include "formats/chiptune/aym/ayc.h"
 #include "module/players/aym/ayc.h"
 
+#include "core/plugin_attrs.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterAYCSupport(PlayerPluginsRegistrator& registrator)

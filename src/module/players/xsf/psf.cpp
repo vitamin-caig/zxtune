@@ -12,26 +12,43 @@
 
 #include "module/players/platforms.h"
 #include "module/players/streaming.h"
+#include "module/players/xsf/memory_region.h"
 #include "module/players/xsf/psf_bios.h"
 #include "module/players/xsf/psf_exe.h"
 #include "module/players/xsf/psf_vfs.h"
-#include "module/players/xsf/xsf.h"
+#include "module/players/xsf/xsf_file.h"
+#include "module/players/xsf/xsf_metainformation.h"
 
 #include "binary/compression/zlib_container.h"
+#include "binary/container.h"
+#include "binary/dump.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "module/attributes.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "sound/chunk.h"
+#include "sound/receiver.h"
 #include "sound/resampler.h"
+#include "strings/array.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "pointers.h"
 #include "string_view.h"
 
 #include "3rdparty/he/Core/bios.h"
+#include "3rdparty/he/Core/emuconfig.h"
 #include "3rdparty/he/Core/iop.h"
 #include "3rdparty/he/Core/psx.h"
 #include "3rdparty/he/Core/r3000.h"
-#include "3rdparty/he/Core/spu.h"
 
+#include <cstring>
+#include <memory>
 #include <utility>
 
 namespace Module::PSF

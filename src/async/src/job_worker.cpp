@@ -9,10 +9,12 @@
  **/
 
 #include "async/coroutine.h"
+#include "async/job.h"
 #include "async/worker.h"
 
 #include "make_ptr.h"
 
+#include <memory>
 #include <utility>
 
 namespace Async

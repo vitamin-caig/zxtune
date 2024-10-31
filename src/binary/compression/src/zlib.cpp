@@ -11,10 +11,16 @@
 #include "binary/compression/zlib.h"
 
 #include "binary/compression/zlib_stream.h"
+#include "binary/data_builder.h"
+#include "binary/input_stream.h"
 #include "math/numeric.h"
 
 #include "error.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
+#include "3rdparty/zlib/zconf.h"
 #include "3rdparty/zlib/zlib.h"
 
 namespace Binary::Compression::Zlib

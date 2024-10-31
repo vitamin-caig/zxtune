@@ -10,13 +10,22 @@
 
 #include "module/properties/path.h"
 
+#include "binary/data.h"
 #include "io/api.h"
 #include "module/attributes.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 #include "parameters/visitor.h"
 
-#include "error_tools.h"
+#include "error.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
+
+#include <memory>
+#include <optional>
+#include <utility>
 
 namespace Module
 {

@@ -12,6 +12,8 @@
 
 #include "formats/chiptune.h"
 
+#include "types.h"
+
 namespace Formats::Chiptune
 {
   namespace SegaSaturnSoundFormat

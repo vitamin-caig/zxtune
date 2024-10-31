@@ -11,11 +11,11 @@
 #pragma once
 
 #include "string_view.h"
-#include "types.h"
 
 #include <memory>
 
 class QWidget;
+
 namespace UI
 {
   class State

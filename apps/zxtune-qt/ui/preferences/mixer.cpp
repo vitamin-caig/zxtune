@@ -12,7 +12,14 @@
 
 #include "mixer.ui.h"
 
+#include "parameters/container.h"
+
 #include "contract.h"
+
+#include <QtCore/QEvent>
+#include <QtCore/QtCore>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QSlider>
 
 #include <utility>
 

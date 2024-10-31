@@ -11,36 +11,48 @@
 #include "apps/zxtune-qt/playlist/supp/data_provider.h"
 
 #include "apps/zxtune-qt/playlist/parameters.h"
+#include "apps/zxtune-qt/playlist/supp/capabilities.h"
 #include "apps/zxtune-qt/supp/thread_utils.h"
-#include "apps/zxtune-qt/ui/format.h"
-#include "apps/zxtune-qt/ui/utils.h"
 
 #include "module/properties/path.h"
 
+#include "analysis/path.h"
+#include "binary/container.h"
 #include "core/additional_files_resolve.h"
 #include "core/data_location.h"
+#include "core/module_detect.h"
 #include "core/plugin.h"
-#include "core/plugin_attrs.h"
 #include "core/service.h"
 #include "debug/log.h"
 #include "io/api.h"
+#include "io/identifier.h"
+#include "module/additional_files.h"
 #include "module/attributes.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "parameters/identifier.h"
 #include "parameters/merged_accessor.h"
 #include "parameters/merged_container.h"
 #include "parameters/template.h"
-#include "parameters/tracking.h"
-#include "strings/encoding.h"
-#include "strings/format.h"
+#include "parameters/types.h"
+#include "strings/fields.h"
 #include "strings/template.h"
+#include "time/duration.h"
 #include "tools/progress_callback.h"
 
 #include "contract.h"
-#include "error_tools.h"
+#include "error.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <algorithm>
 #include <deque>
 #include <mutex>
+#include <type_traits>
+#include <utility>
+#include <variant>
 
 namespace
 {

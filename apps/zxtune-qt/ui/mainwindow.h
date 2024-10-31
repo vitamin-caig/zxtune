@@ -11,7 +11,7 @@
 #pragma once
 
 #include <QtCore/QPointer>
-#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMainWindow>  // IWYU pragma: export
 
 class MainWindow : public QMainWindow
 {

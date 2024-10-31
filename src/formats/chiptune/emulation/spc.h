@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-
 #include "binary/view.h"
 #include "formats/chiptune.h"
 #include "time/duration.h"
@@ -21,6 +19,8 @@
 
 namespace Formats::Chiptune
 {
+  class MetaBuilder;
+
   namespace SPC
   {
     class Builder

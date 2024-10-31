@@ -3,15 +3,21 @@
 #include "apps/zxtune-qt/update/product.h"
 #include "apps/zxtune-qt/update/rss.h"
 
+#include "string_type.h"
 #include "string_view.h"
-#include "types.h"
 
 #include <QtCore/QByteArray>
 #include <QtCore/QCoreApplication>
+#include <QtCore/QDate>
 #include <QtCore/QFile>
+#include <QtCore/QIODevice>
 #include <QtCore/QTextStream>
+#include <QtCore/QUrl>
+#include <QtCore/Qt>
 
+#include <exception>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 namespace

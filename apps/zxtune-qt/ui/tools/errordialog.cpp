@@ -12,9 +12,10 @@
 
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include <QtWidgets/QMessageBox>
+#include "error.h"
+#include "string_type.h"
 
-#include <utility>
+#include <QtWidgets/QMessageBox>
 
 void ShowErrorMessage(const QString& title, const Error& err)
 {

@@ -10,9 +10,14 @@
 
 #pragma once
 
-#include "parameters/modifier.h"
+#include "parameters/identifier.h"
 
 #include "string_view.h"
+
+namespace Parameters
+{
+  class Modifier;
+}  // namespace Parameters
 
 void ParseConfigFile(StringView filename, Parameters::Modifier& result);
 // result will be overwritten

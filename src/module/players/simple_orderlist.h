@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "module/players/track_model.h"
+#include "module/players/track_model.h"  // IWYU pragma: export
 
 #include <vector>
 

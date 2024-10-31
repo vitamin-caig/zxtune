@@ -15,6 +15,7 @@
 #include "make_ptr.h"
 
 #include <map>
+#include <utility>
 
 namespace Formats
 {

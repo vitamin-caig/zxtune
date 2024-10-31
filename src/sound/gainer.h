@@ -13,6 +13,8 @@
 #include "sound/gain.h"
 #include "sound/receiver.h"
 
+#include <memory>
+
 namespace Sound
 {
   class Gainer : public Converter

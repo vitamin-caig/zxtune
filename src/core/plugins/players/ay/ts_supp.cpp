@@ -8,18 +8,28 @@
  *
  **/
 
+#include "core/plugins/player_plugin.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "formats/chiptune/aym/turbosound.h"
 #include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/turbosound.h"
+#include "module/players/factory.h"
 #include "module/players/properties_helper.h"
-#include "module/players/tracking.h"
 
+#include "binary/container.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
+
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace Module::TS
 {

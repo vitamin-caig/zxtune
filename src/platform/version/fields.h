@@ -10,7 +10,12 @@
 
 #pragma once
 
-#include "strings/fields.h"
+#include <memory>
+
+namespace Strings
+{
+  class FieldsSource;
+}  // namespace Strings
 
 namespace Platform::Version
 {

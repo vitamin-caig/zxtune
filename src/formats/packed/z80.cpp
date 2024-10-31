@@ -11,17 +11,24 @@
 #include "formats/packed/container.h"
 
 #include "binary/data_builder.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "formats/packed.h"
 
 #include "byteorder.h"
+#include "contract.h"
 #include "make_ptr.h"
 #include "string_view.h"
 
-#include <array>
-#include <numeric>
+#include <algorithm>
+#include <cstring>
+#include <exception>
+#include <iterator>
+#include <memory>
 #include <utility>
+#include <vector>
 
 namespace Formats::Packed
 {

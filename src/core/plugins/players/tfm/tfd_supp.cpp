@@ -13,6 +13,10 @@
 #include "formats/chiptune/fm/tfd.h"
 #include "module/players/tfm/tfd.h"
 
+#include "core/plugin_attrs.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterTFDSupport(PlayerPluginsRegistrator& registrator)

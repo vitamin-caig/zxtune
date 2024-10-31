@@ -11,6 +11,14 @@
 #include "formats/chiptune/aym/protracker3.h"
 #include "formats/test/utils.h"
 
+#include "binary/data.h"
+
+#include <exception>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+
 namespace
 {
   Formats::Chiptune::ProTracker3::Decoder::Ptr CreateDecoder(const std::string& type)

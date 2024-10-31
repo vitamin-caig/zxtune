@@ -1,6 +1,3 @@
-#include "source_location.h"
-constexpr const auto SECOND_LINE = ThisLine();  // DO NOT MOVE!!!
-
 /**
  *
  * @file
@@ -13,7 +10,13 @@ constexpr const auto SECOND_LINE = ThisLine();  // DO NOT MOVE!!!
 
 #include "NESTED.h"
 
+#include "source_location.h"
+#include "string_view.h"
+
+#include <cstddef>
 #include <iostream>
+
+constexpr const auto LINE_19 = ThisLine();  // Fix on move
 
 int main()
 {
@@ -25,20 +28,20 @@ int main()
   std::cout << "ThisFile::Location() = " << file.Location() << std::endl;
   std::cout << "ThisFile::Tag() = " << file.Tag() << std::endl;
   static_assert(file.Location() == "src/tools/test/source_location/test.cpp"sv, "Wrong this file name");
-  static_assert(file.Tag() + 2 == SECOND_LINE.Tag(), "Lines should be numbered from 1");
+  static_assert(file.Tag() + 19 == LINE_19.Tag(), "Lines should be numbered from 1");
 
-  constexpr const auto line = ThisLine();  // line 30
-  std::cout << "ThisLine::Tag() = " << line.Tag() << std::endl;
-  static_assert(line.Line() == 30, "Wrong line number");
-  static_assert(line.Location() == file.Location(), "Wrong line location");
-  static_assert(line.Tag() == file.Tag() + line.Line(), "Wrong line tag");
+  constexpr const auto line33 = ThisLine();
+  std::cout << "ThisLine::Tag() = " << line33.Tag() << std::endl;
+  static_assert(line33.Line() == 33, "Wrong line number");
+  static_assert(line33.Location() == file.Location(), "Wrong line location");
+  static_assert(line33.Tag() == file.Tag() + line33.Line(), "Wrong line tag");
 
-  constexpr const auto nestedMacro = MacroWithSourceLine();  // line 36
-  std::cout << "NestedMacro::Location() = " << nestedMacro.Location() << std::endl;
-  std::cout << "NestedMacro::Tag() = " << nestedMacro.Tag() << std::endl;
-  static_assert(nestedMacro.Line() == 36, "Wrong nested macro line");
-  static_assert(nestedMacro.Location() == file.Location(), "Wrong nested macro file name");
-  static_assert(nestedMacro.Tag() == file.Tag() + nestedMacro.Line(), "Wrong nested macro tag");
+  constexpr const auto nestedMacro39 = MacroWithSourceLine();
+  std::cout << "NestedMacro::Location() = " << nestedMacro39.Location() << std::endl;
+  std::cout << "NestedMacro::Tag() = " << nestedMacro39.Tag() << std::endl;
+  static_assert(nestedMacro39.Line() == 39, "Wrong nested macro line");
+  static_assert(nestedMacro39.Location() == file.Location(), "Wrong nested macro file name");
+  static_assert(nestedMacro39.Tag() == file.Tag() + nestedMacro39.Line(), "Wrong nested macro tag");
 
   constexpr const auto nestedFunc = FunctionWithSourceLine();
   std::cout << "NestedFunc::Location() = " << nestedFunc.Location() << std::endl;

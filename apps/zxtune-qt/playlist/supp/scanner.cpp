@@ -10,23 +10,33 @@
 
 #include "apps/zxtune-qt/playlist/supp/scanner.h"
 
+#include "apps/zxtune-qt/playlist/io/container.h"
 #include "apps/zxtune-qt/playlist/io/import.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
 #include "async/coroutine.h"
+#include "async/job.h"
 #include "debug/log.h"
+#include "parameters/container.h"
 #include "time/elapsed.h"
+#include "tools/progress_callback.h"
 
 #include "contract.h"
 #include "error.h"
 #include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <QtCore/QDir>
 #include <QtCore/QDirIterator>
+#include <QtCore/QFileInfo>
+#include <QtCore/QFlags>
 #include <QtCore/QStringList>
 
+#include <exception>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <utility>
 
 namespace

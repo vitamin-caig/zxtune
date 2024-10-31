@@ -12,19 +12,24 @@
 #include "formats/archived/decoders.h"
 
 #include "binary/container_base.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
-#include "binary/input_stream.h"
 #include "debug/log.h"
+#include "formats/archived.h"
 #include "strings/casing.h"
 #include "strings/map.h"
 
 #include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "pointers.h"
 
 #include <algorithm>
 #include <array>
+#include <exception>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace Formats::Archived
 {

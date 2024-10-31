@@ -10,6 +10,8 @@
 
 #include "formats/chiptune.h"
 
+#include "types.h"
+
 namespace Formats::Chiptune
 {
   Container::Ptr CreateKnownCrcContainer(Binary::Container::Ptr data, uint_t crc);

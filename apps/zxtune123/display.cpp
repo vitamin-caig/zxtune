@@ -12,20 +12,28 @@
 
 #include "apps/zxtune123/console.h"
 
+#include "module/information.h"
 #include "module/track_state.h"
 #include "parameters/template.h"
 #include "platform/application.h"
+#include "sound/analyzer.h"
+#include "strings/fields.h"
 #include "strings/format.h"
 #include "strings/template.h"
 #include "time/duration.h"
 #include "time/serialize.h"
 
-#include "error.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
+#include <algorithm>
+#include <chrono>
+#include <ostream>
 #include <thread>
+#include <vector>
 
 namespace
 {

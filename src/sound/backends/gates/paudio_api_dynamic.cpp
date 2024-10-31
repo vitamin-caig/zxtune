@@ -11,12 +11,21 @@
 #include "sound/backends/gates/paudio_api.h"
 
 #include "debug/log.h"
+#include "platform/shared_library.h"
 #include "platform/shared_library_adapter.h"
 
 #include "make_ptr.h"
 #include "string_view.h"
 
+#include <pulse/channelmap.h>
+#include <pulse/def.h>
 #include <pulse/error.h>
+#include <pulse/sample.h>
+#include <pulse/version.h>
+#include <stddef.h>
+
+#include <utility>
+#include <vector>
 
 namespace Sound::PulseAudio
 {

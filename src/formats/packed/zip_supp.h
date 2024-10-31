@@ -12,8 +12,6 @@
 
 #include "byteorder.h"
 
-#include <cstddef>
-
 namespace Formats::Packed::Zip
 {
   struct GenericHeader

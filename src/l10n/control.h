@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "l10n/api.h"
-
 namespace L10n
 {
+  class Library;
+
   void LoadTranslationsFromResources(Library& lib);
-}
+}  // namespace L10n

@@ -15,10 +15,10 @@
 
 #include "contract.h"
 
+#include <QtCore/QByteArrayData>
+#include <QtCore/QEvent>
+#include <QtWidgets/QAction>
 #include <QtWidgets/QMenu>
-
-#include <cassert>
-#include <utility>
 
 namespace
 {

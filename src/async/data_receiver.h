@@ -16,6 +16,7 @@
 #include "tools/data_streaming.h"
 
 #include "contract.h"
+#include "error.h"
 #include "make_ptr.h"
 
 #include <algorithm>

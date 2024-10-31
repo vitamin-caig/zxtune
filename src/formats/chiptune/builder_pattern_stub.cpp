@@ -10,6 +10,8 @@
 
 #include "formats/chiptune/builder_pattern.h"
 
+#include "types.h"
+
 namespace Formats::Chiptune
 {
   class StubPatternBuilder : public PatternBuilder

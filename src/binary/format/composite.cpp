@@ -10,13 +10,17 @@
 
 #include "binary/format/details.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 
 #include "contract.h"
 #include "make_ptr.h"
 #include "types.h"
 
 #include <algorithm>
+#include <memory>
+#include <utility>
 
 namespace Binary
 {

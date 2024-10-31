@@ -12,7 +12,17 @@
 #include "formats/archived/trdos_utils.h"
 #include "formats/packed/decoders.h"
 
+#include "binary/format.h"
+#include "formats/archived.h"
+#include "formats/packed.h"
+
 #include "make_ptr.h"
+#include "pointers.h"
+#include "string_type.h"
+#include "string_view.h"
+
+#include <cstddef>
+#include <memory>
 
 namespace Formats::Archived
 {

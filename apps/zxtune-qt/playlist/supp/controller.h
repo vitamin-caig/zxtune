@@ -10,14 +10,17 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/playlist/io/container.h"
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/playlist/supp/data_provider.h"
 #include "apps/zxtune-qt/playlist/supp/model.h"
 #include "apps/zxtune-qt/playlist/supp/scanner.h"
 
 #include "tools/iterators.h"
 
-#include <QtCore/QObject>
+#include <QtCore/QObject>  // IWYU pragma: export
+#include <QtCore/QString>
+
+#include <memory>
 
 namespace Playlist
 {

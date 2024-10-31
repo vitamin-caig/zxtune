@@ -8,28 +8,41 @@
  *
  **/
 
+#include "formats/chiptune/aym/protracker3.h"
 #include "formats/chiptune/aym/protracker3_detail.h"
+#include "formats/chiptune/builder_meta.h"
+#include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/container.h"
+#include "formats/chiptune/objects.h"
 
 #include "binary/container_factories.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "formats/chiptune.h"
 #include "math/numeric.h"
+#include "strings/array.h"
 #include "strings/casing.h"
 #include "strings/conversion.h"
 #include "strings/format.h"
 #include "strings/sanitize.h"
 #include "strings/split.h"
 #include "strings/trim.h"
+#include "tools/indices.h"
 
 #include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "types.h"
 
+#include <algorithm>
 #include <array>
 #include <cctype>
+#include <exception>
+#include <memory>
 #include <sstream>
+#include <utility>
 
 namespace Formats::Chiptune
 {

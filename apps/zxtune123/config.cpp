@@ -10,11 +10,15 @@
 
 #include "apps/zxtune123/config.h"
 
+#include "parameters/modifier.h"
 #include "parameters/serialize.h"
+#include "parameters/types.h"
 #include "strings/map.h"
 
 #include "error_tools.h"
 #include "string_view.h"
+
+#include <stdlib.h>
 
 #include <algorithm>
 #include <cassert>

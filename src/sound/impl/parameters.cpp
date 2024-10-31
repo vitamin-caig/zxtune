@@ -8,10 +8,12 @@
  *
  **/
 
-#include "sound/backends_parameters.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 #include "sound/gain.h"
 #include "sound/mixer_parameters.h"
-#include "sound/sound_parameters.h"
+
+#include "types.h"
 
 namespace
 {

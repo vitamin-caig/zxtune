@@ -10,28 +10,45 @@
 
 #include "apps/zxtune-qt/playlist/supp/operations_convert.h"
 
+#include "apps/zxtune-qt/playlist/supp/conversion.h"
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/playlist/supp/operations_helpers.h"
 #include "apps/zxtune-qt/playlist/supp/storage.h"
-#include "apps/zxtune-qt/supp/playback_supp.h"
-#include "apps/zxtune-qt/ui/utils.h"
 
 #include "async/src/event.h"
 
+#include "binary/data.h"
+#include "binary/view.h"
 #include "io/api.h"
 #include "io/template.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/state.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 #include "parameters/merged_accessor.h"
 #include "parameters/template.h"
 #include "sound/backend.h"
+#include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
 #include "sound/sound_parameters.h"
+#include "strings/fields.h"
+#include "strings/template.h"
+#include "time/duration.h"
+#include "time/instant.h"
+#include "tools/data_streaming.h"
+#include "tools/progress_callback.h"
 #include "tools/progress_callback_helpers.h"
 
-#include "contract.h"
-#include "error_tools.h"
+#include "error.h"
 #include "make_ptr.h"
+#include "pointers.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
 
-#include <numeric>
+#include <exception>
+#include <utility>
 
 namespace
 {

@@ -12,9 +12,20 @@
 #include "sound/backends/storage.h"
 
 #include "l10n/markup.h"
+#include "module/holder.h"
+#include "parameters/accessor.h"
+#include "sound/backend.h"
 #include "sound/backend_attrs.h"
+#include "sound/chunk.h"
 
 #include "make_ptr.h"
+
+#include <utility>
+
+namespace Module
+{
+  class State;
+}  // namespace Module
 
 namespace Sound::Null
 {

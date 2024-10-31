@@ -18,9 +18,24 @@
 #include "sound/backends/dsound.h"
 
 #include "debug/log.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
+#include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
+#include "tools/iterators.h"
 
 #include "contract.h"
+#include "string_type.h"
+#include "string_view.h"
+
+#include <QtCore/QByteArrayData>
+#include <QtCore/QEvent>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QGroupBox>
+
+#include <algorithm>
+#include <memory>
+#include <vector>
 
 namespace
 {

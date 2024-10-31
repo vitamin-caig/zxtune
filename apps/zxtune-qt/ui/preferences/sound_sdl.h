@@ -10,7 +10,10 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/ui/conversion/backend_settings.h"
+#include "apps/zxtune-qt/ui/conversion/backend_settings.h"  // IWYU pragma: export
+
+#include <QtCore/QObject>
+#include <QtCore/QString>
 
 namespace UI
 {

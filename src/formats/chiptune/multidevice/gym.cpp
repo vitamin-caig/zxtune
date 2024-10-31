@@ -10,16 +10,18 @@
 
 #include "formats/chiptune/container.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
-#include "math/numeric.h"
+#include "binary/view.h"
+#include "formats/chiptune.h"
 
 #include "byteorder.h"
-#include "contract.h"
 #include "make_ptr.h"
-#include "pointers.h"
+#include "string_view.h"
 
+#include <algorithm>
 #include <array>
-#include <cstring>
+#include <memory>
 
 namespace Formats::Chiptune
 {

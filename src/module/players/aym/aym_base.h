@@ -10,9 +10,20 @@
 
 #pragma once
 
+#include "devices/aym/chip.h"
 #include "module/players/aym/aym_chiptune.h"
 
-#include "module/holder.h"
+#include "module/holder.h"  // IWYU pragma: export
+#include "parameters/accessor.h"
+
+#include "types.h"
+
+#include <memory>
+
+namespace Devices::AYM
+{
+  class Device;
+}  // namespace Devices::AYM
 
 namespace Module::AYM
 {

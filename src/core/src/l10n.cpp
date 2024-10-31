@@ -10,6 +10,8 @@
 
 #include "core/src/l10n.h"
 
+#include "string_view.h"
+
 namespace Module
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");

@@ -10,9 +10,14 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-
-#include "binary/input_stream.h"
+namespace Binary
+{
+  class DataInputStream;
+}  // namespace Binary
+namespace Formats::Chiptune
+{
+  class MetaBuilder;
+}  // namespace Formats::Chiptune
 
 namespace Formats::Chiptune::Vorbis
 {

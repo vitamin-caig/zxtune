@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "parameters/identifier.h"
+#include "parameters/identifier.h"  // IWYU pragma: export
 
 namespace Parameters::ZXTune
 {

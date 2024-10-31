@@ -10,8 +10,16 @@
 
 #pragma once
 
-#include "module/players/stream_model.h"
+#include "module/players/stream_model.h"  // IWYU pragma: export
 #include "module/players/tfm/tfm_chiptune.h"
+
+#include "devices/tfm.h"
+#include "parameters/accessor.h"
+#include "time/duration.h"
+
+#include "types.h"
+
+#include <memory>
 
 namespace Module::TFM
 {

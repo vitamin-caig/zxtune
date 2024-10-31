@@ -12,8 +12,6 @@
 
 #include "strings/map.h"
 
-#include "string_view.h"
-
 namespace Parameters
 {
   void Convert(StringView name, StringView value, class Visitor& visitor);

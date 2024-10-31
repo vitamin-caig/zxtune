@@ -11,9 +11,12 @@
 #include "module/players/dac/dac_parameters.h"
 
 #include "core/core_parameters.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 
 #include "make_ptr.h"
 
+#include <memory>
 #include <utility>
 
 namespace Module::DAC

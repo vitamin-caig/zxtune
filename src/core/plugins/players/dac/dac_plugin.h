@@ -17,6 +17,8 @@
 
 namespace ZXTune
 {
+  class PluginId;
+
   PlayerPlugin::Ptr CreatePlayerPlugin(PluginId id, Formats::Chiptune::Decoder::Ptr decoder,
                                        Module::DAC::Factory::Ptr factory);
-}
+}  // namespace ZXTune

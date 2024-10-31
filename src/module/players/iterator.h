@@ -12,6 +12,10 @@
 
 #include "module/state.h"
 
+#include "types.h"
+
+#include <memory>
+
 namespace Module
 {
   class Iterator

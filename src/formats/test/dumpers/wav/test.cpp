@@ -8,12 +8,20 @@
  *
  **/
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/music/wav.h"
 #include "formats/test/utils.h"
 
-#include "strings/format.h"
+#include "binary/view.h"
+#include "formats/chiptune.h"
+#include "strings/array.h"
 
 #include "string_view.h"
+#include "types.h"
+
+#include <exception>
+#include <iostream>
+#include <memory>
 
 namespace
 {

@@ -14,7 +14,12 @@
 
 #include "parameters/accessor.h"
 
-#include <QtCore/QObject>
+#include "types.h"
+
+#include <QtCore/QObject>  // IWYU pragma: export
+#include <QtCore/QString>
+
+#include <memory>
 
 namespace Playlist
 {

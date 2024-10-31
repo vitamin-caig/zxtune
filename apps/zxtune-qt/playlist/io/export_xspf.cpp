@@ -11,27 +11,45 @@
 #include "apps/zxtune-qt/playlist/io/container.h"
 #include "apps/zxtune-qt/playlist/io/export.h"
 #include "apps/zxtune-qt/playlist/io/tags/xspf.h"
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
 #include "core/plugins/archives/zdata_supp.h"
 #include "zxtune.h"
 
+#include "analysis/path.h"
+#include "binary/container.h"
+#include "binary/view.h"
+#include "core/data_location.h"
 #include "debug/log.h"
 #include "module/attributes.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "parameters/accessor.h"
 #include "parameters/convert.h"
-#include "sound/sound_parameters.h"
+#include "parameters/types.h"
+#include "parameters/visitor.h"
+#include "time/duration.h"
+#include "tools/iterators.h"
+#include "tools/progress_callback.h"
 
-#include "error_tools.h"
+#include "error.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <QtCore/QByteArray>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
-#include <QtCore/QString>
+#include <QtCore/QFileInfo>
+#include <QtCore/QFlags>
+#include <QtCore/QIODevice>
 #include <QtCore/QUrl>
 #include <QtCore/QXmlStreamWriter>
 
 #include <memory>
 #include <set>
+#include <utility>
 
 namespace
 {

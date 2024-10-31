@@ -13,17 +13,24 @@
 #include "core/plugins/players/ay/freq_tables_internal.h"
 #include "devices/aym/chip.h"
 
+#include "binary/data.h"
 #include "core/core_parameters.h"
 #include "l10n/api.h"
 #include "math/numeric.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 
 #include "contract.h"
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
 
+#include <array>
 #include <cstring>
+#include <iterator>
 #include <numeric>
+#include <optional>
 #include <utility>
 
 namespace Module::AYM

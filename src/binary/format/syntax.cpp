@@ -11,6 +11,7 @@
 #include "binary/format/syntax.h"
 
 #include "binary/format/grammar.h"
+#include "binary/format/lexic_analysis.h"
 
 #include "tools/iterators.h"
 #include "tools/locale_helpers.h"
@@ -19,9 +20,8 @@
 #include "make_ptr.h"
 #include "string_view.h"
 
-#include <cctype>
 #include <stack>
-#include <utility>
+#include <string>
 
 namespace Binary::FormatDSL
 {

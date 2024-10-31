@@ -12,11 +12,15 @@
 
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include "parameters/container.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 
 #include "string_view.h"
 
-#include <QtCore/QObject>
+#include <QtCore/QObject>  // IWYU pragma: export
+
+#include <memory>
+#include <utility>
 
 class QAction;
 class QAbstractButton;
@@ -28,6 +32,8 @@ class QSpinBox;
 
 namespace Parameters
 {
+  class Container;
+
   class Value : public QObject
   {
     Q_OBJECT

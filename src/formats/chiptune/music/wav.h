@@ -10,14 +10,17 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-
+#include "binary/view.h"
 #include "formats/chiptune.h"
+
+#include "types.h"
 
 #include <array>
 
 namespace Formats::Chiptune
 {
+  class MetaBuilder;
+
   namespace Wav
   {
     // currently supported formats

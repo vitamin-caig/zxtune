@@ -13,14 +13,15 @@
 #include "platform/application.h"
 
 #include "error.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
 
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
 
 #include <cerrno>
-#include <cstdio>
 #include <cstring>
 #include <iostream>
 

@@ -10,12 +10,26 @@
 
 #pragma once
 
-#include "io/api.h"
+#include "binary/container.h"
+#include "binary/output_stream.h"
+#include "io/identifier.h"
 #include "io/provider.h"
 
 #include "string_view.h"
 
+#include <memory>
 #include <span>
+
+class Error;
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
+namespace Parameters
+{
+  class Accessor;
+}  // namespace Parameters
 
 namespace IO
 {

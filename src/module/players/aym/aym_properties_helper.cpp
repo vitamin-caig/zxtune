@@ -11,6 +11,8 @@
 #include "module/players/aym/aym_properties_helper.h"
 
 #include "core/core_parameters.h"
+#include "parameters/identifier.h"
+#include "parameters/modifier.h"
 
 #include "string_view.h"
 

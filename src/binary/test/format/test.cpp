@@ -9,16 +9,23 @@
  **/
 
 #include "binary/format/grammar.h"
+#include "binary/format/lexic_analysis.h"
 #include "binary/format/syntax.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 
 #include "string_view.h"
 #include "types.h"
 
-#include <functional>
+#include <exception>
 #include <iostream>
-#include <sstream>
+#include <iterator>
+#include <memory>
+#include <sstream>  // IWYU pragma: keep
+#include <string>
+#include <utility>
 
 namespace
 {

@@ -14,6 +14,7 @@
 
 namespace Parameters
 {
+
   Container::Ptr CreatePreChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback);
   Container::Ptr CreatePostChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback);
 }  // namespace Parameters

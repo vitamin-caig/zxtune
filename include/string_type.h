@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <string>
+#include <string>  // IWYU pragma: export
 
 using std::string_literals::operator""s;
 

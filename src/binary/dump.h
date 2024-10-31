@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "types.h"
+#include "types.h"  // IWYU pragma: export
 
-#include <vector>
+#include <vector>  // IWYU pragma: export
 
 namespace Binary
 {

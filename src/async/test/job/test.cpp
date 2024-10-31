@@ -8,12 +8,17 @@
  *
  **/
 
+#include "async/job.h"
 #include "async/worker.h"
 
 #include "error.h"
 #include "pointers.h"
+#include "string_type.h"
+#include "string_view.h"
 
+#include <chrono>
 #include <iostream>
+#include <memory>
 #include <thread>
 
 bool operator!=(const Error& lh, const Error& rh)

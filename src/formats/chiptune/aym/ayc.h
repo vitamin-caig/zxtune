@@ -15,6 +15,8 @@
 
 #include "types.h"
 
+#include <memory>
+
 namespace Formats::Chiptune
 {
   namespace AYC

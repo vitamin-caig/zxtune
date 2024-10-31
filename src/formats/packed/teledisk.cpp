@@ -13,8 +13,11 @@
 #include "formats/packed/lha_supp.h"
 #include "formats/packed/pack_utils.h"
 
+#include "binary/data_builder.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "formats/packed.h"
 #include "math/numeric.h"
@@ -22,9 +25,14 @@
 #include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_type.h"
+#include "string_view.h"
 
-#include <cstring>
-#include <numeric>
+#include <algorithm>
+#include <exception>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace Formats::Packed
 {

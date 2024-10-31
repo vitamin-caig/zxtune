@@ -13,6 +13,12 @@
 #include "apps/zxtune-android/zxtune/src/main/jni/defines.h"
 #include "apps/zxtune-android/zxtune/src/main/jni/properties.h"
 
+#include "parameters/container.h"
+
+#include <jni.h>
+
+#include <memory>
+
 namespace Parameters
 {
   Container& GlobalOptions()

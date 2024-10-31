@@ -13,7 +13,14 @@
 #include "sound/backends/backend_impl.h"
 
 #include "binary/output_stream.h"
+#include "parameters/accessor.h"
+#include "sound/backend_attrs.h"
 #include "sound/receiver.h"
+
+#include "string_type.h"
+#include "string_view.h"
+
+#include <memory>
 
 namespace Sound
 {

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <lame/lame.h>
+#include <lame/lame.h>  // IWYU pragma: export
 
 #include <memory>
 

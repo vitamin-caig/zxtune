@@ -10,18 +10,39 @@
 
 #include "module/players/dac/chiptracker.h"
 
+#include "devices/dac/sample.h"
 #include "devices/dac/sample_factories.h"
+#include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/digital/chiptracker.h"
+#include "module/players/dac/dac_base.h"
+#include "module/players/dac/dac_chiptune.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
 #include "module/players/platforms.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
-#include "module/players/tracking.h"
+
+#include "binary/view.h"
+#include "parameters/container.h"
+#include "tools/iterators.h"
 
 #include "make_ptr.h"
+#include "types.h"
 
+#include <algorithm>
 #include <array>
+#include <cassert>
+#include <memory>
+#include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
+namespace Devices::DAC
+{
+  class Chip;
+}  // namespace Devices::DAC
 
 namespace Module::ChipTracker
 {

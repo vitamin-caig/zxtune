@@ -8,12 +8,12 @@
  *
  **/
 
-#include "log_real.h"
+#include "debug/log.h"
 
 #include "string_view.h"
 
-#include <cstdio>
-#include <cstring>
+#include <stdlib.h>
+
 #include <iostream>
 
 namespace

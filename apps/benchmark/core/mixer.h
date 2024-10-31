@@ -12,6 +12,8 @@
 
 #include "time/duration.h"
 
+#include "types.h"
+
 namespace Benchmark::Mixer
 {
   double Test(uint_t channels, const Time::Milliseconds& duration, uint_t soundFreq);

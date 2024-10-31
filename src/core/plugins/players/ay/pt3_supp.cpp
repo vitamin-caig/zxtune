@@ -11,7 +11,14 @@
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/ay/aym_conversion.h"
 #include "core/plugins/players/plugin.h"
+#include "formats/chiptune/aym/protracker3.h"
 #include "module/players/aym/protracker3.h"
+
+#include "core/plugin_attrs.h"
+
+#include "types.h"
+
+#include <utility>
 
 namespace ZXTune
 {

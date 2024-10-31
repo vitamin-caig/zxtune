@@ -10,6 +10,10 @@
 
 #include "apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.h"
 
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+#include "apps/zxtune-qt/playlist/supp/conversion.h"
+#include "apps/zxtune-qt/playlist/supp/data.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
 #include "apps/zxtune-qt/playlist/supp/operations.h"
 #include "apps/zxtune-qt/playlist/supp/operations_convert.h"
 #include "apps/zxtune-qt/playlist/supp/operations_statistic.h"
@@ -17,9 +21,8 @@
 #include "apps/zxtune-qt/playlist/ui/contextmenu.h"
 #include "apps/zxtune-qt/playlist/ui/desktop/properties_dialog.h"
 #include "apps/zxtune-qt/playlist/ui/desktop/search_dialog.h"
+#include "apps/zxtune-qt/playlist/ui/search.h"
 #include "apps/zxtune-qt/playlist/ui/table_view.h"
-#include "apps/zxtune-qt/supp/options.h"
-#include "apps/zxtune-qt/ui/conversion/filename_template.h"
 #include "apps/zxtune-qt/ui/conversion/setup_conversion.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "multiple_items_contextmenu.ui.h"
@@ -28,16 +31,32 @@
 
 #include "strings/map.h"
 #include "strings/set.h"
+#include "time/duration.h"
 #include "time/serialize.h"
 
 #include "contract.h"
 #include "error.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "types.h"
 
+#include <QtCore/QLocale>
+#include <QtCore/QStringList>
+#include <QtCore/QtCore>
 #include <QtGui/QClipboard>
+#include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMenu>
+
+#include <cassert>
+#include <memory>
+#include <utility>
+
+class QWidget;
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
 
 namespace
 {

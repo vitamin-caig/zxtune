@@ -11,15 +11,28 @@
 #include "module/players/aym/ayc.h"
 
 #include "formats/chiptune/aym/ayc.h"
-#include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
 
+#include "binary/view.h"
 #include "core/core_parameters.h"
+#include "devices/aym.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "types.h"
+
+#include <memory>
+#include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::AYC
 {

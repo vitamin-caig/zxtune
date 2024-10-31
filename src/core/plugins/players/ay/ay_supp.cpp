@@ -16,6 +16,10 @@
 
 #include "core/plugin_attrs.h"
 
+#include "types.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterAYSupport(PlayerPluginsRegistrator& registrator)

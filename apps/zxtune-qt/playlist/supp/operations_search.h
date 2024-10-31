@@ -10,7 +10,12 @@
 
 #pragma once
 
+#include "apps/zxtune-qt/playlist/supp/model.h"
 #include "apps/zxtune-qt/playlist/supp/operations.h"
+
+#include "types.h"
+
+#include <QtCore/QString>
 
 namespace Playlist::Item
 {

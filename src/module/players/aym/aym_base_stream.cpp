@@ -10,7 +10,9 @@
 
 #include "module/players/aym/aym_base_stream.h"
 
+#include "module/players/aym/aym_parameters.h"
 #include "module/players/streaming.h"
+#include "module/players/track_model.h"
 
 #include "make_ptr.h"
 

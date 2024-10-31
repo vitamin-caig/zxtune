@@ -10,13 +10,13 @@
 
 #include "apps/zxtune-qt/ui/tools/filedialog.h"
 
-#include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/state.h"
-#include "apps/zxtune-qt/ui/utils.h"
 
+#include "string_view.h"
+
+#include <QtCore/QList>
+#include <QtWidgets/QDialog>
 #include <QtWidgets/QFileDialog>
-
-#include <utility>
 
 namespace
 {

@@ -16,8 +16,8 @@
 
 #include "string_view.h"
 
+#include <exception>
 #include <memory>
-#include <stdexcept>
 
 // forward declarations
 namespace boost::program_options

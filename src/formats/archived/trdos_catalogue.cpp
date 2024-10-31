@@ -11,7 +11,6 @@
 #include "formats/archived/trdos_catalogue.h"
 
 #include "binary/container_base.h"
-#include "binary/container_factories.h"
 #include "binary/data_builder.h"
 #include "strings/format.h"
 
@@ -20,9 +19,9 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstring>
 #include <numeric>
 #include <utility>
+#include <vector>
 
 namespace TRDos
 {

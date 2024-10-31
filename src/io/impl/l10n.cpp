@@ -10,6 +10,8 @@
 
 #include "io/impl/l10n.h"
 
+#include "string_view.h"
+
 namespace IO
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");

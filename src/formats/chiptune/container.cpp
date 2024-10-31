@@ -12,10 +12,11 @@
 
 #include "binary/container_base.h"
 #include "binary/crc.h"
+#include "binary/view.h"
 
 #include "make_ptr.h"
 
-#include <cassert>
+#include <memory>
 #include <utility>
 
 namespace Formats::Chiptune

@@ -13,9 +13,23 @@
 #include "apps/zxtune-qt/playlist/io/container_impl.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
+#include "parameters/container.h"
+#include "parameters/identifier.h"
+
 #include "make_ptr.h"
+#include "string_type.h"
 
 #include <QtCore/QStringList>
+
+#include <algorithm>
+#include <iterator>
+#include <memory>
+#include <utility>
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
 
 namespace
 {

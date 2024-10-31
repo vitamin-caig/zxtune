@@ -11,9 +11,19 @@
 #pragma once
 
 #include "apps/zxtune-qt/playlist/supp/conversion.h"
-#include "apps/zxtune-qt/playlist/supp/data.h"
 
-#include <QtWidgets/QDialog>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtWidgets/QDialog>  // IWYU pragma: export
+
+#include <memory>
+
+class QWidget;
+
+namespace Playlist::Item
+{
+  class Data;
+}  // namespace Playlist::Item
 
 namespace UI
 {

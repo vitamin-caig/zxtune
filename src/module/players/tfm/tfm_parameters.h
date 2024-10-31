@@ -10,8 +10,11 @@
 
 #pragma once
 
+#include "devices/fm.h"
 #include "devices/tfm.h"
 #include "parameters/accessor.h"
+
+#include "types.h"
 
 namespace Module::TFM
 {

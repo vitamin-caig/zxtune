@@ -10,10 +10,20 @@
 
 #include "apps/zxtune-qt/playlist/supp/operations_statistic.h"
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/playlist/supp/operations_helpers.h"
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 
 #include "make_ptr.h"
+#include "string_type.h"
+
+#include <cassert>
+#include <utility>
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
 
 namespace
 {

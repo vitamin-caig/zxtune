@@ -10,18 +10,26 @@
 
 #include "core/plugins/players/multitrack_plugin.h"
 
-#include "core/plugins/archives/archived.h"
+#include "core/src/location.h"
 #include "formats/archived/multitrack/filename.h"
 #include "module/players/properties_helper.h"
 
-#include "core/module_detect.h"
+#include "analysis/path.h"
+#include "analysis/result.h"
+#include "binary/format.h"
+#include "core/data_location.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
+#include "module/holder.h"
+#include "parameters/container.h"
 #include "tools/xrange.h"
 
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
 
+#include <optional>
+#include <span>
 #include <utility>
 
 namespace ZXTune

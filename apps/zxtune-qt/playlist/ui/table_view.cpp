@@ -12,19 +12,41 @@
 
 #include "apps/zxtune-qt/playlist/supp/controller.h"
 #include "apps/zxtune-qt/playlist/supp/model.h"
-#include "apps/zxtune-qt/playlist/ui/playlist_view.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
 #include "debug/log.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
 
+#include <QtCore/QFlags>
+#include <QtCore/QItemSelection>
+#include <QtCore/QItemSelectionModel>
+#include <QtCore/QModelIndex>
+#include <QtCore/QModelIndexList>
+#include <QtCore/QVariant>
+#include <QtCore/QtCore>
 #include <QtGui/QContextMenuEvent>
+#include <QtGui/QFontMetrics>
+#include <QtGui/QPalette>
+#include <QtWidgets/QAbstractItemView>
+#include <QtWidgets/QAction>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QStyleOptionViewItem>
+#include <QtWidgets/QWidget>
 
 #include <algorithm>
+#include <cassert>
+#include <iterator>
+#include <map>
+#include <memory>
+
+class QBrush;
+class QPainter;
 
 namespace
 {

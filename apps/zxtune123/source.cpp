@@ -15,30 +15,40 @@
 
 #include "module/properties/path.h"
 
+#include "analysis/path.h"
+#include "binary/container.h"
 #include "core/additional_files_resolve.h"
 #include "core/core_parameters.h"
 #include "core/data_location.h"
-#include "core/plugin.h"
-#include "core/plugin_attrs.h"
+#include "core/module_detect.h"
 #include "core/service.h"
 #include "io/api.h"
+#include "io/identifier.h"
 #include "io/providers_parameters.h"
+#include "module/additional_files.h"
+#include "parameters/identifier.h"
 #include "parameters/merged_container.h"
 #include "platform/application.h"
 #include "strings/array.h"
+#include "strings/format.h"
 #include "time/elapsed.h"
 #include "tools/progress_callback.h"
 
 #include "contract.h"
-#include "error_tools.h"
+#include "error.h"
 #include "string_view.h"
+#include "types.h"
 
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/value_semantic.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/program_options.hpp>
 
-#include <iomanip>
 #include <iostream>
 #include <utility>
+
+namespace ZXTune
+{
+  class Plugin;
+}  // namespace ZXTune
 
 namespace
 {

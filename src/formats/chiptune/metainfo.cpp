@@ -16,9 +16,11 @@
 #include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
+#include "pointers.h"
 
+#include <cstring>
 #include <map>
-#include <set>
+#include <utility>
 
 namespace Formats::Chiptune
 {

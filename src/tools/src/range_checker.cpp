@@ -13,8 +13,8 @@
 #include "make_ptr.h"
 
 #include <cassert>
+#include <iterator>
 #include <map>
-#include <set>
 
 namespace
 {

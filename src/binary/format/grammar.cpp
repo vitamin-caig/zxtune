@@ -10,11 +10,15 @@
 
 #include "binary/format/grammar.h"
 
+#include "binary/format/lexic_analysis.h"
+
 #include "make_ptr.h"
 #include "pointers.h"
 #include "string_view.h"
 
-#include <cctype>
+#include <cstddef>
+#include <memory>
+#include <utility>
 
 namespace Binary::FormatDSL
 {

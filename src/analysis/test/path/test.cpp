@@ -10,7 +10,12 @@
 
 #include "analysis/path.h"
 
+#include "string_type.h"
+
+#include <cstddef>
 #include <iostream>
+#include <memory>
+#include <span>
 
 namespace
 {

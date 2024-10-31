@@ -1,11 +1,17 @@
 #include "formats/packed/decoders.h"
 
 #include "binary/data_builder.h"
+#include "binary/format.h"
+#include "binary/view.h"
+#include "formats/packed.h"
 
 #include "make_ptr.h"
 #include "string_view.h"
 
+#include <cstddef>
+#include <exception>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 #ifdef _WIN32

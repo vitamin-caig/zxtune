@@ -15,6 +15,11 @@
 
 #include "parameters/accessor.h"
 
+#include "string_type.h"
+
+#include <memory>
+#include <vector>  // IWYU pragma: export
+
 namespace Playlist::IO
 {
   struct ContainerItem

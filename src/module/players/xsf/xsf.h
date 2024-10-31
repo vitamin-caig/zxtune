@@ -10,15 +10,14 @@
 
 #pragma once
 
-#include "module/players/xsf/xsf_file.h"
-#include "module/players/xsf/xsf_metainformation.h"
-
 #include "formats/chiptune.h"
 
 #include "string_view.h"
 
 namespace Module::XSF
 {
+  struct File;
+
   Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, File& file);
   Formats::Chiptune::Container::Ptr Parse(StringView name, const Binary::Container& data, File& file);
 }  // namespace Module::XSF

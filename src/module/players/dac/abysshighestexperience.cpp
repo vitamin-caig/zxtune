@@ -12,18 +12,39 @@
 
 #include "formats/chiptune/digital/abysshighestexperience.h"
 #include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 
 #include "binary/container_factories.h"
+#include "binary/data.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "module/holder.h"
+#include "module/renderer.h"
 #include "module/track_information.h"
 #include "module/track_state.h"
+#include "parameters/container.h"
+#include "sound/chunk.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "contract.h"
 #include "make_ptr.h"
 #include "pointers.h"
+#include "string_view.h"
+#include "types.h"
 
 #include "3rdparty/hvl/hvl_replay.h"
+#include "3rdparty/hvl/types.h"
+
+#include <exception>
+#include <memory>
+#include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::AHX
 {

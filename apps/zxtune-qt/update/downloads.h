@@ -11,9 +11,15 @@
 #pragma once
 
 #include "apps/zxtune-qt/update/product.h"
-#include "apps/zxtune-qt/update/rss.h"
+
+#include <QtCore/QString>
 
 #include <memory>
+
+namespace RSS
+{
+  class Visitor;
+}  // namespace RSS
 
 namespace Downloads
 {

@@ -14,24 +14,45 @@
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
 
+#include "binary/container.h"
+#include "binary/container_factories.h"
 #include "binary/data_builder.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "io/identifier.h"
 #include "io/providers_parameters.h"
+#include "l10n/api.h"
 #include "parameters/accessor.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 #include "strings/encoding.h"
 #include "strings/format.h"
 #include "strings/trim.h"
+#include "tools/data_streaming.h"
 
 #include "contract.h"
 #include "error_tools.h"
 #include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <boost/interprocess/detail/os_file_functions.hpp>
+#include <boost/interprocess/exceptions.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
+#include <algorithm>
 #include <cctype>
+#include <cstdint>
+#include <filesystem>
 #include <fstream>
+#include <system_error>
+#include <utility>
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
 
 #undef min
 

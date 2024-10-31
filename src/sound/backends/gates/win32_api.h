@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <windows.h>
+#include <windows.h>  // IWYU pragma: export
 
 #include <memory>
 

@@ -10,18 +10,31 @@
 
 #include "module/players/aym/ymvtx.h"
 
-#include "module/players/aym/aym_base.h"
+#include "devices/aym/chip.h"
 #include "module/players/aym/aym_base_stream.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/properties_meta.h"
 
+#include "binary/view.h"
 #include "core/core_parameters.h"
+#include "devices/aym.h"
+#include "parameters/container.h"
 #include "strings/conversion.h"
+#include "time/duration.h"
 
 #include "make_ptr.h"
-#include "string_view.h"
+#include "types.h"
 
+#include <algorithm>
+#include <cassert>
+#include <memory>
 #include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::YMVTX
 {

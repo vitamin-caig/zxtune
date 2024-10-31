@@ -12,6 +12,8 @@
 
 #include "binary/view.h"
 
+#include <cstddef>
+
 namespace Binary::Compression::Zlib
 {
   //! @throws Error

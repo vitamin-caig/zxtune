@@ -12,7 +12,16 @@
 
 #include "devices/aym/chip.h"
 
+#include "devices/aym.h"
+#include "sound/chunk.h"
+#include "sound/mixer.h"
+#include "time/instant.h"
+
+#include "types.h"
+
 #include <array>
+#include <memory>
+#include <vector>
 
 namespace Devices::TurboSound
 {

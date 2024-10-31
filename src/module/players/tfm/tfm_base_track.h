@@ -13,6 +13,12 @@
 #include "module/players/tfm/tfm_chiptune.h"
 #include "module/players/tracking.h"
 
+#include "devices/tfm.h"
+
+#include "types.h"
+
+#include <memory>
+
 namespace Module::TFM
 {
   const uint_t TRACK_CHANNELS = 6;

@@ -16,27 +16,51 @@
 #include "apps/zxtune-qt/update/downloads.h"
 #include "apps/zxtune-qt/update/parameters.h"
 #include "apps/zxtune-qt/update/product.h"
+#include "apps/zxtune-qt/update/rss.h"
 #include "apps/zxtune-qt/urls.h"
 
 #include "debug/log.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 #include "platform/version/fields.h"
+#include "strings/fields.h"  // IWYU pragma: keep
+#include "strings/template.h"
 
 #include "contract.h"
 #include "error.h"
 #include "make_ptr.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
+#include <QtCore/QByteArray>
+#include <QtCore/QDate>
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
+#include <QtCore/QIODevice>
 #include <QtCore/QPointer>
+#include <QtCore/QRegExp>
+#include <QtCore/QStringList>
 #include <QtCore/QTimer>
+#include <QtCore/QUrl>
+#include <QtCore/QtCore>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
-#include <QtWidgets/QApplication>
+#include <QtWidgets/QDialog>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QProgressDialog>
+#include <QtWidgets/QWidget>
 
+#include <algorithm>
 #include <ctime>
+#include <functional>
+#include <iterator>
+#include <memory>
+#include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace
 {

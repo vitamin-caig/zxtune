@@ -16,6 +16,11 @@
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "types.h"
+
+#include <jni.h>
+
+#include <utility>
 
 namespace Binary
 {

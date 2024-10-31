@@ -8,14 +8,22 @@
  *
  **/
 
+#include "core/plugins/archive_plugin.h"
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/src/location.h"
 
+#include "analysis/path.h"
+#include "analysis/result.h"
 #include "binary/base64.h"
 #include "binary/compression/zlib_container.h"
 #include "binary/compression/zlib_stream.h"
+#include "binary/container.h"
 #include "binary/crc.h"
 #include "binary/data_builder.h"
+#include "binary/format.h"
+#include "binary/input_stream.h"
+#include "binary/view.h"
+#include "core/data_location.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
 #include "strings/prefixed_index.h"
@@ -24,10 +32,21 @@
 #include "contract.h"
 #include "error.h"
 #include "make_ptr.h"
+#include "pointers.h"
+#include "string_type.h"
 #include "string_view.h"
 
 #include <algorithm>
 #include <array>
+#include <exception>
+#include <memory>
+#include <span>
+#include <utility>
+
+namespace Parameters
+{
+  class Accessor;
+}  // namespace Parameters
 
 namespace ZXTune::Zdata
 {

@@ -11,9 +11,15 @@
 #pragma once
 
 #include "binary/view.h"
-#include "sound/chunk.h"
+
+#include "types.h"
 
 #include <memory>
+
+namespace Sound
+{
+  struct Chunk;
+}  // namespace Sound
 
 namespace Module::FFmpeg
 {

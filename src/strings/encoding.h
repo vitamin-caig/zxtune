@@ -10,8 +10,10 @@
 
 #pragma once
 
-#include "string_type.h"
-#include "string_view.h"
+#include "string_type.h"  // IWYU pragma: export
+#include "string_view.h"  // IWYU pragma: export
+
+#include <stdint.h>
 
 namespace Strings
 {

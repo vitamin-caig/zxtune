@@ -11,10 +11,14 @@
 #include "sound/backends/gates/mp3_api.h"
 
 #include "debug/log.h"
+#include "platform/shared_library.h"
 #include "platform/shared_library_adapter.h"
 
 #include "make_ptr.h"
 #include "string_view.h"
+
+#include <utility>
+#include <vector>
 
 namespace Sound::Mp3
 {

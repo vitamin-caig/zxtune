@@ -12,15 +12,21 @@
 #include "formats/archived/trdos_utils.h"
 #include "formats/packed/decoders.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "formats/archived.h"
+#include "formats/packed.h"
 
 #include "byteorder.h"
 #include "make_ptr.h"
+#include "pointers.h"
+#include "string_type.h"
+#include "string_view.h"
 
 #include <algorithm>
 #include <cassert>
-#include <cstddef>
 #include <cstring>
+#include <memory>
 
 namespace Formats::Archived
 {

@@ -15,14 +15,26 @@
 
 #include "debug/log.h"
 #include "io/api.h"
-#include "strings/map.h"
+#include "l10n/api.h"
 
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
 
 #include <algorithm>
-#include <list>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
+namespace Parameters
+{
+  class Accessor;
+}  // namespace Parameters
 
 namespace IO
 {

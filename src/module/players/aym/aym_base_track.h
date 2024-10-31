@@ -11,9 +11,20 @@
 #pragma once
 
 #include "module/players/aym/aym_chiptune.h"
-#include "module/players/tracking.h"
+#include "module/players/aym/aym_parameters.h"
+#include "module/players/stream_model.h"
+#include "module/players/tracking.h"  // IWYU pragma: export
 
-#include "module/renderer.h"
+#include "core/freq_tables.h"
+#include "devices/aym.h"
+#include "parameters/accessor.h"
+#include "time/duration.h"
+
+#include "make_ptr.h"
+#include "types.h"
+
+#include <memory>
+#include <utility>
 
 namespace Module::AYM
 {

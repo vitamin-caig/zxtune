@@ -10,17 +10,21 @@
 
 #pragma once
 
-#include "devices/dac/sample.h"
-
 #include "math/fixedpoint.h"
+#include "sound/chunk.h"
 #include "sound/mixer.h"
 #include "time/instant.h"
 
+#include "types.h"
+
 #include <memory>
+#include <vector>
 
 // supporting for multichannel sample-based DAC
 namespace Devices::DAC
 {
+  class Sample;
+
   using TimeUnit = Time::Microsecond;
   using Stamp = Time::Instant<TimeUnit>;
 

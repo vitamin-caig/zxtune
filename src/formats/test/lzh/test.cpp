@@ -8,7 +8,17 @@
  *
  **/
 
+#include "formats/packed/decoders.h"
 #include "formats/test/utils.h"
+
+#include "formats/packed.h"
+
+#include <algorithm>
+#include <exception>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace
 {

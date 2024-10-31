@@ -16,14 +16,27 @@
 #include "core/src/l10n.h"
 #include "core/src/location.h"
 
+#include "analysis/path.h"
 #include "core/additional_files_resolve.h"
+#include "core/data_location.h"
 #include "debug/log.h"
+#include "l10n/api.h"
+#include "module/additional_files.h"
 #include "module/attributes.h"
 #include "strings/map.h"
 
 #include "error_tools.h"
 #include "make_ptr.h"
 #include "string_view.h"
+
+#include <cstddef>
+#include <utility>
+#include <vector>
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
 
 namespace ZXTune
 {

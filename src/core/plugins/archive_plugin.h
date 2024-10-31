@@ -13,8 +13,8 @@
 #include "core/src/location.h"
 
 #include "analysis/result.h"
-#include "core/module_detect.h"
-#include "core/plugin.h"
+#include "core/module_detect.h"  // IWYU pragma: export
+#include "core/plugin.h"         // IWYU pragma: export
 
 namespace Parameters
 {

@@ -9,6 +9,7 @@
  **/
 
 #include "binary/base64.h"
+#include "binary/dump.h"
 #include "parameters/convert.h"
 #include "strings/format.h"
 

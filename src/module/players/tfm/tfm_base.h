@@ -12,7 +12,9 @@
 
 #include "module/players/tfm/tfm_chiptune.h"
 
+#include "devices/tfm.h"
 #include "module/renderer.h"
+#include "time/duration.h"
 
 namespace Module::TFM
 {

@@ -11,6 +11,9 @@
 #include "sound/backends/openal.h"
 #include "sound/backends/storage.h"
 
+#include "sound/backend_attrs.h"
+#include "strings/array.h"
+
 namespace Sound
 {
   void RegisterOpenAlBackend(BackendsStorage& storage)

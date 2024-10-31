@@ -11,7 +11,7 @@
 #pragma once
 
 #include "module/players/aym/aym_parameters.h"
-#include "module/players/iterator.h"
+#include "module/players/iterator.h"  // IWYU pragma: export
 #include "module/players/stream_model.h"
 #include "module/players/streaming.h"
 #include "module/players/track_model.h"

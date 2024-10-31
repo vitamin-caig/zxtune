@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "parameters/visitor.h"
+#include "parameters/visitor.h"  // IWYU pragma: export
 
 namespace Parameters
 {

@@ -10,6 +10,7 @@
 
 #include "apps/zxtune-qt/ui/preferences/interface.h"
 
+#include "apps/zxtune-qt/app_parameters.h"
 #include "apps/zxtune-qt/playlist/parameters.h"
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/desktop/language.h"
@@ -20,12 +21,26 @@
 #include "interface.ui.h"
 
 #include "math/numeric.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 
 #include "contract.h"
 #include "make_ptr.h"
 
-#include <QtWidgets/QRadioButton>
+#include <QtCore/QEvent>
+#include <QtCore/QLocale>
+#include <QtCore/QNonConstOverload>
+#include <QtCore/QStringList>
+#include <QtCore/QVariant>
+#include <QtCore/QtCore>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
 
+#include <algorithm>
+#include <iterator>
+#include <memory>
+#include <string>
 #include <utility>
 
 namespace

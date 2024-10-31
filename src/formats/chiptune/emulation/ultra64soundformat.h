@@ -13,6 +13,8 @@
 #include "binary/view.h"
 #include "formats/chiptune.h"
 
+#include "types.h"
+
 namespace Formats::Chiptune
 {
   namespace Ultra64SoundFormat

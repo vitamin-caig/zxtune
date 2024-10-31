@@ -17,26 +17,31 @@
 #include "core/plugin.h"
 #include "core/plugin_attrs.h"
 #include "core/plugins_parameters.h"
-#include "io/io_parameters.h"
 #include "io/provider.h"
 #include "io/providers_parameters.h"
 #include "module/attributes.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 #include "platform/application.h"
 #include "sound/backend.h"
 #include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
 #include "sound/mixer_parameters.h"
-#include "sound/service.h"
 #include "sound/sound_parameters.h"
 #include "strings/format.h"
 
+#include "error.h"
 #include "static_string.h"
 #include "string_view.h"
+#include "types.h"
 
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/value_semantic.hpp>
+#include <boost/program_options.hpp>
 
+#include <algorithm>
 #include <iostream>
+#include <iterator>
+#include <span>
+#include <utility>
 #include <variant>
 
 namespace

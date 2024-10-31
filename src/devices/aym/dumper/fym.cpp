@@ -8,15 +8,23 @@
  *
  **/
 
+#include "devices/aym/dumper.h"
 #include "devices/aym/dumper/dump_builder.h"
 
 #include "binary/compression/zlib_stream.h"
+#include "binary/data.h"
 #include "binary/data_builder.h"
+#include "binary/input_stream.h"
+#include "binary/view.h"
+#include "devices/aym.h"
+#include "time/duration.h"
 
 #include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
 
+#include <memory>
+#include <string>
 #include <utility>
 
 namespace Devices::AYM

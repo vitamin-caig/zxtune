@@ -10,15 +10,21 @@
 
 #include "formats/chiptune/fm/tfd.h"
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/container.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "strings/sanitize.h"
 
+#include "contract.h"
 #include "make_ptr.h"
 
 #include <array>
+#include <cstring>
+#include <exception>
 
 namespace Formats::Chiptune
 {

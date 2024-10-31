@@ -10,17 +10,22 @@
 
 #include "apps/zxtune-qt/playlist/supp/operations_search.h"
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
+#include "tools/progress_callback.h"
 #include "tools/progress_callback_helpers.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
 
 #include <QtCore/QRegExp>
+#include <QtCore/Qt>
 
+#include <memory>
 #include <utility>
 
 namespace

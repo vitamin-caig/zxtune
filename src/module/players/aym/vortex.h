@@ -11,7 +11,13 @@
 #pragma once
 
 #include "formats/chiptune/aym/protracker3.h"
+#include "formats/chiptune/objects.h"
 #include "module/players/aym/aym_base_track.h"
+
+#include "string_view.h"
+#include "types.h"
+
+#include <memory>
 
 namespace Module::Vortex
 {

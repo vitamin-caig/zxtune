@@ -11,8 +11,13 @@
 #include "core/plugins/players/plugin.h"
 #include "formats/chiptune/decoders.h"
 #include "module/players/xsf/2sf.h"
+#include "module/players/xsf/xsf_factory.h"
 
 #include "core/plugin_attrs.h"
+
+#include "types.h"
+
+#include <utility>
 
 namespace ZXTune
 {

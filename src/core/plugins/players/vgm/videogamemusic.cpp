@@ -15,11 +15,16 @@
 #include "binary/input_stream.h"
 
 #include "byteorder.h"
+#include "contract.h"
+#include "pointers.h"
 #include "string_type.h"
 #include "string_view.h"
 
+#include <algorithm>
+#include <exception>
 #include <map>
 #include <span>
+#include <utility>
 
 namespace Module::VideoGameMusic
 {

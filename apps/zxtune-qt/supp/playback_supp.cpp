@@ -14,7 +14,7 @@
 #include "apps/zxtune-qt/supp/thread_utils.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
-#include "parameters/merged_accessor.h"
+#include "module/holder.h"
 #include "sound/service.h"
 
 #include "contract.h"
@@ -22,9 +22,21 @@
 #include "lazy.h"
 #include "pointers.h"
 
+#include <QtCore/QByteArrayData>
 #include <QtCore/QTimer>
 
+#include <atomic>
+#include <list>
+#include <memory>
+#include <type_traits>
 #include <utility>
+#include <variant>
+#include <vector>
+
+namespace Module
+{
+  class State;
+}  // namespace Module
 
 namespace
 {

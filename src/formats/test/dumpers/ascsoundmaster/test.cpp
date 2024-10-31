@@ -13,7 +13,14 @@
 #include "formats/chiptune/builder_pattern.h"
 #include "formats/test/utils.h"
 
+#include "strings/array.h"
+
 #include "string_view.h"
+#include "types.h"
+
+#include <exception>
+#include <iostream>
+#include <memory>
 
 namespace
 {

@@ -12,6 +12,7 @@
 
 #include "sound/sample.h"
 
+#include <cstddef>
 #include <memory>
 
 namespace Devices::DAC

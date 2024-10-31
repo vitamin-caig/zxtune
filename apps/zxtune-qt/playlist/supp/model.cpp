@@ -18,20 +18,35 @@
 #include "async/activity.h"
 #include "debug/log.h"
 #include "math/bitops.h"
-#include "parameters/template.h"
+#include "time/duration.h"
 #include "time/serialize.h"
+#include "tools/iterators.h"
+#include "tools/progress_callback.h"
 #include "tools/progress_callback_helpers.h"
 
-#include "contract.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <QtCore/QByteArray>
 #include <QtCore/QDataStream>
+#include <QtCore/QFlags>
+#include <QtCore/QIODevice>
+#include <QtCore/QList>
 #include <QtCore/QMimeData>
-#include <QtCore/QSet>
+#include <QtCore/QModelIndex>
+#include <QtCore/QModelIndexList>
+#include <QtCore/QPointer>
 #include <QtCore/QStringList>
+#include <QtCore/QVariant>
+#include <QtCore/Qt>
 
 #include <atomic>
+#include <cassert>
+#include <compare>
+#include <exception>
+#include <iterator>
 #include <mutex>
 #include <utility>
 

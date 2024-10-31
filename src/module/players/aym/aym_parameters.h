@@ -15,6 +15,10 @@
 #include "core/freq_tables.h"
 #include "parameters/accessor.h"
 
+#include "types.h"
+
+#include <memory>
+
 namespace Module::AYM
 {
   Devices::AYM::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params);

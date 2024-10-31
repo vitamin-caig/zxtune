@@ -10,14 +10,17 @@
 
 #include "sound/impl/fft_analyzer.h"
 
+#include "math/bitops.h"
+#include "sound/sample.h"
+
 #include "make_ptr.h"
+#include "types.h"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <complex>
 #include <mutex>
-#include <numeric>
 #include <utility>
 #include <vector>
 

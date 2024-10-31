@@ -15,6 +15,10 @@
 
 #include "core/plugin_attrs.h"
 
+#include "types.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterCOPSupport(PlayerPluginsRegistrator& registrator)

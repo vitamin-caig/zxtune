@@ -11,10 +11,16 @@
 #include "sound/backends/gates/vorbis_api.h"
 
 #include "debug/log.h"
+#include "platform/shared_library.h"
 #include "platform/shared_library_adapter.h"
 
 #include "make_ptr.h"
 #include "string_view.h"
+
+#include <ogg/ogg.h>
+
+#include <utility>
+#include <vector>
 
 namespace Sound::Vorbis
 {

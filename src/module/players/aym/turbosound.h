@@ -11,9 +11,18 @@
 #pragma once
 
 #include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_chiptune.h"
+#include "module/players/aym/aym_parameters.h"
+#include "module/players/stream_model.h"
 
 #include "devices/turbosound.h"
 #include "module/holder.h"
+#include "parameters/accessor.h"
+#include "time/duration.h"
+
+#include "types.h"
+
+#include <memory>
 
 namespace Module::TurboSound
 {

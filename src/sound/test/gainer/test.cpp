@@ -9,13 +9,21 @@
  **/
 
 #include "math/numeric.h"
+#include "sound/chunk.h"
+#include "sound/gain.h"
 #include "sound/gainer.h"
 
 #include "contract.h"
 #include "error_tools.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
 #include <algorithm>
 #include <iostream>
+#include <iterator>
+#include <memory>
+#include <utility>
 
 namespace Sound
 {

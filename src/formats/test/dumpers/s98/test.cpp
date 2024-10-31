@@ -8,12 +8,20 @@
  *
  **/
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/multidevice/sound98.h"
 #include "formats/test/utils.h"
 
+#include "formats/chiptune.h"
+#include "strings/array.h"
+#include "time/duration.h"
 #include "time/serialize.h"
 
 #include "string_view.h"
+
+#include <exception>
+#include <iostream>
+#include <memory>
 
 namespace
 {

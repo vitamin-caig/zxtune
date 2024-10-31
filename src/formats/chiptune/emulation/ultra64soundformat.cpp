@@ -10,13 +10,18 @@
 
 #include "formats/chiptune/emulation/ultra64soundformat.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 
 #include "byteorder.h"
+#include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
 
+#include <algorithm>
 #include <array>
+#include <memory>
 
 namespace Formats::Chiptune
 {

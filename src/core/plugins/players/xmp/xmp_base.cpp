@@ -13,22 +13,37 @@
 #include "formats/chiptune/container.h"
 #include "module/players/properties_helper.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "core/core_parameters.h"
 #include "core/plugin_attrs.h"
+#include "formats/chiptune.h"
+#include "module/holder.h"
+#include "module/renderer.h"
 #include "module/track_information.h"
 #include "module/track_state.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 #include "parameters/tracking_helper.h"
+#include "parameters/types.h"
+#include "sound/chunk.h"
+#include "strings/array.h"
 #include "strings/sanitize.h"
 #include "time/duration.h"
+#include "time/instant.h"
 
 #include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "types.h"
 
 #include "3rdparty/xmp/include/xmp.h"
 #include "3rdparty/xmp/src/xmp_private.h"
 
+#include <algorithm>
+#include <cstring>
+#include <exception>
+#include <memory>
 #include <utility>
 
 namespace Module::Xmp

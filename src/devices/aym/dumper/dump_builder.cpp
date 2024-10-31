@@ -10,9 +10,13 @@
 
 #include "devices/aym/dumper/dump_builder.h"
 
+#include "devices/aym.h"
+#include "time/duration.h"
+
 #include "make_ptr.h"
 
 #include <utility>
+#include <vector>
 
 namespace Devices::AYM
 {

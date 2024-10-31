@@ -10,16 +10,20 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-#include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
 
 #include "formats/chiptune.h"
 
+#include "types.h"
+
 #include <array>
+#include <memory>
 
 namespace Formats::Chiptune
 {
+  class MetaBuilder;
+  class PatternBuilder;
+
   namespace TFMMusicMaker
   {
     struct Instrument

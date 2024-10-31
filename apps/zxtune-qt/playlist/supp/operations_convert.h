@@ -10,12 +10,22 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/playlist/supp/conversion.h"
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
 #include "apps/zxtune-qt/playlist/supp/operations.h"
 
+#include "parameters/accessor.h"
 #include "sound/service.h"
 
 #include "string_view.h"
+
+#include <memory>
+
+class Error;
+namespace Playlist::Item::Conversion
+{
+  struct Options;
+}  // namespace Playlist::Item::Conversion
 
 namespace Playlist::Item
 {

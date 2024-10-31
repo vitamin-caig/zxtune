@@ -8,13 +8,18 @@
  *
  **/
 
+#include "devices/dac/sample.h"
+
 #include "devices/dac/sample_factories.h"
 
-#include "make_ptr.h"
+#include "binary/view.h"
+#include "sound/sample.h"
 
-#include <cmath>
+#include "make_ptr.h"
+#include "types.h"
+
 #include <cstring>
-#include <numeric>
+#include <memory>
 
 namespace Devices::DAC
 {

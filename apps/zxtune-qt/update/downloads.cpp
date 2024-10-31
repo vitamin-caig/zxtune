@@ -11,12 +11,16 @@
 #include "apps/zxtune-qt/update/downloads.h"
 
 #include "apps/zxtune-qt/ui/utils.h"
+#include "apps/zxtune-qt/update/rss.h"
 
 #include "debug/log.h"
 
 #include "make_ptr.h"
+#include "string_view.h"
 
+#include <QtCore/QDate>
 #include <QtCore/QRegExp>
+#include <QtCore/QUrl>
 
 #include <utility>
 

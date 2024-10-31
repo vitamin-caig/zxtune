@@ -10,12 +10,17 @@
 
 #include "binary/compression/zlib_container.h"
 
-#include "binary/compression/zlib.h"
 #include "binary/compression/zlib_stream.h"
 #include "binary/container_factories.h"
+#include "binary/data_builder.h"
+#include "binary/dump.h"
+#include "binary/input_stream.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+
+#include <memory>
+#include <utility>
 
 namespace Binary::Compression::Zlib
 {

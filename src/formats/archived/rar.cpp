@@ -12,18 +12,23 @@
 #include "formats/packed/rar_supp.h"
 
 #include "binary/container_base.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "formats/archived.h"
+#include "formats/packed.h"
 
+#include "byteorder.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
 
-#include <cstring>
-#include <deque>
+#include <algorithm>
+#include <cassert>
 #include <memory>
-#include <numeric>
+#include <utility>
 
 namespace Formats::Archived
 {

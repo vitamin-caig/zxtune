@@ -10,9 +10,16 @@
 
 #pragma once
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/playlist/supp/data_provider.h"
 
-#include <QtCore/QThread>
+#include <QtCore/QObject>  // IWYU pragma: export
+#include <QtCore/QString>
+#include <QtCore/QStringList>
+
+#include <memory>
+
+class Error;
 
 namespace Playlist
 {

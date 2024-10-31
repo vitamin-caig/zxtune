@@ -13,6 +13,9 @@
 #include "string_type.h"
 #include "string_view.h"
 
+#include <cstddef>
+#include <utility>
+
 namespace Strings
 {
   class PrefixedIndex

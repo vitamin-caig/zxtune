@@ -12,8 +12,6 @@
 
 #include "apps/zxtune-qt/ui/desktop/mainwindow.h"
 
-#include <utility>
-
 namespace
 {
   class DesktopWidgetsFactory : public WidgetsFactory

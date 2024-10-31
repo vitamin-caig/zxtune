@@ -11,15 +11,26 @@
 #include "module/players/dac/v2m.h"
 
 #include "formats/chiptune/digital/v2m.h"
-#include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
 
+#include "binary/view.h"
 #include "debug/log.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "sound/chunk.h"
+#include "sound/receiver.h"
 #include "sound/resampler.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
 
 #include "3rdparty/v2m/src/sounddef.h"
 #include "3rdparty/v2m/src/v2mconv.h"
@@ -27,6 +38,15 @@
 
 #include <algorithm>
 #include <array>
+#include <exception>
+#include <memory>
+#include <utility>
+#include <vector>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::V2M
 {

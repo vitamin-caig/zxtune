@@ -10,9 +10,11 @@
 
 #pragma once
 
-#include "error.h"
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtWidgets/QWidget>  // IWYU pragma: export
 
-#include <QtWidgets/QWidget>
+class Error;
 
 namespace UI
 {

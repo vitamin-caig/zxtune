@@ -11,6 +11,8 @@
 #include "module/players/dac/dac_properties_helper.h"
 
 #include "core/core_parameters.h"
+#include "parameters/identifier.h"
+#include "parameters/modifier.h"
 
 namespace Module::DAC
 {

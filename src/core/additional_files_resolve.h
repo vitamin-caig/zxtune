@@ -10,12 +10,14 @@
 
 #pragma once
 
-#include "module/additional_files.h"
+#include "binary/container.h"
 
 #include "string_view.h"
 
 namespace Module
 {
+  class AdditionalFiles;
+
   class AdditionalFilesSource
   {
   public:

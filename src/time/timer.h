@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "time/duration.h"
+#include "time/duration.h"  // IWYU pragma: export
 
 #include <ctime>
 #include <type_traits>

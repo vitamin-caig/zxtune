@@ -16,6 +16,10 @@
 #include "core/plugin.h"
 #include "core/plugin_attrs.h"
 
+#include "string_type.h"
+
+#include <jni.h>
+
 namespace
 {
   class NativePluginJni

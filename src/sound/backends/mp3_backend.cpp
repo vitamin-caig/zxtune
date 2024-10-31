@@ -8,6 +8,7 @@
  *
  **/
 
+#include "sound/backends/backend_impl.h"
 #include "sound/backends/file_backend.h"
 #include "sound/backends/gates/mp3_api.h"
 #include "sound/backends/l10n.h"
@@ -15,13 +16,29 @@
 #include "sound/backends/storage.h"
 
 #include "binary/dump.h"
+#include "binary/output_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "l10n/api.h"
 #include "math/numeric.h"
+#include "module/holder.h"
+#include "parameters/accessor.h"
+#include "parameters/identifier.h"
+#include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
+#include "sound/chunk.h"
 #include "sound/render_params.h"
+#include "tools/data_streaming.h"
 
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "pointers.h"
+#include "string_type.h"
+#include "string_view.h"
+
+#include <cassert>
+#include <memory>
+#include <utility>
 
 namespace Sound::Mp3
 {

@@ -13,6 +13,8 @@
 #include "devices/dac.h"
 #include "parameters/accessor.h"
 
+#include "types.h"
+
 namespace Module::DAC
 {
   Devices::DAC::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params);

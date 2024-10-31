@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <QtCore/QString>
 #include <QtCore/QStringList>
 
 #include <memory>

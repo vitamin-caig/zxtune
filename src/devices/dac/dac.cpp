@@ -10,17 +10,21 @@
 
 #include "devices/dac.h"
 
+#include "devices/dac/sample.h"
 #include "devices/details/freq_table.h"
 
 #include "math/numeric.h"
 #include "parameters/tracking_helper.h"
+#include "sound/multichannel_sample.h"
 
 #include "contract.h"
 #include "make_ptr.h"
-#include "pointers.h"
 
+#include <algorithm>
 #include <array>
+#include <cassert>
 #include <cmath>
+#include <utility>
 
 namespace Devices::DAC
 {

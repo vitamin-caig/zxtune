@@ -9,21 +9,30 @@
  **/
 
 #include "formats/packed/container.h"
-#include "formats/packed/pack_utils.h"
 #include "formats/packed/rar_supp.h"
 
+#include "binary/data_builder.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
-#include "binary/input_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "formats/packed.h"
 #include "math/numeric.h"
 
+#include "byteorder.h"
 #include "make_ptr.h"
+#include "pointers.h"
+#include "string_type.h"
+#include "string_view.h"
 
-#include "3rdparty/unrar/rar.hpp"
+#include "3rdparty/unrar/rar.hpp"  // IWYU pragma: keep
+#include "3rdparty/unrar/rartypes.hpp"
+#include "3rdparty/unrar/rdwrfn.hpp"
+#include "3rdparty/unrar/unpack.hpp"
 
-#include <array>
+#include <algorithm>
 #include <cassert>
+#include <exception>
 #include <limits>
 #include <memory>
 

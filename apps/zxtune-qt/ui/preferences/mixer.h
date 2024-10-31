@@ -10,9 +10,16 @@
 
 #pragma once
 
-#include "parameters/container.h"
+#include "parameters/identifier.h"
 
-#include <QtWidgets/QWidget>
+#include <QtCore/QObject>  // IWYU pragma: export
+#include <QtCore/QString>
+#include <QtWidgets/QWidget>  // IWYU pragma: export
+
+namespace Parameters
+{
+  class Container;
+}  // namespace Parameters
 
 namespace UI
 {

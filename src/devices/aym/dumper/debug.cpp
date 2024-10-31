@@ -8,12 +8,20 @@
  *
  **/
 
+#include "devices/aym/dumper.h"
 #include "devices/aym/dumper/dump_builder.h"
 
+#include "binary/data.h"
 #include "binary/data_builder.h"
+#include "devices/aym.h"
 
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
+
+#include <cassert>
+#include <utility>
 
 namespace
 {

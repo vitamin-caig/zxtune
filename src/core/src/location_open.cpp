@@ -10,10 +10,15 @@
 
 #include "core/src/location.h"
 
+#include "analysis/path.h"
+#include "binary/container.h"
+#include "core/data_location.h"
 #include "module/attributes.h"
 
 #include "make_ptr.h"
 #include "string_view.h"
+
+#include <utility>
 
 namespace ZXTune
 {

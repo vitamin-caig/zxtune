@@ -14,22 +14,29 @@
 #include "binary/container_base.h"
 #include "binary/container_factories.h"
 #include "binary/data_builder.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "formats/archived.h"
-#include "strings/format.h"
 #include "strings/map.h"
 
+#include "byteorder.h"
 #include "contract.h"
 #include "error.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "pointers.h"
 
+#include <algorithm>
 #include <array>
 #include <cstring>
-#include <list>
+#include <exception>
+#include <iterator>
+#include <memory>
 #include <numeric>
+#include <utility>
+#include <vector>
 
 namespace Formats::Archived
 {

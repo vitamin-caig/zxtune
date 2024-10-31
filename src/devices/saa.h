@@ -12,7 +12,6 @@
 
 #include "sound/chunk.h"
 #include "time/instant.h"
-#include "tools/data_streaming.h"
 
 #include "types.h"
 

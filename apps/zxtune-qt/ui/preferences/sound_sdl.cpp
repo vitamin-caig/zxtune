@@ -14,11 +14,16 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "sound_sdl.ui.h"
 
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 #include "sound/backends_parameters.h"
 
-#include "contract.h"
+#include "string_view.h"
 
-#include <utility>
+#include <QtCore/QEvent>
+#include <QtWidgets/QGroupBox>
+
+#include <memory>
 
 namespace
 {

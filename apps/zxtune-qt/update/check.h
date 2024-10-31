@@ -11,8 +11,8 @@
 #pragma once
 
 #include <QtCore/QObject>
+#include <QtCore/QString>
 
-class Error;
 class QWidget;
 
 namespace Update

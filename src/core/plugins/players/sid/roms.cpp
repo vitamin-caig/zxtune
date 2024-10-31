@@ -13,15 +13,15 @@
 namespace Module::Sid
 {
   const uint8_t KERNAL[] = {
-#include "core/plugins/players/sid/kernal.inc"
+#include "core/plugins/players/sid/kernal.inc"  // IWYU pragma: keep
   };
 
   const uint8_t BASIC[] = {
-#include "core/plugins/players/sid/basic.inc"
+#include "core/plugins/players/sid/basic.inc"  // IWYU pragma: keep
   };
 
   const uint8_t CHARGEN[] = {
-#include "core/plugins/players/sid/chargen.inc"
+#include "core/plugins/players/sid/chargen.inc"  // IWYU pragma: keep
   };
 
   const uint8_t* GetKernalROM()

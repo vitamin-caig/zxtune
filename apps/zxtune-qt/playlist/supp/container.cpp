@@ -10,21 +10,33 @@
 
 #include "apps/zxtune-qt/playlist/supp/container.h"
 
+#include "apps/zxtune-qt/playlist/io/container.h"
 #include "apps/zxtune-qt/playlist/io/export.h"
 #include "apps/zxtune-qt/playlist/io/import.h"
 #include "apps/zxtune-qt/playlist/supp/controller.h"
-#include "apps/zxtune-qt/playlist/supp/scanner.h"
+#include "apps/zxtune-qt/playlist/supp/data.h"
+#include "apps/zxtune-qt/playlist/supp/data_provider.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 #include "apps/zxtune-qt/ui/tools/errordialog.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 #include "platform/version/api.h"
+#include "tools/iterators.h"
 
 #include "error.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
 
 #include <utility>
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
 
 namespace
 {

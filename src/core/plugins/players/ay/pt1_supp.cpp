@@ -13,6 +13,10 @@
 #include "formats/chiptune/aym/protracker1.h"
 #include "module/players/aym/protracker1.h"
 
+#include "core/plugin_attrs.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterPT1Support(PlayerPluginsRegistrator& registrator)

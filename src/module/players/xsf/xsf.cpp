@@ -10,16 +10,25 @@
 
 #include "module/players/xsf/xsf.h"
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/emulation/portablesoundformat.h"
+#include "module/players/xsf/xsf_file.h"
+#include "module/players/xsf/xsf_metainformation.h"
 
-#include "strings/casing.h"
+#include "strings/array.h"
 #include "strings/conversion.h"
 #include "strings/join.h"
 #include "strings/split.h"
+#include "time/duration.h"
 
 #include "contract.h"
-#include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
+
+#include <algorithm>
+#include <iterator>
+#include <memory>
+#include <utility>
 
 namespace Module::XSF
 {

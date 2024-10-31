@@ -13,8 +13,10 @@
 #include "binary/format/expression.h"
 
 #include "contract.h"
+#include "types.h"
 
 #include <array>
+#include <span>
 #include <vector>
 
 namespace Binary::FormatDSL

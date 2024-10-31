@@ -15,10 +15,7 @@
 
 #include "string_view.h"
 
-namespace Parameters
-{
-  class Accessor;
-}
+#include <cstddef>
 
 namespace IO
 {

@@ -21,29 +21,42 @@
 #include "module/players/streaming.h"
 
 #include "binary/compression/zlib_stream.h"
-#include "binary/format_factories.h"
+#include "binary/container_factories.h"
+#include "binary/data_builder.h"
+#include "binary/input_stream.h"
+#include "binary/view.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
-#include "math/numeric.h"
-#include "module/attributes.h"
+#include "formats/multitrack.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "sound/chunk.h"
 #include "strings/optimize.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "byteorder.h"
-#include "contract.h"
 #include "error.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "pointers.h"
 
 #include "3rdparty/gme/gme/Gbs_Emu.h"
+#include "3rdparty/gme/gme/Gme_File.h"
 #include "3rdparty/gme/gme/Gym_Emu.h"
 #include "3rdparty/gme/gme/Hes_Emu.h"
 #include "3rdparty/gme/gme/Kss_Emu.h"
+#include "3rdparty/gme/gme/Music_Emu.h"
 #include "3rdparty/gme/gme/Nsf_Emu.h"
 #include "3rdparty/gme/gme/Nsfe_Emu.h"
-#include "3rdparty/gme/gme/Sap_Emu.h"
-#include "3rdparty/gme/gme/Vgm_Emu.h"
+#include "3rdparty/gme/gme/blargg_common.h"
+#include "3rdparty/gme/gme/gme.h"
 
-#include <map>
+#include <exception>
+#include <memory>
+#include <stdexcept>
+#include <utility>
 
 namespace Module::GME
 {

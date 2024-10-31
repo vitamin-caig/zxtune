@@ -12,14 +12,17 @@
 
 #include "apps/zxtune-qt/playlist/supp/model.h"
 
-#include <QtWidgets/QItemDelegate>
-#include <QtWidgets/QTableView>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtWidgets/QItemDelegate>  // IWYU pragma: export
+#include <QtWidgets/QTableView>     // IWYU pragma: export
+
+class QWidget;
 
 namespace Playlist
 {
   namespace Item
   {
-    class Data;
     class StateCallback;
   }  // namespace Item
 

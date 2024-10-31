@@ -21,6 +21,9 @@
 #include "sound.ui.h"
 
 #include "math/numeric.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 #include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
 #include "sound/service.h"
@@ -28,8 +31,25 @@
 #include "strings/map.h"
 
 #include "contract.h"
+#include "types.h"
 
+#include <QtCore/QByteArrayData>
+#include <QtCore/QEvent>
+#include <QtCore/QNonConstOverload>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QListWidgetItem>
+#include <QtWidgets/QToolButton>
+
+#include <algorithm>
+#include <cassert>
+#include <iterator>
+#include <memory>
 #include <utility>
+#include <vector>
 
 namespace
 {

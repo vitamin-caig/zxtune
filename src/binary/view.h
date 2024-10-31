@@ -13,6 +13,7 @@
 #include "pointers.h"
 #include "types.h"
 
+#include <algorithm>
 #include <type_traits>
 #include <vector>
 

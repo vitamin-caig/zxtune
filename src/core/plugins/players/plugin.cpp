@@ -12,12 +12,21 @@
 
 #include "module/players/properties_helper.h"
 
+#include "analysis/path.h"
+#include "analysis/result.h"
+#include "binary/format.h"
+#include "core/data_location.h"
 #include "core/module_detect.h"
 #include "core/plugin_attrs.h"
 #include "module/attributes.h"
+#include "module/holder.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
+#include "string_type.h"
+#include "string_view.h"
 
+#include <memory>
 #include <utility>
 
 namespace ZXTune

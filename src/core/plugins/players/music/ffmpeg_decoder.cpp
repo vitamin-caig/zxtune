@@ -11,16 +11,26 @@
 #include "core/plugins/players/music/ffmpeg_decoder.h"
 
 #include "math/numeric.h"
+#include "sound/chunk.h"
 
 #include "contract.h"
 #include "make_ptr.h"
-#include "pointers.h"
 
+#include <errno.h>
+#include <stdio.h>
+
+#include <algorithm>
 #include <array>
+#include <cstring>
 
 extern "C"
 {
 #include "3rdparty/ffmpeg/libavcodec/avcodec.h"
+#include "3rdparty/ffmpeg/libavcodec/codec.h"
+#include "3rdparty/ffmpeg/libavcodec/packet.h"
+#include "3rdparty/ffmpeg/libavutil/error.h"
+#include "3rdparty/ffmpeg/libavutil/frame.h"
+#include "3rdparty/ffmpeg/libavutil/samplefmt.h"
 }
 
 extern AVCodec ff_atrac3_decoder;

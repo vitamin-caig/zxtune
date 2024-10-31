@@ -10,6 +10,8 @@
 
 #include "binary/crc.h"
 
+#include "types.h"
+
 namespace Binary
 {
   // clang-format off

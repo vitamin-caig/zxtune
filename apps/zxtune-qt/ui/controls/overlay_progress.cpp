@@ -12,12 +12,23 @@
 
 #include "time/elapsed.h"
 
+#include <QtCore/QEvent>
+#include <QtCore/QFlags>
+#include <QtCore/QLineF>
+#include <QtCore/QPoint>
+#include <QtCore/QPointF>
+#include <QtCore/QSize>
+#include <QtCore/Qt>
+#include <QtGui/QGradientStops>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QPalette>
+#include <QtWidgets/QSizePolicy>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
-#include <utility>
+#include <cstddef>
 
 namespace
 {

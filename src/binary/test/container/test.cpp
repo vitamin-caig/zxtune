@@ -8,13 +8,18 @@
  *
  **/
 
+#include "binary/container.h"
 #include "binary/container_factories.h"
+#include "binary/view.h"
 
 #include "contract.h"
+
+#include <stdint.h>
 
 #include <array>
 #include <cstring>
 #include <iostream>
+#include <memory>
 
 namespace
 {

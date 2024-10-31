@@ -12,6 +12,8 @@
 
 #include "debug/log.h"
 
+#include "string_view.h"
+
 #include <dlfcn.h>
 #include <sys/stat.h>
 #include <unistd.h>

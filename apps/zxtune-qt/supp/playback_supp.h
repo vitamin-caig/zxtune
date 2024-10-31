@@ -12,9 +12,14 @@
 
 #include "apps/zxtune-qt/playlist/supp/data.h"
 
+#include "parameters/accessor.h"
 #include "sound/backend.h"
+#include "time/instant.h"
 
-#include <QtCore/QThread>
+#include <QtCore/QObject>  // IWYU pragma: export
+#include <QtCore/QString>
+
+class Error;
 
 class PlaybackSupport : public QObject
 {

@@ -11,13 +11,17 @@
 #pragma once
 
 #include "module/holder.h"
+#include "parameters/accessor.h"
 #include "sound/backend.h"
 
+#include <memory>
 #include <span>
 #include <vector>
 
 namespace Sound
 {
+  class BackendId;
+
   class Service
   {
   public:

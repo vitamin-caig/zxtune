@@ -10,6 +10,7 @@
 
 #include "devices/beeper.h"
 
+#include "devices/details/clock_source.h"
 #include "devices/details/renderers.h"
 
 #include "parameters/tracking_helper.h"

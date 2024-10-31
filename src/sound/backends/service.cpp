@@ -16,6 +16,8 @@
 #include "sound/backends/storage.h"
 
 #include "debug/log.h"
+#include "l10n/api.h"
+#include "parameters/identifier.h"
 #include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
 #include "strings/array.h"
@@ -24,6 +26,11 @@
 
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "types.h"
+
+#include <algorithm>
+#include <iterator>
+#include <utility>
 
 namespace Sound
 {

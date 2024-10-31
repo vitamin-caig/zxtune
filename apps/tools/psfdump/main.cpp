@@ -8,6 +8,7 @@
  *
  **/
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/emulation/gameboyadvancesoundformat.h"
 #include "formats/chiptune/emulation/nintendodssoundformat.h"
 #include "formats/chiptune/emulation/playstation2soundformat.h"
@@ -17,16 +18,25 @@
 
 #include "binary/compression/zlib_container.h"
 #include "binary/data_builder.h"
+#include "binary/view.h"
+#include "formats/chiptune.h"
+#include "strings/array.h"
 #include "strings/format.h"
+#include "time/duration.h"
 #include "time/serialize.h"
 
 #include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
 
-#include <fstream>
+#include <algorithm>
+#include <exception>
+#include <fstream>  // IWYU pragma: keep
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
+#include <utility>
 
 namespace
 {

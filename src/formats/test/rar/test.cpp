@@ -8,7 +8,19 @@
  *
  **/
 
+#include "formats/archived/decoders.h"
+#include "formats/packed/decoders.h"
 #include "formats/test/utils.h"
+
+#include "binary/container.h"
+
+#include <algorithm>
+#include <exception>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace
 {

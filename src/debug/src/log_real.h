@@ -16,7 +16,6 @@
 #include "types.h"
 
 #include <cassert>
-#include <string>
 #include <utility>
 
 namespace Debug

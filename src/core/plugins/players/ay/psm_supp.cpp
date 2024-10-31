@@ -13,6 +13,10 @@
 #include "formats/chiptune/aym/prosoundmaker.h"
 #include "module/players/aym/prosoundmaker.h"
 
+#include "core/plugin_attrs.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterPSMSupport(PlayerPluginsRegistrator& registrator)

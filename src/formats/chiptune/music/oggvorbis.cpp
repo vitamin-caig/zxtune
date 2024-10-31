@@ -10,21 +10,30 @@
 
 #include "formats/chiptune/music/oggvorbis.h"
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/music/tags_vorbis.h"
 
 #include "binary/data_builder.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
-#include "math/bitops.h"
 
 #include "byteorder.h"
+#include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
 
+#include <algorithm>
 #include <array>
-#include <cctype>
+#include <cstring>
+#include <exception>
+#include <iterator>
+#include <memory>
 #include <numeric>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace Formats::Chiptune
 {

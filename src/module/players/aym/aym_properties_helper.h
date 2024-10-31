@@ -10,9 +10,15 @@
 
 #pragma once
 
-#include "module/players/properties_helper.h"
+#include "module/players/properties_helper.h"  // IWYU pragma: export
 
 #include "string_view.h"
+#include "types.h"
+
+namespace Parameters
+{
+  class Modifier;
+}  // namespace Parameters
 
 namespace Module::AYM
 {

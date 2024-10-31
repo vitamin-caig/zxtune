@@ -13,6 +13,8 @@
 #include "module/renderer.h"
 #include "parameters/accessor.h"
 
+#include "types.h"
+
 namespace Module
 {
   class Holder;

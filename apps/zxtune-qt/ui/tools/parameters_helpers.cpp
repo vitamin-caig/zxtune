@@ -12,10 +12,13 @@
 
 #include "debug/log.h"
 #include "math/numeric.h"
+#include "parameters/container.h"
 
 #include "contract.h"
 #include "string_view.h"
 
+#include <QtCore/QByteArrayData>
+#include <QtCore/QNonConstOverload>
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QComboBox>
@@ -24,6 +27,8 @@
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QSpinBox>
 
+#include <optional>
+#include <string>
 #include <utility>
 
 namespace

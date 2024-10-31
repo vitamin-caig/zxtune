@@ -16,6 +16,7 @@
 #include "types.h"
 
 #include <memory>
+#include <vector>
 
 namespace Devices::Beeper
 {

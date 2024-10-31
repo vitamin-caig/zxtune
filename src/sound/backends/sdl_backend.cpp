@@ -17,17 +17,44 @@
 #include "sound/backends/storage.h"
 
 #include "debug/log.h"
+#include "l10n/api.h"
 #include "math/numeric.h"
+#include "module/holder.h"
+#include "parameters/accessor.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
+#include "sound/backend.h"
+#include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
+#include "sound/chunk.h"
 #include "sound/render_params.h"
-#include "sound/sound_parameters.h"
+#include "tools/iterators.h"
 
-#include "byteorder.h"
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "pointers.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
+#include <SDL/SDL.h>
+#include <SDL/SDL_audio.h>
+#include <SDL/SDL_stdinc.h>
+#include <SDL/SDL_version.h>
+
+#include <algorithm>
+#include <cassert>
 #include <condition_variable>
+#include <cstring>
+#include <memory>
+#include <mutex>
 #include <utility>
+#include <vector>
+
+namespace Module
+{
+  class State;
+}  // namespace Module
 
 namespace Sound::Sdl
 {
@@ -49,7 +76,7 @@ namespace Sound::Sdl
     {
       using namespace Parameters::ZXTune::Sound::Backends::Sdl;
       const auto val = Parameters::GetInteger(Accessor, BUFFERS, BUFFERS_DEFAULT);
-      if (!Math::InRange(val, BUFFERS_MIN, BUFFERS_MAX))
+      if (!Math::InRange<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
                                  translate("SDL backend error: buffers count ({0}) is out of range ({1}..{2})."), val,

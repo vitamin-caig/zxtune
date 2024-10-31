@@ -11,12 +11,17 @@
 #include "module/players/properties_helper.h"
 
 #include "binary/crc.h"
+#include "formats/chiptune.h"
 #include "module/attributes.h"
+#include "parameters/identifier.h"
+#include "parameters/modifier.h"
 #include "sound/sound_parameters.h"
 #include "strings/join.h"
 #include "strings/trim.h"
 
 #include "string_view.h"
+
+#include <cassert>
 
 namespace Module
 {

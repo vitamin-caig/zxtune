@@ -14,13 +14,24 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "sound_oss.ui.h"
 
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 #include "sound/backends_parameters.h"
 
 #include "contract.h"
+#include "string_view.h"
 
+#include <QtCore/QByteArrayData>
+#include <QtCore/QEvent>
+#include <QtCore/QLatin1String>
+#include <QtCore/QStringList>
+#include <QtWidgets/QDialog>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QToolButton>
 
-#include <utility>
+#include <memory>
 
 namespace
 {

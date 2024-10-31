@@ -14,6 +14,8 @@
 
 #include "binary/view.h"
 
+#include <stdint.h>
+
 #include <memory>
 
 namespace Module::GSF

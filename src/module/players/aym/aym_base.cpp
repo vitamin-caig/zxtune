@@ -10,14 +10,25 @@
 
 #include "module/players/aym/aym_base.h"
 
+#include "module/players/aym/aym_parameters.h"
+#include "module/players/stream_model.h"
 #include "module/players/streaming.h"
 #include "module/players/tracking.h"
 
 #include "debug/log.h"
-#include "math/numeric.h"
+#include "devices/aym.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "sound/chunk.h"
+#include "sound/matrix_mixer.h"
 #include "sound/mixer_factory.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "make_ptr.h"
+#include "string_view.h"
+
+#include <utility>
 
 namespace Module
 {

@@ -10,8 +10,14 @@
 
 #include "module/players/tfm/tfm_base.h"
 
+#include "devices/fm.h"
+#include "module/state.h"
+#include "sound/chunk.h"
+#include "time/instant.h"
+
 #include "make_ptr.h"
 
+#include <memory>
 #include <utility>
 
 namespace Module

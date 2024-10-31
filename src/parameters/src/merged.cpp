@@ -10,14 +10,20 @@
 
 #include "parameters/src/names_set.h"
 
+#include "binary/data.h"
+#include "binary/view.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 #include "parameters/merged_accessor.h"
 #include "parameters/merged_container.h"
-#include "parameters/visitor.h"
+#include "parameters/types.h"
 
 #include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
 
-#include <set>
+#include <memory>
+#include <optional>
 #include <utility>
 
 namespace Parameters

@@ -13,14 +13,22 @@
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/conversion/backend_settings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
-#include "apps/zxtune-qt/ui/utils.h"
 #include "ogg_settings.ui.h"
 
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 #include "sound/backends_parameters.h"
 
 #include "contract.h"
+#include "string_view.h"
 
-#include <utility>
+#include <QtCore/QString>
+#include <QtCore/QtCore>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QSlider>
+
+#include <memory>
 
 namespace
 {

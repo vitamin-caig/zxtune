@@ -14,12 +14,21 @@
 #include "apps/zxtune-qt/ui/utils.h"
 
 #include "debug/log.h"
+#include "parameters/accessor.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 #include "platform/version/api.h"
 
 #include "contract.h"
+#include "string_view.h"
 
+#include <QtCore/QByteArray>
 #include <QtCore/QDataStream>
 #include <QtCore/QDir>
+#include <QtCore/QIODevice>
+#include <QtCore/QList>
+#include <QtCore/QtCore>
+#include <QtNetwork/QAbstractSocket>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
 

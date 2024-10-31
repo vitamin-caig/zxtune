@@ -8,18 +8,22 @@
  *
  **/
 
+#include "core/plugins/archive_plugin.h"
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/archives/plugins_list.h"
+#include "core/plugins/player_plugin.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugins_list.h"
-#include "core/src/l10n.h"
 
 #include "debug/log.h"
 #include "time/timer.h"
 
-#include "error_tools.h"
-#include "make_ptr.h"
-#include "pointers.h"
+#include "string_view.h"
+
+#include <algorithm>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace ZXTune
 {

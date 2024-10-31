@@ -11,10 +11,19 @@
 #pragma once
 
 #include "apps/zxtune-qt/playlist/supp/model.h"
-#include "apps/zxtune-qt/playlist/supp/operations_search.h"
-#include "apps/zxtune-qt/playlist/ui/search.h"
+#include "apps/zxtune-qt/playlist/supp/operations.h"
 
-#include <QtWidgets/QDialog>
+#include <QtCore/QString>
+#include <QtWidgets/QDialog>  // IWYU pragma: export
+
+#include <memory>
+
+class QWidget;
+
+namespace Playlist::Item::Search
+{
+  struct Data;
+}  // namespace Playlist::Item::Search
 
 namespace Playlist::UI
 {

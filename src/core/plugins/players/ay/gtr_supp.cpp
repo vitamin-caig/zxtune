@@ -13,6 +13,10 @@
 #include "formats/chiptune/aym/globaltracker.h"
 #include "module/players/aym/globaltracker.h"
 
+#include "core/plugin_attrs.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterGTRSupport(PlayerPluginsRegistrator& registrator)

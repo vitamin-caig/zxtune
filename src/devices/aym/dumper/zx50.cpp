@@ -8,11 +8,18 @@
  *
  **/
 
+#include "devices/aym/dumper.h"
 #include "devices/aym/dumper/dump_builder.h"
 
+#include "binary/data.h"
 #include "binary/data_builder.h"
+#include "binary/view.h"
+#include "devices/aym.h"
 
 #include "make_ptr.h"
+#include "types.h"
+
+#include <utility>
 
 namespace Devices::AYM
 {

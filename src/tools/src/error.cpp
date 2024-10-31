@@ -8,8 +8,14 @@
  *
  **/
 
-#include "error_tools.h"
+#include "error.h"
+
+#include "strings/format.h"
+
+#include "string_type.h"
 #include "string_view.h"
+
+#include <memory>
 
 namespace
 {

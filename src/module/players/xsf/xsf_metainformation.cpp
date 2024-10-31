@@ -12,8 +12,12 @@
 
 #include "module/players/properties_helper.h"
 
+#include "parameters/identifier.h"
 #include "parameters/modifier.h"
 #include "sound/sound_parameters.h"
+
+#include <algorithm>
+#include <iterator>
 
 namespace Module::XSF
 {

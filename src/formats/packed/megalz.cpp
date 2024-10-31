@@ -11,14 +11,19 @@
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
 
+#include "binary/data_builder.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "formats/packed.h"
 
-#include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
 
-#include <numeric>
+#include <exception>
+#include <memory>
 
 namespace Formats::Packed
 {

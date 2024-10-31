@@ -11,18 +11,34 @@
 #include "module/players/aym/ascsoundmaster.h"
 
 #include "formats/chiptune/aym/ascsoundmaster.h"
-#include "module/players/aym/aym_base.h"
+#include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 #include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/platforms.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
+#include "module/players/stream_model.h"
 
+#include "core/freq_tables.h"
 #include "math/numeric.h"
+#include "parameters/container.h"
+#include "tools/iterators.h"
 
 #include "make_ptr.h"
+#include "types.h"
 
+#include <algorithm>
 #include <array>
+#include <cassert>
+#include <memory>
+#include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::ASCSoundMaster
 {

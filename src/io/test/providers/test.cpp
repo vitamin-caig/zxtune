@@ -8,11 +8,17 @@
  *
  **/
 
+#include "io/providers/enumerator.h"
+#include "io/providers/gates/curl_api.h"
 #include "io/providers/providers_factories.h"
 
-#include <algorithm>
-#include <iomanip>
+#include "io/identifier.h"
+
+#include "string_type.h"
+#include "string_view.h"
+
 #include <iostream>
+#include <memory>
 
 namespace
 {

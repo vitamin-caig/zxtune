@@ -13,18 +13,28 @@
 #include "module/players/streaming.h"
 #include "parameters/src/names_set.h"
 
-#include "module/attributes.h"
+#include "binary/data.h"
+#include "binary/view.h"
+#include "devices/aym.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/identifier.h"
 #include "parameters/merged_accessor.h"
+#include "parameters/types.h"
 #include "parameters/visitor.h"
+#include "sound/chunk.h"
+#include "sound/matrix_mixer.h"
 #include "sound/mixer_factory.h"
-#include "tools/iterators.h"
+#include "time/instant.h"
 
-#include "error.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
 
+#include <functional>
 #include <map>
-#include <set>
+#include <optional>
+#include <utility>
 
 namespace Module::TurboSound
 {

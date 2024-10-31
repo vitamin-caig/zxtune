@@ -10,10 +10,15 @@
 
 #include "parameters/tracking.h"
 
+#include "binary/view.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
+
 #include "make_ptr.h"
 #include "pointers.h"
 #include "string_view.h"
 
+#include <memory>
 #include <utility>
 
 namespace Parameters

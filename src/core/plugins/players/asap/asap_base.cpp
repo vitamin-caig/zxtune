@@ -19,21 +19,34 @@
 #include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
 
-#include "binary/format_factories.h"
+#include "binary/view.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
-#include "math/numeric.h"
-#include "module/attributes.h"
+#include "formats/multitrack.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "sound/chunk.h"
+#include "sound/receiver.h"
 #include "sound/resampler.h"
+#include "strings/array.h"
 #include "strings/optimize.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "byteorder.h"
 #include "contract.h"
 #include "error.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "pointers.h"
 
 #include "3rdparty/asap/asap.h"
+
+#include <algorithm>
+#include <exception>
+#include <memory>
+#include <utility>
 
 namespace Module::ASAP
 {

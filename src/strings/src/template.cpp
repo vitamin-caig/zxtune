@@ -17,7 +17,8 @@
 #include "string_view.h"
 
 #include <algorithm>
-#include <cassert>
+#include <cstddef>
+#include <utility>
 
 namespace Strings
 {

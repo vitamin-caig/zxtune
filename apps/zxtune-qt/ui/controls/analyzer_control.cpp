@@ -10,19 +10,31 @@
 
 #include "apps/zxtune-qt/ui/controls/analyzer_control.h"
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/supp/playback_supp.h"
 
+#include "math/fixedpoint.h"
 #include "sound/analyzer.h"
+#include "sound/backend.h"
 
 #include "contract.h"
+#include "types.h"
 
+#include <QtCore/QByteArrayData>
 #include <QtCore/QEvent>
+#include <QtCore/QLatin1String>
 #include <QtCore/QTimer>
-#include <QtGui/QPaintEngine>
+#include <QtGui/QGradientStops>
+#include <QtGui/QPainter>
+#include <QtGui/QPalette>
+#include <QtWidgets/QSizePolicy>
 
 #include <algorithm>
 #include <array>
-#include <limits>
+#include <memory>
+#include <utility>
+
+class QPaintEvent;
 
 namespace
 {

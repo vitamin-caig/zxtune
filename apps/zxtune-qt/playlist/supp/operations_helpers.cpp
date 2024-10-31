@@ -10,9 +10,15 @@
 
 #include "apps/zxtune-qt/playlist/supp/operations_helpers.h"
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 
+#include "tools/progress_callback.h"
 #include "tools/progress_callback_helpers.h"
+
+#include "types.h"
+
+#include <memory>
 
 namespace
 {

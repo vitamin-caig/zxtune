@@ -8,17 +8,26 @@
  *
  **/
 
+#include "formats/chiptune/aym/protracker3.h"
 #include "formats/chiptune/aym/protracker3_detail.h"
 #include "formats/chiptune/metainfo.h"
 #include "formats/packed/container.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "formats/chiptune.h"
+#include "formats/packed.h"
 
 #include "byteorder.h"
 #include "make_ptr.h"
+#include "string_view.h"
 
+#include <algorithm>
 #include <array>
+#include <memory>
+#include <utility>
 
 namespace Formats::Packed
 {

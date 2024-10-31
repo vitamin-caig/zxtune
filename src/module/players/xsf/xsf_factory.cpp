@@ -13,14 +13,23 @@
 #include "module/players/duration.h"
 #include "module/players/properties_helper.h"
 #include "module/players/xsf/xsf.h"
+#include "module/players/xsf/xsf_metainformation.h"
 
 #include "debug/log.h"
+#include "formats/chiptune.h"
 #include "module/additional_files.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "strings/array.h"
+#include "time/duration.h"
 
 #include "contract.h"
 #include "error_tools.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "types.h"
+
+#include <exception>
+#include <utility>
 
 namespace Module::XSF
 {

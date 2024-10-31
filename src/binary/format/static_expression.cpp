@@ -10,6 +10,8 @@
 
 #include "binary/format/static_expression.h"
 
+#include <algorithm>
+
 namespace Binary::FormatDSL
 {
   // result[x] = backward offset of suffix size x

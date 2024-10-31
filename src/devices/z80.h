@@ -11,10 +11,12 @@
 #pragma once
 
 #include "binary/view.h"
+#include "time/instant.h"
 #include "time/oscillator.h"
 
 #include "types.h"
 
+#include <algorithm>
 #include <array>
 #include <memory>
 

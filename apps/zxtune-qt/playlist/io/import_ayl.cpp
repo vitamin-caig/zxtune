@@ -8,36 +8,55 @@
  *
  **/
 
+#include "apps/zxtune-qt/playlist/io/container.h"
 #include "apps/zxtune-qt/playlist/io/container_impl.h"
 #include "apps/zxtune-qt/playlist/io/import.h"
 #include "apps/zxtune-qt/playlist/io/tags/ayl.h"
+#include "apps/zxtune-qt/playlist/supp/data_provider.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
 #include "core/plugins/archives/raw_supp.h"
 #include "devices/aym/chip.h"
 #include "formats/archived/multitrack/filename.h"
 
+#include "binary/view.h"
 #include "core/core_parameters.h"
 #include "debug/log.h"
 #include "io/api.h"
+#include "io/identifier.h"
 #include "module/attributes.h"
+#include "parameters/container.h"
 #include "parameters/convert.h"
+#include "parameters/identifier.h"
 #include "parameters/serialize.h"
-#include "sound/sound_parameters.h"
+#include "parameters/types.h"
 #include "strings/casing.h"
+#include "strings/map.h"
+#include "tools/iterators.h"
 #include "tools/progress_callback_helpers.h"
 
 #include "error.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "types.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
+#include <QtCore/QIODevice>
 #include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
+#include <QtCore/Qt>
 
+#include <algorithm>
+#include <cassert>
 #include <cctype>
+#include <memory>
+#include <utility>
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
 
 namespace
 {

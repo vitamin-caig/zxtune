@@ -11,9 +11,15 @@
 #include "module/players/dac/dac_simple.h"
 
 #include "devices/dac/sample_factories.h"
+#include "formats/chiptune/builder_pattern.h"
+#include "module/players/dac/dac_base.h"
+#include "module/players/dac/dac_properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 #include "module/players/tracking.h"
+
+#include "binary/view.h"
+#include "devices/dac.h"
 
 #include "make_ptr.h"
 

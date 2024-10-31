@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "types.h"  // IWYU pragma: export
 
 #include <bit>
 #include <cstring>

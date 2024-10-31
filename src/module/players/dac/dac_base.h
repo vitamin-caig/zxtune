@@ -13,7 +13,13 @@
 #include "module/players/dac/dac_chiptune.h"
 #include "module/players/tracking.h"
 
+#include "devices/dac.h"
 #include "module/renderer.h"
+#include "time/duration.h"
+
+#include "types.h"
+
+#include <memory>
 
 namespace Module::DAC
 {

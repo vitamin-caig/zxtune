@@ -15,9 +15,13 @@
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
 
+#include <algorithm>
 #include <deque>
 #include <list>
+#include <utility>
 
 namespace Analysis
 {

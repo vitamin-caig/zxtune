@@ -8,12 +8,21 @@
  *
  **/
 
+#include "binary/format/expression.h"
 #include "binary/format/static_expression.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 
 #include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
+
+#include <algorithm>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace Binary
 {

@@ -13,6 +13,8 @@
 #include "binary/container.h"
 #include "binary/view.h"
 
+#include <cstddef>
+
 namespace Binary::Compression::Zlib
 {
   Container::Ptr CreateDeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint = 0);

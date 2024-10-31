@@ -10,7 +10,9 @@
 
 #include "binary/container_base.h"
 #include "binary/container_factories.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "formats/archived.h"
 #include "strings/encoding.h"
@@ -19,14 +21,19 @@
 #include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
 
 #include "3rdparty/lzma/C/7z.h"
 #include "3rdparty/lzma/C/7zCrc.h"
+#include "3rdparty/lzma/C/7zTypes.h"
 
+#include <stdlib.h>
+
+#include <algorithm>
 #include <cstring>
-#include <list>
-#include <numeric>
+#include <exception>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace Formats::Archived
 {

@@ -12,9 +12,16 @@
 
 #include "apps/zxtune-qt/playlist/supp/data.h"
 
-#include "tools/progress_callback.h"
+#include "parameters/container.h"
 
 #include "string_view.h"
+
+#include <memory>
+
+namespace Log
+{
+  class ProgressCallback;
+}  // namespace Log
 
 namespace Playlist::Item
 {

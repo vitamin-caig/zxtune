@@ -10,24 +10,44 @@
 
 #include "module/players/aym/ayemul.h"
 
+#include "devices/aym/chip.h"
 #include "formats/chiptune/emulation/ay.h"
 #include "module/players/aym/aym_base.h"
-#include "module/players/aym/aym_properties_helper.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/duration.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
 
+#include "binary/data.h"
+#include "binary/view.h"
 #include "core/core_parameters.h"
 #include "debug/log.h"
+#include "devices/aym.h"
 #include "devices/beeper.h"
 #include "devices/z80.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
+#include "sound/chunk.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
+#include "types.h"
 
 #include <algorithm>
+#include <memory>
 #include <utility>
+#include <vector>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::AYEMUL
 {

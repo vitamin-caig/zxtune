@@ -9,9 +9,9 @@
  **/
 
 #include "formats/packed/lha_supp.h"
-#include "formats/packed/pack_utils.h"
 
 #include "binary/container_base.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
@@ -21,13 +21,16 @@
 
 #include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "types.h"
 
-#include "3rdparty/lhasa/lib/public/lhasa.h"
+#include "3rdparty/lhasa/lib/public/lha_file_header.h"
+#include "3rdparty/lhasa/lib/public/lha_input_stream.h"
+#include "3rdparty/lhasa/lib/public/lha_reader.h"
 
 #include <cstring>
 #include <list>
-#include <numeric>
+#include <memory>
+#include <utility>
 
 namespace Formats::Archived
 {

@@ -12,15 +12,16 @@
 
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
-#include "apps/zxtune-qt/ui/utils.h"
 #include "sid.ui.h"
 
 #include "core/core_parameters.h"
-#include "sound/sound_parameters.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 
-#include "contract.h"
+#include <QtCore/QEvent>
+#include <QtWidgets/QCheckBox>
 
-#include <utility>
+#include <memory>
 
 namespace
 {

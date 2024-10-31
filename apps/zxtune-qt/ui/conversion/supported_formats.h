@@ -14,7 +14,9 @@
 
 #include "string_view.h"
 
-#include <QtWidgets/QWidget>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtWidgets/QWidget>  // IWYU pragma: export
 
 namespace UI
 {

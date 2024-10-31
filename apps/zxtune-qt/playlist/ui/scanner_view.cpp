@@ -16,6 +16,14 @@
 #include "debug/log.h"
 
 #include "contract.h"
+#include "string_view.h"
+
+#include <QtCore/QByteArrayData>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QProgressBar>
+#include <QtWidgets/QToolButton>
+
+#include <memory>
 
 namespace
 {

@@ -16,11 +16,22 @@
 #include "aym.ui.h"
 
 #include "core/core_parameters.h"
-#include "sound/sound_parameters.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 
 #include "contract.h"
 
-#include <utility>
+#include <QtCore/QByteArrayData>
+#include <QtCore/QEvent>
+#include <QtCore/QNonConstOverload>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+
+#include <stdint.h>
+
+#include <algorithm>
+#include <iterator>
+#include <memory>
 
 namespace
 {

@@ -10,7 +10,13 @@
 
 #include "module/players/saa/saa_base.h"
 
+#include "module/players/saa/saa_parameters.h"
+
 #include "math/numeric.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "sound/chunk.h"
+#include "time/instant.h"
 
 #include "make_ptr.h"
 

@@ -11,8 +11,12 @@
 #include "formats/chiptune/aym/ascsoundmaster.h"
 #include "formats/packed/container.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "formats/chiptune.h"
+#include "formats/packed.h"
 
 #include "byteorder.h"
 #include "contract.h"
@@ -22,6 +26,8 @@
 
 #include <algorithm>
 #include <array>
+#include <memory>
+#include <utility>
 
 namespace Formats::Packed
 {

@@ -27,12 +27,14 @@ using jsize = std::size_t;
 #define JNI_OK 0
 #define JNI_ERR -1
 
-struct JavaVM
+struct _JavaVM
 {
   jint GetEnv(void**, jint) const;
 };
 
-struct JNIEnv
+typedef _JavaVM JavaVM;
+
+struct _JNIEnv
 {
   jint GetJavaVM(JavaVM**) const;
 
@@ -69,6 +71,8 @@ struct JNIEnv
   const char* GetStringUTFChars(jstring, jint) const;
   void ReleaseStringUTFChars(jstring, const char*) const;
 };
+
+typedef _JNIEnv JNIEnv;
 
 #define JNIEXPORT
 #define JNICALL

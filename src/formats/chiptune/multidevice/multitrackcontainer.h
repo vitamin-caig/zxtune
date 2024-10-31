@@ -15,6 +15,8 @@
 #include "string_view.h"
 #include "types.h"
 
+#include <memory>
+
 namespace Formats::Chiptune
 {
   namespace MultiTrackContainer

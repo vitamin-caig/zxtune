@@ -17,6 +17,11 @@
 
 #include <utility>
 
+namespace Devices::AYM
+{
+  class MultiVolumeTable;
+}  // namespace Devices::AYM
+
 namespace Devices::TurboSound
 {
   class PSG

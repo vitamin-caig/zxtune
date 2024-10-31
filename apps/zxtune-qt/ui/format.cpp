@@ -9,10 +9,15 @@
  **/
 
 #include "module/attributes.h"
+#include "parameters/accessor.h"
 #include "parameters/template.h"
+#include "strings/fields.h"
 #include "strings/template.h"
 
+#include "string_type.h"
 #include "string_view.h"
+
+#include <memory>
 
 String GetModuleTitle(StringView format, const Parameters::Accessor& props)
 {

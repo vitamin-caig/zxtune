@@ -14,6 +14,7 @@
 
 #include "make_ptr.h"
 
+#include <algorithm>
 #include <utility>
 
 namespace Module

@@ -10,10 +10,15 @@
 
 #include "sound/resampler.h"
 
+#include "sound/chunk.h"
 #include "tools/xrange.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+
+#include <algorithm>
+#include <memory>
+#include <utility>
 
 extern "C"
 {

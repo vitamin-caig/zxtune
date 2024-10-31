@@ -12,13 +12,24 @@
 
 #include "core/plugins/players/plugin.h"
 #include "module/players/dac/dac_base.h"
+#include "module/players/dac/dac_chiptune.h"
 #include "module/players/dac/dac_parameters.h"
+#include "module/players/factory.h"
+#include "module/players/tracking.h"
 
 #include "core/plugin_attrs.h"
+#include "devices/dac.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "sound/matrix_mixer.h"
 #include "sound/mixer_factory.h"
 
 #include "make_ptr.h"
+#include "types.h"
 
+#include <memory>
 #include <utility>
 
 namespace Module

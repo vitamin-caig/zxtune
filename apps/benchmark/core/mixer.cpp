@@ -11,6 +11,8 @@
 #include "mixer.h"
 
 #include "sound/matrix_mixer.h"
+#include "sound/mixer.h"
+#include "sound/multichannel_sample.h"
 #include "time/timer.h"
 
 namespace Benchmark::Mixer

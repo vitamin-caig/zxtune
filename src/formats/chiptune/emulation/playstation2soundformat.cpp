@@ -11,17 +11,24 @@
 #include "formats/chiptune/emulation/playstation2soundformat.h"
 
 #include "binary/compression/zlib_container.h"
-#include "binary/container_factories.h"
 #include "binary/data_builder.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
 
 #include "byteorder.h"
+#include "contract.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
 
+#include <algorithm>
 #include <map>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace Formats::Chiptune
 {

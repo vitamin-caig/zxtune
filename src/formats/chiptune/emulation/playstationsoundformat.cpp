@@ -10,12 +10,18 @@
 
 #include "formats/chiptune/emulation/playstationsoundformat.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
 
 #include "byteorder.h"
+#include "contract.h"
 #include "make_ptr.h"
+
+#include <cstring>
+#include <memory>
+#include <string>
 
 /*
 http://patpend.net/technical/psx/exeheader.txt

@@ -13,7 +13,7 @@
 #include "binary/dump.h"
 #include "formats/image.h"
 
-#include "types.h"
+#include <memory>
 
 namespace Formats::Image
 {

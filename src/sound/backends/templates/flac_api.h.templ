@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <FLAC/metadata.h>
-#include <FLAC/stream_encoder.h>
+#include <FLAC/metadata.h>        // IWYU pragma: export
+#include <FLAC/stream_encoder.h>  // IWYU pragma: export
 
 #include <memory>
 

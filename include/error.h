@@ -10,10 +10,12 @@
 
 #pragma once
 
-#include "source_location.h"
+#include "source_location.h"  // IWYU pragma: export
 #include "string_type.h"
+#include "types.h"
 
 #include <memory>
+#include <utility>
 
 //! @class Error
 //! @brief Error subsystem core class. Can be used as a return value or throw object

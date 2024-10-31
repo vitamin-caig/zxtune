@@ -13,7 +13,6 @@
 #include "formats/chiptune/emulation/playstationsoundformat.h"
 
 #include "contract.h"
-#include "make_ptr.h"
 #include "string_view.h"
 
 namespace Module::PSF

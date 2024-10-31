@@ -14,15 +14,21 @@
 #include "formats/packed/decoders.h"
 #include "io/impl/filesystem_path.h"
 
-#include "analysis/path.h"
-#include "analysis/result.h"
 #include "analysis/scanner.h"
 #include "async/data_receiver.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/output_stream.h"
 #include "debug/log.h"
+#include "formats/archived.h"
+#include "formats/chiptune.h"
+#include "formats/image.h"
+#include "formats/packed.h"
 #include "io/api.h"
+#include "io/identifier.h"
 #include "io/providers_parameters.h"
 #include "parameters/container.h"
+#include "parameters/identifier.h"
 #include "platform/application.h"
 #include "platform/version/api.h"
 #include "strings/array.h"
@@ -30,19 +36,23 @@
 #include "strings/format.h"
 #include "strings/join.h"
 #include "strings/template.h"
+#include "tools/data_streaming.h"
 #include "tools/progress_callback.h"
 
+#include "error.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "types.h"
 
+#include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
+#include <algorithm>
+#include <cassert>
+#include <exception>
+#include <filesystem>
 #include <iostream>
-#include <locale>
-#include <map>
 #include <memory>
-#include <numeric>
-#include <set>
+#include <utility>
 
 namespace
 {

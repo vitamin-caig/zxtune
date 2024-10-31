@@ -11,6 +11,8 @@
 #include "sound/backends/sdl.h"
 #include "sound/backends/storage.h"
 
+#include "sound/backend_attrs.h"
+
 namespace Sound
 {
   void RegisterSdlBackend(BackendsStorage& storage)

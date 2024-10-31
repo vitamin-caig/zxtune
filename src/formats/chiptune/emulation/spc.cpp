@@ -10,8 +10,10 @@
 
 #include "formats/chiptune/emulation/spc.h"
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/container.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
@@ -28,7 +30,13 @@
 #include "pointers.h"
 #include "string_view.h"
 
+#include <algorithm>
 #include <array>
+#include <cassert>
+#include <cstring>
+#include <exception>
+#include <memory>
+#include <utility>
 
 namespace Formats::Chiptune
 {

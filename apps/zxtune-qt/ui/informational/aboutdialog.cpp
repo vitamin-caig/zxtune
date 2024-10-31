@@ -16,10 +16,12 @@
 
 #include "platform/version/api.h"
 
+#include "string_type.h"
+
+#include <QtCore/QFunctionPointer>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDialog>
-
-#include <utility>
+#include <QtWidgets/QLabel>
 
 namespace
 {

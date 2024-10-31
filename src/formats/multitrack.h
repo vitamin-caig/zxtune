@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "formats/chiptune.h"
+#include "formats/chiptune.h"  // IWYU pragma: export
 
 #include "string_type.h"
 #include "types.h"

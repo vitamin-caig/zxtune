@@ -10,12 +10,26 @@
 
 #pragma once
 
-#include "formats/chiptune/digital/digital.h"
-#include "module/players/dac/dac_base.h"
-#include "module/players/dac/dac_properties_helper.h"
+#include "devices/dac/sample.h"
+#include "formats/chiptune/digital/digital.h"  // IWYU pragma: export
+#include "module/players/dac/dac_chiptune.h"
+#include "module/players/tracking.h"  // IWYU pragma: export
+
+#include "parameters/accessor.h"
+
+#include "types.h"
+
+#include <memory>
+
+namespace Devices::DAC
+{
+  class Chip;
+}  // namespace Devices::DAC
 
 namespace Module::DAC
 {
+  class PropertiesHelper;
+
   class SimpleModuleData : public TrackModel
   {
   public:

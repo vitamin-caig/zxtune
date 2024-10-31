@@ -13,6 +13,10 @@
 #include "formats/chiptune/aym/psg.h"
 #include "module/players/aym/psg.h"
 
+#include "core/plugin_attrs.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterPSGSupport(PlayerPluginsRegistrator& registrator)

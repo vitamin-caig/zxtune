@@ -10,9 +10,14 @@
 
 #include "module/players/dac/dac_base.h"
 
-#include "sound/multichannel_sample.h"
+#include "sound/chunk.h"
+#include "time/instant.h"
 
 #include "make_ptr.h"
+
+#include <algorithm>
+#include <utility>
+#include <vector>
 
 namespace Module
 {

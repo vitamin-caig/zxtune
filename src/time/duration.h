@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "time/base.h"
+#include "time/base.h"  // IWYU pragma: export
 
 namespace Time
 {

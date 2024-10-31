@@ -13,6 +13,10 @@
 #include "formats/chiptune/aym/sqtracker.h"
 #include "module/players/aym/sqtracker.h"
 
+#include "core/plugin_attrs.h"
+
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterSQTSupport(PlayerPluginsRegistrator& registrator)

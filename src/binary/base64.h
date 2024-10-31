@@ -15,7 +15,6 @@
 
 #include "string_type.h"
 #include "string_view.h"
-#include "types.h"
 
 namespace Binary::Base64
 {

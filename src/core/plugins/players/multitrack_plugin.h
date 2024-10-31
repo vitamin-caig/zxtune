@@ -16,6 +16,15 @@
 
 #include "formats/multitrack.h"
 
+#include "types.h"
+
+#include <memory>
+
+namespace ZXTune
+{
+  class PluginId;
+}  // namespace ZXTune
+
 namespace Module
 {
   class MultitrackFactory : public BaseFactory<Formats::Multitrack::Container>

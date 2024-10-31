@@ -1,15 +1,21 @@
 #include "formats/chiptune/multidevice/multitrackcontainer.h"
 
+#include "binary/container.h"
 #include "binary/data_builder.h"
+#include "binary/view.h"
 #include "module/attributes.h"
 #include "platform/version/api.h"
 #include "strings/format.h"
 
 #include "string_view.h"
+#include "types.h"
 
+#include <exception>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
+#include <utility>
 
 namespace Platform::Version
 {

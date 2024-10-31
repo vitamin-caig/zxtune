@@ -12,15 +12,23 @@
 #include "module/conversion/api.h"
 #include "module/conversion/parameters.h"
 #include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_chiptune.h"
 
-#include "binary/container_factories.h"
+#include "binary/data.h"
 #include "core/core_parameters.h"
 #include "l10n/api.h"
 #include "module/attributes.h"
+#include "parameters/accessor.h"
+#include "parameters/identifier.h"
+#include "time/duration.h"
 
-#include "error_tools.h"
+#include "error.h"
 #include "make_ptr.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
+#include <memory>
 #include <utility>
 
 namespace Module

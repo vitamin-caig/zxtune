@@ -12,8 +12,16 @@
 
 #include "devices/aym/dumper.h"
 
+#include "binary/data.h"
+
+#include "types.h"
+
+#include <memory>
+
 namespace Devices::AYM
 {
+  class Registers;
+
   class DumpBuilder
   {
   public:

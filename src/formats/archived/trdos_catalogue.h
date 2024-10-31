@@ -15,6 +15,8 @@
 #include "string_view.h"
 #include "types.h"
 
+#include <memory>
+
 namespace TRDos
 {
   class File : public Formats::Archived::File

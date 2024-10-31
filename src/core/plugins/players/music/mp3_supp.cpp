@@ -11,19 +11,41 @@
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "formats/chiptune/music/mp3.h"
+#include "module/players/factory.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
 
+#include "binary/data.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "module/renderer.h"
+#include "parameters/container.h"
+#include "sound/chunk.h"
+#include "sound/receiver.h"
 #include "sound/resampler.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
-#include "contract.h"
-#include "error_tools.h"
 #include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+#include "types.h"
 
 #include "3rdparty/minimp3/minimp3.h"
+
+#include <algorithm>
+#include <exception>
+#include <memory>
+#include <utility>
+#include <vector>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::Mp3
 {

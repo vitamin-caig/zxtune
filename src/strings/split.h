@@ -12,7 +12,7 @@
 
 #include "strings/src/find.h"
 
-#include "string_view.h"
+#include "string_view.h"  // IWYU pragma: export
 
 #include <vector>
 

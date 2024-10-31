@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <alsa/asoundlib.h>
-#include <alsa/pcm.h>
+#include <alsa/asoundlib.h>  // IWYU pragma: export
+#include <alsa/pcm.h>        // IWYU pragma: export
 
 #include <memory>
 

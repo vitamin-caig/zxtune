@@ -14,13 +14,25 @@
 #include "errorswidget.ui.h"
 
 #include "contract.h"
+#include "error.h"
+#include "string_type.h"
 
+#include <QtCore/QRect>
+#include <QtCore/QSize>
+#include <QtCore/Qt>
+#include <QtGui/QFontMetrics>
 #include <QtGui/QPainter>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QSizePolicy>
+#include <QtWidgets/QToolButton>
 
 #include <cassert>
+#include <cstddef>
 #include <list>
-#include <utility>
+#include <type_traits>
+
+class QPaintEvent;
 
 namespace
 {

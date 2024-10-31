@@ -12,6 +12,9 @@
 
 #include "core/plugins_parameters.h"
 #include "parameters/accessor.h"
+#include "parameters/identifier.h"
+
+#include "types.h"
 
 namespace Module
 {

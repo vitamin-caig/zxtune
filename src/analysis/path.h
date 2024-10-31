@@ -13,6 +13,7 @@
 #include "string_type.h"
 #include "string_view.h"
 
+#include <memory>
 #include <span>
 
 namespace Analysis

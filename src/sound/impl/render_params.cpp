@@ -10,6 +10,8 @@
 
 #include "sound/render_params.h"
 
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 #include "sound/sound_parameters.h"
 
 #include "make_ptr.h"

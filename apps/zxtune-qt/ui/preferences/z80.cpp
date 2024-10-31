@@ -12,12 +12,15 @@
 
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
-#include "apps/zxtune-qt/ui/utils.h"
 #include "z80.ui.h"
 
 #include "core/core_parameters.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 
-#include <utility>
+#include <QtCore/QEvent>
+
+#include <memory>
 
 namespace
 {

@@ -12,7 +12,7 @@
 
 #include "sound/chunk.h"
 #include "sound/multichannel_sample.h"
-#include "tools/data_streaming.h"
+#include "tools/data_streaming.h"  // IWYU pragma: export
 
 namespace Sound
 {

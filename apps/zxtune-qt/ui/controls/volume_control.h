@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "sound/backend.h"
-
-#include <QtWidgets/QWidget>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtWidgets/QWidget>  // IWYU pragma: export
 
 class PlaybackSupport;
 

@@ -10,16 +10,26 @@
 
 #include "formats/chiptune/multidevice/videogamemusic.h"
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/container.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "math/numeric.h"
+#include "strings/array.h"
 #include "strings/sanitize.h"
 #include "strings/split.h"
 
+#include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
+
+#include <algorithm>
+#include <exception>
+#include <memory>
+#include <utility>
 
 namespace Formats::Chiptune
 {

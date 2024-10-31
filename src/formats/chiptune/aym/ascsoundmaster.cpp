@@ -10,9 +10,12 @@
 
 #include "formats/chiptune/aym/ascsoundmaster.h"
 
+#include "formats/chiptune/builder_meta.h"
+#include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/metainfo.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "debug/log.h"
 #include "math/numeric.h"
@@ -25,10 +28,14 @@
 #include "byteorder.h"
 #include "contract.h"
 #include "make_ptr.h"
-#include "string_view.h"
 
+#include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstring>
+#include <exception>
+#include <utility>
+#include <vector>
 
 namespace Formats::Chiptune
 {

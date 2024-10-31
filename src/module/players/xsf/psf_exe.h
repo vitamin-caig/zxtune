@@ -14,6 +14,8 @@
 
 #include "binary/view.h"
 
+#include "types.h"
+
 #include <memory>
 
 namespace Module::PSF

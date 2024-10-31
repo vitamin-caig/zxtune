@@ -10,6 +10,7 @@
 
 #include "apps/zxtune-qt/ui/desktop/mainwindow.h"
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/playlist/ui/container_view.h"
 #include "apps/zxtune-qt/supp/playback_supp.h"
 #include "apps/zxtune-qt/ui/controls/analyzer_control.h"
@@ -19,7 +20,6 @@
 #include "apps/zxtune-qt/ui/controls/status_control.h"
 #include "apps/zxtune-qt/ui/controls/volume_control.h"
 #include "apps/zxtune-qt/ui/desktop/language.h"
-#include "apps/zxtune-qt/ui/format.h"
 #include "apps/zxtune-qt/ui/informational/aboutdialog.h"
 #include "apps/zxtune-qt/ui/informational/componentsdialog.h"
 #include "apps/zxtune-qt/ui/parameters.h"
@@ -32,20 +32,37 @@
 #include "mainwindow.ui.h"
 
 #include "debug/log.h"
+#include "parameters/identifier.h"
 #include "platform/version/api.h"
+#include "sound/backend.h"
 #include "strings/format.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
 
-#include <QtCore/QUrl>
+#include <QtCore/QEvent>
+#include <QtCore/QFlags>
+#include <QtCore/QPointer>
+#include <QtCore/QStringList>
+#include <QtCore/QtCore>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDesktopServices>
-#include <QtWidgets/QApplication>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMenuBar>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QSizePolicy>
 #include <QtWidgets/QToolBar>
 
+#include <algorithm>
+#include <memory>
+#include <type_traits>
 #include <utility>
+#include <vector>
+
+class Error;
 
 namespace
 {

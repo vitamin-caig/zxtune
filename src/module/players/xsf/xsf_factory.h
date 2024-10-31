@@ -13,7 +13,11 @@
 #include "module/players/factory.h"
 #include "module/players/xsf/xsf_file.h"
 
+#include "module/holder.h"
+#include "parameters/container.h"
 #include "strings/map.h"
+
+#include <memory>
 
 namespace Module::XSF
 {

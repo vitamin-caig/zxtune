@@ -10,10 +10,15 @@
 
 #include "debug/log.h"
 #include "platform/application.h"
+#include "strings/array.h"
 
 #include "error.h"
+#include "string_view.h"
 
+#include <exception>
+#include <iostream>
 #include <locale>
+#include <memory>
 
 std::ostream& StdOut = std::cout;
 

@@ -14,6 +14,8 @@
 
 #include "time/duration.h"
 
+#include "types.h"
+
 namespace Benchmark::AY
 {
   Devices::AYM::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t soundFreq,

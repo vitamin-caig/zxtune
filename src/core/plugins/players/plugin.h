@@ -15,6 +15,13 @@
 
 #include "formats/chiptune.h"
 
+#include "types.h"
+
+namespace ZXTune
+{
+  class PluginId;
+}  // namespace ZXTune
+
 namespace Module
 {
   using ExternalParsingFactory = BaseFactory<Formats::Chiptune::Container>;

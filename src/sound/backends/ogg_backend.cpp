@@ -8,6 +8,7 @@
  *
  **/
 
+#include "sound/backends/backend_impl.h"
 #include "sound/backends/file_backend.h"
 #include "sound/backends/gates/ogg_api.h"
 #include "sound/backends/gates/vorbis_api.h"
@@ -16,16 +17,30 @@
 #include "sound/backends/ogg.h"
 #include "sound/backends/storage.h"
 
+#include "binary/output_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "l10n/api.h"
 #include "math/numeric.h"
+#include "module/holder.h"
+#include "parameters/accessor.h"
+#include "parameters/identifier.h"
+#include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
+#include "sound/chunk.h"
 #include "sound/render_params.h"
+#include "tools/data_streaming.h"
 
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
-#include <algorithm>
 #include <ctime>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace Sound::Ogg
 {

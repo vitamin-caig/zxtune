@@ -10,19 +10,33 @@
 
 #include "apps/zxtune-qt/ui/controls/seek_controls.h"
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/supp/playback_supp.h"
 #include "apps/zxtune-qt/ui/styles.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "seek_controls.ui.h"
 
+#include "module/state.h"
+#include "sound/backend.h"
+#include "time/duration.h"
 #include "time/serialize.h"
 
 #include "contract.h"
+#include "string_type.h"
+#include "types.h"
 
+#include <QtCore/QByteArrayData>
+#include <QtCore/QEvent>
+#include <QtCore/QRect>
 #include <QtGui/QCursor>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QSlider>
 #include <QtWidgets/QToolTip>
 
 #include <memory>
+#include <utility>
+
+class QPoint;
 
 namespace
 {

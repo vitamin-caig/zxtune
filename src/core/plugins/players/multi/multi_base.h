@@ -11,6 +11,7 @@
 #pragma once
 
 #include "module/holder.h"
+#include "parameters/accessor.h"
 
 #include <vector>
 

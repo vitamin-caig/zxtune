@@ -10,6 +10,7 @@
 
 #include "apps/zxtune-qt/ui/conversion/setup_conversion.h"
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/conversion/backend_settings.h"
 #include "apps/zxtune-qt/ui/conversion/filename_template.h"
@@ -24,17 +25,32 @@
 #include "setup_conversion.ui.h"
 
 #include "io/api.h"
+#include "io/identifier.h"
 #include "io/providers_parameters.h"
+#include "parameters/container.h"
+#include "parameters/identifier.h"
 #include "parameters/merged_accessor.h"
 #include "sound/backends_parameters.h"
+#include "strings/array.h"
 
 #include "contract.h"
 #include "make_ptr.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <QtCore/QByteArrayData>
+#include <QtCore/QStringList>
 #include <QtCore/QThread>
 #include <QtGui/QCloseEvent>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QToolBox>
+#include <QtWidgets/QVBoxLayout>
+
+#include <algorithm>
+#include <map>
+#include <utility>
 
 namespace
 {

@@ -12,15 +12,20 @@
 
 #include "formats/chiptune/builder_pattern.h"
 #include "module/players/iterator.h"
-#include "module/players/track_model.h"
+#include "module/players/track_model.h"  // IWYU pragma: export
 
 #include "module/track_information.h"
-#include "module/track_state.h"
+#include "time/duration.h"
 
 #include "make_ptr.h"
+#include "types.h"
 
 #include <algorithm>
 #include <array>
+#include <cassert>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace Module
 {

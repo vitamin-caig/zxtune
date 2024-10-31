@@ -11,10 +11,23 @@
 #include "module/players/dac/sampletracker.h"
 
 #include "formats/chiptune/digital/sampletracker.h"
+#include "module/players/dac/dac_chiptune.h"
+#include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
 #include "module/players/platforms.h"
 
+#include "parameters/container.h"
+
 #include "make_ptr.h"
+
+#include <cstddef>
+#include <memory>
+#include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::SampleTracker
 {

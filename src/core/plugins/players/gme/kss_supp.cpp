@@ -15,6 +15,8 @@
 #include "contract.h"
 #include "string_view.h"
 
+#include <stdint.h>
+
 namespace Module::KSS
 {
   StringView DetectPlatform(Binary::View data)

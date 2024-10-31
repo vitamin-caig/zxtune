@@ -9,16 +9,27 @@
  **/
 
 #include "math/numeric.h"
+#include "parameters/identifier.h"
+#include "sound/gain.h"
 #include "sound/matrix_mixer.h"
 #include "sound/mixer_parameters.h"
+#include "sound/sample.h"
 
 #include "error_tools.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
-#include <iomanip>
+#include <algorithm>
+#include <cassert>
 #include <iostream>
+#include <iterator>
 
 namespace Sound
 {
+  template<unsigned int Channels>
+  struct MultichannelSample;
+
   const int_t THRESHOLD = 5 * (Sample::MAX - Sample::MIN) / 1000;  // 0.5%
 
   Gain CreateGain(double l, double r)

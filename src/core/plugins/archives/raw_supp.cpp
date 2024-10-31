@@ -10,31 +10,44 @@
 
 #include "core/plugins/archives/raw_supp.h"
 
+#include "core/plugins/archive_plugin.h"
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/archives/archived.h"
 #include "core/plugins/archives/l10n.h"
-#include "core/plugins/players/plugin.h"
+#include "core/plugins/player_plugin.h"
+#include "core/src/location.h"
 
+#include "analysis/path.h"
+#include "analysis/result.h"
 #include "binary/container.h"
+#include "binary/format.h"
+#include "core/data_location.h"
 #include "core/plugin_attrs.h"
 #include "core/plugins_parameters.h"
 #include "debug/log.h"
+#include "l10n/api.h"
 #include "math/scale.h"
+#include "parameters/accessor.h"
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 #include "strings/conversion.h"
 #include "strings/prefixed_index.h"
-#include "time/duration.h"
 #include "time/serialize.h"
 #include "time/timer.h"
 #include "tools/progress_callback.h"
 
 #include "error_tools.h"
 #include "make_ptr.h"
-#include "string_view.h"
+#include "types.h"
 
 #include <algorithm>
 #include <array>
-#include <list>
+#include <cassert>
 #include <map>
+#include <memory>
+#include <span>
+#include <utility>
+#include <vector>
 
 namespace ZXTune
 {

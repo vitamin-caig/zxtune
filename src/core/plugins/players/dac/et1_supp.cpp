@@ -15,6 +15,8 @@
 
 #include "core/plugin_attrs.h"
 
+#include <utility>
+
 namespace ZXTune
 {
   void RegisterET1Support(PlayerPluginsRegistrator& registrator)

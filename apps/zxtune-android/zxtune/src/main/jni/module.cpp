@@ -14,17 +14,44 @@
 #include "apps/zxtune-android/zxtune/src/main/jni/binary.h"
 #include "apps/zxtune-android/zxtune/src/main/jni/debug.h"
 #include "apps/zxtune-android/zxtune/src/main/jni/defines.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/exception.h"
 #include "apps/zxtune-android/zxtune/src/main/jni/global_options.h"
 #include "apps/zxtune-android/zxtune/src/main/jni/player.h"
 #include "apps/zxtune-android/zxtune/src/main/jni/properties.h"
 
+#include "analysis/path.h"
+#include "binary/container.h"
+#include "binary/view.h"
 #include "core/data_location.h"
+#include "core/module_detect.h"
 #include "core/service.h"
+#include "debug/log.h"
 #include "module/additional_files.h"
+#include "module/information.h"
+#include "parameters/container.h"
+#include "time/duration.h"
 #include "tools/progress_callback.h"
 
 #include "contract.h"
+#include "error.h"
+#include "pointers.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
+
+#include <jni.h>
+
+#include <cstring>
+#include <exception>
+#include <iterator>
+#include <memory>
+#include <utility>
+#include <vector>
+
+namespace ZXTune
+{
+  class Plugin;
+}  // namespace ZXTune
 
 namespace
 {

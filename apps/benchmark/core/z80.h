@@ -10,8 +10,11 @@
 
 #pragma once
 
+#include "binary/view.h"
 #include "devices/z80.h"
 #include "time/duration.h"
+
+#include "types.h"
 
 namespace Benchmark::Z80
 {

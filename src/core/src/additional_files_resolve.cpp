@@ -12,9 +12,13 @@
 
 #include "core/src/l10n.h"
 
+#include "l10n/api.h"
+#include "module/additional_files.h"
 #include "strings/join.h"
 
 #include "error_tools.h"
+
+#include <vector>
 
 namespace Module
 {

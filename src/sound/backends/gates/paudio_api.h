@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <pulse/simple.h>
+#include <pulse/simple.h>  // IWYU pragma: export
 
 #include <memory>
 

@@ -16,6 +16,10 @@
 #include "make_ptr.h"
 
 #include "3rdparty/z80ex/include/z80ex.h"
+#include "3rdparty/z80ex/include/z80ex_common.h"
+
+#include <cassert>
+#include <utility>
 
 namespace Devices::Z80
 {

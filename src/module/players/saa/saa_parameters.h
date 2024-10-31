@@ -13,6 +13,8 @@
 #include "devices/saa.h"
 #include "parameters/accessor.h"
 
+#include "types.h"
+
 namespace Module::SAA
 {
   Devices::SAA::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params);

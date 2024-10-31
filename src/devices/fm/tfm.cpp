@@ -10,12 +10,15 @@
 
 #include "devices/tfm.h"
 
+#include "devices/fm/Ym2203_Emu.h"
 #include "devices/fm/chip.h"
 
 #include "make_ptr.h"
+#include "pointers.h"
 
+#include <algorithm>
 #include <array>
-#include <functional>
+#include <utility>
 
 namespace Devices::TFM
 {

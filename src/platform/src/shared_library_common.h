@@ -13,7 +13,10 @@
 #include "platform/shared_library.h"
 
 #include "error.h"
+#include "string_type.h"
 #include "string_view.h"
+
+#include <vector>
 
 namespace Platform::Details
 {

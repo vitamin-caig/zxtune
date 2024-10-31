@@ -10,11 +10,21 @@
 
 #include "formats/chiptune/music/tags_id3.h"
 
+#include "formats/chiptune/builder_meta.h"
+
+#include "binary/input_stream.h"
+#include "binary/view.h"
+#include "strings/array.h"
 #include "strings/sanitize.h"
 
-#include "string_view.h"
+#include "byteorder.h"
+#include "pointers.h"
 
+#include <algorithm>
 #include <array>
+#include <cstring>
+#include <exception>
+#include <utility>
 
 namespace Formats::Chiptune::Id3
 {

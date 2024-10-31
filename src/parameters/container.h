@@ -10,8 +10,10 @@
 
 #pragma once
 
-#include "parameters/accessor.h"
-#include "parameters/modifier.h"
+#include "parameters/accessor.h"  // IWYU pragma: export
+#include "parameters/modifier.h"  // IWYU pragma: export
+
+#include <memory>
 
 namespace Parameters
 {

@@ -10,14 +10,19 @@
 
 #include "formats/chiptune/music/tags_vorbis.h"
 
+#include "formats/chiptune/builder_meta.h"
+
 #include "binary/base64.h"
+#include "binary/input_stream.h"
+#include "binary/view.h"
 #include "strings/casing.h"
 #include "strings/sanitize.h"
 
 #include "byteorder.h"
-#include "string_view.h"
+#include "contract.h"
+#include "pointers.h"
 
-#include <array>
+#include <exception>
 
 namespace Formats::Chiptune::Vorbis
 {

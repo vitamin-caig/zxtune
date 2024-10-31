@@ -10,7 +10,12 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/tfm/tfm_plugin.h"
+#include "formats/chiptune/fm/tfmmusicmaker.h"
 #include "module/players/tfm/tfmmusicmaker.h"
+
+#include "core/plugin_attrs.h"
+
+#include <utility>
 
 namespace ZXTune
 {

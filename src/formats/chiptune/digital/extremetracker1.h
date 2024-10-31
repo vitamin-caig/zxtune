@@ -10,14 +10,18 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-#include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
 
+#include "binary/view.h"
 #include "formats/chiptune.h"
+
+#include "types.h"
 
 namespace Formats::Chiptune
 {
+  class MetaBuilder;
+  class PatternBuilder;
+
   namespace ExtremeTracker1
   {
     using Positions = LinesObject<uint_t>;

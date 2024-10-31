@@ -14,7 +14,7 @@
 
 #include "strings/format.h"
 
-#include "error.h"
+#include "error.h"  // IWYU pragma: export
 
 //! @brief Building error object with formatted text
 template<class S, class... P>

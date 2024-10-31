@@ -13,7 +13,7 @@
 #include "core/src/location.h"
 
 #include "analysis/result.h"
-#include "core/plugin.h"
+#include "core/plugin.h"  // IWYU pragma: export
 #include "module/holder.h"
 #include "parameters/container.h"
 

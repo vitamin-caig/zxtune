@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <string>
+#include <string_type.h>
 
 namespace Benchmark
 {
@@ -22,8 +22,8 @@ namespace Benchmark
   public:
     virtual ~PerformanceTest() = default;
 
-    virtual std::string Category() const = 0;
-    virtual std::string Name() const = 0;
+    virtual String Category() const = 0;
+    virtual String Name() const = 0;
     //! @return Performance index
     virtual double Execute() const = 0;
   };

@@ -15,7 +15,11 @@
 #include "strings/fields.h"
 
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
+
+#include <filesystem>
+#include <utility>
 
 namespace IO
 {

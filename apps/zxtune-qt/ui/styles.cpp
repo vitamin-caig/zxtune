@@ -10,10 +10,14 @@
 
 #include "apps/zxtune-qt/ui/styles.h"
 
+#include <QtCore/Qt>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QProxyStyle>
+#include <QtWidgets/QStyle>
 
-#include <utility>
+class QStyleHintReturn;
+class QStyleOption;
+class QWidget;
 
 namespace UI
 {

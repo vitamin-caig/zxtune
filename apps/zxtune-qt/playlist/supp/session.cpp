@@ -11,15 +11,19 @@
 #include "apps/zxtune-qt/playlist/supp/session.h"
 
 #include "apps/zxtune-qt/playlist/supp/container.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
 #include "debug/log.h"
+#include "tools/iterators.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
+#include <QtCore/QListIterator>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QStringList>
 

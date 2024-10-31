@@ -10,11 +10,12 @@
 
 #include "formats/chiptune/emulation/portablesoundformat.h"
 
+#include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/container.h"
 
 #include "binary/crc.h"
-#include "binary/data_builder.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "strings/casing.h"
 #include "strings/prefixed_index.h"
@@ -23,10 +24,14 @@
 #include "time/duration.h"
 
 #include "byteorder.h"
-#include "make_ptr.h"
-#include "string_view.h"
+#include "contract.h"
 
-#include <set>
+#include <cstdlib>
+#include <cstring>
+#include <exception>
+#include <memory>
+#include <type_traits>
+#include <utility>
 
 namespace Formats::Chiptune::PortableSoundFormat
 {

@@ -12,6 +12,8 @@
 
 #include "module/players/streaming.h"
 
+#include "module/information.h"
+
 #include "make_ptr.h"
 
 #include <utility>

@@ -10,12 +10,18 @@
 
 #include "apps/zxtune-qt/playlist/ui/desktop/search_dialog.h"
 
-#include "apps/zxtune-qt/playlist/ui/table_view.h"
+#include "apps/zxtune-qt/playlist/supp/operations_search.h"
+#include "apps/zxtune-qt/playlist/ui/search.h"
 #include "apps/zxtune-qt/ui/state.h"
 #include "search_dialog.ui.h"
 
-#include "contract.h"
 #include "make_ptr.h"
+#include "string_view.h"
+
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+
+class QWidget;
 
 namespace
 {

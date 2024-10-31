@@ -11,10 +11,12 @@
 #include "core/plugins/players/sid/songlengths.h"
 
 #include "binary/crc.h"
+#include "binary/view.h"
 
 #include "string_view.h"
 
 #include <algorithm>
+#include <iterator>
 
 namespace Module::Sid
 {

@@ -10,9 +10,8 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/playlist/ui/contextmenu.h"
-
-#include <QtCore/QObject>
+#include <QtCore/QObject>  // IWYU pragma: export
+#include <QtCore/QString>
 
 namespace Playlist::UI
 {

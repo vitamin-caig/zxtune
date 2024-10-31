@@ -8,6 +8,8 @@
  *
  **/
 
+#include "platform/shared_library.h"
+
 #include "platform/src/shared_library_common.h"
 
 #include "l10n/api.h"
@@ -15,9 +17,12 @@
 #include "contract.h"
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
 
 #include <dlfcn.h>
+
+#include <vector>
 
 namespace
 {

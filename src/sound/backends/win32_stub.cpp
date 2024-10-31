@@ -11,6 +11,8 @@
 #include "sound/backends/storage.h"
 #include "sound/backends/win32.h"
 
+#include "sound/backend_attrs.h"
+
 namespace Sound
 {
   void RegisterWin32Backend(BackendsStorage& storage)

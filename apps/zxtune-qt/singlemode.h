@@ -10,11 +10,17 @@
 
 #pragma once
 
-#include "parameters/accessor.h"
 #include "strings/array.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
+#include <QtCore/QString>
+#include <QtCore/QStringList>
+
+namespace Parameters
+{
+  class Accessor;
+}  // namespace Parameters
 
 class SingleModeDispatcher : public QObject
 {

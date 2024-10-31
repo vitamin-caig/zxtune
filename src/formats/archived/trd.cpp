@@ -11,16 +11,22 @@
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 #include "debug/log.h"
-#include "tools/range_checker.h"
+#include "formats/archived.h"
 
 #include "byteorder.h"
 #include "make_ptr.h"
 #include "string_view.h"
 
-#include <cstring>
-#include <numeric>
+#include <algorithm>
+#include <iterator>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace Formats::Archived
 {

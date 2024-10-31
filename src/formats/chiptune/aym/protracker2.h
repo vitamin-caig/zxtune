@@ -10,14 +10,17 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-#include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
 
 #include "formats/chiptune.h"
 
+#include "types.h"
+
 namespace Formats::Chiptune
 {
+  class MetaBuilder;
+  class PatternBuilder;
+
   namespace ProTracker2
   {
     const uint_t DEFAULT_SAMPLE = 1;

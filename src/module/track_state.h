@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "module/state.h"
+#include "module/state.h"  // IWYU pragma: export
 
 namespace Module
 {

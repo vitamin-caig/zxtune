@@ -12,12 +12,15 @@
 
 #include "formats/chiptune/container.h"
 
+#include "binary/format.h"
 #include "binary/format_factories.h"
+#include "binary/view.h"
 
 #include "make_ptr.h"
+#include "string_view.h"
 
-#include <cstddef>
 #include <cstring>
+#include <utility>
 
 namespace Formats::Chiptune
 {

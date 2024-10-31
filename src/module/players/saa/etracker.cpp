@@ -10,15 +10,34 @@
 
 #include "module/players/saa/etracker.h"
 
+#include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/objects.h"
 #include "formats/chiptune/saa/etracker.h"
 #include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/saa/saa_base.h"
 #include "module/players/simple_orderlist.h"
+#include "module/players/tracking.h"
+
+#include "module/holder.h"
+#include "parameters/container.h"
+#include "time/duration.h"
+#include "tools/iterators.h"
 
 #include "make_ptr.h"
+#include "types.h"
 
+#include <algorithm>
 #include <array>
+#include <cassert>
+#include <memory>
+#include <utility>
+
+namespace Binary
+{
+  class Container;
+}  // namespace Binary
 
 namespace Module::ETracker
 {

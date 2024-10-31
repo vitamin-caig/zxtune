@@ -11,6 +11,13 @@
 #pragma once
 
 #include "devices/fm.h"
+#include "sound/chunk.h"
+#include "time/instant.h"
+
+#include "types.h"
+
+#include <memory>
+#include <vector>
 
 namespace Devices::TFM
 {

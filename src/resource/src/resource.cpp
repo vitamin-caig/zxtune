@@ -10,18 +10,27 @@
 
 #include "formats/archived/decoders.h"
 
+#include "binary/container_factories.h"
 #include "binary/data_builder.h"
+#include "binary/format.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "formats/archived.h"
 #include "l10n/api.h"
 #include "platform/tools.h"
 #include "resource/api.h"
 
 #include "error_tools.h"
 #include "make_ptr.h"
-#include "pointers.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
 
+#include <algorithm>
 #include <fstream>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace
 {

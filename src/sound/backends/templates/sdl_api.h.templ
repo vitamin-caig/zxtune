@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <SDL/SDL.h>
+#include <SDL/SDL.h>  // IWYU pragma: export
 
 #include <memory>
 

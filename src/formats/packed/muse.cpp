@@ -11,16 +11,23 @@
 #include "formats/packed/container.h"
 
 #include "binary/compression/zlib_container.h"
+#include "binary/format.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
 #include "formats/packed.h"
 
+#include "byteorder.h"
+#include "contract.h"
 #include "error.h"
 #include "make_ptr.h"
-#include "pointers.h"
+#include "string_view.h"
 
+#include <algorithm>
+#include <exception>
 #include <memory>
+#include <utility>
 
 namespace Formats::Packed
 {

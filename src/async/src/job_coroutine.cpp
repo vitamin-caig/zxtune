@@ -12,9 +12,13 @@
 
 #include "async/activity.h"
 #include "async/coroutine.h"
+#include "async/job.h"
 
+#include "error.h"
 #include "make_ptr.h"
 
+#include <memory>
+#include <mutex>
 #include <utility>
 
 namespace Async

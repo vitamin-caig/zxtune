@@ -18,12 +18,13 @@
 
 #include "contract.h"
 #include "make_ptr.h"
-#include "pointers.h"
 #include "string_view.h"
 
+#include <algorithm>
 #include <cctype>
-#include <functional>
+#include <iterator>
 #include <stack>
+#include <utility>
 #include <vector>
 
 namespace Binary::FormatDSL

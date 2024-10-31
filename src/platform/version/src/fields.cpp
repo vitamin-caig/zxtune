@@ -11,7 +11,9 @@
 #include "platform/version/fields.h"
 
 #include "platform/version/api.h"
+#include "strings/fields.h"
 
+#include "string_type.h"
 #include "string_view.h"
 
 namespace Platform::Version

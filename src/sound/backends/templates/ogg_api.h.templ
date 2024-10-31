@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <ogg/ogg.h>
+#include <ogg/ogg.h>  // IWYU pragma: export
 
 #include <memory>
 

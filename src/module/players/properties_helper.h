@@ -10,12 +10,21 @@
 
 #pragma once
 
-#include "formats/chiptune.h"
-#include "parameters/modifier.h"
+#include "binary/view.h"
 #include "strings/array.h"
 #include "time/duration.h"
 
 #include "string_view.h"
+#include "types.h"
+
+namespace Formats::Chiptune
+{
+  class Container;
+}  // namespace Formats::Chiptune
+namespace Parameters
+{
+  class Modifier;
+}  // namespace Parameters
 
 namespace Module
 {

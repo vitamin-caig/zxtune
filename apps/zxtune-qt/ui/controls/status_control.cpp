@@ -10,18 +10,21 @@
 
 #include "apps/zxtune-qt/ui/controls/status_control.h"
 
+#include "apps/zxtune-qt/playlist/supp/data.h"
 #include "apps/zxtune-qt/supp/playback_supp.h"
-#include "apps/zxtune-qt/ui/utils.h"
 #include "status_control.ui.h"
 
 #include "module/track_state.h"
+#include "sound/backend.h"
 
 #include "contract.h"
 
-#include <QtWidgets/QGridLayout>
+#include <QtCore/QByteArrayData>
+#include <QtCore/QEvent>
+#include <QtCore/QLatin1String>
 #include <QtWidgets/QLabel>
 
-#include <utility>
+#include <memory>
 
 namespace
 {

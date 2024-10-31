@@ -12,6 +12,8 @@
 
 #include "sound/receiver.h"
 
+#include "types.h"
+
 namespace Sound
 {
   Converter::Ptr CreateResampler(uint_t inFreq, uint_t outFreq);

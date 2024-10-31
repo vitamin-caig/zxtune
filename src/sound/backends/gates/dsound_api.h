@@ -12,7 +12,7 @@
 
 #include <memory>
 #define NOMINMAX
-#include <dsound.h>
+#include <dsound.h>  // IWYU pragma: export
 
 namespace Sound::DirectSound
 {

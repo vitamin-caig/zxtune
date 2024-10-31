@@ -8,27 +8,38 @@
  *
  **/
 
+#include "core/plugins/player_plugin.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/multi/multi_base.h"
 #include "core/plugins/players/plugin.h"
 #include "formats/chiptune/multidevice/multitrackcontainer.h"
+#include "module/players/factory.h"
 #include "module/players/properties_helper.h"
 
+#include "binary/container.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
 #include "module/attributes.h"
+#include "module/holder.h"
+#include "module/information.h"
+#include "parameters/container.h"
 #include "parameters/merged_accessor.h"
 #include "parameters/merged_container.h"
 #include "parameters/serialize.h"
+#include "time/duration.h"
 
 #include "contract.h"
-#include "error.h"
 #include "make_ptr.h"
+#include "string_type.h"
 #include "string_view.h"
+#include "types.h"
 
 #include <algorithm>
+#include <exception>
 #include <list>
+#include <memory>
 #include <utility>
+#include <vector>
 
 namespace Module::MTC
 {

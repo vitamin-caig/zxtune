@@ -12,11 +12,13 @@
 
 #include "async/src/event.h"
 
+#include "error.h"
 #include "make_ptr.h"
 #include "pointers.h"
 
 #include <cassert>
 #include <thread>
+#include <utility>
 
 namespace Async
 {

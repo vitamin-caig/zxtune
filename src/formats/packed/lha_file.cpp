@@ -10,15 +10,20 @@
 
 #include "formats/packed/container.h"
 #include "formats/packed/lha_supp.h"
-#include "formats/packed/pack_utils.h"
 
+#include "binary/data_builder.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
-#include "formats/archived.h"
+#include "formats/packed.h"
 
 #include "make_ptr.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
 #include "3rdparty/lhasa/lib/lha_decoder.h"
+
+#include <memory>
 
 namespace Formats::Packed::Lha
 {

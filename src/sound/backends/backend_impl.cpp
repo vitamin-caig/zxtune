@@ -14,16 +14,25 @@
 #include "sound/backends/l10n.h"
 #include "sound/impl/fft_analyzer.h"
 
+#include "async/job.h"
 #include "async/worker.h"
 #include "debug/log.h"
-#include "sound/render_params.h"
-#include "sound/sound_parameters.h"
+#include "l10n/api.h"
+#include "module/renderer.h"
+#include "module/state.h"
+#include "sound/analyzer.h"
+#include "sound/chunk.h"
+#include "time/instant.h"
 
-#include "error_tools.h"
+#include "error.h"
 #include "make_ptr.h"
 #include "pointers.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
 
 #include <atomic>
+#include <exception>
 #include <utility>
 
 namespace Sound::BackendBase

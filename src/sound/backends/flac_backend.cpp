@@ -8,20 +8,40 @@
  *
  **/
 
+#include "sound/backends/backend_impl.h"
 #include "sound/backends/file_backend.h"
 #include "sound/backends/flac.h"
 #include "sound/backends/gates/flac_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 
+#include "binary/output_stream.h"
+#include "binary/view.h"
 #include "debug/log.h"
+#include "l10n/api.h"
+#include "module/holder.h"
+#include "parameters/accessor.h"
+#include "parameters/identifier.h"
+#include "sound/backend_attrs.h"
 #include "sound/backends_parameters.h"
+#include "sound/chunk.h"
 #include "sound/render_params.h"
+#include "tools/data_streaming.h"
 
 #include "error_tools.h"
 #include "make_ptr.h"
+#include "string_type.h"
+#include "string_view.h"
+#include "types.h"
+
+#include <FLAC/format.h>
+#include <FLAC/ordinals.h>
 
 #include <algorithm>
+#include <memory>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace Sound::Flac
 {

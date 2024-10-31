@@ -10,13 +10,20 @@
 
 #include "core/plugins/players/multi/multi_base.h"
 
+#include "module/information.h"
+#include "module/renderer.h"
+#include "module/state.h"
 #include "parameters/merged_accessor.h"
-#include "parameters/visitor.h"
+#include "sound/chunk.h"
+#include "time/instant.h"
 
 #include "contract.h"
 #include "make_ptr.h"
+#include "types.h"
 
 #include <algorithm>
+#include <memory>
+#include <utility>
 
 namespace Module
 {

@@ -10,16 +10,22 @@
 
 #include "test/utils.h"
 
+#include "l10n/src/library.h"
+
+#include "binary/container.h"
 #include "binary/container_factories.h"
+#include "binary/dump.h"
 #include "l10n/api.h"
 #include "strings/format.h"
 
 #include "pointers.h"
 
-#include <cstring>
-#include <fstream>
+#include <algorithm>
+#include <fstream>  // IWYU pragma: keep
 #include <iostream>
-#include <sstream>
+#include <memory>
+#include <stdexcept>
+#include <utility>
 
 namespace
 {

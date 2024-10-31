@@ -10,13 +10,19 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-#include "module/players/properties_helper.h"
+#include "formats/chiptune/builder_meta.h"  // IWYU pragma: export
+
+#include "binary/view.h"
+#include "strings/array.h"
 
 #include "string_view.h"
 
+#include <cstddef>
+
 namespace Module
 {
+  class PropertiesHelper;
+
   class MetaProperties : public Formats::Chiptune::MetaBuilder
   {
   public:

@@ -12,7 +12,14 @@
 
 #include "sound/backends/l10n.h"
 
+#include "l10n/api.h"
+#include "sound/gain.h"
+
+#include "error.h"
 #include "make_ptr.h"
+#include "string_view.h"
+
+#include <memory>
 
 namespace Sound
 {
