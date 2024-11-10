@@ -10,7 +10,12 @@ import android.provider.Settings
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import app.zxtune.Features
-import app.zxtune.fs.*
+import app.zxtune.fs.TestDir
+import app.zxtune.fs.TestFile
+import app.zxtune.fs.VfsDir
+import app.zxtune.fs.VfsExtensions
+import app.zxtune.fs.VfsFile
+import app.zxtune.fs.VfsObject
 import app.zxtune.net.NetworkManager
 import app.zxtune.use
 import app.zxtune.utils.AsyncWorker
@@ -20,7 +25,19 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.android.controller.ContentProviderController
@@ -138,7 +155,10 @@ class ClientProviderTest {
     }
 
     @After
-    fun tearDown() = verifyNoMoreInteractions(listingCallback, parentsCallback)
+    fun tearDown() {
+        provider.shutdown()
+        verifyNoMoreInteractions(listingCallback, parentsCallback)
+    }
 
     @Test
     fun `resolve unknown`() {

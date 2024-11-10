@@ -15,7 +15,16 @@ import org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.clearInvocations
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -80,8 +89,7 @@ class NotificationsSourceTest {
         assertEquals(null, getNotification(uri2))
 
         inOrder(resolver) {
-            verify(resolver, times(2)).notifyChange(Query.notificationUriFor(uri1), null)
-            verify(resolver).notifyChange(Query.notificationUriFor(uri2), null)
+            verify(resolver, times(3)).notifyChange(Query.notificationUriFor(Uri.EMPTY), null)
         }
     }
 
@@ -143,6 +151,6 @@ class NotificationsSourceTest {
         objUri = uri2
         assertEquals(null, underTest.getNotification(dir))
 
-        verify(resolver).notifyChange(Query.notificationUriFor(uri1), null)
+        verify(resolver, times(2)).notifyChange(Query.notificationUriFor(Uri.EMPTY), null)
     }
 }

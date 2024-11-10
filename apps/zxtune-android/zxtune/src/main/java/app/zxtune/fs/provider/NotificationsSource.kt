@@ -21,11 +21,8 @@ internal class NotificationsSource @VisibleForTesting constructor(
     private val persistentStorageSetupIntent: LiveData<Intent?>,
 ) {
     private val statesObserver = Observer<Any?> {
-        resolverNotificationUri?.let { uri ->
-            ctx.contentResolver?.notifyChange(uri, null)
-        }
+        ctx.contentResolver?.notifyChange(ROOT_NOTIFICATION_URI, null)
     }
-    private var resolverNotificationUri: Uri? = null
 
     init {
         networkState.observeForever(statesObserver)
@@ -36,6 +33,11 @@ internal class NotificationsSource @VisibleForTesting constructor(
         ctx, NetworkManager.from(ctx).networkAvailable, PersistentStorage.instance.setupIntent
     )
 
+    fun shutdown() {
+        networkState.removeObserver(statesObserver)
+        persistentStorageSetupIntent.removeObserver(statesObserver)
+    }
+
     fun getFor(obj: VfsObject) = getNotification(obj)?.let { notification ->
         MatrixCursor(Schema.Notifications.COLUMNS).apply {
             addRow(notification.serialize())
@@ -44,18 +46,16 @@ internal class NotificationsSource @VisibleForTesting constructor(
 
     @VisibleForTesting
     fun getNotification(obj: VfsObject): Schema.Notifications.Object? {
-        resolverNotificationUri = null
         val uri = obj.uri
         return when (uri.scheme) {
             null -> null // root
             "file" -> getStorageNotification(obj)
             "playlists" -> getPlaylistNotification(uri)
-            else -> getNetworkNotification(uri)
+            else -> getNetworkNotification()
         }
     }
 
-    private fun getNetworkNotification(uri: Uri): Schema.Notifications.Object? {
-        resolverNotificationUri = Query.notificationUriFor(uri)
+    private fun getNetworkNotification(): Schema.Notifications.Object? {
         return if (false == networkState.value) {
             Schema.Notifications.Object(
                 ctx.getString(R.string.network_inaccessible),
@@ -77,9 +77,12 @@ internal class NotificationsSource @VisibleForTesting constructor(
         if (!uri.path.isNullOrEmpty() || !Features.StorageAccessFramework.isEnabled()) {
             return null
         }
-        resolverNotificationUri = Query.notificationUriFor(uri)
         return persistentStorageSetupIntent.value?.let {
             Schema.Notifications.Object(ctx.getString(R.string.no_stored_playlists_access), it)
         }
+    }
+
+    companion object {
+        private val ROOT_NOTIFICATION_URI = Query.notificationUriFor(Uri.EMPTY)
     }
 }

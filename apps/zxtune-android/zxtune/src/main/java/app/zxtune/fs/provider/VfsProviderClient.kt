@@ -74,7 +74,9 @@ class VfsProviderClient(ctx: Context) {
     fun subscribeForNotifications(
         uri: Uri, cb: (Schema.Notifications.Object?) -> Unit
     ): Releaseable = Query.notificationUriFor(uri).let { resolverUri ->
-        subscribeForChanges(resolverUri) {
+        // Notifications are propagated down-up, but since they sent to the root notifications
+        // url, subscribe to it
+        subscribeForChanges(Query.notificationUriFor(Uri.EMPTY)) {
             cb(getNotification(resolverUri))
         }.also {
             cb(getNotification(resolverUri))

@@ -28,6 +28,11 @@ class Provider @VisibleForTesting internal constructor(
         true
     } ?: false
 
+    override fun shutdown() {
+        notifications.shutdown()
+        super.shutdown()
+    }
+
     override fun query(
         uri: Uri,
         projection: Array<String>?,
