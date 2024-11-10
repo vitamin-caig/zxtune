@@ -8,13 +8,18 @@ import android.os.CancellationSignal
 import android.os.OperationCanceledException
 import androidx.tracing.trace
 import androidx.tracing.traceAsync
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 fun ContentResolver.observeChanges(
     uri: Uri, notifyForDescendants: Boolean = true
@@ -62,3 +67,18 @@ suspend fun <T> ContentResolver.query(
         }
     }
 }
+
+fun <T> flowValueOf(flow: Flow<T>, scope: CoroutineScope, initial: T) =
+    object : ReadOnlyProperty<Any, T> {
+        private var state: T = initial
+
+        init {
+            scope.launch {
+                flow.collect {
+                    state = it
+                }
+            }
+        }
+
+        override operator fun getValue(thisRef: Any, property: KProperty<*>) = state
+    }

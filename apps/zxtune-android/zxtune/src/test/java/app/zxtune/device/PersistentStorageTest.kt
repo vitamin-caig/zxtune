@@ -1,7 +1,6 @@
 package app.zxtune.device
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.os.storage.StorageManager
@@ -12,9 +11,11 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import app.zxtune.Features
+import app.zxtune.TestUtils.mockCollectorOf
 import app.zxtune.fs.local.Identifier
 import app.zxtune.fs.local.Utils
 import app.zxtune.preferences.ProviderClient
+import kotlinx.coroutines.test.TestScope
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -24,10 +25,13 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.stub
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implementation
@@ -41,6 +45,8 @@ class PersistentStorageTest {
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    private val scope = TestScope()
 
     private val SUBDIR = "subdir"
 
@@ -64,7 +70,9 @@ class PersistentStorageTest {
     }
     private lateinit var underTest: PersistentStorage
     private val stateObserver = mock<Observer<PersistentStorage.State>>()
-    private val intentObserver = mock<Observer<Intent?>>()
+    private val intentObserver by lazy {
+        scope.mockCollectorOf(underTest.setupIntent)
+    }
 
     @Before
     fun setUp() {
@@ -80,8 +88,8 @@ class PersistentStorageTest {
 
     @After
     fun tearDown() {
+        verifyNoMoreInteractions(intentObserver)
         underTest.state.removeObserver(stateObserver)
-        underTest.setupIntent.removeObserver(intentObserver)
         storage.deleteRecursively()
         reset(storageManager)
     }
@@ -102,8 +110,7 @@ class PersistentStorageTest {
             assertEquals(null, tryGet())
             assertEquals(File(subdir, "dir").toUri(), tryGet(createIfAbsent = true)?.uri)
         }
-        underTest.setupIntent.observeForever(intentObserver)
-        assertEquals(null, underTest.setupIntent.value)
+        verify(intentObserver).invoke(null)
     }
 
     @Test
@@ -121,8 +128,7 @@ class PersistentStorageTest {
             assertEquals(null, tryGet())
             assertEquals(File(storage, "ZXTune/dir").toUri(), tryGet(createIfAbsent = true)?.uri)
         }
-        underTest.setupIntent.observeForever(intentObserver)
-        assertEquals(null, underTest.setupIntent.value)
+        verify(intentObserver).invoke(null)
     }
 
     @Test
@@ -141,8 +147,7 @@ class PersistentStorageTest {
             assertEquals(subdir.toUri(), tryGet(createIfAbsent = true)?.uri)
             assertEquals(subdir.toUri(), tryGet()?.uri)
         }
-        underTest.setupIntent.observeForever(intentObserver)
-        assertEquals(null, underTest.setupIntent.value)
+        verify(intentObserver).invoke(null)
     }
 
     @Test
@@ -165,10 +170,7 @@ class PersistentStorageTest {
             // subdir does not exist, so its subdir cannot be created in RawDocumentFile
             assertEquals(null, tryGet(createIfAbsent = true)?.uri)
         }
-        underTest.setupIntent.observeForever(intentObserver)
-        requireNotNull(underTest.setupIntent.value).run {
-            assertEquals(Uri.EMPTY, data)
-        }
+        verify(intentObserver).invoke(argThat { data == Uri.EMPTY })
     }
 
     @Test
@@ -190,10 +192,7 @@ class PersistentStorageTest {
             assertEquals(null, tryGet())
             assertEquals(null, tryGet(createIfAbsent = true)?.uri)
         }
-        underTest.setupIntent.observeForever(intentObserver)
-        requireNotNull(underTest.setupIntent.value).run {
-            assertEquals(defaultLocation, data)
-        }
+        verify(intentObserver).invoke(argThat { data == defaultLocation })
     }
 
     @Test
@@ -216,8 +215,7 @@ class PersistentStorageTest {
             // use the same object in createDir
             assertEquals(storedLocation, tryGet(createIfAbsent = true)?.uri)
         }
-        underTest.setupIntent.observeForever(intentObserver)
-        assertEquals(null, underTest.setupIntent.value)
+        verify(intentObserver).invoke(null)
     }
 }
 

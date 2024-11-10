@@ -1,7 +1,6 @@
 package app.zxtune.device
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -12,7 +11,6 @@ import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.map
 import app.zxtune.Features
@@ -20,15 +18,17 @@ import app.zxtune.Logger
 import app.zxtune.MainApplication
 import app.zxtune.ResultActivity
 import app.zxtune.fs.local.Identifier
-import app.zxtune.fs.local.Utils.rootId
 import app.zxtune.fs.local.Utils.isMounted
+import app.zxtune.fs.local.Utils.rootId
 import app.zxtune.preferences.Preferences
 import app.zxtune.preferences.ProviderClient
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 import java.io.File
 
 // Location uses platform-dependent uri format to store (treeUri for SAF and file scheme for legacy)
 class PersistentStorage @VisibleForTesting constructor(
-    private val ctx: Context, private val client: ProviderClient
+    private val ctx: Context, private val client: ProviderClient,
 ) {
     interface State {
         val location: DocumentFile?
@@ -56,7 +56,7 @@ class PersistentStorage @VisibleForTesting constructor(
         }
     }
 
-    val state: LiveData<State> by lazy {
+    val state by lazy {
         client.getLive(PREFS_KEY, "").map { path ->
             if (Features.StorageAccessFramework.isEnabled()) {
                 SAFState(ctx, path)
@@ -66,17 +66,25 @@ class PersistentStorage @VisibleForTesting constructor(
         }
     }
 
-    val setupIntent: LiveData<Intent?> by lazy {
-        state.map {
-            if (true != it.location?.isDirectory) {
-                ResultActivity.createPersistentStorageLocationRequestIntent(
-                    ctx, it.defaultLocationHint
-                )
-            } else {
-                null
+    val setupIntent
+        get() = callbackFlow {
+            val observer = Observer<State> {
+                trySend(toSetupIntent(it))
+            }
+            state.observeForever(observer)
+            awaitClose {
+                state.removeObserver(observer)
             }
         }
+
+    private fun toSetupIntent(state: State) = if (true != state.location?.isDirectory) {
+        ResultActivity.createPersistentStorageLocationRequestIntent(
+            ctx, state.defaultLocationHint
+        )
+    } else {
+        null
     }
+
 
     fun subdirectory(name: String, lifecycleOwner: LifecycleOwner? = null): Subdirectory =
         object : Subdirectory {
