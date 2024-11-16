@@ -71,19 +71,17 @@ class VfsProviderClient(ctx: Context) {
     fun search(uri: Uri, query: String, cb: ListingCallback, signal: CancellationSignal? = null) =
         queryListing(Query.searchUriFor(uri, query), cb, signal)
 
+    // Notifications are propagated down-up, but since they sent to the root notifications
+    // url, subscribe to it
     fun subscribeForNotifications(
         uri: Uri, cb: (Schema.Notifications.Object?) -> Unit
-    ): Releaseable = Query.notificationUriFor(uri).let { resolverUri ->
-        // Notifications are propagated down-up, but since they sent to the root notifications
-        // url, subscribe to it
-        subscribeForChanges(Query.notificationUriFor(Uri.EMPTY)) {
-            cb(getNotification(resolverUri))
-        }.also {
-            cb(getNotification(resolverUri))
-        }
+    ) = subscribeForChanges(Query.notificationUriFor(Uri.EMPTY)) {
+        cb(getNotification(uri))
+    }.also {
+        cb(getNotification(uri))
     }
 
-    private fun getNotification(resolverUri: Uri) = query(resolverUri)?.use {
+    fun getNotification(uri: Uri) = query(Query.notificationUriFor(uri))?.use {
         getNotification(it)
     }
 

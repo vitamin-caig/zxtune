@@ -6,26 +6,21 @@ import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import app.zxtune.R
+import app.zxtune.ui.utils.FragmentParcelableProperty
 
 class PersistentStorageSetupFragment : DialogFragment() {
+    private var action by FragmentParcelableProperty<Intent>()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
         AlertDialog.Builder(requireContext())
             .setPositiveButton(R.string.no_stored_playlists_access) { _, _ ->
                 dismiss()
-                val action = requireNotNull(arguments?.getParcelable<Intent>(TAG_ACTION))
                 startActivity(action)
-            }
-            .create()
+            }.create()
 
     companion object {
-        private const val TAG_ACTION = "action"
-
-        @JvmStatic
         fun createInstance(action: Intent) = PersistentStorageSetupFragment().apply {
-            arguments = Bundle().apply {
-                putParcelable(TAG_ACTION, action)
-            }
+            this.action = action
         }
     }
 }
