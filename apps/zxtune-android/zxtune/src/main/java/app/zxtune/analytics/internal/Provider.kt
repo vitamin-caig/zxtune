@@ -32,7 +32,9 @@ class Provider : ContentProvider() {
         val auth = Auth.getUserInfo(ctx)
         Api.initialize(auth)
         sink = Dispatcher().apply {
-            NetworkManager.from(appCtx).networkAvailable.observeForever(this::onNetworkChange)
+            scope.launch {
+                NetworkManager.from(appCtx).networkAvailable.collect(this@apply::onNetworkChange)
+            }
         }
 
         sendSystemInfoEvent()

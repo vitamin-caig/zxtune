@@ -10,6 +10,7 @@ import app.zxtune.TestUtils.flushEvents
 import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.VfsObject
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -41,7 +42,7 @@ class NotificationsSourceTest {
     private val context = mock<Context> {
         on { contentResolver } doReturn resolver
     }
-    private lateinit var networkState: MutableSharedFlow<Boolean>
+    private lateinit var networkState: MutableStateFlow<Boolean>
     private lateinit var storageSetupIntent: MutableSharedFlow<Intent?>
     private lateinit var underTest: NotificationsSource
 
@@ -54,7 +55,7 @@ class NotificationsSourceTest {
     @Before
     fun setUp() {
         clearInvocations(context, resolver)
-        networkState = MutableSharedFlow(replay = 1)
+        networkState = MutableStateFlow(true)
         storageSetupIntent = MutableSharedFlow(replay = 1)
         underTest = NotificationsSource(context, networkState, storageSetupIntent, dispatcher)
     }
@@ -79,11 +80,11 @@ class NotificationsSourceTest {
         val uri1 = Uri.parse("radio:/")
         val uri2 = Uri.parse("online:/")
         assertEquals(null, getNotification(uri1))
-        networkState.emit(true)
+        networkState.value = true
         flushEvents()
         assertEquals(null, getNotification(uri1))
 
-        networkState.emit(false)
+        networkState.value = false
         flushEvents()
         requireNotNull(getNotification(uri1)).run {
             assertEquals(networkNotificationMessage, message)
@@ -94,7 +95,7 @@ class NotificationsSourceTest {
             assertEquals(Settings.ACTION_WIRELESS_SETTINGS, action!!.action)
         }
 
-        networkState.emit(true)
+        networkState.value = true
         flushEvents()
         assertEquals(null, getNotification(uri2))
 

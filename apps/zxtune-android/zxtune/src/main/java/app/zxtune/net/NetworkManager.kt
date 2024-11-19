@@ -10,31 +10,50 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.LiveData
 import androidx.startup.AppInitializer
 import androidx.startup.Initializer
 import app.zxtune.Logger
 import app.zxtune.Releaseable
-import app.zxtune.ReleaseableStub
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.stateIn
 
 private val LOG = Logger(NetworkManager::class.java.name)
 
-class NetworkManager @VisibleForTesting constructor(src: NetworkStateSource) {
+class NetworkManager @VisibleForTesting constructor(
+    src: NetworkStateSource, dispatcher: CoroutineDispatcher
+) {
 
-    val networkAvailable: LiveData<Boolean> = ConnectionState(src)
+    val networkAvailable = callbackFlow {
+        LOG.d { "Start monitoring" }
+        val handle = src.monitorChanges {
+            LOG.d { "NetworkState=${it}" }
+            trySend(it)
+        }
+        awaitClose {
+            handle.release()
+        }
+        LOG.d { "End monitoring" }
+    }.stateIn(CoroutineScope(dispatcher), SharingStarted.Eagerly, src.isNetworkAvailable())
 
     init {
         LOG.d { "Created" }
     }
 
     companion object {
-        @JvmStatic
         fun from(ctx: Context) =
             AppInitializer.getInstance(ctx).initializeComponent(Factory::class.java)
     }
 
     class Factory : Initializer<NetworkManager> {
-        override fun create(ctx: Context) = NetworkManager(NetworkStateSource.create(ctx))
+        override fun create(ctx: Context) = NetworkManager(
+            NetworkStateSource.create(ctx), Dispatchers.Main.immediate
+        )
+
         override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
     }
 }
@@ -52,30 +71,6 @@ interface NetworkStateSource {
         } else {
             NetworkStatePre24(ctx)
         }
-    }
-}
-
-private class ConnectionState(private val source: NetworkStateSource) : LiveData<Boolean>() {
-
-    private var subscription: Releaseable = ReleaseableStub
-
-    override fun getValue() = if (isUpdating()) {
-        super.getValue()
-    } else {
-        source.isNetworkAvailable()
-    }
-
-    private fun isUpdating() = hasActiveObservers()
-
-    override fun onActive() {
-        subscription = source.monitorChanges(this::update).also { subscription.release() }
-        value = source.isNetworkAvailable()
-    }
-
-    override fun onInactive() = subscription.also { subscription = ReleaseableStub }.release()
-
-    private fun update(newState: Boolean) = postValue(newState).also {
-        LOG.d { "NetworkState=${newState}" }
     }
 }
 

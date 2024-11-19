@@ -6,7 +6,6 @@ import android.database.MatrixCursor
 import android.net.Uri
 import android.provider.Settings
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.asFlow
 import app.zxtune.Features
 import app.zxtune.R
 import app.zxtune.device.PersistentStorage
@@ -20,25 +19,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 
 internal class NotificationsSource @VisibleForTesting constructor(
     private val ctx: Context,
-    networkStateFlow: Flow<Boolean>,
+    private val networkState: StateFlow<Boolean>,
     persistentStorageSetupIntentFlow: Flow<Intent?>,
     dispatcher: CoroutineDispatcher,
 ) {
     private val scope = CoroutineScope(dispatcher)
-    private val networkState by flowValueOf(networkStateFlow, scope, true)
     private val persistentStorageSetupIntent by flowValueOf(
         persistentStorageSetupIntentFlow, scope, null
     )
 
     init {
         @OptIn(FlowPreview::class) scope.launch {
-            merge(networkStateFlow, persistentStorageSetupIntentFlow).debounce(1000).collect {
+            merge(networkState, persistentStorageSetupIntentFlow).debounce(1000).collect {
                 ctx.contentResolver?.notifyChange(ROOT_NOTIFICATION_URI, null)
             }
         }
@@ -46,7 +45,7 @@ internal class NotificationsSource @VisibleForTesting constructor(
 
     constructor(ctx: Context) : this(
         ctx,
-        NetworkManager.from(ctx).networkAvailable.asFlow(),
+        NetworkManager.from(ctx).networkAvailable,
         PersistentStorage.instance.setupIntent,
         Dispatchers.Main,
     )
@@ -70,7 +69,7 @@ internal class NotificationsSource @VisibleForTesting constructor(
         }
     }
 
-    private fun getNetworkNotification() = if (!networkState) {
+    private fun getNetworkNotification() = if (!networkState.value) {
         Schema.Notifications.Object(
             ctx.getString(R.string.network_inaccessible), Intent(Settings.ACTION_WIRELESS_SETTINGS)
         )

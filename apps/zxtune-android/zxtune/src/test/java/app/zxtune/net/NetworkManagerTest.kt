@@ -3,6 +3,11 @@ package app.zxtune.net
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import app.zxtune.Releaseable
+import app.zxtune.TestUtils.flushEvents
+import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -17,11 +22,10 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class NetworkManagerTest {
 
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
+    val dispatcher = StandardTestDispatcher()
 
     @Test
-    fun `ConnectionState workflow`() {
+    fun `ConnectionState workflow`() = runTest(dispatcher) {
         var networkState = false
         lateinit var callback: NetworkStateCallback
         val handle = mock<Releaseable>()
@@ -34,42 +38,28 @@ class NetworkManagerTest {
                 handle
             }
         }
-        val observer = mock<Observer<Boolean>>()
-        with(NetworkManager(source).networkAvailable) {
-            // simple call
+        val state = NetworkManager(source, dispatcher).networkAvailable
+        with(state) {
+            // initial state
             networkState = false
             assertEquals(false, value)
             networkState = true
-            assertEquals(true, value)
-            // subscription
-            networkState = false
-            observeForever(observer)
             assertEquals(false, value)
-            networkState = true
-            assertEquals(false, value) // not synced
+            // notification
+            flushEvents()
             callback(true)
+            flushEvents()
             assertEquals(true, value)
-            networkState = false
-            assertEquals(true, value) // not synced
             callback(false)
-            assertEquals(false, value) // not synced
-            removeObserver(observer)
-            // simple calls
-            networkState = true
-            assertEquals(true, value)
+            flushEvents()
+            assertEquals(false, value)
         }
 
-        inOrder(source, handle, observer) {
-            // simple call
-            verify(source, times(2)).isNetworkAvailable()
-            // subsciprion
+        inOrder(source, handle) {
+            // initial state
+            verify(source).isNetworkAvailable()
+            // notification
             verify(source).monitorChanges(callback)
-            verify(source).isNetworkAvailable()
-            verify(observer).onChanged(true)
-            verify(observer).onChanged(false)
-            verify(handle).release()
-            // simple call
-            verify(source).isNetworkAvailable()
         }
     }
 }

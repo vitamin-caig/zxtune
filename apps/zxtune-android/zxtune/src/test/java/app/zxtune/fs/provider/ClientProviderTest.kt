@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import app.zxtune.Features
 import app.zxtune.TestUtils.flushEvents
 import app.zxtune.TestUtils.mockCollectorOf
@@ -18,16 +16,21 @@ import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.VfsFile
 import app.zxtune.fs.VfsObject
 import app.zxtune.net.NetworkManager
+import app.zxtune.ui.MainDispatcherRule
 import app.zxtune.utils.ProgressCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
@@ -56,6 +59,12 @@ import java.io.IOException
     shadows = [ShadowNetworkManager::class], sdk = [Features.StorageAccessFramework.REQUIRED_SDK]
 )
 class ClientProviderTest {
+
+    private val dispatcher = StandardTestDispatcher()
+
+    // to inject to NotificationSource
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private val fastDirContent = Array(10) { TestDir(2 + it) }
     private val fastDir = object : TestDir(1) {
@@ -273,7 +282,7 @@ class ClientProviderTest {
                 }
             }
         }
-        runTest {
+        runTest(dispatcher) {
             val mockNotifications = mockCollectorOf(underTest.observeNotifications(networkUri))
             inOrder(mockNotifications) {
                 verify(mockNotifications).invoke(null)
@@ -396,7 +405,7 @@ class ClientProviderTest {
 class ShadowNetworkManager {
 
     companion object {
-        val state = MutableLiveData<Boolean>()
+        val state = MutableStateFlow(true)
 
         @JvmStatic
         @Implementation
@@ -404,7 +413,7 @@ class ShadowNetworkManager {
 
         @JvmStatic
         @get:Implementation
-        val networkAvailable: LiveData<Boolean>
+        val networkAvailable: StateFlow<Boolean>
             get() = state
     }
 }
