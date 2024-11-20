@@ -239,7 +239,7 @@ inline void Music_Emu::remute_voices()              { mute_voices( mute_mask_ );
 inline void Music_Emu::ignore_silence( bool b )     { ignore_silence_ = b; }
 inline blargg_err_t Music_Emu::start_track_( int track )
 {
-	if ( type()->track_count == 1 )
+	if ( type()->track_count == 1 && track > 0)
 		return load_mem_( track_pos( track ), track_size( track ) );
 	return 0;
 }
