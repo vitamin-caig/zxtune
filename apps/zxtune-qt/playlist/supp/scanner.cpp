@@ -8,24 +8,25 @@
  *
  **/
 
-// local includes
-#include "scanner.h"
-#include "playlist/io/import.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-// library includes
-#include <async/coroutine.h>
-#include <debug/log.h>
-#include <time/elapsed.h>
-// std includes
-#include <memory>
-#include <mutex>
-// qt includes
+#include "apps/zxtune-qt/playlist/supp/scanner.h"
+
+#include "apps/zxtune-qt/playlist/io/import.h"
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "async/coroutine.h"
+#include "debug/log.h"
+#include "time/elapsed.h"
+
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <QtCore/QDirIterator>
 #include <QtCore/QStringList>
+
+#include <memory>
+#include <mutex>
 #include <utility>
 
 namespace

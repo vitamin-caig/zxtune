@@ -8,17 +8,17 @@
  *
  **/
 
-// local includes
 #include "binary/format/grammar.h"
-// common includes
-#include <make_ptr.h>
-#include <pointers.h>
-// std includes
+
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
 #include <cctype>
 
 namespace Binary::FormatDSL
 {
-  const auto HEX_TOKENS = "xX0123456789abcdefABCDEF"_sv;
+  const auto HEX_TOKENS = "xX0123456789abcdefABCDEF"sv;
   const auto HEXDIGITS = HEX_TOKENS.substr(2);
   const auto DIGITS = HEXDIGITS.substr(0, 10);
 
@@ -27,7 +27,7 @@ namespace Binary::FormatDSL
   public:
     LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      static const auto SPACES = " \n\t\r"_sv;
+      static const auto SPACES = " \n\t\r"sv;
       return lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(SPACES) ? LexicalAnalysis::INVALID_TOKEN
                                                                                : DELIMITER;
     }
@@ -146,7 +146,7 @@ namespace Binary::FormatDSL
   public:
     LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      static const Char OPERATIONS_STR[] = {RANGE_TEXT,  CONJUNCTION_TEXT, DISJUNCTION_TEXT, QUANTOR_BEGIN,
+      static const char OPERATIONS_STR[] = {RANGE_TEXT,  CONJUNCTION_TEXT, DISJUNCTION_TEXT, QUANTOR_BEGIN,
                                             QUANTOR_END, GROUP_BEGIN,      GROUP_END};
       static const StringView OPERATIONS(OPERATIONS_STR, sizeof(OPERATIONS_STR));
       return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(OPERATIONS) ? LexicalAnalysis::INVALID_TOKEN

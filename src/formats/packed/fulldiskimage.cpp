@@ -8,18 +8,17 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <cassert>
 #include <cstring>
 #include <map>
@@ -202,13 +201,13 @@ namespace Formats::Packed
       std::size_t UsedSize = 0;
     };
 
-    const Char DESCRIPTION[] = "FDI (Full Disk Image)";
+    const auto DESCRIPTION = "FDI (Full Disk Image)"sv;
     const auto FORMAT_PATTERN =
         "'F'D'I"     // uint8_t ID[3]
         "%0000000x"  // uint8_t ReadOnly;
         "28-64 00"   // uint16_t Cylinders;
         "01-02 00"   // uint16_t Sides;
-        ""_sv;
+        ""sv;
   }  // namespace FullDiskImage
 
   class FullDiskImageDecoder : public Decoder
@@ -218,7 +217,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(FullDiskImage::FORMAT_PATTERN))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return FullDiskImage::DESCRIPTION;
     }

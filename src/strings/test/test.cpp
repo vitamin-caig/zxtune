@@ -8,20 +8,22 @@
  *
  **/
 
-#include <strings/casing.h>
-#include <strings/conversion.h>
-#include <strings/encoding.h>
-#include <strings/fields.h>
-#include <strings/fields_filter.h>
-#include <strings/format.h>
-#include <strings/join.h>
-#include <strings/map.h>
-#include <strings/optimize.h>
-#include <strings/prefixed_index.h>
-#include <strings/sanitize.h>
-#include <strings/split.h>
-#include <strings/template.h>
-#include <strings/trim.h>
+#include "strings/casing.h"
+#include "strings/conversion.h"
+#include "strings/encoding.h"
+#include "strings/fields.h"
+#include "strings/fields_filter.h"
+#include "strings/format.h"
+#include "strings/join.h"
+#include "strings/map.h"
+#include "strings/optimize.h"
+#include "strings/prefixed_index.h"
+#include "strings/sanitize.h"
+#include "strings/split.h"
+#include "strings/template.h"
+#include "strings/trim.h"
+
+#include "string_view.h"
 
 #include <iostream>
 
@@ -186,8 +188,8 @@ namespace
     {
       constexpr auto singleChar = ' ';
       constexpr auto charsetArray = " \t\n";
-      constexpr auto charsetSv = "\t\n "_sv;
-      constexpr auto pred = [](Char c) { return c < ' '; };
+      constexpr auto charsetSv = "\t\n "sv;
+      constexpr auto pred = [](auto c) { return c < ' '; };
 
       const String title(Title);
       TestEquals(CharRef, Strings::Trim(Input, singleChar), "Trim single char on " + title);
@@ -246,7 +248,7 @@ namespace
   template<class T>
   void TestJoin(const String& msg)
   {
-    const auto delimiter = ","_sv;
+    const auto delimiter = ","sv;
     std::vector<T> data;
     TestEquals("", Strings::Join(data, delimiter), "Join empty vector of " + msg);
     data.emplace_back("one");
@@ -428,13 +430,13 @@ int main()
     std::cout << "---- Test for split ----" << std::endl;
     {
       TestSplit("Empty", "", ' ', {""});
-      TestSplit("OnlyDelimiter", ",;", ";,"_sv, {""});
+      TestSplit("OnlyDelimiter", ",;", ";,"sv, {""});
       TestSplit("Single", "single", ',', {"single"});
       TestSplit("Double", "single,,double", ',', {"single", "double"});
       TestSplit("Prefix", ",,str", ',', {"str"});
       TestSplit("Suffix", "str,,", ',', {"str"});
-      TestSplit("MultiDelimiters", ":one,two/three;four.", ";/,.:"_sv, {"one", "two", "three", "four"});
-      TestSplit("Predicate", "a1bc2;d5", [](Char c) { return !std::isalpha(c); }, {"a", "bc", "d"});
+      TestSplit("MultiDelimiters", ":one,two/three;four.", ";/,.:"sv, {"one", "two", "three", "four"});
+      TestSplit("Predicate", "a1bc2;d5", [](auto c) { return !std::isalpha(c); }, {"a", "bc", "d"});
     }
     std::cout << "---- Test for join ----" << std::endl;
     {

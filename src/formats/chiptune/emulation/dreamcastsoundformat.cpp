@@ -8,23 +8,22 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/dreamcastsoundformat.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
+
+#include "binary/format_factories.h"
+
+#include "make_ptr.h"
 
 namespace Formats::Chiptune
 {
   namespace DreamcastSoundFormat
   {
-    const Char DESCRIPTION[] = "Dreamcast Sound Format";
+    const auto DESCRIPTION = "Dreamcast Sound Format"sv;
 
     const auto FORMAT =
         "'P'S'F"
         "12"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -33,7 +32,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

@@ -8,21 +8,21 @@
  *
  **/
 
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/crc.h>
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <formats/multitrack.h>
-#include <strings/array.h>
-#include <strings/conversion.h>
-// std includes
+#include "binary/container_base.h"
+#include "binary/crc.h"
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "formats/multitrack.h"
+#include "strings/array.h"
+#include "strings/conversion.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
 #include <array>
 #include <map>
 #include <utility>
@@ -41,15 +41,15 @@ namespace Formats::Multitrack
         "'T|'M|'T|'N|'F|'E|'S|'P|'S|'I|'S|'A|'V|'M"
         "'H|'E|'E|'G|'S|'R|'C|'E|'T|'T|'I|'Y|'O|'E"
         "'O|' |' |'S|'O|'E|' |' |'P|' |'C|'E|'X|' "
-        ""_sv;
+        ""sv;
 
-    const Char DESCRIPTION[] = "Slight Atari Player Sound Format";
+    const auto DESCRIPTION = "Slight Atari Player Sound Format"sv;
 
     using TextSignatureType = std::array<uint8_t, 5>;
 
     const TextSignatureType TEXT_SIGNATURE = {{'S', 'A', 'P', 0x0d, 0x0a}};
-    const auto SONGS = "SONGS"_sv;
-    const auto DEFSONG = "DEFSONG"_sv;
+    const auto SONGS = "SONGS"sv;
+    const auto DEFSONG = "DEFSONG"sv;
 
     using BinarySignatureType = std::array<uint8_t, 2>;
     const BinarySignatureType BINARY_SIGNATURE = {{0xff, 0xff}};
@@ -91,7 +91,7 @@ namespace Formats::Multitrack
         else
         {
           // TODO: Concat(StringView...)
-          Lines.emplace_back(String{name} + " " + value);
+          Lines.emplace_back(name + " "s + value);
         }
       }
 
@@ -164,7 +164,7 @@ namespace Formats::Multitrack
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

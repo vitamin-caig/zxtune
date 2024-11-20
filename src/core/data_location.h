@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <analysis/path.h>
-#include <binary/container.h>
+#include "analysis/path.h"
+#include "binary/container.h"
 
 namespace ZXTune
 {

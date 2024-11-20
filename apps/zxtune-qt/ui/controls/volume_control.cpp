@@ -8,15 +8,15 @@
  *
  **/
 
-// local includes
-#include "volume_control.h"
-#include "supp/playback_supp.h"
-#include "ui/styles.h"
+#include "apps/zxtune-qt/ui/controls/volume_control.h"
+
+#include "apps/zxtune-qt/supp/playback_supp.h"
+#include "apps/zxtune-qt/ui/styles.h"
 #include "volume_control.ui.h"
-// common includes
-#include <contract.h>
-#include <error.h>
-// std includes
+
+#include "contract.h"
+#include "error.h"
+
 #include <ctime>
 #include <numeric>
 #include <utility>

@@ -8,20 +8,21 @@
  *
  **/
 
-// local includes
 // Used information from http://sourceforge.net/p/predef/wiki/Home/
 #include "platform/version/src/arch.h"
 #include "platform/version/src/os.h"
 #include "platform/version/src/toolset.h"
-// library includes
-#include <platform/version/api.h>
-#include <strings/format.h>
+
+#include "platform/version/api.h"
+#include "strings/format.h"
+
+#include "string_view.h"
 
 namespace Platform::Version
 {
   String GetProgramTitle()
   {
-    return PROGRAM_NAME;
+    return String{PROGRAM_NAME};
   }
 
   String GetProgramVersion()
@@ -68,7 +69,7 @@ namespace Platform::Version
   String GetProgramVersionString()
   {
     // 1- program name, 2- program version, 3- build date 4- platform, 5- architecture, 6- architecture version
-    constexpr auto PROGRAM_VERSION_STRING = "{} {} {} {}-{} {}"_sv;
+    constexpr auto PROGRAM_VERSION_STRING = "{} {} {} {}-{} {}"sv;
     return Strings::Format(PROGRAM_VERSION_STRING, GetProgramTitle(), GetProgramVersion(), GetBuildDate(),
                            GetBuildPlatform(), GetBuildArchitecture(), GetBuildArchitectureVersion());
   }

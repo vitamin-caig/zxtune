@@ -8,21 +8,21 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/digital/sampletracker.h"
+
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/digital/digital_detail.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/optimize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/optimize.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <array>
 #include <cstring>
 
@@ -32,7 +32,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SampleTracker");
 
-    const Char DESCRIPTION[] = "Sample Tracker v2.x";
+    const auto DESCRIPTION = "Sample Tracker v2.x"sv;
 
     // const std::size_t MAX_MODULE_SIZE = 0x87a0;
     const std::size_t MAX_POSITIONS_COUNT = 0x40;
@@ -312,7 +312,7 @@ namespace Formats::Chiptune
         "?{126}"     // other ptrs
         "20-7f{10}"  // title
         "%xxxxxxx0"  // doubled last position
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -321,7 +321,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

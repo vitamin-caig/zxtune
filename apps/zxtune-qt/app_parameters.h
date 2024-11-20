@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <parameters/identifier.h>
-#include <parameters/types.h>
+#include "parameters/identifier.h"
+#include "parameters/types.h"
 
 namespace Parameters::ZXTuneQT
 {

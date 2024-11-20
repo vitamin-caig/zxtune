@@ -8,23 +8,23 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/fm/tfd.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <strings/sanitize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "strings/sanitize.h"
+
+#include "make_ptr.h"
+
 #include <array>
 
 namespace Formats::Chiptune
 {
   namespace TFD
   {
-    const Char DESCRIPTION[] = "TurboFM Dump";
+    const auto DESCRIPTION = "TurboFM Dump"sv;
 
     enum
     {
@@ -69,7 +69,7 @@ namespace Formats::Chiptune
       return 0 == std::memcmp(rawData.Start(), SIGNATURE.data(), SIGNATURE.size());
     }
 
-    const auto FORMAT = "'T'F'M'D"_sv;
+    const auto FORMAT = "'T'F'M'D"sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -78,7 +78,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

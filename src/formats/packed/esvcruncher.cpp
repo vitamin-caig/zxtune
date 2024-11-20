@@ -10,17 +10,16 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-#include <math/numeric.h>
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
 
 namespace Formats::Packed
 {
@@ -28,7 +27,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "ESV Cruncher";
+    const auto DESCRIPTION = "ESV Cruncher"sv;
     const auto DEPACKER_PATTERN =
         //$=6978
         // depack to 9900/61a8
@@ -142,7 +141,7 @@ namespace Formats::Packed
                   "d9"      // exx
                   "c9"      // ret
                   */
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {
@@ -405,7 +404,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(ESVCruncher::DEPACKER_PATTERN, ESVCruncher::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return ESVCruncher::DESCRIPTION;
     }

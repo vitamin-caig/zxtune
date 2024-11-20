@@ -8,19 +8,19 @@
  *
  **/
 
-// local includes
-#include "filedialog.h"
-#include "supp/options.h"
-#include "ui/state.h"
-#include "ui/utils.h"
-// qt includes
+#include "apps/zxtune-qt/ui/tools/filedialog.h"
+
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/state.h"
+#include "apps/zxtune-qt/ui/utils.h"
+
 #include <QtWidgets/QFileDialog>
-// std includes
+
 #include <utility>
 
 namespace
 {
-  const Char FILEDIALOG_NAMESPACE[] = {'F', 'i', 'l', 'e', 'D', 'i', 'a', 'l', 'o', 'g', '\0'};
+  const auto FILEDIALOG_NAMESPACE = "FileDialog"sv;
 
   int GetFilterIndex(const QStringList& filters, const QString& filter)
   {

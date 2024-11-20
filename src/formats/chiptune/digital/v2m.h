@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
 #include "formats/chiptune/builder_meta.h"
-// library includes
-#include <formats/chiptune.h>
-#include <time/duration.h>
+
+#include "formats/chiptune.h"
+#include "time/duration.h"
 
 namespace Formats::Chiptune::V2m
 {

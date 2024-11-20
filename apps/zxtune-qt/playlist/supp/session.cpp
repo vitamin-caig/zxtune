@@ -8,23 +8,23 @@
  *
  **/
 
-// local includes
-#include "session.h"
-#include "container.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-// std includes
-#include <algorithm>
-#include <list>
-// qt includes
+#include "apps/zxtune-qt/playlist/supp/session.h"
+
+#include "apps/zxtune-qt/playlist/supp/container.h"
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "debug/log.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QStringList>
+
+#include <algorithm>
+#include <list>
 
 namespace
 {

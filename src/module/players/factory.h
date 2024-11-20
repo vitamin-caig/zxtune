@@ -10,10 +10,9 @@
 
 #pragma once
 
-// library includes
-#include <binary/container.h>
-#include <module/holder.h>
-#include <parameters/container.h>
+#include "binary/container.h"
+#include "module/holder.h"
+#include "parameters/container.h"
 
 namespace Module
 {

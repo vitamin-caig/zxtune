@@ -10,10 +10,9 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// qt includes
 #include <QtCore/QStringList>
+
+#include <memory>
 
 namespace UI
 {

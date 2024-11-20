@@ -8,34 +8,34 @@
  *
  **/
 
-// local includes
-#include "container_view.h"
+#include "apps/zxtune-qt/playlist/ui/container_view.h"
+
+#include "apps/zxtune-qt/playlist/io/export.h"
+#include "apps/zxtune-qt/playlist/parameters.h"
+#include "apps/zxtune-qt/playlist/supp/container.h"
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+#include "apps/zxtune-qt/playlist/supp/scanner.h"
+#include "apps/zxtune-qt/playlist/supp/session.h"
+#include "apps/zxtune-qt/playlist/ui/playlist_view.h"
+#include "apps/zxtune-qt/ui/tools/filedialog.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "container_view.ui.h"
-#include "playlist/io/export.h"
-#include "playlist/parameters.h"
-#include "playlist/supp/container.h"
-#include "playlist/supp/controller.h"
-#include "playlist/supp/scanner.h"
-#include "playlist/supp/session.h"
-#include "playlist_view.h"
-#include "ui/tools/filedialog.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-// std includes
-#include <cassert>
-#include <utility>
-// qt includes
+
+#include "debug/log.h"
+
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
+
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
 #include <QtCore/QTimer>
 #include <QtGui/QContextMenuEvent>
 #include <QtWidgets/QMenu>
+
+#include <cassert>
+#include <utility>
 
 namespace
 {

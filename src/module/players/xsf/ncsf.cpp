@@ -8,28 +8,28 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/ncsf.h"
+
+#include "formats/chiptune/emulation/nitrocomposersoundformat.h"
+#include "module/players/platforms.h"
+#include "module/players/streaming.h"
 #include "module/players/xsf/memory_region.h"
 #include "module/players/xsf/xsf.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/compression/zlib_container.h>
-#include <debug/log.h>
-#include <formats/chiptune/emulation/nitrocomposersoundformat.h>
-#include <math/bitops.h>
-#include <module/attributes.h>
-#include <module/players/platforms.h>
-#include <module/players/streaming.h>
-#include <sound/resampler.h>
-// std includes
+
+#include "binary/compression/zlib_container.h"
+#include "debug/log.h"
+#include "math/bitops.h"
+#include "module/attributes.h"
+#include "sound/resampler.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+
+#include "3rdparty/sseqplayer/Player.h"
+#include "3rdparty/sseqplayer/SDAT.h"
+
 #include <list>
 #include <memory>
-// 3rdparty includes
-#include <3rdparty/sseqplayer/Player.h>
-#include <3rdparty/sseqplayer/SDAT.h>
 
 namespace Module::NCSF
 {

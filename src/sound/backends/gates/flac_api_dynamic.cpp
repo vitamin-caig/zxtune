@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/flac_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
+
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Sound::Flac
 {
@@ -25,17 +25,17 @@ namespace Sound::Flac
 
     StringView Base() const override
     {
-      return "FLAC"_sv;
+      return "FLAC"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libFLAC.so.7"_sv, "libFLAC.so.8"_sv};
+      return {"libFLAC.so.7"sv, "libFLAC.so.8"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libFLAC.dll"_sv};
+      return {"libFLAC.dll"sv};
     }
   };
 
@@ -53,7 +53,7 @@ namespace Sound::Flac
       Debug::Log("Sound::Backend::Flac", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     FLAC__StreamEncoder* FLAC__stream_encoder_new() override
     {
@@ -174,7 +174,7 @@ namespace Sound::Flac
       return func(encoder);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

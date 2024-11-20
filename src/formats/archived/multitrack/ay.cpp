@@ -8,16 +8,18 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/format_factories.h>
-#include <formats/archived/decoders.h>
-#include <formats/archived/multitrack/filename.h>
-#include <formats/chiptune/emulation/ay.h>
-#include <strings/prefixed_index.h>
-// std includes
+#include "formats/chiptune/emulation/ay.h"
+
+#include "formats/archived/decoders.h"
+#include "formats/archived/multitrack/filename.h"
+
+#include "binary/container_base.h"
+#include "binary/format_factories.h"
+#include "strings/prefixed_index.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <utility>
 
@@ -77,7 +79,7 @@ namespace Formats::Archived
 
       File::Ptr FindFile(StringView name) const override
       {
-        const auto rawName = Strings::PrefixedIndex::Parse("@"_sv, name);
+        const auto rawName = Strings::PrefixedIndex::Parse("@"sv, name);
         const auto ayIndex = MultitrackArchives::ParseFilename(name);
         if (!rawName.IsValid() && !ayIndex)
         {
@@ -105,11 +107,11 @@ namespace Formats::Archived
       }
     };
 
-    const Char DESCRIPTION[] = "Multi-AY/EMUL";
+    const auto DESCRIPTION = "Multi-AY/EMUL"sv;
     const auto HEADER_FORMAT =
         "'Z'X'A'Y"  // uint8_t Signature[4];
         "'E'M'U'L"  // only one type is supported now
-        ""_sv;
+        ""sv;
   }  // namespace MultiAY
 
   class MultiAYDecoder : public Decoder
@@ -119,7 +121,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(MultiAY::HEADER_FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return MultiAY::DESCRIPTION;
     }

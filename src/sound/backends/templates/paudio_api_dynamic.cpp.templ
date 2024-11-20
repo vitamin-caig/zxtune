@@ -8,14 +8,14 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/paudio_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
-// platform-dependent includes
+
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <pulse/error.h>
 
 namespace Sound::PulseAudio
@@ -27,12 +27,12 @@ namespace Sound::PulseAudio
 
     StringView Base() const override
     {
-      return "pulse-simple"_sv;
+      return "pulse-simple"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libpulse-simple.so.0"_sv, "libpulse-simple.so.0.1"_sv, "libpulse-simple.so.0.1.0"_sv};
+      return {"libpulse-simple.so.0"sv, "libpulse-simple.so.0.1"sv, "libpulse-simple.so.0.1.0"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override

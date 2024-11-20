@@ -10,11 +10,10 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-dependent includes
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
+
+#include <memory>
 
 namespace Sound::OpenAl
 {
@@ -24,7 +23,7 @@ namespace Sound::OpenAl
     using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
-// clang-format off
+    // clang-format off
 
     virtual ALCdevice* alcOpenDevice(const ALCchar* devicename) = 0;
     virtual ALCboolean alcCloseDevice(ALCdevice* device) = 0;
@@ -48,9 +47,9 @@ namespace Sound::OpenAl
     virtual const ALchar* alGetString(ALenum param) = 0;
     virtual const ALCchar* alcGetString(ALCdevice* device, ALenum param) = 0;
     virtual ALenum alGetError() = 0;
-// clang-format on
+    // clang-format on
   };
 
-  //throw exception in case of error
+  // throw exception in case of error
   Api::Ptr LoadDynamicApi();
 }  // namespace Sound::OpenAl

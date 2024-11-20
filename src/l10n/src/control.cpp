@@ -8,12 +8,14 @@
  *
  **/
 
-// library includes
-#include <l10n/api.h>
-#include <l10n/control.h>
-#include <resource/api.h>
-#include <strings/split.h>
-// std includes
+#include "l10n/control.h"
+
+#include "l10n/api.h"
+#include "resource/api.h"
+#include "strings/split.h"
+
+#include "string_view.h"
+
 #include <vector>
 
 namespace
@@ -29,7 +31,7 @@ namespace
 
   bool ParseFilename(StringView path, L10n::Translation& trans)
   {
-    const auto& elements = Strings::Split(path, R"(/\)"_sv);
+    const auto& elements = Strings::Split(path, R"(/\)"sv);
     if (elements.size() == PATH_ELEMENTS)
     {
       const auto& filename = elements[FILENAME_POS];

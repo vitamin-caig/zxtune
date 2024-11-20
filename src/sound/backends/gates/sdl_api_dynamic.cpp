@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/sdl_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
+
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Sound::Sdl
 {
@@ -25,12 +25,12 @@ namespace Sound::Sdl
 
     StringView Base() const override
     {
-      return "SDL"_sv;
+      return "SDL"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libSDL-1.2.so.0"_sv};
+      return {"libSDL-1.2.so.0"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
@@ -53,7 +53,7 @@ namespace Sound::Sdl
       Debug::Log("Sound::Backend::Sdl", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     char* SDL_GetError() override
     {
@@ -125,7 +125,7 @@ namespace Sound::Sdl
       return func();
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

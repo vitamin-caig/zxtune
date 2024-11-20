@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/protracker2.h"
 #include "formats/chiptune/metainfo.h"
 #include "formats/packed/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+
 #include <algorithm>
 #include <array>
 
@@ -56,7 +55,7 @@ namespace Formats::Packed
 
     const uint8_t POS_END_MARKER = 0xff;
 
-    const Char DESCRIPTION[] = "Pro Tracker v2.40 Phantom Family player";
+    const auto DESCRIPTION = "Pro Tracker v2.40 Phantom Family player"sv;
 
     const auto FORMAT =
         "21??"  // ld hl,xxxx
@@ -77,7 +76,7 @@ namespace Formats::Packed
         "22??"  // ld (xxxx),hl
         "19"    // add hl,de
         "19"    // add hl,de
-        ""_sv;
+        ""sv;
 
     uint_t GetPatternsCount(const RawHeader& hdr, std::size_t maxSize)
     {
@@ -101,7 +100,7 @@ namespace Formats::Packed
       , Decoder(Formats::Chiptune::CreateProTracker2Decoder())
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return CompiledPT24::DESCRIPTION;
     }

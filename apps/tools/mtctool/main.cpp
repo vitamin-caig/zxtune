@@ -1,17 +1,19 @@
-// library includes
-#include <binary/data_builder.h>
-#include <formats/chiptune/multidevice/multitrackcontainer.h>
-#include <module/attributes.h>
-#include <platform/version/api.h>
-#include <strings/format.h>
-// std includes
+#include "formats/chiptune/multidevice/multitrackcontainer.h"
+
+#include "binary/data_builder.h"
+#include "module/attributes.h"
+#include "platform/version/api.h"
+#include "strings/format.h"
+
+#include "string_view.h"
+
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
 
 namespace Platform::Version
 {
-  extern const Char PROGRAM_NAME[] = {'m', 't', 'c', 't', 'o', 'o', 'l', 0};
+  const StringView PROGRAM_NAME = "mtctool"sv;
 }
 
 namespace
@@ -22,7 +24,7 @@ namespace
     Stream result(String{name}.c_str(), std::ios::binary);
     if (!result)
     {
-      throw std::runtime_error(String("Failed to open ").append(name));
+      throw std::runtime_error("Failed to open "s + name);
     }
     return result;
   }
@@ -117,23 +119,23 @@ namespace
     while (arg)
     {
       const auto cmd = *arg++;
-      if (cmd == "--track"_sv)
+      if (cmd == "--track"sv)
       {
         builder->StartTrack(track++);
       }
-      else if (cmd == "--title"_sv)
+      else if (cmd == "--title"sv)
       {
         builder->SetTitle(*arg++);
       }
-      else if (cmd == "--author"_sv)
+      else if (cmd == "--author"sv)
       {
         builder->SetAuthor(*arg++);
       }
-      else if (cmd == "--annotation"_sv)
+      else if (cmd == "--annotation"sv)
       {
         builder->SetAnnotation(*arg++);
       }
-      else if (cmd == "--property"_sv)
+      else if (cmd == "--property"sv)
       {
         const auto name = *arg++;
         const auto value = *arg++;

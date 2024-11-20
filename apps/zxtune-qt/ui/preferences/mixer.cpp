@@ -8,12 +8,12 @@
  *
  **/
 
-// local includes
-#include "mixer.h"
+#include "apps/zxtune-qt/ui/preferences/mixer.h"
+
 #include "mixer.ui.h"
-// common includes
-#include <contract.h>
-// std includes
+
+#include "contract.h"
+
 #include <utility>
 
 namespace

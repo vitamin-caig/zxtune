@@ -10,19 +10,18 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/hrust1_bitstream.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <cstring>
 
 namespace Formats::Packed
@@ -31,7 +30,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "Trush Compressor v3.x";
+    const auto DESCRIPTION = "Trush Compressor v3.x"sv;
     // Head and tail are delimited by optional signature (some versions store additional code there)
 
     // At least two different prefixes
@@ -57,7 +56,7 @@ namespace Formats::Packed
         "01??"         // ld bc,xxxx ;size of body
         "d5"           // push de
         "c3??"         // jp xxxx
-        ""_sv;
+        ""sv;
 
     const std::size_t HEAD_SIZE = 0x27;
 
@@ -100,7 +99,7 @@ namespace Formats::Packed
                 "?"      //ei/nop |         |
                 "?"      //ret    |         | nop
                 */
-        ""_sv;
+        ""sv;
 
     const std::size_t BODY_SIZE = 0xce;
 
@@ -297,7 +296,7 @@ namespace Formats::Packed
                                                Trush::HEAD_SIZE, Trush::MAX_HEAD_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Trush::DESCRIPTION;
     }

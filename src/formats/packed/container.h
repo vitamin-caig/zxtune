@@ -10,10 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
-#include <formats/packed.h>
+#include "formats/packed.h"
+
+#include "types.h"
 
 namespace Formats::Packed
 {

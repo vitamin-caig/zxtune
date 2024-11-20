@@ -8,19 +8,18 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <formats/chiptune/aym/turbosound.h>
-#include <module/players/aym/aym_base.h>
-#include <module/players/aym/turbosound.h>
-#include <module/players/properties_helper.h>
-#include <module/players/tracking.h>
+#include "formats/chiptune/aym/turbosound.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/turbosound.h"
+#include "module/players/properties_helper.h"
+#include "module/players/tracking.h"
+
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+
+#include "make_ptr.h"
 
 namespace Module::TS
 {

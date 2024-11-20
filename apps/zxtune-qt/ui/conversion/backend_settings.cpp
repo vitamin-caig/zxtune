@@ -8,10 +8,7 @@
  *
  **/
 
-// local includes
-#include <utility>
-
-#include "backend_settings.h"
+#include "apps/zxtune-qt/ui/conversion/backend_settings.h"
 
 namespace UI
 {

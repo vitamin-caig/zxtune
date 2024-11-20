@@ -10,11 +10,10 @@
 
 #pragma once
 
-// std includes
+#include <QtCore/QPointer>
+
 #include <memory>
 #include <type_traits>
-// qt includes
-#include <QtCore/QPointer>
 
 template<class T, std::enable_if_t<std::is_base_of_v<QObject, T>, T>* = nullptr>
 auto toWeak(T* val)

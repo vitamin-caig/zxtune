@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "module/players/saa/saa_base.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <math/numeric.h>
-// std includes
+
+#include "math/numeric.h"
+
+#include "make_ptr.h"
+
 #include <utility>
 
 namespace Module

@@ -8,15 +8,15 @@
  *
  **/
 
-// local includes
-#include "z80.h"
-#include "supp/options.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
+#include "apps/zxtune-qt/ui/preferences/z80.h"
+
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "z80.ui.h"
-// library includes
-#include <core/core_parameters.h>
-// std includes
+
+#include "core/core_parameters.h"
+
 #include <utility>
 
 namespace

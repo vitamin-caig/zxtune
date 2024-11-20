@@ -10,11 +10,12 @@
 
 #pragma once
 
-// library includes
-#include <binary/container_factories.h>
-#include <binary/dump.h>
-#include <binary/view.h>
-// std includes
+#include "binary/container_factories.h"
+#include "binary/dump.h"
+#include "binary/view.h"
+
+#include "string_view.h"
+
 #include <cstring>
 #include <type_traits>
 

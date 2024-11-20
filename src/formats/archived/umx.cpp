@@ -9,20 +9,21 @@
  *
  **/
 
-// local includes
 #include "formats/archived/decoders.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <strings/casing.h>
-#include <strings/map.h>
-// std includes
+
+#include "binary/container_base.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "strings/casing.h"
+#include "strings/map.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
+#include <algorithm>
 #include <array>
 
 namespace Formats::Archived
@@ -31,7 +32,7 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::UMX");
 
-    const Char DESCRIPTION[] = "UMX (Unreal Music eXperience)";
+    const auto DESCRIPTION = "UMX (Unreal Music eXperience)"sv;
     const auto FORMAT =
         "c1832a9e"     // signature
         "? 00"         // version
@@ -40,7 +41,7 @@ namespace Formats::Archived
         "??0000 ????"  // names
         "??0000 ????"  // exports
         "??0000 ????"  // imports
-        ""_sv;
+        ""sv;
 
     using SignatureType = std::array<uint8_t, 4>;
 
@@ -526,7 +527,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(UMX::FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return UMX::DESCRIPTION;
     }

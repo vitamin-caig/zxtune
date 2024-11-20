@@ -8,19 +8,20 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/multitrack_plugin.h"
+
 #include "core/plugins/archives/archived.h"
-// common includes
-#include <make_ptr.h>
-#include <xrange.h>
-// library includes
-#include <core/module_detect.h>
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <formats/archived/multitrack/filename.h>
-#include <module/players/properties_helper.h>
-// std includes
+#include "formats/archived/multitrack/filename.h"
+#include "module/players/properties_helper.h"
+
+#include "core/module_detect.h"
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "tools/xrange.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <utility>
 
 namespace ZXTune
@@ -71,7 +72,7 @@ namespace ZXTune
       return Identifier;
     }
 
-    String Description() const override
+    StringView Description() const override
     {
       return Decoder->GetDescription();
     }
@@ -264,11 +265,12 @@ namespace ZXTune
                             Module::MultitrackFactory::Ptr factory)
       : MultitrackBasePlugin(id, Capabilities::Container::Type::MULTITRACK | Capabilities::Category::CONTAINER,
                              std::move(decoder), std::move(factory))
+      , Descr("Multitrack "s + Decoder->GetDescription())
     {}
 
-    String Description() const override
+    StringView Description() const override
     {
-      return "Multitrack " + Decoder->GetDescription();
+      return Descr;
     }
 
     Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
@@ -289,6 +291,9 @@ namespace ZXTune
       }
       return {};
     }
+
+  private:
+    const String Descr;
   };
 
   ArchivePlugin::Ptr CreateArchivePlugin(PluginId id, Formats::Multitrack::Decoder::Ptr decoder,

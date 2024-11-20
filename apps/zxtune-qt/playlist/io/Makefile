@@ -9,6 +9,4 @@ use_qt := 1
 
 source_dirs := .
 
-includes.dirs += ../..
-
 include $(dirs.root)/makefile.mak

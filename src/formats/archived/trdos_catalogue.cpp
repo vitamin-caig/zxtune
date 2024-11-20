@@ -8,16 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/archived/trdos_catalogue.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/container_factories.h>
-#include <binary/data_builder.h>
-#include <strings/format.h>
-// std includes
+
+#include "binary/container_base.h"
+#include "binary/container_factories.h"
+#include "binary/data_builder.h"
+#include "strings/format.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -41,7 +41,7 @@ namespace TRDos
     }
     // xxx.x and
     // xxx    '.x should be merged
-    static const Char SATTELITE_SEQ[] = {'\'', '.', '\0'};
+    const auto SATTELITE_SEQ = "'."sv;
     const String::size_type apPos(rh.GetName().find(SATTELITE_SEQ));
     const bool isSatelite = apPos != String::npos;
     if (!isSatelite)

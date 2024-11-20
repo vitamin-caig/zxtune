@@ -10,10 +10,9 @@
 
 #pragma once
 
-// library includes
-#include <module/holder.h>
-#include <sound/backend.h>
-// std includes
+#include "module/holder.h"
+#include "sound/backend.h"
+
 #include <span>
 #include <vector>
 

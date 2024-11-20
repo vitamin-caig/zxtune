@@ -8,24 +8,24 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/src/location.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/base64.h>
-#include <binary/compression/zlib_container.h>
-#include <binary/compression/zlib_stream.h>
-#include <binary/crc.h>
-#include <binary/data_builder.h>
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <strings/prefixed_index.h>
-// std includes
+
+#include "binary/base64.h"
+#include "binary/compression/zlib_container.h"
+#include "binary/compression/zlib_stream.h"
+#include "binary/crc.h"
+#include "binary/data_builder.h"
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "strings/prefixed_index.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <array>
 
@@ -233,7 +233,7 @@ namespace ZXTune::Zdata
 namespace ZXTune::Zdata
 {
   const auto ID = "ZDATA"_id;
-  const auto INFO = "Zdata"_sv;
+  const auto INFO = "Zdata"sv;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::ARCHIVE;
 }  // namespace ZXTune::Zdata
 
@@ -263,9 +263,9 @@ namespace ZXTune::Zdata
       return ID;
     }
 
-    String Description() const override
+    StringView Description() const override
     {
-      return String{INFO};
+      return INFO;
     }
 
     uint_t Capabilities() const override

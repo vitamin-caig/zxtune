@@ -4,6 +4,13 @@ source_dirs := . asap ay dac gme mpt multi music saa sid tfm vgm vgmstream xmp x
 
 po_files := core_players
 
+defines.flac_supp.cpp = FLAC__NO_DLL
+defines.gme_base.cpp = HAVE_STDINT_H
+defines.mp3_supp.cpp = MINIMP3_IMPLEMENTATION MINIMP3_NONSTANDARD_BUT_LOGICAL
+defines.openmpt_base.cpp = BUILDING_STATIC
+defines.ogg_supp.cpp = OV_EXCLUDE_STATIC_CALLBACKS
+defines.xmp_base.cpp = BUILDING_STATIC
+
 includes.dirs.sid_base.cpp = $(dirs.root)/3rdparty/sidplayfp/src
 includes.dirs.ffmpeg_decoder.cpp = $(dirs.root)/3rdparty/ffmpeg
 includes.dirs.vgmstream_base.cpp = $(dirs.root)/3rdparty/vgmstream/ext_includes

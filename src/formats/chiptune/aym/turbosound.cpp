@@ -8,15 +8,15 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/turbosound.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <math/numeric.h>
+
+#include "binary/format_factories.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
 
 namespace Formats::Chiptune
 {
@@ -37,14 +37,14 @@ namespace Formats::Chiptune
 
     static_assert(sizeof(Footer) * alignof(Footer) == 16, "Invalid layout");
 
-    const Char DESCRIPTION[] = "TurboSound";
+    const auto DESCRIPTION = "TurboSound"sv;
     const auto FOOTER_FORMAT =
         "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
         "?%0xxxxxxx"                     // uint16_t Size1;
         "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
         "?%0xxxxxxx"                     // uint16_t Size2;
         "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
-        ""_sv;
+        ""sv;
 
     class StubBuilder : public Builder
     {
@@ -145,7 +145,7 @@ namespace Formats::Chiptune
         : Format(MakePtr<FooterFormat>())
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

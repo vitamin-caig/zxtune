@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <binary/data_builder.h>
-#include <binary/input_stream.h>
+#include "binary/data_builder.h"
+#include "binary/input_stream.h"
 
 namespace Binary::Compression::Zlib
 {

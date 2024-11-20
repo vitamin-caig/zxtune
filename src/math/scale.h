@@ -10,10 +10,12 @@
 
 #pragma once
 
-// library includes
-#include <math/bitops.h>
-// std includes
+#include "math/bitops.h"
+
+#include "types.h"
+
 #include <cassert>
+#include <utility>
 
 namespace Math
 {

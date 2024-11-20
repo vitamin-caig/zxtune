@@ -8,15 +8,15 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/music/tags_vorbis.h"
-// common includes
-#include <byteorder.h>
-// library includes
-#include <binary/base64.h>
-#include <strings/casing.h>
-#include <strings/sanitize.h>
-// std includes
+
+#include "binary/base64.h"
+#include "strings/casing.h"
+#include "strings/sanitize.h"
+
+#include "byteorder.h"
+#include "string_view.h"
+
 #include <array>
 
 namespace Formats::Chiptune::Vorbis
@@ -38,19 +38,19 @@ namespace Formats::Chiptune::Vorbis
     }
     const auto name = field.substr(0, eqPos);
     const auto value = field.substr(eqPos + 1);
-    if (Strings::EqualNoCaseAscii(name, "TITLE"_sv))
+    if (Strings::EqualNoCaseAscii(name, "TITLE"sv))
     {
       target.SetTitle(Strings::Sanitize(value));
     }
-    else if (Strings::EqualNoCaseAscii(name, "ARTIST"_sv) || Strings::EqualNoCaseAscii(name, "PERFORMER"_sv))
+    else if (Strings::EqualNoCaseAscii(name, "ARTIST"sv) || Strings::EqualNoCaseAscii(name, "PERFORMER"sv))
     {
       target.SetAuthor(Strings::Sanitize(value));
     }
-    else if (Strings::EqualNoCaseAscii(name, "COPYRIGHT"_sv) || Strings::EqualNoCaseAscii(name, "DESCRIPTION"_sv))
+    else if (Strings::EqualNoCaseAscii(name, "COPYRIGHT"sv) || Strings::EqualNoCaseAscii(name, "DESCRIPTION"sv))
     {
       target.SetComment(Strings::SanitizeMultiline(value));
     }
-    else if (Strings::EqualNoCaseAscii(name, "COVERART"_sv))
+    else if (Strings::EqualNoCaseAscii(name, "COVERART"sv))
     {
       try
       {

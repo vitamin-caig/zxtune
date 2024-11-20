@@ -8,18 +8,19 @@
  *
  **/
 
-// local includes
 #include "binary/format/expression.h"
+
 #include "binary/format/grammar.h"
 #include "binary/format/syntax.h"
-// common includes
-#include <contract.h>
-#include <iterator.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <math/numeric.h>
-// std includes
+
+#include "math/numeric.h"
+#include "tools/iterators.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
 #include <cctype>
 #include <functional>
 #include <stack>

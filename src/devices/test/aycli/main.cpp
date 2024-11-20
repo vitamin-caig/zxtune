@@ -1,17 +1,20 @@
-#include <api_dynamic.h>
-#include <async/worker.h>
-#include <contract.h>
-#include <core/core_parameters.h>
-#include <devices/aym/chip.h>
+#include "devices/aym/chip.h"
+#include "sound/backends/backends_list.h"
+#include "sound/backends/storage.h"
+
+#include "async/worker.h"
+#include "core/core_parameters.h"
+#include "parameters/container.h"
+#include "sound/mixer_factory.h"
+#include "sound/sound_parameters.h"
+
+#include "api_dynamic.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <iostream>
-#include <make_ptr.h>
 #include <memory>
 #include <mutex>
-#include <parameters/container.h>
-#include <sound/backends/backends_list.h>
-#include <sound/backends/storage.h>
-#include <sound/mixer_factory.h>
-#include <sound/sound_parameters.h>
 #include <utility>
 
 namespace

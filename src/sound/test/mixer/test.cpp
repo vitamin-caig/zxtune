@@ -8,10 +8,11 @@
  *
  **/
 
-#include <error_tools.h>
-#include <math/numeric.h>
-#include <sound/matrix_mixer.h>
-#include <sound/mixer_parameters.h>
+#include "math/numeric.h"
+#include "sound/matrix_mixer.h"
+#include "sound/mixer_parameters.h"
+
+#include "error_tools.h"
 
 #include <iomanip>
 #include <iostream>

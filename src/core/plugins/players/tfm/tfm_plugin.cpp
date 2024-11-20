@@ -8,16 +8,16 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/tfm/tfm_plugin.h"
+
 #include "core/plugins/players/plugin.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <core/plugin_attrs.h>
-#include <module/players/tfm/tfm_base.h>
-#include <module/players/tfm/tfm_parameters.h>
-// std includes
+#include "module/players/tfm/tfm_base.h"
+#include "module/players/tfm/tfm_parameters.h"
+
+#include "core/plugin_attrs.h"
+
+#include "make_ptr.h"
+
 #include <utility>
 
 namespace Module

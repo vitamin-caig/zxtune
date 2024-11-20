@@ -8,30 +8,31 @@
  *
  **/
 
-// local includes
-#include "model.h"
-#include "storage.h"
-#include "supp/ptr_utils.h"
-#include "supp/thread_utils.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <async/activity.h>
-#include <debug/log.h>
-#include <math/bitops.h>
-#include <parameters/template.h>
-#include <time/serialize.h>
-#include <tools/progress_callback_helpers.h>
-// std includes
-#include <atomic>
-#include <mutex>
-// qt includes
+#include "apps/zxtune-qt/playlist/supp/model.h"
+
+#include "apps/zxtune-qt/playlist/supp/storage.h"
+#include "apps/zxtune-qt/supp/ptr_utils.h"
+#include "apps/zxtune-qt/supp/thread_utils.h"
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "async/activity.h"
+#include "debug/log.h"
+#include "math/bitops.h"
+#include "parameters/template.h"
+#include "time/serialize.h"
+#include "tools/progress_callback_helpers.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <QtCore/QDataStream>
 #include <QtCore/QMimeData>
 #include <QtCore/QSet>
 #include <QtCore/QStringList>
+
+#include <atomic>
+#include <mutex>
 #include <utility>
 
 namespace

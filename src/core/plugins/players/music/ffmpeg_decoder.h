@@ -10,10 +10,9 @@
 
 #pragma once
 
-// library includes
-#include <binary/view.h>
-#include <sound/chunk.h>
-// std includes
+#include "binary/view.h"
+#include "sound/chunk.h"
+
 #include <memory>
 
 namespace Module::FFmpeg

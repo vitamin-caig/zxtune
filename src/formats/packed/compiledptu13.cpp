@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/protracker3_detail.h"
 #include "formats/chiptune/metainfo.h"
 #include "formats/packed/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+
 #include <array>
 
 namespace Formats::Packed
@@ -59,7 +58,7 @@ namespace Formats::Packed
 
     static_assert(sizeof(RawHeader) * alignof(RawHeader) == 202, "Invalid layout");
 
-    const Char DESCRIPTION[] = "Pro Tracker Utility v1.3 player";
+    const auto DESCRIPTION = "Pro Tracker Utility v1.3 player"sv;
 
     const auto FORMAT =
         "21??"    // ld hl,xxxx +0x665
@@ -90,7 +89,7 @@ namespace Formats::Packed
         "d1"      // pop de
         "e1"      // pop hl
         "22??"    // ld (xxxx),hl
-        ""_sv;
+        ""sv;
 
     uint_t GetPatternsCount(const RawHeader& hdr, std::size_t maxSize)
     {
@@ -113,7 +112,7 @@ namespace Formats::Packed
           Binary::CreateFormat(CompiledPTU13::FORMAT, CompiledPTU13::PLAYER_SIZE + sizeof(CompiledPTU13::RawHeader)))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return CompiledPTU13::DESCRIPTION;
     }

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// std includes
 #include <exception>
 
 inline void Require(bool requirement)

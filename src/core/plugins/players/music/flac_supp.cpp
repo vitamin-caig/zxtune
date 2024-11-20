@@ -8,25 +8,23 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/input_stream.h>
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <formats/chiptune/music/flac.h>
-#include <module/players/properties_helper.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
-#include <sound/resampler.h>
-// 3rdparty
-#define FLAC__NO_DLL
-#include <3rdparty/FLAC/stream_decoder.h>
+#include "formats/chiptune/music/flac.h"
+#include "module/players/properties_helper.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
+
+#include "binary/input_stream.h"
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "sound/resampler.h"
+
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+
+#include "3rdparty/FLAC/stream_decoder.h"
 
 namespace Module::Flac
 {

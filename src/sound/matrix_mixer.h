@@ -10,10 +10,9 @@
 
 #pragma once
 
-// library includes
-#include <sound/gain.h>
-#include <sound/mixer.h>
-// std includes
+#include "sound/gain.h"
+#include "sound/mixer.h"
+
 #include <array>
 
 namespace Sound

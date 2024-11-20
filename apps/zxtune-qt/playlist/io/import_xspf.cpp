@@ -8,30 +8,30 @@
  *
  **/
 
-// local includes
-#include "container_impl.h"
-#include "import.h"
-#include "tags/xspf.h"
-#include "ui/utils.h"
-// common includes
-#include <error.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <parameters/convert.h>
-#include <parameters/serialize.h>
-#include <tools/progress_callback_helpers.h>
-// std includes
-#include <cctype>
-#include <set>
-// qt includes
+#include "apps/zxtune-qt/playlist/io/container_impl.h"
+#include "apps/zxtune-qt/playlist/io/import.h"
+#include "apps/zxtune-qt/playlist/io/tags/xspf.h"
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "parameters/convert.h"
+#include "parameters/serialize.h"
+#include "tools/progress_callback_helpers.h"
+
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
 #include <QtCore/QXmlStreamReader>
+
+#include <cctype>
+#include <set>
 #include <utility>
 
 namespace
@@ -127,7 +127,7 @@ namespace
           return false;
         }
         const QXmlStreamAttributes attributes = XML.attributes();
-        if (attributes.value(QLatin1String(XSPF::VERSION_ATTR)) != XSPF::VERSION_VALUE)
+        if (attributes.value(XSPF::VERSION_ATTR) != XSPF::VERSION_VALUE)
         {
           Dbg("  unknown format version");
         }
@@ -298,7 +298,7 @@ namespace
           XML.skipCurrentElement();
         }
         const QXmlStreamAttributes attributes = XML.attributes();
-        const QStringRef& propName = attributes.value(QLatin1String(XSPF::EXTENDED_PROPERTY_NAME_ATTR));
+        const QStringRef& propName = attributes.value(XSPF::EXTENDED_PROPERTY_NAME_ATTR);
         const QString& propValue = XML.readElementText();
         const String propNameStr = FromQString(propName.toString());
         const String propValStr = ConvertString(propValue);
@@ -311,7 +311,7 @@ namespace
     bool CheckForZXTuneExtension()
     {
       const QXmlStreamAttributes attributes = XML.attributes();
-      return attributes.value(QLatin1String(XSPF::APPLICATION_ATTR)) == Playlist::APPLICATION_ID;
+      return attributes.value(XSPF::APPLICATION_ATTR) == Playlist::APPLICATION_ID;
     }
 
     String ConvertString(const QString& input) const

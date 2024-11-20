@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/dac/dac_plugin.h"
-// library includes
-#include <core/plugin_attrs.h>
-#include <formats/chiptune/digital/sqdigitaltracker.h>
-#include <module/players/dac/sqdigitaltracker.h>
+#include "formats/chiptune/digital/sqdigitaltracker.h"
+#include "module/players/dac/sqdigitaltracker.h"
+
+#include "core/plugin_attrs.h"
 
 namespace ZXTune
 {

@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
-#include "defines.h"
-#include "module.h"
-#include "player.h"
-#include "plugin.h"
-// library includes
-#include <core/plugin.h>
-// platform includes
+#include "apps/zxtune-android/zxtune/src/main/jni/defines.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/module.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/player.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/plugin.h"
+
+#include "core/plugin.h"
+
 #include <jni.h>
 
 const jint JNI_VERSION = JNI_VERSION_1_6;

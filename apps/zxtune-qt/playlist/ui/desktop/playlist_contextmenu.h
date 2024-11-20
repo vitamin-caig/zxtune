@@ -10,9 +10,8 @@
 
 #pragma once
 
-// local includes
-#include "playlist/ui/contextmenu.h"
-// qt includes
+#include "apps/zxtune-qt/playlist/ui/contextmenu.h"
+
 #include <QtCore/QObject>
 
 namespace Playlist::UI

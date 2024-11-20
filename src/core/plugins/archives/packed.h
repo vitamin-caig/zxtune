@@ -10,10 +10,9 @@
 
 #pragma once
 
-// local includes
 #include "core/plugins/archive_plugin.h"
-// library includes
-#include <formats/packed.h>
+
+#include "formats/packed.h"
 
 namespace ZXTune
 {

@@ -10,8 +10,9 @@
 
 #pragma once
 
-// library includes
-#include <formats/packed.h>
+#include "formats/packed.h"
+
+#include "string_type.h"
 
 namespace Formats::Packed::Lha
 {

@@ -8,17 +8,17 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <formats/packed.h>
-// std includes
+
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "formats/packed.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 #include <numeric>
 #include <utility>
@@ -166,7 +166,7 @@ namespace Formats::Packed
       static Formats::Packed::Container::Ptr Decode(Binary::InputStream& stream);
     };
 
-    const StringView Version1_45::DESCRIPTION = "Z80 v1.45"_sv;
+    const StringView Version1_45::DESCRIPTION = "Z80 v1.45"sv;
     const StringView Version1_45::HEADER =
         "(\?\?){6}"                      // skip registers
         "%001xxxxx"                      // take into account only compressed data
@@ -174,14 +174,14 @@ namespace Formats::Packed
         "00|01|ff"                       // iff1
         "00|01|ff"                       // iff2
         "%xxxxxx00|%xxxxxx01|%xxxxxx10"  // im3 cannot be
-        ""_sv;
-    const StringView Version1_45::FOOTER = "00eded00"_sv;
+        ""sv;
+    const StringView Version1_45::FOOTER = "00eded00"sv;
 
     // even if all 48kb are compressed, minimal compressed size is 4 bytes for each 255 sequenced bytes + final marker
     const std::size_t Version1_45::MIN_SIZE = sizeof(Version1_45::Header) + 4 * (49152 / 255) + 4;
     const std::size_t Version1_45::MAX_SIZE = sizeof(Version1_45::Header) + 49152 + 4;
 
-    const StringView Version2_0::DESCRIPTION = "Z80 v2.x"_sv;
+    const StringView Version2_0::DESCRIPTION = "Z80 v2.x"sv;
     const StringView Version2_0::FORMAT =
         "(\?\?){3}"  // skip registers
         "0000"       // PC is 0
@@ -199,13 +199,13 @@ namespace Formats::Packed
         "%000000xx"                      // Flag3
         "\?"                             // fffd
         "\?{16}"                         // AYPorts
-        ""_sv;
+        ""sv;
 
     // at least 3 pages by 16384 bytes each
     const std::size_t Version2_0::MIN_SIZE =
         sizeof(Version2_0::Header) + 3 * (sizeof(Version2_0::MemoryPage) + 4 * (16384 / 255));
 
-    const StringView Version3_0::DESCRIPTION = "Z80 v3.x"_sv;
+    const StringView Version3_0::DESCRIPTION = "Z80 v3.x"sv;
     const StringView Version3_0::FORMAT =
         "(\?\?){3}"  // skip registers
         "0000"       // PC is 0
@@ -231,7 +231,7 @@ namespace Formats::Packed
         "\?{20}"                         // joystick
         "00|01|10"                       // GordonType
         "00|ff{2}"                       // Inhibitstate
-        ""_sv;
+        ""sv;
 
     // at least 3 pages by 16384 bytes each
     const std::size_t Version3_0::MIN_SIZE =
@@ -529,9 +529,9 @@ namespace Formats::Packed
       : Format(std::move(format))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
-      return String{Version::DESCRIPTION};
+      return Version::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

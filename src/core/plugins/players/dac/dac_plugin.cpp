@@ -8,17 +8,17 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/dac/dac_plugin.h"
+
 #include "core/plugins/players/plugin.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <core/plugin_attrs.h>
-#include <module/players/dac/dac_base.h>
-#include <module/players/dac/dac_parameters.h>
-#include <sound/mixer_factory.h>
-// std includes
+#include "module/players/dac/dac_base.h"
+#include "module/players/dac/dac_parameters.h"
+
+#include "core/plugin_attrs.h"
+#include "sound/mixer_factory.h"
+
+#include "make_ptr.h"
+
 #include <utility>
 
 namespace Module

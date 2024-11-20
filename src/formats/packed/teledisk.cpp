@@ -8,22 +8,21 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/image_utils.h"
+#include "formats/packed/lha_supp.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <formats/packed.h>
-#include <formats/packed/lha_supp.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <cstring>
 #include <numeric>
 
@@ -367,7 +366,7 @@ namespace Formats::Packed
       }
     }
 
-    const Char DESCRIPTION[] = "TD0 (TeleDisk Image)";
+    const auto DESCRIPTION = "TD0 (TeleDisk Image)"sv;
     const auto FORMAT_PATTERN =
         "('T|'t)('D|'d)"  // uint8_t ID[2]
         "00"              // uint8_t Sequence;
@@ -381,7 +380,7 @@ namespace Formats::Packed
                           "?"           // uint8_t Sides;
                           "??"          // uint16_t CRC;
                           */
-        ""_sv;
+        ""sv;
   }  // namespace TeleDiskImage
 
   class TeleDiskImageDecoder : public Decoder
@@ -391,7 +390,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(TeleDiskImage::FORMAT_PATTERN, TeleDiskImage::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return TeleDiskImage::DESCRIPTION;
     }

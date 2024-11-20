@@ -8,19 +8,18 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/archives/plugins_list.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugins_list.h"
 #include "core/src/l10n.h"
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <debug/log.h>
-#include <time/timer.h>
+
+#include "debug/log.h"
+#include "time/timer.h"
+
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "pointers.h"
 
 namespace ZXTune
 {

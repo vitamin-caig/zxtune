@@ -8,21 +8,20 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/zip_supp.h"
-// common includes
-#include <error.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/compression/zlib_stream.h>
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <formats/packed.h>
-// std includes
+
+#include "binary/compression/zlib_stream.h"
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "formats/packed.h"
+
+#include "error.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <algorithm>
 #include <cassert>
 #include <memory>
@@ -33,13 +32,13 @@ namespace Formats::Packed
   {
     const Debug::Stream Dbg("Formats::Packed::Zip");
 
-    const Char DESCRIPTION[] = "ZIP";
+    const auto DESCRIPTION = "ZIP"sv;
     const auto HEADER_PATTERN =
         "504b0304"             // uint32_t Signature;
         "?00"                  // uint16_t VersionToExtract;
         "%0000xxx0 %0000x000"  // uint16_t Flags;
         "%0000x00x 00"         // uint16_t CompressionMethod;
-        ""_sv;
+        ""sv;
 
     class Container
     {
@@ -307,7 +306,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(Zip::HEADER_PATTERN, sizeof(Zip::LocalFileHeader)))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Zip::DESCRIPTION;
     }

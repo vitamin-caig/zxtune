@@ -8,22 +8,23 @@
  *
  **/
 
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <formats/archived.h>
-#include <formats/packed/lha_supp.h>
-#include <formats/packed/pack_utils.h>
-#include <strings/encoding.h>
-#include <strings/map.h>
-// 3rdparty includes
-#include <3rdparty/lhasa/lib/public/lhasa.h>
-// std includes
+#include "formats/packed/lha_supp.h"
+#include "formats/packed/pack_utils.h"
+
+#include "binary/container_base.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "formats/archived.h"
+#include "strings/encoding.h"
+#include "strings/map.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
+#include "3rdparty/lhasa/lib/public/lhasa.h"
+
 #include <cstring>
 #include <list>
 #include <numeric>
@@ -34,7 +35,7 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::Lha");
 
-    const Char DESCRIPTION[] = "LHA (LHArc)";
+    const auto DESCRIPTION = "LHA (LHArc)"sv;
     const auto FORMAT =
         "??"                                  // size+sum/size/size len
         "'-('l|'p)('z|'h|'m)('s|'d|'0-'7)'-"  // method, see lha_decoder.c for all available
@@ -43,7 +44,7 @@ namespace Formats::Archived
         "????"                                // time
         "%00xxxxxx"                           // attr/0x20
         "00-03"                               // level
-        ""_sv;
+        ""sv;
 
     class InputStreamWrapper
     {
@@ -235,7 +236,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(Lha::FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Lha::DESCRIPTION;
     }

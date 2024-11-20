@@ -8,11 +8,12 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/music/tags_id3.h"
-// library includes
-#include <strings/sanitize.h>
-// std includes
+
+#include "strings/sanitize.h"
+
+#include "string_view.h"
+
 #include <array>
 
 namespace Formats::Chiptune::Id3

@@ -10,10 +10,10 @@
 
 #pragma once
 
-// library includes
-#include <devices/details/clock_source.h>
-#include <sound/chunk.h>
-#include <sound/lpfilter.h>
+#include "devices/details/clock_source.h"
+
+#include "sound/chunk.h"
+#include "sound/lpfilter.h"
 
 namespace Devices::Details
 {

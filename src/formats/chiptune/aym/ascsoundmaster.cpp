@@ -8,24 +8,25 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/ascsoundmaster.h"
+
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/metainfo.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <indices.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/casing.h>
-#include <strings/optimize.h>
-#include <strings/trim.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/casing.h"
+#include "strings/optimize.h"
+#include "strings/trim.h"
+#include "tools/indices.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 #include <cstring>
 
@@ -100,7 +101,7 @@ namespace Formats::Chiptune
 
       bool HasAuthor() const
       {
-        const auto BY_DELIMITER = "BY"_sv;
+        const auto BY_DELIMITER = "BY"sv;
         const auto trimId = Strings::TrimSpaces(MakeStringView(Identifier2));
         return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
@@ -310,14 +311,14 @@ namespace Formats::Chiptune
     };
 
     const VersionTraits Version0::TRAITS = {255, 0x2400,  //~9k
-                                            "ASC Sound Master v0.x"_sv,
+                                            "ASC Sound Master v0.x"sv,
                                             "03-32"     // tempo
                                             "09-ab 00"  // patterns
                                             "? 00-21"   // samples
                                             "? 00-22"   // ornaments
                                             "01-64"     // length
                                             "00-1f"     // first position
-                                            ""_sv,
+                                            ""sv,
                                             &HeaderTraits::Create<RawHeaderVer0>};
 
     struct Version1
@@ -327,7 +328,7 @@ namespace Formats::Chiptune
     };
 
     const VersionTraits Version1::TRAITS = {256, 0x3a00,  //~15k
-                                            "ASC Sound Master v1.x"_sv,
+                                            "ASC Sound Master v1.x"sv,
                                             "03-32"     // tempo
                                             "00-63"     // loop
                                             "0a-ac 00"  // patterns
@@ -335,7 +336,7 @@ namespace Formats::Chiptune
                                             "? 00-37"   // ornaments
                                             "01-64"     // length
                                             "00-1f"     // first position
-                                            ""_sv,
+                                            ""sv,
                                             &HeaderTraits::Create<RawHeaderVer1>};
 
     class StubBuilder : public Builder
@@ -611,7 +612,7 @@ namespace Formats::Chiptune
           }
           else
           {
-            meta.SetTitle(Strings::OptimizeAscii(StringViewCompat{Id.Title.data(), &Id.Author.back() + 1}));
+            meta.SetTitle(Strings::OptimizeAscii(MakeStringView(Id.Title.data(), &Id.Author.back() + 1)));
           }
         }
       }
@@ -1243,9 +1244,9 @@ namespace Formats::Chiptune
         , Header(Binary::CreateFormat(version.Format, version.MinSize))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
-        return String{Version.Description};
+        return Version.Description;
       }
 
       Binary::Format::Ptr GetFormat() const override

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "sound/backends/backend_impl.h"
 
 namespace Sound

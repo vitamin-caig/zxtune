@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/psf_exe.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <formats/chiptune/emulation/playstationsoundformat.h>
+
+#include "formats/chiptune/emulation/playstationsoundformat.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Module::PSF
 {

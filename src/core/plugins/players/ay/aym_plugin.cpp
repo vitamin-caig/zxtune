@@ -8,17 +8,17 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/ay/aym_plugin.h"
+
 #include "core/plugins/players/ay/aym_conversion.h"
 #include "core/plugins/players/plugin.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <core/plugin_attrs.h>
-#include <module/players/aym/aym_base.h>
-#include <module/players/aym/aym_parameters.h>
-// std includes
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_parameters.h"
+
+#include "core/plugin_attrs.h"
+
+#include "make_ptr.h"
+
 #include <utility>
 
 namespace Module

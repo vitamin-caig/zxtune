@@ -10,12 +10,11 @@
 
 #pragma once
 
-// local includes
-#include "storage.h"
-// library includes
-#include <module/holder.h>
-#include <parameters/container.h>
-// platform includes
+#include "apps/zxtune-android/zxtune/src/main/jni/storage.h"
+
+#include "module/holder.h"
+#include "parameters/container.h"
+
 #include <jni.h>
 
 namespace Player

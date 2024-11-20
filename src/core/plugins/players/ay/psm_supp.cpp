@@ -8,12 +8,10 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/ay/aym_plugin.h"
-// library includes
-#include <formats/chiptune/aym/prosoundmaker.h>
-#include <module/players/aym/prosoundmaker.h>
+#include "formats/chiptune/aym/prosoundmaker.h"
+#include "module/players/aym/prosoundmaker.h"
 
 namespace ZXTune
 {

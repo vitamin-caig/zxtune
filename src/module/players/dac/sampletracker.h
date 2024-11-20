@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "module/players/dac/dac_factory.h"
 
 namespace Module::SampleTracker

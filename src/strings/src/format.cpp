@@ -8,8 +8,7 @@
  *
  **/
 
-// common includes
-#include <strings/format.h>
+#include "strings/format.h"
 
 namespace Strings
 {

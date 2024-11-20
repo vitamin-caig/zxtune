@@ -8,25 +8,26 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/spc.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <formats/chiptune.h>
-#include <math/numeric.h>
-#include <strings/conversion.h>
-#include <strings/format.h>
-#include <strings/sanitize.h>
-#include <strings/trim.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "formats/chiptune.h"
+#include "math/numeric.h"
+#include "strings/conversion.h"
+#include "strings/format.h"
+#include "strings/sanitize.h"
+#include "strings/trim.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
 #include <array>
 
 namespace Formats::Chiptune
@@ -35,7 +36,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SPC");
 
-    const Char DESCRIPTION[] = "SNES SPC700";
+    const auto DESCRIPTION = "SNES SPC700"sv;
 
     using SignatureType = std::array<uint8_t, 28>;
     const SignatureType SIGNATURE = {{'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ', 'S', 'o',
@@ -407,7 +408,7 @@ namespace Formats::Chiptune
         "1a     |00"
         "1a|1b  |00"  // has ID666
         "0a-1e  |00"  // version minor
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -416,7 +417,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, sizeof(RawHeader)))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

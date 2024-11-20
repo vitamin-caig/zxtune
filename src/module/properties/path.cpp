@@ -8,15 +8,15 @@
  *
  **/
 
-// local includes
-#include "path.h"
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <io/api.h>
-#include <module/attributes.h>
-#include <parameters/visitor.h>
+#include "module/properties/path.h"
+
+#include "io/api.h"
+#include "module/attributes.h"
+#include "parameters/visitor.h"
+
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Module
 {

@@ -8,23 +8,24 @@
  *
  **/
 
-// local includes
-#include "display.h"
-#include "console.h"
-// common includes
-#include <error.h>
-// library includes
-#include <module/track_state.h>
-#include <parameters/template.h>
-#include <platform/application.h>
-#include <strings/format.h>
-#include <strings/template.h>
-#include <time/duration.h>
-#include <time/serialize.h>
-// std includes
-#include <thread>
-// boost includes
+#include "apps/zxtune123/display.h"
+
+#include "apps/zxtune123/console.h"
+
+#include "module/track_state.h"
+#include "parameters/template.h"
+#include "platform/application.h"
+#include "strings/format.h"
+#include "strings/template.h"
+#include "time/duration.h"
+#include "time/serialize.h"
+
+#include "error.h"
+#include "string_view.h"
+
 #include <boost/program_options.hpp>
+
+#include <thread>
 
 namespace
 {
@@ -45,7 +46,7 @@ namespace
       "Playing: [Fullpath]\n"
       "Type:    [Type]\tContainer: [Container]\tProgram: [Program]\n"
       "Title:   [Title]\n"
-      "Author:  [Author]\n"_sv;
+      "Author:  [Author]\n"sv;
   // Exact type for Strings::Format
   constexpr std::string_view ITEM_INFO_ADDON = "\nTime:    {0}\tLoop duration:  {1}\n\n";
   constexpr std::string_view TRACKING_FORMAT =
@@ -189,7 +190,7 @@ namespace
 
     void ShowPlaybackStatus(Time::Milliseconds played, Sound::PlaybackControl::State state)
     {
-      const Char MARKER = '\x1';
+      const auto MARKER = '\x1';
       String data = Strings::Format(PLAYBACK_STATUS, Time::ToString(played), MARKER);
       const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
       const String::size_type markerPos = data.find(MARKER);
@@ -202,7 +203,7 @@ namespace
       DynamicLines += PLAYING_HEIGHT;
     }
 
-    static Char StateSymbol(Sound::PlaybackControl::State state)
+    static char StateSymbol(Sound::PlaybackControl::State state)
     {
       switch (state)
       {

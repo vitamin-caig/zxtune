@@ -10,12 +10,11 @@
 
 #pragma once
 
-// library includes
-#include <binary/data.h>
-#include <binary/input_stream.h>
-#include <binary/view.h>
-#include <sound/chunk.h>
-// std includes
+#include "binary/data.h"
+#include "binary/input_stream.h"
+#include "binary/view.h"
+#include "sound/chunk.h"
+
 #include <utility>
 
 namespace Module::Wav

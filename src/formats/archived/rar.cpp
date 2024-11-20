@@ -8,17 +8,18 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <formats/archived.h>
-#include <formats/packed/decoders.h>
-#include <formats/packed/rar_supp.h>
-// std includes
+#include "formats/packed/decoders.h"
+#include "formats/packed/rar_supp.h"
+
+#include "binary/container_base.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "formats/archived.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <cstring>
 #include <deque>
 #include <memory>
@@ -375,7 +376,7 @@ namespace Formats::Archived
       const uint_t FilesCount;
     };
 
-    const Char DESCRIPTION[] = "RAR";
+    const auto DESCRIPTION = "RAR"sv;
     const auto FORMAT =
         // file marker
         "5261"  // uint16_t CRC;   "Ra"
@@ -387,7 +388,7 @@ namespace Formats::Archived
         "73"    // uint8_t Type;
         "??"    // uint16_t Flags;
         "0d00"  // uint16_t Size
-        ""_sv;
+        ""sv;
   }  // namespace Rar
 
   class RarDecoder : public Decoder
@@ -397,7 +398,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(Rar::FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Rar::DESCRIPTION;
     }

@@ -8,10 +8,9 @@
  *
  **/
 
-// common includes
-#include <string_view.h>
-// library includes
-#include <time/duration.h>
+#include "time/duration.h"
+
+#include "string_view.h"
 
 namespace Module::Sid
 {

@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <zxtune.h>
+#include "zxtune.h"
 
 namespace Parameters::ZXTune::IO
 {

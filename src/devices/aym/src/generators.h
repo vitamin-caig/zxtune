@@ -10,9 +10,8 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// std includes
+#include "types.h"
+
 #include <array>
 #include <cassert>
 

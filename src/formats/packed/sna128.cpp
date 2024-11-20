@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-// std includes
+
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <array>
 #include <numeric>
 
@@ -126,7 +125,7 @@ namespace Formats::Packed
       return CreateContainer(result.CaptureResult(), origSize);
     }
 
-    const Char DESCRIPTION[] = "SNA 128k";
+    const auto DESCRIPTION = "SNA 128k"sv;
     const auto FORMAT =
         "?{19}"
         "00|01|02|03|04|ff"  // iff. US saves 0x00/0x04/0xff instead of normal 0x00..0x03 flags
@@ -134,7 +133,7 @@ namespace Formats::Packed
         "? 40-ff"  // sp
         "00-02"    // im mode
         "00-07"    // border
-        ""_sv;
+        ""sv;
   }  // namespace Sna128
 
   class Sna128Decoder : public Decoder
@@ -144,7 +143,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(Sna128::FORMAT, Sna128::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Sna128::DESCRIPTION;
     }

@@ -8,11 +8,10 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <sound/impl/fft_analyzer.h>
-// std includes
+#include "sound/impl/fft_analyzer.h"
+
+#include "make_ptr.h"
+
 #include <algorithm>
 #include <array>
 #include <cmath>

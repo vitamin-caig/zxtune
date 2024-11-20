@@ -10,7 +10,6 @@
 
 #pragma once
 
-// platform includes
 #include <jni.h>
 
 namespace Plugin

@@ -10,11 +10,12 @@
 
 #pragma once
 
-// local includes
-#include "ui/utils.h"
-// library includes
-#include <parameters/container.h>
-// qt includes
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "parameters/container.h"
+
+#include "string_view.h"
+
 #include <QtCore/QObject>
 
 class QAction;

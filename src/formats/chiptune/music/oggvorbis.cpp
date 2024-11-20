@@ -8,19 +8,19 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/music/oggvorbis.h"
+
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/music/tags_vorbis.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <math/bitops.h>
-// std includes
+
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "math/bitops.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+
 #include <array>
 #include <cctype>
 #include <numeric>
@@ -326,7 +326,7 @@ namespace Formats::Chiptune
 
   namespace OggVorbis
   {
-    const Char DESCRIPTION[] = "OGG Vorbis";
+    const auto DESCRIPTION = "OGG Vorbis"sv;
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
     {
@@ -380,7 +380,7 @@ namespace Formats::Chiptune
         "00{8}"     // position
         "?{4}"      // serial
         "00000000"  // page
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -389,7 +389,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

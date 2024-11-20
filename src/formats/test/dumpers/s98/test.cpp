@@ -8,9 +8,12 @@
  *
  **/
 
-#include "../../utils.h"
-#include <formats/chiptune/multidevice/sound98.h>
-#include <time/serialize.h>
+#include "formats/chiptune/multidevice/sound98.h"
+#include "formats/test/utils.h"
+
+#include "time/serialize.h"
+
+#include "string_view.h"
 
 namespace
 {

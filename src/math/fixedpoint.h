@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <math/scale.h>
+#include "math/scale.h"
 
 namespace Math
 {

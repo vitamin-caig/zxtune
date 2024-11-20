@@ -8,22 +8,21 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/segasaturnsoundformat.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
+
+#include "binary/format_factories.h"
+
+#include "make_ptr.h"
 
 namespace Formats::Chiptune
 {
   namespace SegaSaturnSoundFormat
   {
-    const Char DESCRIPTION[] = "Sega Saturn Sound Format";
+    const auto DESCRIPTION = "Sega Saturn Sound Format"sv;
     const auto FORMAT =
         "'P'S'F"
         "11"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -32,7 +31,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <binary/container.h>
-// platform includes
+#include "binary/container.h"
+
 #include <jni.h>
 
 namespace Binary

@@ -8,10 +8,12 @@
  *
  **/
 
-// library includes
-#include <strings/casing.h>
-#include <strings/conversion.h>
-#include <strings/prefixed_index.h>
+#include "strings/prefixed_index.h"
+
+#include "strings/casing.h"
+#include "strings/conversion.h"
+
+#include "string_view.h"
 
 namespace Strings
 {

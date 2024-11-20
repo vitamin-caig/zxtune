@@ -10,7 +10,6 @@
 
 #pragma once
 
-// qt includes
 #include <QtCore/QByteArray>
 #include <QtCore/QDate>
 #include <QtCore/QString>

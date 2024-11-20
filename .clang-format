@@ -62,6 +62,44 @@ SpaceBeforeParens: ControlStatements
 SpaceBeforeRangeBasedForLoopColon: true
 
 # other
-SortIncludes: true
 SortUsingDeclarations: false
 FixNamespaceComments: true
+
+# includes structure:
+#  optinal main include, may be local (use full path if possible)
+#  local includes (avoid if possible)
+#  includes from private libraries or impl includes from libraries (TODO: cleanup)
+#  includes from public libraries
+#  common includes (TODO: cleanup)
+#  third-party libraries
+#  qt/boost includes
+#  system includes
+#  std includes
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeIsMainRegex: '$'
+IncludeCategories:
+  # qt/boost
+  - Regex: '<(Qt|boost/).+>'
+    Priority: 6
+  # third-party includes
+  - Regex: '"3rdparty/.+"'
+    Priority: 5
+  # common includes
+  - Regex: '"(api_dynamic|byteorder|contract|error|error_tools|lazy|make_ptr|pointers|source_location|static_string|string_type|string_view|types)\.h"'
+    Priority: 4
+  # public libraries
+  - Regex: '"(analysis|async|binary(/compression)?|core|debug|devices|formats|io|l10n|math|module|parameters|platform(/(application|version))?|resource|sound|strings|time|tools)/[^/]+\.h"'
+    Priority: 3
+  # private libraries/impl includes
+  - Regex: '"(analysis|async|binary|core|debug|devices|formats|io|l10n|math|module|parameters|platform|resource|sound|strings|time|tools)/[^.]+\.h|zxtune.h"'
+    Priority: 2
+  # local includes or local libraries
+  - Regex: '".+\.h"'
+    Priority: 1
+  # std includes
+  - Regex: '<[_a-z0-9]+>'
+    Priority: 8
+  # system includes
+  - Regex: '<[/_a-z0-9]+\.h>'
+    Priority: 7

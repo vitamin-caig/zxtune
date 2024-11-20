@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <parameters/accessor.h>
-#include <sound/matrix_mixer.h>
+#include "parameters/accessor.h"
+#include "sound/matrix_mixer.h"
 
 namespace Sound
 {

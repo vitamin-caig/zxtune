@@ -8,45 +8,46 @@
  *
  **/
 
-// local includes
-#include "config.h"
-#include "console.h"
-#include "display.h"
-#include "information.h"
-#include "sound.h"
-#include "source.h"
-// common includes
-#include <error_tools.h>
-#include <progress_callback.h>
-// library includes
-#include <async/data_receiver.h>
-#include <async/src/event.h>
-#include <binary/container_factories.h>
-#include <binary/crc.h>
-#include <core/core_parameters.h>
-#include <core/plugin.h>
-#include <core/plugin_attrs.h>
-#include <io/api.h>
-#include <io/template.h>
-#include <module/attributes.h>
-#include <module/conversion/api.h>
-#include <module/conversion/types.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/template.h>
-#include <platform/application.h>
-#include <platform/version/api.h>
-#include <sound/sound_parameters.h>
-#include <time/duration.h>
-#include <time/timer.h>
-// std includes
+#include "apps/zxtune123/config.h"
+#include "apps/zxtune123/console.h"
+#include "apps/zxtune123/display.h"
+#include "apps/zxtune123/information.h"
+#include "apps/zxtune123/sound.h"
+#include "apps/zxtune123/source.h"
+
+#include "async/src/event.h"
+#include "module/conversion/api.h"
+#include "module/conversion/parameters.h"
+
+#include "async/data_receiver.h"
+#include "binary/container_factories.h"
+#include "binary/crc.h"
+#include "core/core_parameters.h"
+#include "core/plugin.h"
+#include "core/plugin_attrs.h"
+#include "io/api.h"
+#include "io/template.h"
+#include "module/attributes.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/template.h"
+#include "platform/application.h"
+#include "platform/version/api.h"
+#include "sound/sound_parameters.h"
+#include "time/duration.h"
+#include "time/timer.h"
+#include "tools/progress_callback.h"
+
+#include "error_tools.h"
+#include "string_view.h"
+
+#include <boost/program_options.hpp>
+
 #include <algorithm>
 #include <cctype>
 #include <functional>
 #include <limits>
 #include <memory>
 #include <numeric>
-// boost includes
-#include <boost/program_options.hpp>
 
 namespace
 {
@@ -57,7 +58,7 @@ namespace
 
   String GetFilenameTemplate(const Parameters::Accessor& params)
   {
-    auto res = Parameters::GetString(params, "filename"_sv);
+    auto res = Parameters::GetString(params, "filename"sv);
     if (res.empty())
     {
       throw Error(THIS_LINE, "Output filename template is not specified.");
@@ -112,29 +113,29 @@ namespace
                                                                             const Parameters::Accessor& modeParams)
   {
     const auto optimization =
-        Parameters::GetInteger<uint_t>(modeParams, "optimization"_sv, Module::Conversion::DEFAULT_OPTIMIZATION);
+        Parameters::GetInteger<uint_t>(modeParams, "optimization"sv, Module::Conversion::DEFAULT_OPTIMIZATION);
     std::unique_ptr<Module::Conversion::Parameter> param;
-    if (mode == "psg"_sv)
+    if (mode == "psg"sv)
     {
       param = std::make_unique<Module::Conversion::PSGConvertParam>(optimization);
     }
-    else if (mode == "zx50"_sv)
+    else if (mode == "zx50"sv)
     {
       param = std::make_unique<Module::Conversion::ZX50ConvertParam>(optimization);
     }
-    else if (mode == "txt"_sv)
+    else if (mode == "txt"sv)
     {
       param = std::make_unique<Module::Conversion::TXTConvertParam>();
     }
-    else if (mode == "debugay"_sv)
+    else if (mode == "debugay"sv)
     {
       param = std::make_unique<Module::Conversion::DebugAYConvertParam>(optimization);
     }
-    else if (mode == "aydump"_sv)
+    else if (mode == "aydump"sv)
     {
       param = std::make_unique<Module::Conversion::AYDumpConvertParam>(optimization);
     }
-    else if (mode == "fym"_sv)
+    else if (mode == "fym"sv)
     {
       param = std::make_unique<Module::Conversion::FYMConvertParam>(optimization);
     }
@@ -216,7 +217,7 @@ namespace
     Convertor(const Parameters::Accessor& params, DisplayComponent& display)
       : Pipe(HolderAndData::Receiver::CreateStub())
     {
-      const auto mode = params.FindString("mode"_sv);
+      const auto mode = params.FindString("mode"sv);
       if (!mode)
       {
         throw Error(THIS_LINE, "Conversion mode is not specified.");
@@ -432,18 +433,18 @@ namespace
         String configFile;
         options_description options(
             Strings::Format("Usage:\n{0} <Informational keys>\n{0} <Options> <files>...\n\nKeys", args[0]));
-        const Char HELP_KEY[] = "help";
-        const Char VERSION_KEY[] = "version";
-        const Char ABOUT_KEY[] = "about";
-        const Char CONFIG_KEY[] = "config";
-        const Char CONVERT_KEY[] = "convert";
+        const auto HELP_KEY = "help"s;
+        const auto VERSION_KEY = "version"s;
+        const auto ABOUT_KEY = "about"s;
+        const auto CONFIG_KEY = "config"s;
+        const auto CONVERT_KEY = "convert"s;
         {
           auto opt = options.add_options();
-          opt(HELP_KEY, "show this message");
-          opt(VERSION_KEY, "show version");
-          opt(ABOUT_KEY, "show information about program");
-          opt(CONFIG_KEY, value<String>(&configFile), "configuration file");
-          opt(CONVERT_KEY, value<String>(&ConvertParams),
+          opt(HELP_KEY.c_str(), "show this message");
+          opt(VERSION_KEY.c_str(), "show version");
+          opt(ABOUT_KEY.c_str(), "show information about program");
+          opt(CONFIG_KEY.c_str(), value<String>(&configFile), "configuration file");
+          opt(CONVERT_KEY.c_str(), value<String>(&ConvertParams),
               "Perform conversion instead of playback.\n"
               "Parameter is map with the next mandatory parameters:\n"
               " mode - specify conversion mode. Currently supported are: raw,psg,zx50,txt,aydump,fym\n"
@@ -605,7 +606,7 @@ namespace Platform
 {
   namespace Version
   {
-    extern const Char PROGRAM_NAME[] = "zxtune123";
+    const StringView PROGRAM_NAME = "zxtune123"sv;
   }
 
   std::unique_ptr<Application> Application::Create()

@@ -8,24 +8,24 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/globaltracker.h"
+
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/metainfo.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <indices.h>
-#include <iterator.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/format.h>
-#include <strings/optimize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/format.h"
+#include "strings/optimize.h"
+#include "tools/indices.h"
+#include "tools/iterators.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -36,7 +36,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::GlobalTracker");
 
-    constexpr auto EDITOR = "Global Tracker v1.{}"_sv;
+    constexpr auto EDITOR = "Global Tracker v1.{}"sv;
 
     const std::size_t MIN_SIZE = 1500;
     const std::size_t MAX_SIZE = 0x2800;
@@ -925,7 +925,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const Char DESCRIPTION[] = "Global Tracker v1.x";
+    const auto DESCRIPTION = "Global Tracker v1.x"sv;
     const auto FORMAT =
         "03-0f"     // uint8_t Tempo;
         "???"       // uint8_t ID[3];
@@ -938,7 +938,7 @@ namespace Formats::Chiptune
         "01-ff"     // uint8_t Length;
         "00-fe"     // uint8_t Loop;
         "*6&00-ba"  // uint8_t Positions[1];
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -947,7 +947,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

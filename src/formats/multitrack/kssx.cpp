@@ -8,17 +8,16 @@
  *
  **/
 
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/crc.h>
-#include <binary/format_factories.h>
-#include <formats/multitrack.h>
-// std includes
+#include "binary/container_base.h"
+#include "binary/crc.h"
+#include "binary/format_factories.h"
+#include "formats/multitrack.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <array>
 #include <cstring>
 #include <utility>
@@ -69,9 +68,9 @@ namespace Formats::Multitrack
         "?"          // extra banks
         "00|0c-10"   // extra header size
         "%0x0xxxxx"  // extra chips
-        ""_sv;
+        ""sv;
 
-    const Char DESCRIPTION[] = "KSS Extended Music Format";
+    const auto DESCRIPTION = "KSS Extended Music Format"sv;
 
     const ExtraHeader STUB_EXTRA_HEADER = {~uint32_t(0), 0, 0, 0};
 
@@ -116,7 +115,7 @@ namespace Formats::Multitrack
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

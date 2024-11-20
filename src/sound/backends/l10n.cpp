@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "sound/backends/l10n.h"
 
 namespace Sound

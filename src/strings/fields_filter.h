@@ -10,28 +10,28 @@
 
 #pragma once
 
-// common includes
-#include <contract.h>
-// library includes
-#include <strings/fields.h>
-// std includes
+#include "strings/fields.h"
+
+#include "contract.h"
+#include "string_view.h"
+
 #include <set>
 #include <type_traits>
 #include <vector>
 
 namespace Strings
 {
-  static_assert(std::is_unsigned<Char>::value, "Char type should be unsigned");
+  static_assert(std::is_unsigned_v<char>, "Char type should be unsigned");
 
   class FilterFieldsSource : public FieldsSource
   {
   public:
     FilterFieldsSource(const FieldsSource& delegate, StringView src, StringView tgt)
       : Delegate(delegate)
-      , Table(1 << (8 * sizeof(Char)))
+      , Table(1 << (8 * sizeof(char)))
     {
       Require(src.size() == tgt.size());
-      Require(std::set<Char>(src.begin(), src.end()).size() == src.size());
+      Require(std::set<char>(src.begin(), src.end()).size() == src.size());
       for (std::size_t idx = 0; idx != Table.size(); ++idx)
       {
         const String::size_type srcPos = src.find(idx);
@@ -39,11 +39,11 @@ namespace Strings
       }
     }
 
-    FilterFieldsSource(const FieldsSource& delegate, StringView src, const Char tgt)
+    FilterFieldsSource(const FieldsSource& delegate, StringView src, const char tgt)
       : Delegate(delegate)
-      , Table(1 << (8 * sizeof(Char)))
+      , Table(1 << (8 * sizeof(char)))
     {
-      const std::set<Char> srcSymbols(src.begin(), src.end());
+      const std::set<char> srcSymbols(src.begin(), src.end());
       Require(srcSymbols.size() == src.size());
       for (std::size_t idx = 0; idx != Table.size(); ++idx)
       {
@@ -63,6 +63,6 @@ namespace Strings
 
   private:
     const FieldsSource& Delegate;
-    std::vector<Char> Table;
+    std::vector<char> Table;
   };
 }  // namespace Strings

@@ -8,12 +8,11 @@
  *
  **/
 
-// local includes
 #include "module/players/dac/dac_base.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <sound/multichannel_sample.h>
+
+#include "sound/multichannel_sample.h"
+
+#include "make_ptr.h"
 
 namespace Module
 {

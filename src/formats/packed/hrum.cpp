@@ -10,19 +10,18 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/hrust1_bitstream.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <numeric>
 
 namespace Formats::Packed
@@ -31,7 +30,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "Hrum v3.x";
+    const auto DESCRIPTION = "Hrum v3.x"sv;
     const auto DEPACKER_PATTERN =
         "?"       // di/nop
         "ed73??"  // ld (xxxx),sp
@@ -50,7 +49,7 @@ namespace Formats::Packed
         "16?"     // ld d,xx
         "31??"    // ld sp,xxxx   ;start of moved packed (data = +0x24)
         "c1"      // pop bc
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {
@@ -298,7 +297,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(Hrum::DEPACKER_PATTERN, Hrum::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Hrum::DESCRIPTION;
     }

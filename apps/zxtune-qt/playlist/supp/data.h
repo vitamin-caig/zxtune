@@ -10,17 +10,16 @@
 
 #pragma once
 
-// local includes
-#include "capabilities.h"
-// common includes
-#include <error.h>
-#include <iterator.h>
-// library includes
-#include <binary/data.h>
-#include <module/holder.h>
-#include <parameters/container.h>
-#include <time/duration.h>
-// std includes
+#include "apps/zxtune-qt/playlist/supp/capabilities.h"
+
+#include "binary/data.h"
+#include "module/holder.h"
+#include "parameters/container.h"
+#include "time/duration.h"
+#include "tools/iterators.h"
+
+#include "error.h"
+
 #include <variant>
 
 namespace Playlist::Item

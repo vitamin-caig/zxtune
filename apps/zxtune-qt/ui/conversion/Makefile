@@ -8,6 +8,4 @@ ui_files = filename_template setup_conversion supported_formats mp3_settings ogg
 
 ts_files := ui_conversion
 
-includes.dirs += ../..
-
 include $(dirs.root)/makefile.mak

@@ -13,7 +13,6 @@
 
 #pragma once
 
-// std includes
 #include <string>
 
 namespace Benchmark

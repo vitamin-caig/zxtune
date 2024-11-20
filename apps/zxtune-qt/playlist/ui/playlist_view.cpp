@@ -8,39 +8,38 @@
  *
  **/
 
-// local includes
-#include "playlist_view.h"
-#include "contextmenu.h"
-#include "playlist/io/export.h"
-#include "playlist/parameters.h"
-#include "playlist/supp/container.h"
-#include "playlist/supp/controller.h"
-#include "playlist/supp/model.h"
-#include "playlist/supp/scanner.h"
-#include "playlist/supp/storage.h"
-#include "scanner_view.h"
-#include "search.h"
-#include "supp/options.h"
-#include "table_view.h"
-#include "ui/controls/overlay_progress.h"
-#include "ui/state.h"
-#include "ui/tools/errorswidget.h"
-#include "ui/tools/filedialog.h"
-#include "ui/utils.h"
-// local includes
-#include <contract.h>
-#include <error.h>
-// library includes
-#include <binary/base64.h>
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <parameters/template.h>
-#include <strings/join.h>
-#include <strings/split.h>
-#include <strings/template.h>
-// std includes
-#include <utility>
-// qt includes
+#include "apps/zxtune-qt/playlist/ui/playlist_view.h"
+
+#include "apps/zxtune-qt/playlist/io/export.h"
+#include "apps/zxtune-qt/playlist/parameters.h"
+#include "apps/zxtune-qt/playlist/supp/container.h"
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
+#include "apps/zxtune-qt/playlist/supp/scanner.h"
+#include "apps/zxtune-qt/playlist/supp/storage.h"
+#include "apps/zxtune-qt/playlist/ui/contextmenu.h"
+#include "apps/zxtune-qt/playlist/ui/scanner_view.h"
+#include "apps/zxtune-qt/playlist/ui/search.h"
+#include "apps/zxtune-qt/playlist/ui/table_view.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/controls/overlay_progress.h"
+#include "apps/zxtune-qt/ui/state.h"
+#include "apps/zxtune-qt/ui/tools/errorswidget.h"
+#include "apps/zxtune-qt/ui/tools/filedialog.h"
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "binary/base64.h"
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "parameters/template.h"
+#include "strings/join.h"
+#include "strings/split.h"
+#include "strings/template.h"
+
+#include "contract.h"
+#include "error.h"
+#include "string_view.h"
+
 #include <QtCore/QBuffer>
 #include <QtCore/QIdentityProxyModel>
 #include <QtCore/QMimeData>
@@ -53,6 +52,8 @@
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QVBoxLayout>
+
+#include <utility>
 
 namespace
 {
@@ -191,8 +192,8 @@ namespace
 
     static void TrimLongMultiline(String& result, int maxLines)
     {
-      const auto SEPARATOR = "\n"_sv;
-      const auto ELLIPSIS = "<...>"_sv;
+      const auto SEPARATOR = "\n"sv;
+      const auto ELLIPSIS = "<...>"sv;
       auto lines = Strings::Split(result, SEPARATOR);
       if (lines.size() <= maxLines)
       {
@@ -208,7 +209,7 @@ namespace
     // TODO: get rid of template, build tooltip one-by-one and escape html with Qt
     static void EscapeHtml(String& result)
     {
-      if (result.size() == Strings::Find::First(result, "&<>\n"_sv))
+      if (result.size() == Strings::Find::First(result, "&<>\n"sv))
       {
         return;
       }
@@ -219,16 +220,16 @@ namespace
         switch (c)
         {
         case '&':
-          escaped += "&amp;"_sv;
+          escaped += "&amp;"sv;
           break;
         case '<':
-          escaped += "&lt;"_sv;
+          escaped += "&lt;"sv;
           break;
         case '>':
-          escaped += "&gt;"_sv;
+          escaped += "&gt;"sv;
           break;
         case '\n':
-          escaped += "<br/>"_sv;
+          escaped += "<br/>"sv;
           break;
         default:
           escaped += c;

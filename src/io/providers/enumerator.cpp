@@ -8,18 +8,19 @@
  *
  **/
 
-// local includes
 #include "io/providers/enumerator.h"
+
 #include "io/impl/l10n.h"
 #include "io/providers/providers_list.h"
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <io/api.h>
-#include <strings/map.h>
-// std includes
+
+#include "debug/log.h"
+#include "io/api.h"
+#include "strings/map.h"
+
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <list>
 
@@ -114,7 +115,7 @@ namespace IO
       , StatusValue(std::move(status))
     {}
 
-    String Id() const override
+    StringView Id() const override
     {
       return IdValue;
     }
@@ -145,7 +146,7 @@ namespace IO
     }
 
   private:
-    const String IdValue;
+    const StringView IdValue;
     const char* const DescrValue;
     const Error StatusValue;
   };

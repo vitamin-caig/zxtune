@@ -8,20 +8,20 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/saa/etracker.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <indices.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "tools/indices.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <array>
 
 namespace Formats::Chiptune
@@ -30,7 +30,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ETracker");
 
-    const Char DESCRIPTION[] = "E-Tracker v1.x";
+    const auto DESCRIPTION = "E-Tracker v1.x"sv;
 
     const std::size_t MIN_SIZE = 96;
     const std::size_t MAX_SIZE = 0x8000;
@@ -893,7 +893,7 @@ namespace Formats::Chiptune
         "(?00-7f)"
         "(?00-7f)"
         "'E'T'r'a'c'k'e'r' '('C')' 'B'Y' 'E'S'I'."
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -902,7 +902,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

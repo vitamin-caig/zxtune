@@ -10,11 +10,11 @@
 
 #pragma once
 
-// library includes
-#include <devices/tfm.h>
-#include <module/information.h>
-#include <module/players/iterator.h>
-#include <parameters/accessor.h>
+#include "module/players/iterator.h"
+
+#include "devices/tfm.h"
+#include "module/information.h"
+#include "parameters/accessor.h"
 
 namespace Module::TFM
 {

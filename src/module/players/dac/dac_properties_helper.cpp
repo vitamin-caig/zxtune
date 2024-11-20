@@ -8,10 +8,9 @@
  *
  **/
 
-// local includes
 #include "module/players/dac/dac_properties_helper.h"
-// core includes
-#include <core/core_parameters.h>
+
+#include "core/core_parameters.h"
 
 namespace Module::DAC
 {

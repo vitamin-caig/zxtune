@@ -10,18 +10,18 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <iterator>
 #include <memory>
@@ -107,7 +107,7 @@ namespace Formats::Packed
       static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x36, "Invalid layout");
     };
 
-    const StringView Version4::DESCRIPTION = "CompressorCode v.4 by ZYX"_sv;
+    const StringView Version4::DESCRIPTION = "CompressorCode v.4 by ZYX"sv;
     const StringView Version4::DEPACKER_PATTERN =
         "cd5200"  // call 0x52
         "3b"      // dec sp
@@ -127,9 +127,9 @@ namespace Formats::Packed
         "c5"    // push bc
         "01??"  // ld bc,xxxx
         "c5"    // push bc
-        ""_sv;
+        ""sv;
 
-    const StringView Version4Plus::DESCRIPTION = "CompressorCode v.4+ by ZYX"_sv;
+    const StringView Version4Plus::DESCRIPTION = "CompressorCode v.4+ by ZYX"sv;
     const StringView Version4Plus::DEPACKER_PATTERN =
         "cd5200"  // call 0x52
         "3b"      // dec sp
@@ -148,7 +148,7 @@ namespace Formats::Packed
         "dde1"  // pop ix
         "11??"  // ld de,xxxx ;dst addr
         "01??"  // ld bc,xxxx ;huffman packed size +1d
-        ""_sv;
+        ""sv;
 
     template<class Version>
     class Container
@@ -529,9 +529,9 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(Version::DEPACKER_PATTERN, Version::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
-      return String{Version::DESCRIPTION};
+      return Version::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

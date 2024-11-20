@@ -5,6 +5,4 @@ moc_files := check
 
 ts_files := update_check
 
-includes.dirs += ..
-
 include $(dirs.root)/makefile.mak

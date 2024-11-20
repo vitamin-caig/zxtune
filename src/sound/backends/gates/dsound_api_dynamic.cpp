@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/dsound_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
+
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
+
+#include "make_ptr.h"
 
 namespace Sound::DirectSound
 {
@@ -32,7 +31,7 @@ namespace Sound::DirectSound
       Debug::Log("Sound::Backend::DirectSound", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     HRESULT DirectSoundEnumerateW(LPDSENUMCALLBACKW cb, LPVOID param) override
     {
@@ -48,14 +47,14 @@ namespace Sound::DirectSound
       return func(pcGuidDevice, ppDS, pUnkOuter);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };
 
   Api::Ptr LoadDynamicApi()
   {
-    auto lib = Platform::SharedLibrary::Load("dsound"_sv);
+    auto lib = Platform::SharedLibrary::Load("dsound"sv);
     return MakePtr<DynamicApi>(std::move(lib));
   }
 }  // namespace Sound::DirectSound

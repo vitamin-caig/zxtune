@@ -12,10 +12,9 @@
 
 #pragma once
 
-// common includes
-#include <error.h>
-// library includes
-#include <strings/format.h>
+#include "strings/format.h"
+
+#include "error.h"
 
 //! @brief Building error object with formatted text
 template<class S, class... P>

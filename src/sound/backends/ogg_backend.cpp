@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "sound/backends/file_backend.h"
 #include "sound/backends/gates/ogg_api.h"
 #include "sound/backends/gates/vorbis_api.h"
@@ -16,15 +15,15 @@
 #include "sound/backends/l10n.h"
 #include "sound/backends/ogg.h"
 #include "sound/backends/storage.h"
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <sound/backends_parameters.h>
-#include <sound/render_params.h>
-// std includes
+
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "sound/backends_parameters.h"
+#include "sound/render_params.h"
+
+#include "error_tools.h"
+#include "make_ptr.h"
+
 #include <algorithm>
 #include <ctime>
 
@@ -255,17 +254,17 @@ namespace Sound::Ogg
 
     void SetTitle(const String& title) override
     {
-      Meta->AddTag(File::TITLE_TAG, title);
+      Meta->AddTag(String{File::TITLE_TAG}, title);
     }
 
     void SetAuthor(const String& author) override
     {
-      Meta->AddTag(File::AUTHOR_TAG, author);
+      Meta->AddTag(String{File::AUTHOR_TAG}, author);
     }
 
     void SetComment(const String& comment) override
     {
-      Meta->AddTag(File::COMMENT_TAG, comment);
+      Meta->AddTag(String{File::COMMENT_TAG}, comment);
     }
 
     void FlushMetadata() override

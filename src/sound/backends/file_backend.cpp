@@ -8,24 +8,25 @@
  *
  **/
 
-// local includes
 #include "sound/backends/file_backend.h"
+
 #include "sound/backends/l10n.h"
-// common includes
-#include <make_ptr.h>
-#include <progress_callback.h>
-// library includes
-#include <async/data_receiver.h>
-#include <debug/log.h>
-#include <io/api.h>
-#include <io/providers_parameters.h>
-#include <io/template.h>
-#include <module/attributes.h>
-#include <module/track_state.h>
-#include <parameters/convert.h>
-#include <parameters/template.h>
-#include <sound/backends_parameters.h>
-// std includes
+
+#include "async/data_receiver.h"
+#include "debug/log.h"
+#include "io/api.h"
+#include "io/providers_parameters.h"
+#include "io/template.h"
+#include "module/attributes.h"
+#include "module/track_state.h"
+#include "parameters/convert.h"
+#include "parameters/template.h"
+#include "sound/backends_parameters.h"
+#include "tools/progress_callback.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <memory>
 #include <utility>
 
@@ -33,7 +34,7 @@ namespace Sound::File
 {
   const Debug::Stream Dbg("Sound::Backend::FileBase");
 
-  const Char DEFAULT_COMMENT[] = "Created using ZXTune toolkit";
+  const auto DEFAULT_COMMENT = "Created using ZXTune toolkit"sv;
 
   class StateFieldsSource : public Strings::SkipFieldsSource
   {
@@ -174,7 +175,7 @@ namespace Sound::File
     String ReplaceBackendId(StringView property) const
     {
       // TODO: think about better solution
-      static const auto GENERIC_ID = ".file."_sv;
+      static const auto GENERIC_ID = ".file."sv;
       const auto pos = property.find(GENERIC_ID);
       Require(pos != property.npos);
       auto result = String{property};
@@ -246,7 +247,7 @@ namespace Sound::File
       }
       else
       {
-        stream.SetComment(DEFAULT_COMMENT);
+        stream.SetComment(String{DEFAULT_COMMENT});
       }
       stream.FlushMetadata();
     }

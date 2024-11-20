@@ -8,18 +8,18 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/ayc.h"
+
+#include "formats/chiptune/aym/ayc.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <core/core_parameters.h>
-#include <formats/chiptune/aym/ayc.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_helper.h>
+#include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
+
+#include "core/core_parameters.h"
+
+#include "contract.h"
+#include "make_ptr.h"
 
 namespace Module::AYC
 {

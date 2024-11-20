@@ -8,12 +8,11 @@
  *
  **/
 
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/container_factories.h>
-// std includes
+#include "binary/container_factories.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cstring>

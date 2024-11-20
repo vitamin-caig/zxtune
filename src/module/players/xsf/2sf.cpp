@@ -8,27 +8,28 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/2sf.h"
+
+#include "formats/chiptune/emulation/nintendodssoundformat.h"
+#include "module/players/platforms.h"
+#include "module/players/streaming.h"
 #include "module/players/xsf/memory_region.h"
 #include "module/players/xsf/xsf.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/compression/zlib_container.h>
-#include <debug/log.h>
-#include <formats/chiptune/emulation/nintendodssoundformat.h>
-#include <math/bitops.h>
-#include <module/attributes.h>
-#include <module/players/platforms.h>
-#include <module/players/streaming.h>
-#include <sound/resampler.h>
-// std includes
+
+#include "binary/compression/zlib_container.h"
+#include "debug/log.h"
+#include "math/bitops.h"
+#include "module/attributes.h"
+#include "sound/resampler.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
+#include "3rdparty/vio2sf/desmume/SPU.h"
+#include "3rdparty/vio2sf/desmume/state.h"
+
 #include <list>
-// 3rdparty includes
-#include <3rdparty/vio2sf/desmume/SPU.h>
-#include <3rdparty/vio2sf/desmume/state.h>
 
 namespace Module::TwoSF
 {
@@ -110,7 +111,7 @@ namespace Module::TwoSF
       // TODO: interpolation
       for (const auto& tag : meta.Tags)
       {
-        if (tag.first == "_clockdown"_sv)
+        if (tag.first == "_clockdown"sv)
         {
           clockDown = std::atoi(tag.second.c_str());
         }
@@ -131,19 +132,19 @@ namespace Module::TwoSF
 
     int* FindTagTarget(StringView name)
     {
-      if (name == "_frames"_sv)
+      if (name == "_frames"sv)
       {
         return &State.initial_frames;
       }
-      else if (name == "_vio2sf_sync_type"_sv)
+      else if (name == "_vio2sf_sync_type"sv)
       {
         return &State.sync_type;
       }
-      else if (name == "_vio2sf_arm9_clockdown_level"_sv)
+      else if (name == "_vio2sf_arm9_clockdown_level"sv)
       {
         return &State.arm9_clockdown_level;
       }
-      else if (name == "_vio2sf_arm7_clockdown_level"_sv)
+      else if (name == "_vio2sf_arm7_clockdown_level"sv)
       {
         return &State.arm7_clockdown_level;
       }

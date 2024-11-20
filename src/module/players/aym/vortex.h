@@ -10,10 +10,8 @@
 
 #pragma once
 
-// local includes
+#include "formats/chiptune/aym/protracker3.h"
 #include "module/players/aym/aym_base_track.h"
-// library includes
-#include <formats/chiptune/aym/protracker3.h>
 
 namespace Module::Vortex
 {
@@ -27,7 +25,7 @@ namespace Module::Vortex
     NATURAL
   };
 
-  String GetFreqTable(NoteTable table, uint_t version);
+  StringView GetFreqTable(NoteTable table, uint_t version);
 
   using Formats::Chiptune::ProTracker3::Sample;
   using Formats::Chiptune::ProTracker3::Ornament;

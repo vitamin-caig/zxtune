@@ -10,9 +10,8 @@
 
 #pragma once
 
-// common includes
-#include <pointers.h>
-// std includes
+#include "pointers.h"
+
 #include <memory>
 
 //! @brief Template data consuming interface. Instantiated with working data class

@@ -3,7 +3,6 @@ dirs.root := ../..
 include $(dirs.root)/make/default.mak
 
 source_dirs = . supp
-includes.dirs += .
 
 source_files.windows = res/zxtune-qt.rc
 source_files.mingw = $(source_files.windows)

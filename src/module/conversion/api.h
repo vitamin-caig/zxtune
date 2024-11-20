@@ -10,14 +10,16 @@
 
 #pragma once
 
-// local includes
-#include "parameters.h"
-// library includes
-#include <binary/data.h>
-#include <module/holder.h>
+#include "binary/data.h"
+#include "module/holder.h"
 
 namespace Module
 {
+  namespace Conversion
+  {
+    struct Parameter;
+  }
+
   //! @return Binary::Data::Ptr if cannot convert
   //! @throw Error in case of internal problems
   Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec,

@@ -10,18 +10,17 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-#include <math/numeric.h>
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
 
 namespace Formats::Packed
 {
@@ -29,7 +28,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "DataSqueezer v4.x";
+    const auto DESCRIPTION = "DataSqueezer v4.x"sv;
     /*
        classic depacker
        bitstream:
@@ -150,7 +149,7 @@ namespace Formats::Packed
                       "d9"        // exx
                       "c9"        // ret
                   */
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {
@@ -425,7 +424,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(DataSquieezer::DEPACKER_PATTERN, DataSquieezer::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return DataSquieezer::DESCRIPTION;
     }

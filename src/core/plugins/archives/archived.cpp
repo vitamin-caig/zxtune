@@ -8,17 +8,18 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archives/archived.h"
+
 #include "core/plugins/archives/l10n.h"
-// common includes
-#include <make_ptr.h>
-#include <progress_callback.h>
-// library includes
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <strings/format.h>
+
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "strings/format.h"
+#include "tools/progress_callback.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace ZXTune
 {
@@ -111,7 +112,7 @@ namespace ZXTune
       return Identifier;
     }
 
-    String Description() const override
+    StringView Description() const override
     {
       return Decoder->GetDescription();
     }

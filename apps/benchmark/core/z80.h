@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <devices/z80.h>
-#include <time/duration.h>
+#include "devices/z80.h"
+#include "time/duration.h"
 
 namespace Benchmark::Z80
 {

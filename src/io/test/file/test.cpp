@@ -8,14 +8,14 @@
  *
  **/
 
-#include <src/io/api.h>
-#include <src/io/providers/file_provider.h>
-#include <src/io/providers_parameters.h>
+#include "providers/file_provider.h"
 
-#include <error.h>
-#include <progress_callback.h>
+#include "io/api.h"
+#include "io/providers_parameters.h"
+#include "parameters/container.h"
+#include "tools/progress_callback.h"
 
-#include <parameters/container.h>
+#include "error.h"
 
 #include <iostream>
 #include <limits>

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// std includes
 #include <algorithm>
 #include <cstring>
 #include <memory>

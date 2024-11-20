@@ -8,18 +8,19 @@
  *
  **/
 
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/data_builder.h>
-#include <debug/log.h>
-#include <formats/archived/decoders.h>
-#include <l10n/api.h>
-#include <platform/tools.h>
-#include <resource/api.h>
-// std includes
+#include "formats/archived/decoders.h"
+
+#include "binary/data_builder.h"
+#include "debug/log.h"
+#include "l10n/api.h"
+#include "platform/tools.h"
+#include "resource/api.h"
+
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
 #include <fstream>
 
 namespace

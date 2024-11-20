@@ -8,10 +8,11 @@
  *
  **/
 
-#include <static_string.h>
-#include <time/duration.h>
-#include <time/instant.h>
-#include <time/serialize.h>
+#include "time/duration.h"
+#include "time/instant.h"
+#include "time/serialize.h"
+
+#include "static_string.h"
 
 #include <iostream>
 

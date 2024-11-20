@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
+#include "async/activity.h"
+
 #include "async/src/event.h"
-// common includes
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <async/activity.h>
-// std includes
+
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <cassert>
 #include <thread>
 

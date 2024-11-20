@@ -8,14 +8,14 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/psg.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-// std includes
+
+#include "binary/format_factories.h"
+
+#include "make_ptr.h"
+
 #include <cstddef>
 #include <cstring>
 
@@ -64,11 +64,11 @@ namespace Formats::Chiptune
       return 0 == std::memcmp(header->Sign, SIGNATURE, sizeof(SIGNATURE)) && MARKER == header->Marker;
     }
 
-    const Char DESCRIPTION[] = "Programmable Sound Generator";
+    const auto DESCRIPTION = "Programmable Sound Generator"sv;
     const auto FORMAT =
         "'P'S'G"  // uint8_t Sign[3];
         "1a"      // uint8_t Marker;
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -77,7 +77,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

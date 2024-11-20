@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <array>
 #include <numeric>
 
@@ -60,7 +59,7 @@ namespace Formats::Packed
       return header->CRC == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff);
     }
 
-    const Char DESCRIPTION[] = "Hobeta";
+    const auto DESCRIPTION = "Hobeta"sv;
     const auto FORMAT =
         // Filename
         "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
@@ -70,7 +69,7 @@ namespace Formats::Packed
         "?01-ff"
         // FullLength
         "0001-ff"
-        ""_sv;
+        ""sv;
   }  // namespace Hobeta
 
   class HobetaDecoder : public Decoder
@@ -80,7 +79,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(Hobeta::FORMAT, Hobeta::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Hobeta::DESCRIPTION;
     }

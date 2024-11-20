@@ -8,16 +8,16 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/aym_base.h"
+
 #include "module/players/streaming.h"
 #include "module/players/tracking.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <sound/mixer_factory.h>
+
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "sound/mixer_factory.h"
+
+#include "make_ptr.h"
 
 namespace Module
 {

@@ -8,22 +8,21 @@
  *
  **/
 
-// local includes
 #include "formats/image/container.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/image.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/image.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <memory>
 
 namespace Formats::Image
 {
   namespace ASCScreenCrusher
   {
-    const Char DESCRIPTION[] = "ASC ScreenCrasher";
+    const auto DESCRIPTION = "ASC ScreenCrasher"sv;
     const auto DEPACKER_PATTERN =
         "f3"      // di
         "cd5200"  // call #0052
@@ -44,7 +43,7 @@ namespace Formats::Image
         "09"      // add hl,bc
         "1100?"   // ld de,#4000
         "d5"      // push de
-        ""_sv;
+        ""sv;
 
     /*
       @0052 48ROM
@@ -205,7 +204,7 @@ namespace Formats::Image
       : Depacker(Binary::CreateFormat(ASCScreenCrusher::DEPACKER_PATTERN, ASCScreenCrusher::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return ASCScreenCrusher::DESCRIPTION;
     }

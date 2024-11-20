@@ -8,9 +8,10 @@
  *
  **/
 
-// local includes
 #include "log_real.h"
-// std includes
+
+#include "string_view.h"
+
 #include <cstdio>
 #include <cstring>
 #include <iostream>

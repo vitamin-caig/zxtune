@@ -10,9 +10,8 @@
 
 #pragma once
 
-// local includes
-#include "archive_plugin.h"
-#include "registrator.h"
+#include "core/plugins/archive_plugin.h"
+#include "core/plugins/registrator.h"
 
 namespace ZXTune
 {

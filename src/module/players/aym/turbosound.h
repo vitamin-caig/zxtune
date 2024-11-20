@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
 #include "module/players/aym/aym_base_track.h"
-// library includes
-#include <devices/turbosound.h>
-#include <module/holder.h>
+
+#include "devices/turbosound.h"
+#include "module/holder.h"
 
 namespace Module::TurboSound
 {

@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/psf_bios.h"
 
 namespace Module::PSF

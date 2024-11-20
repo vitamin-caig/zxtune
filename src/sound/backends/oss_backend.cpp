@@ -8,28 +8,28 @@
  *
  **/
 
-// local includes
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/oss.h"
 #include "sound/backends/storage.h"
-// common includes
-#include <byteorder.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <sound/backends_parameters.h>
-#include <sound/render_params.h>
-#include <sound/sound_parameters.h>
-// platform-specific includes
+
+#include "debug/log.h"
+#include "sound/backends_parameters.h"
+#include "sound/render_params.h"
+#include "sound/sound_parameters.h"
+
+#include "byteorder.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 #include <sys/soundcard.h>
 #include <sys/stat.h>
 #include <unistd.h>
-// std includes
+
 #include <algorithm>
 #include <array>
 #include <cerrno>

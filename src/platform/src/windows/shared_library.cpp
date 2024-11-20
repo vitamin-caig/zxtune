@@ -8,18 +8,18 @@
  *
  **/
 
-// local includes
 #include "platform/src/shared_library_common.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <l10n/api.h>
-// std includes
-#include <algorithm>
-// platform includes
+
+#include "l10n/api.h"
+
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <windows.h>
+
+#include <algorithm>
 
 namespace
 {
@@ -64,7 +64,7 @@ namespace Platform::Details
     return ::GetLastError();
   }
 
-  const auto SUFFIX = ".dll"_sv;
+  const auto SUFFIX = ".dll"sv;
 
   String BuildLibraryFilename(StringView name)
   {

@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <formats/image.h>
+#include "formats/image.h"
 
 namespace Formats::Image
 {

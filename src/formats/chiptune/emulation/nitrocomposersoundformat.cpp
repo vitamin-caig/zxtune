@@ -8,23 +8,22 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/nitrocomposersoundformat.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/compression/zlib_container.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-// std includes
+
+#include "binary/compression/zlib_container.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+
 #include <array>
 
 namespace Formats::Chiptune
 {
   namespace NitroComposerSoundFormat
   {
-    const Char DESCRIPTION[] = "Nitro Composer Sound Format";
+    const auto DESCRIPTION = "Nitro Composer Sound Format";
 
     using SignatureType = std::array<uint8_t, 4>;
     const SignatureType SAVESTATE_SIGNATURE = {{'S', 'A', 'V', 'E'}};
@@ -52,7 +51,7 @@ namespace Formats::Chiptune
     const auto FORMAT =
         "'P'S'F"
         "25"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -61,7 +60,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

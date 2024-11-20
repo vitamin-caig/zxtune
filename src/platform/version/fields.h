@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <strings/fields.h>
+#include "strings/fields.h"
 
 namespace Platform::Version
 {

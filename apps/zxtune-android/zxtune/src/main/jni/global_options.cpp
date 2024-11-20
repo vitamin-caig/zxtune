@@ -8,10 +8,10 @@
  *
  **/
 
-// local includes
-#include "global_options.h"
-#include "defines.h"
-#include "properties.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/global_options.h"
+
+#include "apps/zxtune-android/zxtune/src/main/jni/defines.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/properties.h"
 
 namespace Parameters
 {

@@ -8,29 +8,30 @@
  *
  **/
 
-// local includes
-#include "container.h"
-#include "export.h"
-#include "tags/xspf.h"
-#include "ui/utils.h"
-// common includes
-#include <error_tools.h>
-// library includes
-#include <core/plugins/archives/zdata_supp.h>
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <parameters/convert.h>
-#include <sound/sound_parameters.h>
-#include <zxtune.h>
-// std includes
-#include <memory>
-#include <set>
-// qt includes
+#include "apps/zxtune-qt/playlist/io/container.h"
+#include "apps/zxtune-qt/playlist/io/export.h"
+#include "apps/zxtune-qt/playlist/io/tags/xspf.h"
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "core/plugins/archives/zdata_supp.h"
+#include "zxtune.h"
+
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "parameters/convert.h"
+#include "sound/sound_parameters.h"
+
+#include "error_tools.h"
+#include "string_view.h"
+
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
 #include <QtCore/QXmlStreamWriter>
+
+#include <memory>
+#include <set>
 
 namespace
 {
@@ -56,10 +57,10 @@ namespace
   class ElementHelper
   {
   public:
-    ElementHelper(QXmlStreamWriter& xml, const Char* tagName)
+    ElementHelper(QXmlStreamWriter& xml, const QLatin1String& tagName)
       : Xml(xml)
     {
-      Xml.writeStartElement(QLatin1String(tagName));
+      Xml.writeStartElement(tagName);
     }
 
     ~ElementHelper()
@@ -67,9 +68,9 @@ namespace
       Xml.writeEndElement();
     }
 
-    ElementHelper& Attribute(const Char* name, const QString& value)
+    ElementHelper& Attribute(const QLatin1String& name, const QString& value)
     {
-      Xml.writeAttribute(QLatin1String(name), value);
+      Xml.writeAttribute(name, value);
       return *this;
     }
 
@@ -79,9 +80,9 @@ namespace
       return *this;
     }
 
-    ElementHelper& Text(const Char* name, const QString& str)
+    ElementHelper& Text(const QLatin1String& name, const QString& str)
     {
-      Xml.writeTextElement(QLatin1String(name), str);
+      Xml.writeTextElement(name, str);
       return *this;
     }
 
@@ -91,7 +92,7 @@ namespace
       return *this;
     }
 
-    ElementHelper Subtag(const Char* tagName)
+    ElementHelper Subtag(const QLatin1String& tagName)
     {
       return {Xml, tagName};
     }
@@ -354,7 +355,7 @@ namespace
       {
         const ZXTune::DataLocation::Ptr container = ZXTune::BuildZdataContainer(*rawContent);
         const String id = container->GetPath()->AsString();
-        saver.SaveModuleLocation(XSPF::EMBEDDED_PREFIX + id);
+        saver.SaveModuleLocation(StringView{XSPF::EMBEDDED_PREFIX.data(), XSPF::EMBEDDED_PREFIX.size()} + id);
         if (Ids.insert(id).second)
         {
           saver.SaveData(*container->GetData());
@@ -471,9 +472,9 @@ namespace
       XML.setAutoFormatting(true);
       XML.setAutoFormattingIndent(2);
       XML.writeStartDocument();
-      XML.writeStartElement(QLatin1String(XSPF::ROOT_TAG));
-      XML.writeAttribute(QLatin1String(XSPF::VERSION_ATTR), QLatin1String(XSPF::VERSION_VALUE));
-      XML.writeAttribute(QLatin1String(XSPF::XMLNS_ATTR), QLatin1String(XSPF::XMLNS_VALUE));
+      XML.writeStartElement(XSPF::ROOT_TAG);
+      XML.writeAttribute(XSPF::VERSION_ATTR, XSPF::VERSION_VALUE);
+      XML.writeAttribute(XSPF::XMLNS_ATTR, XSPF::XMLNS_VALUE);
     }
 
     void WriteProperties(const Parameters::Accessor& props, uint_t items)

@@ -13,10 +13,6 @@ ifdef pic
 CXX_MODE_FLAGS += -fPIC
 endif
 
-DEFINES = $(defines) $(defines.$(real_platform)) $(defines.$(real_platform).$(real_arch))
-INCLUDES_DIRS = $(foreach i,$(sort $(includes.dirs) $(includes.dirs.$(real_platform)) $(includes.dirs.$(notdir $1))),$(realpath $(i)))
-INCLUDES_FILES = $(includes.files) $(includes.files.$(real_platform))
-
 #setup flags
 CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(real_platform).cxx.flags) $($(real_platform).$(real_arch).cxx.flags) \
 	$(addprefix -D,$(DEFINES)) \

@@ -8,9 +8,11 @@
  *
  **/
 
-#include <byteorder.h>
-#include <iterator.h>
-#include <range_checker.h>
+#include "tools/iterators.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "string_type.h"
 
 #include <iostream>
 

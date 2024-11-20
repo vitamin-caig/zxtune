@@ -8,6 +8,4 @@ moc_files := playlist_view table_view
 
 ts_files := playlist_ui
 
-includes.dirs += ../..
-
 include $(dirs.root)/makefile.mak

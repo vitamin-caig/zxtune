@@ -8,22 +8,22 @@
  *
  **/
 
-// local includes
 #include "module/players/dac/abysshighestexperience.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/container_factories.h>
-#include <debug/log.h>
-#include <formats/chiptune/digital/abysshighestexperience.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_meta.h>
-#include <module/track_information.h>
-#include <module/track_state.h>
-// 3rdparty includes
-#include <3rdparty/hvl/hvl_replay.h>
+
+#include "formats/chiptune/digital/abysshighestexperience.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_meta.h"
+
+#include "binary/container_factories.h"
+#include "debug/log.h"
+#include "module/track_information.h"
+#include "module/track_state.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
+#include "3rdparty/hvl/hvl_replay.h"
 
 namespace Module::AHX
 {

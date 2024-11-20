@@ -8,28 +8,30 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/gsf.h"
+
+#include "module/players/platforms.h"
+#include "module/players/streaming.h"
 #include "module/players/xsf/gsf_rom.h"
 #include "module/players/xsf/xsf.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/compression/zlib_container.h>
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <module/players/platforms.h>
-#include <module/players/streaming.h>
-// 3rdparty includes
-#include <3rdparty/mgba/defines.h>
-#include <mgba-util/vfs.h>
+
+#include "binary/compression/zlib_container.h"
+#include "debug/log.h"
+#include "module/attributes.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
+#include "3rdparty/mgba/defines.h"
+
 #include <mgba/core/blip_buf.h>
 #include <mgba/core/core.h>
 #include <mgba/gba/core.h>
-// std includes
+
 #include <algorithm>
+
+#include <mgba-util/vfs.h>
 
 #undef min
 

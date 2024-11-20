@@ -9,6 +9,7 @@
  **/
 
 #include "core/benchmark.h"
+
 #include <iostream>
 
 namespace

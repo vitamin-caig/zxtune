@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "binary/format/static_expression.h"
 
 namespace Binary::FormatDSL

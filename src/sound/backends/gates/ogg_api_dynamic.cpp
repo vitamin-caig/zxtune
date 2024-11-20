@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/ogg_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
+
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Sound::Ogg
 {
@@ -25,17 +25,17 @@ namespace Sound::Ogg
 
     StringView Base() const override
     {
-      return "ogg"_sv;
+      return "ogg"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libogg.so.0"_sv};
+      return {"libogg.so.0"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libogg-0.dll"_sv};
+      return {"libogg-0.dll"sv};
     }
   };
 
@@ -53,7 +53,7 @@ namespace Sound::Ogg
       Debug::Log("Sound::Backend::Ogg", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     int ogg_stream_init(ogg_stream_state *os, int serialno) override
     {
@@ -97,7 +97,7 @@ namespace Sound::Ogg
       return func(og);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

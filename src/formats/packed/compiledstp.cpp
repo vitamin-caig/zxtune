@@ -8,16 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/soundtrackerpro.h"
 #include "formats/packed/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -111,8 +111,8 @@ namespace Formats::Packed
     static_assert(offsetof(Version2::RawPlayer, Information) == 8, "Invalid layout");
     static_assert(offsetof(Version2::RawPlayer, Initialization) == 72, "Invalid layout");
 
-    const StringView Version1::DESCRIPTION = "Sound Tracker Pro v1.x player"_sv;
-    const StringView Version2::DESCRIPTION = "Sound Tracker Pro v2.x player"_sv;
+    const StringView Version1::DESCRIPTION = "Sound Tracker Pro v1.x player"sv;
+    const StringView Version2::DESCRIPTION = "Sound Tracker Pro v2.x player"sv;
 
     const StringView Version1::FORMAT =
         "21??"    // ld hl,ModuleAddr
@@ -133,7 +133,7 @@ namespace Formats::Packed
         "7e"    // ld a,(hl)
         "23"    // inc hl
         "32??"  // ld (xxxx),a
-        ""_sv;
+        ""sv;
 
     const StringView Version2::FORMAT =
         "c3??"  // jp InitAddr
@@ -153,7 +153,7 @@ namespace Formats::Packed
         "7e"    // ld a,(hl)
         "23"    // inc hl
         "32??"  // ld (xxxx),a
-        ""_sv;
+        ""sv;
 
     bool IsInfoEmpty(const RawInformation& info)
     {
@@ -172,9 +172,9 @@ namespace Formats::Packed
       : Player(Binary::CreateFormat(Version::FORMAT, sizeof(typename Version::RawPlayer)))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
-      return String{Version::DESCRIPTION};
+      return Version::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

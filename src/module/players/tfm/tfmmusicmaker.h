@@ -10,10 +10,8 @@
 
 #pragma once
 
-// local includes
+#include "formats/chiptune/fm/tfmmusicmaker.h"
 #include "module/players/tfm/tfm_factory.h"
-// library includes
-#include <formats/chiptune/fm/tfmmusicmaker.h>
 
 namespace Module::TFMMusicMaker
 {

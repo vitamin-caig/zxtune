@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/aym_base_stream.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <module/players/streaming.h>
-// std includes
+
+#include "module/players/streaming.h"
+
+#include "make_ptr.h"
+
 #include <utility>
 
 namespace Module::AYM

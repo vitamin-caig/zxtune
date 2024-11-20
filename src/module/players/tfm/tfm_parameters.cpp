@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "module/players/tfm/tfm_parameters.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <core/core_parameters.h>
-// std includes
+
+#include "core/core_parameters.h"
+
+#include "make_ptr.h"
+
 #include <utility>
 
 namespace Module::TFM

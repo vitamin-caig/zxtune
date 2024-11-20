@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <binary/view.h>
-#include <core/data_location.h>
+#include "binary/view.h"
+#include "core/data_location.h"
 
 namespace ZXTune
 {

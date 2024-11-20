@@ -10,12 +10,13 @@
 
 #pragma once
 
-// local includes
-#include "array.h"
-// library includes
-#include <parameters/accessor.h>
-#include <parameters/modifier.h>
-// platform includes
+#include "apps/zxtune-android/zxtune/src/main/jni/array.h"
+
+#include "parameters/accessor.h"
+#include "parameters/modifier.h"
+
+#include "string_view.h"
+
 #include <jni.h>
 
 namespace Jni

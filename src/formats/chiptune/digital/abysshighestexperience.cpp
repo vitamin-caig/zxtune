@@ -8,17 +8,18 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/digital/abysshighestexperience.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <strings/sanitize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "strings/sanitize.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 #include <utility>
 
@@ -31,10 +32,10 @@ namespace Formats::Chiptune
     const IdentifierType ID_AHX = {{'T', 'H', 'X'}};
     const IdentifierType ID_HVL = {{'H', 'V', 'L'}};
 
-    const Char ABYSS_EDITOR_OLD[] = "Abyss' Highest Experience v1.00-1.27";
-    const Char ABYSS_EDITOR_NEW[] = "Abyss' Highest Experience v2.00+";
-    const Char HIVELY_EDITOR_OLD[] = "Hively Tracker v1.0-1.4";
-    const Char HIVELY_EDITOR_NEW[] = "Hively Tracker v1.5+";
+    const auto ABYSS_EDITOR_OLD = "Abyss' Highest Experience v1.00-1.27"sv;
+    const auto ABYSS_EDITOR_NEW = "Abyss' Highest Experience v2.00+"sv;
+    const auto HIVELY_EDITOR_OLD = "Hively Tracker v1.0-1.4"sv;
+    const auto HIVELY_EDITOR_NEW = "Hively Tracker v1.5+"sv;
 
     /*
         struct Header
@@ -266,7 +267,7 @@ namespace Formats::Chiptune
     struct FormatTraits
     {
       const StringView Format;
-      const Char* Description;
+      const StringView Description;
     };
 
     const FormatTraits AHXTraits = {
@@ -278,8 +279,8 @@ namespace Formats::Chiptune
         "?"             // tracks count
         "00-3f"         // samples count
         "?"             // subsongs count
-        ""_sv,
-        "Abyss' Highest Experience"};
+        ""sv,
+        "Abyss' Highest Experience"sv};
 
     const FormatTraits HVLTraits = {
         "'H'V'L 00-01"  // signature
@@ -292,8 +293,8 @@ namespace Formats::Chiptune
         "?"             // subsongs count
         "01-ff"         // mixgain, not zero
         "00-04"         // defstereo
-        ""_sv,
-        "Hively Tracker"};
+        ""sv,
+        "Hively Tracker"sv};
 
     class VersionedDecoder : public Decoder
     {
@@ -303,7 +304,7 @@ namespace Formats::Chiptune
         , Header(Binary::CreateFormat(Traits.Format, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return Traits.Description;
       }

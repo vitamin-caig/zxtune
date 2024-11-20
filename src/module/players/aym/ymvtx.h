@@ -10,10 +10,8 @@
 
 #pragma once
 
-// local includes
+#include "formats/chiptune/aym/ym.h"
 #include "module/players/aym/aym_factory.h"
-// library includes
-#include <formats/chiptune/aym/ym.h>
 
 namespace Module::YMVTX
 {

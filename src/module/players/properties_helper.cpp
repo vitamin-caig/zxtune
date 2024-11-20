@@ -8,14 +8,15 @@
  *
  **/
 
-// local includes
 #include "module/players/properties_helper.h"
-// library includes
-#include <binary/crc.h>
-#include <module/attributes.h>
-#include <sound/sound_parameters.h>
-#include <strings/join.h>
-#include <strings/trim.h>
+
+#include "binary/crc.h"
+#include "module/attributes.h"
+#include "sound/sound_parameters.h"
+#include "strings/join.h"
+#include "strings/trim.h"
+
+#include "string_view.h"
 
 namespace Module
 {
@@ -77,7 +78,7 @@ namespace Module
   void PropertiesHelper::SetStrings(const Strings::Array& strings)
   {
     // TODO: Join(begin, end, delimiter)
-    const auto joined = Strings::Join(strings, "\n"_sv);
+    const auto joined = Strings::Join(strings, "\n"sv);
     const auto trimmed = Strings::Trim(joined, '\n');
     SetNonEmptyProperty(ATTR_STRINGS, trimmed);
   }

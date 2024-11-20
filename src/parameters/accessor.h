@@ -10,10 +10,11 @@
 
 #pragma once
 
-// library includes
-#include <parameters/identifier.h>
-#include <parameters/types.h>
-// std includes
+#include "parameters/identifier.h"
+#include "parameters/types.h"
+
+#include "string_view.h"
+
 #include <memory>
 #include <optional>
 
@@ -70,7 +71,7 @@ namespace Parameters
     return false;
   }
 
-  inline auto GetString(const Accessor& src, Identifier name, StringView defVal = ""_sv)
+  inline auto GetString(const Accessor& src, Identifier name, StringView defVal = ""sv)
   {
     if (auto val = src.FindString(name))
     {

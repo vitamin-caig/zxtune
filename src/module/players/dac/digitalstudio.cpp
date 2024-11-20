@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "module/players/dac/digitalstudio.h"
+
+#include "formats/chiptune/digital/digitalstudio.h"
 #include "module/players/dac/dac_simple.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <formats/chiptune/digital/digitalstudio.h>
-#include <module/players/platforms.h>
+#include "module/players/platforms.h"
+
+#include "make_ptr.h"
 
 namespace Module::DigitalStudio
 {

@@ -10,8 +10,9 @@
 
 #pragma once
 
-// library includes
-#include <strings/src/find.h>
+#include "strings/src/find.h"
+
+#include "string_view.h"
 
 namespace Strings
 {

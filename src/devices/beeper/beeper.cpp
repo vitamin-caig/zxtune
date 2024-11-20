@@ -8,13 +8,14 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-// local includes
-#include <devices/beeper.h>
-#include <devices/details/renderers.h>
-#include <parameters/tracking_helper.h>
-// std includes
+#include "devices/beeper.h"
+
+#include "devices/details/renderers.h"
+
+#include "parameters/tracking_helper.h"
+
+#include "make_ptr.h"
+
 #include <utility>
 
 namespace Devices::Beeper

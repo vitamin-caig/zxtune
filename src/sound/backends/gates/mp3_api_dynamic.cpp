@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/mp3_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
+
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Sound::Mp3
 {
@@ -25,17 +25,17 @@ namespace Sound::Mp3
 
     StringView Base() const override
     {
-      return "mp3lame"_sv;
+      return "mp3lame"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libmp3lame.so.0"_sv};
+      return {"libmp3lame.so.0"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libmp3lame.dll"_sv, "libmp3lame-0.dll"_sv};
+      return {"libmp3lame.dll"sv, "libmp3lame-0.dll"sv};
     }
   };
 
@@ -53,7 +53,7 @@ namespace Sound::Mp3
       Debug::Log("Sound::Backend::Mp3", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     const char* get_lame_version() override
     {
@@ -195,7 +195,7 @@ namespace Sound::Mp3
       return func(ctx, comment);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

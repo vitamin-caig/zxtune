@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
-#include "product.h"
+#include "apps/zxtune-qt/update/product.h"
+
 #include "apps/zxtune-qt/ui/utils.h"
-// library includes
-#include <debug/log.h>
-#include <platform/version/api.h>
-// qt includes
+
+#include "debug/log.h"
+#include "platform/version/api.h"
+
 #include <QtCore/QFileInfo>
 
 namespace

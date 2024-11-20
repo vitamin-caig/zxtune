@@ -8,26 +8,24 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <formats/chiptune/music/oggvorbis.h>
-#include <math/numeric.h>
-#include <module/players/properties_helper.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
-#include <sound/resampler.h>
-// 3rdparty
-#define OV_EXCLUDE_STATIC_CALLBACKS
-#include <3rdparty/vorbis/vorbisfile.h>
-// std includes
+#include "formats/chiptune/music/oggvorbis.h"
+#include "module/players/properties_helper.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
+
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "sound/resampler.h"
+
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+
+#include "3rdparty/vorbis/vorbisfile.h"
+
 #include <algorithm>
 #include <unordered_map>
 

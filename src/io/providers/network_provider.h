@@ -10,13 +10,13 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
-#include <l10n/markup.h>
+#include "l10n/markup.h"
+
+#include "string_view.h"
+#include "types.h"
 
 namespace IO::Network
 {
-  constexpr const Char PROVIDER_IDENTIFIER[] = "net";
+  constexpr auto PROVIDER_IDENTIFIER = "net"sv;
   constexpr auto PROVIDER_DESCRIPTION = L10n::translate("Network files access via different schemes support");
 }  // namespace IO::Network

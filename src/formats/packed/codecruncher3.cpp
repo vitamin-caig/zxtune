@@ -10,16 +10,15 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
 
 namespace Formats::Packed
 {
@@ -27,7 +26,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "CodeCruncher v3.x";
+    const auto DESCRIPTION = "CodeCruncher v3.x"sv;
     const auto DEPACKER_PATTERN =
         // classic depacker
         "?"       // di/nop
@@ -137,7 +136,7 @@ namespace Formats::Packed
                     "?"       // ei/nop
                     "c3??"    // jp xxxx
                 */
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {
@@ -331,7 +330,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(CodeCruncher3::DEPACKER_PATTERN, CodeCruncher3::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return CodeCruncher3::DESCRIPTION;
     }

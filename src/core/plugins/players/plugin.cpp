@@ -8,16 +8,16 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/plugin.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <core/module_detect.h>
-#include <core/plugin_attrs.h>
-#include <module/attributes.h>
-#include <module/players/properties_helper.h>
-// std includes
+
+#include "module/players/properties_helper.h"
+
+#include "core/module_detect.h"
+#include "core/plugin_attrs.h"
+#include "module/attributes.h"
+
+#include "make_ptr.h"
+
 #include <utility>
 
 namespace ZXTune
@@ -37,7 +37,7 @@ namespace ZXTune
       return Identifier;
     }
 
-    String Description() const override
+    StringView Description() const override
     {
       return Decoder->GetDescription();
     }
@@ -116,7 +116,7 @@ namespace ZXTune
       return Identifier;
     }
 
-    String Description() const override
+    StringView Description() const override
     {
       return Decoder->GetDescription();
     }

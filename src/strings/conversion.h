@@ -10,9 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// std includes
+#include "string_type.h"
+#include "string_view.h"
+
 #include <charconv>
 #include <type_traits>
 
@@ -36,7 +36,7 @@ namespace Strings
         using WiderType = std::conditional_t<std::is_signed_v<T>, std::intmax_t, std::uintmax_t>;
         return static_cast<T>(ParsePartial<WiderType>(str));
       }
-      str = StringViewCompat{res.ptr, lim};
+      str = MakeStringView(res.ptr, lim);
       return result;
     }
   }

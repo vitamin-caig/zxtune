@@ -8,22 +8,22 @@
  *
  **/
 
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/container_factories.h>
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <formats/archived.h>
-#include <strings/encoding.h>
-#include <strings/map.h>
-// 3rdparty includes
-#include <3rdparty/lzma/C/7z.h>
-#include <3rdparty/lzma/C/7zCrc.h>
-// std includes
+#include "binary/container_base.h"
+#include "binary/container_factories.h"
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "formats/archived.h"
+#include "strings/encoding.h"
+#include "strings/map.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
+#include "3rdparty/lzma/C/7z.h"
+#include "3rdparty/lzma/C/7zCrc.h"
+
 #include <cstring>
 #include <list>
 #include <numeric>
@@ -49,11 +49,11 @@ namespace Formats::Archived
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
-    const Char DESCRIPTION[] = "7zip";
+    const auto DESCRIPTION = "7zip"sv;
     const auto FORMAT =
         "'7'z bc af 27 1c"  // signature
         "00 ?"              // version
-        ""_sv;
+        ""sv;
 
     class LzmaContext : private ISzAlloc
     {
@@ -339,7 +339,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(SevenZip::FORMAT, SevenZip::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return SevenZip::DESCRIPTION;
     }

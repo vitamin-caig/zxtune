@@ -8,23 +8,23 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/usf.h"
+
+#include "module/players/platforms.h"
+#include "module/players/streaming.h"
 #include "module/players/xsf/xsf.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <module/attributes.h>
-#include <module/players/platforms.h>
-#include <module/players/streaming.h>
-#include <sound/resampler.h>
-// std includes
+
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "sound/resampler.h"
+
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+
+#include "3rdparty/lazyusf2/usf/usf.h"
+
 #include <list>
-// 3rdparty includes
-#include <3rdparty/lazyusf2/usf/usf.h>
 
 namespace Module::USF
 {
@@ -146,11 +146,11 @@ namespace Module::USF
     {
       for (const auto& tag : meta.Tags)
       {
-        if (tag.first == "_enablecompare"_sv)
+        if (tag.first == "_enablecompare"sv)
         {
           ::usf_set_compare(Emu.GetRaw(), true);
         }
-        else if (tag.first == "_enablefifofull"_sv)
+        else if (tag.first == "_enablefifofull"sv)
         {
           ::usf_set_fifo_full(Emu.GetRaw(), true);
         }

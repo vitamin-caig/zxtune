@@ -8,16 +8,16 @@
  *
  **/
 
-// local includes
-#include "sound_sdl.h"
+#include "apps/zxtune-qt/ui/preferences/sound_sdl.h"
+
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "sound_sdl.ui.h"
-#include "supp/options.h"
-#include "ui/tools/parameters_helpers.h"
-// common includes
-#include <contract.h>
-// library includes
-#include <sound/backends_parameters.h>
-// std includes
+
+#include "sound/backends_parameters.h"
+
+#include "contract.h"
+
 #include <utility>
 
 namespace
@@ -38,10 +38,9 @@ namespace
       Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'s', 'd', 'l', '\0'};
-      return ID;
+      return "sdl"sv;
     }
 
     QString GetDescription() const override

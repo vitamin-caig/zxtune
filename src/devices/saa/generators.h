@@ -12,11 +12,10 @@
 
 #pragma once
 
-// library includes
-#include <devices/saa.h>
-// common includes
-#include <types.h>
-// std includes
+#include "devices/saa.h"
+
+#include "types.h"
+
 #include <array>
 
 namespace Devices::SAA

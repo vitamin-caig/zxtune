@@ -10,20 +10,19 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/crc.h>
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/crc.h"
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <array>
 #include <cstring>
 #include <iterator>
@@ -34,7 +33,7 @@ namespace Formats::Packed
   {
     const std::size_t MIN_SIZE = 0x16 + 32;
 
-    const Char DESCRIPTION[] = "ZXZip";
+    const auto DESCRIPTION = "ZXZip"sv;
     const auto HEADER_PATTERN =
         // Filename
         "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
@@ -52,7 +51,7 @@ namespace Formats::Packed
         "00-03"
         // Flags
         "%0000000x"
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {
@@ -594,7 +593,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(ZXZip::HEADER_PATTERN, ZXZip::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return ZXZip::DESCRIPTION;
     }

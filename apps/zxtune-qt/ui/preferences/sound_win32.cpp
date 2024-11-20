@@ -8,18 +8,19 @@
  *
  **/
 
-// local includes
-#include "sound_win32.h"
+#include "apps/zxtune-qt/ui/preferences/sound_win32.h"
+
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "sound_win32.ui.h"
-#include "supp/options.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-// library includes
-#include <debug/log.h>
-#include <sound/backends/win32.h>
-#include <sound/backends_parameters.h>
+
+#include "sound/backends/win32.h"
+
+#include "debug/log.h"
+#include "sound/backends_parameters.h"
+
+#include "contract.h"
 
 namespace
 {
@@ -61,10 +62,9 @@ namespace
       Require(connect(devices, &QComboBox::currentTextChanged, this, &Win32OptionsWidget::DeviceNameChanged));
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'w', 'i', 'n', '3', '2', '\0'};
-      return ID;
+      return "win32"sv;
     }
 
     QString GetDescription() const override

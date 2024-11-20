@@ -11,7 +11,7 @@ endif
 dirs.root := ../..
 include $(dirs.root)/make/default.mak 
 
-defines += FLAC__NO_ASM PACKAGE_VERSION=\"1.3.3\" FLAC__HAS_OGG=0 HAVE_LROUND
+defines += FLAC__NO_ASM PACKAGE_VERSION=\"1.3.3\" FLAC__HAS_OGG=0 HAVE_LROUND HAVE_STDINT_H
 defines.mingw = HAVE_FSEEKO
 defines.linux = HAVE_FSEEKO
 

@@ -8,15 +8,15 @@
  *
  **/
 
-// local includes
 #include "platform/src/shared_library_common.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <l10n/api.h>
-// platform includes
+
+#include "l10n/api.h"
+
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <dlfcn.h>
 
 namespace
@@ -56,12 +56,12 @@ namespace Platform::Details
     void* const Handle;
   };
 
-  const auto SUFFIX = ".so"_sv;
+  const auto SUFFIX = ".so"sv;
 
   String BuildLibraryFilename(StringView name)
   {
     // TODO: Concat(StringView...)
-    return String("lib").append(name).append(SUFFIX);
+    return "lib"s + name + SUFFIX;
   }
 
   Error LoadSharedLibrary(const String& fileName, SharedLibrary::Ptr& res)

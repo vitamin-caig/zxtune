@@ -10,9 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// std includes
+#include "string_view.h"
+#include "types.h"
+
 #include <algorithm>
 
 namespace Strings
@@ -20,7 +20,7 @@ namespace Strings
   namespace Find
   {
     template<class T>
-    concept CharPredicate = requires(T f, Char c)
+    concept CharPredicate = requires(T f, typename StringView::value_type c)
     {
       f(c);
     };

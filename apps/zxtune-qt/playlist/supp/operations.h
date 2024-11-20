@@ -10,10 +10,9 @@
 
 #pragma once
 
-// local includes
-#include "controller.h"
-#include "model.h"
-// qt includes
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
+
 #include <QtCore/QObject>
 
 namespace Playlist::Item

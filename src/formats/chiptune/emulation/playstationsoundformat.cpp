@@ -8,15 +8,14 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/playstationsoundformat.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
 
 /*
 http://patpend.net/technical/psx/exeheader.txt
@@ -73,7 +72,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::PSF");
 
-    const Char DESCRIPTION[] = "Playstation Sound Format";
+    const auto DESCRIPTION = "Playstation Sound Format"sv;
 
     const std::size_t HEADER_SIZE = 2048;
 
@@ -134,9 +133,9 @@ namespace Formats::Chiptune
 
       void ParseRegion(Builder& target)
       {
-        static const auto MARKER_NORTH_AMERICA = "Sony Computer Entertainment Inc. for North America area"_sv;
-        static const auto MARKER_JAPAN = "Sony Computer Entertainment Inc. for Japan area"_sv;
-        static const auto MARKER_EUROPE = "Sony Computer Entertainment Inc. for Europe area"_sv;
+        static const auto MARKER_NORTH_AMERICA = "Sony Computer Entertainment Inc. for North America area"sv;
+        static const auto MARKER_JAPAN = "Sony Computer Entertainment Inc. for Japan area"sv;
+        static const auto MARKER_EUROPE = "Sony Computer Entertainment Inc. for Europe area"sv;
         Stream.Seek(0x4c);
         const auto marker = Stream.ReadCString(60);
         if (marker == MARKER_NORTH_AMERICA)
@@ -170,7 +169,7 @@ namespace Formats::Chiptune
     const auto FORMAT =
         "'P'S'F"
         "01"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -179,7 +178,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

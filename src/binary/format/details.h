@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <binary/format.h>
+#include "binary/format.h"
 
 namespace Binary
 {

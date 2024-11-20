@@ -8,16 +8,17 @@
  *
  **/
 
-// local includes
+#include "strings/encoding.h"
+
 #include "strings/src/utf8.h"
-// common includes
-#include <byteorder.h>
-#include <iterator.h>
-#include <types.h>
-// library includes
-#include <math/bitops.h>
-#include <strings/encoding.h>
-// std includes
+
+#include "math/bitops.h"
+#include "tools/iterators.h"
+
+#include "byteorder.h"
+#include "string_view.h"
+#include "types.h"
+
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -908,7 +909,7 @@ namespace Strings
       std::vector<uint16_t> aligned(str.size() / 2);
       auto* target = aligned.data();
       std::memcpy(target, str.data(), aligned.size() * sizeof(*target));
-      return Utf16ToUtf8(std::basic_string_view_compat<uint16_t>{target, target + aligned.size()});
+      return Utf16ToUtf8(MakeStringView(target, target + aligned.size()));
     }
     else
     {

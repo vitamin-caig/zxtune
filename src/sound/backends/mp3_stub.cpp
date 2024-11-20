@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "sound/backends/mp3.h"
 #include "sound/backends/storage.h"
 

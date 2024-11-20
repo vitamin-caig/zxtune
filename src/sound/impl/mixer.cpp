@@ -8,16 +8,15 @@
  *
  **/
 
-// local includes
 #include "sound/impl/mixer_core.h"
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <l10n/api.h>
-#include <math/numeric.h>
-#include <sound/matrix_mixer.h>
-// std includes
+
+#include "l10n/api.h"
+#include "math/numeric.h"
+#include "sound/matrix_mixer.h"
+
+#include "error_tools.h"
+#include "make_ptr.h"
+
 #include <algorithm>
 #include <numeric>
 

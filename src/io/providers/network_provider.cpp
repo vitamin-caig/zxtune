@@ -8,23 +8,24 @@
  *
  **/
 
-// local includes
 #include "io/providers/network_provider.h"
+
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
 #include "io/providers/gates/curl_api.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-#include <progress_callback.h>
-// library includes
-#include <binary/container_factories.h>
-#include <binary/data_builder.h>
-#include <debug/log.h>
-#include <io/providers_parameters.h>
-#include <parameters/accessor.h>
-// std includes
+
+#include "binary/container_factories.h"
+#include "binary/data_builder.h"
+#include "debug/log.h"
+#include "io/providers_parameters.h"
+#include "parameters/accessor.h"
+#include "tools/progress_callback.h"
+
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <cstring>
 #include <utility>
 
@@ -204,12 +205,12 @@ namespace IO::Network
   };
 
   // uri-related constants
-  const auto SCHEME_SIGN = "://"_sv;
-  const auto SCHEME_HTTP = "http"_sv;
-  const auto SCHEME_HTTPS = "https"_sv;
-  const auto SCHEME_FTP = "ftp"_sv;
+  const auto SCHEME_SIGN = "://"sv;
+  const auto SCHEME_HTTP = "http"sv;
+  const auto SCHEME_HTTPS = "https"sv;
+  const auto SCHEME_FTP = "ftp"sv;
 
-  const Char SUBPATH_DELIMITER = '#';
+  const auto SUBPATH_DELIMITER = '#';
 
   auto IsSupportedScheme(StringView scheme)
   {
@@ -292,7 +293,7 @@ namespace IO::Network
       : Api(std::move(api))
     {}
 
-    String Id() const override
+    StringView Id() const override
     {
       return PROVIDER_IDENTIFIER;
     }

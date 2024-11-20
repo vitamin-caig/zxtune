@@ -8,11 +8,11 @@
  *
  **/
 
-// local includes
 #include "core/src/location.h"
-// common includes
-#include <make_ptr.h>
-// std includes
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <utility>
 
 namespace ZXTune

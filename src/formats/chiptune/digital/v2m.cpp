@@ -8,22 +8,22 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/digital/v2m.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <math/numeric.h>
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
 
 namespace Formats::Chiptune
 {
   namespace V2m
   {
-    const Char DESCRIPTION[] = "Farbrausch V2 Synthesizer System";
+    const auto DESCRIPTION = "Farbrausch V2 Synthesizer System"sv;
 
     class Format
     {
@@ -215,7 +215,7 @@ namespace Formats::Chiptune
         "%xxx00000 00-01 0000"  // timediv
         "? 01-ff ? 00"          // maxtime
         "01-06 000000"          // gdnum
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -224,7 +224,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

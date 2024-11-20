@@ -8,22 +8,22 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/ym.h"
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/dump.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <formats/packed/lha_supp.h>
-#include <math/numeric.h>
-#include <strings/optimize.h>
-// std includes
+#include "formats/packed/lha_supp.h"
+
+#include "binary/dump.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/optimize.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 #include <cstring>
 
@@ -366,12 +366,12 @@ namespace Formats::Chiptune
       return {};
     }
 
-    const Char DESCRIPTION[] = "YM (ST-Sound Project)";
+    const auto DESCRIPTION = "YM (ST-Sound Project)"sv;
     const auto FORMAT =
         "'Y'M"
         "'2-'6"
         "'!|'b"
-        ""_sv;
+        ""sv;
 
     Formats::Chiptune::Container::Ptr ParsePacked(const Binary::Container& rawData, Builder& target)
     {
@@ -397,7 +397,7 @@ namespace Formats::Chiptune
       return {};
     }
 
-    const Char PACKED_DESCRIPTION[] = "YM (ST-Sound Project) Packed";
+    const auto PACKED_DESCRIPTION = "YM (ST-Sound Project) Packed"sv;
     const auto PACKED_FORMAT =
         "16-ff"       // header size
         "?"           // header sum
@@ -407,7 +407,7 @@ namespace Formats::Chiptune
         "????"        // time+date
         "%00x00xxx"   // attribute
         "00"          // level
-        ""_sv;
+        ""sv;
 
     class YMDecoder : public Formats::Chiptune::YM::Decoder
     {
@@ -417,7 +417,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }
@@ -458,7 +458,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(PACKED_FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return PACKED_DESCRIPTION;
       }
@@ -638,14 +638,14 @@ namespace Formats::Chiptune
       return {};
     }
 
-    const Char DESCRIPTION[] = "VTX (Vortex Project)";
+    const auto DESCRIPTION = "VTX (Vortex Project)"sv;
     const auto FORMAT =
         "('a|'A|'y|'Y)('y|'Y|'m|'M)"  // type
         "00-06"                       // layout
         "??"                          // loop
         "??01-9800"                   // clockrate
         "19-64"                       // intfreq, 25..100Hz
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::YM::Decoder
     {
@@ -654,7 +654,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

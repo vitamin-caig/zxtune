@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
-#include <iterator.h>
-#include <types.h>
-// library includes
-#include <module/track_state.h>
-// std includes
+#include "module/track_state.h"
+#include "tools/iterators.h"
+
+#include "types.h"
+
 #include <vector>
 
 namespace Module

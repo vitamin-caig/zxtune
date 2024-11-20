@@ -8,25 +8,24 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
 #include "formats/packed/rar_supp.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <formats/packed.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
+
+#include "make_ptr.h"
+
+#include "3rdparty/unrar/rar.hpp"
+
 #include <array>
 #include <cassert>
 #include <limits>
 #include <memory>
-// thirdparty
-#include <3rdparty/unrar/rar.hpp>
 
 #undef min
 #undef max
@@ -37,12 +36,12 @@ namespace Formats::Packed
   {
     const Debug::Stream Dbg("Formats::Packed::Rar");
 
-    const Char DESCRIPTION[] = "RAR";
+    const auto DESCRIPTION = "RAR"sv;
     const auto HEADER_PATTERN =
         "??"          // uint16_t CRC;
         "74"          // uint8_t Type;
         "?%1xxxxxxx"  // uint16_t Flags;
-        ""_sv;
+        ""sv;
 
     class Container
     {
@@ -279,7 +278,7 @@ namespace Formats::Packed
       , Decoder(MakePtr<Rar::DispatchedCompressedFile>())
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Rar::DESCRIPTION;
     }

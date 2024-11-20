@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <module/state.h>
-#include <sound/chunk.h>
+#include "module/state.h"
+#include "sound/chunk.h"
 
 namespace Module
 {

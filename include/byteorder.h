@@ -10,9 +10,10 @@
 
 #pragma once
 
-// common includes
+#include "types.h"
+
 #include <bit>
-#include <types.h>
+#include <cstring>
 
 //! @brief Checking if current platform is Little-Endian
 constexpr bool isLE()

@@ -8,32 +8,32 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/multitrack_plugin.h"
 #include "core/plugins/players/plugin.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <formats/chiptune/decoders.h>
-#include <formats/multitrack/decoders.h>
-#include <math/numeric.h>
-#include <module/attributes.h>
-#include <module/players/duration.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_helper.h>
-#include <module/players/streaming.h>
-#include <sound/resampler.h>
-#include <strings/optimize.h>
-// 3rdparty
-#include <3rdparty/asap/asap.h>
+#include "formats/chiptune/decoders.h"
+#include "formats/multitrack/decoders.h"
+#include "module/players/duration.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
+#include "module/players/streaming.h"
+
+#include "binary/format_factories.h"
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "module/attributes.h"
+#include "sound/resampler.h"
+#include "strings/optimize.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
+#include "3rdparty/asap/asap.h"
 
 namespace Module::ASAP
 {
@@ -50,8 +50,8 @@ namespace Module::ASAP
       : Module(::ASAP_New())
       , Track(track)
     {
-      CheckError(::ASAP_Load(Module, String("dummy.").append(id).c_str(),
-                             static_cast<const unsigned char*>(data.Start()), data.Size()),
+      CheckError(::ASAP_Load(Module, "dummy."s.append(id).c_str(), static_cast<const unsigned char*>(data.Start()),
+                             data.Size()),
                  "ASAP_Load");
       Reset();  // required for subsequential calls
       Info = ::ASAP_GetInfo(Module);

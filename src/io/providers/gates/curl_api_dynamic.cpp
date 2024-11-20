@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
 #include "io/providers/gates/curl_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
+
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace IO::Curl
 {
@@ -25,17 +25,17 @@ namespace IO::Curl
 
     StringView Base() const override
     {
-      return "curl"_sv;
+      return "curl"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libcurl.so.3"_sv, "libcurl.so.4"_sv};
+      return {"libcurl.so.3"sv, "libcurl.so.4"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libcurl.dll"_sv};
+      return {"libcurl.dll"sv};
     }
   };
 
@@ -53,7 +53,7 @@ namespace IO::Curl
       Debug::Log("IO::Provider::Network", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     char* curl_version() override
     {
@@ -118,7 +118,7 @@ namespace IO::Curl
       return func(curl, info, opaqueResult);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

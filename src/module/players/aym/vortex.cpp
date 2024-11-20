@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/vortex.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <math/numeric.h>
-// std includes
+
+#include "math/numeric.h"
+
+#include "make_ptr.h"
+
 #include <array>
 #include <utility>
 
@@ -381,7 +380,7 @@ namespace Module::Vortex
     State PlayerState;
   };
 
-  String GetFreqTable(NoteTable table, uint_t version)
+  StringView GetFreqTable(NoteTable table, uint_t version)
   {
     switch (table)
     {

@@ -8,18 +8,18 @@
  *
  **/
 
-// local includes
-#include "search_dialog.h"
-#include "playlist/ui/table_view.h"
+#include "apps/zxtune-qt/playlist/ui/desktop/search_dialog.h"
+
+#include "apps/zxtune-qt/playlist/ui/table_view.h"
+#include "apps/zxtune-qt/ui/state.h"
 #include "search_dialog.ui.h"
-#include "ui/state.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
+
+#include "contract.h"
+#include "make_ptr.h"
 
 namespace
 {
-  const Char SEARCH_NAMESPACE[] = {'S', 'e', 'a', 'r', 'c', 'h', '\0'};
+  const auto SEARCH_NAMESPACE = "Search"sv;
 
   // TODO: extract to common place
   void UpdateRecent(QComboBox& box)

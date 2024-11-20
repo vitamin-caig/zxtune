@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <module/state.h>
+#include "module/state.h"
 
 namespace Module
 {

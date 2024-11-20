@@ -8,12 +8,12 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <math/fixedpoint.h>
-#include <math/numeric.h>
-#include <sound/gainer.h>
+#include "sound/gainer.h"
+
+#include "math/fixedpoint.h"
+#include "math/numeric.h"
+
+#include "make_ptr.h"
 
 namespace Sound
 {

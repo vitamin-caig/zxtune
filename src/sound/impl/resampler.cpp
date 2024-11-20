@@ -8,17 +8,16 @@
  *
  **/
 
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-#include <xrange.h>
-// library includes
-#include <sound/resampler.h>
+#include "sound/resampler.h"
+
+#include "tools/xrange.h"
+
+#include "contract.h"
+#include "make_ptr.h"
 
 extern "C"
 {
-// 3rdparty includes
-#include <3rdparty/lazyusf2/usf/resampler.h>
+#include "3rdparty/lazyusf2/usf/resampler.h"
 }
 
 namespace Sound

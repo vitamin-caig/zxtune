@@ -10,16 +10,15 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
-#include <strings/array.h>
-// std includes
+#include "strings/array.h"
+
+#include "types.h"
+
 #include <iostream>
 #include <memory>
 
 // standart stream
-extern std::basic_ostream<Char>& StdOut;
+extern std::ostream& StdOut;
 
 namespace Platform
 {

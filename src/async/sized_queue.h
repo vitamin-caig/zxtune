@@ -10,12 +10,11 @@
 
 #pragma once
 
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <async/queue.h>
-// std includes
+#include "async/queue.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <atomic>
 #include <condition_variable>
 #include <deque>

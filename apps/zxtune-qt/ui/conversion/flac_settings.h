@@ -10,10 +10,9 @@
 
 #pragma once
 
-// local includes
-#include "backend_settings.h"
+class QWidget;
 
 namespace UI
 {
-  BackendSettingsWidget* CreateFLACSettingsWidget(QWidget& parent);
+  class BackendSettingsWidget* CreateFLACSettingsWidget(QWidget& parent);
 }

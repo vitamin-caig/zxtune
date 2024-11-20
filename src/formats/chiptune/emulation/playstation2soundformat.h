@@ -10,8 +10,9 @@
 
 #pragma once
 
-// library includes
-#include <formats/chiptune.h>
+#include "formats/chiptune.h"
+
+#include "string_view.h"
 
 namespace Formats::Chiptune
 {

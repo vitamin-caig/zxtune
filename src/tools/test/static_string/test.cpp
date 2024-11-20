@@ -8,10 +8,10 @@
  *
  **/
 
-// common includes
-#include <static_string.h>
-#include <types.h>
-// std includes
+#include "static_string.h"
+#include "string_type.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <cctype>
 #include <iostream>
@@ -32,7 +32,7 @@ namespace
     }
   }
 
-  Char ToLower(Char in)
+  char ToLower(char in)
   {
     return std::tolower(in);
   }

@@ -8,20 +8,19 @@
  *
  **/
 
-// local includes
-#include "singlemode.h"
-#include "supp/options.h"
-#include "ui/factory.h"
-#include "ui/utils.h"
-#include "urls.h"
-// common includes
-#include <contract.h>
-// library includes
-#include <platform/application.h>
-#include <platform/version/api.h>
-// qt includes
+#include "apps/zxtune-qt/singlemode.h"
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/factory.h"
+#include "apps/zxtune-qt/ui/utils.h"
+#include "apps/zxtune-qt/urls.h"
+
+#include "platform/application.h"
+#include "platform/version/api.h"
+
+#include "contract.h"
+
 #include <QtWidgets/QApplication>
-// std includes
+
 #include <utility>
 
 namespace
@@ -63,7 +62,7 @@ namespace Platform
 {
   namespace Version
   {
-    extern const Char PROGRAM_NAME[] = "zxtune-qt";
+    const StringView PROGRAM_NAME = "zxtune-qt"sv;
   }
 
   std::unique_ptr<Application> Application::Create()

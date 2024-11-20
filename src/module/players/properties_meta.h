@@ -10,10 +10,10 @@
 
 #pragma once
 
-// local includes
+#include "formats/chiptune/builder_meta.h"
 #include "module/players/properties_helper.h"
-// library includes
-#include <formats/chiptune/builder_meta.h>
+
+#include "string_view.h"
 
 namespace Module
 {

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// std includes
 #include <vector>
 
 namespace Devices::Details

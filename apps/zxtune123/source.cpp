@@ -8,40 +8,40 @@
  *
  **/
 
-// local includes
-#include "source.h"
-#include "config.h"
-#include "console.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <progress_callback.h>
-// library includes
-#include <core/additional_files_resolve.h>
-#include <core/core_parameters.h>
-#include <core/data_location.h>
-#include <core/plugin.h>
-#include <core/plugin_attrs.h>
-#include <core/service.h>
-#include <io/api.h>
-#include <io/providers_parameters.h>
-#include <module/properties/path.h>
-#include <parameters/merged_container.h>
-#include <platform/application.h>
-#include <strings/array.h>
-#include <time/elapsed.h>
-// std includes
-#include <iomanip>
-#include <iostream>
-#include <utility>
-// boost includes
+#include "apps/zxtune123/source.h"
+
+#include "apps/zxtune123/config.h"
+#include "apps/zxtune123/console.h"
+
+#include "module/properties/path.h"
+
+#include "core/additional_files_resolve.h"
+#include "core/core_parameters.h"
+#include "core/data_location.h"
+#include "core/plugin.h"
+#include "core/plugin_attrs.h"
+#include "core/service.h"
+#include "io/api.h"
+#include "io/providers_parameters.h"
+#include "parameters/merged_container.h"
+#include "platform/application.h"
+#include "strings/array.h"
+#include "time/elapsed.h"
+#include "tools/progress_callback.h"
+
+#include "contract.h"
+#include "error_tools.h"
+#include "string_view.h"
+
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 
+#include <iomanip>
+#include <iostream>
+#include <utility>
+
 namespace
 {
-  const Char DELIMITERS[] = {',', ';', ':', '\0'};
-
   void OutputString(uint_t width, StringView text)
   {
     const auto curSize = text.size();

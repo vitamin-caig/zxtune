@@ -10,17 +10,16 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <algorithm>
 #include <iterator>
 
@@ -30,7 +29,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "ASC LZS Pack";
+    const auto DESCRIPTION = "ASC LZS Pack"sv;
     const auto DEPACKER_PATTERN =
         "cd??"    // call xxxx
         "?"       // di/nop
@@ -106,7 +105,7 @@ namespace Formats::Packed
                   "?"       // di/ei
                   "c3??"    // jp xxxx (0x0052)
                   */
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {
@@ -282,7 +281,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(LZS::DEPACKER_PATTERN, LZS::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return LZS::DESCRIPTION;
     }

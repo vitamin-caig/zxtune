@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <binary/data.h>
+#include "binary/data.h"
 
 namespace Binary
 {

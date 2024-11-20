@@ -8,18 +8,17 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/soundtracker_detail.h"
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <array>
 
 namespace Formats::Chiptune
@@ -28,7 +27,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SoundTracker");
 
-    const Char PROGRAM[] = "Sound Tracker v1.x";
+    const auto PROGRAM = "Sound Tracker v1.x"sv;
 
     using namespace SoundTracker;
 
@@ -430,7 +429,7 @@ namespace Formats::Chiptune
         // patterns size
         // Real pattern size may be from 01 but I don't know any modules with such patterns size
         "20-40"
-        ""_sv;
+        ""sv;
 
     Formats::Chiptune::Container::Ptr ParseUncompiled(const Binary::Container& rawData, Builder& target)
     {
@@ -477,7 +476,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

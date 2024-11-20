@@ -8,17 +8,18 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archives/packed.h"
-#include <core/plugin_attrs.h>
-// common includes
-#include <make_ptr.h>
-// std includes
+
+#include "core/plugin_attrs.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <utility>
 
 namespace ZXTune
 {
-  const auto ARCHIVE_PLUGIN_PREFIX = "+un"_sv;
+  const auto ARCHIVE_PLUGIN_PREFIX = "+un"sv;
 
   String EncodeArchivePluginToPath(PluginId pluginId)
   {
@@ -50,7 +51,7 @@ namespace ZXTune
       return Identifier;
     }
 
-    String Description() const override
+    StringView Description() const override
     {
       return Decoder->GetDescription();
     }

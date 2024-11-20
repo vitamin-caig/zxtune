@@ -10,11 +10,10 @@
 
 #pragma once
 
-// std includes
+#include "3rdparty/curl/curl.h"
+#include "3rdparty/curl/easy.h"
+
 #include <memory>
-// platform-specific includes
-#include <3rdparty/curl/curl.h>
-#include <3rdparty/curl/easy.h>
 
 namespace IO::Curl
 {
@@ -24,7 +23,7 @@ namespace IO::Curl
     using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
-// clang-format off
+    // clang-format off
 
     virtual char* curl_version() = 0;
     virtual CURL *curl_easy_init() = 0;
@@ -35,9 +34,9 @@ namespace IO::Curl
     virtual CURLcode curl_easy_setopt(CURL *curl, CURLoption option, const char* strParam) = 0;
     virtual CURLcode curl_easy_setopt(CURL *curl, CURLoption option, void* opaqueParam) = 0;
     virtual CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, void* opaqueResult) = 0;
-// clang-format on
+    // clang-format on
   };
 
-  //throw exception in case of error
+  // throw exception in case of error
   Api::Ptr LoadDynamicApi();
 }  // namespace IO::Curl

@@ -8,10 +8,10 @@
  *
  **/
 
-// local includes
-#include "ui/factory.h"
-#include "mainwindow.h"
-// std includes
+#include "apps/zxtune-qt/ui/factory.h"
+
+#include "apps/zxtune-qt/ui/desktop/mainwindow.h"
+
 #include <utility>
 
 namespace

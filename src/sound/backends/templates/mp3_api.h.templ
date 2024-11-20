@@ -10,10 +10,9 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-specific includes
 #include <lame/lame.h>
+
+#include <memory>
 
 namespace Sound::Mp3
 {

@@ -8,18 +8,17 @@
  *
  **/
 
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/crc.h>
-#include <binary/format_factories.h>
-#include <formats/multitrack.h>
-#include <math/numeric.h>
-// std includes
+#include "binary/container_base.h"
+#include "binary/crc.h"
+#include "binary/format_factories.h"
+#include "formats/multitrack.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <array>
 #include <utility>
 
@@ -60,9 +59,9 @@ namespace Formats::Multitrack
         "00|01 ?"       // BE songs count 1-256
         "??"            // BE start song
         "????"          // BE speed flag
-        ""_sv;
+        ""sv;
 
-    const Char DESCRIPTION[] = "Commodore64 SID/RSID/PSID";
+    const auto DESCRIPTION = "Commodore64 SID/RSID/PSID"sv;
 
     class Container : public Binary::BaseContainer<Multitrack::Container>
     {
@@ -116,7 +115,7 @@ namespace Formats::Multitrack
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

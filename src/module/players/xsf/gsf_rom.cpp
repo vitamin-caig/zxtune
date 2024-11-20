@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/gsf_rom.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <formats/chiptune/emulation/gameboyadvancesoundformat.h>
+
+#include "formats/chiptune/emulation/gameboyadvancesoundformat.h"
+
+#include "contract.h"
+#include "make_ptr.h"
 
 namespace Module::GSF
 {

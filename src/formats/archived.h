@@ -10,12 +10,12 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
-#include <binary/container.h>
-#include <binary/format.h>
-// std includes
+#include "binary/container.h"
+#include "binary/format.h"
+
+#include "string_type.h"
+#include "string_view.h"
+
 #include <memory>
 
 namespace Formats::Archived
@@ -77,7 +77,7 @@ namespace Formats::Archived
     virtual ~Decoder() = default;
 
     //! @brief Get short decoder description
-    virtual String GetDescription() const = 0;
+    virtual StringView GetDescription() const = 0;
 
     //! @brief Get approximate format description to search in raw binary data
     //! @invariant Cannot be empty

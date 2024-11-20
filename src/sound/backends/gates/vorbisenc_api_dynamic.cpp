@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/vorbisenc_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
+
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Sound::VorbisEnc
 {
@@ -25,17 +25,17 @@ namespace Sound::VorbisEnc
 
     StringView Base() const override
     {
-      return "vorbisenc"_sv;
+      return "vorbisenc"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libvorbisenc.so.2"_sv};
+      return {"libvorbisenc.so.2"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libvorbisenc-2.dll"_sv};
+      return {"libvorbisenc-2.dll"sv};
     }
   };
 
@@ -53,7 +53,7 @@ namespace Sound::VorbisEnc
       Debug::Log("Sound::Backend::Ogg", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     int vorbis_encode_init(vorbis_info *vi, long channels, long rate, long max_bitrate, long nominal_bitrate, long min_bitrate) override
     {
@@ -69,7 +69,7 @@ namespace Sound::VorbisEnc
       return func(vi, channels, rate, base_quality);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

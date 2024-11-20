@@ -1,18 +1,18 @@
-// local includes
 #include "apps/zxtune-qt/ui/utils.h"
 #include "apps/zxtune-qt/update/downloads.h"
 #include "apps/zxtune-qt/update/product.h"
 #include "apps/zxtune-qt/update/rss.h"
-// common includes
-#include <types.h>
-// std includes
-#include <iostream>
-#include <stdexcept>
-// qt includes
+
+#include "string_view.h"
+#include "types.h"
+
 #include <QtCore/QByteArray>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
+
+#include <iostream>
+#include <stdexcept>
 
 namespace
 {
@@ -21,7 +21,7 @@ namespace
     QFile file(ToQString(name));
     if (!file.open(QIODevice::ReadOnly))
     {
-      throw std::runtime_error(String{"Failed to open "} + name);
+      throw std::runtime_error("Failed to open "s + name);
     }
     return file.readAll().replace("\r\n", "\n");
   }
@@ -31,7 +31,7 @@ namespace
     QFile file(ToQString(name));
     if (!file.open(QIODevice::WriteOnly))
     {
-      throw std::runtime_error(String{"Failed to open "} + name);
+      throw std::runtime_error("Failed to open "s + name);
     }
     file.write(data);
   }

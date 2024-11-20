@@ -8,22 +8,22 @@
  *
  **/
 
-// local includes
+#include "sound/service.h"
+
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/backends_list.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
-// common includes
-#include <error_tools.h>
-#include <locale_helpers.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <sound/backend_attrs.h>
-#include <sound/backends_parameters.h>
-#include <sound/service.h>
-#include <strings/array.h>
-#include <strings/split.h>
+
+#include "debug/log.h"
+#include "sound/backend_attrs.h"
+#include "sound/backends_parameters.h"
+#include "strings/array.h"
+#include "strings/split.h"
+#include "tools/locale_helpers.h"
+
+#include "error_tools.h"
+#include "make_ptr.h"
 
 namespace Sound
 {
@@ -140,7 +140,7 @@ namespace Sound
     Strings::Array GetOrder() const
     {
       const auto order = Parameters::GetString(*Options, Parameters::ZXTune::Sound::Backends::ORDER);
-      const auto& elements = Strings::Split(order, [](Char c) { return !IsAlNum(c); });
+      const auto& elements = Strings::Split(order, [](auto c) { return !IsAlNum(c); });
       return {elements.begin(), elements.end()};
     }
 

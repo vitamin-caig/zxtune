@@ -8,24 +8,25 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/fm/tfc.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <strings/sanitize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "strings/sanitize.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 
 namespace Formats::Chiptune
 {
   namespace TFC
   {
-    const Char DESCRIPTION[] = "TurboFM Compiled Dump";
+    const auto DESCRIPTION = "TurboFM Compiled Dump"sv;
 
     using SignatureType = std::array<uint8_t, 6>;
 
@@ -85,7 +86,7 @@ namespace Formats::Chiptune
         "'T'F'M'c'o'm"
         "???"
         "32|3c"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -94,7 +95,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

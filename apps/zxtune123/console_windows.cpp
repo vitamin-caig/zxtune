@@ -11,15 +11,16 @@
 #ifndef _WIN32
 #  error Invalid platform specified
 #endif
-
-// local includes
-#include "console.h"
-// platform-dependent includes
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
+
+#include "apps/zxtune123/console.h"
+
+#include "string_view.h"
+
 #include <conio.h>
 #include <windows.h>
-// std includes
+
 #include <cctype>
 #include <vector>
 

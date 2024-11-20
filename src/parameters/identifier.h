@@ -10,10 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <string_view.h>
-#include <types.h>
-// std includes
+#include "string_type.h"
+#include "string_view.h"
+
 #include <array>
 
 namespace Parameters
@@ -92,18 +91,18 @@ namespace Parameters
       : Storage()
     {}
 
-    constexpr Identifier(const Char* str, std::size_t size)
+    constexpr Identifier(const char* str, std::size_t size)
       : Storage(str, size)
     {}
 
   private:
-    constexpr static const Char NAMESPACE_DELIMITER = '.';
-    template<Char...>
+    constexpr static const auto NAMESPACE_DELIMITER = '.';
+    template<char...>
     friend class StaticIdentifier;
     const StringView Storage;
   };
 
-  template<Char... Symbols>
+  template<char... Symbols>
   class StaticIdentifier
   {
   public:
@@ -112,7 +111,7 @@ namespace Parameters
       return {Storage.data(), Storage.size()};
     }
 
-    template<Char... AnotherSymbols>
+    template<char... AnotherSymbols>
     constexpr auto operator+(const StaticIdentifier<AnotherSymbols...>&) const
     {
       static_assert(sizeof...(Symbols) * sizeof...(AnotherSymbols) != 0, "Empty components");
@@ -120,7 +119,7 @@ namespace Parameters
     }
 
   private:
-    constexpr static const std::array<Char, sizeof...(Symbols)> Storage = {Symbols...};
+    constexpr static const std::array<char, sizeof...(Symbols)> Storage = {Symbols...};
   };
 
   template<typename CharType, CharType... Symbols>

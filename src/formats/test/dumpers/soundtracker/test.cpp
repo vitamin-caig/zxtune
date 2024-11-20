@@ -8,16 +8,18 @@
  *
  **/
 
-#include "../../utils.h"
-#include <formats/chiptune/aym/soundtracker.h>
+#include "formats/chiptune/aym/soundtracker.h"
+#include "formats/test/utils.h"
+
+#include "string_view.h"
 
 namespace
 {
   using namespace Formats::Chiptune::SoundTracker;
 
-  Char ToHex(uint_t val)
+  auto ToHex(uint_t val)
   {
-    return val >= 10 ? (val - 10 + 'A') : val + '0';
+    return val >= 10 ? 'A' + (val - 10) : '0' + val;
   }
 
   inline std::string GetNote(uint_t note)
@@ -154,7 +156,7 @@ namespace
 
   private:
     String Line;
-    Char* ChanPtr;
+    char* ChanPtr;
   };
 
   Formats::Chiptune::SoundTracker::Decoder::Ptr CreateDecoder(const std::string& type)

@@ -10,8 +10,9 @@
 
 #pragma once
 
-// library includes
-#include <module/players/properties_helper.h>
+#include "module/players/properties_helper.h"
+
+#include "string_view.h"
 
 namespace Module::AYM
 {

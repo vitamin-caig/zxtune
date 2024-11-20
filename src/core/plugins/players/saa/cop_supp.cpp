@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-// library includes
-#include <core/plugin_attrs.h>
-#include <formats/chiptune/saa/etracker.h>
-#include <module/players/saa/etracker.h>
+#include "formats/chiptune/saa/etracker.h"
+#include "module/players/saa/etracker.h"
+
+#include "core/plugin_attrs.h"
 
 namespace ZXTune
 {

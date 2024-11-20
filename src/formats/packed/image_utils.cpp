@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "formats/packed/image_utils.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/data_builder.h>
-// std includes
+
+#include "binary/data_builder.h"
+
+#include "make_ptr.h"
+
 #include <map>
 
 namespace Formats

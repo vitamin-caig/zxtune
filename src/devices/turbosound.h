@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <devices/aym/chip.h>
-// std includes
+#include "devices/aym/chip.h"
+
 #include <array>
 
 namespace Devices::TurboSound

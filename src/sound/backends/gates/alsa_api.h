@@ -10,11 +10,10 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-specific includes
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
+
+#include <memory>
 
 namespace Sound::Alsa
 {
@@ -24,7 +23,7 @@ namespace Sound::Alsa
     using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
-// clang-format off
+    // clang-format off
 
     virtual const char * snd_asoundlib_version () = 0;
     virtual const char * snd_strerror (int errnum) = 0;
@@ -76,9 +75,9 @@ namespace Sound::Alsa
     virtual int snd_ctl_pcm_next_device (snd_ctl_t * ctl, int * device) = 0;
     virtual int snd_ctl_pcm_info (snd_ctl_t *ctl, snd_pcm_info_t *info) = 0;
     virtual const char * snd_pcm_info_get_name (const snd_pcm_info_t *obj) = 0;
-// clang-format on
+    // clang-format on
   };
 
-  //throw exception in case of error
+  // throw exception in case of error
   Api::Ptr LoadDynamicApi();
 }  // namespace Sound::Alsa

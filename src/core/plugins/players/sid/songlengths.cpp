@@ -8,11 +8,12 @@
  *
  **/
 
-// local includes
 #include "core/plugins/players/sid/songlengths.h"
-// library includes
-#include <binary/crc.h>
-// std includes
+
+#include "binary/crc.h"
+
+#include "string_view.h"
+
 #include <algorithm>
 
 namespace Module::Sid

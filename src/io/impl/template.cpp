@@ -8,13 +8,14 @@
  *
  **/
 
-// local includes
+#include "io/template.h"
+
 #include "io/impl/filesystem_path.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <io/template.h>
-#include <strings/fields.h>
+
+#include "strings/fields.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace IO
 {
@@ -36,8 +37,8 @@ namespace IO
     {
       const auto path = Details::FromString(val);
       const auto root = path.root_directory();
-      const auto thisDir = "."_sv;
-      const auto parentDir = ".."_sv;
+      const auto thisDir = "."sv;
+      const auto parentDir = ".."sv;
       String res;
       for (const auto& it : path)
       {

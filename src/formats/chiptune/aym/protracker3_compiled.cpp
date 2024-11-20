@@ -8,23 +8,23 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/protracker3_detail.h"
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/casing.h>
-#include <strings/sanitize.h>
-#include <strings/trim.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/casing.h"
+#include "strings/sanitize.h"
+#include "strings/trim.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
 #include <array>
 #include <cctype>
 
@@ -45,7 +45,7 @@ namespace Formats::Chiptune
 
       bool HasAuthor() const
       {
-        const auto BY_DELIMITER = "BY"_sv;
+        const auto BY_DELIMITER = "BY"sv;
         const auto trimId = Strings::TrimSpaces(MakeStringView(Optional2));
         return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
@@ -69,10 +69,10 @@ namespace Formats::Chiptune
 
       StringView GetProgram() const
       {
-        const auto COMPILATION_OF = "COMPILATION OF"_sv;
+        const auto COMPILATION_OF = "COMPILATION OF"sv;
         const auto opt = Strings::TrimSpaces(MakeStringView(Optional1));
-        return Strings::EqualNoCaseAscii(opt, COMPILATION_OF) ? StringViewCompat{Id.data(), Optional1.data()}
-                                                              : StringViewCompat{Id.data(), &Optional1.back() + 1};
+        return Strings::EqualNoCaseAscii(opt, COMPILATION_OF) ? MakeStringView(Id.data(), Optional1.data())
+                                                              : MakeStringView(Id.data(), &Optional1.back() + 1);
       }
 
       uint_t GetVersion() const
@@ -332,7 +332,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          meta.SetTitle(Strings::Sanitize(StringViewCompat{id.TrackName.data(), &id.TrackAuthor.back() + 1}));
+          meta.SetTitle(Strings::Sanitize(MakeStringView(id.TrackName.data(), &id.TrackAuthor.back() + 1)));
         }
         builder.SetVersion(Source.GetVersion());
         if (Math::InRange<uint_t>(Source.FreqTableNum, PROTRACKER, NATURAL))
@@ -886,7 +886,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const Char DESCRIPTION[] = "Pro Tracker v3.x";
+    const auto DESCRIPTION = "Pro Tracker v3.x"sv;
     const auto FORMAT =
         "?{13}"         // uint8_t Id[13];        //'ProTracker 3.'
         "?"             // uint8_t Subversion;
@@ -905,7 +905,7 @@ namespace Formats::Chiptune
         "(?00-d9){16}"  // std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
         "*3&00-fe"      // at least one position
         "*3"            // next position or limiter (255 % 3 == 0)
-        ""_sv;
+        ""sv;
 
     class BinaryDecoder : public Decoder
     {
@@ -914,7 +914,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

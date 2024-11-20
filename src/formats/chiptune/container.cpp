@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/container.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/crc.h>
-// std includes
+
+#include "binary/container_base.h"
+#include "binary/crc.h"
+
+#include "make_ptr.h"
+
 #include <cassert>
 #include <utility>
 

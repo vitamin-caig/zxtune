@@ -8,22 +8,22 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/soundtrackerpro_detail.h"
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/metainfo.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <iterator.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/optimize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/optimize.h"
+#include "tools/iterators.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 #include <cstring>
 
@@ -33,7 +33,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SoundTrackerProCompiled");
 
-    const Char PROGRAM[] = "Sound Tracker Pro";
+    const auto PROGRAM = "Sound Tracker Pro"sv;
 
     using namespace SoundTrackerPro;
 
@@ -852,14 +852,14 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const Char DESCRIPTION[] = "Sound Tracker Pro Compiled";
-    const StringView FORMAT =
+    const auto DESCRIPTION = "Sound Tracker Pro Compiled"sv;
+    const auto FORMAT =
         "03-0f"   // uint8_t Tempo; 3..15
         "?00-26"  // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
         "?00-27"  // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
         "?00-27"  // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
         "?00-27"  // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::SoundTrackerPro::Decoder
     {
@@ -868,7 +868,7 @@ namespace Formats::Chiptune
         : Header(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

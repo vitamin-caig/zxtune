@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <formats/multitrack.h>
+#include "formats/multitrack.h"
 
 namespace Formats::Multitrack
 {

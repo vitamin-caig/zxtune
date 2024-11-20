@@ -8,35 +8,36 @@
  *
  **/
 
-// local includes
-#include "container_impl.h"
-#include "import.h"
-#include "tags/ayl.h"
-#include "ui/utils.h"
-// common includes
-#include <error.h>
-#include <make_ptr.h>
-// library includes
-#include <core/core_parameters.h>
-#include <core/plugins/archives/raw_supp.h>
-#include <debug/log.h>
-#include <devices/aym/chip.h>
-#include <formats/archived/multitrack/filename.h>
-#include <io/api.h>
-#include <module/attributes.h>
-#include <parameters/convert.h>
-#include <parameters/serialize.h>
-#include <sound/sound_parameters.h>
-#include <strings/casing.h>
-#include <tools/progress_callback_helpers.h>
-// std includes
-#include <cctype>
-// qt includes
+#include "apps/zxtune-qt/playlist/io/container_impl.h"
+#include "apps/zxtune-qt/playlist/io/import.h"
+#include "apps/zxtune-qt/playlist/io/tags/ayl.h"
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "core/plugins/archives/raw_supp.h"
+#include "devices/aym/chip.h"
+#include "formats/archived/multitrack/filename.h"
+
+#include "core/core_parameters.h"
+#include "debug/log.h"
+#include "io/api.h"
+#include "module/attributes.h"
+#include "parameters/convert.h"
+#include "parameters/serialize.h"
+#include "sound/sound_parameters.h"
+#include "strings/casing.h"
+#include "tools/progress_callback_helpers.h"
+
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
+
+#include <cctype>
 
 namespace
 {
@@ -242,12 +243,12 @@ namespace
 
     static bool CheckForParametersBegin(StringView line)
     {
-      return line == "<"_sv;
+      return line == "<"sv;
     }
 
     static bool CheckForParametersEnd(StringView line)
     {
-      return line == ">"_sv;
+      return line == ">"sv;
     }
 
     static void SplitParametersString(StringView line, Strings::Map& parameters)
@@ -435,7 +436,7 @@ namespace
   {
     // for AY files FormatSpec is subtune index
     const auto ext = GetExtension(item.Path);
-    if (Strings::EqualNoCaseAscii(ext, "ay"_sv))
+    if (Strings::EqualNoCaseAscii(ext, "ay"sv))
     {
       const auto subPath = Formats::Archived::MultitrackArchives::CreateFilename(formatSpec);
       item.Path = AppendSubpath(item.Path, subPath);
@@ -446,7 +447,7 @@ namespace
   {
     // offset for YM/VTX cannot be applied
     const auto ext = GetExtension(item.Path);
-    if (!Strings::EqualNoCaseAscii(ext, "vtx"_sv) && !Strings::EqualNoCaseAscii(ext, "ym"_sv))
+    if (!Strings::EqualNoCaseAscii(ext, "vtx"sv) && !Strings::EqualNoCaseAscii(ext, "ym"sv))
     {
       assert(offset);
       const auto subPath = ZXTune::Raw::CreateFilename(offset);

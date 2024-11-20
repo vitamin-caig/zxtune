@@ -10,7 +10,6 @@
 
 #pragma once
 
-// local includes
 #include "module/players/tfm/tfm_factory.h"
 
 namespace Module::TFD

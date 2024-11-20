@@ -8,27 +8,27 @@
  *
  **/
 
-// local includes
-#include "sound.h"
+#include "apps/zxtune-qt/ui/preferences/sound.h"
+
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/preferences/sound_alsa.h"
+#include "apps/zxtune-qt/ui/preferences/sound_dsound.h"
+#include "apps/zxtune-qt/ui/preferences/sound_oss.h"
+#include "apps/zxtune-qt/ui/preferences/sound_sdl.h"
+#include "apps/zxtune-qt/ui/preferences/sound_win32.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "sound.ui.h"
-#include "sound_alsa.h"
-#include "sound_dsound.h"
-#include "sound_oss.h"
-#include "sound_sdl.h"
-#include "sound_win32.h"
-#include "supp/options.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-// library includes
-#include <math/numeric.h>
-#include <sound/backend_attrs.h>
-#include <sound/backends_parameters.h>
-#include <sound/service.h>
-#include <sound/sound_parameters.h>
-#include <strings/map.h>
-// std includes
+
+#include "math/numeric.h"
+#include "sound/backend_attrs.h"
+#include "sound/backends_parameters.h"
+#include "sound/service.h"
+#include "sound/sound_parameters.h"
+#include "strings/map.h"
+
+#include "contract.h"
+
 #include <utility>
 
 namespace
@@ -108,7 +108,7 @@ namespace
     void AddPage(UI::BackendSettingsWidget* (*factory)(QWidget&))
     {
       std::unique_ptr<UI::BackendSettingsWidget> wid(factory(*backendGroupBox));
-      const String id = wid->GetBackendId();
+      const auto id = wid->GetBackendId();
       if (Backends.end() != std::find(Backends.begin(), Backends.end(), id))
       {
         wid->hide();

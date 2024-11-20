@@ -10,11 +10,12 @@
 
 #pragma once
 
-// library includes
-#include <binary/data.h>
-#include <devices/aym.h>
-#include <time/duration.h>
-// std includes
+#include "binary/data.h"
+#include "devices/aym.h"
+#include "time/duration.h"
+
+#include "string_type.h"
+
 #include <memory>
 
 // supporting for AY/YM-based modules

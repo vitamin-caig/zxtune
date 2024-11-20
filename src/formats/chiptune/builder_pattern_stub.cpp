@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/builder_pattern.h"
 
 namespace Formats::Chiptune

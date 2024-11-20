@@ -8,40 +8,41 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-#include <progress_callback.h>
-// library includes
-#include <analysis/path.h>
-#include <analysis/result.h>
-#include <analysis/scanner.h>
-#include <async/data_receiver.h>
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <formats/archived/decoders.h>
-#include <formats/chiptune/decoders.h>
-#include <formats/image/decoders.h>
-#include <formats/packed/decoders.h>
-#include <io/api.h>
-#include <io/impl/filesystem_path.h>
-#include <io/providers_parameters.h>
-#include <parameters/container.h>
-#include <platform/application.h>
-#include <platform/version/api.h>
-#include <strings/array.h>
-#include <strings/fields.h>
-#include <strings/format.h>
-#include <strings/join.h>
-#include <strings/template.h>
-// std includes
+#include "formats/archived/decoders.h"
+#include "formats/chiptune/decoders.h"
+#include "formats/image/decoders.h"
+#include "formats/packed/decoders.h"
+#include "io/impl/filesystem_path.h"
+
+#include "analysis/path.h"
+#include "analysis/result.h"
+#include "analysis/scanner.h"
+#include "async/data_receiver.h"
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "io/api.h"
+#include "io/providers_parameters.h"
+#include "parameters/container.h"
+#include "platform/application.h"
+#include "platform/version/api.h"
+#include "strings/array.h"
+#include "strings/fields.h"
+#include "strings/format.h"
+#include "strings/join.h"
+#include "strings/template.h"
+#include "tools/progress_callback.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
+#include <boost/program_options.hpp>
+
 #include <iostream>
 #include <locale>
 #include <map>
 #include <memory>
 #include <numeric>
 #include <set>
-// boost includes
-#include <boost/program_options.hpp>
 
 namespace
 {
@@ -50,7 +51,7 @@ namespace
 
 namespace Platform::Version
 {
-  extern const Char PROGRAM_NAME[] = "xtractor";
+  const StringView PROGRAM_NAME = "xtractor"sv;
 }
 
 namespace Analysis
@@ -540,7 +541,7 @@ namespace
     void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset,
                Formats::Archived::Container::Ptr data) override
     {
-      const String name = decoder.GetDescription();
+      const auto name = decoder.GetDescription();
       Dbg("Found {0} in {1} bytes at {2}", name, data->Size(), offset);
       auto archNode = Analysis::CreateSubnode(Root, data, name, offset);
       const ScanFiles walker(ToScan, std::move(archNode));
@@ -550,7 +551,7 @@ namespace
     void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset,
                Formats::Packed::Container::Ptr data) override
     {
-      const String name = decoder.GetDescription();
+      const auto name = decoder.GetDescription();
       Dbg("Found {0} in {1} bytes at {2}", name, data->PackedSize(), offset);
       auto packNode = Analysis::CreateSubnode(Root, std::move(data), name, offset);
       ToScan.ApplyData(std::move(packNode));
@@ -558,7 +559,7 @@ namespace
 
     void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data) override
     {
-      const String name = decoder.GetDescription();
+      const auto name = decoder.GetDescription();
       Dbg("Found {0} in {1} bytes at {2}", name, data->OriginalSize(), offset);
       auto imageNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+{}.image", offset));
       ToStore.ApplyData(std::move(imageNode));
@@ -567,7 +568,7 @@ namespace
     void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset,
                Formats::Chiptune::Container::Ptr data) override
     {
-      const String name = decoder.GetDescription();
+      const auto name = decoder.GetDescription();
       Dbg("Found {0} in {1} bytes at {2}", name, data->Size(), offset);
       auto chiptuneNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+{}.chiptune", offset));
       ToStore.ApplyData(std::move(chiptuneNode));
@@ -658,11 +659,11 @@ namespace
 
 namespace
 {
-  const auto TEMPLATE_FIELD_FILENAME = "Filename"_sv;
-  const auto TEMPLATE_FIELD_PATH = "Path"_sv;
-  const auto TEMPLATE_FIELD_FLATPATH = "FlatPath"_sv;
-  const auto TEMPLATE_FIELD_SUBPATH = "Subpath"_sv;
-  const auto TEMPLATE_FIELD_FLATSUBPATH = "FlatSubpath"_sv;
+  const auto TEMPLATE_FIELD_FILENAME = "Filename"sv;
+  const auto TEMPLATE_FIELD_PATH = "Path"sv;
+  const auto TEMPLATE_FIELD_FLATPATH = "FlatPath"sv;
+  const auto TEMPLATE_FIELD_SUBPATH = "Subpath"sv;
+  const auto TEMPLATE_FIELD_FLATSUBPATH = "FlatSubpath"sv;
 
   const auto DEFAULT_TARGET_NAME_TEMPLATE =
       Strings::Format("XTractor/[{0}]/[{1}]", TEMPLATE_FIELD_FILENAME, TEMPLATE_FIELD_SUBPATH);
@@ -719,8 +720,8 @@ namespace
 
     String GetFieldValue(StringView fieldName) const override
     {
-      static const auto SUBPATH_DELIMITER = "/"_sv;
-      static const auto FLATPATH_DELIMITER = "_"_sv;
+      static const auto SUBPATH_DELIMITER = "/"sv;
+      static const auto FLATPATH_DELIMITER = "_"sv;
 
       if (fieldName == TEMPLATE_FIELD_FILENAME)
       {

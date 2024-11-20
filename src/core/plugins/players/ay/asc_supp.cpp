@@ -8,11 +8,9 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/ay/aym_plugin.h"
-// library includes
-#include <module/players/aym/ascsoundmaster.h>
+#include "module/players/aym/ascsoundmaster.h"
 
 namespace ZXTune
 {

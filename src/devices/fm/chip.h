@@ -10,16 +10,15 @@
 
 #pragma once
 
-// local includes
 #include "Ym2203_Emu.h"
-// common includes
-#include <contract.h>
-// library includes
-#include <devices/fm.h>
-#include <math/fixedpoint.h>
-#include <math/numeric.h>
-#include <parameters/tracking_helper.h>
-#include <time/duration.h>
+
+#include "devices/fm.h"
+#include "math/fixedpoint.h"
+#include "math/numeric.h"
+#include "parameters/tracking_helper.h"
+#include "time/duration.h"
+
+#include "contract.h"
 
 namespace Devices::FM::Details
 {

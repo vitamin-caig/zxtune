@@ -8,10 +8,13 @@
  *
  **/
 
-#include "../../utils.h"
-#include <formats/chiptune/emulation/spc.h>
-#include <strings/format.h>
-#include <time/serialize.h>
+#include "formats/chiptune/emulation/spc.h"
+#include "formats/test/utils.h"
+
+#include "strings/format.h"
+#include "time/serialize.h"
+
+#include "string_view.h"
 
 namespace
 {

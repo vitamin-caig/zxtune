@@ -8,17 +8,17 @@
  *
  **/
 
-// local includes
-#include "downloads.h"
+#include "apps/zxtune-qt/update/downloads.h"
+
 #include "apps/zxtune-qt/ui/utils.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-// std includes
-#include <utility>
-// qt includes
+
+#include "debug/log.h"
+
+#include "make_ptr.h"
+
 #include <QtCore/QRegExp>
+
+#include <utility>
 
 namespace
 {

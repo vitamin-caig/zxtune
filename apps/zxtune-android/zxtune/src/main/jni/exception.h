@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <error.h>
-// platform includes
+#include "error.h"
+
 #include <jni.h>
-// std includes
+
 #include <type_traits>
 
 namespace Jni

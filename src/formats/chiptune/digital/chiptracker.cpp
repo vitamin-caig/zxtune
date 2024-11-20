@@ -8,22 +8,23 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/digital/chiptracker.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <indices.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/format.h>
-#include <strings/optimize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/format.h"
+#include "strings/optimize.h"
+#include "tools/indices.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 #include <cstring>
 
@@ -33,7 +34,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ChipTracker");
 
-    constexpr auto EDITOR = "Chip Tracker v{}"_sv;
+    constexpr auto EDITOR = "Chip Tracker v{}"sv;
 
     // const std::size_t MAX_MODULE_SIZE = 65536;
     const std::size_t MAX_PATTERN_SIZE = 64;
@@ -450,6 +451,7 @@ namespace Formats::Chiptune
       return sizeof(*header) + patternsCount * sizeof(Pattern) <= data.Size();
     }
 
+    const auto DESCRIPTION = "Chip Tracker"sv;
     const auto FORMAT =
         "'C'H'I'P'v"          // uint8_t Signature[5];
         "3x2e3x"              // char Version[3];
@@ -459,9 +461,7 @@ namespace Formats::Chiptune
         "(?00-bb?00-bb){16}"  // samples descriptions
         "?{21}"               // uint8_t Reserved[21];
         "(20-7f{8}){16}"      // sample names
-        ""_sv;
-
-    const Char DESCRIPTION[] = "Chip Tracker";
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -470,7 +470,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

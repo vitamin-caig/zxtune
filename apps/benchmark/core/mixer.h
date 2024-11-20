@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <time/duration.h>
+#include "time/duration.h"
 
 namespace Benchmark::Mixer
 {

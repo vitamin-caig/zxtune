@@ -10,19 +10,18 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/hrust1_bitstream.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <numeric>
 
 namespace Formats::Packed
@@ -31,8 +30,8 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "Hrust v1.x";
-    const auto FORMAT = "'H'R"_sv;
+    const auto DESCRIPTION = "Hrust v1.x"sv;
+    const auto FORMAT = "'H'R"sv;
 
     struct RawHeader
     {
@@ -416,7 +415,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(Hrust1::FORMAT, Hrust1::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Hrust1::DESCRIPTION;
     }

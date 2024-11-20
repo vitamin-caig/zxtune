@@ -8,20 +8,19 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/gameboyadvancesoundformat.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
 
 namespace Formats::Chiptune
 {
   namespace GameBoyAdvanceSoundFormat
   {
-    const Char DESCRIPTION[] = "GameBoy Advance Sound Format";
+    const auto DESCRIPTION = "GameBoy Advance Sound Format"sv;
 
     /*
     Offset         Size    Description
@@ -43,7 +42,7 @@ namespace Formats::Chiptune
     const auto FORMAT =
         "'P'S'F"
         "22"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -52,7 +51,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

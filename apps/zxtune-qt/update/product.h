@@ -10,13 +10,12 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-#include <vector>
-// qt includes
 #include <QtCore/QDate>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
+
+#include <memory>
+#include <vector>
 
 namespace Product
 {

@@ -10,12 +10,11 @@
 
 #pragma once
 
-// local includes
 #include "core/src/location.h"
-// library includes
-#include <analysis/result.h>
-#include <core/module_detect.h>
-#include <core/plugin.h>
+
+#include "analysis/result.h"
+#include "core/module_detect.h"
+#include "core/plugin.h"
 
 namespace Parameters
 {

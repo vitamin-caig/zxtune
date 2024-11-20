@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "async/src/event.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <async/activity.h>
-#include <async/coroutine.h>
-// std includes
+
+#include "async/activity.h"
+#include "async/coroutine.h"
+
+#include "make_ptr.h"
+
 #include <utility>
 
 namespace Async

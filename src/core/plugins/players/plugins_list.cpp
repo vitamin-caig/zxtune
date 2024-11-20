@@ -8,8 +8,7 @@
  *
  **/
 
-// local includes
-#include <core/plugins/players/plugins_list.h>
+#include "core/plugins/players/plugins_list.h"
 
 namespace ZXTune
 {

@@ -8,22 +8,22 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/digital/extremetracker1.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <indices.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/format.h>
-#include <strings/optimize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/format.h"
+#include "strings/optimize.h"
+#include "tools/indices.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <array>
 #include <cstring>
 
@@ -33,9 +33,9 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ExtremeTracker1");
 
-    const Char DESCRIPTION[] = "Extreme Tracker v1.x";
-    const Char VERSION131[] = "Extreme Tracker v1.31";
-    const Char VERSION132[] = "Extreme Tracker v1.32-1.41";
+    const auto DESCRIPTION = "Extreme Tracker v1.x"sv;
+    const auto VERSION131 = "Extreme Tracker v1.31"sv;
+    const auto VERSION132 = "Extreme Tracker v1.32-1.41"sv;
 
     const std::size_t CHANNELS_COUNT = 4;
     const std::size_t MAX_POSITIONS_COUNT = 100;
@@ -324,7 +324,7 @@ namespace Formats::Chiptune
         Analyze(hdr);
       }
 
-      String GetEditorString() const
+      auto GetEditorString() const
       {
         return IsNewVersion() ? VERSION132 : VERSION131;
       }
@@ -611,7 +611,7 @@ namespace Formats::Chiptune
         // samples. Hi addr is usually 7e-ff, but some tracks has another values (40)
         "(?? ?? 51|53|54|56|57 00-10 00-7c ? ?{8}){16}"
         // patterns
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -620,7 +620,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

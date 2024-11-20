@@ -8,25 +8,24 @@
  *
  **/
 
-// local includes
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/gates/win32_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/volume_control.h"
 #include "sound/backends/win32.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <sound/backends_parameters.h>
-#include <sound/render_params.h>
-#include <sound/sound_parameters.h>
-#include <strings/encoding.h>
-// std includes
+
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "sound/backends_parameters.h"
+#include "sound/render_params.h"
+#include "sound/sound_parameters.h"
+#include "strings/encoding.h"
+
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+
 #include <algorithm>
 #include <cstring>
 #include <utility>

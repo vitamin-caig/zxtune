@@ -10,9 +10,8 @@
 
 #pragma once
 
-// local includes
-#include "playlist/supp/scanner.h"
-// qt includes
+#include "apps/zxtune-qt/playlist/supp/scanner.h"
+
 #include <QtWidgets/QWidget>
 
 namespace Playlist::UI

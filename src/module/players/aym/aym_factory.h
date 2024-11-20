@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
 #include "module/players/aym/aym_chiptune.h"
-// library includes
-#include <binary/container.h>
-#include <parameters/container.h>
+
+#include "binary/container.h"
+#include "parameters/container.h"
 
 namespace Module::AYM
 {

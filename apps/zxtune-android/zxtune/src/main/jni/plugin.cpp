@@ -8,12 +8,13 @@
  *
  **/
 
-// local includes
-#include "defines.h"
-#include "properties.h"
-// library includes
-#include <core/plugin.h>
-#include <core/plugin_attrs.h>
+#include "apps/zxtune-android/zxtune/src/main/jni/plugin.h"
+
+#include "apps/zxtune-android/zxtune/src/main/jni/defines.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/properties.h"
+
+#include "core/plugin.h"
+#include "core/plugin_attrs.h"
 
 namespace
 {
@@ -81,7 +82,7 @@ namespace Plugin
     {
       const auto caps = plug.Capabilities();
       const auto id = String{plug.Id()};
-      const auto desc = plug.Description();
+      const auto desc = String{plug.Description()};
 
       // TODO: remove hardcode
       using namespace ZXTune::Capabilities;

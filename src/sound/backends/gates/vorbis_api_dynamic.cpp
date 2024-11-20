@@ -8,13 +8,13 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/vorbis_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
+
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Sound::Vorbis
 {
@@ -25,17 +25,17 @@ namespace Sound::Vorbis
 
     StringView Base() const override
     {
-      return "vorbis"_sv;
+      return "vorbis"sv;
     }
 
     std::vector<StringView> PosixAlternatives() const override
     {
-      return {"libvorbis.so.0"_sv};
+      return {"libvorbis.so.0"sv};
     }
 
     std::vector<StringView> WindowsAlternatives() const override
     {
-      return {"libvorbis-0.dll"_sv};
+      return {"libvorbis-0.dll"sv};
     }
   };
 
@@ -53,7 +53,7 @@ namespace Sound::Vorbis
       Debug::Log("Sound::Backend::Ogg", "Library unloaded");
     }
 
-// clang-format off
+    // clang-format off
 
     int vorbis_block_clear(vorbis_block *vb) override
     {
@@ -174,7 +174,7 @@ namespace Sound::Vorbis
       return func(vc);
     }
 
-// clang-format on
+    // clang-format on
   private:
     const Platform::SharedLibraryAdapter Lib;
   };

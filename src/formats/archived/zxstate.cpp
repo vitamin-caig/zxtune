@@ -8,29 +8,28 @@
  *
  **/
 
-// local includes
 #include "formats/archived/zxstate_supp.h"
-// common includes
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/compression/zlib_container.h>
-#include <binary/container_base.h>
-#include <binary/container_factories.h>
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <formats/archived.h>
-#include <strings/format.h>
-#include <strings/map.h>
-// std includes
+
+#include "binary/compression/zlib_container.h"
+#include "binary/container_base.h"
+#include "binary/container_factories.h"
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "formats/archived.h"
+#include "strings/format.h"
+#include "strings/map.h"
+
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 #include <cstring>
 #include <list>
 #include <numeric>
-#include <sstream>
 
 namespace Formats::Archived
 {
@@ -38,14 +37,14 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::ZXState");
 
-    const Char DESCRIPTION[] = "SZX (ZX-State)";
+    const auto DESCRIPTION = "SZX (ZX-State)"sv;
     const auto FORMAT =
         "'Z'X'S'T"   // signature
         "01"         // major
         "00-04"      // minor
         "00-10"      // machineId
         "%0000000x"  // flags
-        ""_sv;
+        ""sv;
 
     struct DataBlockDescription
     {
@@ -68,8 +67,8 @@ namespace Formats::Archived
       virtual bool Visit(const Chunk& ch, StringView suffix, const DataBlockDescription& blk) = 0;
     };
 
-    const Char RAM_SUFFIX[] = {'R', 'A', 'M', 0};
-    const Char ROM_SUFFIX[] = {'R', 'O', 'M', 0};
+    const auto RAM_SUFFIX = "RAM"sv;
+    const auto ROM_SUFFIX = "ROM"sv;
 
     class ChunksSet
     {
@@ -573,9 +572,16 @@ namespace Formats::Archived
       }
       else
       {
-        std::basic_ostringstream<Char> str;
-        str << base << Char('.') << suffix;
-        return str.str();
+        base += '.';
+        if constexpr (std::is_same_v<T, StringView>)
+        {
+          base += suffix;
+        }
+        else
+        {
+          base += std::to_string(suffix);
+        }
+        return base;
       }
     }
 
@@ -708,7 +714,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(ZXState::FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return ZXState::DESCRIPTION;
     }

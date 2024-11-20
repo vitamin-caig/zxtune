@@ -10,9 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// std includes
+#include "string_type.h"
+#include "string_view.h"
+
 #include <memory>
 
 namespace IO

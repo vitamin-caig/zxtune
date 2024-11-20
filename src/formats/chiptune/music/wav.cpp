@@ -8,18 +8,19 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/music/wav.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/data_builder.h>
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <strings/sanitize.h>
-// std includes
+
+#include "binary/data_builder.h"
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "strings/sanitize.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 #include <numeric>
 
@@ -27,7 +28,7 @@ namespace Formats::Chiptune
 {
   namespace Wav
   {
-    const Char DESCRIPTION[] = "Waveform Audio File Format";
+    const auto DESCRIPTION = "Waveform Audio File Format"sv;
 
     // http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
     namespace Chunks
@@ -285,7 +286,7 @@ namespace Formats::Chiptune
         "????"             // data rate
         "??"               // arbitraty block size
         "00|01-20 00"      // 1-32 bits per sample and 0 for special formats
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -294,7 +295,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

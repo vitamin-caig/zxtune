@@ -10,10 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <contract.h>
-#include <types.h>
-// std includes
+#include "contract.h"
+#include "types.h"
+
 #include <algorithm>
 #include <functional>
 #include <vector>

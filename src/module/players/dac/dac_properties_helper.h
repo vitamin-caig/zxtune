@@ -10,8 +10,7 @@
 
 #pragma once
 
-// local includes
-#include <module/players/properties_helper.h>
+#include "module/players/properties_helper.h"
 
 namespace Module::DAC
 {

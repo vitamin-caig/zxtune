@@ -8,19 +8,18 @@
  *
  **/
 
-// local includes
-#include "errorswidget.h"
+#include "apps/zxtune-qt/ui/tools/errorswidget.h"
+
+#include "apps/zxtune-qt/ui/utils.h"
 #include "errorswidget.ui.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-// std includes
-#include <cassert>
-#include <list>
-// qt includes
+
+#include "contract.h"
+
 #include <QtGui/QPainter>
 #include <QtWidgets/QLabel>
-// std includes
+
+#include <cassert>
+#include <list>
 #include <utility>
 
 namespace

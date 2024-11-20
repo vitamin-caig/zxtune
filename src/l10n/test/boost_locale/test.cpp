@@ -8,14 +8,14 @@
  *
  **/
 
-// common includes
-#include <pointers.h>
-// library includes
-#include <binary/container_factories.h>
-#include <l10n/api.h>
-#include <strings/format.h>
-#include <test/utils.h>
-// std includes
+#include "test/utils.h"
+
+#include "binary/container_factories.h"
+#include "l10n/api.h"
+#include "strings/format.h"
+
+#include "pointers.h"
+
 #include <cstring>
 #include <fstream>
 #include <iostream>

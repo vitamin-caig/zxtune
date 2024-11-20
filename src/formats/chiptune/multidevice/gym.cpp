@@ -8,16 +8,16 @@
  *
  **/
 
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/chiptune/container.h>
-#include <math/numeric.h>
-// std includes
+#include "formats/chiptune/container.h"
+
+#include "binary/format_factories.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <array>
 #include <cstring>
 
@@ -25,7 +25,7 @@ namespace Formats::Chiptune
 {
   namespace GYM
   {
-    const Char DESCRIPTION[] = "Genesis YM2612 (unpacked)";
+    const auto DESCRIPTION = "Genesis YM2612 (unpacked)"sv;
 
     using SignatureType = std::array<uint8_t, 4>;
     using StringType = std::array<uint8_t, 32>;
@@ -50,7 +50,7 @@ namespace Formats::Chiptune
 
     const auto FORMAT =
         "'G'Y'M'X"  // signature
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -59,7 +59,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

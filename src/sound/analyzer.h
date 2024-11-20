@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
-#include <math/fixedpoint.h>
-// std includes
+#include "math/fixedpoint.h"
+
+#include "types.h"
+
 #include <memory>
 
 namespace Sound

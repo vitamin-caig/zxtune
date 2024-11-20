@@ -1,7 +1,11 @@
-#include <binary/data_builder.h>
-#include <formats/packed/decoders.h>
+#include "formats/packed/decoders.h"
+
+#include "binary/data_builder.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <iostream>
-#include <make_ptr.h>
 #include <stdexcept>
 
 #ifdef _WIN32
@@ -23,47 +27,47 @@ namespace
 
   const DecoderTraits DECODERS[] = {
       // depackers
-      {"HOBETA"_sv, &CreateHobetaDecoder},
-      {"HRUST1"_sv, &CreateHrust1Decoder},
-      {"HRUST2"_sv, &CreateHrust21Decoder},
-      {"HRUST23"_sv, &CreateHrust23Decoder},
-      {"FDI"_sv, &CreateFullDiskImageDecoder},
-      {"DSQ"_sv, &CreateDataSquieezerDecoder},
-      {"MSP"_sv, &CreateMSPackDecoder},
-      {"TRUSH"_sv, &CreateTRUSHDecoder},
-      {"LZS"_sv, &CreateLZSDecoder},
-      {"PCD61"_sv, &CreatePowerfullCodeDecreaser61Decoder},
-      {"PCD61i"_sv, &CreatePowerfullCodeDecreaser61iDecoder},
-      {"PCD62"_sv, &CreatePowerfullCodeDecreaser62Decoder},
-      {"HRUM"_sv, &CreateHrumDecoder},
-      {"CC3"_sv, &CreateCodeCruncher3Decoder},
-      {"CC4"_sv, &CreateCompressorCode4Decoder},
-      {"CC4PLUS"_sv, &CreateCompressorCode4PlusDecoder},
-      {"ESV"_sv, &CreateESVCruncherDecoder},
-      {"GAM"_sv, &CreateGamePackerDecoder},
-      {"GAMPLUS"_sv, &CreateGamePackerPlusDecoder},
-      {"TLZ"_sv, &CreateTurboLZDecoder},
-      {"TLZP"_sv, &CreateTurboLZProtectedDecoder},
-      {"CHARPRES"_sv, &CreateCharPresDecoder},
-      {"PACK2"_sv, &CreatePack2Decoder},
-      {"LZH1"_sv, &CreateLZH1Decoder},
-      {"LZH2"_sv, &CreateLZH2Decoder},
-      {"SNA128"_sv, &CreateSna128Decoder},
-      {"TD0"_sv, &CreateTeleDiskImageDecoder},
-      {"Z80V145"_sv, &CreateZ80V145Decoder},
-      {"Z80V20"_sv, &CreateZ80V20Decoder},
-      {"Z80V30"_sv, &CreateZ80V30Decoder},
-      {"MEGALZ"_sv, &CreateMegaLZDecoder},
-      {"DSK"_sv, &CreateDSKDecoder},
-      {"GZIP"_sv, &CreateGzipDecoder},
+      {"HOBETA"sv, &CreateHobetaDecoder},
+      {"HRUST1"sv, &CreateHrust1Decoder},
+      {"HRUST2"sv, &CreateHrust21Decoder},
+      {"HRUST23"sv, &CreateHrust23Decoder},
+      {"FDI"sv, &CreateFullDiskImageDecoder},
+      {"DSQ"sv, &CreateDataSquieezerDecoder},
+      {"MSP"sv, &CreateMSPackDecoder},
+      {"TRUSH"sv, &CreateTRUSHDecoder},
+      {"LZS"sv, &CreateLZSDecoder},
+      {"PCD61"sv, &CreatePowerfullCodeDecreaser61Decoder},
+      {"PCD61i"sv, &CreatePowerfullCodeDecreaser61iDecoder},
+      {"PCD62"sv, &CreatePowerfullCodeDecreaser62Decoder},
+      {"HRUM"sv, &CreateHrumDecoder},
+      {"CC3"sv, &CreateCodeCruncher3Decoder},
+      {"CC4"sv, &CreateCompressorCode4Decoder},
+      {"CC4PLUS"sv, &CreateCompressorCode4PlusDecoder},
+      {"ESV"sv, &CreateESVCruncherDecoder},
+      {"GAM"sv, &CreateGamePackerDecoder},
+      {"GAMPLUS"sv, &CreateGamePackerPlusDecoder},
+      {"TLZ"sv, &CreateTurboLZDecoder},
+      {"TLZP"sv, &CreateTurboLZProtectedDecoder},
+      {"CHARPRES"sv, &CreateCharPresDecoder},
+      {"PACK2"sv, &CreatePack2Decoder},
+      {"LZH1"sv, &CreateLZH1Decoder},
+      {"LZH2"sv, &CreateLZH2Decoder},
+      {"SNA128"sv, &CreateSna128Decoder},
+      {"TD0"sv, &CreateTeleDiskImageDecoder},
+      {"Z80V145"sv, &CreateZ80V145Decoder},
+      {"Z80V20"sv, &CreateZ80V20Decoder},
+      {"Z80V30"sv, &CreateZ80V30Decoder},
+      {"MEGALZ"sv, &CreateMegaLZDecoder},
+      {"DSK"sv, &CreateDSKDecoder},
+      {"GZIP"sv, &CreateGzipDecoder},
   };
 
   class AutoDecoder : public Formats::Packed::Decoder
   {
   public:
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
-      return "Autodetect";
+      return "Autodetect"sv;
     }
 
     Binary::Format::Ptr GetFormat() const override
@@ -95,7 +99,7 @@ namespace
     case 2:
       return argv[1];
     default:
-      return "--help"_sv;
+      return "--help"sv;
     }
   }
 
@@ -117,11 +121,11 @@ namespace
 
   Formats::Packed::Decoder::Ptr CreateDecoder(StringView type)
   {
-    if (type == ""_sv)
+    if (type == ""sv)
     {
       return MakePtr<AutoDecoder>();
     }
-    else if (type == "--help"_sv)
+    else if (type == "--help"sv)
     {
       ShowHelp();
     }

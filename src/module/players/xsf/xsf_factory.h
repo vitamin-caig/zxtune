@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
+#include "module/players/factory.h"
 #include "module/players/xsf/xsf_file.h"
-// library includes
-#include <module/players/factory.h>
-#include <strings/map.h>
+
+#include "strings/map.h"
 
 namespace Module::XSF
 {

@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
-#include "controller.h"
-// library includes
-#include <parameters/accessor.h>
-// qt includes
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+
+#include "parameters/accessor.h"
+
 #include <QtCore/QObject>
 
 namespace Playlist

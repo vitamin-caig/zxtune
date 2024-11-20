@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
-#include "playlist/supp/model.h"
-#include "playlist/supp/operations_search.h"
-#include "playlist/ui/search.h"
-// qt includes
+#include "apps/zxtune-qt/playlist/supp/model.h"
+#include "apps/zxtune-qt/playlist/supp/operations_search.h"
+#include "apps/zxtune-qt/playlist/ui/search.h"
+
 #include <QtWidgets/QDialog>
 
 namespace Playlist::UI

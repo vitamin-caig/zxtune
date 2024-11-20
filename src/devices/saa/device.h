@@ -10,8 +10,7 @@
 
 #pragma once
 
-// local includes
-#include "generators.h"
+#include "devices/saa/generators.h"
 
 namespace Devices::SAA
 {

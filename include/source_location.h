@@ -10,9 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// std includes
+#include "string_view.h"
+#include "types.h"
+
 #include <array>
 
 #ifndef DO_LITERAL
@@ -124,10 +124,10 @@ namespace Debug
 {
 #ifdef SOURCES_ROOT
 #  define STR(a) #  a
-  constexpr auto ROOT = DO_LITERAL(SOURCES_ROOT, _sv);
+  constexpr auto ROOT = DO_LITERAL(SOURCES_ROOT, sv);
 #  undef STR
 #else
-  constexpr auto ROOT = ""_sv;
+  constexpr auto ROOT = ""sv;
 #endif
   template<std::size_t Offset, typename C, C Head, C... Tail>
   constexpr auto MakeSourceFile()

@@ -10,7 +10,6 @@
 
 #pragma once
 
-// qt includes
 #include <QtCore/QStringList>
 
 namespace UI

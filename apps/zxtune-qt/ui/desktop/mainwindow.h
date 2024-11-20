@@ -10,11 +10,9 @@
 
 #pragma once
 
-// local includes
-#include "playlist/supp/data.h"
-#include "ui/mainwindow.h"
-// library includes
-#include <sound/backend.h>
+#include "apps/zxtune-qt/ui/mainwindow.h"
+
+#include "parameters/container.h"
 
 class DesktopMainWindow : public MainWindow
 {

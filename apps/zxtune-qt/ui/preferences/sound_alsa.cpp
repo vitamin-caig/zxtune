@@ -8,18 +8,20 @@
  *
  **/
 
-// local includes
 #include "sound_alsa.h"
+
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "sound_alsa.ui.h"
-#include "supp/options.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-// library includes
-#include <debug/log.h>
-#include <sound/backends/alsa.h>
-#include <sound/backends_parameters.h>
+
+#include "sound/backends/alsa.h"
+
+#include "debug/log.h"
+#include "sound/backends_parameters.h"
+
+#include "contract.h"
+#include "string_view.h"
 
 namespace
 {
@@ -76,10 +78,9 @@ namespace
       Require(connect(devices, &QComboBox::currentTextChanged, this, &AlsaOptionsWidget::DeviceChanged));
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'a', 'l', 's', 'a', '\0'};
-      return ID;
+      return "alsa"sv;
     }
 
     QString GetDescription() const override

@@ -1,6 +1,5 @@
 library_name := mgba
 dirs.root := ../..
-include defines.mak
 
 source_files += $(addprefix arm/,arm decoder-arm decoder-thumb isa-arm isa-thumb) \
                 $(addprefix core/,cheats config core interface sync tile-cache timing) \
@@ -15,6 +14,8 @@ source_files += platform/portable/memory
                 
 source_files := $(addprefix src/,$(addsuffix .c,$(source_files)))
 
+defines.linux += HAVE_LOCALTIME_R
+includes.dirs += $(dirs.root)/3rdparty/mgba/include $(dirs.root)/3rdparty/mgba/src
 includes.files += defines.h
 
 include $(dirs.root)/makefile.mak

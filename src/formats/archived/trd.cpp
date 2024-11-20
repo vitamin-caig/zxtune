@@ -8,17 +8,17 @@
  *
  **/
 
-// local includes
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <cstring>
 #include <numeric>
 
@@ -28,7 +28,7 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::TRD");
 
-    const Char DESCRIPTION[] = "TRD (TR-DOS)";
+    const auto DESCRIPTION = "TRD (TR-DOS)"sv;
     const auto FORMAT =
         "(00|01|20-7f??????? ??? ?? ? 0x 00-a0){128}"
         // service sector
@@ -44,7 +44,7 @@ namespace Formats::Archived
         "?"                // deleted files
         "20-7f{8}"         // title
         "000000"           // reserved
-        ""_sv;
+        ""sv;
 
     // hints
     const std::size_t MODULE_SIZE = 655360;
@@ -123,7 +123,7 @@ namespace Formats::Archived
     static_assert(sizeof(Sector) * alignof(Sector) == BYTES_PER_SECTOR, "Invalid layout");
     static_assert(sizeof(Catalog) * alignof(Catalog) == BYTES_PER_SECTOR * SECTORS_IN_TRACK, "Invalid layout");
 
-    const Char UNALLOCATED_FILENAME[] = {'$', 'U', 'n', 'a', 'l', 'l', 'o', 'c', 'a', 't', 'e', 'd', 0};
+    const auto UNALLOCATED_FILENAME = "$Unallocated"sv;
 
     class Visitor
     {
@@ -233,7 +233,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(TRD::FORMAT, TRD::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return TRD::DESCRIPTION;
     }

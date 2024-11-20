@@ -8,23 +8,23 @@
  *
  **/
 
-// local includes
-#include "table_view.h"
-#include "playlist/supp/controller.h"
-#include "playlist/supp/model.h"
-#include "playlist_view.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-// std includes
-#include <algorithm>
-// qt includes
+#include "apps/zxtune-qt/playlist/ui/table_view.h"
+
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+#include "apps/zxtune-qt/playlist/supp/model.h"
+#include "apps/zxtune-qt/playlist/ui/playlist_view.h"
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "debug/log.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <QtGui/QContextMenuEvent>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMenu>
+
+#include <algorithm>
 
 namespace
 {

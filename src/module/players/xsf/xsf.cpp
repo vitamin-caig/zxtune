@@ -8,17 +8,18 @@
  *
  **/
 
-// local includes
 #include "module/players/xsf/xsf.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <formats/chiptune/emulation/portablesoundformat.h>
-#include <strings/casing.h>
-#include <strings/conversion.h>
-#include <strings/join.h>
-#include <strings/split.h>
+
+#include "formats/chiptune/emulation/portablesoundformat.h"
+
+#include "strings/casing.h"
+#include "strings/conversion.h"
+#include "strings/join.h"
+#include "strings/split.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Module::XSF
 {
@@ -32,7 +33,7 @@ namespace Module::XSF
   public:
     explicit FilePath(StringView str)
     {
-      const auto& elements = Strings::Split(str, R"(/\)"_sv);
+      const auto& elements = Strings::Split(str, R"(/\)"sv);
       Components.assign(elements.begin(), elements.end());
     }
 
@@ -62,7 +63,7 @@ namespace Module::XSF
 
     String ToString() const
     {
-      return Strings::Join(Components, "/"_sv);
+      return Strings::Join(Components, "/"sv);
     }
 
   private:
@@ -131,7 +132,7 @@ namespace Module::XSF
 
     void SetTag(String name, String value) override
     {
-      if (name == "_refresh"_sv)
+      if (name == "_refresh"sv)
       {
         GetMeta().RefreshRate = Strings::ConvertTo<uint_t>(value);
       }

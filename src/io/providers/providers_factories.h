@@ -10,9 +10,9 @@
 
 #pragma once
 
-// local includes
-#include "enumerator.h"
 #include "gates/curl_api.h"
+
+#include "io/providers/enumerator.h"
 
 namespace IO
 {

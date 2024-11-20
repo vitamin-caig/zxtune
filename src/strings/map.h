@@ -10,9 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// std includes
+#include "string_type.h"
+#include "string_view.h"
+
 #include <map>
 #include <stdexcept>
 
@@ -54,7 +54,7 @@ namespace Strings
       const auto it = find(key);
       if (it == end())
       {
-        throw std::out_of_range(String("No key ") + key);
+        throw std::out_of_range("No key "s + key);
       }
       return it->second;
     }
@@ -65,7 +65,7 @@ namespace Strings
       const auto it = find(key);
       if (it == cend())
       {
-        throw std::out_of_range(String("No key ") + key);
+        throw std::out_of_range("No key "s + key);
       }
       return it->second;
     }

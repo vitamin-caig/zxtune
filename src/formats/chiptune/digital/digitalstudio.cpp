@@ -8,22 +8,22 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/digital/digitalstudio.h"
+
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/digital/digital_detail.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/dump.h>
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/optimize.h>
-// std includes
+
+#include "binary/dump.h"
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/optimize.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <array>
 #include <cstring>
 
@@ -33,9 +33,9 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::DigitalStudio");
 
-    const Char DESCRIPTION[] = "Digital Studio";
-    const Char VERSION_AY[] = " (AY)";
-    const Char VERSION_DAC[] = " (Covox/SD)";
+    const auto DESCRIPTION = "Digital Studio"sv;
+    const auto VERSION_AY = " (AY)"sv;
+    const auto VERSION_DAC = " (Covox/SD)"sv;
 
     const std::size_t COMPILED_MODULE_SIZE = 0x1c200;
     const std::size_t MODULE_SIZE = 0x1b200;
@@ -448,7 +448,7 @@ namespace Formats::Chiptune
         "ff{10}"
         "????????"  //"ae7eae7e51000000"
         "20{8}"
-        ""_sv;
+        ""sv;
 
     const uint64_t Z80_FREQ = 3500000;
     // step is not changed in AY and SounDrive versions
@@ -463,7 +463,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

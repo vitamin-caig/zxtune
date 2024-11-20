@@ -8,21 +8,20 @@
  *
  **/
 
-// local includes
 #include "sound/backends/file_backend.h"
 #include "sound/backends/gates/mp3_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/mp3.h"
 #include "sound/backends/storage.h"
-// common includes
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/dump.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <sound/backends_parameters.h>
-#include <sound/render_params.h>
+
+#include "binary/dump.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "sound/backends_parameters.h"
+#include "sound/render_params.h"
+
+#include "error_tools.h"
+#include "make_ptr.h"
 
 namespace Sound::Mp3
 {

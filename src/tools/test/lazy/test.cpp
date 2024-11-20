@@ -8,11 +8,10 @@
  *
  **/
 
-// common includes
-#include <lazy.h>
-#include <make_ptr.h>
-#include <types.h>
-// std includes
+#include "lazy.h"
+#include "make_ptr.h"
+#include "string_type.h"
+
 #include <iostream>
 #include <memory>
 

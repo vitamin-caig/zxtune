@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <binary/view.h>
+#include "binary/view.h"
 
 namespace Module::PSF
 {

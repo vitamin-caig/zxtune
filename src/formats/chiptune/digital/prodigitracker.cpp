@@ -8,21 +8,21 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/digital/prodigitracker.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <indices.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/optimize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/optimize.h"
+#include "tools/indices.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <array>
 #include <cstring>
 
@@ -32,7 +32,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProDigiTracker");
 
-    const Char DESCRIPTION[] = "ProDigi Tracker v0.0x";
+    const auto DESCRIPTION = "ProDigi Tracker v0.0x"sv;
 
     const uint_t ORNAMENTS_COUNT = 11;
     const uint_t SAMPLES_COUNT = 16;
@@ -517,7 +517,7 @@ namespace Formats::Chiptune
         uint8_t FreeRAM;
         uint8_t Padding3[5];
         */
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -526,7 +526,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

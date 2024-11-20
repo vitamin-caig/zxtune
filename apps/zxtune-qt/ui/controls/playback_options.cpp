@@ -8,19 +8,19 @@
  *
  **/
 
-// local includes
-#include "playback_options.h"
+#include "apps/zxtune-qt/ui/controls/playback_options.h"
+
+#include "apps/zxtune-qt/playlist/supp/capabilities.h"
+#include "apps/zxtune-qt/supp/playback_supp.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "playback_options.ui.h"
-#include "playlist/supp/capabilities.h"
-#include "supp/playback_supp.h"
-#include "ui/tools/parameters_helpers.h"
-// common includes
-#include <contract.h>
-// library includes
-#include <core/core_parameters.h>
-#include <parameters/merged_accessor.h>
-#include <sound/sound_parameters.h>
-// std includes
+
+#include "core/core_parameters.h"
+#include "parameters/merged_accessor.h"
+#include "sound/sound_parameters.h"
+
+#include "contract.h"
+
 #include <utility>
 
 namespace

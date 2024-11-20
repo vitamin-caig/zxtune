@@ -8,32 +8,31 @@
  *
  **/
 
-// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <core/core_parameters.h>
-#include <core/plugin_attrs.h>
-#include <debug/log.h>
-#include <formats/chiptune/container.h>
-#include <math/numeric.h>
-#include <module/players/properties_helper.h>
-#include <module/track_information.h>
-#include <module/track_state.h>
-#include <parameters/tracking_helper.h>
-#include <strings/sanitize.h>
-#include <strings/split.h>
-#include <time/duration.h>
-// std includes
+#include "formats/chiptune/container.h"
+#include "module/players/properties_helper.h"
+
+#include "binary/format_factories.h"
+#include "core/core_parameters.h"
+#include "core/plugin_attrs.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "module/track_information.h"
+#include "module/track_state.h"
+#include "parameters/tracking_helper.h"
+#include "strings/sanitize.h"
+#include "strings/split.h"
+#include "time/duration.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
+#include "3rdparty/openmpt/libopenmpt/libopenmpt.hpp"
+
 #include <memory>
 #include <utility>
-// 3rdparty includes
-#define BUILDING_STATIC
-#include <3rdparty/openmpt/libopenmpt/libopenmpt.hpp>
 
 namespace Module::Mpt
 {
@@ -311,7 +310,7 @@ namespace Module::Mpt
   {
     const ZXTune::PluginId Id;
     const StringView Format;
-    const char* const Description;
+    const StringView Description;
   };
 
   class Decoder : public Formats::Chiptune::Decoder
@@ -322,7 +321,7 @@ namespace Module::Mpt
       , Fmt(Binary::CreateMatchOnlyFormat(Desc.Format))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Desc.Description;
     }
@@ -370,7 +369,7 @@ namespace Module::Mpt
     props.SetComment(Strings::SanitizeMultiline(module.get_metadata("message_raw")));
     {
       const auto metadata = module.get_metadata("message_heuristic");
-      if (const auto splitted = Strings::Split(metadata, "\r\n"_sv); !splitted.empty())
+      if (const auto splitted = Strings::Split(metadata, "\r\n"sv); !splitted.empty())
       {
         std::vector<String> strings(splitted.size());
         std::transform(splitted.begin(), splitted.end(), strings.begin(), &Strings::SanitizeKeepPadding);
@@ -438,9 +437,9 @@ namespace Module::Mpt
     {
       "XM"_id
       ,
-      "'E'x't'e'n'd'e'd' 'M'o'd'u'l'e':' "_sv
+      "'E'x't'e'n'd'e'd' 'M'o'd'u'l'e':' "sv
       ,
-      "FastTracker II"
+      "FastTracker II"sv
       //, "XM"
     },
     {
@@ -450,9 +449,9 @@ namespace Module::Mpt
       "'M | 'p"
       "'P | 'm"
       "'M | '."
-      ""_sv
+      ""sv
       ,
-      "Impulse Tracker"
+      "Impulse Tracker"sv
       //, "IT"
     },
     {
@@ -465,9 +464,9 @@ namespace Module::Mpt
       "?{10}"    // sizes, flags
       "01|02 00" // version
       "'S'C'R'M"
-      ""_sv
+      ""sv
       ,
-      "ScreamTracker 3"
+      "ScreamTracker 3"sv
       //, "S3M"
     },
     {
@@ -482,18 +481,18 @@ namespace Module::Mpt
       "?"        // tempo
       "01-40"    // num patterns
       "00-40|58" // global volume or placeholder
-      ""_sv
+      ""sv
       ,
-      "ScreamTracker 2"
+      "ScreamTracker 2"sv
       //, STM
     },
     {
       "MED"_id
       ,
       "'M'M'D '0-'3" // signature
-      ""_sv
+      ""sv
       ,
-      "OctaMED / MED Soundstudio"
+      "OctaMED / MED Soundstudio"sv
       //, MED
     },
     {
@@ -509,9 +508,9 @@ namespace Module::Mpt
       "? ?"    // numSamples, attribute
       "00-40"  // beatsPerTrack
       "01-20"  // numChannels
-      ""_sv
+      ""sv
       ,
-      "MultiTracker"
+      "MultiTracker"sv
       //, MTM
     },
     {
@@ -519,9 +518,9 @@ namespace Module::Mpt
       ,
       "'D'M'D'L" // signature
       "00-1f"    // version
-      ""_sv
+      ""sv
       ,
-      "Digitrakker"
+      "Digitrakker"sv
       //, "MDL"
     },
     {
@@ -529,9 +528,9 @@ namespace Module::Mpt
       ,
       "'D'B'M'0" // signagure
       "00-03"    // trkVerHi
-      ""_sv
+      ""sv
       ,
-      "DigiBooster Pro"
+      "DigiBooster Pro"sv
       //, "DBM"
     },
     {
@@ -540,9 +539,9 @@ namespace Module::Mpt
       "'F'A'R fe"  // signature
       "?{40}"      // songName
       "0d0a1a"     // eof
-      ""_sv
+      ""sv
       ,
-      "Farandole Composer"
+      "Farandole Composer"sv
       //, "FAR"
     },
     {
@@ -551,17 +550,17 @@ namespace Module::Mpt
       "'E'x't'r'e'm'e"
       "?"  // versionLow
       "01" // versionHigh
-      ""_sv
+      ""sv
       ,
-      "Extreme's Tracker"
+      "Extreme's Tracker"sv
       //, "AMS"
     },
     {
       "AMS"_id
       ,
-      "'A'M'S'h'd'r 1a"_sv
+      "'A'M'S'h'd'r 1a"sv
       ,
-      "Velvet Studio"
+      "Velvet Studio"sv
       //, "AMS2"
     },
     {
@@ -569,9 +568,9 @@ namespace Module::Mpt
       ,
       "'O'K'T'A'S'O'N'G" // signature
       "(20-7f){4}"  // iff id
-      ""_sv
+      ""sv
       ,
-      "Oktalyzer"
+      "Oktalyzer"sv
       //, "OKT"
     },
     {
@@ -587,9 +586,9 @@ namespace Module::Mpt
       "01-20 00" // numChannels 1..32
       "00 00 ??" // flags, reserved
       "'P'T'M'F" // magic
-      ""_sv
+      ""sv
       ,
-      "PolyTracker"
+      "PolyTracker"sv
       //, "PTM"
     },
     {
@@ -597,9 +596,9 @@ namespace Module::Mpt
       ,
       "'M'A'S'_'U'T'r'a'c'k'_'V'0'0"
       "'1-'4"
-      ""_sv
+      ""sv
       ,
-      "UltraTracker"
+      "UltraTracker"sv
       //, "ULT"
     },
     {
@@ -607,9 +606,9 @@ namespace Module::Mpt
       ,
       "'D'D'M'F"  // signature
       "01-0a"     // version
-      ""_sv
+      ""sv
       ,
-      "X-Tracker"
+      "X-Tracker"sv
       //, "DMF"
     },
     {
@@ -630,9 +629,9 @@ namespace Module::Mpt
       "??"       // num samples
       "? 00-01"  // num patterns <= 256
       "00-10 00" // num channels <= 16
-      ""_sv
+      ""sv
       ,
-      "Digital Sound Interface Kit RIFF"
+      "Digital Sound Interface Kit RIFF"sv
       //, "DSM"
     },
     {
@@ -641,9 +640,9 @@ namespace Module::Mpt
       "'A'S'Y'L'U'M' 'M'u's'i'c' 'F'o'r'm'a't' 'V'1'.'0 00" // signature
       "? ?"   // speed, tempo
       "01-3f" // numSamples
-      ""_sv
+      ""sv
       ,
-      "ASYLUM Music Format"
+      "ASYLUM Music Format"sv
       //, "AMF_Asylum"
     },
     {
@@ -654,9 +653,9 @@ namespace Module::Mpt
       "?{32}"   // title
       "? ? ?"   // samples, orders, tracks
       "00-20"   // channels
-      ""_sv
+      ""sv
       ,
-      "DSMI / Digital Sound And Music Interface"
+      "DSMI / Digital Sound And Music Interface"sv
       //, "AMF_DSMI"
     },
     {
@@ -665,9 +664,9 @@ namespace Module::Mpt
       "'P'S'M' " // signature
       "????"     // fileSize
       "'F'I'L'E" // fileInfoID
-      ""_sv
+      ""sv
       ,
-      "Epic MegaGames MASI"
+      "Epic MegaGames MASI"sv
       //, "PSM"
     },
     {
@@ -683,9 +682,9 @@ namespace Module::Mpt
       "?? ?? ?? ??" // length, orders, patterns, samples
       "? 00-01"    // channelsPlay
       "? 00-01"    // channelsReal
-      ""_sv
+      ""sv
       ,
-      "Epic MegaGames MASI (Old Version)"
+      "Epic MegaGames MASI (Old Version)"sv
       //, "PSM16"
     },
     {
@@ -700,9 +699,9 @@ namespace Module::Mpt
       "??"        // restartPos
       "??"        // numPatterns
       "01-40 00"  // numChannels
-      ""_sv
+      ""sv
       ,
-      "Mad Tracker 2.xx"
+      "Mad Tracker 2.xx"sv
       //, "MT2"
     },
     // ITP not supported due to external files
@@ -719,9 +718,9 @@ namespace Module::Mpt
       "?{32}"      // pan map
       "? ? ?"      // master vol, tempo, bpm
       "01-09 00"   // originalFormat
-      ""_sv
+      ""sv
       ,
-      "BWSB Soundsystem"
+      "BWSB Soundsystem"sv
       //, "GDM"
     },
     {
@@ -736,9 +735,9 @@ namespace Module::Mpt
       "?{8}"    // unused2
       "'I'M'1'0" // signature
       "(?{15} 00-02){32}"  // channels
-      ""_sv
+      ""sv
       ,
-      "Imago Orpheus"
+      "Imago Orpheus"sv
       //, "IMF"
     },
     {
@@ -747,9 +746,9 @@ namespace Module::Mpt
       "'D'I'G'I' 'B'o'o's't'e'r' 'm'o'd'u'l'e 00"
       "?{4} ?" // version + int
       "01-08"  // numChannels
-      ""_sv
+      ""sv
       ,
-      "Digi Booster"
+      "Digi Booster"sv
       //, "DIGI"
     },
     {
@@ -758,9 +757,9 @@ namespace Module::Mpt
       "'D'.'T'." // magic
       "00 00 00 0e-ff" // headerSize
       "00"             // type
-      ""_sv
+      ""sv
       ,
-      "Digital Tracker / Digital Home Studio"
+      "Digital Tracker / Digital Home Studio"sv
       //, "DTM"
     },
     {
@@ -771,9 +770,9 @@ namespace Module::Mpt
       "10"        // version
       "?{48}"     // song name
       "01-20"     // num channels 1..32
-      ""_sv
+      ""sv
       ,
-      "Disorder Tracker 2"
+      "Disorder Tracker 2"sv
       //, "PLM"
     },
     {
@@ -781,9 +780,9 @@ namespace Module::Mpt
       ,
       "'R'I'F'F ????"
       "'A'M 'F|'  'F|' "
-      ""_sv
+      ""sv
       ,
-      "Galaxy Sound System"
+      "Galaxy Sound System"sv
       //, "AM"
     },
     {
@@ -792,9 +791,9 @@ namespace Module::Mpt
       "'F'O'R'M"
       "????"
       "'M'O'D'L"
-      ""_sv
+      ""sv
       ,
-      "ProTracker 3.6"
+      "ProTracker 3.6"sv
       //, "PT36"
     },
     // no examples for MUS_KM
@@ -805,9 +804,9 @@ namespace Module::Mpt
       "?{20}" // trackerName
       "?{32}" // songName
       "(?{8} ?{8} %000000xx{3}){8}" // channels
-      ""_sv
+      ""sv
       ,
-      "Davey W Taylor's FM Tracker"
+      "Davey W Taylor's FM Tracker"sv
       //, "FMT"
     },
     {
@@ -815,9 +814,9 @@ namespace Module::Mpt
       ,
       "(00 00-02 ?? ){15}" // samples offsets up to 131072 BE
       "'S 'O 'N 'G" // magic
-      ""_sv
+      ""sv
       ,
-      "SoundFX 1.x"
+      "SoundFX 1.x"sv
       //, "SFX"
     },
     {
@@ -825,9 +824,9 @@ namespace Module::Mpt
       ,
       "(00 00-02 ?? ){31}" // samples offsets up to 131072 BE
       "'S 'O '3 '1" // magic
-      ""_sv
+      ""sv
       ,
-      "SoundFX 2.0 / MultiMedia Sound"
+      "SoundFX 2.0 / MultiMedia Sound"sv
       //, "SFX"
     },
     {
@@ -841,9 +840,9 @@ namespace Module::Mpt
       "?? ??"    // timer count, flags
       "????"     // reserved
       "00 32"    // midi count == 50
-      ""_sv
+      ""sv
       ,
-      "Soundtracker Pro II"
+      "Soundtracker Pro II"sv
       //, "STP"
     },
     {
@@ -854,9 +853,9 @@ namespace Module::Mpt
       "('.|'!|'&|'A|'S|'A|'E|'.|'C|'K|'D   |00   |'A   |'L|'X|'C   |'0-'9|'D)"
       "('K      |'T|'M|'R|'S|'T|'T   |'8|'6|00   |'0   |'T|'O|'H   |'C   |'Z)"
       "('.|'!   |'T|'S|'D|'T|'.|'A   |'1   |00   |'4-'8|'4-'9|'N   |'H|'N|'4-'9)"
-      ""_sv
+      ""sv
       ,
-      "Generic MOD-compatible"
+      "Generic MOD-compatible"sv
       //, "MOD"
     },
     {
@@ -865,9 +864,9 @@ namespace Module::Mpt
       "?{1464}"
       "'M'T'N"
       "00"
-      ""_sv
+      ""sv
       ,
-      "MnemoTroN SoundTracker (MOD-compatible)"
+      "MnemoTroN SoundTracker (MOD-compatible)"sv
       //, "ICE"
     },
     {
@@ -875,9 +874,9 @@ namespace Module::Mpt
       ,
       "?{1464}"
       "'I'T'1'0"
-      ""_sv
+      ""sv
       ,
-      "Ice Tracker (MOD-compatible)"
+      "Ice Tracker (MOD-compatible)"sv
       //, "ICE"
     },
     {
@@ -891,9 +890,9 @@ namespace Module::Mpt
       "(00-7f|fe|ff){128}" // orders
       "?{128}"      // tempoList
       "(00-3f){128}"// breaks
-      ""_sv
+      ""sv
       ,
-      "669 Composer / UNIS 669"
+      "669 Composer / UNIS 669"sv
       //, "669"
     },
     {
@@ -911,9 +910,9 @@ namespace Module::Mpt
       "("
        "0x ? ? ? ? %000000xx ? ? ? ? %000000xx"
       "){32}" // instruments
-      ""_sv
+      ""sv
       ,
-      "Composer 670"
+      "Composer 670"sv
       //, "C67"
     },
     {
@@ -921,9 +920,9 @@ namespace Module::Mpt
       ,
       "'M'O'3" // signature
       "00-05"  // version
-      ""_sv
+      ""sv
       ,
-      "Un4seen MO3"
+      "Un4seen MO3"sv
       //, "MO3"
     },
     {
@@ -941,9 +940,9 @@ namespace Module::Mpt
       "00-80"           //len
       "00-dc"           //restart
       "(00-3f){128}"    //order
-      ""_sv
+      ""sv
       ,
-      "Ultimate Soundtracker / etc (MOD Compatible)"
+      "Ultimate Soundtracker / etc (MOD Compatible)"sv
       //, "M15"
     },
     {
@@ -954,9 +953,9 @@ namespace Module::Mpt
       "01-08"             //channels
       "? 00-10"           //le orders up to 4096
       "? 00-10"           //le tracks up to 4096
-      ""_sv
+      ""sv
       ,
-      "Digital Symphony"
+      "Digital Symphony"sv
       //, "DSYM"
     },
     {
@@ -964,9 +963,9 @@ namespace Module::Mpt
       ,
       "'S'y'm'M"          //magic
       "00000001"          //be version==1
-      ""_sv
+      ""sv
       ,
-      "Symphonie"
+      "Symphonie"sv
       //, "SYMMOD"
     }
   };

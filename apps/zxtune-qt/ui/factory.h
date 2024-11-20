@@ -10,10 +10,9 @@
 
 #pragma once
 
-// local includes
-#include "mainwindow.h"
-// library includes
-#include <parameters/container.h>
+#include "apps/zxtune-qt/ui/mainwindow.h"
+
+#include "parameters/container.h"
 
 class WidgetsFactory
 {

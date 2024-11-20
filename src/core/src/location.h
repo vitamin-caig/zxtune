@@ -10,9 +10,10 @@
 
 #pragma once
 
-// library includes
-#include <core/data_location.h>
-#include <core/plugin_attrs.h>
+#include "core/data_location.h"
+#include "core/plugin_attrs.h"
+
+#include "string_view.h"
 
 namespace ZXTune
 {

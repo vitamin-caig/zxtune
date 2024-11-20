@@ -8,20 +8,19 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/sqtracker.h"
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <indices.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "tools/indices.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <array>
 
 namespace Formats::Chiptune
@@ -30,7 +29,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SQTracker");
 
-    const Char PROGRAM[] = "SQ-Tracker";
+    const auto PROGRAM = "SQ-Tracker"sv;
 
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x3600;
@@ -920,7 +919,7 @@ namespace Formats::Chiptune
       return FastCheck(areas);
     }
 
-    const Char DESCRIPTION[] = "SQ-Tracker Compiled";
+    const auto DESCRIPTION = "SQ-Tracker Compiled"sv;
     // TODO: size may be <256
     const auto FORMAT =
         "?01-30"        // uint16_t Size;
@@ -933,7 +932,7 @@ namespace Formats::Chiptune
         "?00|60-fb"
         // pattern1 offset minimal
         "?00-01|60-fc"
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -942,7 +941,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_MODULE_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

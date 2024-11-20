@@ -10,10 +10,9 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-dependent includes
 #include <windows.h>
+
+#include <memory>
 
 namespace Sound::Win32
 {
@@ -23,7 +22,7 @@ namespace Sound::Win32
     using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
-// clang-format off
+    // clang-format off
 
     virtual UINT waveOutGetNumDevs() = 0;
     virtual MMRESULT waveOutGetDevCapsW(UINT_PTR uDeviceID, LPWAVEOUTCAPSW pwoc, UINT cbwoc) = 0;
@@ -38,9 +37,9 @@ namespace Sound::Win32
     virtual MMRESULT waveOutReset(HWAVEOUT hwo) = 0;
     virtual MMRESULT waveOutGetVolume(HWAVEOUT hwo, LPDWORD pdwVolume) = 0;
     virtual MMRESULT waveOutSetVolume(HWAVEOUT hwo, DWORD dwVolume) = 0;
-// clang-format on
+    // clang-format on
   };
 
-  //throw exception in case of error
+  // throw exception in case of error
   Api::Ptr LoadDynamicApi();
 }  // namespace Sound::Win32

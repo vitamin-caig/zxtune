@@ -10,9 +10,8 @@
 
 #pragma once
 
-// common includes
-#include <pointers.h>
-// std includes
+#include "pointers.h"
+
 #include <cassert>
 #include <iterator>
 #include <memory>

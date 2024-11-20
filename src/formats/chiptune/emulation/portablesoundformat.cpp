@@ -8,23 +8,24 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/emulation/portablesoundformat.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/crc.h>
-#include <binary/data_builder.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <formats/chiptune/container.h>
-#include <strings/casing.h>
-#include <strings/prefixed_index.h>
-#include <strings/sanitize.h>
-#include <strings/trim.h>
-#include <time/duration.h>
-// std includes
+
+#include "formats/chiptune/container.h"
+
+#include "binary/crc.h"
+#include "binary/data_builder.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "strings/casing.h"
+#include "strings/prefixed_index.h"
+#include "strings/sanitize.h"
+#include "strings/trim.h"
+#include "time/duration.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <set>
 
 namespace Formats::Chiptune::PortableSoundFormat
@@ -36,20 +37,20 @@ namespace Formats::Chiptune::PortableSoundFormat
   namespace Tags
   {
     const uint8_t SIGNATURE[] = {'[', 'T', 'A', 'G', ']'};
-    const auto LIB_PREFIX = "_lib"_sv;
+    const auto LIB_PREFIX = "_lib"sv;
 
-    const auto UTF8 = "utf8"_sv;
-    const auto TITLE = "title"_sv;
-    const auto ARTIST = "artist"_sv;
-    const auto GAME = "game"_sv;
-    const auto YEAR = "year"_sv;
-    const auto GENRE = "genre"_sv;
-    const auto COMMENT = "comment"_sv;
-    const auto COPYRIGHT = "copyright"_sv;
-    const auto XSFBY_SUFFIX = "sfby"_sv;
-    const auto LENGTH = "length"_sv;
-    const auto FADE = "fade"_sv;
-    const auto VOLUME = "volume"_sv;
+    const auto UTF8 = "utf8"sv;
+    const auto TITLE = "title"sv;
+    const auto ARTIST = "artist"sv;
+    const auto GAME = "game"sv;
+    const auto YEAR = "year"sv;
+    const auto GENRE = "genre"sv;
+    const auto COMMENT = "comment"sv;
+    const auto COPYRIGHT = "copyright"sv;
+    const auto XSFBY_SUFFIX = "sfby"sv;
+    const auto LENGTH = "length"sv;
+    const auto FADE = "fade"sv;
+    const auto VOLUME = "volume"sv;
   }  // namespace Tags
 
   class Format

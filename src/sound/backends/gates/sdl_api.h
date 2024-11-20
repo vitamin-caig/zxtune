@@ -10,10 +10,9 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-dependent includes
 #include <SDL/SDL.h>
+
+#include <memory>
 
 namespace Sound::Sdl
 {
@@ -23,7 +22,7 @@ namespace Sound::Sdl
     using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
-// clang-format off
+    // clang-format off
 
     virtual char* SDL_GetError() = 0;
     virtual const SDL_version* SDL_Linked_Version() = 0;
@@ -35,9 +34,9 @@ namespace Sound::Sdl
     virtual int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained) = 0;
     virtual void SDL_PauseAudio(int pause_on) = 0;
     virtual void SDL_CloseAudio() = 0;
-// clang-format on
+    // clang-format on
   };
 
-  //throw exception in case of error
+  // throw exception in case of error
   Api::Ptr LoadDynamicApi();
 }  // namespace Sound::Sdl

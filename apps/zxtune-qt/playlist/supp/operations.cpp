@@ -8,15 +8,15 @@
  *
  **/
 
-// local includes
-#include "operations.h"
-#include "operations_helpers.h"
-#include "storage.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <tools/progress_callback_helpers.h>
-// std includes
+#include "apps/zxtune-qt/playlist/supp/operations.h"
+
+#include "apps/zxtune-qt/playlist/supp/operations_helpers.h"
+#include "apps/zxtune-qt/playlist/supp/storage.h"
+
+#include "tools/progress_callback_helpers.h"
+
+#include "make_ptr.h"
+
 #include <numeric>
 
 namespace

@@ -8,12 +8,12 @@
  *
  **/
 
-// local includes
 #include "binary/format/static_expression.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
+
+#include "binary/format_factories.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
 
 namespace Binary
 {

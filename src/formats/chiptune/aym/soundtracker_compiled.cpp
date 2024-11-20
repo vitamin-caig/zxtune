@@ -8,21 +8,21 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/soundtracker_detail.h"
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <iterator.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/optimize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/optimize.h"
+#include "tools/iterators.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <array>
 
@@ -32,7 +32,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SoundTrackerCompiled");
 
-    const Char PROGRAM[] = "Sound Tracker v1.x";
+    const auto PROGRAM = "Sound Tracker v1.x"sv;
 
     using namespace SoundTracker;
 
@@ -140,9 +140,9 @@ namespace Formats::Chiptune
     bool IsProgramName(StringView name)
     {
       static const std::array STANDARD_PROGRAMS_PREFIXES = {
-          "SONG BY ST COMPIL"_sv, "SONG BY MB COMPIL"_sv,  "SONG BY ST-COMPIL"_sv,
-          "SONG BY S.T.COMP"_sv,  "SONG ST BY COMPILE"_sv, "SOUND TRACKER"_sv,
-          "S.T.FULL EDITION"_sv,  "S.W.COMPILE V2.0"_sv,   "STU SONG COMPILER"_sv,
+          "SONG BY ST COMPIL"sv, "SONG BY MB COMPIL"sv,  "SONG BY ST-COMPIL"sv,
+          "SONG BY S.T.COMP"sv,  "SONG ST BY COMPILE"sv, "SOUND TRACKER"sv,
+          "S.T.FULL EDITION"sv,  "S.W.COMPILE V2.0"sv,   "STU SONG COMPILER"sv,
       };
       return std::any_of(STANDARD_PROGRAMS_PREFIXES.begin(), STANDARD_PROGRAMS_PREFIXES.end(),
                          [name](auto prefix) { return name.starts_with(prefix); });
@@ -681,7 +681,7 @@ namespace Formats::Chiptune
                                      areas.GetAreaAddress(PATTERNS) + sizeof(RawPattern));
     }
 
-    const Char DESCRIPTION[] = "Sound Tracker v1.x Compiled";
+    const auto DESCRIPTION = "Sound Tracker v1.x Compiled"sv;
     // Statistic-based format based on 6k+ files
     const auto FORMAT =
         "01-20"   // uint8_t Tempo; 1..50
@@ -690,7 +690,7 @@ namespace Formats::Chiptune
         "?00-08"  // uint16_t PatternsOffset;
         "?{20}"   // Id+Size
         "00-0f"   // first sample index
-        ""_sv;
+        ""sv;
 
     Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& rawData, Builder& target)
     {
@@ -737,7 +737,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

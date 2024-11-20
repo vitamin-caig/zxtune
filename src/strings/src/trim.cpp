@@ -8,13 +8,14 @@
  *
  **/
 
-// library includes
-#include <strings/trim.h>
+#include "strings/trim.h"
+
+#include "string_view.h"
 
 namespace Strings
 {
   StringView TrimSpaces(StringView str)
   {
-    return Trim(str, [](Char c) { return c <= ' '; });
+    return Trim(str, [](auto c) { return c <= ' '; });
   }
 }  // namespace Strings

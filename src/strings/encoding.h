@@ -10,8 +10,8 @@
 
 #pragma once
 
-// common included
-#include <types.h>
+#include "string_type.h"
+#include "string_view.h"
 
 namespace Strings
 {

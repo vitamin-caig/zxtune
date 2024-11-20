@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <algorithm>
 #include <iterator>
 
@@ -28,7 +27,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "Pack v2.x";
+    const auto DESCRIPTION = "Pack v2.x"sv;
     const auto DEPACKER_PATTERN =
         "21??"  // ld hl,xxxx end of packed
         "11??"  // ld de,xxxx end of unpacked
@@ -63,7 +62,7 @@ namespace Formats::Packed
         "10fc"  // djnz xx
         "2b"    // dec hl
         "18cf"  // jr xx
-        ""_sv;
+        ""sv;
 
     struct RawHeader
     {
@@ -254,7 +253,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(Pack2::DEPACKER_PATTERN, Pack2::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return Pack2::DESCRIPTION;
     }

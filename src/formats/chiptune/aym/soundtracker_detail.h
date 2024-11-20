@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
 #include "formats/chiptune/aym/soundtracker.h"
-// common includes
-#include <indices.h>
-// std includes
+
+#include "tools/indices.h"
+
 #include <algorithm>
 #include <cassert>
 

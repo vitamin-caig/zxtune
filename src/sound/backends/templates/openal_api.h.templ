@@ -10,11 +10,10 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-dependent includes
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
+
+#include <memory>
 
 namespace Sound::OpenAl
 {

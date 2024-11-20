@@ -8,19 +8,21 @@
  *
  **/
 
-// local includes
-#include "language.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <l10n/control.h>
-// std includes
-#include <map>
-#include <set>
-// qt includes
+#include "apps/zxtune-qt/ui/desktop/language.h"
+
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "l10n/control.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLocale>
 #include <QtCore/QTranslator>
+
+#include <map>
+#include <set>
 
 namespace
 {
@@ -29,7 +31,7 @@ namespace
   public:
     void AddTranslation(L10n::Translation trans) override
     {
-      static const std::string QM_FILE("qm");
+      const auto QM_FILE = "qm"sv;
 
       if (trans.Type != QM_FILE)
       {
@@ -54,9 +56,9 @@ namespace
       return {};
     }
 
-    std::vector<std::string> EnumerateLanguages() const
+    std::vector<StringView> EnumerateLanguages() const
     {
-      std::vector<std::string> res;
+      std::vector<StringView> res;
       for (const auto& trans : Translations)
       {
         res.push_back(trans.first);
@@ -111,7 +113,7 @@ namespace
       res << QLatin1String("en");  // by default
       for (const auto& lng : Lib.EnumerateLanguages())
       {
-        res << QString::fromStdString(lng);
+        res << ToQString(lng);
       }
       return res;
     }

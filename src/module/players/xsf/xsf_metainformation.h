@@ -10,9 +10,10 @@
 
 #pragma once
 
-// library includes
-#include <time/duration.h>
-// std includes
+#include "time/duration.h"
+
+#include "string_type.h"
+
 #include <memory>
 #include <vector>
 

@@ -8,20 +8,21 @@
  *
  **/
 
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <analysis/path.h>
-#include <strings/array.h>
-#include <strings/join.h>
-#include <strings/split.h>
-// std includes
+#include "analysis/path.h"
+
+#include "strings/array.h"
+#include "strings/join.h"
+#include "strings/split.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <functional>
 
 namespace Analysis
 {
-  std::vector<StringView> SplitPath(StringView str, Char separator)
+  std::vector<StringView> SplitPath(StringView str, char separator)
   {
     auto parts = Strings::Split(str, separator);
     const auto newEnd = std::remove_if(parts.begin(), parts.end(), std::mem_fn(&StringView::empty));
@@ -29,28 +30,28 @@ namespace Analysis
     return parts;
   }
 
-  String JoinPath(const Strings::Array& arr, Char separator)
+  String JoinPath(const Strings::Array& arr, char separator)
   {
     return Strings::Join(arr, StringView(&separator, 1));
   }
 
   template<class It>
-  Path::Ptr CreatePath(Char separator, It from, It to);
+  Path::Ptr CreatePath(char separator, It from, It to);
 
-  Path::Ptr CreatePath(Char separator, Strings::Array data);
+  Path::Ptr CreatePath(char separator, Strings::Array data);
 
   class ParsedPath : public Path
   {
   public:
     template<class Iter>
-    ParsedPath(Char separator, Iter from, Iter to)
+    ParsedPath(char separator, Iter from, Iter to)
       : Components(from, to)
       , Separator(separator)
     {
       Require(from != to);
     }
 
-    ParsedPath(Char separator, Strings::Array data)
+    ParsedPath(char separator, Strings::Array data)
       : Components(std::move(data))
       , Separator(separator)
     {
@@ -108,13 +109,13 @@ namespace Analysis
 
   private:
     const Strings::Array Components;
-    const Char Separator;
+    const char Separator;
   };
 
   class EmptyPath : public Path
   {
   public:
-    explicit EmptyPath(Char separator)
+    explicit EmptyPath(char separator)
       : Separator(separator)
     {}
 
@@ -149,11 +150,11 @@ namespace Analysis
     }
 
   private:
-    const Char Separator;
+    const char Separator;
   };
 
   template<class It>
-  Path::Ptr CreatePath(Char separator, It from, It to)
+  Path::Ptr CreatePath(char separator, It from, It to)
   {
     if (from != to)
     {
@@ -165,7 +166,7 @@ namespace Analysis
     }
   }
 
-  Path::Ptr CreatePath(Char separator, Strings::Array data)
+  Path::Ptr CreatePath(char separator, Strings::Array data)
   {
     if (!data.empty())
     {
@@ -180,7 +181,7 @@ namespace Analysis
 
 namespace Analysis
 {
-  Path::Ptr ParsePath(StringView str, Char separator)
+  Path::Ptr ParsePath(StringView str, char separator)
   {
     const auto& parsed = SplitPath(str, separator);
     return CreatePath(separator, parsed.begin(), parsed.end());

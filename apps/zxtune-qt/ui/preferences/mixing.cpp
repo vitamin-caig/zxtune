@@ -8,18 +8,18 @@
  *
  **/
 
-// local includes
-#include "mixing.h"
-#include "mixer.h"
+#include "apps/zxtune-qt/ui/preferences/mixing.h"
+
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/preferences/mixer.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "mixing.ui.h"
-#include "supp/options.h"
-#include "ui/utils.h"
-// library includes
-#include <sound/mixer_parameters.h>
-#include <sound/sample.h>
-// qt includes
+
+#include "sound/mixer_parameters.h"
+#include "sound/sample.h"
+
 #include <QtWidgets/QLabel>
-// std includes
+
 #include <utility>
 
 namespace

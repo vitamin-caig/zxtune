@@ -8,14 +8,13 @@
  *
  **/
 
-// local includes
 #include "formats/image/container.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/container_factories.h>
-// std includes
+
+#include "binary/container_base.h"
+#include "binary/container_factories.h"
+
+#include "make_ptr.h"
+
 #include <cassert>
 
 namespace Formats::Image

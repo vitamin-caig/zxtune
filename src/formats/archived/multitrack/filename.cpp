@@ -8,14 +8,15 @@
  *
  **/
 
-// local includes
 #include "formats/archived/multitrack/filename.h"
-// library includes
-#include <strings/prefixed_index.h>
+
+#include "strings/prefixed_index.h"
+
+#include "string_view.h"
 
 namespace Formats::Archived::MultitrackArchives
 {
-  const auto FILENAME_PREFIX = "#"_sv;
+  const auto FILENAME_PREFIX = "#"sv;
 
   String CreateFilename(std::size_t index)
   {

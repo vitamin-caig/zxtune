@@ -8,18 +8,18 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <array>
 #include <iterator>
@@ -181,7 +181,7 @@ namespace Formats::Packed
       };
     };
 
-    const StringView Simple::DESCRIPTION = "Turbo-LZ v1.x"_sv;
+    const StringView Simple::DESCRIPTION = "Turbo-LZ v1.x"sv;
     const StringView Simple::DEPACKER_PATTERN =
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
@@ -202,9 +202,9 @@ namespace Formats::Packed
         "30?"   // jr nc,xxx
         "77"    // ld (hl),a
         "e60f"  // and 0xf
-        ""_sv;
+        ""sv;
 
-    const StringView Protected::DESCRIPTION = "Turbo#LZ v1.x (internal)"_sv;
+    const StringView Protected::DESCRIPTION = "Turbo#LZ v1.x (internal)"sv;
     const StringView Protected::DEPACKER_PATTERN =
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
@@ -226,7 +226,7 @@ namespace Formats::Packed
         "d2??"  // jp nc,xxx
         "77"    // ld (hl),a
         "e60f"  // and 0xf
-        ""_sv;
+        ""sv;
 
     static_assert(sizeof(Simple::RawHeader) * alignof(Simple::RawHeader) == 0x44, "Invalid layout");
     static_assert(sizeof(Protected::RawHeader) * alignof(Protected::RawHeader) == 0x88, "Invalid layout");
@@ -425,9 +425,9 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(Version::DEPACKER_PATTERN, Version::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
-      return String{Version::DESCRIPTION};
+      return Version::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

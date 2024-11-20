@@ -8,25 +8,26 @@
  *
  **/
 
-// local includes
-#include "player.h"
-#include "array.h"
-#include "debug.h"
-#include "defines.h"
-#include "exception.h"
-#include "global_options.h"
-#include "module.h"
-#include "properties.h"
-// common includes
+#include "apps/zxtune-android/zxtune/src/main/jni/player.h"
+
+#include "apps/zxtune-android/zxtune/src/main/jni/array.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/debug.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/defines.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/exception.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/global_options.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/module.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/properties.h"
+
+#include "module/players/pipeline.h"
+#include "sound/impl/fft_analyzer.h"
+
+#include "parameters/merged_accessor.h"
+#include "sound/mixer_factory.h"
+
 #include "contract.h"
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <module/players/pipeline.h>
-#include <parameters/merged_accessor.h>
-#include <sound/impl/fft_analyzer.h>
-#include <sound/mixer_factory.h>
-// std includes
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <atomic>
 #include <ctime>
 #include <deque>

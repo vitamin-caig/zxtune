@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <sound/backend.h>
+#include "sound/backend.h"
 
 namespace Sound
 {

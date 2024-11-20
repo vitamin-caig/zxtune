@@ -10,19 +10,18 @@
 
 #pragma once
 
-// local includes
 #include "sound/backends/backend_impl.h"
-// library includes
-#include <binary/output_stream.h>
-#include <sound/receiver.h>
+
+#include "binary/output_stream.h"
+#include "sound/receiver.h"
 
 namespace Sound
 {
   namespace File
   {
-    constexpr const Char TITLE_TAG[] = "TITLE";
-    constexpr const Char AUTHOR_TAG[] = "ARTIST";
-    constexpr const Char COMMENT_TAG[] = "COMMENT";
+    constexpr auto TITLE_TAG = "TITLE"sv;
+    constexpr auto AUTHOR_TAG = "ARTIST"sv;
+    constexpr auto COMMENT_TAG = "COMMENT"sv;
   }  // namespace File
 
   class FileStream : public Receiver

@@ -8,20 +8,21 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/turbosound.h"
+
 #include "module/players/streaming.h"
-// common includes
-#include <error.h>
-#include <iterator.h>
-#include <make_ptr.h>
-// library includes
-#include <module/attributes.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/src/names_set.h>
-#include <parameters/visitor.h>
-#include <sound/mixer_factory.h>
-// std includes
+#include "parameters/src/names_set.h"
+
+#include "module/attributes.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/visitor.h"
+#include "sound/mixer_factory.h"
+#include "tools/iterators.h"
+
+#include "error.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <map>
 #include <set>
 

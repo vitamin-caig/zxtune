@@ -10,16 +10,15 @@
 
 #pragma once
 
-// local includes
+#include "formats/chiptune/builder_pattern.h"
 #include "module/players/iterator.h"
 #include "module/players/track_model.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <formats/chiptune/builder_pattern.h>
-#include <module/track_information.h>
-#include <module/track_state.h>
-// std includes
+
+#include "module/track_information.h"
+#include "module/track_state.h"
+
+#include "make_ptr.h"
+
 #include <algorithm>
 #include <array>
 

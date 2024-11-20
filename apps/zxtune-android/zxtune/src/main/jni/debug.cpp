@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
-#include "debug.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/debug.h"
 
 const Debug::Stream Dbg("");

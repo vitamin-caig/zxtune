@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <devices/aym.h>
-#include <sound/mixer.h>
+#include "devices/aym.h"
+#include "sound/mixer.h"
 
 // supporting for AY/YM-based modules
 namespace Devices::AYM

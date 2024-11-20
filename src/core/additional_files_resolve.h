@@ -10,8 +10,9 @@
 
 #pragma once
 
-// library includes
-#include <module/additional_files.h>
+#include "module/additional_files.h"
+
+#include "string_view.h"
 
 namespace Module
 {

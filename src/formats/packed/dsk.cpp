@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/image_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <formats/packed.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "formats/packed.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+
 #include <array>
 
 namespace Formats::Packed
@@ -207,7 +206,7 @@ namespace Formats::Packed
       Formats::ImageBuilder& Target;
     };
 
-    const Char DESCRIPTION[] = "DSK Image";
+    const auto DESCRIPTION = "DSK Image"sv;
     const auto FORMAT =
         "'M|'E"
         "'V|'X"
@@ -233,7 +232,7 @@ namespace Formats::Packed
         "?{206}"                                  // skipped
         // first track
         "'T'r'a'c'k'-'I'n'f'o'\r'\n"
-        ""_sv;
+        ""sv;
   }  // namespace DSK
 
   class DSKDecoder : public Decoder
@@ -243,7 +242,7 @@ namespace Formats::Packed
       : Format(Binary::CreateFormat(DSK::FORMAT))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return DSK::DESCRIPTION;
     }

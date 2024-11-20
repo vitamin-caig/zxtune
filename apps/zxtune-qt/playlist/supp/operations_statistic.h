@@ -10,8 +10,9 @@
 
 #pragma once
 
-// local includes
-#include "operations.h"
+#include "apps/zxtune-qt/playlist/supp/operations.h"
+
+#include "string_view.h"
 
 namespace Playlist::Item
 {

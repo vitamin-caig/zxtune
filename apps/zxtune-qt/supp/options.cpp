@@ -8,28 +8,30 @@
  *
  **/
 
-// local includes
-#include "options.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/container_factories.h>
-#include <parameters/convert.h>
-#include <parameters/delegated.h>
-#include <parameters/merged_accessor.h>
-#include <parameters/src/names_set.h>
-#include <parameters/tools.h>
-#include <parameters/tracking.h>
-// std includes
+#include "apps/zxtune-qt/supp/options.h"
+
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "parameters/src/names_set.h"
+
+#include "binary/container_factories.h"
+#include "parameters/convert.h"
+#include "parameters/delegated.h"
+#include "parameters/merged_accessor.h"
+#include "parameters/tools.h"
+#include "parameters/tracking.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
+#include <QtCore/QCoreApplication>
+#include <QtCore/QSettings>
+
 #include <mutex>
 #include <set>
 #include <utility>
-// qt includes
-#include <QtCore/QCoreApplication>
-#include <QtCore/QSettings>
 
 namespace
 {

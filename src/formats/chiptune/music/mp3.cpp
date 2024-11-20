@@ -8,39 +8,40 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/music/mp3.h"
+
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/music/tags_id3.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <strings/sanitize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+#include "strings/sanitize.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 
 namespace Formats::Chiptune
 {
   namespace Mp3
   {
-    const Char DESCRIPTION[] = "MPEG Audio Layer";
+    const auto DESCRIPTION = "MPEG Audio Layer"sv;
 
     // http://wiki.hydrogenaud.io/index.php?title=APEv2_specification
     namespace ApeTag
     {
       void ParseKey(StringView key, StringView value, MetaBuilder& target)
       {
-        if (key == "Artist"_sv)
+        if (key == "Artist"sv)
         {
           target.SetAuthor(Strings::Sanitize(value));
         }
-        else if (key == "Title"_sv)
+        else if (key == "Title"sv)
         {
           target.SetTitle(Strings::Sanitize(value));
         }
-        else if (key == "Comment"_sv)
+        else if (key == "Comment"sv)
         {
           target.SetComment(Strings::SanitizeMultiline(value));
         }
@@ -474,7 +475,7 @@ namespace Formats::Chiptune
                                            "%0xxxxxxx"
                                            "%0xxxxxxx"
                                            */
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -483,7 +484,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

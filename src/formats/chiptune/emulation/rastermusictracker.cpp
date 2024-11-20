@@ -8,21 +8,21 @@
  *
  **/
 
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <binary/input_stream.h>
-#include <formats/chiptune/container.h>
+#include "formats/chiptune/container.h"
+
+#include "binary/format_factories.h"
+#include "binary/input_stream.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
 
 namespace Formats::Chiptune
 {
   namespace RasterMusicTracker
   {
-    const Char DESCRIPTION[] = "Raster Music Tracker";
+    const auto DESCRIPTION = "Raster Music Tracker"sv;
 
     // as for ASAP limitations
     // Details: http://atariki.krap.pl/index.php/RMT_%28format_pliku%29
@@ -34,7 +34,7 @@ namespace Formats::Chiptune
         "??"            //+a +b
         "01-04"         // tempo
         "01"            //+d
-        ""_sv;
+        ""sv;
 
     const std::size_t MIN_SIZE = 0x30;
 
@@ -45,7 +45,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

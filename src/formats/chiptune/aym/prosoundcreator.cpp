@@ -8,24 +8,25 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/prosoundcreator.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <indices.h>
-#include <iterator.h>
-#include <make_ptr.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <strings/casing.h>
-#include <strings/format.h>
-#include <strings/optimize.h>
-#include <strings/trim.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "strings/casing.h"
+#include "strings/format.h"
+#include "strings/optimize.h"
+#include "strings/trim.h"
+#include "tools/indices.h"
+#include "tools/iterators.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <array>
 #include <cctype>
 #include <cstring>
@@ -36,9 +37,9 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProSoundCreator");
 
-    constexpr auto EDITOR = "Pro Sound Creator v{}"_sv;
-    const Char EDITOR_OLD[] = "Pro Sound Creator v1.00-1.03";
-    const Char EDITOR_NEW[] = "Pro Sound Creator v1.04-1.07";
+    constexpr auto EDITOR = "Pro Sound Creator v{}"sv;
+    const auto EDITOR_OLD = "Pro Sound Creator v1.00-1.03"sv;
+    const auto EDITOR_NEW = "Pro Sound Creator v1.04-1.07"sv;
 
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x4200;
@@ -103,7 +104,7 @@ namespace Formats::Chiptune
 
       bool HasAuthor() const
       {
-        const auto BY_DELIMITER = "BY"_sv;
+        const auto BY_DELIMITER = "BY"sv;
         const auto trimId = Strings::TrimSpaces(MakeStringView(Identifier3));
         return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
@@ -506,13 +507,15 @@ namespace Formats::Chiptune
 
     Traits GetOldVersionTraits(const RawHeader& hdr)
     {
-      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, MakeStringView(hdr.Id.Version)) : EDITOR_OLD;
+      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, MakeStringView(hdr.Id.Version))
+                                          : String{EDITOR_OLD};
       return {std::move(programName), 0, 0};
     }
 
     Traits GetNewVersionTraits(const RawHeader& hdr)
     {
-      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, MakeStringView(hdr.Id.Version)) : EDITOR_NEW;
+      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, MakeStringView(hdr.Id.Version))
+                                          : String{EDITOR_NEW};
       return {std::move(programName), hdr.OrnamentsTableOffset, sizeof(hdr)};
     }
 
@@ -587,8 +590,7 @@ namespace Formats::Chiptune
           }
           else
           {
-            meta.SetTitle(
-                Strings::OptimizeAscii(StringViewCompat{Source.Id.Title.data(), &Source.Id.Author.back() + 1}));
+            meta.SetTitle(Strings::OptimizeAscii(MakeStringView(Source.Id.Title.data(), &Source.Id.Author.back() + 1)));
           }
         }
       }
@@ -1109,7 +1111,7 @@ namespace Formats::Chiptune
       return data.SubView(0, MAX_MODULE_SIZE);
     }
 
-    const Char DESCRIPTION[] = "Pro Sound Creator v1.xx";
+    const auto DESCRIPTION = "Pro Sound Creator v1.xx"sv;
     const auto FORMAT =
         "?{69}"    // Id
         "?00"      // uint16_t SamplesStart;TODO
@@ -1117,7 +1119,7 @@ namespace Formats::Chiptune
         "03-1f"    // uint8_t Tempo;
         "50-9000"  // uint16_t OrnamentsTableOffset;
         "08-cf00"  // first sample
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -1126,7 +1128,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_MODULE_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

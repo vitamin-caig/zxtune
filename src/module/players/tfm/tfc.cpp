@@ -8,25 +8,26 @@
  *
  **/
 
-// local includes
 #include "module/players/tfm/tfc.h"
+
+#include "formats/chiptune/fm/tfc.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
 #include "module/players/tfm/tfm_base_stream.h"
-// common includes
-#include <iterator.h>
-#include <make_ptr.h>
-// library includes
-#include <formats/chiptune/fm/tfc.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_helper.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
-// std includes
+
+#include "tools/iterators.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <array>
 
 namespace Module::TFC
 {
-  const Char PROGRAM_PREFIX[] = "TurboFM Compiler v";
+  const auto PROGRAM_PREFIX = "TurboFM Compiler v"sv;
 
   class ChannelData
   {

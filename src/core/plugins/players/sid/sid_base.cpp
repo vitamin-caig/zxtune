@@ -8,36 +8,35 @@
  *
  **/
 
-// local includes
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/multitrack_plugin.h"
 #include "core/plugins/players/sid/roms.h"
 #include "core/plugins/players/sid/songlengths.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <core/core_parameters.h>
-#include <core/plugin_attrs.h>
-#include <core/plugins_parameters.h>
-#include <debug/log.h>
-#include <formats/multitrack/decoders.h>
-#include <module/attributes.h>
-#include <module/players/duration.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_helper.h>
-#include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <strings/sanitize.h>
-// 3rdparty includes
-#include <3rdparty/sidplayfp/src/builders/resid-builder/resid.h>
-#include <3rdparty/sidplayfp/src/config.h>
-#include <3rdparty/sidplayfp/src/sidmd5.h>
-#include <3rdparty/sidplayfp/src/sidplayfp/SidInfo.h>
-#include <3rdparty/sidplayfp/src/sidplayfp/SidTune.h>
-#include <3rdparty/sidplayfp/src/sidplayfp/SidTuneInfo.h>
-#include <3rdparty/sidplayfp/src/sidplayfp/sidplayfp.h>
+#include "formats/multitrack/decoders.h"
+#include "module/players/duration.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
+#include "module/players/streaming.h"
+
+#include "core/core_parameters.h"
+#include "core/plugin_attrs.h"
+#include "core/plugins_parameters.h"
+#include "debug/log.h"
+#include "module/attributes.h"
+#include "parameters/tracking_helper.h"
+#include "strings/sanitize.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+
+#include "3rdparty/sidplayfp/src/builders/resid-builder/resid.h"
+#include "3rdparty/sidplayfp/src/config.h"
+#include "3rdparty/sidplayfp/src/sidmd5.h"
+#include "3rdparty/sidplayfp/src/sidplayfp/SidInfo.h"
+#include "3rdparty/sidplayfp/src/sidplayfp/SidTune.h"
+#include "3rdparty/sidplayfp/src/sidplayfp/SidTuneInfo.h"
+#include "3rdparty/sidplayfp/src/sidplayfp/sidplayfp.h"
 
 namespace Module::Sid
 {

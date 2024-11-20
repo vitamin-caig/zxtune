@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
-#include "exception.h"
-// common includes
-#include <pointers.h>
-// std includes
+#include "apps/zxtune-android/zxtune/src/main/jni/exception.h"
+
+#include "pointers.h"
+
 #include <map>
 #include <mutex>
 

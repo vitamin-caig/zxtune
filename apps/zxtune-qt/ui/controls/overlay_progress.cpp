@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
-#include "overlay_progress.h"
-// library includes
-#include <time/elapsed.h>
-// std includes
+#include "apps/zxtune-qt/ui/controls/overlay_progress.h"
+
+#include "time/elapsed.h"
+
+#include <QtGui/QMouseEvent>
+#include <QtGui/QPainter>
+
 #include <array>
 #include <cmath>
 #include <utility>
-// qt includes
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
 
 namespace
 {

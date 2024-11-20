@@ -8,23 +8,23 @@
  *
  **/
 
-// local includes
 #include "module/players/dac/v2m.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <formats/chiptune/digital/v2m.h>
-#include <module/players/platforms.h>
-#include <module/players/properties_meta.h>
-#include <module/players/streaming.h>
-#include <sound/resampler.h>
-// 3rdparty includes
-#include <3rdparty/v2m/src/sounddef.h>
-#include <3rdparty/v2m/src/v2mconv.h>
-#include <3rdparty/v2m/src/v2mplayer.h>
-// std includes
+
+#include "formats/chiptune/digital/v2m.h"
+#include "module/players/platforms.h"
+#include "module/players/properties_meta.h"
+#include "module/players/streaming.h"
+
+#include "debug/log.h"
+#include "sound/resampler.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+
+#include "3rdparty/v2m/src/sounddef.h"
+#include "3rdparty/v2m/src/v2mconv.h"
+#include "3rdparty/v2m/src/v2mplayer.h"
+
 #include <algorithm>
 #include <array>
 

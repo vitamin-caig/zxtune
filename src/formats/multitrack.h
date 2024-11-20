@@ -10,11 +10,11 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
-#include <formats/chiptune.h>
-// std includes
+#include "formats/chiptune.h"
+
+#include "string_type.h"
+#include "types.h"
+
 #include <memory>
 
 namespace Formats::Multitrack
@@ -38,7 +38,7 @@ namespace Formats::Multitrack
     virtual ~Decoder() = default;
 
     //! @brief Get short decoder description
-    virtual String GetDescription() const = 0;
+    virtual StringView GetDescription() const = 0;
 
     //! @brief Get approximate format description to search in raw binary data
     //! @invariant Cannot be empty

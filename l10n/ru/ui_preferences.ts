@@ -377,12 +377,12 @@
         <translation>Микшер</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="72"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="71"/>
         <source>Select device</source>
         <translation>Выберите устройство</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="81"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="80"/>
         <source>Select mixer</source>
         <translation>Выберите микшер</translation>
     </message>

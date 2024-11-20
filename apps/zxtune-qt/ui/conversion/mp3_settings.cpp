@@ -8,19 +8,20 @@
  *
  **/
 
-// local includes
-#include "mp3_settings.h"
+#include "apps/zxtune-qt/ui/conversion/mp3_settings.h"
+
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/conversion/backend_settings.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "mp3_settings.ui.h"
-#include "supp/options.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <math/numeric.h>
-#include <sound/backends_parameters.h>
-// std includes
+
+#include "math/numeric.h"
+#include "sound/backends_parameters.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <utility>
 
 namespace
@@ -106,10 +107,9 @@ namespace
       }
     }
 
-    String GetBackendId() const override
+    StringView GetBackendId() const override
     {
-      static const Char ID[] = {'m', 'p', '3', '\0'};
-      return ID;
+      return "mp3"sv;
     }
 
     QString GetDescription() const override

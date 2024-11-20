@@ -10,9 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// std includes
+#include "string_type.h"
+#include "string_view.h"
+
 #include <memory>
 
 namespace Strings
@@ -21,8 +21,8 @@ namespace Strings
   class Template
   {
   public:
-    static const Char FIELD_START;
-    static const Char FIELD_END;
+    static constexpr auto FIELD_START = '[';
+    static constexpr auto FIELD_END = ']';
 
     //! @brief Pointer type
     using Ptr = std::unique_ptr<const Template>;

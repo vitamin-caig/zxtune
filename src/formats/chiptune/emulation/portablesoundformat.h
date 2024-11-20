@@ -10,10 +10,10 @@
 
 #pragma once
 
-// library includes
-#include <formats/chiptune.h>
-#include <formats/chiptune/builder_meta.h>
-#include <time/duration.h>
+#include "formats/chiptune/builder_meta.h"
+
+#include "formats/chiptune.h"
+#include "time/duration.h"
 
 namespace Formats::Chiptune::PortableSoundFormat
 {

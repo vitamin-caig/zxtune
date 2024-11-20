@@ -8,14 +8,14 @@
  *
  **/
 
-// common includes
-#include <contract.h>
-#include <iterator.h>
-#include <make_ptr.h>
-// library includes
-#include <analysis/scanner.h>
-#include <debug/log.h>
-// std includes
+#include "analysis/scanner.h"
+
+#include "debug/log.h"
+#include "tools/iterators.h"
+
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <deque>
 #include <list>
 
@@ -243,7 +243,7 @@ namespace Analysis
 
     void Schedule(typename Traits::Decoder::Ptr decoder, std::size_t delta)
     {
-      const String id = decoder->GetDescription();
+      const auto id = decoder->GetDescription();
       if (delta != Window.Size())
       {
         const std::size_t nextPos = Window.GetOffset() + delta;

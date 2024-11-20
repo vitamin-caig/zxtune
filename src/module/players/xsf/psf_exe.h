@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
 #include "module/players/xsf/memory_region.h"
-// library includes
-#include <binary/view.h>
-// std includes
+
+#include "binary/view.h"
+
 #include <memory>
 
 namespace Module::PSF

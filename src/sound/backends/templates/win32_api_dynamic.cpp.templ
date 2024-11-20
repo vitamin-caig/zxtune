@@ -8,13 +8,12 @@
  *
  **/
 
-// local includes
 #include "sound/backends/gates/win32_api.h"
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-#include <platform/shared_library_adapter.h>
+
+#include "debug/log.h"
+#include "platform/shared_library_adapter.h"
+
+#include "make_ptr.h"
 
 namespace Sound::Win32
 {
@@ -22,7 +21,7 @@ namespace Sound::Win32
 
   Api::Ptr LoadDynamicApi()
   {
-    auto lib = Platform::SharedLibrary::Load("winmm"_sv);
+    auto lib = Platform::SharedLibrary::Load("winmm"sv);
     return MakePtr<DynamicApi>(std::move(lib));
   }
 }  // namespace Sound::Win32

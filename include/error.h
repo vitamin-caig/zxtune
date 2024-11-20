@@ -10,9 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <source_location.h>
-// std includes
+#include "source_location.h"
+#include "string_type.h"
+
 #include <memory>
 
 //! @class Error

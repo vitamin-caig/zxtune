@@ -10,9 +10,8 @@
 
 #pragma once
 
-// local includes
 #include "module/players/track_model.h"
-// std includes
+
 #include <vector>
 
 namespace Module

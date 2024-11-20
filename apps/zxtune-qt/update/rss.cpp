@@ -8,12 +8,12 @@
  *
  **/
 
-// local includes
-#include "rss.h"
+#include "apps/zxtune-qt/update/rss.h"
+
 #include "apps/zxtune-qt/ui/utils.h"
-// library includes
-#include <debug/log.h>
-// qt includes
+
+#include "debug/log.h"
+
 #include <QtCore/QXmlStreamReader>
 
 namespace

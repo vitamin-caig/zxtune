@@ -8,19 +8,20 @@
  *
  **/
 
-// local includes
-#include "supported_formats.h"
-#include "parameters.h"
-#include "supp/options.h"
+#include "apps/zxtune-qt/ui/conversion/supported_formats.h"
+
+#include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/conversion/parameters.h"
+#include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
+#include "apps/zxtune-qt/ui/utils.h"
 #include "supported_formats.ui.h"
-#include "ui/tools/parameters_helpers.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-// library includes
-#include <sound/service.h>
-#include <strings/map.h>
-// qt includes
+
+#include "sound/service.h"
+#include "strings/map.h"
+
+#include "contract.h"
+#include "string_view.h"
+
 #include <QtWidgets/QRadioButton>
 
 namespace
@@ -59,10 +60,10 @@ namespace
     Strings::ValueMap<Error> Ids;
   };
 
-  const Char TYPE_WAV[] = {'w', 'a', 'v', 0};
-  const Char TYPE_MP3[] = {'m', 'p', '3', 0};
-  const Char TYPE_OGG[] = {'o', 'g', 'g', 0};
-  const Char TYPE_FLAC[] = {'f', 'l', 'a', 'c', 0};
+  const auto TYPE_WAV = "wav"sv;
+  const auto TYPE_MP3 = "mp3"sv;
+  const auto TYPE_OGG = "ogg"sv;
+  const auto TYPE_FLAC = "flac"sv;
 
   class SupportedFormats
     : public UI::SupportedFormatsWidget
@@ -95,7 +96,7 @@ namespace
       selectWAV->setChecked(true);
     }
 
-    String GetSelectedId() const override
+    StringView GetSelectedId() const override
     {
       for (const auto& id2b : Buttons)
       {
@@ -120,7 +121,7 @@ namespace
     }
 
   private:
-    using IdToButton = std::map<String, QRadioButton*>;
+    using IdToButton = std::map<StringView, QRadioButton*>;
 
     void SetupButton(IdToButton::value_type but)
     {

@@ -10,10 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <error.h>
-// library includes
-#include <platform/shared_library.h>
+#include "platform/shared_library.h"
+
+#include "error.h"
+#include "string_view.h"
 
 namespace Platform::Details
 {

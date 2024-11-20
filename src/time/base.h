@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <math/scale.h>
-// std includes
+#include "math/scale.h"
+
 #include <numeric>
 #include <type_traits>
 

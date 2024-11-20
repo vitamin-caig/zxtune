@@ -10,11 +10,10 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// library includes
-#include <binary/view.h>
-#include <formats/chiptune.h>
+#include "binary/view.h"
+#include "formats/chiptune.h"
+
+#include "types.h"
 
 namespace Formats::Chiptune
 {

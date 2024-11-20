@@ -8,16 +8,16 @@
  *
  **/
 
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/chiptune/container.h>
-#include <math/numeric.h>
-// std includes
+#include "formats/chiptune/container.h"
+
+#include "binary/format_factories.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <array>
 #include <cstring>
 
@@ -25,7 +25,7 @@ namespace Formats::Chiptune
 {
   namespace KSS
   {
-    const Char DESCRIPTION[] = "KSS Music Format";
+    const auto DESCRIPTION = "KSS Music Format"sv;
 
     using SignatureType = std::array<uint8_t, 4>;
 
@@ -54,7 +54,7 @@ namespace Formats::Chiptune
         "?"          // extra banks
         "00"         // reserved
         "%000xxxxx"  // extra chips (some of the tunes has 4th bit set)
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -63,7 +63,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

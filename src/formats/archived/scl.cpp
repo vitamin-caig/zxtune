@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <cstring>
 #include <numeric>
 
@@ -28,11 +27,11 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::SCL");
 
-    const Char DESCRIPTION[] = "SCL (SINCLAIR)";
+    const auto DESCRIPTION = "SCL (SINCLAIR)"sv;
     const auto FORMAT =
         "'S'I'N'C'L'A'I'R"
         "01-ff"
-        ""_sv;
+        ""sv;
 
     const std::size_t BYTES_PER_SECTOR = 256;
 
@@ -143,7 +142,7 @@ namespace Formats::Archived
       : Format(Binary::CreateFormat(SCL::FORMAT, SCL::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return SCL::DESCRIPTION;
     }

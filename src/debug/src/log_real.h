@@ -10,14 +10,14 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// std includes
+#include "strings/format.h"
+
+#include "string_view.h"
+#include "types.h"
+
 #include <cassert>
 #include <string>
 #include <utility>
-// library includes
-#include <strings/format.h>
 
 namespace Debug
 {

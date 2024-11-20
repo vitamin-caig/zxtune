@@ -8,11 +8,13 @@
  *
  **/
 
-// library includes
-#include <binary/data_builder.h>
-#include <parameters/convert.h>
-#include <strings/conversion.h>
-// std includes
+#include "parameters/convert.h"
+
+#include "binary/data_builder.h"
+#include "strings/conversion.h"
+
+#include "string_view.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -33,7 +35,7 @@ namespace
            && DoTest(str.begin() + 1, str.end(), &std::isxdigit);
   }
 
-  inline uint8_t FromHex(Char val)
+  inline uint8_t FromHex(char val)
   {
     assert(std::isxdigit(val));
     return val >= 'A' ? val - 'A' + 10 : val - '0';
@@ -53,10 +55,10 @@ namespace
     return builder.CaptureResult();
   }
 
-  inline Char ToHex(uint_t val)
+  inline auto ToHex(uint_t val)
   {
     assert(val < 16);
-    return static_cast<Char>(val >= 10 ? val + 'A' - 10 : val + '0');
+    return val >= 10 ? 'A' + val - 10 : '0' + val;
   }
 
   inline String DataToString(Binary::View dmp)
@@ -97,7 +99,7 @@ namespace
   {
     if (IsQuoted(val))
     {
-      return StringViewCompat{val.begin() + 1, val.end() - 1};
+      return MakeStringView(val.begin() + 1, val.end() - 1);
     }
     return val;
   }

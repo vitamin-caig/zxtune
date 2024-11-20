@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <binary/view.h>
-// std includes
+#include "binary/view.h"
+
 #include <memory>
 
 namespace Binary

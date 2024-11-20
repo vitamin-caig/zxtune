@@ -8,22 +8,22 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/protracker2.h"
+
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <indices.h>
-#include <make_ptr.h>
-#include <pointers.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/optimize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/optimize.h"
+#include "tools/indices.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
 #include <array>
 
 namespace Formats::Chiptune
@@ -32,7 +32,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProTracker2");
 
-    const Char PROGRAM[] = "Pro Tracker v2.x";
+    const auto PROGRAM = "Pro Tracker v2.x"sv;
 
     const std::size_t MIN_SIZE = 100;
     const std::size_t MAX_SIZE = 0x3800;
@@ -892,7 +892,7 @@ namespace Formats::Chiptune
         "?{30}"     // char Name[30];
         "00-1f"     // uint8_t Positions[1]; at least one
         "ff|00-1f"  // next position or limit
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -901,7 +901,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

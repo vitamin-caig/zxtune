@@ -8,18 +8,19 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-// library includes
-#include <binary/container_base.h>
-#include <binary/input_stream.h>
-#include <debug/log.h>
-#include <formats/archived.h>
-#include <formats/packed/decoders.h>
-#include <formats/packed/zip_supp.h>
-#include <strings/encoding.h>
-#include <strings/map.h>
-// std includes
+#include "formats/packed/decoders.h"
+#include "formats/packed/zip_supp.h"
+
+#include "binary/container_base.h"
+#include "binary/input_stream.h"
+#include "debug/log.h"
+#include "formats/archived.h"
+#include "strings/encoding.h"
+#include "strings/map.h"
+
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <memory>
 #include <numeric>
 
@@ -322,7 +323,7 @@ namespace Formats::Archived
       : FileDecoder(Formats::Packed::CreateZipDecoder())
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return FileDecoder->GetDescription();
     }

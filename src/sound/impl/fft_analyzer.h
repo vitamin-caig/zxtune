@@ -10,9 +10,8 @@
 
 #pragma once
 
-// library includes
-#include <sound/analyzer.h>
-#include <sound/sample.h>
+#include "sound/analyzer.h"
+#include "sound/sample.h"
 
 namespace Sound
 {

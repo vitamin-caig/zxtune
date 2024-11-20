@@ -8,23 +8,23 @@
  *
  **/
 
-// local includes
-#include "controller.h"
-#include "model.h"
-#include "scanner.h"
-#include "supp/ptr_utils.h"
-#include "supp/thread_utils.h"
-#include "ui/utils.h"
-// common includes
-#include <contract.h>
-#include <error.h>
-#include <make_ptr.h>
-// library includes
-#include <debug/log.h>
-// std includes
-#include <utility>
-// qt includes
+#include "apps/zxtune-qt/playlist/supp/controller.h"
+
+#include "apps/zxtune-qt/playlist/supp/model.h"
+#include "apps/zxtune-qt/playlist/supp/scanner.h"
+#include "apps/zxtune-qt/supp/ptr_utils.h"
+#include "apps/zxtune-qt/supp/thread_utils.h"
+#include "apps/zxtune-qt/ui/utils.h"
+
+#include "debug/log.h"
+
+#include "contract.h"
+#include "error.h"
+#include "make_ptr.h"
+
 #include <QtWidgets/QMessageBox>
+
+#include <utility>
 
 namespace
 {

@@ -10,9 +10,9 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
-// std includes
+#include "string_type.h"
+#include "string_view.h"
+
 #include <span>
 
 namespace Analysis
@@ -48,5 +48,5 @@ namespace Analysis
     virtual Ptr GetParent() const = 0;
   };
 
-  Path::Ptr ParsePath(StringView str, Char separator);
+  Path::Ptr ParsePath(StringView str, char separator);
 }  // namespace Analysis

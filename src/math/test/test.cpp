@@ -8,8 +8,11 @@
  *
  **/
 
+#include "math/scale.h"
+
+#include "string_type.h"
+
 #include <iostream>
-#include <math/scale.h>
 
 namespace
 {

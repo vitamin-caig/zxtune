@@ -8,14 +8,14 @@
  *
  **/
 
-// common includes
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/compression/zlib.h>
-#include <binary/compression/zlib_container.h>
-#include <binary/compression/zlib_stream.h>
-#include <binary/container_factories.h>
+#include "binary/compression/zlib_container.h"
+
+#include "binary/compression/zlib.h"
+#include "binary/compression/zlib_stream.h"
+#include "binary/container_factories.h"
+
+#include "contract.h"
+#include "make_ptr.h"
 
 namespace Binary::Compression::Zlib
 {

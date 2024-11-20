@@ -8,17 +8,17 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <make_ptr.h>
-#include <pointers.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
 #include <algorithm>
 #include <iterator>
 
@@ -150,7 +150,7 @@ namespace Formats::Packed
       }
     };
 
-    const StringView Version1::DESCRIPTION = "LZH Compressor v1.4"_sv;
+    const StringView Version1::DESCRIPTION = "LZH Compressor v1.4"sv;
     const StringView Version1::DEPACKER_PATTERN =
         "?"     // di/ei
         "21??"  // ld hl,xxxx depacker body src
@@ -181,9 +181,9 @@ namespace Formats::Packed
         "7b"    // ld a,e
         "96"    // sub (hl)
         "6f"    // ld l,a
-        ""_sv;
+        ""sv;
 
-    const StringView Version2::DESCRIPTION = "LZH Compressor v2.4"_sv;
+    const StringView Version2::DESCRIPTION = "LZH Compressor v2.4"sv;
     const StringView Version2::DEPACKER_PATTERN =
         "?"     // di/ei
         "21??"  // ld hl,xxxx depacker body src
@@ -213,7 +213,7 @@ namespace Formats::Packed
         "7b"    // ld a,e
         "96"    // sub (hl)
         "6f"    // ld l,a
-        ""_sv;
+        ""sv;
 
     static_assert(sizeof(Version1::RawHeader) * alignof(Version1::RawHeader) == 0x58, "Invalid layout");
     static_assert(offsetof(Version1::RawHeader, DepackerBody) == 0x17, "Invalid layout");
@@ -355,9 +355,9 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(Version::DEPACKER_PATTERN, Version::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
-      return String{Version::DESCRIPTION};
+      return Version::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

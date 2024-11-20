@@ -10,11 +10,10 @@
 
 #pragma once
 
-// std includes
-#include <memory>
-// platform-specific includes
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
+
+#include <memory>
 
 namespace Sound::Alsa
 {

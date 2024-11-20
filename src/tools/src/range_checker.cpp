@@ -8,10 +8,10 @@
  *
  **/
 
-// common includes
-#include <make_ptr.h>
-#include <range_checker.h>
-// std includes
+#include "tools/range_checker.h"
+
+#include "make_ptr.h"
+
 #include <cassert>
 #include <map>
 #include <set>

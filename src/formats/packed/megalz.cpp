@@ -8,17 +8,16 @@
  *
  **/
 
-// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/format_factories.h>
-#include <formats/packed.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "formats/packed.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+
 #include <numeric>
 
 namespace Formats::Packed
@@ -30,7 +29,7 @@ namespace Formats::Packed
     const std::size_t MIN_SIZE = 256;
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const Char DESCRIPTION[] = "MegaLZ";
+    const auto DESCRIPTION = "MegaLZ"sv;
     // assume that packed data are located right after depacked
     // prologue is ignored due to standard absense
     const auto DEPACKER_PATTERN =
@@ -55,7 +54,7 @@ namespace Formats::Packed
         "0c"      // inc c
         "280f"    // jr z,xxxx
         "013f03"  // ld bc,#033f
-        ""_sv;
+        ""sv;
 
     class Bitstream : private ByteStream
     {
@@ -209,7 +208,7 @@ namespace Formats::Packed
       : Depacker(Binary::CreateFormat(MegaLZ::DEPACKER_PATTERN, MegaLZ::MIN_SIZE))
     {}
 
-    String GetDescription() const override
+    StringView GetDescription() const override
     {
       return MegaLZ::DESCRIPTION;
     }

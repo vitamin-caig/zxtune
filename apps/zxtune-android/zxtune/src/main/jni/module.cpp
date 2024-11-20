@@ -8,22 +8,23 @@
  *
  **/
 
-// local includes
-#include "module.h"
-#include "array.h"
-#include "binary.h"
-#include "debug.h"
-#include "defines.h"
-#include "global_options.h"
-#include "player.h"
-#include "properties.h"
-// common includes
-#include <contract.h>
-#include <progress_callback.h>
-// library includes
-#include <core/data_location.h>
-#include <core/service.h>
-#include <module/additional_files.h>
+#include "apps/zxtune-android/zxtune/src/main/jni/module.h"
+
+#include "apps/zxtune-android/zxtune/src/main/jni/array.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/binary.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/debug.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/defines.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/global_options.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/player.h"
+#include "apps/zxtune-android/zxtune/src/main/jni/properties.h"
+
+#include "core/data_location.h"
+#include "core/service.h"
+#include "module/additional_files.h"
+#include "tools/progress_callback.h"
+
+#include "contract.h"
+#include "string_view.h"
 
 namespace
 {

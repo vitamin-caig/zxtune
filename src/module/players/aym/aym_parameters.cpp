@@ -8,19 +8,20 @@
  *
  **/
 
-// local includes
 #include "module/players/aym/aym_parameters.h"
+
 #include "core/plugins/players/ay/freq_tables_internal.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <core/core_parameters.h>
-#include <devices/aym/chip.h>
-#include <l10n/api.h>
-#include <math/numeric.h>
-// std includes
+#include "devices/aym/chip.h"
+
+#include "core/core_parameters.h"
+#include "l10n/api.h"
+#include "math/numeric.h"
+
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <cstring>
 #include <numeric>
 #include <utility>
@@ -30,21 +31,21 @@ namespace Module::AYM
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module_players");
 
   // duty-cycle related parameter: accumulate letters to bitmask functor
-  inline uint_t LetterToMask(uint_t val, const Char letter)
+  inline uint_t LetterToMask(uint_t val, const char letter)
   {
-    static const Char LETTERS[] = {'A', 'B', 'C'};
-    static const uint_t MASKS[] = {
+    constexpr auto LETTERS = "ABC"sv;
+    constexpr uint_t MASKS[] = {
         Devices::AYM::CHANNEL_MASK_A,
         Devices::AYM::CHANNEL_MASK_B,
         Devices::AYM::CHANNEL_MASK_C,
     };
-    static_assert(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS), "Invalid layout");
-    const Char* const pos = std::find(LETTERS, std::end(LETTERS), letter);
-    if (pos == std::end(LETTERS))
+    static_assert(LETTERS.size() == std::size(MASKS), "Invalid layout");
+    const auto pos = LETTERS.find(letter);
+    if (pos == LETTERS.npos)
     {
       throw MakeFormattedError(THIS_LINE, translate("Invalid duty cycle mask item: '{}'."), String(1, letter));
     }
-    return val | MASKS[pos - LETTERS];
+    return val | MASKS[pos];
   }
 
   uint_t String2Mask(StringView str)

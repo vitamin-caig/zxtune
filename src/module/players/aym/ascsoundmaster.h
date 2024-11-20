@@ -10,10 +10,8 @@
 
 #pragma once
 
-// local includes
+#include "formats/chiptune/aym/ascsoundmaster.h"
 #include "module/players/aym/aym_factory.h"
-// library includes
-#include <formats/chiptune/aym/ascsoundmaster.h>
 
 namespace Module::ASCSoundMaster
 {

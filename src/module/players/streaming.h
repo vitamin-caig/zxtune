@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
 #include "module/players/iterator.h"
-// library includes
-#include <module/information.h>
-#include <time/duration.h>
+
+#include "module/information.h"
+#include "time/duration.h"
 
 namespace Module
 {

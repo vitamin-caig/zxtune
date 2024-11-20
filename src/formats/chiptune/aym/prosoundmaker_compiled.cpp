@@ -8,22 +8,22 @@
  *
  **/
 
-// local includes
 #include "formats/chiptune/aym/prosoundmaker.h"
 #include "formats/chiptune/container.h"
-// common includes
-#include <byteorder.h>
-#include <contract.h>
-#include <indices.h>
-#include <make_ptr.h>
-#include <pointers.h>
-#include <range_checker.h>
-// library includes
-#include <binary/format_factories.h>
-#include <debug/log.h>
-#include <math/numeric.h>
-#include <strings/optimize.h>
-// std includes
+
+#include "binary/format_factories.h"
+#include "debug/log.h"
+#include "math/numeric.h"
+#include "strings/optimize.h"
+#include "tools/indices.h"
+#include "tools/range_checker.h"
+
+#include "byteorder.h"
+#include "contract.h"
+#include "make_ptr.h"
+#include "pointers.h"
+#include "string_view.h"
+
 #include <array>
 
 namespace Formats::Chiptune
@@ -32,7 +32,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProSoundMakerCompiled");
 
-    const Char PROGRAM[] = "Pro Sound Maker";
+    const auto PROGRAM = "Pro Sound Maker"sv;
 
     using namespace ProSoundMaker;
 
@@ -466,7 +466,7 @@ namespace Formats::Chiptune
           if (titleBegin < gapEnd)
           {
             const auto* const titleStart = PeekObject<char>(titleBegin);
-            const auto title = StringViewCompat{titleStart, titleStart + gapEnd - titleBegin};
+            const auto title = MakeStringView(titleStart, titleStart + gapEnd - titleBegin);
             meta.SetTitle(Strings::OptimizeAscii(title));
           }
           Ranges.AddService(gapBegin, gapSize);
@@ -1002,7 +1002,7 @@ namespace Formats::Chiptune
         "? 00-04"  // uint16_t OrnamentsOffset;
         // 0x79b + MAX_ORNAMENTS_COUNT(0x20) * (2 + 2 + MAX_ORNAMENT_SIZE(0x22)) = 0xc1b
         "? 00-05"  // uint16_t PatternsOffset;
-        ""_sv;
+        ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -1011,7 +1011,7 @@ namespace Formats::Chiptune
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
 
-      String GetDescription() const override
+      StringView GetDescription() const override
       {
         return DESCRIPTION;
       }

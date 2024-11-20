@@ -10,8 +10,7 @@
 
 #pragma once
 
-// library includes
-#include <module/players/factory.h>
+#include "module/players/factory.h"
 
 namespace Module::V2M
 {

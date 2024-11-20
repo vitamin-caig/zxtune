@@ -8,7 +8,6 @@
  *
  **/
 
-// local includes
 #include "core/src/l10n.h"
 
 namespace Module

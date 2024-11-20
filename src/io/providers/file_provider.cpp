@@ -8,29 +8,30 @@
  *
  **/
 
-// local includes
 #include "io/providers/file_provider.h"
+
 #include "io/impl/filesystem_path.h"
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
-// common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <make_ptr.h>
-// library includes
-#include <binary/data_builder.h>
-#include <debug/log.h>
-#include <io/providers_parameters.h>
-#include <parameters/accessor.h>
-#include <strings/encoding.h>
-#include <strings/format.h>
-#include <strings/trim.h>
-// std includes
-#include <cctype>
-#include <fstream>
-// boost includes
+
+#include "binary/data_builder.h"
+#include "debug/log.h"
+#include "io/providers_parameters.h"
+#include "parameters/accessor.h"
+#include "strings/encoding.h"
+#include "strings/format.h"
+#include "strings/trim.h"
+
+#include "contract.h"
+#include "error_tools.h"
+#include "make_ptr.h"
+#include "string_view.h"
+
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+
+#include <cctype>
+#include <fstream>
 
 #undef min
 
@@ -49,7 +50,7 @@ namespace
     {
       const auto restPart = dotPos != in.npos ? in.substr(dotPos) : StringView();
       // TODO: Concat(StringView...)
-      return String{filename} + '~' + restPart;
+      return filename + "~"s + restPart;
     }
     return in;
   }
@@ -66,7 +67,7 @@ namespace
     return Strings::ToAutoUtf8(err.code().message());
   }
 
-  inline bool IsNotFSSymbol(Char sym)
+  inline bool IsNotFSSymbol(char sym)
   {
     return std::iscntrl(sym) || sym == '*' || sym == '\?' || sym == '%' || sym == ':' || sym == '|' || sym == '\"'
            || sym == '<' || sym == '>' || sym == '\\' || sym == '/';
@@ -113,9 +114,9 @@ namespace IO::File
   };
 
   // uri-related constants
-  const auto SCHEME_SIGN = "://"_sv;
-  const auto SCHEME_FILE = "file"_sv;
-  const Char SUBPATH_DELIMITER = '\?';
+  const auto SCHEME_SIGN = "://"sv;
+  const auto SCHEME_FILE = "file"sv;
+  const auto SUBPATH_DELIMITER = '\?';
 
   class FileIdentifier : public Identifier
   {
@@ -348,7 +349,7 @@ namespace IO::File
   String SanitizePathComponent(String input)
   {
     input = Strings::Trim(input, &IsNotFSSymbol);
-    std::replace_if(input.begin(), input.end(), &IsNotFSSymbol, Char('_'));
+    std::replace_if(input.begin(), input.end(), &IsNotFSSymbol, '_');
     return ApplyOSFilenamesRestrictions(std::move(input));
   }
 
@@ -419,12 +420,12 @@ namespace IO::File
   }
 
   ///////////////////////////////////////
-  const Char IDENTIFIER[] = "file";
+  const auto IDENTIFIER = "file"sv;
 
   class DataProvider : public IO::DataProvider
   {
   public:
-    String Id() const override
+    StringView Id() const override
     {
       return IDENTIFIER;
     }
