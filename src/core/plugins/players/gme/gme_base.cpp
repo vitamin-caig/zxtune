@@ -40,8 +40,6 @@
 #include "3rdparty/gme/gme/Kss_Emu.h"
 #include "3rdparty/gme/gme/Nsf_Emu.h"
 #include "3rdparty/gme/gme/Nsfe_Emu.h"
-#include "3rdparty/gme/gme/Sap_Emu.h"
-#include "3rdparty/gme/gme/Vgm_Emu.h"
 
 #include <map>
 
