@@ -105,6 +105,14 @@ namespace Module
     Delegate.SetValue(ATTR_PLATFORM, platform);
   }
 
+  void PropertiesHelper::SetChannels(const Strings::Array& names)
+  {
+    // TODO: Join(begin, end, delimiter)
+    const auto joined = Strings::Join(names, "\n"sv);
+    const auto trimmed = Strings::Trim(joined, '\n');
+    SetNonEmptyProperty(ATTR_CHANNELS_NAMES, trimmed);
+  }
+
   void PropertiesHelper::SetFadein(Time::Milliseconds fadein)
   {
     using namespace Parameters::ZXTune::Sound;
