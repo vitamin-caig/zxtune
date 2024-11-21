@@ -19,6 +19,12 @@ namespace Parameters::ZXTune::Core
   //! @brief Parameters#ZXTune#Core namespace prefix
   const auto PREFIX = ZXTune::PREFIX + "core"_id;
 
+  //@{
+  //! @name Masking for each of ATTR_CHANNELS_NAMES channels
+  const auto CHANNELS_MASK = PREFIX + "channels_mask"_id;
+  const IntType CHANNELS_MASK_DEFAULT = 0;
+  //@}
+
   //! @brief AYM-chip related parameters namespace
   namespace AYM
   {
