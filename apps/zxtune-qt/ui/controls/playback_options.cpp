@@ -16,12 +16,15 @@
 #include "playback_options.ui.h"
 
 #include "core/core_parameters.h"
+#include "module/attributes.h"
 #include "parameters/merged_accessor.h"
 #include "sound/sound_parameters.h"
+#include "strings/split.h"
 
 #include "contract.h"
 
 #include <utility>
+#include <vector>
 
 namespace
 {
@@ -33,11 +36,13 @@ namespace
     PlaybackOptionsImpl(QWidget& parent, PlaybackSupport& supp, Parameters::Container::Ptr params)
       : ::PlaybackOptions(parent)
       , Params(std::move(params))
+      , Muting(*this)
     {
       // setup self
       setupUi(this);
       AYMOptions->setVisible(false);
       DACOptions->setVisible(false);
+      Muting.SetVisible(false);
 
       // common
       Parameters::BooleanValue::Bind(*isLooped, *Params, Parameters::ZXTune::Sound::LOOPED, false);
@@ -65,14 +70,112 @@ namespace
     }
 
   private:
+    class MuteState
+    {
+    public:
+      explicit MuteState(Ui::PlaybackOptions& self)
+        : Control(self.MuteOptions)
+        , Layout(self.MuteButtons)
+      {}
+
+      void SetVisible(bool visible)
+      {
+        Control->setVisible(visible);
+      }
+
+      void Init(const Playlist::Item::Data& item)
+      {
+        if (const auto channelsNames = item.GetModuleProperties()->FindString(Module::ATTR_CHANNELS_NAMES))
+        {
+          Params = item.GetAdjustedParameters();
+          using namespace Parameters::ZXTune::Core;
+          State = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+          Control->setVisible(true);
+          const auto names = Strings::Split(*channelsNames, '\n');
+          for (std::size_t idx = 0, namesCount = names.size(), buttonsCount = Buttons.size();
+               idx < std::max(namesCount, buttonsCount); ++idx)
+          {
+            auto& button = GetChannelControlButton(idx);
+            const auto hasChannel = idx < namesCount;
+            button.setVisible(hasChannel);
+            if (hasChannel)
+            {
+              if (namesCount <= 8)
+              {
+                button.setText(ToQString(names[idx]));
+                button.setToolTip({});
+              }
+              else
+              {
+                button.setText(QString::number(idx));
+                button.setToolTip(ToQString(names[idx]));
+              }
+              button.setChecked(0 == (State & (1 << idx)));
+            }
+          }
+        }
+        else
+        {
+          Params = {};
+          Control->setVisible(false);
+        }
+      }
+
+    private:
+      QToolButton& GetChannelControlButton(std::size_t idx)
+      {
+        Buttons.resize(std::max(idx + 1, Buttons.size()));
+        auto*& res = Buttons[idx];
+        if (!res)
+        {
+          res = new QToolButton(Control);
+          res->setCheckable(true);
+          res->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+          Layout->addWidget(res);
+          Require(connect(res, &QToolButton::toggled, Control, [this, idx](bool enabled) { Apply(idx, enabled); }));
+        }
+        return *res;
+      }
+
+      void Apply(uint_t idx, bool enabled)
+      {
+        const auto mask = 1 << idx;
+        State |= mask;
+        if (enabled)
+        {
+          State ^= mask;
+        }
+        if (Params)
+        {
+          if (State)
+          {
+            Params->SetValue(Parameters::ZXTune::Core::CHANNELS_MASK, State);
+          }
+          else
+          {
+            Params->RemoveValue(Parameters::ZXTune::Core::CHANNELS_MASK);
+          }
+        }
+      }
+
+    public:
+      QFrame*& Control;
+      QHBoxLayout*& Layout;
+      Parameters::Container::Ptr Params;
+      Parameters::IntType State{};
+      std::vector<QToolButton*> Buttons{16};
+    };
+
     void InitState(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
-      const Playlist::Item::Capabilities& caps = item->GetCapabilities();
+      const auto& caps = item->GetCapabilities();
       AYMOptions->setVisible(caps.IsAYM());
       DACOptions->setVisible(caps.IsDAC());
-      SetEnabled(true);
 
       ModuleProperties = item->GetModuleProperties();
+      Muting.Init(*item);  // muting is only in adjusted
+
+      setEnabled(true);
     }
 
     void UpdateState()
@@ -89,19 +192,14 @@ namespace
 
     void CloseState()
     {
-      SetEnabled(false);
+      setEnabled(false);
       ModuleProperties = {};
-    }
-
-    void SetEnabled(bool enabled)
-    {
-      AYMOptions->setEnabled(enabled);
-      DACOptions->setEnabled(enabled);
     }
 
   private:
     const Parameters::Container::Ptr Params;
     Parameters::Accessor::Ptr ModuleProperties;
+    MuteState Muting;
   };
 }  // namespace
 
