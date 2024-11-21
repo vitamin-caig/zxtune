@@ -21,15 +21,17 @@
 #include "module/track_information.h"
 #include "module/track_state.h"
 #include "parameters/tracking_helper.h"
+#include "strings/format.h"
 #include "strings/sanitize.h"
 #include "strings/split.h"
 #include "time/duration.h"
+#include "tools/xrange.h"
 
 #include "contract.h"
 #include "make_ptr.h"
 #include "string_view.h"
 
-#include "3rdparty/openmpt/libopenmpt/libopenmpt.hpp"
+#include "3rdparty/openmpt/libopenmpt/libopenmpt_ext.hpp"
 
 #include <memory>
 #include <utility>
@@ -38,7 +40,7 @@ namespace Module::Mpt
 {
   const Debug::Stream Dbg("Core::OpenMPT");
 
-  using ModulePtr = std::shared_ptr<openmpt::module>;
+  using ModulePtr = std::shared_ptr<openmpt::module_ext>;
 
   Time::Milliseconds ToDuration(double seconds)
   {
@@ -201,6 +203,7 @@ namespace Module::Mpt
   public:
     Renderer(ModulePtr track, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Track(std::move(track))
+      , InteractiveTrack(*static_cast<openmpt::ext::interactive*>(Track->get_interface(openmpt::ext::interactive_id)))
       , State(MakePtr<TrackState>(Track))
       , Params(std::move(params))
       , SoundFreq(samplerate)
@@ -260,19 +263,34 @@ namespace Module::Mpt
     {
       if (Params.IsChanged())
       {
-        using namespace Parameters::ZXTune::Core::DAC;
-        const auto val = Parameters::GetInteger(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
+        using namespace Parameters::ZXTune::Core;
+        const auto val = Parameters::GetInteger(*Params, DAC::INTERPOLATION, DAC::INTERPOLATION_DEFAULT);
         // cubic interpolation vs windowed sinc with 8 taps
-        const int interpolation = val != INTERPOLATION_NO ? 8 : 3;
+        const int interpolation = val != DAC::INTERPOLATION_NO ? 8 : 3;
         Track->set_render_param(openmpt::module::render_param::RENDER_INTERPOLATIONFILTER_LENGTH, interpolation);
+        ApplyMuting(Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT));
       }
+    }
+
+    void ApplyMuting(uint_t newMask)
+    {
+      for (uint_t chan = 0, diff = MuteMask ^ newMask; diff != 0; ++chan, diff >>= 1)
+      {
+        if (diff & 1)
+        {
+          InteractiveTrack.set_channel_mute_status(chan, newMask & (1 << chan));
+        }
+      }
+      MuteMask = newMask;
     }
 
   private:
     const ModulePtr Track;
+    openmpt::ext::interactive& InteractiveTrack;
     const TrackState::Ptr State;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
     const uint_t SoundFreq;
+    uint_t MuteMask = 0;
   };
 
   class Holder : public Module::Holder
@@ -352,7 +370,7 @@ namespace Module::Mpt
     const Binary::Format::Ptr Fmt;
   };
 
-  void FillMetadata(const openmpt::module& module, PropertiesHelper& props)
+  void FillMetadata(StringView type, openmpt::module_ext& module, PropertiesHelper& props)
   {
     props.SetTitle(Strings::Sanitize(module.get_metadata("title")));
     props.SetAuthor(Strings::Sanitize(module.get_metadata("artist")));
@@ -376,6 +394,20 @@ namespace Module::Mpt
         props.SetStrings(strings);
       }
     }
+    if (module.get_interface(openmpt::ext::interactive_id))
+    {
+      const auto chans = module.get_num_channels();
+      auto names = module.get_channel_names();
+      names.resize(chans);
+      for (auto i : xrange(chans))
+      {
+        if (names[i].empty())
+        {
+          names[i] = Strings::Format("{}.{}"sv, type, i);
+        }
+      }
+      props.SetChannels(names);
+    }
   }
 
   const double MIN_DURATION = 0.1;
@@ -398,8 +430,7 @@ namespace Module::Mpt
       try
       {
         // TODO: specify type filter
-        auto track = std::make_shared<openmpt::module>(static_cast<const uint8_t*>(container.Start()), container.Size(),
-                                                       nullptr, Controls);
+        auto track = std::make_shared<openmpt::module_ext>(container.Start(), container.Size(), nullptr, Controls);
 
         // play all subsongs
         track->select_subsong(-1);
@@ -413,7 +444,7 @@ namespace Module::Mpt
         }
 
         PropertiesHelper props(*properties);
-        FillMetadata(*track, props);
+        FillMetadata(Desc.Id, *track, props);
 
         return MakePtr<Holder>(std::move(track), std::move(properties));
       }
