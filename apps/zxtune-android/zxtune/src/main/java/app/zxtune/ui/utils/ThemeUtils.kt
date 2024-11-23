@@ -34,10 +34,8 @@ object ThemeUtils {
         }
     }
 
-    fun setupThemeChange(ctx: Context, owner: LifecycleOwner) = getProviderClient(ctx).getLive(
-        PREF_KEY, THEME_DEFAULT
-    ).observe(owner) {
-        applyTheme(it)
+    fun setupThemeChange(ctx: Context, owner: LifecycleOwner) = owner.whenLifecycleStarted {
+        getProviderClient(ctx).watchString(PREF_KEY).collect { applyTheme(it) }
     }
 
     private fun needApplyTheme() =
