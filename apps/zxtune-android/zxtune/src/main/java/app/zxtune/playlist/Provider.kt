@@ -18,6 +18,7 @@ import app.zxtune.Log
 import app.zxtune.MainApplication
 import app.zxtune.playlist.Database.Tables.Playlist
 import app.zxtune.playlist.xspf.XspfStorage
+import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 
 class Provider : ContentProvider() {
@@ -53,10 +54,12 @@ class Provider : ContentProvider() {
 
     private fun querySavedPlaylists(selection: String?) =
         MatrixCursor(arrayOf("name", "path")).apply {
-            val ids = selection?.let { arrayListOf(it) } ?: storage.enumeratePlaylists()
-            for (id in ids) {
-                storage.findPlaylistUri(id)?.let { uri ->
-                    addRow(arrayOf(id, uri.toString()))
+            runBlocking {
+                val ids = selection?.let { arrayListOf(it) } ?: storage.enumeratePlaylists()
+                for (id in ids) {
+                    storage.findPlaylistUri(id)?.let { uri ->
+                        addRow(arrayOf(id, uri.toString()))
+                    }
                 }
             }
         }
@@ -162,7 +165,9 @@ class Provider : ContentProvider() {
         null, PlaylistQuery.selectionFor(ids), null, null
     ).use { cursor ->
         runCatching {
-            storage.createPlaylist(id, cursor)
+            runBlocking {
+                storage.createPlaylist(id, cursor)
+            }
             null
         }.recover { err ->
             Log.w(TAG, err, "Failed to save")

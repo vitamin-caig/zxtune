@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import java.io.File
@@ -41,7 +42,7 @@ class PersistentStorage @VisibleForTesting constructor(
     }
 
     interface Subdirectory {
-        fun tryGet(createIfAbsent: Boolean = false): DocumentFile?
+        suspend fun tryGet(createIfAbsent: Boolean = false): DocumentFile?
     }
 
     companion object {
@@ -83,26 +84,22 @@ class PersistentStorage @VisibleForTesting constructor(
     }
 
     fun subdirectory(name: String): Subdirectory = object : Subdirectory {
+        override suspend fun tryGet(createIfAbsent: Boolean) =
+            state.firstOrNull()?.location?.let { dir ->
+                LOG.d { "Using persistent storage at ${dir.uri}" }
+                val existing = dir.findFile(name)
+                when {
+                    existing != null -> existing.takeIf { it.isDirectory }?.also {
+                        LOG.d { "Reuse dir ${it.uri}" }
+                    }
 
-        // TODO: use state.firstOrNull() after suspend tryGet or flowValueOf
-        private val currentLocation
-            get() = state.replayCache.lastOrNull()?.location
+                    createIfAbsent -> dir.createDirectory(name)?.also {
+                        LOG.d { "Create dir ${it.uri}" }
+                    }
 
-        override fun tryGet(createIfAbsent: Boolean) = currentLocation?.let { dir ->
-            LOG.d { "Using persistent storage at ${dir.uri}" }
-            val existing = dir.findFile(name)
-            when {
-                existing != null -> existing.takeIf { it.isDirectory }?.also {
-                    LOG.d { "Reuse dir ${it.uri}" }
+                    else -> null
                 }
-
-                createIfAbsent -> dir.createDirectory(name)?.also {
-                    LOG.d { "Create dir ${it.uri}" }
-                }
-
-                else -> null
             }
-        }
     }
 
     fun setLocation(uri: Uri) {

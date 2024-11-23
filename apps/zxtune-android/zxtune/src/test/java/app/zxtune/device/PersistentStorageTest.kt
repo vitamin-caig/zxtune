@@ -16,6 +16,7 @@ import app.zxtune.preferences.ProviderClient
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -107,9 +108,11 @@ class PersistentStorageTest {
         }
         clientConfigured()
         assertEquals(true, subdir.exists())
-        underTest.subdirectory("dir").run {
-            assertEquals(null, tryGet())
-            assertEquals(File(subdir, "dir").toUri(), tryGet(createIfAbsent = true)?.uri)
+        scope.runTest {
+            underTest.subdirectory("dir").run {
+                assertEquals(null, tryGet())
+                assertEquals(File(subdir, "dir").toUri(), tryGet(createIfAbsent = true)?.uri)
+            }
         }
         verify(stateObserver).invoke(argThat {
             subdir.toUri() == location?.uri && File(
@@ -126,11 +129,13 @@ class PersistentStorageTest {
             on { watchString(anyString(), anyString()) } doReturn flowOf("")
         }
         clientConfigured()
-        underTest.subdirectory("dir").run {
-            assertEquals(null, tryGet())
-            assertEquals(
-                File(storage, "ZXTune/dir").toUri(), tryGet(createIfAbsent = true)?.uri
-            )
+        scope.runTest {
+            underTest.subdirectory("dir").run {
+                assertEquals(null, tryGet())
+                assertEquals(
+                    File(storage, "ZXTune/dir").toUri(), tryGet(createIfAbsent = true)?.uri
+                )
+            }
         }
         verify(stateObserver).invoke(argThat {
             defaultLocationHint == location?.uri && File(
@@ -147,10 +152,12 @@ class PersistentStorageTest {
             on { watchString(anyString(), anyString()) } doReturn flowOf(storage.absolutePath)
         }
         clientConfigured()
-        underTest.subdirectory(SUBDIR).run {
-            assertEquals(null, tryGet())
-            assertEquals(subdir.toUri(), tryGet(createIfAbsent = true)?.uri)
-            assertEquals(subdir.toUri(), tryGet()?.uri)
+        scope.runTest {
+            underTest.subdirectory(SUBDIR).run {
+                assertEquals(null, tryGet())
+                assertEquals(subdir.toUri(), tryGet(createIfAbsent = true)?.uri)
+                assertEquals(subdir.toUri(), tryGet()?.uri)
+            }
         }
         verify(stateObserver).invoke(argThat {
             storage.toUri() == location?.uri && File(
@@ -171,10 +178,12 @@ class PersistentStorageTest {
             on { watchString(anyString(), anyString()) } doReturn flowOf(storage.toString())
         }
         clientConfigured()
-        underTest.subdirectory("dir").run {
-            assertEquals(null, tryGet())
-            // subdir does not exist, so its subdir cannot be created in RawDocumentFile
-            assertEquals(null, tryGet(createIfAbsent = true)?.uri)
+        scope.runTest {
+            underTest.subdirectory("dir").run {
+                assertEquals(null, tryGet())
+                // subdir does not exist, so its subdir cannot be created in RawDocumentFile
+                assertEquals(null, tryGet(createIfAbsent = true)?.uri)
+            }
         }
         verify(stateObserver).invoke(argThat {
             storage == location?.uri && Uri.EMPTY == defaultLocationHint
@@ -193,9 +202,11 @@ class PersistentStorageTest {
         }
         clientConfigured()
         val defaultLocation = Identifier("primary_mounted", "ZXTune").documentUri
-        underTest.subdirectory("dir").run {
-            assertEquals(null, tryGet())
-            assertEquals(null, tryGet(createIfAbsent = true)?.uri)
+        scope.runTest {
+            underTest.subdirectory("dir").run {
+                assertEquals(null, tryGet())
+                assertEquals(null, tryGet(createIfAbsent = true)?.uri)
+            }
         }
         verify(stateObserver).invoke(argThat {
             null == location?.uri && defaultLocation == defaultLocationHint
@@ -214,10 +225,12 @@ class PersistentStorageTest {
             on { watchString(anyString(), anyString()) } doReturn flowOf(storedLocation.toString())
         }
         clientConfigured()
-        underTest.subdirectory("dir").run {
-            assertEquals(null, tryGet())
-            // use the same object in createDir
-            assertEquals(storedLocation, tryGet(createIfAbsent = true)?.uri)
+        scope.runTest {
+            underTest.subdirectory("dir").run {
+                assertEquals(null, tryGet())
+                // use the same object in createDir
+                assertEquals(storedLocation, tryGet(createIfAbsent = true)?.uri)
+            }
         }
         verify(stateObserver).invoke(argThat {
             storedLocation == location?.uri && Identifier(

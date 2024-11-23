@@ -7,6 +7,7 @@ import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import app.zxtune.device.PersistentStorage
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -39,7 +40,7 @@ class XspfStorageTest {
             }
         }
         val subdir = object : PersistentStorage.Subdirectory {
-            override fun tryGet(createIfAbsent: Boolean) =
+            override suspend fun tryGet(createIfAbsent: Boolean) =
                 if (root.isDirectory || (createIfAbsent && root.mkdirs()))
                     DocumentFile.fromFile(root)
                 else
@@ -56,12 +57,12 @@ class XspfStorageTest {
     }
 
     @Test
-    fun `empty root not created`() {
+    fun `empty root not created`() = runTest {
         assertEquals(0, underTest.enumeratePlaylists().size)
     }
 
     @Test
-    fun `delayed root creating every time`() {
+    fun `delayed root creating every time`() = runTest {
         val cursor = MatrixCursor(arrayOf())
         underTest.createPlaylist("1", cursor)
         assertEquals(true, root.exists())
