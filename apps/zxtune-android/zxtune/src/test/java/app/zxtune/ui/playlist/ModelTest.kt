@@ -1,20 +1,28 @@
 package app.zxtune.ui.playlist
 
-import android.database.MatrixCursor
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import app.zxtune.TestUtils.flushEvents
+import app.zxtune.TestUtils.mockCollectorOf
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
-import app.zxtune.playlist.Database
+import app.zxtune.playlist.PlaylistContent
 import app.zxtune.playlist.ProviderClient
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
-import java.util.concurrent.ExecutorService
 
 private fun assertEquals(ref: State, test: State) {
     assertEquals(ref.entries, test.entries)
@@ -24,94 +32,50 @@ private fun assertEquals(ref: State, test: State) {
 @RunWith(RobolectricTestRunner::class)
 class ModelTest {
 
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-
     private val client = mock<ProviderClient>()
-    private val async = mock<ExecutorService> {
-        on { execute(any()) } doAnswer {
-            it.getArgument<Runnable>(0).run()
-        }
-    }
+
+    private val dispatcher = StandardTestDispatcher()
 
     @Before
-    fun setUp() {
-        reset(client)
-        clearInvocations(async)
-    }
+    fun setUp() = reset(client)
 
     @After
-    fun tearDown() {
-        verifyNoMoreInteractions(client, async)
-    }
+    fun tearDown() = verifyNoMoreInteractions(client)
 
     @Test
     fun `no state retrieval`() {
-        lateinit var observer: ProviderClient.ChangesObserver
-        client.stub {
-            on { registerObserver(any()) } doAnswer {
-                observer = it.getArgument(0)
-            }
-        }
-        val underTest = Model(mock(), client, async)
-        observer.onChange()
-        underTest.onCleared()
-
-        inOrder(client) {
-            verify(client).registerObserver(any())
-            verify(client).unregisterObserver()
-        }
+        Model(mock(), client, dispatcher)
+        verify(client).observeContent()
     }
 
     @Test
-    fun `basic workflow`() {
-        // _id, pos, location, author, title, duration, properties
-        val columns = Database.Tables.Playlist.Fields.values().map { it.toString() }.toTypedArray()
-        val emptyList = MatrixCursor(columns)
-        val nonEmptyList = MatrixCursor(columns, 1).apply {
-            addRow(
-                arrayOf(
-                    123,
-                    0,
-                    "scheme://host/path#fragment",
-                    "author",
-                    "title",
-                    123456L,
-                    byteArrayOf()
-                )
-            )
+    fun `basic workflow`() = runTest(dispatcher) {
+        val list1 = PlaylistContent(1).apply {
+            add(mock<Entry>())
         }
-        lateinit var observer: ProviderClient.ChangesObserver
+        val list2 = PlaylistContent(2).apply {
+            add(mock<Entry>())
+            add(mock<Entry>())
+        }
+        val contentFlow = flow {
+            emit(list2)
+            emit(list1)
+        }
         client.stub {
-            on { registerObserver(any()) } doAnswer {
-                observer = it.getArgument(0)
-            }
-            on { query(null) }.doReturn(emptyList, nonEmptyList)
+            on { observeContent() } doReturn contentFlow
         }
-        with(Model(mock(), client, async)) {
-            assertEquals(0, requireNotNull(state.value).entries.size)
-            observer.onChange()
-            requireNotNull(state.value).entries.run {
-                assertEquals(1, size)
-                get(0).run {
-                    assertEquals(123, id)
-                    assertEquals(Identifier.parse("scheme://host/path#fragment"), location)
-                    assertEquals("author", author)
-                    assertEquals("title", title)
-                    assertEquals(TimeStamp.fromMilliseconds(123456), duration)
-                }
-            }
-            onCleared()
-        }
+        val cb = mockCollectorOf(Model(mock(), client, dispatcher).state)
+        inOrder(cb, client) {
+            flushEvents()
+            verify(client).observeContent()
 
-        inOrder(client, async) {
-            verify(client).registerObserver(any())
-            verify(async).execute(any())
-            verify(client).query(null)
-            verify(async).execute(any())
-            verify(client).query(null)
-            verify(client).unregisterObserver()
+            // initial state + empty response
+            verify(cb).invoke(argThat { entries.isEmpty() })
+
+            verify(cb).invoke(argThat { entries == list2 })
+            verify(cb).invoke(argThat { entries == list1 })
         }
+        verifyNoMoreInteractions(cb)
     }
 
     @Test
@@ -124,8 +88,9 @@ class ModelTest {
         val entry1 = Entry(1, Identifier.EMPTY, "First entry", "Author1", TimeStamp.EMPTY)
         val entry2 = Entry(2, Identifier.EMPTY, "Second entry", "Author2", TimeStamp.EMPTY)
         val entry3 = Entry(3, Identifier.EMPTY, "Third entry", "second author", TimeStamp.EMPTY)
-        val entry4 =
-            Entry(4, Identifier.parse("schema://host/VisiblePath"), "title", "aut", TimeStamp.EMPTY)
+        val entry4 = Entry(
+            4, Identifier.parse("schema://host/VisiblePath"), "title", "aut", TimeStamp.EMPTY
+        )
         val filled2 = initial.withContent(arrayListOf(entry1, entry2)).apply {
             assertNotNull(entries as? MutableList<Entry>)
             assertEquals("", filter)

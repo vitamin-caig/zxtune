@@ -19,13 +19,21 @@ import app.zxtune.playback.service.PlaybackServiceLocal
 import app.zxtune.preferences.Preferences
 import app.zxtune.preferences.Preferences.getDefaultSharedPreferences
 import app.zxtune.preferences.SharedPreferencesBridge.subscribe
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class MainService : MediaBrowserServiceCompat() {
+
+    // TODO: remove when LifecycleService used
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.IO + job)
 
     // bind to instance
     private val trace = Analytics.StageDurationTrace.create("MainService2")
     private val delegate by lazy {
-        Delegate(this, trace).apply {
+        Delegate(this, trace, scope).apply {
             sessionToken = session.sessionToken
             weakDelegate = this
         }
@@ -67,7 +75,9 @@ class MainService : MediaBrowserServiceCompat() {
         stopSelf()
     }
 
-    private class Delegate(svc: Service, trace: Analytics.BaseTrace) {
+    private class Delegate(
+        svc: Service, trace: Analytics.BaseTrace, private val scope: CoroutineScope
+    ) {
 
         private val resources = ArrayList<Releaseable>()
         private val service: PlaybackServiceLocal
@@ -102,11 +112,12 @@ class MainService : MediaBrowserServiceCompat() {
             resources.add(res)
         }
 
-        private fun loadJni(ctx: Context) = Api.load {
+        private fun loadJni(ctx: Context) = scope.launch {
+            val api = Api.load().await()
             runCatching {
                 LOG.d { "JNI is ready" }
                 val prefs = getDefaultSharedPreferences(ctx);
-                val options = Api.instance().getOptions()
+                val options = api.getOptions()
                 addResource(subscribe(prefs, options))
             }.onFailure {
                 LOG.w(it) { "Failed to connect native options" }

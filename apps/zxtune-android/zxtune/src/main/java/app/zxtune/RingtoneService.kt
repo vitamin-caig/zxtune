@@ -20,6 +20,7 @@ import android.os.Looper
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import app.zxtune.analytics.Analytics
 import app.zxtune.core.Module
 import app.zxtune.core.Properties
@@ -28,22 +29,17 @@ import app.zxtune.playback.FileIterator
 import app.zxtune.playback.PlayableItem
 import app.zxtune.sound.SamplesSource
 import app.zxtune.sound.WaveWriteSamplesTarget
-import app.zxtune.utils.AsyncWorker
+import kotlinx.coroutines.launch
 import java.io.File
 
 class RingtoneService : LifecycleService() {
 
-    private val worker by lazy {
-        AsyncWorker(TAG)
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onStart(intent: Intent?, startId: Int) {
-        super.onStart(intent, startId)
-        worker.execute {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        lifecycleScope.launch {
             onHandleIntent(intent)
             stopSelf(startId)
         }
+        return super.onStartCommand(intent, flags, startId)
     }
 
     private fun onHandleIntent(intent: Intent?) {
@@ -61,7 +57,7 @@ class RingtoneService : LifecycleService() {
             convert(item.module, seconds, target)
             setAsRingtone(item, seconds, target)
         }
-        Analytics.sendSocialEvent(source, "app.zxtune", Analytics.SOCIAL_ACTION_RINGTONE)
+        Analytics.sendSocialEvent(source, "app.zxtune", Analytics.SocialAction.RINGTONE)
     }.onFailure {
         LOG.w(it) { "Failed to create ringtone" }
         makeToast(it)
@@ -118,16 +114,11 @@ class RingtoneService : LifecycleService() {
         val values = createRingtoneData(item, limit, path)
         val ringtoneUri = createOrUpdateRingtone(values)
         RingtoneManager.setActualDefaultRingtoneUri(
-            this,
-            RingtoneManager.TYPE_RINGTONE,
-            ringtoneUri
+            this, RingtoneManager.TYPE_RINGTONE, ringtoneUri
         )
         val title = values.getAsString(MediaStore.MediaColumns.TITLE)
         Notifications.sendEvent(
-            applicationContext,
-            R.drawable.ic_stat_notify_ringtone,
-            R.string.ringtone_changed,
-            title
+            applicationContext, R.drawable.ic_stat_notify_ringtone, R.string.ringtone_changed, title
         )
     }
 
@@ -135,8 +126,11 @@ class RingtoneService : LifecycleService() {
         val path = values.getAsString(MediaStore.MediaColumns.DATA)
         val tableUri = checkNotNull(MediaStore.Audio.Media.getContentUriForPath(path))
         return contentResolver.query(
-            tableUri, arrayOf(MediaStore.MediaColumns._ID),
-            "${MediaStore.MediaColumns.DATA} = ?", arrayOf(path), null
+            tableUri,
+            arrayOf(MediaStore.MediaColumns._ID),
+            "${MediaStore.MediaColumns.DATA} = ?",
+            arrayOf(path),
+            null
         )?.use { query ->
             if (query.moveToFirst()) {
                 val id = query.getLong(0)
@@ -169,14 +163,11 @@ class RingtoneService : LifecycleService() {
         }
 
         private fun getModuleId(item: PlayableItem) = item.module.getProperty(
-            "CRC" /*ZXTune.Module.Attributes.CRC*/,
-            item.dataId.hashCode().toLong()
+            "CRC" /*ZXTune.Module.Attributes.CRC*/, item.dataId.hashCode().toLong()
         )
 
         private fun createRingtoneData(
-            item: PlayableItem,
-            seconds: Int,
-            path: File
+            item: PlayableItem, seconds: Int, path: File
         ) = ContentValues().apply {
             put(MediaStore.MediaColumns.DATA, path.absolutePath)
             val filename = item.dataId.displayFilename

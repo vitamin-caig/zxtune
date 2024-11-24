@@ -5,17 +5,30 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import androidx.lifecycle.MutableLiveData
 import app.zxtune.Features
+import app.zxtune.TestUtils.flushEvents
 import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.VfsObject
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.clearInvocations
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -23,12 +36,14 @@ import org.robolectric.annotation.Config
 @Config(sdk = [Features.StorageAccessFramework.REQUIRED_SDK])
 class NotificationsSourceTest {
 
+    private val dispatcher = StandardTestDispatcher()
+
     private val resolver = mock<ContentResolver>()
     private val context = mock<Context> {
         on { contentResolver } doReturn resolver
     }
-    private lateinit var networkState: MutableLiveData<Boolean>
-    private lateinit var storageSetupIntent: MutableLiveData<Intent?>
+    private lateinit var networkState: MutableStateFlow<Boolean>
+    private lateinit var storageSetupIntent: MutableSharedFlow<Intent?>
     private lateinit var underTest: NotificationsSource
 
     private fun getNotification(objUri: Uri) = mock<VfsObject> {
@@ -40,14 +55,14 @@ class NotificationsSourceTest {
     @Before
     fun setUp() {
         clearInvocations(context, resolver)
-        networkState = MutableLiveData()
-        storageSetupIntent = MutableLiveData()
-        underTest = NotificationsSource(context, networkState, storageSetupIntent)
-        assertEquals(true, networkState.hasActiveObservers())
+        networkState = MutableStateFlow(true)
+        storageSetupIntent = MutableSharedFlow(replay = 1)
+        underTest = NotificationsSource(context, networkState, storageSetupIntent, dispatcher)
     }
 
     @After
     fun tearDown() {
+        underTest.shutdown()
         verifyNoMoreInteractions(resolver)
     }
 
@@ -57,7 +72,7 @@ class NotificationsSourceTest {
     }
 
     @Test
-    fun `network notification`() {
+    fun `network notification`() = runTest(dispatcher) {
         val networkNotificationMessage = "Network unavailable"
         context.stub {
             on { getString(any()) } doReturn networkNotificationMessage
@@ -66,22 +81,26 @@ class NotificationsSourceTest {
         val uri2 = Uri.parse("online:/")
         assertEquals(null, getNotification(uri1))
         networkState.value = true
+        flushEvents()
         assertEquals(null, getNotification(uri1))
+
         networkState.value = false
-        getNotification(uri1)!!.run {
+        flushEvents()
+        requireNotNull(getNotification(uri1)).run {
             assertEquals(networkNotificationMessage, message)
             assertEquals(Settings.ACTION_WIRELESS_SETTINGS, action!!.action)
         }
-        getNotification(uri2)!!.run {
+        requireNotNull(getNotification(uri2)).run {
             assertEquals(networkNotificationMessage, message)
             assertEquals(Settings.ACTION_WIRELESS_SETTINGS, action!!.action)
         }
+
         networkState.value = true
+        flushEvents()
         assertEquals(null, getNotification(uri2))
 
         inOrder(resolver) {
-            verify(resolver, times(2)).notifyChange(Query.notificationUriFor(uri1), null)
-            verify(resolver).notifyChange(Query.notificationUriFor(uri2), null)
+            verify(resolver, times(3)).notifyChange(Query.notificationUriFor(Uri.EMPTY), null)
         }
     }
 
@@ -119,7 +138,7 @@ class NotificationsSourceTest {
     }
 
     @Test
-    fun `playlist notifications`() {
+    fun `playlist notifications`() = runTest(dispatcher) {
         val playlistNotificationMessage = "No persistent storage set up"
         context.stub {
             on { getString(any()) } doReturn playlistNotificationMessage
@@ -133,16 +152,19 @@ class NotificationsSourceTest {
             }
         }
         val defaultLocation = Uri.parse("scheme://host/path")
-        storageSetupIntent.value = Intent("action", defaultLocation)
-        underTest.getNotification(dir)!!.run {
+        storageSetupIntent.emit(Intent("action", defaultLocation))
+        flushEvents()
+        requireNotNull(underTest.getNotification(dir)).run {
             assertEquals(playlistNotificationMessage, message)
             assertEquals(defaultLocation, action?.data)
         }
-        storageSetupIntent.value = null
+        storageSetupIntent.emit(null)
+        flushEvents()
         assertEquals(null, underTest.getNotification(dir))
         objUri = uri2
         assertEquals(null, underTest.getNotification(dir))
 
-        verify(resolver).notifyChange(Query.notificationUriFor(uri1), null)
+        // value, null
+        verify(resolver, times(2)).notifyChange(Query.notificationUriFor(Uri.EMPTY), null)
     }
 }

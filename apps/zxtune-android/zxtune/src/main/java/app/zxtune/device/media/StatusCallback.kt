@@ -3,8 +3,6 @@ package app.zxtune.device.media
 import android.content.Context
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -25,6 +23,8 @@ import app.zxtune.playback.Callback
 import app.zxtune.playback.Item
 import app.zxtune.playback.PlaybackControl
 import app.zxtune.playback.PlaybackService
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicReference
 
 //! Events gate from local service to mediasession
@@ -32,7 +32,7 @@ internal class StatusCallback private constructor(
     private val ctx: Context, private val session: MediaSessionCompat
 ) : Callback {
     private val builder = PlaybackStateCompat.Builder()
-    private val handler by lazy { Handler(Looper.getMainLooper()) }
+    private val scope = MainScope()
     private val lockscreenImageUrl = AtomicReference<Uri>()
     private val bitmapLoader by lazy {
         BitmapLoader("lockscreen", ctx, maxSize = 5, maxImageSize = 320)
@@ -89,7 +89,9 @@ internal class StatusCallback private constructor(
     }
 
     override fun onError(e: String) {
-        handler.post { Toast.makeText(ctx, e, Toast.LENGTH_SHORT).show() }
+        scope.launch {
+            Toast.makeText(ctx, e, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun fillAlbumArtwork(uri: Uri, builder: MediaMetadataCompat.Builder) {
@@ -99,16 +101,14 @@ internal class StatusCallback private constructor(
             return
         }
         lockscreenImageUrl.set(uri)
-        bitmapLoader.get(uri) {
-            it.bitmap?.let { bitmap ->
-                handler.post {
-                    if (lockscreenImageUrl.compareAndSet(uri, null)) {
-                        LOG.d { "Fetched album art" }
-                        builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap)
-                        session.setMetadata(builder.build())
-                    } else {
-                        LOG.d { "Drop outdated album art retrieval" }
-                    }
+        scope.launch {
+            bitmapLoader.load(uri).bitmap?.let { bitmap ->
+                if (lockscreenImageUrl.compareAndSet(uri, null)) {
+                    LOG.d { "Fetched album art" }
+                    builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap)
+                    session.setMetadata(builder.build())
+                } else {
+                    LOG.d { "Drop outdated album art retrieval" }
                 }
             }
         }

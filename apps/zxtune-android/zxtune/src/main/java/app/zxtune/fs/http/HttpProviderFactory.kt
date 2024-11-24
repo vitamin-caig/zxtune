@@ -19,7 +19,9 @@ object HttpProviderFactory {
 
     private class PolicyImpl(private val context: Context) : HttpUrlConnectionProvider.Policy {
 
-        override fun hasConnection() = NetworkManager.networkAvailable.value!!
+        private val mgr = NetworkManager.from(context)
+
+        override fun hasConnection() = mgr.networkAvailable.value!!
 
         override fun checkConnectionError() {
             if (!hasConnection()) {

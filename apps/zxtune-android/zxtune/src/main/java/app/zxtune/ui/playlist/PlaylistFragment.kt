@@ -7,7 +7,6 @@ package app.zxtune.ui.playlist
 
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
@@ -26,17 +25,21 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.selection.Selection
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
-import app.zxtune.device.PersistentStorage
 import app.zxtune.device.media.MediaModel
+import app.zxtune.fs.provider.VfsProviderClient
 import app.zxtune.playlist.ProviderClient
+import app.zxtune.ui.PersistentStorageSetupFragment
 import app.zxtune.ui.utils.SelectionUtils
 import app.zxtune.ui.utils.item
+import app.zxtune.ui.utils.whenLifecycleStarted
+import kotlinx.coroutines.launch
 
 class PlaylistFragment : Fragment() {
     private lateinit var listing: RecyclerView
@@ -111,25 +114,31 @@ class PlaylistFragment : Fragment() {
                     adapter.setSelection(it.selection)
                     SelectionUtils.install(panel, it, SelectionClient(adapter))
                 }
-            model.state.observe(viewLifecycleOwner) { state ->
-                adapter.submitList(state.entries) {
-                    if (0 == adapter.itemCount) {
-                        visibility = View.GONE
-                        stub.visibility = View.VISIBLE
-                    } else {
-                        visibility = View.VISIBLE
-                        stub.visibility = View.GONE
+            viewLifecycleOwner.whenLifecycleStarted {
+                launch {
+                    model.state.collect { state ->
+                        adapter.submitList(state.entries) {
+                            if (0 == adapter.itemCount) {
+                                visibility = View.GONE
+                                stub.visibility = View.VISIBLE
+                            } else {
+                                visibility = View.VISIBLE
+                                stub.visibility = View.GONE
+                            }
+                        }
                     }
                 }
-            }
-            mediaModel.run {
-                playbackState.observe(viewLifecycleOwner) { state: PlaybackStateCompat? ->
-                    adapter.setIsPlaying(PlaybackStateCompat.STATE_PLAYING == state?.state)
+                launch {
+                    mediaModel.playbackState.collect { state: PlaybackStateCompat? ->
+                        adapter.setIsPlaying(PlaybackStateCompat.STATE_PLAYING == state?.state)
+                    }
                 }
-                metadata.observe(viewLifecycleOwner) { metadata: MediaMetadataCompat? ->
-                    metadata?.let {
-                        val uri = Uri.parse(it.description.mediaId)
-                        adapter.setNowPlaying(ProviderClient.findId(uri))
+                launch {
+                    mediaModel.metadata.collect { metadata ->
+                        metadata?.let {
+                            val uri = Uri.parse(it.description.mediaId)
+                            adapter.setNowPlaying(ProviderClient.findId(uri))
+                        }
                     }
                 }
             }
@@ -151,7 +160,7 @@ class PlaylistFragment : Fragment() {
         setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String) = true
             override fun onQueryTextChange(newText: String): Boolean {
-                model.filter(newText)
+                model.filter = newText
                 return true
             }
         })
@@ -167,15 +176,16 @@ class PlaylistFragment : Fragment() {
         savedInstanceState?.let { state ->
             selectionTracker.onRestoreInstanceState(state)
         }
-        model.state.value?.filter?.takeIf { it.isNotEmpty() }.let { query ->
+        model.filter.takeIf { it.isNotEmpty() }?.let { query ->
             search.post {
                 search.setQuery(query, false)
             }
         }
     }
 
-    private fun onItemClick(id: Long) =
-        mediaController?.transportControls?.playFromUri(ProviderClient.createUri(id), null) ?: Unit
+    private fun onItemClick(id: Long) = mediaController?.transportControls?.playFromUri(
+        ProviderClient.createUri(id), null
+    ) ?: Unit
 
     // ArchivesService for selection
     private inner class SelectionClient(private val adapter: ViewAdapter) :
@@ -219,8 +229,14 @@ class PlaylistFragment : Fragment() {
                 action()
             }.show()
 
-    private fun savePlaylist(ids: LongArray?) =
-        PlaylistSaveFragment.show(requireActivity(), PersistentStorage.instance, ids)
+    private fun savePlaylist(ids: LongArray?) = lifecycleScope.launch {
+        val persistentStorageSetupAction =
+            VfsProviderClient(requireContext()).getNotification(Uri.parse("playlists:/"))?.action
+        val fragment = persistentStorageSetupAction?.let {
+            PersistentStorageSetupFragment.createInstance(it)
+        } ?: PlaylistSaveFragment.createInstance(ids)
+        fragment.show(parentFragmentManager, "save")
+    }
 
     private fun showStatistics(ids: LongArray?) =
         PlaylistStatisticsFragment.createInstance(ids).show(parentFragmentManager, "statistics")

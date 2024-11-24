@@ -22,6 +22,9 @@ import app.zxtune.device.media.MediaModel
 import app.zxtune.device.media.getDuration
 import app.zxtune.device.media.toMediaTime
 import app.zxtune.ui.utils.UiUtils
+import app.zxtune.ui.utils.whenLifecycleStarted
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class SeekControlFragment : Fragment() {
     override fun onCreateView(
@@ -33,13 +36,24 @@ class SeekControlFragment : Fragment() {
             val position = PositionControl(view)
             val looping = RepeatModeControl(view)
 
-            controller.observe(viewLifecycleOwner) { controller ->
-                UiUtils.setViewEnabled(view, controller != null)
-                position.bindController(controller)
-                looping.bindController(controller)
+            viewLifecycleOwner.whenLifecycleStarted {
+                launch {
+                    controller.collect { controller ->
+                        UiUtils.setViewEnabled(view, controller != null)
+                        position.bindController(controller)
+                        looping.bindController(controller)
+                    }
+                }
+                launch {
+                    metadata.collect(position::initTrack)
+                }
+                launch {
+                    playbackPosition.collect { pos ->
+                        position.update(pos)
+                        delay(1000)
+                    }
+                }
             }
-            metadata.observe(viewLifecycleOwner, position::initTrack)
-            playbackPosition.observe(viewLifecycleOwner, position::update)
         }
 
     private class PositionControl(view: View) {

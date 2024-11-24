@@ -1,26 +1,40 @@
 package app.zxtune.analytics.internal
 
-import android.content.ContentResolver
 import android.content.Context
 import app.zxtune.Logger
-import app.zxtune.utils.AsyncWorker
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
 
 private val LOG = Logger(ProviderClient::class.java.name)
 
-internal class ProviderClient(ctx: Context) : UrlsSink {
+internal class ProviderClient(ctx: Context, dispatcher: CoroutineDispatcher = Dispatchers.IO) :
+    UrlsSink {
 
-    private val worker = AsyncWorker("IASender")
-    private val resolver: ContentResolver = ctx.contentResolver
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val scope = CoroutineScope(SupervisorJob() + dispatcher.limitedParallelism(1))
+    private val limit = Semaphore(10)
+    private val resolver = ctx.contentResolver
 
     override fun push(url: String) {
-        worker.execute { doPush(url) }
-    }
-
-    private fun doPush(msg: String) {
-        try {
-            resolver.call(Provider.URI, Provider.METHOD_PUSH, msg, null)
-        } catch (e: Exception) {
-            LOG.w(e) { "Failed to push url" }
+        if (limit.tryAcquire()) {
+            scope.launch {
+                doPush(url)
+                limit.release()
+            }
+        } else {
+            LOG.d { "Drop event $url due to busy backend" }
         }
     }
+
+    private fun doPush(msg: String) = runCatching {
+        resolver.call(Provider.URI, Provider.METHOD_PUSH, msg, null)
+    }.onFailure {
+        LOG.w(it) { "Failed to push url" }
+    }
+
 }

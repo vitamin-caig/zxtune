@@ -75,6 +75,8 @@ dependencies {
     implementation 'androidx.documentfile:documentfile:1.0.1'
     //noinspection GradleDependency minsdk=21
     implementation 'androidx.startup:startup-runtime:1.1.1'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
+    implementation 'androidx.tracing:tracing-ktx:1.2.0'
 
     developImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
 }
@@ -111,6 +113,7 @@ dependencies {
     //noinspection FragmentGradleConfiguration
     developImplementation "androidx.fragment:fragment-testing-manifest:$fragment_version"
     kspTest "androidx.room:room-compiler:$room_version"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
 }
 
 android {
@@ -130,6 +133,9 @@ android {
 
     buildTypes {
         release {
+            proguardFiles 'proguard-rules.pro'
+        }
+        develop {
             proguardFiles 'proguard-rules.pro'
         }
     }

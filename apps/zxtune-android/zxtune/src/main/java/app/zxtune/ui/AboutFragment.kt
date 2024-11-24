@@ -8,13 +8,14 @@ import androidx.collection.SparseArrayCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.activityViewModels
 import app.zxtune.BuildConfig
 import app.zxtune.PluginsProvider
 import app.zxtune.R
 import app.zxtune.databinding.AboutBinding
 import app.zxtune.ui.about.InfoBuilder
-import app.zxtune.ui.about.Model
+import app.zxtune.ui.utils.whenLifecycleStarted
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class AboutFragment : DialogFragment(R.layout.about) {
     companion object {
@@ -22,7 +23,6 @@ class AboutFragment : DialogFragment(R.layout.about) {
             AboutFragment().show(activity.supportFragmentManager, null)
     }
 
-    private val model by activityViewModels<Model>()
     private lateinit var binding: AboutBinding
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -32,13 +32,17 @@ class AboutFragment : DialogFragment(R.layout.about) {
             aboutSystem.text = getSystemInfo()
             aboutPager.adapter = ViewPagerAdapter(aboutPager)
         }
-
-        model.data.observe(this, this::fillPlugins)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?) =
         super.onCreateDialog(savedInstanceState).apply {
             setTitle(getAppInfo())
+            whenLifecycleStarted {
+                val data = withContext(Dispatchers.IO) {
+                    fetchPlugins()
+                }
+                fillPlugins(data)
+            }
         }
 
     private fun getAppInfo() =
@@ -48,6 +52,18 @@ class AboutFragment : DialogFragment(R.layout.about) {
         buildOSInfo()
         buildConfigurationInfo()
     }.result
+
+    private fun fetchPlugins() = SparseArrayCompat<ArrayList<String>>().apply {
+        requireContext().contentResolver.query(
+            PluginsProvider.getUri(), null, null, null, null
+        )?.use { cursor ->
+            while (cursor.moveToNext()) {
+                val type = cursor.getInt(PluginsProvider.Columns.Type.ordinal)
+                val descr = cursor.getString(PluginsProvider.Columns.Description.ordinal)
+                getOrPut(type, ArrayList()).add(descr)
+            }
+        }
+    }
 
     private fun fillPlugins(data: SparseArrayCompat<ArrayList<String>>) {
         val keyType = "type"
@@ -82,7 +98,7 @@ class AboutFragment : DialogFragment(R.layout.about) {
     }
 
     private fun getPluginTypeString(type: Int): String {
-        val resId = PluginsProvider.Types.values()[type].nameId()
+        val resId = PluginsProvider.Types.entries[type].nameId()
         return getString(resId)
     }
 
@@ -90,3 +106,6 @@ class AboutFragment : DialogFragment(R.layout.about) {
         put(key, value)
     }
 }
+
+private fun <T> SparseArrayCompat<T>.getOrPut(key: Int, default: T) =
+    putIfAbsent(key, default) ?: default

@@ -22,7 +22,7 @@ class XspfStorage @VisibleForTesting constructor(
         ctx.contentResolver, PersistentStorage.instance.subdirectory(PLAYLISTS_DIR)
     )
 
-    fun enumeratePlaylists() = ArrayList<String>().apply {
+    suspend fun enumeratePlaylists() = ArrayList<String>().apply {
         storage.tryGet()?.listFiles()?.forEach { doc ->
             val filename = doc.name.takeIf { doc.isFile } ?: return@forEach
             val extPos = filename.lastIndexOf(EXTENSION, ignoreCase = true)
@@ -32,11 +32,11 @@ class XspfStorage @VisibleForTesting constructor(
         }
     }
 
-    fun findPlaylistUri(name: String) =
+    suspend fun findPlaylistUri(name: String) =
         storage.tryGet()?.findFile(makeFilename(name))?.takeIf { it.isFile }?.uri
 
     @Throws(IOException::class)
-    fun createPlaylist(name: String, cursor: Cursor) {
+    suspend fun createPlaylist(name: String, cursor: Cursor) {
         val targetName = name + EXTENSION
         val dir = storage.tryGet(createIfAbsent = true)
         // TODO: transactional
