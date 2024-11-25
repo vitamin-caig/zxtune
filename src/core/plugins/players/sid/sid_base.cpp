@@ -25,7 +25,9 @@
 #include "debug/log.h"
 #include "module/attributes.h"
 #include "parameters/tracking_helper.h"
+#include "strings/format.h"
 #include "strings/sanitize.h"
+#include "tools/xrange.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -41,6 +43,8 @@
 namespace Module::Sid
 {
   const Debug::Stream Dbg("Core::SIDSupp");
+
+  const uint_t VOICES = 3;
 
   void CheckSidplayError(bool ok)
   {
@@ -127,6 +131,12 @@ namespace Module::Sid
       return 0 != Parameters::GetInteger(*Params, FILTER, FILTER_DEFAULT);
     }
 
+    uint_t GetMuteMask() const
+    {
+      using namespace Parameters::ZXTune::Core;
+      return Parameters::GetInteger<uint_t>(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+    }
+
   private:
     Parameters::IntType GetInterpolation() const
     {
@@ -170,6 +180,7 @@ namespace Module::Sid
       const auto newFastSampling = sidParams.GetFastSampling();
       const auto newSamplingMethod = sidParams.GetSamplingMethod();
       const auto newFilter = sidParams.GetUseFilter();
+      const auto newMuteMask = sidParams.GetMuteMask();
       if (Config.fastSampling != newFastSampling || Config.samplingMethod != newSamplingMethod
           || UseFilter != newFilter)
       {
@@ -183,6 +194,16 @@ namespace Module::Sid
         Config.sidEmulation = &Builder;
         CheckSidplayError(Player.config(Config));
       }
+      for (uint_t chan = 0, diff = MuteMask ^ newMuteMask; diff != 0; ++chan, diff >>= 1)
+      {
+        if (diff & 1)
+        {
+          const auto chip = chan / VOICES;
+          const auto voice = chan % VOICES;
+          Player.mute(chip, voice, newMuteMask & (1 << chan));
+        }
+      }
+      MuteMask = newMuteMask;
     }
 
     uint_t GetSoundFreq() const
@@ -210,6 +231,7 @@ namespace Module::Sid
 
     // cache filter flag
     bool UseFilter = false;
+    uint_t MuteMask = 0;
   };
 
   const auto FRAME_DURATION = Time::Milliseconds(100);
@@ -341,6 +363,7 @@ namespace Module::Sid
         }
 
         props.SetPlatform(Platforms::COMMODORE_64);
+        props.SetChannels(BuildChannelsNames(tuneInfo.sidChips()));
 
         tune->FillDuration(params);
         return MakePtr<Holder>(std::move(tune), std::move(properties));
@@ -349,6 +372,18 @@ namespace Module::Sid
       {
         return {};
       }
+    }
+
+  private:
+    static Strings::Array BuildChannelsNames(int chipsCount)
+    {
+      const auto channels = chipsCount * VOICES;
+      Strings::Array result(channels);
+      for (int idx : xrange(channels))
+      {
+        result[idx] = Strings::Format("SID.{}"sv, idx);
+      }
+      return result;
     }
   };
 }  // namespace Module::Sid
