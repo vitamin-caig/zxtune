@@ -37,6 +37,7 @@ static DEVDEF_RWFUNC devFunc262_MAME[] =
 static DEV_DEF devDef262_MAME =
 {
 	"YMF262", "MAME", FCC_MAME,
+	23, // Channels
 	
 	device_start_ymf262_mame,
 	ymf262_shutdown,
@@ -66,6 +67,7 @@ static DEVDEF_RWFUNC devFunc262_Emu[] =
 static DEV_DEF devDef262_AdLibEmu =
 {
 	"YMF262", "AdLibEmu", FCC_ADLE,
+	23, // Channels
 	
 	device_start_ymf262_adlibemu,
 	adlib_OPL3_stop,
@@ -95,6 +97,7 @@ static DEVDEF_RWFUNC devFunc262_Nuked[] =
 static DEV_DEF devDef262_Nuked =
 {
 	"YMF262", "Nuked OPL3", FCC_NUKE,
+	18, // Channels
 	
 	device_start_ymf262_nuked,
 	nukedopl3_shutdown,

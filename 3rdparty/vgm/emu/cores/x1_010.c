@@ -92,6 +92,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"X1-010", "MAME", FCC_MAME,
+	16,  // Channels
 	
 	device_start_x1_010,
 	device_stop_x1_010,

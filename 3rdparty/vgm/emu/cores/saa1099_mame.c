@@ -102,6 +102,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_SAA1099_MAME =
 {
 	"SAA1099", "MAME", FCC_MAME,
+	6, // Channels
 	
 	device_start_saa1099_mame,
 	saa1099m_destroy,

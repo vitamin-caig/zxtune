@@ -560,6 +560,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_AY8910_MAME =
 {
 	"AY8910", "MAME", FCC_MAME,
+	3,  // Channels
 	
 	(DEVFUNC_START)device_start_ay8910_mame,
 	ay8910_stop,

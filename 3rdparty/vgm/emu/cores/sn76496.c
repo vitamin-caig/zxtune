@@ -174,6 +174,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_SN76496_MAME =
 {
 	"SN76496", "MAME", FCC_MAME,
+	4,  // Channels
 	
 	(DEVFUNC_START)device_start_sn76496_mame,
 	sn76496_shutdown,

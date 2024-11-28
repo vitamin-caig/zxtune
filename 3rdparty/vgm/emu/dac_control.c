@@ -28,7 +28,7 @@
 
 static DEV_DEF devDef_DAC =
 {
-	NULL, NULL, 0,
+	NULL, NULL, 0, 0,
 	
 	device_start_daccontrol,
 	device_stop_daccontrol,

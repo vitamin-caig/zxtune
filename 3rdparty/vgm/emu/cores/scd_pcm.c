@@ -46,6 +46,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_RF5C68_Gens =
 {
 	"RF5C164", "Gens", FCC_GENS,
+	8,  // Channels
 	
 	device_start_rf5c68_gens,
 	SCD_PCM_Deinit,

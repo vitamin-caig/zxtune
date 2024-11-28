@@ -44,6 +44,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"Sega PCM", "MAME", FCC_MAME,
+	16,  // Channels
 	
 	(DEVFUNC_START)device_start_segapcm,
 	device_stop_segapcm,

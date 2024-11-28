@@ -71,6 +71,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_C6280_Ootake =
 {
 	"HuC6280", "Ootake", FCC_OOTK,
+	6,  // Channels
 	
 	device_start_c6280_ootake,
 	OPSG_Deinit,

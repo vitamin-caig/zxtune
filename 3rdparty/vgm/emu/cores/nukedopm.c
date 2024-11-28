@@ -53,6 +53,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_YM2151_Nuked =
 {
 	"YM2151", "Nuked OPM", FCC_NUKE,
+	8,  // Channels
 	
 	device_start_ym2151_nuked,
 	nukedopm_shutdown,

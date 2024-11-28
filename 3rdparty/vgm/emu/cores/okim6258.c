@@ -56,6 +56,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"MSM6258", "MAME", FCC_MAME,
+	1,  // Channels
 	
 	(DEVFUNC_START)device_start_okim6258,
 	device_stop_okim6258,

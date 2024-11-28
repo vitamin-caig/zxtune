@@ -91,6 +91,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"GameBoy DMG", "MAME", FCC_MAME,
+	4,  // Channels
 	
 	device_start_gameboy_sound,
 	device_stop_gameboy_sound,

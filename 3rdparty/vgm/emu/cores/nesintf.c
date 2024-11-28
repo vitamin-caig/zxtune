@@ -67,7 +67,12 @@ static DEVDEF_RWFUNC devFunc_MAME[] =
 static DEV_DEF devDef_MAME =
 {
 	"NES APU", "MAME", FCC_MAME,
-	
+#ifdef EC_NES_NSFP_FDS
+        6,  // Channels
+#else
+        5,  // Channels
+#endif
+
 	device_start_nes_mame,
 	device_stop_nes_mame,
 	device_reset_nes_mame,
@@ -96,7 +101,12 @@ static DEVDEF_RWFUNC devFunc_NSFPlay[] =
 static DEV_DEF devDef_NSFPlay =
 {
 	"NES APU", "NSFPlay", FCC_NSFP,
-	
+#ifdef EC_NES_NSFP_FDS
+        6,  // Channels
+#else
+        5,  // Channels
+#endif
+
 	device_start_nes_nsfplay,
 	device_stop_nes_nsfplay,
 	device_reset_nes_nsfplay,

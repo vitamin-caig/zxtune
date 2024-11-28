@@ -43,6 +43,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_YM2413_Emu =
 {
 	"YM2413", "EMU2413", FCC_EMU_,
+	14,  // Channels
 	
 	device_start_ym2413_emu,
 	(DEVFUNC_CTRL)EOPLL_delete,

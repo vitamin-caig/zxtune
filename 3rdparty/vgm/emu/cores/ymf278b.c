@@ -145,6 +145,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"YMF278B", "openMSX", FCC_OMSX,
+	24,  // Channels
 	
 	device_start_ymf278b,
 	device_stop_ymf278b,

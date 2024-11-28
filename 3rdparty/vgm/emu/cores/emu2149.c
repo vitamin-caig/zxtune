@@ -58,6 +58,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_YM2149_Emu =
 {
 	"YM2149", "EMU2149", FCC_EMU_,
+	3,  // Channels
 	
 	(DEVFUNC_START)device_start_ay8910_emu,
 	(DEVFUNC_CTRL)EPSG_delete,

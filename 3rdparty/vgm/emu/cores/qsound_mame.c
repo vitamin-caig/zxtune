@@ -69,6 +69,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_QSound_MAME =
 {
 	"QSound", "MAME", FCC_MAME,
+	16,  // Channels
 	
 	device_start_qsound,
 	device_stop_qsound,
