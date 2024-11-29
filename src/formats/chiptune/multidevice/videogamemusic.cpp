@@ -31,7 +31,7 @@ namespace Formats::Chiptune
 
     const uint32_t GD3_SIGNATURE = 0x47643320;
     const uint_t VERSION_MIN = 100;
-    const uint_t VERSION_MAX = 171;
+    const uint_t VERSION_MAX = 172;
 
     class StubBuilder : public Builder
     {
@@ -50,7 +50,7 @@ namespace Formats::Chiptune
         "'V'g'm' "  // signature
         "????"      // eof offset
         // version
-        "00-09|10-19|20-29|30-39|40-49|50-59|60-69|70-71"
+        "00-09|10-19|20-29|30-39|40-49|50-59|60-69|70-72"
         "01 00 00"
         ""sv;
 
