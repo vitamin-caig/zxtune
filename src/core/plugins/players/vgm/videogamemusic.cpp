@@ -67,6 +67,7 @@ namespace Module::VideoGameMusic
     X1_010,
     C352,
     GA20,
+    MIKEY,
 
     GAMEGEAR_STEREO,
 
@@ -310,7 +311,14 @@ namespace Module::VideoGameMusic
         {
           {AY8910, {1500000}},
         }
-      }
+      },
+      // https://en.wikipedia.org/wiki/Atari_Lynx
+      {
+        Platforms::ATARI_LYNX,
+        {
+          {MIKEY, {16000000}},
+        }
+      },
     };
   // clang-format on
 
@@ -629,7 +637,8 @@ namespace Module::VideoGameMusic
           {ES5506, 0xd0},
           {X1_010, 0xd8},
           {C352, 0xdc},
-          {GA20, 0xe0}
+          {GA20, 0xe0},
+          {MIKEY, 0xe4},
         };
       // clang-format on
 
@@ -809,6 +818,7 @@ namespace Module::VideoGameMusic
       // clang-format off
         static const FixedCmd DUAL_PARAMETER_COMMANDS[] =
         {
+          {0x40, 0x40, 2, MIKEY},
           {0xa0, 0xa0, 2, AY8910},
           {0xb3, 0xb3, 2, LR35902},
           {0xb4, 0xb4, 2, N2A03},
@@ -910,7 +920,7 @@ namespace Module::VideoGameMusic
 
     static DeviceType GetDeviceTypeByBlockType(uint8_t type)
     {
-      static const DeviceType STREAMS[64] = {YM2612, RF5C68, RF5C164, PWM, OKIM6258, HUC6280, SCSP, N2A03};
+      static const DeviceType STREAMS[64] = {YM2612, RF5C68, RF5C164, PWM, OKIM6258, HUC6280, SCSP, N2A03, MIKEY};
 
       static const DeviceType DUMPS[64] = {SEGA_PCM, YM2608, YM2610,    YM2610,  YMF278B,  YMF271,  YMZ280B,
                                            YMF278B,  Y8950,  MULTI_PCM, UPD7759, OKIM6295, K054539, C140,
