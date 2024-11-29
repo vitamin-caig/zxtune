@@ -43,7 +43,7 @@
 	DEVID_32X_PWM, DEVID_AY8910, DEVID_GB_DMG, DEVID_NES_APU, DEVID_YMW258, DEVID_uPD7759, DEVID_OKIM6258, DEVID_OKIM6295,
 	DEVID_K051649, DEVID_K054539, DEVID_C6280, DEVID_C140, DEVID_C219, DEVID_K053260, DEVID_POKEY, DEVID_QSOUND,
 	DEVID_SCSP, DEVID_WSWAN, DEVID_VBOY_VSU, DEVID_SAA1099, DEVID_ES5503, DEVID_ES5506, DEVID_X1_010, DEVID_C352,
-	DEVID_GA20,
+	DEVID_GA20, DEVID_MIKEY,
 };
 
 /*static*/ const UINT8 VGMPlayer::_DEV_LIST[_CHIP_COUNT] =
@@ -53,7 +53,7 @@
 	DEVID_RF5C68, DEVID_32X_PWM, DEVID_AY8910, DEVID_GB_DMG, DEVID_NES_APU, DEVID_YMW258, DEVID_uPD7759, DEVID_OKIM6258,
 	DEVID_OKIM6295, DEVID_K051649, DEVID_K054539, DEVID_C6280, DEVID_C140, DEVID_K053260, DEVID_POKEY, DEVID_QSOUND,
 	DEVID_SCSP, DEVID_WSWAN, DEVID_VBOY_VSU, DEVID_SAA1099, DEVID_ES5503, DEVID_ES5506, DEVID_X1_010, DEVID_C352,
-	DEVID_GA20,
+	DEVID_GA20, DEVID_MIKEY,
 };
 
 /*static*/ const UINT32 VGMPlayer::_CHIPCLK_OFS[_CHIP_COUNT] =
@@ -63,7 +63,7 @@
 	0x6C, 0x70, 0x74, 0x80, 0x84, 0x88, 0x8C, 0x90,
 	0x98, 0x9C, 0xA0, 0xA4, 0xA8, 0xAC, 0xB0, 0xB4,
 	0xB8, 0xC0, 0xC4, 0xC8, 0xCC, 0xD0, 0xD8, 0xDC,
-	0xE0,
+	0xE0, 0xE4,
 };
 /*static*/ const UINT16 VGMPlayer::_CHIP_VOLUME[_CHIP_COUNT] =
 {	0x80, 0x200, 0x100, 0x100, 0x180, 0xB0, 0x100, 0x80,
@@ -71,7 +71,7 @@
 	0x80, 0xE0, 0x100, 0xC0, 0x100, 0x40, 0x11E, 0x1C0,
 	0x100, 0xA0, 0x100, 0x100, 0x100, 0x100, 0x100, 0x100,
 	0x20, 0x100, 0x100, 0x100, 0x40, 0x20, 0x100, 0x40,
-	0x280,
+	0x280, 0x100,
 };
 /*static*/ const UINT16 VGMPlayer::_PB_VOL_AMNT[_CHIP_COUNT] =
 {	0x100, 0x80, 0x100, 0x100, 0x100, 0x100, 0x100, 0x100,
@@ -79,7 +79,7 @@
 	0x200, 0x100, 0x200, 0x400, 0x200, 0x400, 0x100, 0x200,
 	0x200, 0x100, 0x100, 0x100, 0x180, 0x100, 0x100, 0x100,
 	0x800, 0x100, 0x100, 0x100, 0x800, 0x1000, 0x100, 0x800,
-	0x100,
+	0x100, 0x200,
 };
 
 /*static*/ const char* const VGMPlayer::_TAG_TYPE_LIST[_TAG_COUNT] =
@@ -183,6 +183,15 @@ VGMPlayer::VGMPlayer() :
 			else if (devID == DEVID_SCSP)
 				devOpts.coreOpts = OPT_SCSP_BYPASS_DSP;
 			_devOptMap[devID][chipID] = optID;
+			_optDevMap[optID] = (size_t)-1;
+		}
+	}
+	{
+		UINT8 vgmChip;
+		for (vgmChip = 0x00; vgmChip < _CHIP_COUNT; vgmChip ++)
+		{
+			for (chipID = 0; chipID < 2; chipID ++)
+				_vdDevMap[vgmChip][chipID] = (size_t)-1;
 		}
 	}
 	
@@ -612,8 +621,13 @@ void VGMPlayer::RefreshDevOptions(CHIP_DEVICE& chipDev, const PLR_DEV_OPTS& devO
 		return;
 	
 	UINT32 coreOpts = devOpts.coreOpts;
-	if (chipType == DEVID_YM2612 && (_p2612Fix & P2612FIX_ACTIVE))
-		coreOpts |= OPT_YM2612_LEGACY_MODE;	// enable legacy mode
+	if (chipType == DEVID_YM2612)
+	{
+		if (chipDev.flags)
+			coreOpts = (coreOpts & ~0x30) | OPT_YM2612_TYPE_OPN2C_ASIC;	// enforce YM3438 mode
+		if (_p2612Fix & P2612FIX_ACTIVE)
+			coreOpts |= OPT_YM2612_LEGACY_MODE;	// enable legacy mode
+	}
 	else if (chipType == DEVID_GB_DMG)
 		coreOpts |= OPT_GB_DMG_LEGACY_MODE;	// enable legacy mode (fix playback of old VGMs)
 	else if (chipType == DEVID_QSOUND)
@@ -732,6 +746,11 @@ UINT8 VGMPlayer::SetSampleRate(UINT32 sampleRate)
 	return 0x00;
 }
 
+double VGMPlayer::GetPlaybackSpeed(void) const
+{
+	return _playOpts.genOpts.pbSpeed / (double)0x10000;
+}
+
 UINT8 VGMPlayer::SetPlaybackSpeed(double speed)
 {
 	_playOpts.genOpts.pbSpeed = (UINT32)(0x10000 * speed);
@@ -742,21 +761,19 @@ UINT8 VGMPlayer::SetPlaybackSpeed(double speed)
 
 void VGMPlayer::RefreshTSRates(void)
 {
-	_tsMult = _outSmplRate;
 	_ttMult = 1;
-	_tsDiv = _ttDiv = 44100;
+	_tsDiv = 44100;
 	if (_playOpts.playbackHz && _fileHdr.recordHz)
 	{
-		_tsMult *= _fileHdr.recordHz;
 		_ttMult *= _fileHdr.recordHz;
 		_tsDiv *= _playOpts.playbackHz;
 	}
 	if (_playOpts.genOpts.pbSpeed != 0 && _playOpts.genOpts.pbSpeed != 0x10000)
 	{
-		_tsMult *= 0x10000;
 		_ttMult *= 0x10000;
 		_tsDiv *= _playOpts.genOpts.pbSpeed;
 	}
+	_tsMult = _ttMult * _outSmplRate;
 	if (_tsMult != _lastTsMult ||
 	    _tsDiv != _lastTsDiv)
 	{
@@ -1082,7 +1099,10 @@ UINT16 VGMPlayer::GetChipVolume(UINT8 chipType, UINT8 chipID, UINT8 isLinked) co
 		}
 	}
 	
-	if (chipType == 0x1C)	// C140/C219
+	// additional patches for adjusted volume scale in sound cores
+	if (chipType == 0x19)	// K051649
+		vol = vol * 8 / 5;
+	else if (chipType == 0x1C)	// C140/C219
 		vol = (vol * 2 + 1) / 3;
 	return vol;
 }
@@ -1309,6 +1329,8 @@ void VGMPlayer::InitDevices(void)
 {
 	size_t curChip;
 	
+	memset(_shownCmdWarnings, 0, 0x100);
+	
 	_devices.clear();
 	_devNames.clear();
 	{
@@ -1348,6 +1370,7 @@ void VGMPlayer::InitDevices(void)
 		chipDev.chipType = sdCfg.type;
 		chipDev.chipID = chipID;
 		chipDev.optID = _devOptMap[chipType][chipID];
+		chipDev.cfgID = curChip;
 		chipDev.base.defInf.dataPtr = NULL;
 		chipDev.base.linkDev = NULL;
 		
@@ -1492,7 +1515,9 @@ void VGMPlayer::InitDevices(void)
 			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
 			break;
 		default:
-			if (chipType == DEVID_C219)
+			if (chipType == DEVID_YM2612)
+				chipDev.flags |= devCfg->flags;
+			else if (chipType == DEVID_C219)
 				chipDev.flags |= 0x01;	// enable 16-bit byteswap patch on all ROM data
 			
 			retVal = SndEmu_Start(chipType, devCfg, devInf);
@@ -1561,6 +1586,7 @@ void VGMPlayer::InitDevices(void)
 	{
 		CHIP_DEVICE& chipDev = _devices[curChip];
 		DEV_INFO* devInf = &chipDev.base.defInf;
+		const PLR_DEV_OPTS* devOpts = (chipDev.optID != (size_t)-1) ? &_devOpts[chipDev.optID] : NULL;
 		VGM_BASEDEV* clDev;
 		
 		if (devInf->devDef->SetLogCB != NULL)
@@ -1570,8 +1596,9 @@ void VGMPlayer::InitDevices(void)
 		for (clDev = &chipDev.base; clDev != NULL; clDev = clDev->linkDev, linkCntr ++)
 		{
 			UINT16 chipVol = GetChipVolume(chipDev.vgmChipType, chipDev.chipID, linkCntr);
+			UINT8 resmplMode = (devOpts != NULL) ? devOpts->resmplMode : RSMODE_LINEAR;
 			
-			Resmpl_SetVals(&clDev->resmpl, 0xFF, chipVol, _outSmplRate);
+			Resmpl_SetVals(&clDev->resmpl, resmplMode, chipVol, _outSmplRate);
 			Resmpl_DevConnect(&clDev->resmpl, &clDev->defInf);
 			Resmpl_Init(&clDev->resmpl);
 		}
@@ -1848,37 +1875,30 @@ void VGMPlayer::ParseFileForFMClocks()
 
 		switch (curCmd)
 		{
-		case 0x66: // end
+		case 0x66: // end of command data
 			return;
-
-		case 0x50: // PSG
-		case 0x63: // byte delay
-			filePos += 2;
-			break;
-
-		case 0x61: // delay
-			filePos += 3;
-			break;
 
 		case 0x67: // data block
 			filePos += 7 + ReadLE32(&_fileData[filePos + 3]);
 			break;
 
-		case 0x51: // YM2413
+		case 0x51: // YM2413 register write
 			return;
 
-		case 0x52: // YM2612 port 0
-		case 0x53: // YM2612 port 1
+		case 0x52: // YM2612 register write, port 0
+		case 0x53: // YM2612 register write, port 1
 			_v101ym2612clock = _v101ym2413clock;
 			_v101ym2413clock = 0;
 			return;
 
-		case 0x54: // YM2151
+		case 0x54: // YM2151 register write
 			_v101ym2151clock = _v101ym2413clock;
 			_v101ym2413clock = 0;
 			return;
 
 		default:
+			if (_CMD_INFO[curCmd].cmdLen == 0)
+				return;
 			filePos += _CMD_INFO[curCmd].cmdLen;
 			break;
 		}

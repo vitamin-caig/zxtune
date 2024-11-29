@@ -60,18 +60,15 @@ set_core(PlayerBase *player, UINT8 devId, UINT32 coreId);
 static void
 dump_info(PlayerBase *player);
 
-/* generic utility/wave functions */
-static void
-pack_int16le(UINT8 *d, INT16 n);
-
 static void
 pack_uint16le(UINT8 *d, UINT16 n);
 
 static void
-pack_int24le(UINT8 *d, INT32 n);
-
-static void
 pack_uint32le(UINT8 *d, UINT32 n);
+
+static inline void repack_int16le(UINT8 *d, const UINT8 *src);
+static inline void repack_int24le(UINT8 *d, const UINT8 *src);
+static inline void repack_int32le(UINT8 *d, const UINT8 *src);
 
 static int
 write_wav_header(FILE *f, unsigned int totalFrames);
@@ -189,6 +186,7 @@ int main(int argc, const char *argv[]) {
     switch(bit_depth) {
         case 16: break;
         case 24: break;
+        case 32: break;
         default: bit_depth = 16;
     }
 
@@ -483,20 +481,39 @@ static UINT32 STR2FCC(const char *str) {
     return fcc;
 }
 
-static void pack_int16le(UINT8 *d, INT16 n) {
-    d[0] = (UINT8)((UINT16) n      );
-    d[1] = (UINT8)((UINT16) n >> 8 );
+static inline void repack_int16le(UINT8 *d, const UINT8 *src) {
+#ifdef VGM_BIG_ENDIAN
+    UINT8 tmp[2];
+    memcpy(tmp,src,2);
+    d[0] = tmp[1];
+    d[1] = tmp[0];
+#endif
+}
+
+static inline void repack_int24le(UINT8 *d, const UINT8 *src) {
+#ifdef VGM_BIG_ENDIAN
+    UINT8 tmp[3];
+    memcpy(tmp,src,3);
+    d[0] = tmp[2];
+    d[1] = tmp[1];
+    d[2] = tmp[0];
+#endif
+}
+
+static inline void repack_int32le(UINT8 *d, const UINT8 *src) {
+#ifdef VGM_BIG_ENDIAN
+    UINT8 tmp[4];
+    memcpy(tmp,src,4);
+    d[0] = tmp[3];
+    d[1] = tmp[2];
+    d[2] = tmp[1];
+    d[3] = tmp[0];
+#endif
 }
 
 static void pack_uint16le(UINT8 *d, UINT16 n) {
     d[0] = (UINT8)((UINT16) n      );
     d[1] = (UINT8)((UINT16) n >> 8 );
-}
-
-static void pack_int24le(UINT8 *d, INT32 n) {
-    d[0] = (UINT8)((UINT32)n       );
-    d[1] = (UINT8)((UINT32)n >> 8  );
-    d[2] = (UINT8)((UINT32)n >> 16 );
 }
 
 static void pack_uint32le(UINT8 *d, UINT32 n) {
@@ -583,12 +600,23 @@ static int write_wav_header(FILE *f, unsigned int totalFrames) {
 static void frames_to_little_endian(UINT8 *data, unsigned int frame_count) {
     unsigned int i = 0;
     while(i<frame_count) {
-        if(bit_depth == 16) {
-            pack_int16le(&data[0], *(INT16*)&data[0]);
-            pack_int16le(&data[2], *(INT16*)&data[2]);
-        } else {
-            pack_int24le(&data[0], *(INT32*)&data[0] & 0x00FFFFFF);
-            pack_int24le(&data[3], *(INT32*)&data[3] & 0x00FFFFFF);
+        switch(bit_depth) {
+            case 32: {
+                repack_int32le(&data[0], &data[0]);
+                repack_int32le(&data[4], &data[4]);
+                break;
+            }
+            case 24: {
+                repack_int24le(&data[0], &data[0]);
+                repack_int24le(&data[3], &data[3]);
+                break;
+            }
+            default: /* 16 */ {
+                repack_int16le(&data[0], &data[0]);
+                repack_int16le(&data[2], &data[2]);
+                break;
+            }
+
         }
         i++;
         data += ((bit_depth / 8) * 2);

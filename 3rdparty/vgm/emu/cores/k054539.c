@@ -1,5 +1,5 @@
 // license:BSD-3-Clause
-// copyright-holders:Aaron Giles
+// copyright-holders:Olivier Galibert
 /*********************************************************
 
     Konami 054539 (TOP) PCM Sound Chip
@@ -192,8 +192,8 @@ static void k054539_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 #define VOL_CAP 1.80
 
 	static const INT16 dpcm[16] = {
-		  0 * 0x100,   1 * 0x100,   4 * 0x100,   9 * 0x100,  16 * 0x100, 25 * 0x100, 36 * 0x100, 49 * 0x100,
-		-64 * 0x100, -49 * 0x100, -36 * 0x100, -25 * 0x100, -16 * 0x100, -9 * 0x100, -4 * 0x100, -1 * 0x100
+		0 * 0x100,   1 * 0x100,   2 * 0x100,   4 * 0x100,  8 * 0x100, 16 * 0x100, 32 * 0x100, 64 * 0x100,
+		0 * 0x100, -64 * 0x100, -32 * 0x100, -16 * 0x100, -8 * 0x100, -4 * 0x100, -2 * 0x100, -1 * 0x100
 	};
 
 	INT16 *rbase = (INT16 *)info->ram;
@@ -207,7 +207,7 @@ static void k054539_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 	}
 
 	for(sample = 0; sample != samples; sample++) {
-		double lval, rval;
+		float lval, rval;
 		if(!(info->flags & K054539_DISABLE_REVERB))
 			lval = rval = rbase[info->reverb_pos];
 		else
@@ -294,6 +294,7 @@ static void k054539_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 							cur_pos = base1[0x08] | (base1[0x09] << 8) | (base1[0x0a] << 16);
 							cur_val = (INT16)(info->rom[cur_pos & info->rom_mask] << 8);
 						}
+
 						if(cur_val == (INT16)0x8000) {
 							k054539_keyoff(info, ch);
 							cur_val = 0;
@@ -317,6 +318,7 @@ static void k054539_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 							cur_pos = base1[0x08] | (base1[0x09] << 8) | (base1[0x0a] << 16);
 							cur_val = (INT16)(info->rom[cur_pos & info->rom_mask] | info->rom[(cur_pos+1) & info->rom_mask]<<8);
 						}
+
 						if(cur_val == (INT16)0x8000) {
 							k054539_keyoff(info, ch);
 							cur_val = 0;
@@ -372,8 +374,9 @@ static void k054539_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 					info->regs[0x22c] &= ~(1<<ch);	// turn off channel to prevent spamming log messages
 					break;
 				}
-				lval += cur_val * lvol;
-				rval += cur_val * rvol;
+
+				lval += cur_val * (float)lvol;
+				rval += cur_val * (float)rvol;
 				rbase[(rdelta + info->reverb_pos) & 0x1fff] += (INT16)(cur_val*rbvol);
 
 				chan->pos = cur_pos;
@@ -388,8 +391,8 @@ static void k054539_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 				}
 			}
 		info->reverb_pos = (info->reverb_pos + 1) & 0x1fff;
-		outputs[0][sample] = (DEV_SMPL)lval;
-		outputs[1][sample] = (DEV_SMPL)rval;
+		outputs[0][sample] = (DEV_SMPL)(lval);
+		outputs[1][sample] = (DEV_SMPL)(rval);
 	}
 }
 

@@ -193,15 +193,15 @@ int main(int argc, char* argv[])
 	okiDefInf.devDef->Reset(okiDefInf.dataPtr);
 	opllDefInf.devDef->Reset(opllDefInf.dataPtr);
 	
-	Resmpl_SetVals(&snResmpl, 0xFF, 0xC0, opts->sampleRate);
+	Resmpl_SetVals(&snResmpl, RSMODE_LINEAR, 0xC0, opts->sampleRate);
 	Resmpl_DevConnect(&snResmpl, &snDefInf);
 	Resmpl_Init(&snResmpl);
 	
-	Resmpl_SetVals(&okiResmpl, 0xFF, 0x100, opts->sampleRate);
+	Resmpl_SetVals(&okiResmpl, RSMODE_LINEAR, 0x100, opts->sampleRate);
 	Resmpl_DevConnect(&okiResmpl, &okiDefInf);
 	Resmpl_Init(&okiResmpl);
 	
-	Resmpl_SetVals(&opllResmpl, 0xFF, 0x100, opts->sampleRate);
+	Resmpl_SetVals(&opllResmpl, RSMODE_LINEAR, 0x100, opts->sampleRate);
 	Resmpl_DevConnect(&opllResmpl, &opllDefInf);
 	Resmpl_Init(&opllResmpl);
 	canRender = true;

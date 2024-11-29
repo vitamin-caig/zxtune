@@ -1,20 +1,23 @@
+// license:LGPL-2.1+
+// copyright-holders:Nuke.YKT
 /*
- * Copyright (C) 2017-2018 Alexey Khokholov (Nuke.YKT)
+ * Copyright (C) 2017-2022 Alexey Khokholov (Nuke.YKT)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This file is part of Nuked OPN2.
  *
- * This program is distributed in the hope that it will be useful,
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  *
  *  Nuked OPN2(Yamaha YM3438) emulator.
  *  Thanks:
@@ -23,7 +26,7 @@
  *      OPLx decapsulated(Matthew Gambrell, Olli Niemitalo):
  *          OPL2 ROMs.
  *
- * version: 1.0.10
+ * version: 1.0.12
  */
 
 #include <stdlib.h>
@@ -37,6 +40,8 @@
 // superctr's MegaDrive model 1 filter
 #define FILTER_CUTOFF 0.512331301282628 // 5894Hz  single pole IIR low pass
 #define FILTER_CUTOFF_I (1-FILTER_CUTOFF)
+
+#define SIGN_EXTEND(bit_index, value) (((value) & ((1u << (bit_index)) - 1u)) - ((value) & (1u << (bit_index))))
 
 enum {
     eg_num_attack = 0,
@@ -227,7 +232,7 @@ static const Bit32u fm_algorithm[4][6][8] = {
 
 //static Bit32u chip_type = ym3438_mode_readmode;	// moved into ym3438_t struct
 
-void NOPN2_DoIO(ym3438_t *chip)
+static void NOPN2_DoIO(ym3438_t *chip)
 {
     /* Write signal check */
     chip->write_a_en = (chip->write_a & 0x03) == 0x01;
@@ -241,7 +246,7 @@ void NOPN2_DoIO(ym3438_t *chip)
     chip->write_busy_cnt &= 0x1f;
 }
 
-void NOPN2_DoRegWrite(ym3438_t *chip)
+static void NOPN2_DoRegWrite(ym3438_t *chip)
 {
     Bit32u i;
     Bit32u slot = chip->cycles % 12;
@@ -460,7 +465,7 @@ void NOPN2_DoRegWrite(ym3438_t *chip)
     }
 }
 
-void NOPN2_PhaseCalcIncrement(ym3438_t *chip)
+static void NOPN2_PhaseCalcIncrement(ym3438_t *chip)
 {
     Bit32u chan = chip->channel;
     Bit32u slot = chip->cycles;
@@ -529,7 +534,7 @@ void NOPN2_PhaseCalcIncrement(ym3438_t *chip)
     chip->pg_inc[slot] &= 0xfffff;
 }
 
-void NOPN2_PhaseGenerate(ym3438_t *chip)
+static void NOPN2_PhaseGenerate(ym3438_t *chip)
 {
     Bit32u slot;
     /* Mask increment */
@@ -548,14 +553,13 @@ void NOPN2_PhaseGenerate(ym3438_t *chip)
     chip->pg_phase[slot] &= 0xfffff;
 }
 
-void NOPN2_EnvelopeSSGEG(ym3438_t *chip)
+static void NOPN2_EnvelopeSSGEG(ym3438_t *chip)
 {
     Bit32u slot = chip->cycles;
     Bit8u direction = 0;
     chip->eg_ssg_pgrst_latch[slot] = 0;
     chip->eg_ssg_repeat_latch[slot] = 0;
     chip->eg_ssg_hold_up_latch[slot] = 0;
-    chip->eg_ssg_inv[slot] = 0;
     if (chip->ssg_eg[slot] & 0x08)
     {
         direction = chip->eg_ssg_dir[slot];
@@ -588,14 +592,14 @@ void NOPN2_EnvelopeSSGEG(ym3438_t *chip)
             chip->eg_ssg_hold_up_latch[slot] = 1;
         }
         direction &= chip->eg_kon[slot];
-        chip->eg_ssg_inv[slot] = (chip->eg_ssg_dir[slot] ^ ((chip->ssg_eg[slot] >> 2) & 0x01))
-                               & chip->eg_kon[slot];
     }
     chip->eg_ssg_dir[slot] = direction;
     chip->eg_ssg_enable[slot] = (chip->ssg_eg[slot] >> 3) & 0x01;
+    chip->eg_ssg_inv[slot] = (chip->eg_ssg_dir[slot] ^ (((chip->ssg_eg[slot] >> 2) & 0x01) & ((chip->ssg_eg[slot] >> 3) & 0x01)))
+                           & chip->eg_kon[slot];
 }
 
-void NOPN2_EnvelopeADSR(ym3438_t *chip)
+static void NOPN2_EnvelopeADSR(ym3438_t *chip)
 {
     Bit32u slot = (chip->cycles + 22) % 24;
 
@@ -668,7 +672,7 @@ void NOPN2_EnvelopeADSR(ym3438_t *chip)
             }
             break;
         case eg_num_decay:
-            if ((level >> 5) == chip->eg_sl[1])
+            if ((level >> 4) == (chip->eg_sl[1] << 1))
             {
                 nextstate = eg_num_sustain;
             }
@@ -719,7 +723,7 @@ void NOPN2_EnvelopeADSR(ym3438_t *chip)
     chip->eg_state[slot] = nextstate;
 }
 
-void NOPN2_EnvelopePrepare(ym3438_t *chip)
+static void NOPN2_EnvelopePrepare(ym3438_t *chip)
 {
     Bit8u rate;
     Bit8u sum;
@@ -807,7 +811,7 @@ void NOPN2_EnvelopePrepare(ym3438_t *chip)
     chip->eg_sl[0] = chip->sl[slot];
 }
 
-void NOPN2_EnvelopeGenerate(ym3438_t *chip)
+static void NOPN2_EnvelopeGenerate(ym3438_t *chip)
 {
     Bit32u slot = (chip->cycles + 23) % 24;
     Bit16u level;
@@ -840,7 +844,7 @@ void NOPN2_EnvelopeGenerate(ym3438_t *chip)
     chip->eg_out[slot] = level;
 }
 
-void NOPN2_UpdateLFO(ym3438_t *chip)
+static void NOPN2_UpdateLFO(ym3438_t *chip)
 {
     if ((chip->lfo_quotient & lfo_cycles[chip->lfo_freq]) == lfo_cycles[chip->lfo_freq])
     {
@@ -854,7 +858,7 @@ void NOPN2_UpdateLFO(ym3438_t *chip)
     chip->lfo_cnt &= chip->lfo_en;
 }
 
-void NOPN2_FMPrepare(ym3438_t *chip)
+static void NOPN2_FMPrepare(ym3438_t *chip)
 {
     Bit32u slot = (chip->cycles + 6) % 24;
     Bit32u channel = chip->channel;
@@ -916,7 +920,7 @@ void NOPN2_FMPrepare(ym3438_t *chip)
     }
 }
 
-void NOPN2_ChGenerate(ym3438_t *chip)
+static void NOPN2_ChGenerate(ym3438_t *chip)
 {
     Bit32u slot = (chip->cycles + 18) % 24;
     Bit32u channel = chip->channel;
@@ -951,7 +955,7 @@ void NOPN2_ChGenerate(ym3438_t *chip)
     chip->ch_acc[channel] = sum;
 }
 
-void NOPN2_ChOutput(ym3438_t *chip)
+static void NOPN2_ChOutput(ym3438_t *chip)
 {
     Bit32u cycles = chip->cycles;
     Bit32u slot = chip->cycles;
@@ -980,8 +984,7 @@ void NOPN2_ChOutput(ym3438_t *chip)
     if (((cycles >> 2) == 1 && chip->dacen) || test_dac)
     {
         out = (Bit16s)chip->dacdata;
-        out <<= 7;
-        out >>= 7;
+        out = SIGN_EXTEND(8, out);
     }
     else
     {
@@ -1034,7 +1037,7 @@ void NOPN2_ChOutput(ym3438_t *chip)
     }
 }
 
-void NOPN2_FMGenerate(ym3438_t *chip)
+static void NOPN2_FMGenerate(ym3438_t *chip)
 {
     Bit32u slot = (chip->cycles + 19) % 24;
     /* Calculate phase */
@@ -1067,12 +1070,11 @@ void NOPN2_FMGenerate(ym3438_t *chip)
     {
         output = output ^ (chip->mode_test_21[4] << 13);
     }
-    output <<= 2;
-    output >>= 2;
+    output = SIGN_EXTEND(13, output);
     chip->fm_out[slot] = output;
 }
 
-void NOPN2_DoTimerA(ym3438_t *chip)
+static void NOPN2_DoTimerA(ym3438_t *chip)
 {
     Bit16u time;
     Bit8u load;
@@ -1121,7 +1123,7 @@ void NOPN2_DoTimerA(ym3438_t *chip)
     chip->timer_a_cnt = time & 0x3ff;
 }
 
-void NOPN2_DoTimerB(ym3438_t *chip)
+static void NOPN2_DoTimerB(ym3438_t *chip)
 {
     Bit16u time;
     Bit8u load;
@@ -1166,7 +1168,7 @@ void NOPN2_DoTimerB(ym3438_t *chip)
     chip->timer_b_cnt = time & 0xff;
 }
 
-void NOPN2_KeyOn(ym3438_t*chip)
+static void NOPN2_KeyOn(ym3438_t*chip)
 {
     Bit32u slot = chip->cycles;
     Bit32u chan = chip->channel;

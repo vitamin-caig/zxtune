@@ -1,3 +1,5 @@
+// license:LGPL-2.1+
+// copyright-holders:Nuke.YKT
 /* Nuked OPM
  * Copyright (C) 2020 Nuke.YKT
  *
@@ -21,10 +23,10 @@
  *      siliconpr0n.org(digshadow, John McMaster):
  *          YM2151 and other FM chip decaps and die shots.
  *
- * version: 0.9 beta
+ * version: 0.9.2 beta
  */
-#ifndef __NUKEDOPM_INT_H__
-#define __NUKEDOPM_INT_H__
+#ifndef NUKEDOPM_INT_H
+#define NUKEDOPM_INT_H
 
 #include "../../stdtype.h"
 #include "../snddef.h"
@@ -115,7 +117,7 @@ typedef struct {
     uint8_t eg_mute;
     uint16_t eg_outtemp[2];
     uint16_t eg_out[2];
-    uint8_t eg_am;
+    uint16_t eg_am;
     uint8_t eg_ams[2];
     uint8_t eg_timercarry;
     uint32_t eg_timer;
@@ -294,4 +296,4 @@ void NOPM_Reset(opm_t* chip, uint32_t rate, uint32_t clock);
 } // extern "C"
 #endif
 
-#endif	// __NUKEDOPM_INT_H__
+#endif	// NUKEDOPM_INT_H

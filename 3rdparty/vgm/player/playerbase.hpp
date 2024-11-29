@@ -130,6 +130,7 @@ public:
 	
 	virtual UINT32 GetSampleRate(void) const;
 	virtual UINT8 SetSampleRate(UINT32 sampleRate);
+	virtual double GetPlaybackSpeed(void) const;
 	virtual UINT8 SetPlaybackSpeed(double speed);
 	virtual void SetEventCallback(PLAYER_EVENT_CB cbFunc, void* cbParam);
 	virtual void SetFileReqCallback(PLAYER_FILEREQ_CB cbFunc, void* cbParam);
