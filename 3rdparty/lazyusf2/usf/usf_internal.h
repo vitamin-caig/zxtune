@@ -166,8 +166,8 @@ typedef struct _precomp_instr
         } cf;
     } f;
     unsigned int addr; /* word-aligned instruction address in r4300 address space */
-    unsigned int local_addr; /* byte offset to start of corresponding x86_64 instructions, from start of code block */
 #ifdef DYNAREC
+    unsigned int local_addr; /* byte offset to start of corresponding x86_64 instructions, from start of code block */
     reg_cache_struct reg_cache_infos;
 #endif
 } precomp_instr;
