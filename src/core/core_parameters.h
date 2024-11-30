@@ -30,7 +30,7 @@ namespace Parameters::ZXTune::Core
 
     //! Default value- 1.75MHz
     const IntType CLOCKRATE_DEFAULT = 1750000;
-    const IntType CLOCKRATE_MIN = 1000000;
+    const IntType CLOCKRATE_MIN = 100000;
     const IntType CLOCKRATE_MAX = UINT64_C(10000000);
     //! Parameter name
     const auto CLOCKRATE = PREFIX + "clockrate"_id;
