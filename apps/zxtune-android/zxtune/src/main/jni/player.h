@@ -27,7 +27,7 @@ namespace Player
     using Ptr = std::shared_ptr<Control>;
     virtual ~Control() = default;
 
-    virtual Parameters::Modifier& GetParameters() const = 0;
+    virtual Parameters::Container& GetParameters() const = 0;
 
     virtual uint_t GetPosition() const = 0;
     virtual uint_t Analyze(uint_t maxEntries, uint8_t* levels) const = 0;

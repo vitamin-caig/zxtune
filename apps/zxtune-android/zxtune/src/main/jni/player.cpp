@@ -249,7 +249,7 @@ namespace
       Require(Duration.Get() != 0);
     }
 
-    Parameters::Modifier& GetParameters() const override
+    Parameters::Container& GetParameters() const override
     {
       return *LocalParameters;
     }
@@ -455,13 +455,30 @@ EXPORTED jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getProgress(JNIEnv* env
   });
 }
 
-EXPORTED void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lang_String_2J(JNIEnv* env, jobject self,
-                                                                                           jstring propName,
-                                                                                           jlong value)
+template<class T>
+T JniPlayerGetProperty(JNIEnv* env, jobject self, jstring propName, T defVal)
+{
+  return Jni::Call(env, [=] {
+    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
+    if (const auto player = Player::Storage::Instance().Find(playerHandle))
+    {
+      auto& params = player->GetParameters();
+      const Jni::PropertiesReadHelper props(env, params);
+      return props.Get(propName, defVal);
+    }
+    else
+    {
+      return defVal;
+    }
+  });
+}
+
+template<class T>
+void JniPlayerSetProperty(JNIEnv* env, jobject self, jstring propName, T value)
 {
   return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    if (const auto player = Player::Storage::Instance().Get(playerHandle))
+    if (const auto player = Player::Storage::Instance().Find(playerHandle))
     {
       auto& params = player->GetParameters();
       Jni::PropertiesWriteHelper helper(env, params);
@@ -470,16 +487,28 @@ EXPORTED void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lang
   });
 }
 
+EXPORTED jlong JNICALL Java_app_zxtune_core_jni_JniPlayer_getProperty__Ljava_lang_String_2J(JNIEnv* env, jobject self,
+                                                                                            jstring propName,
+                                                                                            jlong defVal)
+{
+  return JniPlayerGetProperty(env, self, propName, defVal);
+}
+
+EXPORTED jstring JNICALL Java_app_zxtune_core_jni_JniPlayer_getProperty__Ljava_lang_String_2Ljava_lang_String_2(
+    JNIEnv* env, jobject self, jstring propName, jstring defVal)
+{
+  return JniPlayerGetProperty(env, self, propName, defVal);
+}
+
+EXPORTED void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lang_String_2J(JNIEnv* env, jobject self,
+                                                                                           jstring propName,
+                                                                                           jlong value)
+{
+  return JniPlayerSetProperty(env, self, propName, value);
+}
+
 EXPORTED void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lang_String_2Ljava_lang_String_2(
     JNIEnv* env, jobject self, jstring propName, jstring value)
 {
-  return Jni::Call(env, [=]() {
-    const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    if (const auto player = Player::Storage::Instance().Get(playerHandle))
-    {
-      auto& params = player->GetParameters();
-      Jni::PropertiesWriteHelper helper(env, params);
-      helper.Set(propName, value);
-    }
-  });
+  return JniPlayerSetProperty(env, self, propName, value);
 }

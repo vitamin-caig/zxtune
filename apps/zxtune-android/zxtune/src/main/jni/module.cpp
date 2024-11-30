@@ -336,9 +336,8 @@ EXPORTED jint JNICALL Java_app_zxtune_core_jni_JniModule_getDurationMs(JNIEnv* e
   });
 }
 
-EXPORTED jlong JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2J(JNIEnv* env, jobject self,
-                                                                                            jstring propName,
-                                                                                            jlong defVal)
+template<class T>
+T JniModuleGetProperty(JNIEnv* env, jobject self, jstring propName, T defVal)
 {
   return Jni::Call(env, [=] {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
@@ -349,16 +348,17 @@ EXPORTED jlong JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lan
   });
 }
 
+EXPORTED jlong JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2J(JNIEnv* env, jobject self,
+                                                                                            jstring propName,
+                                                                                            jlong defVal)
+{
+  return JniModuleGetProperty(env, self, propName, defVal);
+}
+
 EXPORTED jstring JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2Ljava_lang_String_2(
     JNIEnv* env, jobject self, jstring propName, jstring defVal)
 {
-  return Jni::Call(env, [=] {
-    const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
-    const auto module = Module::Storage::Instance().Get(moduleHandle);
-    const auto& params = module->GetModuleProperties();
-    const Jni::PropertiesReadHelper props(env, *params);
-    return props.Get(propName, defVal);
-  });
+  return JniModuleGetProperty(env, self, propName, defVal);
 }
 
 EXPORTED jbyteArray JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_lang_String_2_3B(JNIEnv* env,
@@ -366,13 +366,7 @@ EXPORTED jbyteArray JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljav
                                                                                                    jstring propName,
                                                                                                    jbyteArray defVal)
 {
-  return Jni::Call(env, [=] {
-    const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
-    const auto module = Module::Storage::Instance().Get(moduleHandle);
-    const auto& params = module->GetModuleProperties();
-    const Jni::PropertiesReadHelper props(env, *params);
-    return props.Get(propName, defVal);
-  });
+  return JniModuleGetProperty(env, self, propName, defVal);
 }
 
 EXPORTED jobject JNICALL Java_app_zxtune_core_jni_JniModule_createPlayer(JNIEnv* env, jobject self, jint samplerate)

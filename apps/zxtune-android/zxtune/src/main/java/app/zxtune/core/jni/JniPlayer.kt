@@ -40,6 +40,12 @@ internal class JniPlayer(handleVal: Int) : Player {
     override val progress: Int
         external get
 
+    external override fun getProperty(name: String, defVal: Long): Long
+
+    external override fun getProperty(name: String, defVal: String): String
+
+    override fun getProperty(name: String, defVal: ByteArray?) = defVal
+
     external override fun setProperty(name: String, value: Long)
 
     external override fun setProperty(name: String, value: String)
