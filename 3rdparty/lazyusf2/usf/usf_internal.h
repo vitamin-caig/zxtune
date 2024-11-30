@@ -230,8 +230,7 @@ struct usf_state
     // pointer to the actual usf_state structure. The size
     // which is indicated for allocation accounts for this
     // with two pages of padding.
-
-    int16_t VR[32][8];
+    ALIGN(16, int16_t VR[32][8]);
     int16_t VACC[3][8];
     
     // RSP virtual registers, also needs alignment
