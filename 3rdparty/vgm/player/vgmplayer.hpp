@@ -65,6 +65,7 @@ public:
 		UINT8 chipID;
 		UINT32 flags;
 		size_t optID;
+		size_t cfgID;
 		DEVFUNC_WRITE_A8D8 write8;		// write 8-bit data to 8-bit register/offset
 		DEVFUNC_WRITE_A16D8 writeM8;	// write 8-bit data to 16-bit memory offset
 		DEVFUNC_WRITE_A8D16 writeD16;	// write 16-bit data to 8-bit register/offset
@@ -167,6 +168,7 @@ public:
 	
 	//UINT32 GetSampleRate(void) const;
 	UINT8 SetSampleRate(UINT32 sampleRate);
+	double GetPlaybackSpeed(void) const;
 	UINT8 SetPlaybackSpeed(double speed);
 	//void SetEventCallback(PLAYER_EVENT_CB cbFunc, void* cbParam);
 	//void SetFileReqCallback(PLAYER_FILEREQ_CB cbFunc, void* cbParam);
@@ -278,12 +280,13 @@ protected:
 	DATA_LOADER *_dLoad;
 	const UINT8* _fileData;	// data pointer for quick access, equals _dLoad->GetFileData().data()
 	std::vector<UINT8> _yrwRom;	// cache for OPL4 sample ROM (yrw801.rom)
+	UINT8 _shownCmdWarnings[0x100];
 	
 	enum
 	{
 		_HDR_BUF_SIZE = 0x100,
-		_OPT_DEV_COUNT = 0x29,
-		_CHIP_COUNT = 0x29,
+		_OPT_DEV_COUNT = 0x2a,
+		_CHIP_COUNT = 0x2a,
 		_PCM_BANK_COUNT = 0x40
 	};
 	
@@ -319,8 +322,6 @@ protected:
 	UINT64 _tsMult;
 	UINT64 _tsDiv;
 	UINT64 _ttMult;
-	UINT64 _ttDiv;
-
 	UINT64 _lastTsMult;
 	UINT64 _lastTsDiv;
 	

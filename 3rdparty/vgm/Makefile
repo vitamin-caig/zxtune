@@ -19,7 +19,7 @@ source_files = $(addprefix emu/cores/,\
   pwm \
   gb \
   nesintf np_nes_apu np_nes_dmc np_nes_fds nes_apu \
-  multipcm \
+  mikey multipcm \
   upd7759 \
   okim6258 \
   okim6295 okiadpcm \

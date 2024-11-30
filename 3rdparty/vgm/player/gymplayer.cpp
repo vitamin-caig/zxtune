@@ -485,6 +485,11 @@ UINT8 GYMPlayer::SetSampleRate(UINT32 sampleRate)
 	return 0x00;
 }
 
+double GYMPlayer::GetPlaybackSpeed(void) const
+{
+	return _playOpts.genOpts.pbSpeed / (double)0x10000;
+}
+
 UINT8 GYMPlayer::SetPlaybackSpeed(double speed)
 {
 	_playOpts.genOpts.pbSpeed = (UINT32)(0x10000 * speed);
@@ -495,13 +500,14 @@ UINT8 GYMPlayer::SetPlaybackSpeed(double speed)
 
 void GYMPlayer::RefreshTSRates(void)
 {
-	_tsMult = _outSmplRate;
+	_ttMult = 1;
 	_tsDiv = _tickFreq;
 	if (_playOpts.genOpts.pbSpeed != 0 && _playOpts.genOpts.pbSpeed != 0x10000)
 	{
-		_tsMult *= 0x10000;
+		_ttMult *= 0x10000;
 		_tsDiv *= _playOpts.genOpts.pbSpeed;
 	}
+	_tsMult = _ttMult * _outSmplRate;
 	if (_tsMult != _lastTsMult ||
 	    _tsDiv != _lastTsDiv)
 	{
@@ -531,7 +537,7 @@ double GYMPlayer::Tick2Second(UINT32 ticks) const
 {
 	if (ticks == (UINT32)-1)
 		return -1.0;
-	return ticks / (double)_tickFreq;
+	return (INT64)(ticks * _ttMult) / (double)(INT64)_tsDiv;
 }
 
 UINT8 GYMPlayer::GetState(void) const
@@ -684,7 +690,8 @@ UINT8 GYMPlayer::Start(void)
 		
 		for (clDev = &cDev->base; clDev != NULL; clDev = clDev->linkDev)
 		{
-			Resmpl_SetVals(&clDev->resmpl, 0xFF, _devCfgs[curDev].volume, _outSmplRate);
+			UINT8 resmplMode = (devOpts != NULL) ? devOpts->resmplMode : RSMODE_LINEAR;
+			Resmpl_SetVals(&clDev->resmpl, resmplMode, _devCfgs[curDev].volume, _outSmplRate);
 			Resmpl_DevConnect(&clDev->resmpl, &clDev->defInf);
 			Resmpl_Init(&clDev->resmpl);
 		}

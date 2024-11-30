@@ -2,7 +2,7 @@
 // copyright-holders:R. Belmont
 /*
 
-  ES5503 - Ensoniq ES5503 "DOC" emulator v2.1.2
+  ES5503 - Ensoniq ES5503 "DOC" emulator v2.3
   By R. Belmont.
 
   Copyright R. Belmont.
@@ -13,8 +13,8 @@
   (used in the "Soundscape" series of ISA PC sound cards) followed on a fundamentally
   similar architecture.
 
-  Bugs: On the real silicon, oscillators 30 and 31 have random volume fluctuations and are
-  unusable for playback.  We don't attempt to emulate that. :-)
+  Bugs: On the real silicon, the uppermost enabled oscillator contributes to the output 3 times.
+        This is likely why the Apple IIgs system software doesn't let you use oscillators 30 and 31.
 
   Additionally, in "swap" mode, there's one cycle when the switch takes place where the
   oscillator's output is 0x80 (centerline) regardless of the sample data.  This can
@@ -33,6 +33,9 @@
   2.1.2 (RB) - Fixed SoundSmith POLY.SYNTH inst where one-shot on the even oscillator and swap on the odd should loop.
                Conversely, the intro voice in FTA Delta Demo has swap on the even and one-shot on the odd and doesn't
                want to loop.
+  2.1.3 (RB) - Fixed oscillator enable register off-by-1 which caused everything to be half a step sharp.
+  2.2 (RB) - More precise one-shot even/swap odd behavior from hardware observations with Ian Brumby's SWAPTEST.
+  2.3 (RB) - Sync & AM modes added, emulate the volume glitch for the highest-numbered enabled oscillator.
 */
 
 #include <stdlib.h>
@@ -154,6 +157,11 @@ static const UINT32 wavemasks[8] = { 0x1ff00, 0x1fe00, 0x1fc00, 0x1f800, 0x1f000
 static const UINT32 accmasks[8]  = { 0xff, 0x1ff, 0x3ff, 0x7ff, 0xfff, 0x1fff, 0x3fff, 0x7fff };
 static const int    resshifts[8] = { 9, 10, 11, 12, 13, 14, 15, 16 };
 
+INLINE UINT32 es5503_get_sample_rate(ES5503Chip *chip)
+{
+	return (chip->clock / 8) / (chip->oscsenabled + 2);
+}
+
 // halt_osc: handle halting an oscillator
 // chip = chip ptr
 // onum = oscillator #
@@ -162,8 +170,25 @@ static void es5503_halt_osc(ES5503Chip *chip, int onum, int type, UINT32 *accumu
 {
 	ES5503Osc *pOsc = &chip->oscillators[onum];
 	ES5503Osc *pPartner = &chip->oscillators[onum^1];
-	const int mode = (pOsc->control>>1) & 3;
+	int mode = (pOsc->control>>1) & 3;
 	const int partnerMode = (pPartner->control>>1) & 3;
+
+	// check for sync mode
+	if (mode == MODE_SYNCAM)
+	{
+		if (!(onum & 1))
+		{
+			// we're even, so if the odd oscillator 1 below us is playing,
+			// restart it.
+			if (!(chip->oscillators[onum - 1].control & 1))
+			{
+				chip->oscillators[onum - 1].accumulator = 0;
+			}
+		}
+
+		// loop this oscillator for both sync and AM
+		mode = MODE_FREE;
+	}
 
 	// if 0 found in sample data or mode is not free-run, halt this oscillator
 	if ((mode != MODE_FREE) || (type != 0))
@@ -173,28 +198,27 @@ static void es5503_halt_osc(ES5503Chip *chip, int onum, int type, UINT32 *accumu
 	else    // preserve the relative phase of the oscillator when looping
 	{
 		UINT16 wtsize = pOsc->wtsize - 1;
-		UINT32 altram = (*accumulator) >> resshift;
-
-		if (altram > wtsize)
-		{
-			altram -= wtsize;
-		}
-		else
-		{
-			altram = 0;
-		}
-
-		*accumulator = altram << resshift;
+		*accumulator -= (wtsize << resshift);
 	}
 
-	// if we're in swap mode or we're the even oscillator and the partner is in swap mode,
-	// start the partner.
-	if ((mode == MODE_SWAP) || ((partnerMode == MODE_SWAP) && ((onum & 1)==0)))
+	// if we're in swap mode, start the partner
+	if (mode == MODE_SWAP)
 	{
 		pPartner->control &= ~1;	// clear the halt bit
 		pPartner->accumulator = 0;  // and make sure it starts from the top (does this also need phase preservation?)
 	}
-
+	else
+	{
+		// if we're not swap and we're the even oscillator of the pair and the partner's swap
+		// but we aren't, we retrigger (!!!)  Verified on IIgs hardware.
+		if ((partnerMode == MODE_SWAP) && ((onum & 1)==0))
+		{
+			// preserve the phase in this case too
+			UINT16 wtsize = pOsc->wtsize - 1;
+			*accumulator -= (wtsize << resshift);
+			pOsc->control &= ~1;
+		}
+	}
 	// IRQ enabled for this voice?
 	if (pOsc->control & 0x08)
 	{
@@ -219,30 +243,27 @@ static void es5503_pcm_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 		return;
 
 	chnsStereo = chip->output_channels & ~1;
-	for (osc = 0; osc < chip->oscsenabled; osc++)
+	for (snum = 0; snum < samples; snum++)
 	{
-		ES5503Osc *pOsc = &chip->oscillators[osc];
-
-		if (!(pOsc->control & 1) && ! pOsc->Muted)
+		for (osc = 0; osc < chip->oscsenabled; osc++)
 		{
-			UINT32 wtptr = pOsc->wavetblpointer & wavemasks[pOsc->wavetblsize];
-			UINT32 altram;
-			UINT32 acc = pOsc->accumulator;
-			UINT16 wtsize = pOsc->wtsize - 1;
-			UINT16 freq = pOsc->freq;
-			INT16 vol = pOsc->vol;
-			UINT8 chnMask = (pOsc->control >> 4) & 0x0F;
-			int resshift = resshifts[pOsc->resolution] - pOsc->wavetblsize;
-			UINT32 sizemask = accmasks[pOsc->wavetblsize];
-			INT32 outData;
+			ES5503Osc *pOsc = &chip->oscillators[osc];
 
-			chnMask &= chip->outchn_mask;
-			for (snum = 0; snum < samples; snum++)
+			if (!(pOsc->control & 1) && ! pOsc->Muted)
 			{
-				altram = acc >> resshift;
+				UINT32 wtptr = pOsc->wavetblpointer & wavemasks[pOsc->wavetblsize];
+				UINT32 altram;
+				UINT16 wtsize = pOsc->wtsize - 1;
+				UINT8 chnMask = (pOsc->control >> 4) & 0x0F;
+				int resshift = resshifts[pOsc->resolution] - pOsc->wavetblsize;
+				UINT32 sizemask = accmasks[pOsc->wavetblsize];
+				const int mode = (pOsc->control>>1) & 3;
+
+				chnMask &= chip->outchn_mask;
+				altram = pOsc->accumulator >> resshift;
 				ramptr = altram & sizemask;
 
-				acc += freq;
+				pOsc->accumulator += pOsc->freq;
 
 				// channel strobe is always valid when reading; this allows potentially banking per voice
 				chip->channel_strobe = (pOsc->control>>4) & 0xf;
@@ -250,12 +271,36 @@ static void es5503_pcm_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 
 				if (pOsc->data == 0x00)
 				{
-					es5503_halt_osc(chip, osc, 1, &acc, resshift);
+					es5503_halt_osc(chip, osc, 1, &pOsc->accumulator, resshift);
 				}
 				else
 				{
-					outData = (pOsc->data - 0x80) * vol;
-					
+					INT32 outData;
+					if (mode != MODE_SYNCAM)
+					{
+						outData = (pOsc->data - 0x80) * (INT16)pOsc->vol;
+					}
+					else
+					{
+						// if we're odd, we play nothing ourselves
+						if (osc & 1)
+						{
+							if (osc < 31)
+							{
+								// if the next oscillator up is playing, it's volume becomes our control
+								if (!(chip->oscillators[osc + 1].control & 1))
+								{
+									chip->oscillators[osc + 1].vol = pOsc->data;
+								}
+							}
+							outData = 0;
+						}
+						else    // hard sync, both oscillators play?
+						{
+							outData = (pOsc->data - 0x80) * (INT16)pOsc->vol;
+						}
+					}
+
 					// send groups of 2 channels to L or R
 					for (chan = 0; chan < chnsStereo; chan ++)
 					{
@@ -275,21 +320,12 @@ static void es5503_pcm_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 
 					if (altram >= wtsize)
 					{
-						es5503_halt_osc(chip, osc, 0, &acc, resshift);
+						es5503_halt_osc(chip, osc, 0, &pOsc->accumulator, resshift);
 					}
 				}
-
-				// if oscillator halted, we've got no more samples to generate
-				if (pOsc->control & 1)
-				{
-					pOsc->control |= 1;
-					break;
-				}
-			}
-
-			pOsc->accumulator = acc;
-		}
-	}
+			}	// end if (oscillators[osc] playing)
+		}	// end for (osc)
+	}	// end for (snum)
 }
 
 
@@ -316,7 +352,7 @@ static UINT8 device_start_es5503(const DEV_GEN_CFG* cfg, DEV_INFO* retDevInf)
 	chip->outchn_mask = (UINT8)pow2_mask(chip->output_channels);
 
 	chip->oscsenabled = 1;
-	chip->output_rate = (chip->clock/8)/(2+chip->oscsenabled);  // (input clock / 8) / # of oscs. enabled + 2
+	chip->output_rate = es5503_get_sample_rate(chip);
 	
 	es5503_set_mute_mask(chip, 0x00000000);
 	
@@ -364,7 +400,7 @@ static void device_reset_es5503(void *info)
 	chip->channel_strobe = 0;
 	memset(chip->docram, 0x00, chip->dramsize);
 
-	chip->output_rate = (chip->clock/8)/(2+chip->oscsenabled);  // (input clock / 8) / # of oscs. enabled + 2
+	chip->output_rate = es5503_get_sample_rate(chip);
 	if (chip->SmpRateFunc != NULL)
 		chip->SmpRateFunc(chip->SmpRateData, chip->output_rate);
 	
@@ -454,7 +490,7 @@ static UINT8 es5503_r(void *info, UINT8 offset)
 				return retval | 0x41;
 
 			case 0xe1:  // oscillator enable
-				return (chip->oscsenabled-1)<<1;
+				return (chip->oscsenabled - 1) << 1;
 
 			case 0xe2:  // A/D converter
 				if (chip->adc_func != NULL)
@@ -498,7 +534,7 @@ static void es5503_w(void *info, UINT8 offset, UINT8 data)
 				break;
 
 			case 0xa0:  // oscillator control
-				// if a fresh key-on, reset the accumulator
+				// key on?
 				if ((chip->oscillators[osc].control & 1) && (!(data&1)))
 				{
 					chip->oscillators[osc].accumulator = 0;
@@ -530,9 +566,11 @@ static void es5503_w(void *info, UINT8 offset, UINT8 data)
 				break;
 
 			case 0xe1:  // oscillator enable
-				chip->oscsenabled = 1 + ((data>>1) & 0x1f);
-
-				chip->output_rate = (chip->clock/8)/(2+chip->oscsenabled);
+				// The number here is the number of oscillators to enable -1 times 2.  You can never
+				// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
+				chip->oscsenabled = ((data>>1) & 0x1f) + 1;
+				//notify_clock_changed();
+				chip->output_rate = es5503_get_sample_rate(chip);
 				if (chip->SmpRateFunc != NULL)
 					chip->SmpRateFunc(chip->SmpRateData, chip->output_rate);
 				break;

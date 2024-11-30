@@ -95,6 +95,7 @@ static UINT32 masterVol = 0x10000;	// fixed point 16.16
 static UINT8 showTags = 1;
 static bool showFileInfo = false;
 static UINT8 logLevel = DEVLOG_INFO;
+static UINT8 pbTimeMode = PLAYTIME_LOOP_INCL | PLAYTIME_TIME_FILE;
 
 static PlayerA mainPlr;
 
@@ -364,7 +365,7 @@ int main(int argc, char* argv[])
 				pState = "Playing";
 			if (vgmPcmStrms == NULL || vgmPcmStrms->empty())
 			{
-				printf("%s %.2f / %.2f ...   \r", pState, mainPlr.GetCurTime(1), mainPlr.GetTotalTime(1));
+				printf("%s %.2f / %.2f ...   \r", pState, mainPlr.GetCurTime(pbTimeMode), mainPlr.GetTotalTime(pbTimeMode));
 			}
 			else
 			{
@@ -377,7 +378,7 @@ int main(int argc, char* argv[])
 				if (pbMode.length() == 1)
 					pbMode = "";
 				printf("%s %.2f / %.2f [%02X / %02X at %4.1f KHz%s] ...     \r",
-					pState, mainPlr.GetCurTime(1), mainPlr.GetTotalTime(1),
+					pState, mainPlr.GetCurTime(pbTimeMode), mainPlr.GetTotalTime(pbTimeMode),
 					1 + strmDev->lastItem, strmDev->maxItems, strmDev->freq / 1000.0,
 					pbMode.c_str());
 			}
@@ -509,6 +510,7 @@ Sound Chip ID:
 		T param - show tags (0/D/OFF - off, 1/E/ON - on)
 		FI param - show file information (see above)
 		LL param - set log level (0..5 = off/error/warn/info/debug/trace, see emu/EmuStructs.h)
+		TD param - set time display mode (bit mask: 0/1 = exclude/include loops, 0/2 = file/playback time, 4 = with fade time)
 		Q - quit
 	P - player configuration
 		SPD param - set playback speed (1.0 = 100%)
@@ -525,7 +527,7 @@ Sound Chip ID:
 		O param - set sound core options (core-specific)
 		SRM param - set sample rate mode (0/1/2, see DEVRI_SRMODE_*)
 		SR param - set emulated sample rate (0 = use rate of output stream)
-		RSM param - set resampling mode [not working]
+		RSM param - set resampling mode
 		M param,param,... - set mute options
 			This is a list of channels to be toggled. (0 = first channel)
 			Additional valid letters:
@@ -776,7 +778,7 @@ static void DoChipControlMode(PlayerBase* player)
 				
 				droplay->GetPlayerOptions(playOpts);
 				
-				printf("Command [OPL3 data]: ");
+				printf("Command [SPD/OPL3 data]: ");
 				fgets(line, 0x80, stdin);
 				StripNewline(line);
 				
@@ -913,7 +915,7 @@ static void DoChipControlMode(PlayerBase* player)
 			char* tokenStr;
 			
 			// Tags / FileInfo
-			printf("Command [T/FI/LL data]: ");
+			printf("Command [T/FI/LL/TD data]: ");
 			fgets(line, 0x80, stdin);
 			StripNewline(line);
 			
@@ -950,6 +952,12 @@ static void DoChipControlMode(PlayerBase* player)
 				UINT8 newLevel = (UINT8)strtoul(tokenStr, &endPtr, 0);
 				if (endPtr > tokenStr)
 					logLevel = newLevel;
+			}
+			else if (! strcmp(line, "TD"))
+			{
+				UINT8 newTimeMode = (UINT8)strtoul(tokenStr, &endPtr, 0);
+				if (endPtr > tokenStr)
+					pbTimeMode = newTimeMode;
 			}
 			else if (! strcmp(line, "Q"))
 				mode = -1;

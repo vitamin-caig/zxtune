@@ -175,6 +175,7 @@ namespace
         ParseSimpleDevice("X1-010"sv, stream);
         ParseSimpleDevice("C352"sv, stream);
         ParseSimpleDevice("GA20"sv, stream);
+        ParseSimpleDevice("MIKEY"sv, stream);
       }
       if (gd3)
       {
@@ -400,6 +401,7 @@ namespace
         {0x30, 0x30, 1, "dual sn76489"},
         {0x31, 0x3e, 1, "dual8"},
         {0x3f, 0x3f, 1, "dual T6Ww28"},
+        {0x40, 0x40, 2, "mikey"},
         {0x50, 0x50, 1, "sn76489"},
         {0x51, 0x51, 2, "ym2413"},
         {0x52, 0x53, 2, "ym2612"},
@@ -532,6 +534,8 @@ namespace
         return "SCSP PCM";
       case 0x07:
         return "NES APU DPCM";
+      case 0x08:
+        return "Mikey PCM";
       default:
         return Strings::Format("data type=0x{:02x}", code);
       }

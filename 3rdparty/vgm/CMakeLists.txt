@@ -12,6 +12,8 @@ endif()
 
 project(libvgmMain VERSION 0.1 LANGUAGES C CXX)
 
+set(CMAKE_CXX_STANDARD 14)
+
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/libs/cmake_modules/")
 
 include(GNUInstallDirs)
@@ -28,6 +30,22 @@ set(LIBVGM_DEPS)	# will be filled in by sub-projects
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
+
+if ("${CMAKE_VERSION}" VERSION_LESS "3.20")
+	include(TestBigEndian)
+	test_big_endian(ARCH_BIG_ENDIAN)
+	if (ARCH_BIG_ENDIAN)
+		set(CMAKE_C_BYTE_ORDER "BIG_ENDIAN")
+	else()
+		set(CMAKE_C_BYTE_ORDER "LITTLE_ENDIAN")
+	endif()
+endif()
+# add defines for Little/Big Endian
+if ("${CMAKE_C_BYTE_ORDER}" STREQUAL "BIG_ENDIAN")
+	add_definitions("-D VGM_BIG_ENDIAN")
+else()
+	add_definitions("-D VGM_LITTLE_ENDIAN")
+endif()
 
 check_include_file("stdint.h" HAVE_STDINT)
 if(HAVE_STDINT)

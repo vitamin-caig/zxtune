@@ -92,6 +92,7 @@ INLINE void SaveDeviceConfig(std::vector<UINT8>& dst, const void* srcData, size_
 }
 
 S98Player::S98Player() :
+	_fileHdr(),
 	_filePos(0),
 	_fileTick(0),
 	_playTick(0),
@@ -738,6 +739,11 @@ UINT8 S98Player::SetSampleRate(UINT32 sampleRate)
 	return 0x00;
 }
 
+double S98Player::GetPlaybackSpeed(void) const
+{
+	return _playOpts.genOpts.pbSpeed / (double)0x10000;
+}
+
 UINT8 S98Player::SetPlaybackSpeed(double speed)
 {
 	_playOpts.genOpts.pbSpeed = (UINT32)(0x10000 * speed);
@@ -748,13 +754,14 @@ UINT8 S98Player::SetPlaybackSpeed(double speed)
 
 void S98Player::RefreshTSRates(void)
 {
-	_tsMult = _outSmplRate * _fileHdr.tickMult;
+	_ttMult = _fileHdr.tickMult;
 	_tsDiv = _fileHdr.tickDiv;
 	if (_playOpts.genOpts.pbSpeed != 0 && _playOpts.genOpts.pbSpeed != 0x10000)
 	{
-		_tsMult *= 0x10000;
+		_ttMult *= 0x10000;
 		_tsDiv *= _playOpts.genOpts.pbSpeed;
 	}
+	_tsMult = _ttMult * _outSmplRate;
 	if (_tsMult != _lastTsMult ||
 	    _tsDiv != _lastTsDiv)
 	{
@@ -784,7 +791,7 @@ double S98Player::Tick2Second(UINT32 ticks) const
 {
 	if (ticks == (UINT32)-1)
 		return -1.0;
-	return ticks * _fileHdr.tickMult / (double)_fileHdr.tickDiv;
+	return (INT64)(ticks * _ttMult) / (double)(INT64)_tsDiv;
 }
 
 UINT8 S98Player::GetState(void) const
@@ -1027,7 +1034,8 @@ UINT8 S98Player::Start(void)
 		
 		for (clDev = &cDev->base; clDev != NULL; clDev = clDev->linkDev)
 		{
-			Resmpl_SetVals(&clDev->resmpl, 0xFF, 0x100, _outSmplRate);
+			UINT8 resmplMode = (devOpts != NULL) ? devOpts->resmplMode : RSMODE_LINEAR;
+			Resmpl_SetVals(&clDev->resmpl, resmplMode, 0x100, _outSmplRate);
 			if (deviceID == DEVID_YM2203 || deviceID == DEVID_YM2608)
 			{
 				// set SSG volume

@@ -84,7 +84,7 @@
 	{0xFF, 0x02, &VGMPlayer::Cmd_unknown},              // 3D
 	{0xFF, 0x02, &VGMPlayer::Cmd_unknown},              // 3E
 	{0x00, 0x02, &VGMPlayer::Cmd_GGStereo},             // 3F GameGear stereo mask (2nd chip)
-	{0xFF, 0x03, &VGMPlayer::Cmd_unknown},              // 40
+	{0x29, 0x03, &VGMPlayer::Cmd_Ofs8_Data8},           // 40 Mikey register write
 	{0xFF, 0x03, &VGMPlayer::Cmd_unknown},              // 41
 	{0xFF, 0x03, &VGMPlayer::Cmd_unknown},              // 42
 	{0xFF, 0x03, &VGMPlayer::Cmd_unknown},              // 43
@@ -541,7 +541,12 @@ void VGMPlayer::Cmd_unknown(void)
 {
 	// The difference between "invalid" and "unknown" is, that there is a command length
 	// defined for "unknown" and thus it is possible to just skip it.
-	emu_logf(&_logger, PLRLOG_WARN, "Unknown VGM command %02X found! (filePos 0x%06X)\n", fData[0x00], _filePos);
+	UINT8 cmdID = fData[0x00];
+	if (_shownCmdWarnings[cmdID] < 10)
+	{
+		_shownCmdWarnings[cmdID] ++;
+		emu_logf(&_logger, PLRLOG_WARN, "Unknown VGM command %02X found! (filePos 0x%06X)\n", cmdID, _filePos);
+	}
 	return;
 }
 
@@ -895,7 +900,7 @@ void VGMPlayer::Cmd_DACCtrl_Setup(void)	// DAC Stream Control: Setup Chip
 	if (destChip == NULL)
 		return;
 	
-	daccontrol_setup_chip(dacStrm->defInf.dataPtr, &destChip->base.defInf, chipType, chipCmd);
+	daccontrol_setup_chip(dacStrm->defInf.dataPtr, &destChip->base.defInf, destChip->chipType, chipCmd);
 	return;
 }
 
@@ -912,7 +917,10 @@ void VGMPlayer::Cmd_DACCtrl_SetData(void)	// DAC Stream Control: Set Data Bank
 	PCM_BANK* pcmBnk = &_pcmBank[dacStrm->bankID];
 	
 	dacStrm->maxItems = (UINT32)pcmBnk->bankOfs.size();
-	daccontrol_set_data(dacStrm->defInf.dataPtr, &pcmBnk->data[0], (UINT32)pcmBnk->data.size(), fData[0x03], fData[0x04]);
+	if (pcmBnk->data.empty())
+		daccontrol_set_data(dacStrm->defInf.dataPtr, NULL, 0, fData[0x03], fData[0x04]);
+	else
+		daccontrol_set_data(dacStrm->defInf.dataPtr, &pcmBnk->data[0], (UINT32)pcmBnk->data.size(), fData[0x03], fData[0x04]);
 	return;
 }
 

@@ -1,3 +1,5 @@
+// license:GPL-2.0+
+// copyright-holders:Nuke.YKT
 /*
  * Copyright (C) 2019 Nuke.YKT
  *
@@ -21,8 +23,8 @@
  */
 
 // Nuked OPLL internal structures/functions
-#ifndef __NUKEDOPLL_INT_H__
-#define __NUKEDOPLL_INT_H__
+#ifndef NUKEDOPLL_INT_H
+#define NUKEDOPLL_INT_H
 
 #include "../../stdtype.h"
 #include "../snddef.h"
@@ -227,4 +229,4 @@ void NOPLL_Write(opll_t *chip, uint32_t port, uint8_t data);
 
 void NOPLL_WriteBuffered(opll_t*chip, uint32_t port, uint8_t data);
 
-#endif	// __NUKEDOPLL_INT_H__
+#endif	// NUKEDOPLL_INT_H

@@ -132,7 +132,8 @@ struct _c140_state
 	float pbase;
 	UINT8 banking_type;
 
-	UINT32 pRomSize;
+	UINT32 romSize;
+	UINT32 romMask;
 	UINT8 *pRom;
 	UINT8 REG[0x200];
 
@@ -173,6 +174,9 @@ static UINT32 find_sample(c140_state *info, UINT32 adrs, UINT8 bank, int voice)
 			// System 21 banking.
 			// similar to System 2's.
 			return ((adrs&0x300000)>>1)+(adrs&0x7ffff);
+
+		case C140_TYPE_LINEAR:
+			return adrs;
 	}
 
 	return 0;
@@ -267,7 +271,7 @@ static void c140_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 	INT32   dt;
 	INT32   sz;
 
-	UINT8   *pSampleData;
+	UINT32  sampleAdr;
 	INT32   frequency,delta;
 	UINT32  cnt;
 
@@ -287,103 +291,62 @@ static void c140_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 	for( i=0;i<MAX_VOICE;i++ )
 	{
 		C140_VOICE *v = &info->voi[i];
-		const struct voice_registers *vreg = (struct voice_registers *)&info->REG[i*16];
+		const struct voice_registers *vreg = (struct voice_registers *)&info->REG[i * 16];
 
-		if( v->key && ! v->Muted)
+		if (v->key && ! v->Muted)
 		{
-			frequency = (vreg->frequency_msb<<8) | vreg->frequency_lsb;
+			frequency = (vreg->frequency_msb << 8) | vreg->frequency_lsb;
 
 			/* Abort voice if no frequency value set */
-			if(frequency==0) continue;
+			if (frequency==0) continue;
 
 			/* Delta =  frequency * ((8MHz/374)*2 / sample rate) */
-			delta=(INT32)((float)frequency * info->pbase);
+			delta = (INT32)((float)frequency * info->pbase);
 
 			/* calculate sample size */
-			sz=v->sample_end-v->sample_start;
+			sz = v->sample_end - v->sample_start;
 
 			/* Retrieve base pointer to the sample data */
-			pSampleData = info->pRom + find_sample(info, v->sample_start, vreg->bank, i);
+			sampleAdr = find_sample(info, v->sample_start, vreg->bank, i);
 
-			/* Switch on data type - compressed PCM is only for C140 */
-			if (vreg->mode&C140_MODE_MULAW)
+			/* linear or compressed PCM */
+			for (j = 0; j < samples; j++)
 			{
-				//compressed PCM (maybe correct...)
-				/* Loop for enough to fill sample buffer as requested */
-				for(j=0;j<samples;j++)
+				v->ptoffset += delta;
+				cnt = (v->ptoffset >> 16) & 0x7fff;
+				v->ptoffset &= 0xffff;
+				v->pos += cnt;
+				/* Check for the end of the sample */
+				if (v->pos >= sz)
 				{
-					v->ptoffset += delta;
-					cnt = (v->ptoffset>>16)&0x7fff;
-					v->ptoffset &= 0xffff;
-					v->pos+=cnt;
-					//for(;cnt>0;cnt--)
+					/* Check if its a looping sample, either stop or loop */
+					if (vreg->mode & C140_MODE_LOOP)
 					{
-						/* Check for the end of the sample */
-						if(v->pos >= sz)
-						{
-							/* Check if its a looping sample, either stop or loop */
-							if(vreg->mode&C140_MODE_LOOP)
-							{
-								v->pos = v->sample_loop - v->sample_start;
-							}
-							else
-							{
-								v->key=0;
-								break;
-							}
-						}
-
-						v->prevdt=v->lastdt;
-						v->lastdt=info->mulaw_table[pSampleData[v->pos]];
-						v->dltdt=(v->lastdt - v->prevdt);
+						v->pos = (v->sample_loop - v->sample_start);
 					}
-
-					/* Caclulate the sample value */
-					dt=(INT32)(((INT64)v->dltdt*v->ptoffset)>>16)+v->prevdt;
-
-					/* Write the data to the sample buffers */
-					lmix[j]+=(dt*vreg->volume_left)>>9;
-					rmix[j]+=(dt*vreg->volume_right)>>9;
+					else
+					{
+						v->key = 0;
+						break;
+					}
 				}
-			}
-			else
-			{
-				/* linear 8bit signed PCM */
-				for(j=0;j<samples;j++)
+
+				if (cnt)
 				{
-					v->ptoffset += delta;
-					cnt = (v->ptoffset>>16)&0x7fff;
-					v->ptoffset &= 0xffff;
-					v->pos += cnt;
-					/* Check for the end of the sample */
-					if(v->pos >= sz)
-					{
-						/* Check if its a looping sample, either stop or loop */
-						if( vreg->mode&C140_MODE_LOOP )
-						{
-							v->pos = v->sample_loop - v->sample_start;
-						}
-						else
-						{
-							v->key=0;
-							break;
-						}
-					}
-
-					if( cnt )
-					{
-						v->prevdt=v->lastdt;
-						v->lastdt=(INT8)pSampleData[v->pos]<<8;
-						v->dltdt = (v->lastdt - v->prevdt);
-					}
-
-					/* Caclulate the sample value */
-					dt=(INT32)(((INT64)v->dltdt*v->ptoffset)>>16)+v->prevdt;
-
-					/* Write the data to the sample buffers */
-					lmix[j]+=(dt*vreg->volume_left)>>9;
-					rmix[j]+=(dt*vreg->volume_right)>>9;
+					v->prevdt = v->lastdt;
+					if (vreg->mode & C140_MODE_MULAW)
+						v->lastdt = info->mulaw_table[info->pRom[(sampleAdr + v->pos) & info->romMask]];
+					else
+						v->lastdt = (INT8)info->pRom[(sampleAdr + v->pos) & info->romMask] << 8;
+					v->dltdt = (v->lastdt - v->prevdt);
 				}
+
+				/* Caclulate the sample value */
+				dt = (INT32)(((INT64)v->dltdt * v->ptoffset) >> 16) + v->prevdt;
+
+				/* Write the data to the sample buffers */
+				lmix[j] += (dt * vreg->volume_left) >> (5 + 4);
+				rmix[j] += (dt * vreg->volume_right) >> (5 + 4);
 			}
 		}
 	}
@@ -405,7 +368,7 @@ static UINT8 device_start_c140(const DEV_GEN_CFG* cfg, DEV_INFO* retDevInf)
 
 	info->banking_type = cfg->flags;
 
-	info->pRomSize = 0x00;
+	info->romSize = 0x00;
 	info->pRom = NULL;
 
 	for(i = 0; i < 256; i++)
@@ -454,11 +417,12 @@ static void c140_alloc_rom(void* chip, UINT32 memsize)
 {
 	c140_state *info = (c140_state *)chip;
 	
-	if (info->pRomSize == memsize)
+	if (info->romSize == memsize)
 		return;
 	
 	info->pRom = (UINT8*)realloc(info->pRom, memsize);
-	info->pRomSize = memsize;
+	info->romSize = memsize;
+	info->romMask = pow2_mask(memsize);
 	memset(info->pRom, 0xFF, memsize);
 	
 	return;
@@ -468,10 +432,10 @@ static void c140_write_rom(void *chip, UINT32 offset, UINT32 length, const UINT8
 {
 	c140_state *info = (c140_state *)chip;
 	
-	if (offset > info->pRomSize)
+	if (offset > info->romSize)
 		return;
-	if (offset + length > info->pRomSize)
-		length = info->pRomSize - offset;
+	if (offset + length > info->romSize)
+		length = info->romSize - offset;
 	
 	memcpy(info->pRom + offset, data, length);
 	

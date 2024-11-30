@@ -72,4 +72,6 @@ namespace Module::Platforms
   constexpr const auto SEGA_SATURN = "Sega Saturn"sv;
 
   constexpr const auto DREAMCAST = "Dreamcast"sv;
+
+  constexpr const auto ATARI_LYNX = "Atari Lynx"sv;
 }  // namespace Module::Platforms
