@@ -3,6 +3,7 @@ package app.zxtune.device.media
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.os.ResultReceiver
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat.RepeatMode
 import android.support.v4.media.session.PlaybackStateCompat.ShuffleMode
@@ -10,8 +11,12 @@ import app.zxtune.Logger
 import app.zxtune.MainService
 import app.zxtune.ScanService
 import app.zxtune.TimeStamp.Companion.fromMilliseconds
+import app.zxtune.core.PropertiesAccessor
+import app.zxtune.core.PropertiesModifier
 import app.zxtune.playback.service.PlaybackServiceLocal
 import app.zxtune.playback.stubs.PlayableItemStub
+import app.zxtune.preferences.RawPropertiesAdapter
+import app.zxtune.utils.ifNotNulls
 
 internal class ControlCallback(
     private val ctx: Context,
@@ -50,6 +55,25 @@ internal class ControlCallback(
         else -> Unit
     }
 
+    override fun onCommand(command: String?, extras: Bundle?, cb: ResultReceiver?) =
+        when (command) {
+            MainService.COMMAND_SET_CURRENT_PARAMETERS -> ifNotNulls(
+                extras, svc.playbackProperties
+            ) { data, props ->
+                setProperties(data, props)
+                cb?.send(0, data)
+            } ?: cb?.send(-1, null) ?: Unit
+
+            MainService.COMMAND_GET_CURRENT_PARAMETERS -> ifNotNulls(
+                extras, svc.playbackProperties, cb
+            ) { query, props, receiver ->
+                getProperties(props, query)
+                receiver.send(0, query)
+            } ?: cb?.send(-1, null) ?: Unit
+
+            else -> Unit
+        }
+
     private fun addCurrent() = svc.nowPlaying.takeIf { it !== PlayableItemStub.instance() }?.let {
         ScanService.add(ctx, it)
     } ?: Unit
@@ -68,5 +92,40 @@ internal class ControlCallback(
 
     companion object {
         private val LOG = Logger(ControlCallback::class.java.name)
+
+        private fun setProperties(src: Bundle, props: PropertiesModifier) =
+            with(RawPropertiesAdapter(props)) {
+                src.keySet().forEach { key ->
+                    src[key]?.let {
+                        LOG.d { "set prop[$key]=$it" }
+                        setProperty(key, it)
+                    }
+                }
+            }
+
+        private fun getProperties(src: PropertiesAccessor, data: Bundle) =
+            data.keySet().forEach { key ->
+                copyProperty(src, key, data)
+            }
+
+        private fun copyProperty(src: PropertiesAccessor, key: String, data: Bundle) =
+            when (val obj = data[key]) {
+                is String -> src.getProperty(key, obj).let {
+                    LOG.d { "get prop[$key, $obj]=$it" }
+                    data.putString(key, it)
+                }
+
+                is Long -> src.getProperty(key, obj).let {
+                    LOG.d { "get prop[$key, $obj]=$it" }
+                    data.putLong(key, it)
+                }
+
+                is Int -> src.getProperty(key, obj.toLong()).let {
+                    LOG.d { "get prop[$key, $obj]=$it" }
+                    data.putInt(key, it.toInt())
+                }
+
+                else -> Unit
+            }
     }
 }
