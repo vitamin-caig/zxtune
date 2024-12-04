@@ -48,4 +48,9 @@ object ModuleAttributes {
      * Raw module size
      */
     const val SIZE = "Size"
+
+    /**
+     * Endl-separated channel names if muting is supported
+     */
+    const val CHANNELS_NAMES = "ChannelsNames"
 }
