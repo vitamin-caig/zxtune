@@ -77,6 +77,7 @@ dependencies {
     implementation 'androidx.startup:startup-runtime:1.1.1'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
     implementation 'androidx.tracing:tracing-ktx:1.2.0'
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
 
     developImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
 }

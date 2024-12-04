@@ -14,6 +14,7 @@
   <string name="share">Compartir</string>
   <string name="sort">Ordenar</string>
   <string name="properties">Propiedades</string>
+  <string name="sound_controls">Controles de sonido</string>
   <string name="delete_all_items_query">Eliminar todos los elementos?</string>
   <string name="delete_selected_items_query">Eliminar elementos seleccionados?</string>
   <!--information-related-->

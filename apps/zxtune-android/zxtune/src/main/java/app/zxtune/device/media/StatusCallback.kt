@@ -21,6 +21,7 @@ import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.shareUrl
 import app.zxtune.playback.Callback
 import app.zxtune.playback.Item
+import app.zxtune.playback.PlayableItem
 import app.zxtune.playback.PlaybackControl
 import app.zxtune.playback.PlaybackService
 import kotlinx.coroutines.MainScope
@@ -74,6 +75,12 @@ internal class StatusCallback private constructor(
             putNonEmptyString(ModuleAttributes.COMMENT, item.comment)
             putNonEmptyString(ModuleAttributes.PROGRAM, item.program)
             putNonEmptyString(ModuleAttributes.STRINGS, item.strings)
+            if (item is PlayableItem) {
+                putNonEmptyString(
+                    ModuleAttributes.CHANNELS_NAMES,
+                    item.module.getProperty(ModuleAttributes.CHANNELS_NAMES, "")
+                )
+            }
             putLong(MediaMetadataCompat.METADATA_KEY_DURATION, item.duration.toMilliseconds())
             putLong(ModuleAttributes.SIZE, item.size)
             putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, dataId.toString())

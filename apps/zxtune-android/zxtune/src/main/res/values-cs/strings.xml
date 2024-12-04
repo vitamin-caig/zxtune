@@ -14,6 +14,7 @@
     <string name="share">Sdílet</string>
     <string name="sort">Třídit</string>
     <string name="properties">Vlastnost</string>
+    <string name="sound_controls">Ovládání zvuku</string>
     <string name="delete_all_items_query">Smazat všechny položky?</string>
     <string name="delete_selected_items_query">Smazat vybrané položky?</string>
     <!-- information-related -->

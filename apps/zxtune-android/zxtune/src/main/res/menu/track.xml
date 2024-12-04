@@ -25,6 +25,13 @@
             app:iconTint="?colorControlNormal"
             app:showAsAction="never" />
     <item
+            android:id="@+id/action_sound_controls"
+            android:icon="@drawable/ic_menu_sound_controls"
+            android:title="@string/sound_controls"
+            app:iconTint="?colorControlNormal"
+            app:showAsAction="never">
+    </item>
+    <item
             android:id="@+id/action_properties"
             android:icon="@drawable/ic_menu_info"
             android:title="@string/properties"

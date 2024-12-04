@@ -14,6 +14,7 @@
     <string name="share">Teilen</string>
     <string name="sort">Sortiervorgang</string>
     <string name="properties">Eigenschaft</string>
+    <string name="sound_controls">Soundsteuerung</string>
     <string name="delete_all_items_query">Alle Elemente löschen?</string>
     <string name="delete_selected_items_query">Ausgewählte Elemente löschen?</string>
     <!-- information-related -->
