@@ -12,7 +12,6 @@
 
 #include "formats/chiptune/digital/sampletracker.h"
 #include "module/players/dac/dac_simple.h"
-#include "module/players/platforms.h"
 
 #include "make_ptr.h"
 
@@ -38,12 +37,11 @@ namespace Module::SampleTracker
     DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
                                       Parameters::Container::Ptr properties) const override
     {
-      DAC::PropertiesHelper props(*properties);
+      DAC::PropertiesHelper props(*properties, CHANNELS_COUNT);
       DataBuilder::Ptr dataBuilder = DAC::CreateSimpleDataBuilder<CHANNELS_COUNT>(props);
       if (const auto container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
       {
         props.SetSource(*container);
-        props.SetPlatform(Platforms::ZX_SPECTRUM);
         return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), std::move(properties));
       }
       else

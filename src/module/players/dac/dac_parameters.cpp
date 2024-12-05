@@ -47,6 +47,12 @@ namespace Module::DAC
       return 0 != Parameters::GetInteger(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
     }
 
+    uint_t MuteMask() const override
+    {
+      using namespace Parameters::ZXTune::Core;
+      return Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+    }
+
   private:
     const uint_t Samplerate;
     const Parameters::Accessor::Ptr Params;

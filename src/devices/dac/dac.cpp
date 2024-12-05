@@ -249,6 +249,7 @@ namespace Devices::DAC
     const FastSample* Source = nullptr;
     FastSample::Iterator Iterator;
     SignedLevelType Level;
+    bool Muted = false;
 
     void Update(const SamplesStorage& samples, const ClockSource& clock, const ChannelData& state)
     {
@@ -297,12 +298,12 @@ namespace Devices::DAC
 
     Sound::Sample::Type GetNearest() const
     {
-      return Enabled ? Amplify(Iterator.GetNearest()) : Sound::Sample::MID;
+      return (Enabled && !Muted) ? Amplify(Iterator.GetNearest()) : Sound::Sample::MID;
     }
 
     Sound::Sample::Type GetInterpolated(const uint_t* lookup) const
     {
-      return Enabled ? Amplify(Iterator.GetInterpolated(lookup)) : Sound::Sample::MID;
+      return (Enabled && !Muted) ? Amplify(Iterator.GetInterpolated(lookup)) : Sound::Sample::MID;
     }
 
     void Next()
@@ -526,6 +527,10 @@ namespace Devices::DAC
       {
         Clock.SetFreq(Params->BaseSampleFreq(), Params->SoundFreq());
         Renderers.SetInterpolation(Params->Interpolate());
+        for (uint_t chan = 0, mask = Params->MuteMask(); chan < State.size(); ++chan, mask >>= 1)
+        {
+          State[chan].Muted = 0 != (mask & 1);
+        }
       }
     }
 
