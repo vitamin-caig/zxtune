@@ -18,16 +18,28 @@ namespace Devices::AYM
   class AYMDevice
   {
   public:
-    AYMDevice()
-      : NoiseMask(HIGH_LEVEL)
-      , EnvelopeMask(LOW_LEVEL)
-    {}
-
     void SetDutyCycle(uint_t value, uint_t mask)
     {
       GenA.SetDutyCycle(0 != (mask & CHANNEL_MASK_A) ? value : NO_DUTYCYCLE);
       GenB.SetDutyCycle(0 != (mask & CHANNEL_MASK_B) ? value : NO_DUTYCYCLE);
       GenC.SetDutyCycle(0 != (mask & CHANNEL_MASK_C) ? value : NO_DUTYCYCLE);
+    }
+
+    void SetMuteMask(uint_t mask)
+    {
+      MuteMask = LOW_LEVEL;
+      if (mask & CHANNEL_MASK_A)
+      {
+        MuteMask |= HIGH_LEVEL_A;
+      }
+      if (mask & CHANNEL_MASK_B)
+      {
+        MuteMask |= HIGH_LEVEL_B;
+      }
+      if (mask & CHANNEL_MASK_C)
+      {
+        MuteMask |= HIGH_LEVEL_C;
+      }
     }
 
     void SetMixer(uint_t mixer)
@@ -100,6 +112,7 @@ namespace Devices::AYM
       Levels = 0;
       NoiseMask = HIGH_LEVEL;
       EnvelopeMask = LOW_LEVEL;
+      MuteMask = LOW_LEVEL;
     }
 
     void Tick(uint_t ticks)
@@ -119,7 +132,7 @@ namespace Devices::AYM
       const uint_t toneB = GenB.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_B, HIGH_LEVEL>();
       const uint_t toneC = GenC.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_C, HIGH_LEVEL>();
 
-      return level & toneA & toneB & toneC & noise;
+      return (level & toneA & toneB & toneC & noise) | MuteMask;
     }
 
   private:
@@ -143,7 +156,8 @@ namespace Devices::AYM
     NoiseGenerator GenN;
     EnvelopeGenerator GenE;
     uint_t Levels = 0;
-    uint_t NoiseMask;
-    uint_t EnvelopeMask;
+    uint_t NoiseMask = HIGH_LEVEL;
+    uint_t EnvelopeMask = LOW_LEVEL;
+    uint_t MuteMask = LOW_LEVEL;
   };
 }  // namespace Devices::AYM

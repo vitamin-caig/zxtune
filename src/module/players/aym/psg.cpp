@@ -13,7 +13,7 @@
 #include "formats/chiptune/aym/psg.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
-#include "module/players/properties_helper.h"
+#include "module/players/aym/aym_properties_helper.h"
 
 #include "make_ptr.h"
 
@@ -62,7 +62,7 @@ namespace Module::PSG
       {
         if (auto data = dataBuilder.CaptureResult())
         {
-          PropertiesHelper props(*properties);
+          AYM::PropertiesHelper props(*properties);
           props.SetSource(*container);
           return AYM::CreateStreamedChiptune(AYM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
         }

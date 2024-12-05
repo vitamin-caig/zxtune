@@ -163,6 +163,7 @@ namespace Module::YMVTX
       {
         if (auto data = dataBuilder.CaptureResult())
         {
+          // TODO: detect platform by intfreq and clockrate
           props.SetSource(*container);
           return AYM::CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data), std::move(properties));
         }

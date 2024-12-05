@@ -74,6 +74,7 @@ namespace Devices::AYM
     virtual uint_t DutyCycleValue() const = 0;
     virtual uint_t DutyCycleMask() const = 0;
     virtual LayoutType Layout() const = 0;
+    virtual uint_t MuteMask() const = 0;
   };
 
   const uint_t SOUND_CHANNELS = 3;

@@ -13,10 +13,9 @@
 #include "formats/chiptune/aym/ayc.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
+#include "module/players/aym/aym_properties_helper.h"
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
-
-#include "core/core_parameters.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -82,10 +81,10 @@ namespace Module::AYC
       {
         if (auto data = dataBuilder.CaptureResult())
         {
-          PropertiesHelper props(*properties);
+          AYM::PropertiesHelper props(*properties);
           props.SetSource(*container);
           props.SetPlatform(Platforms::AMSTRAD_CPC);
-          properties->SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, 1000000);
+          props.SetChipFrequency(1000000);
           return AYM::CreateStreamedChiptune(AYM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
         }
       }
