@@ -5,6 +5,15 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev5080 from 06.12.2024
+
+[+] Supported channels muting for some formats
+[+] Supported Mikey chip for vgm playback
+[+] Supported NWA,STER and NXOPUS formats playback
+[*] Fixed playback of USF files
+[*] zxtune-android: improved startup and overall UI performance
+[*] Fixed seeking on tracker modules
+
 --- Rev5070 from 03.08.2024
 
 [+] Supported Loongson architecture
