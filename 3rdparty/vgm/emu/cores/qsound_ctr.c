@@ -163,6 +163,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_QSound_ctr =
 {
 	"QSound", "ctr", FCC_CTR_,
+	19,  // Channels
 	
 	device_start_qsound_ctr,
 	device_stop_qsound_ctr,

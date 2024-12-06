@@ -22,11 +22,14 @@
 
 #include "binary/compression/zlib_stream.h"
 #include "binary/format_factories.h"
+#include "core/core_parameters.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
 #include "math/numeric.h"
 #include "module/attributes.h"
+#include "parameters/tracking_helper.h"
 #include "strings/optimize.h"
+#include "tools/xrange.h"
 
 #include "byteorder.h"
 #include "contract.h"
@@ -40,8 +43,6 @@
 #include "3rdparty/gme/gme/Kss_Emu.h"
 #include "3rdparty/gme/gme/Nsf_Emu.h"
 #include "3rdparty/gme/gme/Nsfe_Emu.h"
-#include "3rdparty/gme/gme/Sap_Emu.h"
-#include "3rdparty/gme/gme/Vgm_Emu.h"
 
 #include <map>
 
@@ -69,6 +70,11 @@ namespace Module::GME
 
   using TimeBase = Time::Millisecond;
 
+  struct TuneInfo : ::track_info_t
+  {
+    Strings::Array Channels;
+  };
+
   struct GMETune
   {
     using Ptr = std::shared_ptr<GMETune>;
@@ -84,14 +90,22 @@ namespace Module::GME
     const uint_t Track;
     Time::Milliseconds Duration;
 
-    ::track_info_t GetInfo() const
+    TuneInfo GetInfo() const
     {
       const uint_t FAKE_SOUND_FREQUENCY = 30000;
       const auto emu = CreateEmu();
       CheckError(emu->set_sample_rate(FAKE_SOUND_FREQUENCY));
       CheckError(emu->load_mem(Data->Start(), Data->Size()));
-      ::track_info_t info;
+      TuneInfo info;
       CheckError(emu->track_info(&info, Track));
+      if (auto chans = emu->voice_count())
+      {
+        info.Channels.resize(chans);
+        for (auto i : xrange(chans))
+        {
+          info.Channels[i] = emu->voice_name(i);
+        }
+      }
       return info;
     }
 
@@ -145,6 +159,11 @@ namespace Module::GME
       CheckError(Emu->skip(samples));
     }
 
+    void SetChannelsMask(int mask)
+    {
+      Emu->mute_voices(mask);
+    }
+
     uint_t GetSoundFreq() const
     {
       return SoundFreq;
@@ -161,9 +180,10 @@ namespace Module::GME
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(GMETune::Ptr tune, uint_t samplerate)
+    Renderer(GMETune::Ptr tune, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
       , State(MakePtr<TimedState>(Tune->Duration))
+      , Params(std::move(params))
       , Engine(*Tune, samplerate)
     {}
 
@@ -174,6 +194,7 @@ namespace Module::GME
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       const auto avail = State->ConsumeUpTo(FRAME_DURATION);
       return Engine.Render(GetSamples(avail));
     }
@@ -182,6 +203,7 @@ namespace Module::GME
     {
       try
       {
+        Params.Reset();
         State->Reset();
         Engine.Reset();
       }
@@ -204,6 +226,16 @@ namespace Module::GME
     }
 
   private:
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        Engine.SetChannelsMask(val);
+      }
+    }
+
     uint_t GetSamples(Time::Microseconds period) const
     {
       return period.Get() * Engine.GetSoundFreq() / period.PER_SECOND;
@@ -224,6 +256,7 @@ namespace Module::GME
   private:
     const GMETune::Ptr Tune;
     const TimedState::Ptr State;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     GME Engine;
   };
 
@@ -245,11 +278,11 @@ namespace Module::GME
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
       try
       {
-        return MakePtr<Renderer>(Tune, samplerate);
+        return MakePtr<Renderer>(Tune, samplerate, std::move(params));
       }
       catch (const std::exception& e)
       {
@@ -301,7 +334,7 @@ namespace Module::GME
     }
   }  // namespace GYM
 
-  void GetProperties(const ::track_info_t& info, PropertiesHelper& props)
+  void GetProperties(const TuneInfo& info, PropertiesHelper& props)
   {
     const auto system = Strings::OptimizeAscii(info.system);
     const auto song = Strings::OptimizeAscii(info.song);
@@ -319,6 +352,7 @@ namespace Module::GME
     props.SetAuthor(author);
     props.SetComment(copyright);
     props.SetComment(comment);
+    props.SetChannels(info.Channels);
   }
 
   class MultitrackFactory : public Module::MultitrackFactory

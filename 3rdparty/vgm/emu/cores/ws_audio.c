@@ -40,6 +40,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"WonderSwan", "in_wsr", 0x00000000,
+	4,  // Channels
 	
 	ws_audio_init,
 	ws_audio_done,

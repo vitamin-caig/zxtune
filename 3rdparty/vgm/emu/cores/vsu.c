@@ -47,6 +47,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"VSU-VUE", "Mednafen", FCC_MEDN,
+	6,  // Channels
 	
 	device_start_vsu,
 	device_stop_vsu,

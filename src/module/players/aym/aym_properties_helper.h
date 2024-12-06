@@ -19,9 +19,7 @@ namespace Module::AYM
   class PropertiesHelper : public Module::PropertiesHelper
   {
   public:
-    explicit PropertiesHelper(Parameters::Modifier& delegate)
-      : Module::PropertiesHelper(delegate)
-    {}
+    explicit PropertiesHelper(Parameters::Modifier& delegate);
 
     void SetFrequencyTable(StringView freqTable);
     void SetChipType(uint_t type);

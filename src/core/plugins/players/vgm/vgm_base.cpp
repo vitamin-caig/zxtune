@@ -20,15 +20,19 @@
 #include "module/players/streaming.h"
 
 #include "binary/container_factories.h"
+#include "core/core_parameters.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
 #include "math/numeric.h"
 #include "module/attributes.h"
+#include "parameters/tracking_helper.h"
+#include "tools/xrange.h"
 
 #include "contract.h"
 #include "error_tools.h"
 #include "make_ptr.h"
 
+#include "3rdparty/vgm/emu/SoundEmu.h"
 #include "3rdparty/vgm/player/s98player.hpp"
 #include "3rdparty/vgm/player/vgmplayer.hpp"
 #include "3rdparty/vgm/utils/DataLoader.h"
@@ -139,6 +143,109 @@ namespace Module::LibVGM
     std::size_t Position;
   };
 
+  class ChannelsLayout
+  {
+    ChannelsLayout(const ChannelsLayout&) = delete;
+    ChannelsLayout(ChannelsLayout&&) = default;
+
+  public:
+    using Ptr = std::shared_ptr<const ChannelsLayout>;
+
+    explicit ChannelsLayout(const Model& tune)
+    {
+      LoaderAdapter loader(*tune.Data);
+      std::unique_ptr< ::PlayerBase> player(tune.CreatePlayer());
+      Require(0 == player->LoadFile(loader.Get()));
+      Require(0 == player->SetSampleRate(32000));
+      player->Start();
+      std::vector<PLR_DEV_INFO> devices;
+      player->GetSongDeviceInfo(devices);
+      Devices.reserve(devices.size());
+      for (const auto& dev : devices)
+      {
+        Devices.emplace_back(dev, TotalChannels);
+        auto& curDev = Devices.back();
+        TotalChannels += curDev.Core->channels;
+        ++Types[dev.type];
+      }
+    }
+
+    Strings::Array GetChannelsNames() const
+    {
+      if (TotalChannels > 63)
+      {
+        return {};
+      }
+      Strings::Array result;
+      result.reserve(TotalChannels);
+      for (const auto& dev : Devices)
+      {
+        String name = dev.Core->name;
+        if (Types[dev.Info.type] > 1)
+        {
+          name += ':';
+          name += std::to_string(int(dev.Info.instance));
+        }
+        if (dev.Core->channels > 1)
+        {
+          name += '.';
+          for (uint_t ch : xrange(dev.Core->channels))
+          {
+            result.emplace_back(name + std::to_string(ch));
+          }
+        }
+        else
+        {
+          result.emplace_back(std::move(name));
+        }
+      }
+      return result;
+    }
+
+    void ApplyMuteMask(int64_t mask, ::PlayerBase& player) const
+    {
+      for (const auto& dev : Devices)
+      {
+        PLR_MUTE_OPTS opt = {};
+        opt.chnMute[0] = static_cast<UINT32>(mask >> dev.MuteMaskShift);
+        player.SetDeviceMuting(dev.Info.id, opt);
+      }
+    }
+
+  private:
+    static const DEV_DEF* FindDeviceCore(const PLR_DEV_INFO& dev)
+    {
+      if (const auto** cores = ::SndEmu_GetDevDefList(dev.type))
+      {
+        for (const auto* core = *cores; core; core = *++cores)
+        {
+          if (core->coreID == dev.core)
+          {
+            return core;
+          }
+        }
+      }
+      Require(false);
+      return {};
+    }
+
+    struct Device
+    {
+      PLR_DEV_INFO Info;
+      const DEV_DEF* Core;
+      uint_t MuteMaskShift;
+
+      Device(const PLR_DEV_INFO& info, uint_t shift)
+        : Info(info)
+        , Core(FindDeviceCore(info))
+        , MuteMaskShift(shift)
+      {}
+    };
+    std::vector<Device> Devices;
+    uint_t TotalChannels = 0;
+    std::array<uint8_t, 0x30> Types = {};
+  };
+
   const Time::Milliseconds FRAME_DURATION(20);
 
   class VGMEngine : public State
@@ -146,8 +253,9 @@ namespace Module::LibVGM
   public:
     using RWPtr = std::shared_ptr<VGMEngine>;
 
-    VGMEngine(Model::Ptr tune, const Module::Information& info, uint_t samplerate)
+    VGMEngine(Model::Ptr tune, const Module::Information& info, ChannelsLayout::Ptr channels, uint_t samplerate)
       : Tune(std::move(tune))
+      , Channels(std::move(channels))
       , Loader(*Tune->Data)
       , Delegate(Tune->CreatePlayer())
     {
@@ -207,6 +315,11 @@ namespace Module::LibVGM
       WholeLoopCount = 0;
     }
 
+    void MuteChannels(int64_t mask)
+    {
+      Channels->ApplyMuteMask(mask, *Delegate);
+    }
+
   private:
     template<class Duration>
     uint_t ToTicks(Duration dur) const
@@ -249,6 +362,7 @@ namespace Module::LibVGM
 
   private:
     const Model::Ptr Tune;
+    const ChannelsLayout::Ptr Channels;
     LoaderAdapter Loader;
     std::unique_ptr< ::PlayerBase> Delegate;
     uint_t TotalTicks = 0;
@@ -260,8 +374,10 @@ namespace Module::LibVGM
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr tune, const Module::Information& info, uint_t samplerate)
-      : Engine(MakeRWPtr<VGMEngine>(std::move(tune), info, samplerate))
+    Renderer(Model::Ptr tune, const Module::Information& info, ChannelsLayout::Ptr channels, uint_t samplerate,
+             Parameters::Accessor::Ptr params)
+      : Engine(MakeRWPtr<VGMEngine>(std::move(tune), info, std::move(channels), samplerate))
+      , Params(std::move(params))
     {}
 
     State::Ptr GetState() const override
@@ -271,6 +387,7 @@ namespace Module::LibVGM
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       return Engine->Render();
     }
 
@@ -299,15 +416,29 @@ namespace Module::LibVGM
     }
 
   private:
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const auto mask = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        Engine->MuteChannels(mask);
+      }
+    }
+
+  private:
     const VGMEngine::RWPtr Engine;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
   };
 
   class Holder : public Module::Holder
   {
   public:
-    Holder(Model::Ptr tune, Module::Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(Model::Ptr tune, Module::Information::Ptr info, ChannelsLayout::Ptr channels,
+           Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
       , Info(std::move(info))
+      , Channels(std::move(channels))
       , Properties(std::move(props))
     {}
 
@@ -321,11 +452,11 @@ namespace Module::LibVGM
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
       try
       {
-        return MakePtr<Renderer>(Tune, *Info, samplerate);
+        return MakePtr<Renderer>(Tune, *Info, Channels, samplerate, std::move(params));
       }
       catch (const std::exception& e)
       {
@@ -336,6 +467,7 @@ namespace Module::LibVGM
   private:
     const Model::Ptr Tune;
     const Module::Information::Ptr Info;
+    const ChannelsLayout::Ptr Channels;
     const Parameters::Accessor::Ptr Properties;
   };
 }  // namespace Module::LibVGM
@@ -399,9 +531,11 @@ namespace Module::VideoGameMusic
           props.SetPlatform(DetectPlatform(*tune->Data));
 
           props.SetSource(*container);
+          auto layout = MakePtr<Module::LibVGM::ChannelsLayout>(*tune);
+          props.SetChannels(layout->GetChannelsNames());
           auto info = dataBuilder.CaptureResult(*properties);
 
-          return MakePtr<LibVGM::Holder>(std::move(tune), std::move(info), std::move(properties));
+          return MakePtr<LibVGM::Holder>(std::move(tune), std::move(info), std::move(layout), std::move(properties));
         }
       }
       catch (const std::exception& e)
@@ -460,7 +594,11 @@ namespace Module::Sound98
 
           props.SetSource(*container);
 
-          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.CaptureResult(), std::move(properties));
+          auto layout = MakePtr<Module::LibVGM::ChannelsLayout>(*tune);
+          props.SetChannels(layout->GetChannelsNames());
+
+          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.CaptureResult(), std::move(layout),
+                                         std::move(properties));
         }
       }
       catch (const std::exception& e)

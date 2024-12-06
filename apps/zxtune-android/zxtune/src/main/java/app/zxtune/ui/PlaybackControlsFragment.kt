@@ -165,13 +165,13 @@ class PlaybackControlsFragment : Fragment() {
         }
 
         private fun setup(
-            menu: Menu, controller: MediaControllerCompat?, metadata: MediaMetadataCompat?
+            menu: Menu,
+            controller: MediaControllerCompat?,
+            metadata: MediaMetadataCompat?,
         ) = with(menu) {
             item(R.id.action_add).bindOnClick(ifNotNulls(controller?.transportControls,
                 metadata?.description?.mediaId?.takeUnless {
-                    it.startsWith(
-                        ContentResolver.SCHEME_CONTENT
-                    )
+                    it.startsWith(ContentResolver.SCHEME_CONTENT)
                 }) { ctrl, _ ->
                 {
                     ctrl.sendCustomAction(MainService.CUSTOM_ACTION_ADD_CURRENT, null)
@@ -193,6 +193,9 @@ class PlaybackControlsFragment : Fragment() {
             item(R.id.action_properties).bindOnClick(metadata?.let {
                 { InformationFragment.show(ctx, it) }
             })
+            item(R.id.action_sound_controls).bindOnClick(if (SoundControlFragment.needShow(metadata)) {
+                { SoundControlFragment.show(ctx) }
+            } else null)
         }
     }
 }

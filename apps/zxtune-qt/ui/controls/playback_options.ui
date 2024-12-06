@@ -170,6 +170,24 @@
      </layout>
     </widget>
    </item>
+   <item>
+    <widget class="QFrame" name="MuteOptions">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QHBoxLayout" name="MuteButtons">
+      <property name="spacing">
+       <number>1</number>
+      </property>
+      <property name="margin">
+       <number>2</number>
+      </property>
+     </layout>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources>

@@ -44,6 +44,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_SN76489_Maxim =
 {
 	"SN76489", "Maxim", FCC_MAXM,
+	4,  // Channels
 	
 	(DEVFUNC_START)device_start_sn76496_maxim,
 	(DEVFUNC_CTRL)SN76489_Shutdown,

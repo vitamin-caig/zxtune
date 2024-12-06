@@ -14,6 +14,7 @@
     <string name="share">共有</string>
     <string name="sort">ソート</string>
     <string name="properties">プロパティ</string>
+    <string name="sound_controls">サウンドコントロール</string>
     <string name="delete_all_items_query">すべての項目を削除しますか？</string>
     <string name="delete_selected_items_query">選択した項目を削除しますか？</string>
     <!-- information-related -->

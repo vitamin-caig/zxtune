@@ -91,6 +91,7 @@ struct _device_definition
 	const char* author;	// author/origin of emulation
 	UINT32 coreID;		// 4-character identifier ID to distinguish between
 						// multiple emulators of a device
+	UINT32 channels;        // valuable bits in SetMuteMask argument
 	
 	DEVFUNC_START Start;
 	DEVFUNC_CTRL Stop;

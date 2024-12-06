@@ -72,6 +72,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_C6280_MAME =
 {
 	"HuC6280", "MAME", FCC_MAME,
+	6,  // Channels
 	
 	device_start_c6280_mame,
 	device_stop_c6280mame,

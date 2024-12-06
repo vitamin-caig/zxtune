@@ -78,6 +78,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"SCSP", "MAME", FCC_MAME,
+	32,  // Channels
 	
 	device_start_scsp,
 	device_stop_scsp,

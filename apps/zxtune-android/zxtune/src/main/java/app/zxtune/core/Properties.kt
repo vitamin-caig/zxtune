@@ -9,6 +9,15 @@ object Properties {
      */
     const val PREFIX = "zxtune."
 
+    object Core {
+        private const val PREFIX = Properties.PREFIX + "core."
+
+        /**
+         * Channels muting mask (if supported, @see ModuleAttributes.CHANNELS_NAMES)
+         */
+        const val CHANNELS_MASK = PREFIX + "channels_mask"
+    }
+
     /**
      * Sound properties 'namespace'
      */

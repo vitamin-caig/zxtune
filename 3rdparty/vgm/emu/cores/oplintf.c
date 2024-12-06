@@ -44,6 +44,7 @@ static DEVDEF_RWFUNC devFunc3812_MAME[] =
 static DEV_DEF devDef3812_MAME =
 {
 	"YM3812", "MAME", FCC_MAME,
+	15,  // Channels
 	
 	device_start_ym3812_mame,
 	ym3812_shutdown,
@@ -71,6 +72,7 @@ static DEVDEF_RWFUNC devFunc3812_Emu[] =
 static DEV_DEF devDef3812_AdLibEmu =
 {
 	"YM3812", "AdLibEmu", FCC_ADLE,
+	14, // Channels
 	
 	device_start_ym3812_adlibemu,
 	adlib_OPL2_stop,
@@ -98,6 +100,7 @@ static DEVDEF_RWFUNC devFunc3812_Nuked[] =
 static DEV_DEF devDef3812_Nuked =
 {
 	"YM3812", "Nuked OPL3", FCC_NUKE,
+	18,  // Channels
 	
 	device_start_ym3812_nuked,
 	nukedopl3_shutdown,
@@ -143,6 +146,7 @@ static DEVDEF_RWFUNC devFunc3526_MAME[] =
 static DEV_DEF devDef3526_MAME =
 {
 	"YM3526", "MAME", FCC_MAME,
+	15,  // Channels
 	
 	device_start_ym3526,
 	ym3526_shutdown,
@@ -180,6 +184,7 @@ static DEVDEF_RWFUNC devFunc8950_MAME[] =
 static DEV_DEF devDef8950_MAME =
 {
 	"Y8950", "MAME", FCC_MAME,
+	15,  // Channels
 	
 	device_start_y8950,
 	y8950_shutdown,

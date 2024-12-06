@@ -17,9 +17,7 @@ namespace Module::DAC
   class PropertiesHelper : public Module::PropertiesHelper
   {
   public:
-    explicit PropertiesHelper(Parameters::Modifier& delegate)
-      : Module::PropertiesHelper(delegate)
-    {}
+    PropertiesHelper(Parameters::Modifier& delegate, uint_t channels);
 
     void SetSamplesFrequency(uint_t freq);
   };

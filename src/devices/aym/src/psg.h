@@ -32,6 +32,11 @@ namespace Devices::AYM
       Device.SetDutyCycle(value, mask);
     }
 
+    void SetMuteMask(uint_t mask)
+    {
+      Device.SetMuteMask(mask);
+    }
+
     void Reset()
     {
       Device.Reset();

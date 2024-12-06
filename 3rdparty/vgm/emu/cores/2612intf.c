@@ -37,6 +37,7 @@ static DEVDEF_RWFUNC devFunc_MAME[] =
 static DEV_DEF devDef_MAME =
 {
 	"YM2612", "GPGX", FCC_GPGX,
+	7,  // Channels
 	
 	device_start_ym2612_mame,
 	ym2612_shutdown,
@@ -63,6 +64,7 @@ static DEVDEF_RWFUNC devFunc_Gens[] =
 static DEV_DEF devDef_Gens =
 {
 	"YM2612", "Gens", FCC_GENS,
+	7,  // Channels
 	
 	device_start_ym2612_gens,
 	(DEVFUNC_CTRL)YM2612_End,
@@ -89,6 +91,7 @@ static DEVDEF_RWFUNC devFunc_Nuked[] =
 static DEV_DEF devDef_Nuked =
 {
 	"YM3438", "Nuked OPN2", FCC_NUKE,
+	7,  // Channels
 	
 	device_start_ym2612_nuked,
 	nukedopn2_shutdown,

@@ -6,7 +6,7 @@ import app.zxtune.TimeStamp
 /**
  * Player interface
  */
-interface Player : PropertiesModifier, Releaseable {
+interface Player : PropertiesContainer, Releaseable {
     /**
      * @return Position
      */

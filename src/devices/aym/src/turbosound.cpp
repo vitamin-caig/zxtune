@@ -33,6 +33,12 @@ namespace Devices::TurboSound
       Chip1.SetDutyCycle(value, mask);
     }
 
+    void SetMuteMask(uint_t mask)
+    {
+      Chip0.SetMuteMask(mask);
+      Chip1.SetMuteMask(mask >> AYM::VOICES);
+    }
+
     void Reset()
     {
       Chip0.Reset();

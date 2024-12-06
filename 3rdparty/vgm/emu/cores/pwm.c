@@ -57,6 +57,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"PWM", "Gens/GS", FCC_GENS,
+	1,  // Channels
 	
 	device_start_pwm,
 	device_stop_pwm,

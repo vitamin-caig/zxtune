@@ -15,7 +15,6 @@
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/aym/turbosound.h"
 #include "module/players/aym/vortex.h"
-#include "module/players/platforms.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
@@ -485,13 +484,13 @@ namespace Module::ProTracker3
       if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        props.SetPlatform(Platforms::ZX_SPECTRUM);
         const uint_t patOffset = dataBuilder.GetPatOffset();
         auto modData = dataBuilder.CaptureResult();
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
           // TurboSound modules
           props.SetComment(TURBOSOUND_COMMENT);
+          props.SetChannels(TurboSound::MakeChannelsNames());
           modData->Patterns = TS::CreatePatterns(patOffset, std::move(modData->Patterns));
           auto chiptune = MakePtr<TS::Chiptune>(std::move(modData), std::move(properties));
           return TurboSound::CreateHolder(std::move(chiptune));

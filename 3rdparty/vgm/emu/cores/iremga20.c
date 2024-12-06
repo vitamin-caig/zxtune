@@ -81,6 +81,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"Irem GA20", "MAME", FCC_MAME,
+	4,  // Channels
 	
 	device_start_iremga20,
 	device_stop_iremga20,

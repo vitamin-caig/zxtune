@@ -62,6 +62,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_SAA1099_VB =
 {
 	"SAA1099", "Valley Bell", FCC_VBEL,
+	6,  // Channels
 	
 	device_start_saa1099_vb,
 	saa1099v_destroy,

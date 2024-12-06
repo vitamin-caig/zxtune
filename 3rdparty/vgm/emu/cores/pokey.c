@@ -125,6 +125,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
 	"POKEY", "MAME", FCC_MAME,
+	4,  // Channels
 	
 	device_start_pokey,
 	device_stop_pokey,

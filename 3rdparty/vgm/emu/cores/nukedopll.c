@@ -50,6 +50,7 @@ static DEVDEF_RWFUNC devFunc[] =
 DEV_DEF devDef_YM2413_Nuked =
 {
 	"YM2413", "Nuked OPLL", FCC_NUKE,
+	14,  // Channels
 	
 	device_start_ym2413_nuked,
 	nukedopll_shutdown,

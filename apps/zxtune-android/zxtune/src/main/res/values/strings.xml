@@ -14,6 +14,7 @@
     <string name="share">Share</string>
     <string name="sort">Sort</string>
     <string name="properties">Properties</string>
+    <string name="sound_controls">Sound controls</string>
     <string name="delete_all_items_query">Delete all items?</string>
     <string name="delete_selected_items_query">Delete selected items?</string>
     <!-- information-related -->

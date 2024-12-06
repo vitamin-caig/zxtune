@@ -46,6 +46,7 @@ namespace Module
     void SetVersion(StringView version);
     void SetDate(StringView date);
     void SetPlatform(StringView platform);
+    void SetChannels(const Strings::Array& names);
 
     // Sound
     void SetFadein(Time::Milliseconds fadein);

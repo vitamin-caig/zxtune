@@ -31,6 +31,7 @@ static DEVDEF_RWFUNC devFunc[] =
 static DEV_DEF devDef =
 {
   "MIKEY", "laoo", FCC_LAOO,
+  4,  // Channels
 
   mikey_start,
   mikey_stop,

@@ -49,6 +49,8 @@ namespace Module
   constexpr auto ATTR_PLATFORM = "Platform"sv;
   //! Covert art
   constexpr auto ATTR_PICTURE = "Picture"sv;
+  //! Channels names. Endl-delimited list, should be only provided if zxtune.core.channels_mask parameter supported
+  constexpr auto ATTR_CHANNELS_NAMES = "ChannelsNames"sv;
   //@}
 
   //@{

@@ -10,6 +10,8 @@
 
 #include "module/players/aym/aym_properties_helper.h"
 
+#include "module/players/platforms.h"
+
 #include "core/core_parameters.h"
 
 #include "string_view.h"
@@ -18,6 +20,13 @@
 
 namespace Module::AYM
 {
+  PropertiesHelper::PropertiesHelper(Parameters::Modifier& delegate)
+    : Module::PropertiesHelper(delegate)
+  {
+    SetChannels({"A"s, "B"s, "C"s});
+    SetPlatform(Platforms::ZX_SPECTRUM);
+  }
+
   void PropertiesHelper::SetFrequencyTable(StringView freqTable)
   {
     assert(!freqTable.empty());

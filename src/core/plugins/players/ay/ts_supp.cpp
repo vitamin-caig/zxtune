@@ -124,6 +124,7 @@ namespace Module::TS
         {
           PropertiesHelper props(*properties);
           props.SetSource(*container);
+          props.SetChannels(TurboSound::MakeChannelsNames());
           auto chiptune =
               TurboSound::CreateChiptune(std::move(properties), dataBuilder.GetFirst(), dataBuilder.GetSecond());
           return TurboSound::CreateHolder(std::move(chiptune));

@@ -440,35 +440,35 @@ void module::ctl_set_text( std::string_view ctl, std::string_view value ) {
 	impl->ctl_set_text( ctl, value );
 }
 
-module_ext::module_ext( std::istream & stream, std::ostream & log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
+module_ext::module_ext( std::istream & stream, std::ostream * log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
 	ext_impl = new module_ext_impl( stream, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 	set_impl( ext_impl );
 }
-module_ext::module_ext( const std::vector<std::uint8_t> & data, std::ostream & log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
+module_ext::module_ext( const std::vector<std::uint8_t> & data, std::ostream * log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
 	ext_impl = new module_ext_impl( data, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 	set_impl( ext_impl );
 }
-module_ext::module_ext( const std::vector<char> & data, std::ostream & log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
+module_ext::module_ext( const std::vector<char> & data, std::ostream * log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
 	ext_impl = new module_ext_impl( data, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 	set_impl( ext_impl );
 }
-module_ext::module_ext( const std::vector<std::byte> & data, std::ostream & log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
+module_ext::module_ext( const std::vector<std::byte> & data, std::ostream * log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
 	ext_impl = new module_ext_impl( data, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 	set_impl( ext_impl );
 }
-module_ext::module_ext( const std::uint8_t * data, std::size_t size, std::ostream & log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
+module_ext::module_ext( const std::uint8_t * data, std::size_t size, std::ostream * log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
 	ext_impl = new module_ext_impl( data, size, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 	set_impl( ext_impl );
 }
-module_ext::module_ext( const char * data, std::size_t size, std::ostream & log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
+module_ext::module_ext( const char * data, std::size_t size, std::ostream * log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
 	ext_impl = new module_ext_impl( data, size, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 	set_impl( ext_impl );
 }
-module_ext::module_ext( const std::byte * data, std::size_t size, std::ostream & log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
+module_ext::module_ext( const std::byte * data, std::size_t size, std::ostream * log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
 	ext_impl = new module_ext_impl( data, size, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 	set_impl( ext_impl );
 }
-module_ext::module_ext( const void * data, std::size_t size, std::ostream & log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
+module_ext::module_ext( const void * data, std::size_t size, std::ostream * log, const std::map< std::string, std::string > & ctls ) : ext_impl(0) {
 	ext_impl = new module_ext_impl( data, size, openmpt::helper::make_unique<std_ostream_log>( log ), ctls );
 	set_impl( ext_impl );
 }

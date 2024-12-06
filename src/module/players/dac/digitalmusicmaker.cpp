@@ -14,7 +14,6 @@
 #include "formats/chiptune/digital/digitalmusicmaker.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
-#include "module/players/platforms.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 #include "module/players/tracking.h"
@@ -670,12 +669,11 @@ namespace Module::DigitalMusicMaker
     DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
                                       Parameters::Container::Ptr properties) const override
     {
-      DAC::PropertiesHelper props(*properties);
+      DAC::PropertiesHelper props(*properties, CHANNELS_COUNT);
       DataBuilder dataBuilder(props);
       if (const auto container = Formats::Chiptune::DigitalMusicMaker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        props.SetPlatform(Platforms::ZX_SPECTRUM);
         return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else

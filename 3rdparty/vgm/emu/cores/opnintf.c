@@ -56,6 +56,7 @@ static DEVDEF_RWFUNC devFunc_MAME_2203[] =
 static DEV_DEF devDef_MAME_2203 =
 {
 	"YM2203", "MAME", FCC_MAME,
+	3,  // Channels
 	
 	device_start_ym2203,
 	device_stop_ym2203,
@@ -92,6 +93,7 @@ static DEVDEF_RWFUNC devFunc_MAME_2608[] =
 static DEV_DEF devDef_MAME_2608 =
 {
 	"YM2608", "MAME", FCC_MAME,
+	13,  // Channels
 	
 	device_start_ym2608,
 	device_stop_ym2608,
@@ -130,6 +132,7 @@ static DEVDEF_RWFUNC devFunc_MAME_2610[] =
 static DEV_DEF devDef_MAME_2610 =
 {
 	"YM2610", "MAME", FCC_MAME,
+	13,  // Channels
 	
 	device_start_ym2610,
 	device_stop_ym2610,
@@ -148,6 +151,7 @@ static DEV_DEF devDef_MAME_2610 =
 static DEV_DEF devDef_MAME_2610B =
 {
 	"YM2610B", "MAME", FCC_MAME,
+	13,  // Channels
 	
 	device_start_ym2610,
 	device_stop_ym2610,

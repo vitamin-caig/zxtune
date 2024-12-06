@@ -138,11 +138,10 @@ class MainService : MediaBrowserServiceCompat() {
         private val TAG = MainService::class.java.name
         private val LOG = Logger(TAG)
 
-        @JvmStatic
         val CUSTOM_ACTION_ADD_CURRENT = "$TAG.CUSTOM_ACTION_ADD_CURRENT"
-
-        @JvmStatic
         val CUSTOM_ACTION_ADD = "$TAG.CUSTOM_ACTION_ADD"
+        val COMMAND_GET_CURRENT_PARAMETERS = "$TAG.COMMAND_GET_CURRENT_PARAMETERS"
+        val COMMAND_SET_CURRENT_PARAMETERS = "$TAG.COMMAND_SET_CURRENT_PARAMETERS"
 
         @JvmStatic
         fun createIntent(ctx: Context, action: String?) =
