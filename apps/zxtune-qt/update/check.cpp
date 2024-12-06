@@ -20,6 +20,8 @@
 
 #include "debug/log.h"
 #include "platform/version/fields.h"
+#include "time/duration.h"
+#include "time/instant.h"
 
 #include "contract.h"
 #include "error.h"
@@ -128,10 +130,11 @@ namespace
         }));
     Require(QObject::connect(reply, &QNetworkReply::errorOccurred,
                              [reply, ui = std::move(cb)](QNetworkReply::NetworkError err) {
-                               Dbg("Network error {}", uint_t(err));
+                               const auto& errStr = FromQString(reply->errorString());
+                               Dbg("Network error {}: {}", uint_t(err), errStr);
                                if (QNetworkReply::OperationCanceledError != err)
                                {
-                                 ui->ShowError(Error(THIS_LINE, FromQString(reply->errorString())));
+                                 ui->ShowError(Error(THIS_LINE, errStr));
                                }
                              }));
     Require(QObject::connect(reply, &QNetworkReply::finished, [reply, cb = std::move(onResult)] {
@@ -314,7 +317,15 @@ namespace
     QPointer<QFile> Object;
   };
 
-  const unsigned CHECK_UPDATE_DELAY = 60;
+  const auto CHECK_UPDATE_DELAY = Time::Seconds(60);
+
+  // TODO: move to Time
+  using AtSecond = Time::Instant<Time::Second>;
+
+  auto Now()
+  {
+    return AtSecond(std::time(nullptr));
+  }
 
   class UpdateParameters
   {
@@ -330,21 +341,29 @@ namespace
       return ToQString(url);
     }
 
-    unsigned GetCheckPeriod() const
+    std::optional<Time::Seconds> GetCheckPeriod() const
     {
       using namespace Parameters::ZXTuneQT::Update;
-      return Parameters::GetInteger<unsigned>(*Params, CHECK_PERIOD, CHECK_PERIOD_DEFAULT);
+      if (const auto val =
+              Parameters::GetInteger<Time::Seconds::ValueType>(*Params, CHECK_PERIOD, CHECK_PERIOD_DEFAULT))
+      {
+        return Time::Seconds(val);
+      }
+      else
+      {
+        return std::nullopt;
+      }
     }
 
-    std::time_t GetLastCheckTime() const
+    AtSecond GetLastCheckTime() const
     {
       using namespace Parameters;
-      return GetInteger<std::time_t>(*Params, ZXTuneQT::Update::LAST_CHECK);
+      return AtSecond{GetInteger<AtSecond::ValueType>(*Params, ZXTuneQT::Update::LAST_CHECK)};
     }
 
-    void SetLastCheckTime(std::time_t time)
+    void SetLastCheckTime(AtSecond time)
     {
-      Params->SetValue(Parameters::ZXTuneQT::Update::LAST_CHECK, time);
+      Params->SetValue(Parameters::ZXTuneQT::Update::LAST_CHECK, time.Get());
     }
 
   private:
@@ -360,7 +379,7 @@ namespace
       , Network(this)
     {
       setParent(&parent);
-      QTimer::singleShot(CHECK_UPDATE_DELAY * 1000, this, &UpdateCheckOperation::ExecuteBackground);
+      ScheduleBackgroundCheck(CHECK_UPDATE_DELAY);
     }
 
     void Execute() override
@@ -450,30 +469,45 @@ namespace
 
     void StoreLastCheckTime() const
     {
-      Params.SetLastCheckTime(std::time(nullptr));
+      Params.SetLastCheckTime(AtSecond(std::time(nullptr)));
     }
 
-    bool CheckPeriodExpired() const
+    void ScheduleBackgroundCheck(Time::Milliseconds delay)
     {
-      if (const unsigned period = Params.GetCheckPeriod())
+      Dbg("Schedule verify after {}ms", delay.Get());
+      QTimer::singleShot(delay.Get(), this, &UpdateCheckOperation::ExecuteBackground);
+    }
+
+    std::optional<Time::Seconds> GetCheckDelay() const
+    {
+      if (const auto period = Params.GetCheckPeriod())
       {
-        const std::time_t lastCheck = Params.GetLastCheckTime();
-        const std::time_t now = std::time(nullptr);
-        return now > lastCheck + period;
+        const auto nextCheck = Params.GetLastCheckTime() + *period;
+        const auto now = Now();
+        return now < nextCheck ? nextCheck - now : Time::Seconds(0);
       }
       else
       {
-        return false;
+        return std::nullopt;
       }
     }
 
     void ExecuteBackground()
     {
-      // If check was performed before
-      if (CheckPeriodExpired())
+      // Update check is performed only if enabled, but operation executes periodically in order to cover settings
+      // change
+      auto after = Time::Seconds(3600);
+      if (!GetCheckDelay().value_or(after))
       {
+        Dbg("Check updates now");
         GetAvailableUpdate(MakePtr<SilentUICallback>(), &UpdateCheckOperation::ProcessUpdateSilent);
       }
+      if (const auto delay = GetCheckDelay().value_or(Time::Seconds(0)))
+      {
+        // Ignore zero delays - here means failed update check
+        after = delay;
+      }
+      ScheduleBackgroundCheck(after);
     }
 
   private:

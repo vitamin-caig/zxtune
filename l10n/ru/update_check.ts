@@ -4,22 +4,22 @@
 <context>
     <name>Update::CheckOperation</name>
     <message>
-        <location filename="../../apps/zxtune-qt/update/check.cpp" line="394"/>
+        <location filename="../../apps/zxtune-qt/update/check.cpp" line="412"/>
         <source>No new updates found</source>
         <translation>Обновлений нет</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/update/check.cpp" line="368"/>
+        <location filename="../../apps/zxtune-qt/update/check.cpp" line="386"/>
         <source>Getting list of available updates</source>
         <translation>Получение списка обновлений</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/update/check.cpp" line="412"/>
+        <location filename="../../apps/zxtune-qt/update/check.cpp" line="430"/>
         <source>Available version %1</source>
         <translation>Доступно обновление версии %1</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../apps/zxtune-qt/update/check.cpp" line="417"/>
+        <location filename="../../apps/zxtune-qt/update/check.cpp" line="435"/>
         <source>%1 (%n day(s) ago)</source>
         <translation>
             <numerusform>%1 (%n день назад)</numerusform>
@@ -28,12 +28,12 @@
         </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/update/check.cpp" line="421"/>
+        <location filename="../../apps/zxtune-qt/update/check.cpp" line="439"/>
         <source>Download manually</source>
         <translation>Загрузить вручную</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/update/check.cpp" line="440"/>
+        <location filename="../../apps/zxtune-qt/update/check.cpp" line="458"/>
         <source>Downloading file</source>
         <translation>Загрузка файла</translation>
     </message>
