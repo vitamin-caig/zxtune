@@ -31,16 +31,19 @@
     <!-- other -->
     <string name="main">Principal</string>
     <plurals name="items">
-      <item quantity="one">%d item</item>
-      <item quantity="other">%d items</item>
+        <item quantity="one">%d item</item>
+        <item quantity="many">%d itens</item>
+        <item quantity="other">%d itens</item>
     </plurals>
     <plurals name="tracks">
-      <item quantity="one">%d faixa</item>
-      <item quantity="other">%d faixas</item>
+        <item quantity="one">%d faixa</item>
+        <item quantity="many">%d faixas</item>
+        <item quantity="other">%d faixas</item>
     </plurals>
     <plurals name="packs">
-      <item quantity="one">%d pacote</item>
-      <item quantity="other">%d pacotes</item>
+        <item quantity="one">%d pacote</item>
+        <item quantity="many">%d pacotes</item>
+        <item quantity="other">%d pacotes</item>
     </plurals>
     <string name="no_tracks_found">Nenhuma faixa compatível encontrada</string>
     <string name="track">Faixa</string>

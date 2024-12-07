@@ -31,17 +31,22 @@
     <!-- other -->
     <string name="main">Hlavní strany</string>
     <plurals name="items">
-      <item quantity="one">%d položka</item>
-      <item quantity="few">%d položky</item>
-      <item quantity="other">%d položek</item>
+        <item quantity="one">%d položka</item>
+        <item quantity="few">%d položky</item>
+        <item quantity="many">%d položky</item>
+        <item quantity="other">%d položek</item>
     </plurals>
     <plurals name="tracks">
-      <item quantity="one">%d skladba</item>
-      <item quantity="few">%d skladby</item>
-      <item quantity="other">%d skladeb</item>
+        <item quantity="one">%d skladba</item>
+        <item quantity="few">%d skladby</item>
+        <item quantity="many">%d skladeb</item>
+        <item quantity="other">%d skladeb</item>
     </plurals>
     <plurals name="packs">
-      <item quantity="other">%d balení</item>
+        <item quantity="one">%d balíček</item>
+        <item quantity="few">%d balíčky</item>
+        <item quantity="many">%d balíčku</item>
+        <item quantity="other">%d balíčků</item>
     </plurals>
     <string name="no_tracks_found">Nenalezeny žádné podporované skladby</string>
     <string name="track">Skladba</string>

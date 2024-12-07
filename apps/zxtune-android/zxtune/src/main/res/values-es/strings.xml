@@ -32,14 +32,17 @@
   <string name="main">Principal</string>
   <plurals name="items">
     <item quantity="one">%d elemento</item>
+    <item quantity="many">%d elementos</item>
     <item quantity="other">%d elementos</item>
   </plurals>
   <plurals name="tracks">
     <item quantity="one">%d módulo</item>
+    <item quantity="many">%d módulos</item>
     <item quantity="other">%d módulos</item>
   </plurals>
   <plurals name="packs">
     <item quantity="one">%d paquete</item>
+    <item quantity="many">%d paquetes</item>
     <item quantity="other">%d paquetes</item>
   </plurals>
   <string name="no_tracks_found">No hay módulos soportados encontrados</string>
