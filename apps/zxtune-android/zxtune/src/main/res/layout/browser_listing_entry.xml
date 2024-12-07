@@ -41,7 +41,7 @@
                     android:maxLines="1"
                     android:text="@{entry.title}"
                     android:textAppearance="?android:textAppearanceListItem"
-                    tools:text="Title" />
+                    tools:text="@tools:sample/lorem/random" />
 
             <TextView
                     android:id="@+id/list_item_text_aux"
@@ -51,7 +51,7 @@
                     android:text="@{entry.description}"
                     android:textAppearance="?textAppearanceListItemSecondary"
                     android:visibility="@{TextUtils.isEmpty(entry.description) ? View.GONE : View.VISIBLE}"
-                    tools:text="Subtitle" />
+                    tools:text="@tools:sample/full_names" />
         </LinearLayout>
 
         <TextView
@@ -64,6 +64,6 @@
                 android:text="@{entry.details}"
                 android:textAppearance="?android:textAppearanceListItemSmall"
                 android:visibility="@{TextUtils.isEmpty(entry.details) ? View.GONE : View.VISIBLE}"
-                tools:text="Details" />
+                tools:text="@tools:sample/date/day_of_week" />
     </RelativeLayout>
 </layout>

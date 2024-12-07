@@ -27,7 +27,7 @@
                 android:singleLine="true"
                 android:textAlignment="gravity"
                 android:textAppearance="?android:textAppearanceMedium"
-                tools:text="Title" />
+                tools:text="@tools:sample/lorem/random" />
 
         <TextView
                 android:id="@+id/widget_subtitle"
@@ -39,7 +39,7 @@
                 android:singleLine="true"
                 android:textAlignment="gravity"
                 android:textAppearance="?android:textAppearanceSmall"
-                tools:text="Author" />
+                tools:text="@tools:sample/full_names" />
     </LinearLayout>
 
     <ImageView

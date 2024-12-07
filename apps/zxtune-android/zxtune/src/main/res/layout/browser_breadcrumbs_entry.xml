@@ -20,5 +20,5 @@
             style="@style/Button.Breadcrumbs"
             android:drawableLeft="@{entry.icon != null ? context.getResources().getDrawable(entry.icon) : null}"
             android:text="@{entry.icon == null ? entry.title : null}"
-            tools:text="Entry" />
+            tools:text="@tools:sample/cities" />
 </layout>

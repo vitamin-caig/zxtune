@@ -20,7 +20,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@id/information"
-            android:layout_below="@id/main_top_panel" />
+            android:layout_below="@id/main_top_panel"
+            tools:layout="@layout/visualizer" />
 
     <androidx.fragment.app.FragmentContainerView
             android:id="@+id/information"
@@ -28,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@id/seek_controls"
-            tools:layout_height="@dimen/item_height" />
+            tools:layout="@layout/brief" />
 
     <androidx.fragment.app.FragmentContainerView
             android:id="@+id/seek_controls"
@@ -36,5 +37,5 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            tools:layout_height="@dimen/item_height" />
+            tools:layout="@layout/position" />
 </RelativeLayout>
