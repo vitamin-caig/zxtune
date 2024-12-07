@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -41,8 +40,8 @@ class SoundControlFragment : DialogFragment() {
     private val model by activityViewModels<MediaModel>()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val ctx = requireContext()
-        val view = LayoutInflater.from(ctx).inflate(R.layout.sound_control, null)
+        val ctx = requireActivity()
+        val view = ctx.layoutInflater.inflate(R.layout.sound_control, null)
         return AlertDialog.Builder(ctx).setTitle(R.string.sound_controls)
             .setIcon(R.drawable.ic_menu_sound_controls).setView(view).create().apply {
                 whenLifecycleStarted {
@@ -61,13 +60,13 @@ class SoundControlFragment : DialogFragment() {
         channelsMuting.alphaTo(0f)
         val availableButtons = channelsMuting.childCount
         val requiredButtons = channels?.size ?: 0
-        val inflater = LayoutInflater.from(view.context)
+        val inflater = requireActivity().layoutInflater
         for (idx in 0..<maxOf(availableButtons, requiredButtons)) {
-            val button =
-                (channelsMuting.getChildAt(idx) ?: inflater.inflate(R.layout.toggled_button, null)
-                    .apply {
-                        channelsMuting.addView(this)
-                    }) as TextView
+            val button = (channelsMuting.getChildAt(idx) ?: inflater.inflate(
+                R.layout.toggled_button, channelsMuting, false
+            ).apply {
+                channelsMuting.addView(this)
+            }) as TextView
             button.apply {
                 isVisible = idx < requiredButtons
                 isEnabled = false
