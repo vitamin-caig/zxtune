@@ -195,8 +195,8 @@ public class Database {
     return db.update(Tables.Tracks.NAME, values, selection, selectionArgs);
   }
   
-  /*
-   * @param ids id => pos list
+  /**
+   * @param positions id => pos list
    */
   final void updatePlaylistItemsOrder(SparseIntArray positions) {
     //sqlite prior to 3.7.11 (api v14) does not support multiple values

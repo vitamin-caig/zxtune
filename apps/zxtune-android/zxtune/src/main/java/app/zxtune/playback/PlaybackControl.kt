@@ -32,37 +32,33 @@ interface PlaybackControl {
         SHUFFLE
     }
 
-    /*
-   * Activate currently playing item
-   */
+    /**
+     * Activate currently playing item
+     */
     fun play()
 
-    /*
-   * Stop currently playing item
-   */
+    /**
+     * Stop currently playing item
+     */
     fun stop()
 
-    /*
-   * Play next item in sequence
-   */
+    /**
+     * Play next item in sequence
+     */
     fun next()
 
-    /*
-   * Play previous item in sequence
-   */
+    /**
+     * Play previous item in sequence
+     */
     fun prev()
 
-    /*
-  * @return Track playback mode
-  *//*
-   * Set track playback mode
-   */
+    /**
+     * Track playback mode
+     */
     var trackMode: TrackMode
 
-    /*
-  * @return Sequence playback mode
-  *//*
-   * Set sequence playback mode
-   */
+    /**
+     * Sequence playback mode
+     */
     var sequenceMode: SequenceMode
 }

@@ -69,12 +69,8 @@ public final class VfsArchive {
     return !id.getSubPath().isEmpty();
   }
 
-  /*
-   * @return
-   *
-   * VfsDir - browsable archive
-   * VfsFile - single file to play (or no files to play)
-   * null - unknown status
+  /**
+   * @return VfsDir (browsable archive), VfsFile (single file to play or no files to play), null (unknown status)
    */
   @Nullable
   static VfsObject browseCached(VfsFile file) {
@@ -106,12 +102,8 @@ public final class VfsArchive {
     return new ArchiveRoot(file);
   }
 
-  /*
-   * @return
-   *
-   * VfsDir - browsable archive
-   * VfsFile - single file to play
-   * null - nothing to play
+  /**
+   * @return VfsDir (browsable archive), VfsFile (single file to play), null (nothing to play)
    */
   @Nullable
   public static VfsObject browse(VfsFile file) {
