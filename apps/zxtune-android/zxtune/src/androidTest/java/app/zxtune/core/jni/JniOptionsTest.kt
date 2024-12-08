@@ -10,7 +10,7 @@ class JniOptionsTest {
     }
 
     @Test
-    fun testStringProperties() = with(JniOptions.instance()) {
+    fun testStringProperties() = with(JniOptions) {
         val name = "string_property"
         val value = "string value"
         assertEquals("", getProperty(name, ""))
@@ -21,7 +21,7 @@ class JniOptionsTest {
     }
 
     @Test
-    fun testIntegerProperties() = with(JniOptions.instance()) {
+    fun testIntegerProperties() = with(JniOptions) {
         val name = "integer_property"
         val value: Long = 123456
         assertEquals(-1, getProperty(name, -1))
