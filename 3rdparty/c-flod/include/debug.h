@@ -24,6 +24,7 @@
 //#define NO_ASSERT
 #ifdef NO_ASSERT
 #  define assert_dbg(exp) empty_body
+#  define assert_op(val, op, max) empty_body
 #  define assert_lt(exp) empty_body
 #  define assert_lte(exp) empty_body
 #  define assert(x) empty_body

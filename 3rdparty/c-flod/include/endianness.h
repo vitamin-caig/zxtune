@@ -12,7 +12,7 @@
 #ifndef ENDIANNESS_H_
 #define ENDIANNESS_H_
 
-#ifdef __linux
+/*#ifdef __linux
 #include <endian.h>
 #else
 #include <machine/endian.h>
@@ -38,7 +38,7 @@
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 #define IS_LITTLE_ENDIAN
-#endif
+#endif*/
 
 #define byteswap16(x) (((x) & 0x00ff) << 8 | ((x) & 0xff00) >> 8)
 

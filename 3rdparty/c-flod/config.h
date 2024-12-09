@@ -1,0 +1,3 @@
+#define NO_BREAKPOINTS
+#define NO_ASSERT
+#define IS_LITTLE_ENDIAN // TODO
