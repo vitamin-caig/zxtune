@@ -27,19 +27,7 @@ namespace Devices::AYM
 
     void SetMuteMask(uint_t mask)
     {
-      MuteMask = LOW_LEVEL;
-      if (mask & CHANNEL_MASK_A)
-      {
-        MuteMask |= HIGH_LEVEL_A;
-      }
-      if (mask & CHANNEL_MASK_B)
-      {
-        MuteMask |= HIGH_LEVEL_B;
-      }
-      if (mask & CHANNEL_MASK_C)
-      {
-        MuteMask |= HIGH_LEVEL_C;
-      }
+      MuteMask = mask;
     }
 
     void SetMixer(uint_t mixer)
@@ -126,13 +114,13 @@ namespace Devices::AYM
 
     uint_t GetLevels() const
     {
-      const uint_t level = EnvelopeMask ? (EnvelopeMask * GenE.GetLevel()) | Levels : Levels;
-      const uint_t noise = NoiseMask != HIGH_LEVEL ? (NoiseMask | GenN.GetLevel()) : NoiseMask;
-      const uint_t toneA = GenA.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_A, HIGH_LEVEL>();
-      const uint_t toneB = GenB.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_B, HIGH_LEVEL>();
-      const uint_t toneC = GenC.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_C, HIGH_LEVEL>();
+      const uint_t level = (!(MuteMask & CHANNEL_MASK_E) && EnvelopeMask) ? (EnvelopeMask * GenE.GetLevel()) | Levels : Levels;
+      const uint_t noise = (!(MuteMask & CHANNEL_MASK_N) && NoiseMask != HIGH_LEVEL) ? (NoiseMask | GenN.GetLevel()) : NoiseMask;
+      const uint_t toneA = (MuteMask & CHANNEL_MASK_A) ? HIGH_LEVEL : GenA.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_A, HIGH_LEVEL>();
+      const uint_t toneB = (MuteMask & CHANNEL_MASK_B) ? HIGH_LEVEL : GenB.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_B, HIGH_LEVEL>();
+      const uint_t toneC = (MuteMask & CHANNEL_MASK_C) ? HIGH_LEVEL : GenC.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_C, HIGH_LEVEL>();
 
-      return (level & toneA & toneB & toneC & noise) | MuteMask;
+      return level & toneA & toneB & toneC & noise;
     }
 
   private:

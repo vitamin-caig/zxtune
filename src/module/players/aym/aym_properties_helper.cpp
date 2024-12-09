@@ -23,7 +23,7 @@ namespace Module::AYM
   PropertiesHelper::PropertiesHelper(Parameters::Modifier& delegate)
     : Module::PropertiesHelper(delegate)
   {
-    SetChannels({"A"s, "B"s, "C"s});
+    SetChannels({"A"s, "B"s, "C"s, "Noise"s, "Envelope"s});
     SetPlatform(Platforms::ZX_SPECTRUM);
   }
 
