@@ -1,0 +1,9 @@
+*.o
+*.lo
+*.so
+*.a
+*.out
+*.rcb
+*.wav
+flodplayer
+config.mak
