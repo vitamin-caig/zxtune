@@ -58,13 +58,20 @@ class Model @VisibleForTesting internal constructor(
     defaultDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(application) {
 
-    data class Content(
+    private sealed interface Content
+    private data class ListingContent(
         val breadcrumbs: List<BreadcrumbsEntry>,
         val entries: List<ListingEntry>,
-    ) {
+    ) : Content {
         val uri: Uri
             get() = breadcrumbs.lastOrNull()?.uri ?: Uri.EMPTY
     }
+
+    @JvmInline
+    private value class FilterContent(val value: String) : Content
+
+    @JvmInline
+    private value class SearchingContent(val entries: List<ListingEntry>) : Content
 
     class State private constructor(
         val breadcrumbs: List<BreadcrumbsEntry>,
@@ -81,14 +88,14 @@ class Model @VisibleForTesting internal constructor(
         val filter
             get() = listing.filter
 
-        fun withContent(content: Content) =
-            State(content.breadcrumbs, listing.withContent(content.entries))
+        fun withContent(breadcrumbs: List<BreadcrumbsEntry>, entries: List<ListingEntry>) =
+            State(breadcrumbs, listing.withContent(entries))
 
         fun withEntries(entries: List<ListingEntry>) =
             State(breadcrumbs, listing.withContent(entries))
 
         fun withFilter(filter: String) = listing.withFilter(filter).let {
-            if (listing == it) {
+            if (listing === it) {
                 this
             } else {
                 State(breadcrumbs, it)
@@ -104,14 +111,14 @@ class Model @VisibleForTesting internal constructor(
     // Use SharedFlow(replay=1) to support initial value absence - no redundant data in _state
     // Current directory content snapshot. Use SharedFlow to support re-sending in cancelSearch
     private val _content =
-        MutableSharedFlow<Content>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow<ListingContent>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     // Fast filter. Should be state to get scheduled value instead of delayed real from _state
     private val _filter =
-        MutableSharedFlow<String>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow<FilterContent>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     // Dynamic search content
-    private val _searchContent = MutableSharedFlow<List<ListingEntry>>(
+    private val _searchContent = MutableSharedFlow<SearchingContent>(
         extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
@@ -121,14 +128,13 @@ class Model @VisibleForTesting internal constructor(
         _content, _filter.debounce(500), _searchContent
     ).runningFold(EMPTY_STATE) { state, update ->
         when (update) {
-            is String -> {
-                LOG.d { "Filtering with '$update'" }
-                state.withFilter(update)
+            is FilterContent -> {
+                LOG.d { "Filtering with '${update.value}'" }
+                state.withFilter(update.value)
             }
 
-            is Content -> state.withContent(update)
-            is List<*> -> state.withEntries(update.filterIsInstance<ListingEntry>())
-            else -> state
+            is ListingContent -> state.withContent(update.breadcrumbs, update.entries)
+            is SearchingContent -> state.withEntries(update.entries)
         }
     }.flowOn(defaultDispatcher).stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), EMPTY_STATE
@@ -207,14 +213,14 @@ class Model @VisibleForTesting internal constructor(
     fun cancelSearch() {
         activeTask.getAndSet(null)?.cancel()
         _progress.value = null
-        val content = _content.replayCache.lastOrNull() ?: Content(emptyList(), emptyList())
+        val content = _content.replayCache.lastOrNull() ?: ListingContent(emptyList(), emptyList())
         _content.tryEmit(content)
     }
 
     var filter: String
-        get() = _filter.replayCache.lastOrNull() ?: ""
+        get() = _filter.replayCache.lastOrNull()?.value ?: ""
         set(value) {
-            _filter.tryEmit(value.trim())
+            _filter.tryEmit(FilterContent(value.trim()))
         }
 
     private interface AsyncOperation {
@@ -258,7 +264,7 @@ class Model @VisibleForTesting internal constructor(
     @VisibleForTesting
     suspend fun updateContent(
         breadcrumbs: List<BreadcrumbsEntry>, entries: List<ListingEntry>
-    ) = _content.emit(Content(breadcrumbs, entries))
+    ) = _content.emit(ListingContent(breadcrumbs, entries))
 
     private inner class BrowseTask(private val uri: Uri) : AsyncOperation {
 
@@ -318,7 +324,7 @@ class Model @VisibleForTesting internal constructor(
 
     private inner class SearchTask(state: State, private val query: String) : AsyncOperation {
         private val uri = state.uri
-        private val content = mutableListOf<ListingEntry>()
+        private val content = ArrayList<ListingEntry>(100)
 
         override val description
             get() = "search for $query at $uri"
@@ -341,7 +347,7 @@ class Model @VisibleForTesting internal constructor(
         }
 
         private fun publishState() {
-            _searchContent.tryEmit(content)
+            _searchContent.tryEmit(SearchingContent(content.toMutableList()))
         }
     }
 

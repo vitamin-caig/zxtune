@@ -331,29 +331,27 @@ class BrowserFragmentTest {
             }
             val uri = breadcrumbs.last().uri
             return Model.State().withContent(
-                Model.Content(
-                    breadcrumbs = breadcrumbs,
-                    entries = Array(dirs + files) { idx ->
-                        val builder = uri.buildUpon()
-                        if (idx < dirs) {
-                            ListingEntry.makeFolder(uri = builder.appendEncodedPath("dir$idx")
-                                .build(),
-                                title = "Dir$idx",
-                                description = "Directory $idx",
-                                icon = folderIcon().takeIf { idx == 0 } // first one
-                            )
-                        } else {
-                            ListingEntry.makeFile(
-                                uri = builder.appendEncodedPath("file$idx").build(),
-                                title = "File$idx",
-                                description = "File $idx",
-                                details = "${idx}0K",
-                                tracks = (idx - (dirs + 1)).takeIf { it >= 0 },
-                                cached = (idx > dirs + 1)
-                            )
-                        }
-                    }.toList(),
-                )
+                breadcrumbs = breadcrumbs,
+                entries = Array(dirs + files) { idx ->
+                    val builder = uri.buildUpon()
+                    if (idx < dirs) {
+                        ListingEntry.makeFolder(uri = builder.appendEncodedPath("dir$idx")
+                            .build(),
+                            title = "Dir$idx",
+                            description = "Directory $idx",
+                            icon = folderIcon().takeIf { idx == 0 } // first one
+                        )
+                    } else {
+                        ListingEntry.makeFile(
+                            uri = builder.appendEncodedPath("file$idx").build(),
+                            title = "File$idx",
+                            description = "File $idx",
+                            details = "${idx}0K",
+                            tracks = (idx - (dirs + 1)).takeIf { it >= 0 },
+                            cached = (idx > dirs + 1)
+                        )
+                    }
+                }.toList(),
             )
         }
     }
