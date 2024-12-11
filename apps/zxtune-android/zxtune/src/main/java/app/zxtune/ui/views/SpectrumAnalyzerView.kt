@@ -196,7 +196,9 @@ private class SpectrumVisualizer(
     }
 
     fun update(src: Visualizer): Boolean {
-        val bars = src.getSpectrum(levels)
+        val bars = runCatching {
+            src.getSpectrum(levels)
+        }.getOrNull() ?: return false
         return if (bars != 0) {
             update(bars)
             true
