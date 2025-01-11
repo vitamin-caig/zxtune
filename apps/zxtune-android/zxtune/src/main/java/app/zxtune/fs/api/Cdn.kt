@@ -26,6 +26,8 @@ object Cdn {
 
     fun scene(path: String): Uri = root.path("browse/scene/music/$path").build()
 
+    fun ocremix(path: String): Uri = root.path("download/ocremix/files/$path").build()
+
     private val root: Uri.Builder
         get() = ROOT.buildUpon()
 }

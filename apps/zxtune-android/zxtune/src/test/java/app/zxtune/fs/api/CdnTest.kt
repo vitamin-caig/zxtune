@@ -108,4 +108,12 @@ class CdnTest {
             ).toString()
         )
     }
+
+    @Test
+    fun `test ocremix`() {
+        assertEquals(
+            "${BuildConfig.CDN_ROOT}/download/ocremix/files/some/file%20name",
+            Cdn.ocremix("some/file name").toString()
+        )
+    }
 }

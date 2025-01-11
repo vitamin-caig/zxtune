@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="32"
+   width="32"
+   viewBox="0 0 384 384"
+   version="1.1"
+   id="svg72"
+   sodipodi:docname="ic_browser_vfs_ocremix.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xml:space="preserve"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs76"><linearGradient
+       id="linearGradient13839"><stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop14569" /><stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="1"
+         id="stop14571" /></linearGradient><linearGradient
+       id="linearGradient7768"
+       inkscape:swatch="solid"><stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop7766" /></linearGradient></defs><sodipodi:namedview
+     id="namedview74"
+     pagecolor="#ffffff"
+     bordercolor="#cccccc"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="1"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="true"
+     inkscape:zoom="35"
+     inkscape:cx="19.7"
+     inkscape:cy="10.8"
+     inkscape:window-width="1854"
+     inkscape:window-height="1011"
+     inkscape:window-x="66"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer2"><inkscape:grid
+       type="xygrid"
+       id="grid955" /></sodipodi:namedview><g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="bg"
+     style="display:inline"><image
+       width="360"
+       height="361"
+       preserveAspectRatio="none"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAUpJREFU
+OI3FkUFLQkEUhb+Rp0VJK/9NLQyiWlSbaNkqaafkKuhPBEELC5IMSQht4w/oB4lBjIu5d2xaqM+n
+7xntOqt7zzlz5t4ZAzColgJL2CqfUzi9Nb9pMTGoloJ06yGrX9aWkVsl/BXRrPj6eMlcJUtLrfCv
+MABX9ZtASDJTJLkAdmQxBh4f7mJXbsGYGT+vi8UimxtFKpe1+EQEMP4exz5rLc2n+9QDVavXYRJo
+GPu5PwLwqmAMhID3mjlMkvfeLw55UamF1XvMbBN9NLJ0XpvxhBGAqpt0IeWPe2stvW47tVoOQJzg
+RHAqDD+HtJ4bptVqGBFBVBAn5PMFjo7PUmPmAJw41AnqBBGJxU6nadw0XGUSsn9wElIBIorT6W2J
+AID3XtuoJEPWKO8ehoUAVUVFUFE04xf6/TfjvaAqqFfWCuts7+wFgB8aksIK+SQedAAAAABJRU5E
+rkJggg==
+"
+       id="image897"
+       x="12"
+       y="11.8" /></g><g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="img"
+     style="display:inline;fill:none;stroke:#000000;stroke-opacity:1"><path
+       id="path10161"
+       style="fill:#56565f;fill-opacity:1;stroke:none;stroke-width:12px;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1"
+       d="m 45,155 v 220 h 75 V 275 h 40 l 95,95 h 95 L 225,250 h 65 c 50,1 50,-95 0,-95 z m 70,25 h 110 c 20,0 20,60 0,60 H 115 Z"
+       sodipodi:nodetypes="ccccccccssccsscc" /><path
+       style="fill:none;stroke:#ec6c13;stroke-width:24;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:0.996"
+       d="m 100,20 c 35,0 45,15 45,35 0,20 -10,35 -45,35 -40,0 -45,-15 -45,-35 0,-20 5,-35 45,-35 z"
+       id="path38493"
+       sodipodi:nodetypes="sssss" /><path
+       style="display:inline;fill:none;stroke:#ec6c13;stroke-width:23.904;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:0.996"
+       d="m 295,90 h -40 c -30,0 -45,-5 -45,-35 0,-30 10,-35 45,-35 h 40"
+       id="path38493-3"
+       sodipodi:nodetypes="csssc" /></g></svg>
