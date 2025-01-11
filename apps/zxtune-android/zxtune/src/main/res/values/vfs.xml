@@ -245,6 +245,9 @@
     <!-- scene -->
     <string name="vfs_scene_root_name" translatable="false">Scene.org</string>
     <string name="vfs_scene_root_description" translatable="false">https://files.scene.org/</string>
+    <!-- ocremix -->
+    <string name="vfs_ocremix_root_name" translatable="false">OverClocked ReMix</string>
+    <string name="vfs_ocremix_root_description" translatable="false">https://ocremix.org</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
