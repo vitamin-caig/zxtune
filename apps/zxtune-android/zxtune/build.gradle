@@ -130,6 +130,10 @@ android {
         if (apiRoot != null) {
             buildConfigField("String", "API_ROOT", "\"${apiRoot}\"")
         }
+        def proxyRoot = localProperties.getProperty('proxy.root')
+        if (proxyRoot != null) {
+            buildConfigField("String", "PROXY_ROOT", "\"${proxyRoot}\"")
+        }
     }
 
     buildTypes {
