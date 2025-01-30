@@ -21,6 +21,10 @@ interface Catalog {
         fun accept(remix: Remix, game: Game)
     }
 
+    interface AlbumsVisitor : WithCountHint {
+        fun accept(album: Album, image: FilePath?)
+    }
+
     interface AlbumTracksVisitor {
         fun accept(filePath: FilePath, size: Long)
     }
@@ -41,11 +45,12 @@ interface Catalog {
     fun queryOrganizations(visitor: Visitor<Organization>, progress: ProgressCallback)
     fun queryGames(scope: Scope?, visitor: GamesVisitor, progress: ProgressCallback)
     fun queryRemixes(scope: Scope?, visitor: RemixesVisitor, progress: ProgressCallback)
-    fun queryAlbums(scope: Scope?, visitor: Visitor<Album>, progress: ProgressCallback)
+    fun queryAlbums(scope: Scope?, visitor: AlbumsVisitor, progress: ProgressCallback)
 
     fun findRemixPath(id: Remix.Id): FilePath?
     fun queryAlbumTracks(id: Album.Id, visitor: AlbumTracksVisitor)
     fun queryGameDetails(id: Game.Id): Game.Details
+    fun queryAlbumImage(id: Album.Id): FilePath?
 
     companion object {
         fun create(context: Context, httpProvider: MultisourceHttpProvider): Catalog =

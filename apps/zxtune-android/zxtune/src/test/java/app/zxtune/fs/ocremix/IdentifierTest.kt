@@ -84,6 +84,16 @@ class IdentifierTest {
             Identifier.findElementsChain(Uri.parse("ocremix:/Games/Game/Albums/Al/NoFile?game=g&album=a")).size
         )
     }
+
+    @Test
+    fun `images path`() {
+        Uri.parse("ocremix:/Images?file=path%2Fto%2Fimage.png").let { uri ->
+            assertEquals(0, Identifier.findElementsChain(uri).size)
+            val path = requireNotNull(Identifier.findImagePath(uri))
+            assertEquals("path/to/image.png", path.value)
+            assertEquals(uri, Identifier.forImage(path))
+        }
+    }
 }
 
 private fun serialize(chain: Array<Identifier.PathElement>) = StringBuilder().apply {
