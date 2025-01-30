@@ -14,7 +14,7 @@ data class Game(val id: Id, val title: String) {
     @JvmInline
     value class Id(val value: String)
 
-    data class Details(val chiptunePath: FilePath?)
+    data class Details(val chiptunePath: FilePath?, val image: FilePath?)
 }
 
 // Stripped /files/ part due to chiptune path format on game's page

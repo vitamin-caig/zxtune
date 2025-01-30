@@ -129,7 +129,7 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
     }
 
     override fun queryAlbums(
-        scope: Catalog.Scope?, visitor: Catalog.Visitor<Album>, progress: ProgressCallback
+        scope: Catalog.Scope?, visitor: Catalog.AlbumsVisitor, progress: ProgressCallback
     ) {
         val uri = baseUri.scoped(scope, EntityTypes.ALBUMS).build()
         var offset = 0
@@ -148,6 +148,8 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
                 row.findIdNode("/album/")?.let { album ->
                     visitor.accept(
                         Album(Album.Id(album.id), album.text),
+                        row.findImagePath("/thumbs/100//files/")
+                            ?: row.findImagePath("/thumbs/100/files/"), // if any...
                     )
                 }
             }
@@ -175,8 +177,12 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
         }?.let {
             FilePath(it)
         }
-        Game.Details(chiptune)
+        val image = page.findImagePath("/img-size/500/files/")
+        Game.Details(chiptune, image)
     }
+
+    override fun queryAlbumImage(id: Album.Id) =
+        readPage(baseUri + id).findImagePath("/thumbs/500/files/")
 
     private fun readPage(uri: Uri.Builder) = uri.build().let {
         HtmlUtils.parseDoc(http.getInputStream(arrayOf(Proxy.uriFor(it), it)))
@@ -222,6 +228,11 @@ private fun Element.findIdNode(prefix: String, needText: Boolean = true) =
 private fun Element.findPath(url: String) = findIdNode(prefix = url, needText = false)?.let {
     FilePath(it.id)
 }
+
+private fun Element.findImagePath(prefix: String) =
+    selectFirst("img[src^=${prefix}]")?.attr("src")?.substring(prefix.length)?.let {
+        FilePath(it)
+    }
 
 private val baseUri
     get() = Uri.Builder().scheme("https").authority("ocremix.org")

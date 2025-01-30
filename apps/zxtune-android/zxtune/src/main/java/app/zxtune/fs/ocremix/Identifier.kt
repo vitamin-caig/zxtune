@@ -52,6 +52,7 @@ import android.net.Uri
 
 object Identifier {
     private const val SCHEME = "ocremix"
+    private const val IMAGES = "Images"
 
     enum class AggregateType {
         Systems, Organizations, Remixes, Albums, Games
@@ -203,6 +204,19 @@ object Identifier {
             }
         }
     }.toTypedArray()
+
+    fun forImage(path: FilePath) = forRoot().apply {
+        appendPath(IMAGES)
+        appendQueryParameter(FILE_KEY, path.value)
+    }.build()
+
+    fun findImagePath(uri: Uri) = if (uri.pathSegments.firstOrNull() == IMAGES) {
+        uri.getQueryParameter(FILE_KEY)?.let {
+            FilePath(it)
+        }
+    } else {
+        null
+    }
 
     private const val SYSTEM_KEY = "sys"
     private const val ORGANIZATION_KEY = "org"

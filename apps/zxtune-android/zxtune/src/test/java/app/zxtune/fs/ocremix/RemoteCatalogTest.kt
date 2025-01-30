@@ -30,7 +30,7 @@ class RemoteCatalogTest {
     private lateinit var organizationsVisitor: Catalog.Visitor<Organization>
     private lateinit var gamesVisitor: Catalog.GamesVisitor
     private lateinit var remixesVisitor: Catalog.RemixesVisitor
-    private lateinit var albumsVisitor: Catalog.Visitor<Album>
+    private lateinit var albumsVisitor: Catalog.AlbumsVisitor
     private lateinit var albumTracksVisitor: Catalog.AlbumTracksVisitor
 
     @Before
@@ -280,20 +280,23 @@ class RemoteCatalogTest {
 
         verify(albumsVisitor).setCountHint(geq(albumsMin))
         verify(albumsVisitor).accept(
-            album("60065/the-impact-of-iwata", "The Impact of Iwata")
+            album("60065/the-impact-of-iwata", "The Impact of Iwata"),
+            FilePath("images/albums/5/8/60065-258.png"),
         )
         verify(progress).onProgressUpdate(eq(30), geq(albumsMin))
         verify(albumsVisitor).accept(
             album(
                 "71/heart-of-a-gamer-a-tribute-to-satoru-iwata",
                 "Heart of a Gamer: A Tribute to Satoru Iwata"
-            )
+            ),
+            FilePath("images/albums/1/5/71-185.png"),
         )
         //last
         verify(albumsVisitor).accept(
-            album("5306/instant-remedy", "Instant Remedy")
+            album("5306/instant-remedy", "Instant Remedy"),
+            FilePath("images/albums/6/4/5306-74.jpg"),
         )
-        verify(albumsVisitor, atLeast(albumsMin)).accept(any())
+        verify(albumsVisitor, atLeast(albumsMin)).accept(any(), any())
         verify(progress, atLeast(albumsMin / 30)).onProgressUpdate(any(), geq(albumsMin))
     }
 
@@ -308,12 +311,13 @@ class RemoteCatalogTest {
 
         verify(albumsVisitor).setCountHint(geq(albumsMin))
         verify(albumsVisitor).accept(
-            album("86/sophomore-year", "Sophomore Year")
+            album("86/sophomore-year", "Sophomore Year"),
+            FilePath("images/albums/6/2/86-222.png"),
         )
         verify(albumsVisitor).accept(
-            album("4347/select-start", "Select Start")
+            album("4347/select-start", "Select Start"), FilePath("images/albums/7/6/4347-66.jpg")
         )
-        verify(albumsVisitor, atLeast(albumsMin)).accept(any())
+        verify(albumsVisitor, atLeast(albumsMin)).accept(any(), any())
     }
 
     @Test
@@ -325,13 +329,15 @@ class RemoteCatalogTest {
 
         verify(albumsVisitor).setCountHint(geq(albumsMin))
         verify(albumsVisitor).accept(
-            album("60065/the-impact-of-iwata", "The Impact of Iwata")
+            album("60065/the-impact-of-iwata", "The Impact of Iwata"),
+            FilePath("images/albums/5/8/60065-258.png"),
         )
         verify(progress).onProgressUpdate(eq(50), geq(albumsMin))
         verify(albumsVisitor).accept(
-            album("4700/nesperado", "NESperado")
+            album("4700/nesperado", "NESperado"),
+            FilePath("images/albums/0/0/4700-70.jpg"),
         )
-        verify(albumsVisitor, atLeast(albumsMin)).accept(any())
+        verify(albumsVisitor, atLeast(albumsMin)).accept(any(), any())
     }
 
     @Test
@@ -343,12 +349,14 @@ class RemoteCatalogTest {
 
         verify(albumsVisitor).setCountHint(geq(albumsMin))
         verify(albumsVisitor).accept(
-            album("86/sophomore-year", "Sophomore Year")
+            album("86/sophomore-year", "Sophomore Year"),
+            FilePath("images/albums/6/2/86-222.png"),
         )
         verify(albumsVisitor).accept(
-            album("4081/earthworm-jim-anthology", "Earthworm Jim Anthology")
+            album("4081/earthworm-jim-anthology", "Earthworm Jim Anthology"),
+            FilePath("images/albums/1/4/4081-64.jpg"),
         )
-        verify(albumsVisitor, atLeast(albumsMin)).accept(any())
+        verify(albumsVisitor, atLeast(albumsMin)).accept(any(), any())
     }
 
     @Test
@@ -381,13 +389,27 @@ class RemoteCatalogTest {
     fun `test game details`() {
         catalog.queryGameDetails(Game.Id("43663/007-tomorrow-never-dies-ps1")).run {
             assertEquals(null, chiptunePath)
+            assertEquals(
+                "images/games/ps1/3/007-tomorrow-never-dies-ps1-cover-front-49000.jpg", image?.value
+            )
         }
         catalog.queryGameDetails(Game.Id("501/1943-the-battle-of-midway-nes")).run {
             assertEquals(
                 FilePath("music/chiptunes/archives/0/1943-the-battle-of-midway-nes-[NSF-ID1757].nsf"),
                 chiptunePath
             )
+            assertEquals(
+                "images/games/nes/1/1943-the-battle-of-midway-nes-title-59899.jpg", image?.value
+            )
         }
+    }
+
+    @Test
+    fun `test album image`() {
+        assertEquals(
+            FilePath("images/albums/0/5/30-105.jpg"),
+            catalog.queryAlbumImage(Album.Id("30/nights-lucid-dreaming"))
+        )
     }
 
     @Test

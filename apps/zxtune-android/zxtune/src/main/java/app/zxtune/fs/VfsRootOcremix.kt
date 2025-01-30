@@ -47,6 +47,9 @@ class VfsRootOcremix(
         if (!Identifier.isFromRoot(uri)) {
             return null
         }
+        Identifier.findImagePath(uri)?.let {
+            return File(arrayOf(Identifier.FileElement(it)), it, "")
+        }
         return resolveChain(Identifier.findElementsChain(uri))
     }
 
@@ -144,9 +147,10 @@ class VfsRootOcremix(
             }, visitor)
 
         private fun queryAlbums(visitor: VfsDir.Visitor) =
-            catalog.queryAlbums(scope, object : Catalog.Visitor<Album> {
+            catalog.queryAlbums(scope, object : Catalog.AlbumsVisitor {
                 override fun setCountHint(count: Int) = visitor.onItemsCount(count)
-                override fun accept(obj: Album) = visitor.onDir(child(Identifier.AlbumElement(obj)))
+                override fun accept(album: Album, image: FilePath?) =
+                    visitor.onDir(child(Identifier.AlbumElement(album)))
             }, visitor)
     }
 
@@ -158,6 +162,10 @@ class VfsRootOcremix(
             check(chain[chain.size - 2] is Identifier.AggregateElement)
         }
 
+        private val gameDetails by lazy {
+            catalog.queryGameDetails((element as Identifier.GameElement).game.id)
+        }
+
         override fun enumerate(visitor: VfsDir.Visitor) = when (val el = element) {
             is Identifier.SystemElement, is Identifier.OrganizationElement -> visitor.run {
                 onDir(child(Identifier.AggregateType.Remixes))
@@ -166,7 +174,7 @@ class VfsRootOcremix(
             }
 
             is Identifier.GameElement -> visitor.run {
-                catalog.queryGameDetails(el.game.id).chiptunePath?.let { filePath ->
+                gameDetails.chiptunePath?.let { filePath ->
                     onFile(File(chain + Identifier.FileElement(filePath), filePath, ""))
                 }
                 onDir(child(Identifier.AggregateType.Remixes))
@@ -190,6 +198,20 @@ class VfsRootOcremix(
 
         private fun child(type: Identifier.AggregateType) =
             AggregateDir(chain + Identifier.AggregateElement(type), type)
+
+        override fun getExtension(id: String) = when (id) {
+            VfsExtensions.COVER_ART_URI -> coverArtUri()
+            else -> super.getExtension(id)
+        }
+
+        private fun coverArtUri() = when (val el = element) {
+            is Identifier.GameElement -> gameDetails.image?.let { Identifier.forImage(it) }
+            is Identifier.AlbumElement -> catalog.queryAlbumImage(el.album.id)?.let {
+                Identifier.forImage(it)
+            }
+
+            else -> null
+        }
     }
 
     private inner class RemixFile(
@@ -219,7 +241,27 @@ class VfsRootOcremix(
         override fun getExtension(id: String) = when (id) {
             VfsExtensions.DOWNLOAD_URIS -> RemoteCatalog.getRemoteUris(path)
             VfsExtensions.CACHE_PATH -> path.value
+            VfsExtensions.COVER_ART_URI -> findCoverart()
             else -> super.getExtension(id)
+        }
+
+        private fun findCoverart(): Uri? {
+            for (idx in chain.indices.reversed()) {
+                when (val el = chain[idx]) {
+                    is Identifier.GameElement -> catalog.queryGameDetails(
+                        el.game.id
+                    ).image?.let {
+                        return Identifier.forImage(it)
+                    }
+
+                    is Identifier.AlbumElement -> catalog.queryAlbumImage(el.album.id)?.let {
+                        return Identifier.forImage(it)
+                    }
+
+                    else -> Unit
+                }
+            }
+            return null
         }
     }
 }
