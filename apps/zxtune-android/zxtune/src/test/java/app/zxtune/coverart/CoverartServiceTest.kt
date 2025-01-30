@@ -38,6 +38,7 @@ class CoverartServiceTest {
     private val dirUri = rootUri.buildUpon().appendPath("path").build()
     private val moduleUri = dirUri.buildUpon().appendPath("module").build()
     private val moduleId = Identifier(moduleUri)
+
     // Packed and/or multitrack module should be treated as simple track file
     private val complexModuleId = Identifier(moduleUri, "+unPACK/+unGZIP/#2")
     private val archiveUri = dirUri.buildUpon().appendPath("archive").build()
@@ -229,7 +230,7 @@ class CoverartServiceTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun `archiveArtOf not archive`() {
-        underTest.archiveArtOf(archiveId)
+        underTest.archiveArtOf(archiveId, obj)
     }
 
     @Test
@@ -237,19 +238,35 @@ class CoverartServiceTest {
         db.stub {
             on { query(any()) } doReturn Reference(Uri.EMPTY, "unused")
         }
-        assertNull(underTest.archiveArtOf(archivedModuleId))
+        assertNull(underTest.archiveArtOf(archivedModuleId, obj))
 
         verify(db).query(archiveId)
     }
 
     @Test
     fun `archiveArtOf archive with no images`() {
-        assertNull(underTest.archiveArtOf(archivedModuleId))
+        assertNull(underTest.archiveArtOf(archivedModuleId, obj))
 
-        inOrder(db) {
+        inOrder(db, obj) {
             verify(db).query(archiveId)
             verify(db).listArchiveImages(archiveUri)
+            verify(obj).getExtension(VfsExtensions.COVER_ART_URI)
             verify(db).setArchiveImage(archiveUri, null)
+        }
+    }
+
+    @Test
+    fun `archiveArtOf archive with no images but with coverart`() {
+        obj.stub {
+            on { getExtension(VfsExtensions.COVER_ART_URI) } doReturn picUri
+        }
+        assertEquals(picUri, underTest.archiveArtOf(archivedModuleId, obj))
+
+        inOrder(db, obj) {
+            verify(db).query(archiveId)
+            verify(db).listArchiveImages(archiveUri)
+            verify(obj).getExtension(VfsExtensions.COVER_ART_URI)
+            verify(db).setArchiveImage(archiveUri, picUri)
         }
     }
 
@@ -258,7 +275,7 @@ class CoverartServiceTest {
         db.stub {
             on { listArchiveImages(any()) } doReturn listOf(picPath)
         }
-        assertEquals(archivedPicId.fullLocation, underTest.archiveArtOf(archivedModuleId))
+        assertEquals(archivedPicId.fullLocation, underTest.archiveArtOf(archivedModuleId, obj))
 
         inOrder(db) {
             verify(db).query(archiveId)
@@ -271,7 +288,7 @@ class CoverartServiceTest {
         db.stub {
             on { listArchiveImages(any()) } doReturn listOf(picPath, "sub/sub/image")
         }
-        assertEquals(archivedPicId.fullLocation, underTest.archiveArtOf(archivedModuleId))
+        assertEquals(archivedPicId.fullLocation, underTest.archiveArtOf(archivedModuleId, obj))
 
         inOrder(db) {
             verify(db).query(archiveId)
@@ -288,6 +305,7 @@ class CoverartServiceTest {
             verify(db).query(archivedModuleId)
             verify(db).query(archiveId)
             verify(db).listArchiveImages(archiveUri)
+            verify(obj).getExtension(VfsExtensions.COVER_ART_URI)
             verify(db).setArchiveImage(archiveUri, null)
         }
     }
