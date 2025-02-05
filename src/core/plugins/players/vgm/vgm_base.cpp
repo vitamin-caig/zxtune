@@ -286,14 +286,14 @@ namespace Module::LibVGM
     {
       // time position in file
       const auto curtime = Delegate->GetCurTime(PLAYTIME_LOOP_EXCL | PLAYTIME_TIME_FILE);
-      return Time::AtMillisecond() + Time::Seconds(curtime);
+      return Time::AtMillisecond() + Time::Milliseconds(curtime * 1000);
     }
 
     Time::Milliseconds Total() const override
     {
       // total played time
       const auto curtime = Delegate->GetCurTime(PLAYTIME_LOOP_INCL | PLAYTIME_TIME_PBK);
-      return Time::Seconds(curtime);
+      return Time::Seconds(curtime * 1000);
     }
 
     uint_t LoopCount() const override
