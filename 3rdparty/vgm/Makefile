@@ -48,8 +48,8 @@ source_files += $(addprefix utils/,DataLoader StrUtils-CPConv_Stub)
 
 source_files := $(addsuffix .c,$(source_files))
 
-source_files += $(addprefix player/,playerbase.cpp s98player.cpp vgmplayer.cpp vgmplayer_cmdhandler.cpp helper.c dblk_compr.c)
+source_files += $(addprefix player/,playera.cpp playerbase.cpp s98player.cpp vgmplayer.cpp vgmplayer_cmdhandler.cpp helper.c dblk_compr.c)
 
-defines += HAVE_STDINT_H
+defines += HAVE_STDINT_H VGM_LITTLE_ENDIAN
 
 include $(dirs.root)/makefile.mak
