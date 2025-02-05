@@ -6,11 +6,11 @@
   <string name="about_author">
     Idee, Code: <b>Vitamin/CAIG</b>\n
     Entwurf: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
-    Gebrauchte Quellen:\n
+    Genutzte Quellen:\n
     \tAYEmul von <b>S.Bulba</b>\n
     \tAYFly von <b>Ander</b>\n
     \tPusher von <b>Himik/ZXZ</b>\n
-    Gebraucht Bibliotheken:\n
+    Genutzte Bibliotheken:\n
     \tboost\n
     \tzlib von <b>Jean-Loup Gailly</b> und <b>Mark Adler</b>\n
     \tz80ex von <b>Boo-boo</b>\n
@@ -46,9 +46,9 @@
   </string>
   <!-- players -->
   <string name="plugin_player_dac">Digitale Formate</string>
-  <string name="plugin_player_multidevice">Multi-Geräte</string>
+  <string name="plugin_player_multidevice">Mehrere Geräte</string>
   <!-- containers -->
-  <string name="plugin_multitrack">Multi-Spuren</string>
+  <string name="plugin_multitrack">Mehrere Titel</string>
   <string name="plugin_archive">Archiver</string>
   <string name="plugin_compressor">Datenpacker</string>
   <string name="plugin_decompiler">Decompiler</string>

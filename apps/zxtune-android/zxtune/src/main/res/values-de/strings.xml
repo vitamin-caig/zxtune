@@ -35,18 +35,18 @@
       <item quantity="other">%d Elemente</item>
     </plurals>
     <plurals name="tracks">
-      <item quantity="one">%d Tonspur</item>
-      <item quantity="other">%d Tonspuren</item>
+      <item quantity="one">%d Titel</item>
+      <item quantity="other">%d Titel</item>
     </plurals>
     <plurals name="packs">
       <item quantity="one">%d Paket</item>
       <item quantity="other">%d Pakete</item>
     </plurals>
-    <string name="no_tracks_found">Unterstützte Tonspuren wurden nicht gefunden</string>
-    <string name="track">Tonspur</string>
+    <string name="no_tracks_found">Keine unterstützten Titel gefunden</string>
+    <string name="track">Titel</string>
     <!-- notifications -->
-    <string name="notification_channel_name_events">Veranstaltungen</string>
-    <string name="notification_channel_name_services">Dienstleistungen</string>
+    <string name="notification_channel_name_events">Ereignisse</string>
+    <string name="notification_channel_name_services">Dienste</string>
     <!-- problems -->
     <string name="problems">Erkannte Probleme</string>
     <string name="problem_power_management">

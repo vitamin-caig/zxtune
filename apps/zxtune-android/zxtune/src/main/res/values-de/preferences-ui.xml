@@ -5,8 +5,8 @@
     <!-- ui.theme -->
     <string name="pref_ui_theme_title">Thema</string>
     <string-array name="pref_ui_theme_entries">
-        <item>Dunkles</item>
-        <item>Helles</item>
+        <item>Dunkel</item>
+        <item>Hell</item>
         <item>Wie im System</item>
     </string-array>
 </resources>

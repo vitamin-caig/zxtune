@@ -3,5 +3,5 @@
     <string name="ringtone_create_title">Klingelton erstellen</string>
     <string name="ringtone_create_started">Erstelle Klingelton…</string>
     <string name="ringtone_changed">Neuer Klingelton erstellt!</string>
-    <string name="ringtone_creating_failed">Fehler beim Klingelton erstellen: %s</string>
+    <string name="ringtone_creating_failed">Fehler beim Erstellen des Klingeltons: %s</string>
 </resources>

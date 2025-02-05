@@ -22,8 +22,8 @@
     <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
     <string name="vfs_zxart_authors_name">Autoren</string>
     <string name="vfs_zxart_parties_name">Demoparty</string>
-    <string name="vfs_zxart_toptracks_name">Top-Tonspuren</string>
-    <string name="vfs_zxart_toptracks_description">100 Tonspuren mit höchster Bewertung</string>
+    <string name="vfs_zxart_toptracks_name">Top-Titel</string>
+    <string name="vfs_zxart_toptracks_description">100 Titel mit höchster Bewertung</string>
     <string name="vfs_zxart_unknown_year_name">Unbekanntes Jahr</string>
     <string name="vfs_zxart_compo_unknown">Unbekannter Wettbewerb</string>
     <string name="vfs_zxart_compo_standard">Standard-Musik-Wettbewerb</string>
@@ -192,6 +192,6 @@
     <!-- errors -->
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
     <string name="failed_resolve">Adresse %s konnte nicht aufgelöst werden</string>
-    <string name="limited_storage_access">Tippen Sie auf, um die Zugriffsberechtigung zu erteilen</string>
-    <string name="no_stored_playlists_access">Tippen Sie auf, um einen dauerhaften Speicherort einzurichten</string>
+    <string name="limited_storage_access">Tippen Sie, um die Zugriffsberechtigung zu erteilen</string>
+    <string name="no_stored_playlists_access">Tippen Sie, um einen dauerhaften Speicherort einzurichten</string>
 </resources>
