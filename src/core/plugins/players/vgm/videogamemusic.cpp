@@ -427,14 +427,24 @@ namespace Module::VideoGameMusic
         const std::size_t offsetPos = 0x34;
         Input.Seek(offsetPos);
         const auto vgmOffset = ReadDword();
-        DataOffset = vgmOffset ? vgmOffset + offsetPos : 0x40;
+        DataOffset = (Version >= 150 && vgmOffset) ? (vgmOffset + offsetPos) : 0x40;
       }
       {
         const std::size_t offsetPos = 0x14;
         Input.Seek(offsetPos);
         const auto gd3Offset = ReadDword();
-        TagsOffset = gd3Offset ? gd3Offset + offsetPos : 0;
+        TagsOffset = gd3Offset ? (gd3Offset + offsetPos) : 0;
       }
+      std::size_t XhdrOffset = 0;
+      if (DataOffset >= 0xc0)
+      {
+        const std::size_t offsetPos = 0xbc;
+        Input.Seek(offsetPos);
+        const auto vgmOffset = ReadDword();
+        XhdrOffset = vgmOffset ? (vgmOffset + offsetPos) : 0;
+      }
+      // The header ends when either the Extra Header (XhdrOffset) or the actual data (DataOffset) begins.
+      HdrEndOffset = (XhdrOffset != 0 && XhdrOffset < DataOffset) ? XhdrOffset : DataOffset;
     }
 
     StringView GetResult()
@@ -679,7 +689,7 @@ namespace Module::VideoGameMusic
 
     uint32_t ReadClock(std::size_t offset)
     {
-      if (offset + sizeof(uint32_t) <= DataOffset)
+      if (offset + sizeof(uint32_t) <= HdrEndOffset)
       {
         Input.Seek(offset);
         return ReadDword();
@@ -963,6 +973,7 @@ namespace Module::VideoGameMusic
   private:
     Binary::DataInputStream Input;
     uint_t Version = 0;
+    std::size_t HdrEndOffset = 0;
     std::size_t DataOffset = 0;
     std::size_t TagsOffset;
     std::map<uint_t, DeviceTraits> Traits;

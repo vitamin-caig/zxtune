@@ -33,6 +33,7 @@
 #include "make_ptr.h"
 
 #include "3rdparty/vgm/emu/SoundEmu.h"
+#include "3rdparty/vgm/player/playera.hpp"
 #include "3rdparty/vgm/player/s98player.hpp"
 #include "3rdparty/vgm/player/vgmplayer.hpp"
 #include "3rdparty/vgm/utils/DataLoader.h"
@@ -43,14 +44,16 @@ namespace Module::LibVGM
 {
   const Debug::Stream Dbg("Core::VGMSupp");
 
-  using PlayerPtr = std::unique_ptr< ::PlayerBase>;
+  using PlayerPtr = std::unique_ptr< ::PlayerA>;
 
   using PlayerCreator = PlayerPtr (*)();
 
   template<class PlayerType>
   PlayerPtr Create()
   {
-    return PlayerPtr(new PlayerType());
+    auto player = PlayerPtr(new PlayerA());
+    player->RegisterPlayerEngine(new PlayerType());
+    return player;
   }
 
   struct Model
@@ -74,7 +77,7 @@ namespace Module::LibVGM
     {
       std::memset(&Delegate, 0, sizeof(Delegate));
       static const DATA_LOADER_CALLBACKS CALLBACKS = {0xdeadbeef, "",    &Open,   &Read, nullptr,
-                                                      &Close,     &Tell, &Length, &Eof};
+                                                      &Close,     &Tell, &Length, &Eof,  nullptr};
       ::DataLoader_Setup(&Delegate, &CALLBACKS, this);
       Require(0 == ::DataLoader_Load(Get()));
     }
@@ -154,12 +157,12 @@ namespace Module::LibVGM
     explicit ChannelsLayout(const Model& tune)
     {
       LoaderAdapter loader(*tune.Data);
-      std::unique_ptr< ::PlayerBase> player(tune.CreatePlayer());
+      const auto player = tune.CreatePlayer();
+      Require(0 == player->SetOutputSettings(44100, Sound::Sample::CHANNELS, Sound::Sample::BITS, 44100 / 100));
       Require(0 == player->LoadFile(loader.Get()));
-      Require(0 == player->SetSampleRate(32000));
-      player->Start();
+      player->Start();  // required so that FindDeviceCore() works
       std::vector<PLR_DEV_INFO> devices;
-      player->GetSongDeviceInfo(devices);
+      player->GetPlayer()->GetSongDeviceInfo(devices);
       Devices.reserve(devices.size());
       for (const auto& dev : devices)
       {
@@ -202,13 +205,13 @@ namespace Module::LibVGM
       return result;
     }
 
-    void ApplyMuteMask(int64_t mask, ::PlayerBase& player) const
+    void ApplyMuteMask(int64_t mask, ::PlayerA& player) const
     {
       for (const auto& dev : Devices)
       {
         PLR_MUTE_OPTS opt = {};
         opt.chnMute[0] = static_cast<UINT32>(mask >> dev.MuteMaskShift);
-        player.SetDeviceMuting(dev.Info.id, opt);
+        player.GetPlayer()->SetDeviceMuting(dev.Info.id, opt);
       }
     }
 
@@ -259,8 +262,21 @@ namespace Module::LibVGM
       , Loader(*Tune->Data)
       , Delegate(Tune->CreatePlayer())
     {
+      {
+        ::PlayerA::Config pCfg = Delegate->GetConfiguration();
+        pCfg.masterVol = 0x10000;  // volume 1.0
+        pCfg.loopCount = 0;        // infinite looping
+        pCfg.fadeSmpls = 0;        // no fade out
+        pCfg.endSilenceSmpls = 0;  // no silence at the end
+        pCfg.pbSpeed = 1.0;        // normal playback speed
+        Delegate->SetConfiguration(pCfg);
+      }
+      {
+        const auto frame_samples = ToSample(FRAME_DURATION, samplerate);
+        Require(
+            0 == Delegate->SetOutputSettings(samplerate, Sound::Sample::CHANNELS, Sound::Sample::BITS, frame_samples));
+      }
       Require(0 == Delegate->LoadFile(Loader.Get()));
-      Require(0 == Delegate->SetSampleRate(samplerate));
       Delegate->Start();
       TotalTicks = ToTicks(info.Duration());
       LoopTicks = ToTicks(info.LoopDuration());
@@ -268,23 +284,22 @@ namespace Module::LibVGM
 
     Time::AtMillisecond At() const override
     {
-      auto ticks = Delegate->GetCurPos(PLAYPOS_TICK);
-      if (ticks >= TotalTicks)
-      {
-        ticks = LoopTicks != 0 ? (TotalTicks - LoopTicks) + (ticks - TotalTicks) % LoopTicks : ticks % TotalTicks;
-      }
-      return Time::AtMillisecond() + Time::Seconds(Delegate->Tick2Second(ticks));
+      // time position in file
+      const auto curtime = Delegate->GetCurTime(PLAYTIME_LOOP_EXCL | PLAYTIME_TIME_FILE);
+      return Time::AtMillisecond() + Time::Milliseconds(curtime * 1000);
     }
 
     Time::Milliseconds Total() const override
     {
-      const auto ticks = Delegate->GetCurPos(PLAYPOS_TICK);
-      return Time::Seconds(Delegate->Tick2Second(ticks));
+      // total played time
+      const auto curtime = Delegate->GetCurTime(PLAYTIME_LOOP_INCL | PLAYTIME_TIME_PBK);
+      return Time::Seconds(curtime * 1000);
     }
 
     uint_t LoopCount() const override
     {
-      // Some of the tracks specifies LoopTicks == 0 with proper looping
+      // Tracks can specify LoopTicks == 0 to indicate no loop.
+      // In this case, we want to loop the whole song.
       return std::max(WholeLoopCount, Delegate->GetCurLoop());
     }
 
@@ -301,11 +316,11 @@ namespace Module::LibVGM
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
 
       const auto samples = ToSample(FRAME_DURATION);
-      Buffer.resize(samples);
-      std::memset(Buffer.data(), 0, samples * sizeof(Buffer.front()));
-      const auto outSamples = Delegate->Render(samples, Buffer.data());
+      Sound::Chunk result(samples);
+      const auto outBytes = Delegate->Render(samples * sizeof(result.front()), result.data());
+      result.resize(outBytes / sizeof(result.front()));
       CheckForWholeLoop();
-      return ConvertBuffer(outSamples);
+      return result;
     }
 
     void Seek(Time::AtMillisecond request)
@@ -325,13 +340,19 @@ namespace Module::LibVGM
     uint_t ToTicks(Duration dur) const
     {
       const auto sample = ToSample(dur);
-      return Delegate->Sample2Tick(sample);
+      return Delegate->GetPlayer()->Sample2Tick(sample);
+    }
+
+    template<class Item>
+    uint_t ToSample(Item it, uint_t samplerate) const
+    {
+      return uint_t(uint64_t(it.Get()) * samplerate / Item::PER_SECOND);
     }
 
     template<class Item>
     uint_t ToSample(Item it) const
     {
-      return uint_t(uint64_t(it.Get()) * Delegate->GetSampleRate() / Item::PER_SECOND);
+      return ToSample(it, Delegate->GetSampleRate());
     }
 
     void CheckForWholeLoop()
@@ -343,32 +364,14 @@ namespace Module::LibVGM
       }
     }
 
-    Sound::Chunk ConvertBuffer(uint_t samples) const
-    {
-      Sound::Chunk result(samples);
-      std::transform(Buffer.data(), Buffer.data() + samples, result.data(), &ConvertSample);
-      return result;
-    }
-
-    static Sound::Sample ConvertSample(WAVE_32BS data)
-    {
-      return {Convert(data.L), Convert(data.R)};
-    }
-
-    static Sound::Sample::Type Convert(DEV_SMPL in)
-    {
-      return Math::Clamp<Sound::Sample::WideType>(in >> 8, Sound::Sample::MIN, Sound::Sample::MAX);
-    }
-
   private:
     const Model::Ptr Tune;
     const ChannelsLayout::Ptr Channels;
     LoaderAdapter Loader;
-    std::unique_ptr< ::PlayerBase> Delegate;
+    PlayerPtr Delegate;
     uint_t TotalTicks = 0;
     uint_t LoopTicks = 0;
     uint_t WholeLoopCount = 0;
-    std::vector<WAVE_32BS> Buffer;
   };
 
   class Renderer : public Module::Renderer
@@ -593,7 +596,6 @@ namespace Module::Sound98
           auto tune = MakePtr<LibVGM::Model>(&LibVGM::Create< ::S98Player>, *container);
 
           props.SetSource(*container);
-
           auto layout = MakePtr<Module::LibVGM::ChannelsLayout>(*tune);
           props.SetChannels(layout->GetChannelsNames());
 
