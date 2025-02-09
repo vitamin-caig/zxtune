@@ -1,18 +1,17 @@
 package app.zxtune.fs.ocremix
 
+// TODO: inline classes are supported since room 2.6.0-alpha01, so dao can read direct entities
+
 data class System(val id: Id, val title: String) {
-    @JvmInline
-    value class Id(val value: String)
+    data class Id(val value: String)
 }
 
 data class Organization(val id: Id, val title: String) {
-    @JvmInline
-    value class Id(val value: String)
+    data class Id(val value: String)
 }
 
 data class Game(val id: Id, val title: String) {
-    @JvmInline
-    value class Id(val value: String)
+    data class Id(val value: String)
 
     data class Details(val chiptunePath: FilePath?, val image: FilePath?)
 }
@@ -22,8 +21,7 @@ data class Game(val id: Id, val title: String) {
 // music/remixes/${filename}
 // torrents/${filename}
 // albums/${folder}/${path}
-@JvmInline
-value class FilePath(val value: String) {
+data class FilePath(val value: String) {
     init {
         require(value.isNotEmpty() && '/' != value.first())
     }
@@ -39,11 +37,9 @@ value class FilePath(val value: String) {
 }
 
 data class Remix(val id: Id, val title: String) {
-    @JvmInline
-    value class Id(val value: String)
+    data class Id(val value: String)
 }
 
 data class Album(val id: Id, val title: String) {
-    @JvmInline
-    value class Id(val value: String)
+    data class Id(val value: String)
 }

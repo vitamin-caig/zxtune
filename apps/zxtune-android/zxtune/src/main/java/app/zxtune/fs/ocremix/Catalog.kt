@@ -53,7 +53,10 @@ interface Catalog {
     fun queryAlbumImage(id: Album.Id): FilePath?
 
     companion object {
-        fun create(context: Context, httpProvider: MultisourceHttpProvider): Catalog =
-            RemoteCatalog(httpProvider)
+        fun create(context: Context, httpProvider: MultisourceHttpProvider): Catalog {
+            val remote = RemoteCatalog(httpProvider)
+            val db = Database(context)
+            return CachingCatalog(remote, db)
+        }
     }
 }
