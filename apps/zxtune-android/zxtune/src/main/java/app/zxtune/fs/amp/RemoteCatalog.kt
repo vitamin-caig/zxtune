@@ -11,6 +11,7 @@ import app.zxtune.Logger
 import app.zxtune.fs.HtmlUtils
 import app.zxtune.fs.Jsoup.findFirst
 import app.zxtune.fs.api.Cdn
+import app.zxtune.fs.api.Proxy
 import app.zxtune.fs.http.MultisourceHttpProvider
 import org.jsoup.nodes.Document
 
@@ -78,7 +79,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         }
 
     private fun queryAuthorsInternal(uri: Uri, visitor: Catalog.AuthorsVisitor) =
-        loadPages(uri) { doc ->
+        loadPages(uri, allowCache = true) { doc ->
             parseAuthors(doc, visitor)
         }
 
@@ -101,7 +102,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
     override fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) =
         getQueryUri("module", query).let { uri ->
             LOG.d { "findTracks(query=${query})" }
-            loadPages(uri) { doc ->
+            loadPages(uri, allowCache = false) { doc ->
                 parseFoundTracks(doc, visitor)
             }
         }
@@ -124,10 +125,10 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         fun onPage(doc: Document)
     }
 
-    private fun loadPages(query: Uri, visitor: PagesVisitor) {
+    private fun loadPages(query: Uri, allowCache: Boolean, visitor: PagesVisitor) {
         var offset = 0
         while (true) {
-            val doc = readDoc(getPageUrl(query, offset))
+            val doc = readDoc(getPageUrl(query, offset), allowCache)
             val paginator =
                 doc.findFirst("table>caption")?.takeIf { it.childrenSize() <= 2 } ?: break
             visitor.onPage(doc)
@@ -142,7 +143,10 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         }
     }
 
-    private fun readDoc(base: Uri) = HtmlUtils.parseDoc(http.getInputStream(base))
+    private fun readDoc(base: Uri, allowCache: Boolean = true) = HtmlUtils.parseDoc(
+        if (allowCache) http.getInputStream(arrayOf(Proxy.uriFor(base), base))
+        else http.getInputStream(base)
+    )
 }
 
 private fun getPageUrl(base: Uri, start: Int) =
