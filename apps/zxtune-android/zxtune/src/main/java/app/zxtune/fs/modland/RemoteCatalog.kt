@@ -11,6 +11,7 @@ import app.zxtune.Logger
 import app.zxtune.fs.HtmlUtils
 import app.zxtune.fs.Jsoup.findFirstText
 import app.zxtune.fs.api.Cdn
+import app.zxtune.fs.api.Proxy
 import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.utils.ProgressCallback
 import app.zxtune.utils.StubProgressCallback
@@ -47,7 +48,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
             progress: ProgressCallback
         ) {
             LOG.d { "queryGroups(type=${tag}, filter=${filter})" }
-            loadPages(getGroupsUriBuilder(tag, filter), object : PagesVisitor {
+            loadPages(getGroupsUri(tag, filter), object : PagesVisitor {
 
                 private var total = 0
                 private var done = 0
@@ -67,7 +68,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         override fun getGroup(id: Int): Group {
             LOG.d { "getGroup(type=${tag}, id=${id})" }
             val resultRef = arrayOfNulls<Group>(1)
-            loadPages(getTracksUriBuilder(tag, id)) { header, results, _ ->
+            loadPages(getTracksUri(tag, id)) { header, results, _ ->
                 if (header.startsWith(headerPrefix)) {
                     val name = header.substring(headerPrefix.length)
                     resultRef[0] = Group(id, name, results)
@@ -83,7 +84,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
             progress: ProgressCallback
         ) {
             LOG.d { "queryGroupTracks(type=${tag}, id=${id})" }
-            loadPages(getTracksUriBuilder(tag, id), object : PagesVisitor {
+            loadPages(getTracksUri(tag, id), object : PagesVisitor {
 
                 private var total = 0
                 private var done = 0
@@ -130,7 +131,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         fun onPage(title: String, results: Int, doc: Document): Boolean
     }
 
-    private fun loadPages(query: Uri.Builder, visitor: PagesVisitor) {
+    private fun loadPages(query: Uri, visitor: PagesVisitor) {
         for (pg in 1..Int.MAX_VALUE) {
             val doc = HtmlUtils.parseDoc(readPage(query, pg))
             val hdr = doc.findFirstText("table>caption") ?: break
@@ -151,9 +152,9 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         }
     }
 
-    private fun readPage(base: Uri.Builder, start: Int) =
-        base.appendQueryParameter("pg", start.toString()).build().let { uri ->
-            http.getInputStream(uri)
+    private fun readPage(base: Uri, start: Int) =
+        base.buildUpon().appendQueryParameter("pg", start.toString()).build().let { uri ->
+            http.getInputStream(arrayOf(Proxy.uriFor(uri), uri))
         }
 }
 
@@ -163,15 +164,15 @@ private fun getMainUriBuilder() = Uri.Builder()
     .path("mediawiki/index.php")
     .appendQueryParameter("title", "Special:Modland")
 
-private fun getGroupsUriBuilder(type: String, filter: String) =
+private fun getGroupsUri(type: String, filter: String) =
     getMainUriBuilder()
         .appendQueryParameter("md", "b_${type}")
-        .appendQueryParameter("st", filter)
+        .appendQueryParameter("st", filter).build()
 
-private fun getTracksUriBuilder(type: String, id: Int) =
+private fun getTracksUri(type: String, id: Int) =
     getMainUriBuilder()
         .appendQueryParameter("md", type)
-        .appendQueryParameter("id", id.toString())
+        .appendQueryParameter("id", id.toString()).build()
 
 private fun parseGroups(doc: Document, visitor: Catalog.GroupsVisitor): Int {
     var result = 0
