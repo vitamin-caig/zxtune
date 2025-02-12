@@ -21,7 +21,7 @@ import android.net.Uri
  * 8) amp:/Group
  * 9) amp:/Group/${group_name}?group=${group_id}
  * 10) amp:/Group/${group_name}/${author_name}?author=${author_id}&group=${group_id}
- * 11) amp:/Image/Author/${author_name}?author=${author_id}
+ * OBSOLETE 11) amp:/Image/Author/${author_name}?author=${author_id}
  */
 object Identifier {
     private const val SCHEME = "amp"
@@ -35,11 +35,9 @@ object Identifier {
     private const val PARAM_GROUP = "group"
     private const val PARAM_AUTHOR = "author"
     private const val PARAM_TRACK = "track"
-    private const val PARAM_SEED = "seed"
     const val CATEGORY_HANDLE = "Handle"
     const val CATEGORY_COUNTRY = "Country"
     const val CATEGORY_GROUP = "Group"
-    const val CATEGORY_IMAGE = "Image"
 
     // Root
     @JvmStatic
@@ -117,14 +115,4 @@ object Identifier {
                 Track(id, filename, 0/*fake*/)
             }
         }
-
-    @JvmStatic
-    fun forPictureOf(author: Author, seed: Int): Uri =
-        forAuthor(forCategory(CATEGORY_IMAGE).appendPath("Author"), author).appendQueryParameter(
-            PARAM_SEED, seed.toString()
-        ).build()
-
-    @JvmStatic
-    fun findSeed(uri: Uri, path: List<String>) =
-        uri.takeIf { it.isHierarchical }?.getQueryParameter(PARAM_SEED)?.toIntOrNull()
 }

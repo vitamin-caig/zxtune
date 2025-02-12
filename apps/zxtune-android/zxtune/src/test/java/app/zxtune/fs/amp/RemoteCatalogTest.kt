@@ -101,21 +101,6 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun `test authors pictures`() {
-        val visitor = mock<Catalog.PicturesVisitor>()
-        catalog.queryPictures(Author(3980, "unused", "unused"), visitor)
-        val picsExact = 6
-        verify(visitor).setCountHint(picsExact)
-        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch.jpg")
-        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch_2.jpg")
-        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch_3.jpg")
-        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch_4.jpg")
-        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch_5.jpg")
-        verify(visitor).accept("/pictures/K/Karsten Koch - 3980/Karsten Koch_6.jpg")
-        verifyNoMoreInteractions(visitor)
-    }
-
-    @Test
     fun `test search`() {
         val visitor = mock<Catalog.FoundTracksVisitor>()
         catalog.findTracks("zzz", visitor)

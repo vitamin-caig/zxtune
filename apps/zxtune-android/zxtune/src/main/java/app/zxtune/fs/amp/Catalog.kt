@@ -37,11 +37,6 @@ interface Catalog {
         fun accept(author: Author, track: Track)
     }
 
-    fun interface PicturesVisitor : WithCountHint {
-        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
-        fun accept(pic: String)
-    }
-
     /**
      * Query all groups
      * @param visitor result receiver
@@ -80,14 +75,6 @@ interface Catalog {
      */
     @Throws(IOException::class)
     fun queryTracks(author: Author, visitor: TracksVisitor)
-
-    /**
-     * Query authors's tracks
-     * @param author scope
-     * @param visitor result receiver
-     */
-    @Throws(IOException::class)
-    fun queryPictures(author: Author, visitor: PicturesVisitor)
 
     /**
      * Find tracks by query substring

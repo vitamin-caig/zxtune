@@ -50,7 +50,6 @@ internal open class Database(context: Context) {
     private val groups = Tables.Groups(helper)
     private val authors = Tables.Authors(helper)
     private val authorTracks = Tables.AuthorTracks(helper)
-    private val authorPictures = Tables.AuthorPictures(helper)
     private val tracks = Tables.Tracks(helper)
     private val timestamps = Timestamps(helper)
     private val findQuery = "SELECT * FROM authors LEFT OUTER JOIN tracks ON " +
@@ -69,9 +68,6 @@ internal open class Database(context: Context) {
 
     open fun getAuthorTracksLifetime(author: Author, ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Authors.NAME + author.id, ttl)
-
-    open fun getAuthorPicturesLifetime(author: Author, ttl: TimeStamp) =
-        timestamps.getLifetime(Tables.AuthorPictures.NAME + author.id, ttl)
 
     open fun getGroupsLifetime(ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Groups.NAME, ttl)
@@ -129,26 +125,6 @@ internal open class Database(context: Context) {
         return false
     }
 
-    open fun queryPictures(author: Author, visitor: Catalog.PicturesVisitor): Boolean {
-        helper.readableDatabase.query(
-            Tables.AuthorPictures.NAME, arrayOf(
-                Tables.AuthorPictures
-                    .FIELD
-            ), Tables.AuthorPictures.SELECTION, arrayOf(author.id.toString()), null, null,
-            null
-        )?.use { cursor ->
-            val count = cursor.count
-            if (count != 0) {
-                visitor.setCountHint(count)
-                while (cursor.moveToNext()) {
-                    visitor.accept(Tables.AuthorPictures.createPicture(cursor))
-                }
-                return true
-            }
-        }
-        return false
-    }
-
     open fun queryGroups(visitor: Catalog.GroupsVisitor): Boolean {
         helper.readableDatabase.query(Tables.Groups.NAME, null, null, null, null, null, null)
             ?.use { cursor ->
@@ -191,8 +167,6 @@ internal open class Database(context: Context) {
     open fun addTrack(obj: Track) = tracks.add(obj)
 
     open fun addAuthorTrack(author: Author, track: Track) = authorTracks.add(author, track)
-
-    open fun addAuthorPicture(author: Author, picture: String) = authorPictures.add(author, picture)
 }
 
 private class Helper(context: Context) :
@@ -286,9 +260,8 @@ private class Tables {
         }
     }
 
+    @Deprecated("Not supported anymore")
     class AuthorPictures(helper: DBProvider) : Objects(helper, NAME, FIELDS_COUNT) {
-        fun add(author: Author, picture: String) = add(author.id.toLong(), picture)
-
         companion object {
             const val NAME = "author_pictures"
             const val CREATE_QUERY = "CREATE TABLE author_pictures (" +
@@ -297,11 +270,6 @@ private class Tables {
                     "PRIMARY KEY(author, path)" +
                     ");"
             const val FIELDS_COUNT = 2
-
-            const val SELECTION = "author = ?"
-            const val FIELD = "path"
-
-            fun createPicture(cursor: Cursor): String = cursor.getString(0)
         }
     }
 

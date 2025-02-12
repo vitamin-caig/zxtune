@@ -96,17 +96,6 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
             }
         }
 
-    override fun queryPictures(author: Author, visitor: Catalog.PicturesVisitor) =
-        getAuthorPicturesUri(author.id).let { uri ->
-            LOG.d { "queryTracks(author=${author.id})" }
-            readDoc(uri).select("table>tbody>tr>td>a>img[src^=/pictures/]").also {
-                visitor.setCountHint(it.size)
-            }.forEach { el ->
-                val path = el.attr("src")
-                visitor.accept(path)
-            }
-        }
-
     open fun searchSupported() = http.hasConnection()
 
     override fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) =
