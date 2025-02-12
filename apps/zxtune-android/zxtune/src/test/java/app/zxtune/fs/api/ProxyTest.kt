@@ -29,5 +29,10 @@ class ProxyTest {
                 Uri.parse("https://somehost/some/path?a=b&a=c&b=d")
             ).toString()
         )
+        assertEquals(
+            "${BuildConfig.PROXY_ROOT}/somehost/encoded%20path?encoded%20query=%23", Proxy.uriFor(
+                Uri.parse("https://somehost/encoded%20path?encoded%20query=%23")
+            ).toString()
+        )
     }
 }

@@ -9,10 +9,10 @@ object Proxy {
     fun uriFor(uri: Uri): Uri = ROOT.buildUpon().apply {
         require(uri.scheme == "https")
         appendPath(uri.host)
-        uri.path.takeUnless { it.isNullOrEmpty() }?.let {
+        uri.encodedPath.takeUnless { it.isNullOrEmpty() }?.let {
             appendEncodedPath(it.substringAfter('/'))
         }
-        uri.query?.let {
+        uri.encodedQuery?.let {
             encodedQuery(it)
         }
     }.build()
