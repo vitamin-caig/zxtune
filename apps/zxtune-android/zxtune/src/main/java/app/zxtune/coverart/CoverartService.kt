@@ -87,7 +87,7 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
         }
         // Do not mix archive and storage worlds
         if (id.archiveEntryName != null) {
-            return archiveArtOf(id)
+            return archiveArtOf(id, dataObject)
         }
         var ref = dataObject.parent
         while (ref != null) {
@@ -110,7 +110,7 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
     }
 
     @VisibleForTesting
-    fun archiveArtOf(id: Identifier): Uri? {
+    fun archiveArtOf(id: Identifier, dataObject: VfsObject): Uri? {
         require(id.subPath.isNotEmpty())
         val dataLocation = id.dataLocation
         // per-archive as reference
@@ -125,9 +125,12 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
         }
         val images = ImagesSet(db.listArchiveImages(dataLocation))
         if (images.isEmpty()) {
-            LOG.d { "Set archive $dataLocation has no images" }
-            db.setArchiveImage(dataLocation, null)
-            return null
+            LOG.d { "Archive $dataLocation has no images" }
+            return dataObject.coverArtUri.also {
+                if (true != it?.isRandomized()) {
+                    db.setArchiveImage(dataLocation, it)
+                }
+            }
         }
 
         // TODO: try to set archive image by images.selectAlbumArt("at_root.ext")
