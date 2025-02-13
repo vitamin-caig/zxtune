@@ -155,10 +155,12 @@ class Location(val path: String) {
         private set
         get() {
             if (field == -1) {
-                field = AlbumArt.pictureFilePriority(name.toString())
+                field = AlbumArt.pictureFilePriority(name.toString()) ?: 0
             }
             return field
         }
+    val take
+        get() = if (priority > 0) this else null
 
     // =0 if loc and this are at the same dir
     // >0 if loc is in sub directory
@@ -187,19 +189,22 @@ class Location(val path: String) {
 @VisibleForTesting
 class ImagesSet(paths: List<String>) {
     private val locations = ArrayList<Location>(paths.size).apply {
-        paths.takeUnless { it.isEmpty() }?.sorted()?.let {
-            val iterator = it.iterator()
+        paths.takeUnless { it.isEmpty() }?.sorted()?.iterator()?.let { iterator ->
             var cursor = Location(iterator.next())
             while (iterator.hasNext()) {
                 val next = Location(iterator.next())
                 if (cursor.dir != next.dir) {
-                    add(cursor)
+                    cursor.take?.let {
+                        add(it)
+                    }
                     cursor = next
                 } else if (cursor.priority < next.priority) {
                     cursor = next
                 }
             }
-            add(cursor)
+            cursor.take?.let {
+                add(it)
+            }
         }
     }
 

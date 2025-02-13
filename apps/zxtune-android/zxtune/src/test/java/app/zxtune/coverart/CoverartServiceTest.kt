@@ -44,7 +44,7 @@ class CoverartServiceTest {
     private val archiveUri = dirUri.buildUpon().appendPath("archive").build()
     private val archiveId = Identifier(archiveUri)
     private val archivedModuleId = Identifier(archiveUri, "sub/path")
-    private val picPath = "sub/image"
+    private val picPath = "sub/image.png"
     private val archivedPicId = Identifier(archiveUri, picPath)
     private val picUri = Uri.parse("http://host/path")
     private val picBlob = ByteArray(1)
@@ -77,6 +77,11 @@ class CoverartServiceTest {
             assertEquals("cover.jpeg", name)
             assertEquals(502, priority)
         }
+        Location("some/path/DSC_1234.JPG").apply {
+            assertEquals("some/path", dir)
+            assertEquals("DSC_1234.JPG", name)
+            assertEquals(0, priority)
+        }
 
         png.run {
             assertEquals(0, directDistanceTo(png))
@@ -99,8 +104,11 @@ class CoverartServiceTest {
 
     @Test
     fun `test ImagesSet`() {
-        val underTest =
-            ImagesSet(listOf("dir/sub/art/front.jpg", "dir/sub/art/back.jpg", "dir/image.png"))
+        val underTest = ImagesSet(
+            listOf(
+                "dir/sub/art/front.jpg", "dir/sub/art/back.jpg", "dir/image.png", "IMG_3456.JPG"
+            )
+        )
         assertEquals("dir/sub/art/front.jpg", underTest.selectAlbumArt("dir/sub/track.mp3"))
         assertEquals("dir/image.png", underTest.selectAlbumArt("dir/track.ogg"))
         assertEquals(null, underTest.selectAlbumArt("dir2/track.wav"))
