@@ -16,8 +16,14 @@ import androidx.room.TypeConverters
 import app.zxtune.core.Identifier
 import app.zxtune.fs.dbhelpers.Utils
 
+/*
+ * Version 1 - initial
+ * Version 2 - reset cache (no albumart outside of archive, limit archived pictures size)
+ * Version 3 - reset cache (filter out DCIM files)
+ */
+
 const val NAME = "coverart"
-const val VERSION = 2
+const val VERSION = 3
 
 class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) {
     constructor(ctx: Context) : this(
