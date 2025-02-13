@@ -5,17 +5,23 @@ import android.net.Uri
 import androidx.annotation.RawRes
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import app.zxtune.assertThrows
 import app.zxtune.io.Io.copy
 import app.zxtune.io.TransactionalOutputStream
 import app.zxtune.test.R
 import app.zxtune.utils.StubProgressCallback
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.BufferedInputStream
 import java.io.File
+import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 class VfsArchiveTest {
@@ -24,13 +30,14 @@ class VfsArchiveTest {
     private lateinit var tmpDir: File
 
     private fun getFile(@RawRes res: Int, filename: String) = with(File(tmpDir, filename)) {
-        val input = BufferedInputStream(resources.openRawResource(res))
-        TransactionalOutputStream(this).use {
-            val size = copy(input, it)
-            assertTrue(size > 0)
-            it.flush()
+        BufferedInputStream(resources.openRawResource(res)).use { input ->
+            TransactionalOutputStream(this).use {
+                val size = copy(input, it)
+                assertTrue(size > 0)
+                it.flush()
+            }
         }
-        Uri.fromFile(this)
+        Uri.Builder().scheme("file").path(path).build()
     }
 
     @Before
@@ -44,29 +51,20 @@ class VfsArchiveTest {
 
     @After
     fun tearDown() {
-        tmpDir.listFiles()?.let { files -> files.map { File::delete } }
+        tmpDir.listFiles()?.map(File::delete)
         tmpDir.delete()
     }
 
     @Test
     fun testNull() {
-        try {
+        assertThrows<NullPointerException> {
             VfsArchive.resolve(null)
-            unreachable()
-        } catch (e: NullPointerException) {
-            assertNotNull("Thrown exception", e)
         }
-        try {
+        assertThrows<NullPointerException> {
             VfsArchive.browse(null)
-            unreachable()
-        } catch (e: NullPointerException) {
-            assertNotNull("Thrown exception", e)
         }
-        try {
+        assertThrows<NullPointerException> {
             VfsArchive.browseCached(null)
-            unreachable()
-        } catch (e: NullPointerException) {
-            assertNotNull("Thrown exception", e)
         }
     }
 
@@ -81,202 +79,282 @@ class VfsArchiveTest {
     }
 
     @Test
-    fun testFile() = Uri.parse("file:/proc/meminfo").let { id ->
-        (VfsArchive.resolve(id) as VfsFile).run {
-            assertEquals("meminfo", name)
-            assertEquals("", description)
-            assertEquals("0", size)
-            assertEquals(id, uri)
-        }
+    fun testFile() {
+        assertResolvedAsFile(Uri.parse("file:/proc/meminfo"), expectedSize = "0")
     }
 
     @Test
     fun testFileTrack() = getFile(R.raw.track, "track").let { id ->
-        val file = (VfsArchive.resolve(id) as VfsFile).apply {
-            assertEquals("track", name)
-            assertEquals("", description)
-            assertEquals("2.8K", size)
-        }
-        VfsArchive.browse(file).run {
-            assertEquals(file, this)
-        }
-        VfsArchive.browseCached(file).run {
-            assertEquals(file, this)
-        }
-        VfsArchive.resolve(id)!!.run {
-            assertEquals(file.uri, uri)
-        }
+        val file = assertResolvedAsFile(id, expectedSize = "2.8K")
+        assertSame(file, VfsArchive.browse(file))
+        assertSame(file, VfsArchive.browseCached(file))
+        assertEquals(file.uri, VfsArchive.resolve(id)?.uri)
     }
 
     @Test
     fun testGzippedTrack() = getFile(R.raw.gzipped, "gzipped").let { id ->
-        val file = (VfsArchive.resolve(id) as VfsFile).apply {
-            assertEquals("gzipped", name)
-            assertEquals("", description)
-            assertEquals("54.1K", size)
-        }
-        val normalizedUri = file.uri
-        val subUri = normalizedUri.buildUpon().fragment("+unGZIP").build()
-        try {
+        val file = assertResolvedAsFile(id, expectedSize = "54.1K")
+        val subUri = file.uri.withFragment("+unGZIP")
+        assertThrows<IOException> {
             VfsArchive.resolve(subUri)
-            unreachable()
-        } catch (e: Exception) {
-            assertNotNull("Thrown exception", e)
+        }.let { e ->
             assertEquals("No archive found", e.message)
         }
-        VfsArchive.browse(file).run {
-            assertEquals(file, this)
-        }
-        VfsArchive.browseCached(file).run {
-            assertEquals(file, this)
-        }
-        VfsArchive.resolve(id)!!.run {
-            assertEquals(normalizedUri, uri)
-        }
-        (VfsArchive.resolve(subUri) as VfsFile).run {
-            assertEquals(subUri, uri)
-            assertEquals("+unGZIP", name)
-            assertEquals("sll3", description)
-            assertEquals("2:33", size)
-
+        assertEquals(file, VfsArchive.browse(file))
+        assertEquals(file, VfsArchive.browseCached(file))
+        assertEquals(file.uri, VfsArchive.resolve(id)?.uri)
+        assertResolvedAsFile(
+            subUri, expectedName = "+unGZIP", expectedDescription = "sll3", expectedSize = "2:33"
+        ).run {
             // no parent dir really, so just file itself
-            (parent as VfsFile).run {
-                assertEquals(normalizedUri, uri)
-            }
+            assertEquals(file.uri, (parent as VfsFile).uri)
         }
     }
 
     @Test
     fun testMultitrack() = getFile(R.raw.multitrack, "multitrack").let { id ->
-        val file = (VfsArchive.resolve(id) as VfsFile).apply {
-            assertEquals("multitrack", name)
-            assertEquals("", description)
-            assertEquals("10.3K", size)
-        }
-        val normalizedUri = file.uri
-        val subUri = normalizedUri.buildUpon().fragment("#2").build()
-        try {
+        val file = assertResolvedAsFile(id, expectedSize = "16.2K")
+        val subUri = file.uri.withFragment("#2")
+        assertThrows<IOException> {
             VfsArchive.resolve(subUri)
-            unreachable()
-        } catch (e: Exception) {
-            assertNotNull("Thrown exception", e)
+        }.let { e ->
             assertEquals("No archive found", e.message)
         }
         (VfsArchive.browse(file) as VfsDir).run {
             assertTrue(VfsArchive.checkIfArchive(this))
-            assertEquals(normalizedUri, uri)
+            assertEquals(file.uri, uri)
         }
         (VfsArchive.browseCached(file) as VfsDir).run {
             assertTrue(VfsArchive.checkIfArchive(this))
-            assertEquals(normalizedUri, uri)
+            assertEquals(file.uri, uri)
         }
         (VfsArchive.resolve(id) as VfsDir).run {
             assertTrue(VfsArchive.checkIfArchive(this))
-            assertEquals(normalizedUri, uri)
-            assertEquals(
-                """
-            {#1} (RoboCop 3 - Jeroen Tel) <3:56>
-            {#2} (RoboCop 3 - Jeroen Tel) <0:09>
-            {#3} (RoboCop 3 - Jeroen Tel) <0:16>
-            {#4} (RoboCop 3 - Jeroen Tel) <0:24>
-            {#5} (RoboCop 3 - Jeroen Tel) <0:24>
-            {#6} (RoboCop 3 - Jeroen Tel) <0:24>
-            {#7} (RoboCop 3 - Jeroen Tel) <0:12>
-            {#8} (RoboCop 3 - Jeroen Tel) <0:35>
-            {#9} (RoboCop 3 - Jeroen Tel) <0:01>
-            {#10} (RoboCop 3 - Jeroen Tel) <0:01>
-            {#11} (RoboCop 3 - Jeroen Tel) <0:01>
-            {#12} (RoboCop 3 - Jeroen Tel) <0:02>
-            {#13} (RoboCop 3 - Jeroen Tel) <0:01>
-            {#14} (RoboCop 3 - Jeroen Tel) <0:01>
-            {#15} (RoboCop 3 - Jeroen Tel) <0:01>
-            {#16} (RoboCop 3 - Jeroen Tel) <0:05>
-            {#17} (RoboCop 3 - Jeroen Tel) <0:01>
-            {#18} (RoboCop 3 - Jeroen Tel) <0:01>
-            {#19} (RoboCop 3 - Jeroen Tel) <0:03>
-            {#20} (RoboCop 3 - Jeroen Tel) <0:02>
-            
-            """.trimIndent(), listContent(this)
+            assertEquals(file.uri, uri)
+            assertArrayEquals(
+                arrayOf(
+                    File(0, "#1", "#1", "Title - Tim and/or Geoff Follin", "0:16"),
+                    File(0, "#2", "#2", "Looney Tunes - Tim and/or Geoff Follin", "3:12"),
+                    File(0, "#3", "#3", "Like Cats And Mice - Tim and/or Geoff Follin", "3:16"),
+                    File(0, "#4", "#4", "Victory is Mine! - Tim and/or Geoff Follin", "0:10"),
+                    File(0, "#5", "#5", "Game Over - Tim and/or Geoff Follin", "0:10"),
+                ), listContent(this)
             )
         }
-        (VfsArchive.resolve(subUri) as VfsFile).run {
-            assertEquals(subUri, uri)
-            assertEquals("#2", name)
-            assertEquals("RoboCop 3 - Jeroen Tel", description)
-            assertEquals("0:09", size)
-
+        assertResolvedAsFile(
+            subUri,
+            expectedName = "#2",
+            expectedDescription = "Looney Tunes - Tim and/or Geoff Follin",
+            expectedSize = "3:12"
+        ).run {
             // archive dir overrides file
             (parent as VfsDir).run {
-                assertEquals(normalizedUri, uri)
+                assertEquals(file.uri, uri)
                 assertTrue(VfsArchive.checkIfArchive(this))
-                (parent as VfsDir).run {
-                    assertFalse(VfsArchive.checkIfArchive(this))
-                }
+                assertFalse(VfsArchive.checkIfArchive(parent as VfsDir))
             }
         }
     }
 
     @Test
     fun testArchive() = getFile(R.raw.archive, "archive").let { id ->
-        val file = (VfsArchive.resolve(id) as VfsFile).apply {
-            assertEquals("archive", name)
-            assertEquals("", description)
-            assertEquals("2.4K", size)
-        }
-        val normalizedUri = file.uri
-        val subFileUri = normalizedUri.buildUpon().fragment("auricom.pt3").build()
-        try {
+        val file = assertResolvedAsFile(id, expectedSize = "2.4K")
+        val subFileUri = file.uri.withFragment("auricom.pt3")
+        assertThrows<IOException> {
             VfsArchive.resolve(subFileUri)
-            unreachable()
-        } catch (e: Exception) {
-            assertNotNull("Thrown exception", e)
+        }.let { e ->
             assertEquals("No archive found", e.message)
         }
-        val subDirUri = normalizedUri.buildUpon().fragment("coop-Jeffie").build()
-        try {
+        val subDirUri = file.uri.withFragment("coop-Jeffie")
+        assertThrows<IOException> {
             VfsArchive.resolve(subDirUri)
-            unreachable()
-        } catch (e: Exception) {
-            assertNotNull("Thrown exception", e)
+        }.let { e ->
             assertEquals("No archive found", e.message)
         }
         (VfsArchive.browse(file) as VfsDir).run {
             assertTrue(VfsArchive.checkIfArchive(this))
-            assertEquals(normalizedUri, uri)
+            assertEquals(file.uri, uri)
         }
         (VfsArchive.browseCached(file) as VfsDir).run {
             assertTrue(VfsArchive.checkIfArchive(this))
-            assertEquals(normalizedUri, uri)
+            assertEquals(file.uri, uri)
         }
         (VfsArchive.resolve(id) as VfsDir).run {
             assertTrue(VfsArchive.checkIfArchive(this))
-            assertEquals(normalizedUri, uri)
-            assertEquals(
-                """{auricom.pt3} (auricom - sclsmnn^mc ft frolic&fo(?). 2015) <1:13>
-[coop-Jeffie] ()
- {bass sorrow.pt3} (bass sorrow - scalesmann^mc & jeffie/bw, 2004) <2:10>
-""",
-                listContent(this)
+            assertEquals(file.uri, uri)
+            assertArrayEquals(
+                arrayOf(
+                    File(
+                        0,
+                        "auricom.pt3",
+                        "auricom.pt3",
+                        "auricom - sclsmnn^mc ft frolic&fo(?). 2015",
+                        "1:13"
+                    ),
+                    Dir(0, "coop-Jeffie", "coop-Jeffie"),
+                    File(
+                        1,
+                        "coop-Jeffie/bass sorrow.pt3",
+                        "bass sorrow.pt3",
+                        "bass sorrow - scalesmann^mc & jeffie/bw, 2004",
+                        "2:10"
+                    ),
+                ), listContent(this)
             )
         }
         (VfsArchive.resolve(subDirUri) as VfsDir).run {
             assertEquals(subDirUri, uri)
             assertEquals("coop-Jeffie", name)
             assertEquals("", description)
+            (parent as VfsDir).run {
+                assertEquals(file.uri, uri)
+                assertTrue(VfsArchive.checkIfArchive(this))
+                assertFalse(VfsArchive.checkIfArchive(parent as VfsDir))
+            }
+            assertArrayEquals(
+                arrayOf(
+                    File(
+                        0,
+                        "coop-Jeffie/bass sorrow.pt3",
+                        "bass sorrow.pt3",
+                        "bass sorrow - scalesmann^mc & jeffie/bw, 2004",
+                        "2:10"
+                    ),
+                ), listContent(this)
+            )
         }
-        (VfsArchive.resolve(subFileUri) as VfsFile).run {
-            assertEquals(subFileUri, uri)
-            assertEquals("auricom.pt3", name)
-            assertEquals("auricom - sclsmnn^mc ft frolic&fo(?). 2015", description)
-            assertEquals("1:13", size)
-
+        assertResolvedAsFile(
+            subFileUri,
+            expectedName = "auricom.pt3",
+            expectedDescription = "auricom - sclsmnn^mc ft frolic&fo(?). 2015",
+            expectedSize = "1:13"
+        ).run {
             // archive dir overrides file
             (parent as VfsDir).run {
-                assertEquals(normalizedUri, uri)
+                assertEquals(file.uri, uri)
                 assertTrue(VfsArchive.checkIfArchive(this))
-                (parent as VfsDir).run {
-                    assertFalse(VfsArchive.checkIfArchive(this))
-                }
+                assertFalse(VfsArchive.checkIfArchive(parent as VfsDir))
+            }
+        }
+    }
+
+    @Test
+    fun testArchiveWithGzips() = getFile(R.raw.archive_with_gzips, "archive_with_gzips").let { id ->
+        val file = assertResolvedAsFile(id, expectedSize = "67.2K")
+        (VfsArchive.browse(file) as VfsDir).run {
+            assertTrue(VfsArchive.checkIfArchive(this))
+            assertEquals(file.uri, uri)
+        }
+        (VfsArchive.browseCached(file) as VfsDir).run {
+            assertTrue(VfsArchive.checkIfArchive(this))
+            assertEquals(file.uri, uri)
+        }
+        (VfsArchive.resolve(id) as VfsDir).run {
+            assertTrue(VfsArchive.checkIfArchive(this))
+            assertEquals(file.uri, uri)
+            assertArrayEquals(
+                arrayOf(
+                    Dir(0, "gzipped", "gzipped"),
+                    File(1, "gzipped/+unGZIP", "+unGZIP", "sll3", "2:33"),
+                    File(
+                        0,
+                        "track",
+                        "track",
+                        "AsSuRed ... Hi! My Frends ... - Mm<M of Sage 14.Apr.XX twr 00:37",
+                        "3:41"
+                    ),
+                    Dir(0, "gzipped_archive", "gzipped_archive"),
+                    Dir(1, "gzipped_archive/+unGZIP", "+unGZIP"),
+                    File(
+                        2,
+                        "gzipped_archive/+unGZIP/auricom.pt3",
+                        "auricom.pt3",
+                        "auricom - sclsmnn^mc ft frolic&fo(?). 2015",
+                        "1:13"
+                    ),
+                    Dir(2, "gzipped_archive/+unGZIP/coop-Jeffie", "coop-Jeffie"),
+                    File(
+                        3,
+                        "gzipped_archive/+unGZIP/coop-Jeffie/bass sorrow.pt3",
+                        "bass sorrow.pt3",
+                        "bass sorrow - scalesmann^mc & jeffie/bw, 2004",
+                        "2:10"
+                    ),
+                    Dir(0, "gzipped_multitrack", "gzipped_multitrack"),
+                    Dir(1, "gzipped_multitrack/+unGZIP", "+unGZIP"),
+                    File(
+                        2,
+                        "gzipped_multitrack/+unGZIP/#1",
+                        "#1",
+                        "Title - Tim and/or Geoff Follin",
+                        "0:16"
+                    ),
+                    File(
+                        2,
+                        "gzipped_multitrack/+unGZIP/#2",
+                        "#2",
+                        "Looney Tunes - Tim and/or " + "Geoff Follin",
+                        "3:12"
+                    ),
+                    File(
+                        2,
+                        "gzipped_multitrack/+unGZIP/#3",
+                        "#3",
+                        "Like Cats And Mice - Tim " + "and/or Geoff Follin",
+                        "3:16"
+                    ),
+                    File(
+                        2,
+                        "gzipped_multitrack/+unGZIP/#4",
+                        "#4",
+                        "Victory is Mine! - Tim" + " and/or Geoff Follin",
+                        "0:10"
+                    ),
+                    File(
+                        2,
+                        "gzipped_multitrack/+unGZIP/#5",
+                        "#5",
+                        "Game Over - Tim " + "and/or Geoff Follin",
+                        "0:10"
+                    ),
+                ), listContent(this)
+            )
+            assertFalse(VfsArchive.checkIfArchive(parent as VfsDir))
+        }
+        val gzippedArchiveId = id.withFragment("gzipped_archive")
+        (VfsArchive.resolve(gzippedArchiveId) as VfsDir).run {
+            assertTrue(VfsArchive.checkIfArchive(this))
+            assertEquals("gzipped_archive", name)
+            assertEquals(gzippedArchiveId, uri)
+            (parent as VfsDir).run {
+                assertTrue(VfsArchive.checkIfArchive(this))
+                assertEquals(file.uri, uri)
+            }
+        }
+        val gzippedArchiveSubdirId = id.withFragment("gzipped_archive/+unGZIP")
+        (VfsArchive.resolve(gzippedArchiveSubdirId) as VfsDir).run {
+            assertEquals("+unGZIP", name)
+            assertEquals(gzippedArchiveSubdirId, uri)
+            (parent as VfsDir).run {
+                assertEquals(gzippedArchiveId, uri)
+            }
+        }
+        val gzippedMultitrackId = id.withFragment("gzipped_multitrack")
+        (VfsArchive.resolve(gzippedMultitrackId) as VfsDir).run {
+            assertTrue(VfsArchive.checkIfArchive(this))
+            assertEquals("gzipped_multitrack", name)
+            assertEquals(gzippedMultitrackId, uri)
+            (parent as VfsDir).run {
+                assertTrue(VfsArchive.checkIfArchive(this))
+                assertEquals(file.uri, uri)
+            }
+        }
+        val gzippedMultitrackSubdirId = id.withFragment("gzipped_multitrack/+unGZIP")
+        (VfsArchive.resolve(gzippedMultitrackSubdirId) as VfsDir).run {
+            assertEquals("+unGZIP", name)
+            assertEquals(gzippedMultitrackSubdirId, uri)
+            (parent as VfsDir).run {
+                assertEquals(gzippedMultitrackId, uri)
             }
         }
     }
@@ -284,9 +362,8 @@ class VfsArchiveTest {
     @Test
     fun testForceResolve() {
         getFile(R.raw.gzipped, "gzipped").let { id ->
-            val file = VfsArchive.resolve(id) as VfsFile
-            val normalizedUri = file.uri
-            val subUri = normalizedUri.buildUpon().fragment("+unGZIP").build()
+            val file = assertResolvedAsFile(id, expectedSize = "54.1K")
+            val subUri = file.uri.withFragment("+unGZIP")
             (VfsArchive.resolveForced(subUri, StubProgressCallback.instance()) as VfsFile).run {
                 assertEquals(subUri, uri)
                 assertEquals("+unGZIP", name)
@@ -294,24 +371,21 @@ class VfsArchiveTest {
                 assertEquals("2:33", size)
 
                 // no parent dir really, so just file itself
-                (parent as VfsFile).run {
-                    assertEquals(normalizedUri, uri)
-                }
+                assertEquals(file.uri, (parent as VfsFile).uri)
             }
         }
         getFile(R.raw.multitrack, "multitrack").let { id ->
-            val file = VfsArchive.resolve(id) as VfsFile
-            val normalizedUri = file.uri
-            val subUri = normalizedUri.buildUpon().fragment("#2").build()
+            val file = assertResolvedAsFile(id, expectedSize = "16.2K")
+            val subUri = file.uri.withFragment("#2")
             (VfsArchive.resolveForced(subUri, StubProgressCallback.instance()) as VfsFile).run {
                 assertEquals(subUri, uri)
                 assertEquals("#2", name)
-                assertEquals("RoboCop 3 - Jeroen Tel", description)
-                assertEquals("0:09", size)
+                assertEquals("Looney Tunes - Tim and/or Geoff Follin", description)
+                assertEquals("3:12", size)
 
                 // archive dir overrides file
                 (parent as VfsDir).run {
-                    assertEquals(normalizedUri, uri)
+                    assertEquals(file.uri, uri)
                     assertTrue(VfsArchive.checkIfArchive(this))
                     (parent as VfsDir).run {
                         assertFalse(VfsArchive.checkIfArchive(this))
@@ -321,11 +395,12 @@ class VfsArchiveTest {
         }
 
         getFile(R.raw.archive, "archive").let { id ->
-            val file = VfsArchive.resolve(id) as VfsFile
-            val normalizedUri = file.uri
-            val subFileUri = normalizedUri.buildUpon().fragment("auricom.pt3").build()
+            val file = assertResolvedAsFile(id, expectedSize = "2.4K")
+            val subFileUri = file.uri.withFragment("auricom.pt3")
 
-            (VfsArchive.resolveForced(subFileUri, StubProgressCallback.instance()) as VfsFile).run {
+            (VfsArchive.resolveForced(
+                subFileUri, StubProgressCallback.instance()
+            ) as VfsFile).run {
                 assertEquals(subFileUri, uri)
                 assertEquals("auricom.pt3", name)
                 assertEquals("auricom - sclsmnn^mc ft frolic&fo(?). 2015", description)
@@ -333,7 +408,7 @@ class VfsArchiveTest {
 
                 // archive dir overrides file
                 (parent as VfsDir).run {
-                    assertEquals(normalizedUri, uri)
+                    assertEquals(file.uri, uri)
                     assertTrue(VfsArchive.checkIfArchive(this))
                     (parent as VfsDir).run {
                         assertFalse(VfsArchive.checkIfArchive(this))
@@ -342,10 +417,11 @@ class VfsArchiveTest {
             }
         }
         getFile(R.raw.archive, "archive2").let { id ->
-            val file = VfsArchive.resolve(id) as VfsFile
-            val normalizedUri = file.uri
-            val subDirUri = normalizedUri.buildUpon().fragment("coop-Jeffie").build()
-            (VfsArchive.resolveForced(subDirUri, StubProgressCallback.instance()) as VfsDir).run {
+            val file = assertResolvedAsFile(id, expectedSize = "2.4K")
+            val subDirUri = file.uri.withFragment("coop-Jeffie")
+            (VfsArchive.resolveForced(
+                subDirUri, StubProgressCallback.instance()
+            ) as VfsDir).run {
                 assertEquals(subDirUri, uri)
                 assertEquals("coop-Jeffie", name)
                 assertEquals("", description)
@@ -354,43 +430,43 @@ class VfsArchiveTest {
     }
 }
 
-private fun unreachable() {
-    fail("Unreachable")
+private fun assertResolvedAsFile(
+    id: Uri,
+    expectedName: String = requireNotNull(id.lastPathSegment),
+    expectedDescription: String = "",
+    expectedSize: String
+) = (VfsArchive.resolve(id) as VfsFile).apply {
+    assertEquals(id, uri)
+    assertEquals(expectedName, name)
+    assertEquals(expectedDescription, description)
+    assertEquals(expectedSize, size)
 }
 
-private fun listContent(dir: VfsDir) = with(StringBuilder()) {
-    listDir(dir, this, "")
-    toString()
-}
+fun Uri.withFragment(fragment: String): Uri = buildUpon().fragment(fragment).build()
 
-private fun listDir(input: VfsDir, list: StringBuilder, tab: String) {
-    try {
-        input.enumerate(object : VfsDir.Visitor() {
-            override fun onDir(dir: VfsDir) {
-                list.append(
-                    String.format(
-                        "%s[%s] (%s)\n",
-                        tab,
-                        dir.name,
-                        dir.description
-                    )
-                )
-                listDir(dir, list, "$tab ")
-            }
+sealed class Entry
 
-            override fun onFile(file: VfsFile) {
-                list.append(
-                    String.format(
-                        "%s{%s} (%s) <%s>\n",
-                        tab,
-                        file.name,
-                        file.description,
-                        file.size
-                    )
-                )
-            }
-        })
-    } catch (e: Exception) {
-        list.append(e)
-    }
+data class File(
+    val depth: Int, val subpath: String, val name: String, val description: String, val size: String
+) : Entry()
+
+data class Dir(val depth: Int, val subpath: String, val name: String) : Entry()
+
+private fun listContent(dir: VfsDir) = ArrayList<Entry>().apply {
+    listDir(dir, this, 0)
+}.toArray()
+
+private fun listDir(input: VfsDir, list: ArrayList<Entry>, depth: Int) {
+    input.enumerate(object : VfsDir.Visitor() {
+        override fun onDir(dir: VfsDir) = with(dir) {
+            require(description.isEmpty())
+            list.add(Dir(depth, requireNotNull(uri.fragment), name))
+            listDir(dir, list, depth + 1)
+        }
+
+        override fun onFile(file: VfsFile) = with(file) {
+            list.add(File(depth, requireNotNull(uri.fragment), name, description, size))
+            Unit
+        }
+    })
 }
