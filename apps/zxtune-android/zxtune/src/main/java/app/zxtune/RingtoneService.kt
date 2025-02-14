@@ -15,8 +15,6 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Environment
-import android.os.Handler
-import android.os.Looper
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.lifecycle.LifecycleService
@@ -29,7 +27,9 @@ import app.zxtune.playback.FileIterator
 import app.zxtune.playback.PlayableItem
 import app.zxtune.sound.SamplesSource
 import app.zxtune.sound.WaveWriteSamplesTarget
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class RingtoneService : LifecycleService() {
@@ -42,7 +42,7 @@ class RingtoneService : LifecycleService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun onHandleIntent(intent: Intent?) {
+    private suspend fun onHandleIntent(intent: Intent?) {
         if (ACTION_MAKERINGTONE == intent?.action) {
             val module = requireNotNull(intent.getParcelableExtra<Uri>(EXTRA_MODULE))
             val seconds = intent.getLongExtra(EXTRA_DURATION_SECONDS, DEFAULT_DURATION_SECONDS)
@@ -50,7 +50,7 @@ class RingtoneService : LifecycleService() {
         }
     }
 
-    private fun createRingtone(source: Uri, seconds: Int) = runCatching {
+    private suspend fun createRingtone(source: Uri, seconds: Int) = runCatching {
         val item = load(source)
         item.module.use {
             val target = getTargetLocation(getModuleId(item), seconds)
@@ -63,52 +63,56 @@ class RingtoneService : LifecycleService() {
         makeToast(it)
     }
 
-    private fun load(uri: Uri) = FileIterator.create(applicationContext, uri).item
-
-    private fun getTargetLocation(moduleId: Long, seconds: Int): File {
-        val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RINGTONES)
-        if (dir.mkdirs()) {
-            LOG.d { "Created ringtones directory" }
-        }
-        val filename = "${moduleId}_${seconds}.wav"
-        LOG.d { "Dir: $dir filename: $filename" }
-        return File(dir, filename)
+    private suspend fun load(uri: Uri) = withContext(Dispatchers.IO) {
+        FileIterator.create(applicationContext, uri).item
     }
 
-    private fun makeToast(e: Throwable) {
+    private suspend fun getTargetLocation(moduleId: Long, seconds: Int) =
+        withContext(Dispatchers.IO) {
+            val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RINGTONES)
+            if (dir.mkdirs()) {
+                LOG.d { "Created ringtones directory" }
+            }
+            val filename = "${moduleId}_${seconds}.wav"
+            LOG.d { "Dir: $dir filename: $filename" }
+            File(dir, filename)
+        }
+
+    private suspend fun makeToast(e: Throwable) {
         LOG.w(e) { "Failed to create ringtone" }
         val msg = e.cause?.message ?: e.message
         val txt = getString(R.string.ringtone_creating_failed, msg)
         makeToast(txt, Toast.LENGTH_LONG)
     }
 
-    private fun makeToast(text: String, duration: Int) {
-        Handler(Looper.getMainLooper()).post {
-            Toast.makeText(applicationContext, text, duration).show()
-        }
+    private suspend fun makeToast(text: String, duration: Int) = withContext(
+        Dispatchers.Main.immediate
+    ) {
+        Toast.makeText(applicationContext, text, duration).show()
     }
 
-    private fun convert(module: Module, limit: Int, location: File) {
-        makeToast(getString(R.string.ringtone_create_started), Toast.LENGTH_SHORT)
-        val target = WaveWriteSamplesTarget(location.absolutePath)
+    private suspend fun convert(module: Module, limit: Int, location: File) =
+        withContext(Dispatchers.Default) {
+            makeToast(getString(R.string.ringtone_create_started), Toast.LENGTH_SHORT)
+            val target = WaveWriteSamplesTarget(location.absolutePath)
 
-        target.use {
-            val sampleRate = target.sampleRate
-            val player = module.createPlayer(sampleRate).apply {
-                position = TimeStamp.EMPTY
-                setProperty(Properties.Sound.LOOPED, 1)
-            }
-            player.use {
-                val buffer = ShortArray(sampleRate * SamplesSource.Channels.COUNT)
-                target.start()
-                repeat(limit) {
-                    player.render(buffer)
-                    target.writeSamples(buffer)
+            target.use {
+                val sampleRate = target.sampleRate
+                val player = module.createPlayer(sampleRate).apply {
+                    position = TimeStamp.EMPTY
+                    setProperty(Properties.Sound.LOOPED, 1)
                 }
-                target.stop()
+                player.use {
+                    val buffer = ShortArray(sampleRate * SamplesSource.Channels.COUNT)
+                    target.start()
+                    repeat(limit) {
+                        player.render(buffer)
+                        target.writeSamples(buffer)
+                    }
+                    target.stop()
+                }
             }
         }
-    }
 
     private fun setAsRingtone(item: PlayableItem, limit: Int, path: File) {
         val values = createRingtoneData(item, limit, path)
