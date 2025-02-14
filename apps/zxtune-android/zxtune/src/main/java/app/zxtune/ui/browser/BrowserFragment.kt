@@ -70,6 +70,8 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
         get() = listing.layoutManager as LinearLayoutManager
     private val scope
         get() = viewLifecycleOwner.lifecycleScope
+    private val maybeScope
+        get() = viewLifecycleOwnerLiveData.value?.lifecycleScope
 
     private class NotificationView(view: View) {
         private val panel = view.findViewById<TextView>(R.id.browser_notification)
@@ -207,7 +209,7 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
         } else {
             storeCurrentViewPosition()
             adapter.submitList(state.entries) {
-                scope.launch {
+                maybeScope?.launch {
                     val pos = stateStorage.updateCurrentPath(state.uri)
                     setCurrentViewPosition(pos)
                 }
