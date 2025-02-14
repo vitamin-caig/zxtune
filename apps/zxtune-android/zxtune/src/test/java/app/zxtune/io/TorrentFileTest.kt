@@ -2,6 +2,7 @@ package app.zxtune.io
 
 import app.zxtune.assertThrows
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,6 +13,8 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
+import java.io.File
+import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 class TorrentFileTest {
@@ -23,9 +26,7 @@ class TorrentFileTest {
     }
 
     @After
-    fun tearDown() {
-        verifyNoMoreInteractions(filesVisitor)
-    }
+    fun tearDown() = verifyNoMoreInteractions(filesVisitor)
 
     @Test
     fun `test multifile torrent`() {
@@ -49,9 +50,15 @@ class TorrentFileTest {
     }
 
     @Test
+    fun `test integers`() {
+        assertEquals(0, TorrentFile.parse("i0e".encodeToByteArray()).node.int)
+        assertEquals(-1, TorrentFile.parse("i-1e".encodeToByteArray()).node.int)
+    }
+
+    @Test
     fun `test invalid torrents`() {
         for (case in arrayOf(
-            "", "abc", "123", "4:cut", "i", "it", "ie", "i-1e", "i123", "l", "d"
+            "", "abc", "123", "4:cut", "i", "it", "ie", "i-e", "i-0e", "i00e", "i123", "l", "d"
         )) {
             assertThrows<IllegalArgumentException> {
                 TorrentFile.parse(case.encodeToByteArray())
@@ -62,6 +69,17 @@ class TorrentFileTest {
         )) {
             with(TorrentFile.parse(case.encodeToByteArray())) {
                 assertThrows<IllegalArgumentException> { forEachFile(filesVisitor) }
+            }
+        }
+    }
+
+    @Test
+    fun `calgary test`() {
+        File("torrents").listFiles({ _, name -> name.endsWith(".torrent") })?.forEach { f ->
+            try {
+                TorrentFile.parse(f.readBytes()).forEachFile { _, _ -> }
+            } catch (e: Exception) {
+                throw IOException(f.absolutePath, e)
             }
         }
     }

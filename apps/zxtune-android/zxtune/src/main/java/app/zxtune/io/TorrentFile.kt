@@ -1,7 +1,9 @@
 package app.zxtune.io
 
+import androidx.annotation.VisibleForTesting
+
 // May require fix int parsing for full specification support
-class TorrentFile(private val node: Node) {
+class TorrentFile(@get:VisibleForTesting val node: Node) {
     init {
         require(node !is End)
     }
@@ -105,14 +107,29 @@ class TorrentFile(private val node: Node) {
 
         fun readInt(): Long {
             var out = 0L
-            require(peekNext() in DIGITS)
+            var sign = 1L
+            when (val sym = readNext()) {
+                '-'.code -> {
+                    sign = -1L
+                }
+
+                '0'.code -> {
+                    return 0
+                }
+
+                else -> {
+                    require(sym in DIGITS)
+                    out = (sym - '0'.code).toLong()
+                }
+            }
             while (true) {
                 val sym = peekNext()
                 if (sym in DIGITS) {
                     out = out * 10 + (sym - '0'.code)
                     ++offset
                 } else {
-                    return out
+                    require(out > 0)
+                    return out * sign
                 }
             }
         }
