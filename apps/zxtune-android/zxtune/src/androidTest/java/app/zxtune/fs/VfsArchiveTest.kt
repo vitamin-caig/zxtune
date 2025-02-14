@@ -104,7 +104,7 @@ class VfsArchiveTest {
         assertEquals(file, VfsArchive.browseCached(file))
         assertEquals(file.uri, VfsArchive.resolve(id)?.uri)
         assertResolvedAsFile(
-            subUri, expectedName = "+unGZIP", expectedDescription = "sll3", expectedSize = "2:33"
+            subUri, expectedName = "gzipped", expectedDescription = "sll3", expectedSize = "2:33"
         ).run {
             // no parent dir really, so just file itself
             assertEquals(file.uri, (parent as VfsFile).uri)
@@ -254,8 +254,59 @@ class VfsArchiveTest {
             assertEquals(file.uri, uri)
             assertArrayEquals(
                 arrayOf(
-                    Dir(0, "gzipped", "gzipped"),
-                    File(1, "gzipped/+unGZIP", "+unGZIP", "sll3", "2:33"),
+                    File(0, "gzipped/+unGZIP", "gzipped", "sll3", "2:33"),
+                    Dir(0, "gzipped_archive/+unGZIP", "gzipped_archive"),
+                    File(
+                        1,
+                        "gzipped_archive/+unGZIP/auricom.pt3",
+                        "auricom.pt3",
+                        "auricom - sclsmnn^mc ft frolic&fo(?). 2015",
+                        "1:13"
+                    ),
+                    Dir(1, "gzipped_archive/+unGZIP/coop-Jeffie", "coop-Jeffie"),
+                    File(
+                        2,
+                        "gzipped_archive/+unGZIP/coop-Jeffie/bass sorrow.pt3",
+                        "bass sorrow.pt3",
+                        "bass sorrow - scalesmann^mc & jeffie/bw, 2004",
+                        "2:10"
+                    ),
+                    Dir(0, "gzipped_multitrack/+unGZIP", "gzipped_multitrack"),
+                    File(
+                        1,
+                        "gzipped_multitrack/+unGZIP/#1",
+                        "#1",
+                        "Title - Tim and/or Geoff Follin",
+                        "0:16"
+                    ),
+                    File(
+                        1,
+                        "gzipped_multitrack/+unGZIP/#2",
+                        "#2",
+                        "Looney Tunes - Tim and/or " + "Geoff Follin",
+                        "3:12"
+                    ),
+                    File(
+                        1,
+                        "gzipped_multitrack/+unGZIP/#3",
+                        "#3",
+                        "Like Cats And Mice - Tim " + "and/or Geoff Follin",
+                        "3:16"
+                    ),
+                    File(
+                        1,
+                        "gzipped_multitrack/+unGZIP/#4",
+                        "#4",
+                        "Victory is Mine! - Tim" + " and/or Geoff Follin",
+                        "0:10"
+                    ),
+                    File(
+                        1,
+                        "gzipped_multitrack/+unGZIP/#5",
+                        "#5",
+                        "Game Over - Tim " + "and/or Geoff Follin",
+                        "0:10"
+                    ),
                     File(
                         0,
                         "track",
@@ -263,98 +314,32 @@ class VfsArchiveTest {
                         "AsSuRed ... Hi! My Frends ... - Mm<M of Sage 14.Apr.XX twr 00:37",
                         "3:41"
                     ),
-                    Dir(0, "gzipped_archive", "gzipped_archive"),
-                    Dir(1, "gzipped_archive/+unGZIP", "+unGZIP"),
-                    File(
-                        2,
-                        "gzipped_archive/+unGZIP/auricom.pt3",
-                        "auricom.pt3",
-                        "auricom - sclsmnn^mc ft frolic&fo(?). 2015",
-                        "1:13"
-                    ),
-                    Dir(2, "gzipped_archive/+unGZIP/coop-Jeffie", "coop-Jeffie"),
-                    File(
-                        3,
-                        "gzipped_archive/+unGZIP/coop-Jeffie/bass sorrow.pt3",
-                        "bass sorrow.pt3",
-                        "bass sorrow - scalesmann^mc & jeffie/bw, 2004",
-                        "2:10"
-                    ),
-                    Dir(0, "gzipped_multitrack", "gzipped_multitrack"),
-                    Dir(1, "gzipped_multitrack/+unGZIP", "+unGZIP"),
-                    File(
-                        2,
-                        "gzipped_multitrack/+unGZIP/#1",
-                        "#1",
-                        "Title - Tim and/or Geoff Follin",
-                        "0:16"
-                    ),
-                    File(
-                        2,
-                        "gzipped_multitrack/+unGZIP/#2",
-                        "#2",
-                        "Looney Tunes - Tim and/or " + "Geoff Follin",
-                        "3:12"
-                    ),
-                    File(
-                        2,
-                        "gzipped_multitrack/+unGZIP/#3",
-                        "#3",
-                        "Like Cats And Mice - Tim " + "and/or Geoff Follin",
-                        "3:16"
-                    ),
-                    File(
-                        2,
-                        "gzipped_multitrack/+unGZIP/#4",
-                        "#4",
-                        "Victory is Mine! - Tim" + " and/or Geoff Follin",
-                        "0:10"
-                    ),
-                    File(
-                        2,
-                        "gzipped_multitrack/+unGZIP/#5",
-                        "#5",
-                        "Game Over - Tim " + "and/or Geoff Follin",
-                        "0:10"
-                    ),
                 ), listContent(this)
             )
             assertFalse(VfsArchive.checkIfArchive(parent as VfsDir))
         }
         val gzippedArchiveId = id.withFragment("gzipped_archive")
-        (VfsArchive.resolve(gzippedArchiveId) as VfsDir).run {
-            assertTrue(VfsArchive.checkIfArchive(this))
-            assertEquals("gzipped_archive", name)
-            assertEquals(gzippedArchiveId, uri)
-            (parent as VfsDir).run {
-                assertTrue(VfsArchive.checkIfArchive(this))
-                assertEquals(file.uri, uri)
-            }
+        assertThrows<IOException> {
+            VfsArchive.resolve(gzippedArchiveId)
         }
         val gzippedArchiveSubdirId = id.withFragment("gzipped_archive/+unGZIP")
         (VfsArchive.resolve(gzippedArchiveSubdirId) as VfsDir).run {
-            assertEquals("+unGZIP", name)
+            assertEquals("gzipped_archive", name)
             assertEquals(gzippedArchiveSubdirId, uri)
             (parent as VfsDir).run {
-                assertEquals(gzippedArchiveId, uri)
-            }
-        }
-        val gzippedMultitrackId = id.withFragment("gzipped_multitrack")
-        (VfsArchive.resolve(gzippedMultitrackId) as VfsDir).run {
-            assertTrue(VfsArchive.checkIfArchive(this))
-            assertEquals("gzipped_multitrack", name)
-            assertEquals(gzippedMultitrackId, uri)
-            (parent as VfsDir).run {
-                assertTrue(VfsArchive.checkIfArchive(this))
                 assertEquals(file.uri, uri)
             }
         }
+        val gzippedMultitrackId = id.withFragment("gzipped_multitrack")
+        assertThrows<IOException> {
+            VfsArchive.resolve(gzippedMultitrackId)
+        }
         val gzippedMultitrackSubdirId = id.withFragment("gzipped_multitrack/+unGZIP")
         (VfsArchive.resolve(gzippedMultitrackSubdirId) as VfsDir).run {
-            assertEquals("+unGZIP", name)
+            assertEquals("gzipped_multitrack", name)
             assertEquals(gzippedMultitrackSubdirId, uri)
             (parent as VfsDir).run {
-                assertEquals(gzippedMultitrackId, uri)
+                assertEquals(file.uri, uri)
             }
         }
     }
@@ -366,7 +351,7 @@ class VfsArchiveTest {
             val subUri = file.uri.withFragment("+unGZIP")
             (VfsArchive.resolveForced(subUri, StubProgressCallback.instance()) as VfsFile).run {
                 assertEquals(subUri, uri)
-                assertEquals("+unGZIP", name)
+                assertEquals("gzipped", name)
                 assertEquals("sll3", description)
                 assertEquals("2:33", size)
 
