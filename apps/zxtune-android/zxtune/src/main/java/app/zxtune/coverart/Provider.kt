@@ -87,7 +87,7 @@ class Provider @VisibleForTesting internal constructor(
         sortOrder: String?
     ) = TODO("Not implemented")
 
-    override fun getType(uri: Uri) = TODO("Not implemented")
+    override fun getType(uri: Uri) = null
 
     override fun insert(uri: Uri, values: ContentValues?) = TODO("Not implemented")
 
@@ -97,6 +97,10 @@ class Provider @VisibleForTesting internal constructor(
     override fun update(
         uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?
     ) = TODO("Not yet implemented")
+
+    override fun openFile(uri: Uri, mode: String) = openPipeHelper(
+        Query.getPathFrom(uri), "image/*", null, null, ImageDataWriter(source)
+    )
 
     override fun openTypedAssetFile(
         uri: Uri, mimeTypeFilter: String, opts: Bundle?, signal: CancellationSignal?
@@ -113,13 +117,16 @@ class Provider @VisibleForTesting internal constructor(
         override fun writeDataToPipe(
             output: ParcelFileDescriptor, uri: Uri, mimeType: String, opts: Bundle?, size: Point?
         ) = FileOutputStream(output.fileDescriptor).use {
-            writeData(uri, size, it);
+            writeData(uri, size, it)
+            Unit
         }
 
-        private fun writeData(uri: Uri, size: Point?, out: OutputStream) {
+        private fun writeData(uri: Uri, size: Point?, out: OutputStream) = runCatching {
             src.query(uri, size)?.let {
                 Channels.newChannel(out).write(it.asReadOnlyBuffer())
             }
+        }.onFailure { err ->
+            LOG.w(err) { "Failed to send coverart" }
         }
     }
 
