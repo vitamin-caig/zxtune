@@ -31,6 +31,12 @@ android {
     defaultConfig.ndk.debugSymbolLevel 'FULL'
 }
 
+enum PackagingType {
+  FAT_APK,
+  SPLIT_APK,
+  BUNDLE,
+}
+
 android {
     flavorDimensions 'packaging', 'api'
 
@@ -45,9 +51,9 @@ android {
 
     productFlavors.whenObjectAdded { flavor ->
         // flavor is not set up yet...
-        flavor.ext.set('isBundle', false)
         flavor.ext.set('versionCodeOffset', 0)
         flavor.ext.set('nameTag', null)
+        flavor.ext.set('packagingType', null)
     }
 
     // Splits config is global and cannot be per-variant
@@ -59,6 +65,7 @@ android {
             versionNameSuffix '-fat'
             ndk.abiFilters getFatAbiFilters()
             signingConfig signingConfigs.release
+            packagingType = PackagingType.FAT_APK
         }
 
         // Single AAB
@@ -68,7 +75,7 @@ android {
             versionNameSuffix "-${name}"
             ndk.abiFilters getAabAbiFilters()
             signingConfig signingConfigs.getByName("aab_${name}")
-            isBundle = true
+            packagingType = PackagingType.BUNDLE
             nameTag = name
           }
         }
@@ -79,6 +86,7 @@ android {
             dimension 'packaging'
             versionNameSuffix '-splitted'
             signingConfig signingConfigs.release
+            packagingType = PackagingType.SPLIT_APK
         }
 
         minSdks.eachWithIndex { val, idx ->
@@ -101,16 +109,16 @@ android {
         def isRelease = variant.buildType.name == 'release'
         def pkgFlavor = variant.flavors[0]
         assert pkgFlavor.dimension == 'packaging'
-        def packaging = pkgFlavor.name
+        def packaging = pkgFlavor.packagingType
         def apiFlavor = variant.flavors[1]
         assert apiFlavor.dimension == 'api'
         def isBaseMinsdk = 0 == apiFlavor.versionCodeOffset
-        if (!isRelease && packaging != 'fat') {
+        if (!isRelease && packaging != PackagingType.FAT_APK) {
             setIgnore(true)
             println "Disable ${variant.name} for developer builds"
             return
         }
-        if (splits.abi.enable != (packaging == 'splitted')) {
+        if (splits.abi.enable != (packaging == PackagingType.SPLIT_APK)) {
             setIgnore(true)
             println "Disable ${variant.name} due to abi splits"
             return
@@ -120,12 +128,12 @@ android {
             println "Disable ${variant.name} due to empty ndk.abiFilters"
             return
         }
-        if (!pkgFlavor.isBundle && !isBaseMinsdk) {
+        if (packaging != PackagingType.BUNDLE && !isBaseMinsdk) {
             setIgnore(true)
             println "Disable ${variant.name} for apk packages"
             return
         }
-        if (!isBaseMinsdk && packaging == 'rustore') {
+        if (!isBaseMinsdk && pkgFlavor.name == 'rustore') {
             setIgnore(true)
             println "Disable ${variant.name} for rustore limitations"
             return

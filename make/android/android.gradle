@@ -111,12 +111,16 @@ android {
       }
       def suffix = variant.name.capitalize()
       def baseName = "${project.name}_${defaultConfig.versionName}"
+      def packagingType = null
       variant.productFlavors.each { flavor ->
         flavor.nameTag?.with { tag ->
           baseName += "-${tag}"
         }
+        flavor.packagingType?.with { type ->
+          packagingType = type
+        }
       }
-      def pkgTask = !variant.productFlavors*.isBundle.any()
+      def pkgTask = packagingType.toString() != 'BUNDLE'
         ?
         tasks.register("publishApk${suffix}") {
           group = 'Publish'
