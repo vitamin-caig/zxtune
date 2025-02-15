@@ -47,6 +47,7 @@ android {
         // flavor is not set up yet...
         flavor.ext.set('isBundle', false)
         flavor.ext.set('versionCodeOffset', 0)
+        flavor.ext.set('nameTag', null)
     }
 
     // Splits config is global and cannot be per-variant
@@ -68,6 +69,7 @@ android {
             ndk.abiFilters getAabAbiFilters()
             signingConfig signingConfigs.getByName("aab_${name}")
             isBundle = true
+            nameTag = name
           }
         }
 
@@ -85,6 +87,7 @@ android {
               dimension 'api'
               if (idx != 0) {
                 versionNameSuffix "-${name}"
+                nameTag = name
               }
               minSdkVersion val
               versionCode android.defaultConfig.versionCode * 10 + idx
