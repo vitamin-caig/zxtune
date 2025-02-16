@@ -69,7 +69,7 @@ android {
         }
 
         // Single AAB
-        aabStores.each { name -> 
+        aabStores.eachWithIndex { name, idx ->
           create("${name}") {
             dimension 'packaging'
             versionNameSuffix "-${name}"
@@ -77,6 +77,7 @@ android {
             signingConfig signingConfigs.getByName("aab_${name}")
             packagingType = PackagingType.BUNDLE
             nameTag = name
+            versionCodeOffset = idx
           }
         }
 
@@ -98,7 +99,6 @@ android {
                 nameTag = name
               }
               minSdkVersion val
-              versionCode android.defaultConfig.versionCode * 10 + idx
               sourceSets.getByName(name).jniLibs.srcDirs = [ "${jniDir}/${name}" ]
               versionCodeOffset = idx
             }
@@ -139,6 +139,21 @@ android {
             return
         }
     }
+}
+
+android {
+  applicationVariants.all { variant ->
+    variant.outputs.each { output ->
+      def abiVersions = ['armeabi-v7a':1, 'arm64-v8a':2, 'x86':3, 'x86_64':4]
+      def abiVersionCodeOffset = abiVersions.get(output.getFilter('ABI'), 0)
+      def pkgFlavor = variant.productFlavors[0]
+      def apiFlavor = variant.productFlavors[1]
+      def versionCodeOffset = minSdks.size() * (pkgFlavor.versionCodeOffset + abiVersionCodeOffset) + apiFlavor.versionCodeOffset
+      assert versionCodeOffset < 10
+      println "VersionCodeOffset[${output.name}]=$versionCodeOffset"
+      output.versionCodeOverride = android.defaultConfig.versionCode * 10 + versionCodeOffset
+    }
+  }
 }
 
 abstract class NativeLibsTask extends DefaultTask {
