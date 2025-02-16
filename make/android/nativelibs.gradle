@@ -90,6 +90,14 @@ android {
             packagingType = PackagingType.SPLIT_APK
         }
 
+        fdroid {
+            dimension 'packaging'
+            versionNameSuffix '-fdroid'
+            signingConfig signingConfigs.release
+            packagingType = PackagingType.SPLIT_APK
+            nameTag = 'fdroid'
+        }
+
         minSdks.eachWithIndex { val, idx ->
             def name = "minsdk${val}"
             create(name) {
