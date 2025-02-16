@@ -74,7 +74,7 @@ private fun StringBuilder.addAnyField(name: String, value: CharSequence) = apply
         append(LINEBREAK)
     }
     val escaped = TextUtils.htmlEncode(value.toString())
-    append("<b><big>${name}:</big></b><br>&nbsp;${escaped}")
+    append("<b><big>${name}:</big></b><br>&nbsp;${escaped.replaceLinebreaks()}")
 }
 
 private fun StringBuilder.addAnyRawField(value: CharSequence) = apply {
@@ -82,7 +82,7 @@ private fun StringBuilder.addAnyRawField(value: CharSequence) = apply {
         append(LINEBREAK)
     }
     val escaped = TextUtils.htmlEncode(value.toString())
-    append("<br><tt>${escaped.replace("\n", LINEBREAK)}</tt>")
+    append("<br><tt>${escaped.replaceLinebreaks()}</tt>")
 }
 
 private fun StringBuilder.asHtml() = if (Build.VERSION.SDK_INT >= 24) {
@@ -90,3 +90,5 @@ private fun StringBuilder.asHtml() = if (Build.VERSION.SDK_INT >= 24) {
 } else {
     @Suppress("DEPRECATION") Html.fromHtml(toString())
 }
+
+private fun String.replaceLinebreaks() = replace("\n", LINEBREAK)

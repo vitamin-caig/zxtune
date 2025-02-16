@@ -1,5 +1,6 @@
 package app.zxtune.ui
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
 import android.view.LayoutInflater
@@ -30,7 +31,7 @@ class BriefFragment : Fragment() {
             }
         }
 
-        fun setText(txt: CharSequence?) {
+        fun setText(txt: CharSequence?, font: Typeface) {
             requiredHeight = txt?.run {
                 view.lineHeight * (1 + count { it == '\n' }).coerceAtMost(MAX_LINES) + view.paddingTop + view.paddingBottom
             } ?: 0
@@ -38,17 +39,18 @@ class BriefFragment : Fragment() {
             if (shown) {
                 view.run {
                     animate().alpha(0f).withEndAction {
-                        changeText(txt)
+                        changeText(txt, font)
                         animate().alpha(1f)
                     }
                 }
             } else {
-                changeText(txt)
+                changeText(txt, font)
             }
         }
 
-        private fun changeText(txt: CharSequence?) = view.run {
+        private fun changeText(txt: CharSequence?, font: Typeface) = view.run {
             text = txt
+            typeface = font
             scrollTo(0, 0)
         }
 
@@ -105,8 +107,13 @@ class BriefFragment : Fragment() {
                         title.updateText(description.title)
                         subtitle.updateText(description.subtitle)
                         val strings = getString(ModuleAttributes.STRINGS)
-                        details.setText(strings)
-                        detailsToggle.updateVisibility(!strings.isNullOrEmpty())
+                        val comment = getString(ModuleAttributes.COMMENT)
+                        if (strings != null) {
+                            details.setText(strings, Typeface.MONOSPACE)
+                        } else {
+                            details.setText(comment, Typeface.DEFAULT)
+                        }
+                        detailsToggle.updateVisibility(!strings.isNullOrEmpty() || !comment.isNullOrEmpty())
                     }
                 }
             }
