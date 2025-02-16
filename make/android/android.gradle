@@ -96,6 +96,10 @@ android {
     lintOptions {
         abortOnError false
     }
+
+    dependenciesInfo {
+        includeInApk false
+    }
 }
 
 // publish
