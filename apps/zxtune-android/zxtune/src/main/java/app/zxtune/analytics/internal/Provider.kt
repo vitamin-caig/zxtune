@@ -4,6 +4,8 @@ import android.content.ContentProvider
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
+import android.media.AudioManager
+import android.media.AudioTrack
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -52,16 +54,8 @@ class Provider : ContentProvider() {
     private fun sendSystemInfoEvent() = UrlsBuilder("system/info").apply {
         addParam("product", Build.PRODUCT)
         addParam("device", Build.DEVICE)
-        if (Build.VERSION.SDK_INT >= 21) {
-            addParam("cpu_abi", Build.SUPPORTED_ABIS[0])
-            for (idx in 1 until Build.SUPPORTED_ABIS.size) {
-                addParam(
-                    "cpu_abi" + (idx + 1), Build.SUPPORTED_ABIS[idx]
-                )
-            }
-        } else {
-            addParam("cpu_abi", Build.CPU_ABI)
-            addParam("cpu_abi2", Build.CPU_ABI2)
+        supportedAbis().forEachIndexed { idx, abi ->
+            addIndexedParam("cpu_abi", idx, abi)
         }
         addParam("manufacturer", Build.MANUFACTURER)
         addParam("brand", Build.BRAND)
@@ -69,6 +63,10 @@ class Provider : ContentProvider() {
 
         addParam("android", Build.VERSION.RELEASE)
         addParam("sdk", Build.VERSION.SDK_INT.toLong())
+
+        addParam(
+            "samplerate", AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC).toLong()
+        )
     }.run {
         doPush(result)
     }
@@ -79,16 +77,13 @@ class Provider : ContentProvider() {
         val metrics = res.displayMetrics
         addParam("layout", cfg.screenLayout.toLong())
         if (Build.VERSION.SDK_INT >= 24) {
-            val locales = cfg.locales
-            addParam("locale", locales[0].toString())
-            var idx = 1
-            val lim = locales.size()
-            while (idx < lim) {
-                addParam("locale" + (idx + 1), locales[idx].toString())
-                ++idx
+            cfg.locales.run {
+                for (idx in 0..<size()) {
+                    addIndexedParam("locale", idx, get(idx).toString())
+                }
             }
         } else {
-            addParam("locale", cfg.locale.toString())
+            @Suppress("DEPRECATION") addParam("locale", cfg.locale.toString())
         }
         addParam("density", metrics.densityDpi.toLong())
         addParam("width", cfg.screenWidthDp.toLong())
@@ -148,3 +143,11 @@ class Provider : ContentProvider() {
             .authority("app.zxtune.analytics.internal").build()
     }
 }
+
+private fun UrlsBuilder.addIndexedParam(name: String, idx: Int, value: String) =
+    addParam(if (idx == 0) name else name + (idx + 1), value)
+
+@Suppress("DEPRECATION")
+private fun supportedAbis() = if (Build.VERSION.SDK_INT >= 21) Build.SUPPORTED_ABIS else arrayOf(
+    Build.CPU_ABI, Build.CPU_ABI2
+)
