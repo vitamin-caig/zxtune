@@ -21,15 +21,17 @@ import kotlin.system.exitProcess
 class ApplicationMenu(private val activity: FragmentActivity) : MenuProvider {
 
     override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) =
-        menuInflater.inflate(R.menu.main, menu)
+        menuInflater.inflate(R.menu.main, menu).also {
+            // onPrepareMenu called only on showing
+            menu.item(R.id.action_problems).let { item ->
+                PowerManagement.create(activity).hasProblem.observe(activity) {
+                    item.isVisible = it
+                }
+            }
+        }
 
     override fun onPrepareMenu(menu: Menu) = menu.run {
         item(R.id.action_prefs).intent = PreferencesActivity.createIntent(activity)
-        item(R.id.action_problems).let { item ->
-            PowerManagement.create(activity).hasProblem.observe(activity) {
-                item.isVisible = it
-            }
-        }
     }
 
     override fun onMenuItemSelected(menuItem: MenuItem) = when (menuItem.itemId) {
