@@ -5,6 +5,17 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev5090 from 18.02.2024
+
+[*] Fixed fading for VGM playback
+[+] zxtune-android: supported ocremix.org online catalogue
+[*] zxtune-android: improved German translation
+[*] zxtune-android: improved loading speed for some online catalogues
+[*] zxtune-android: do not show digital photos as cover images
+[*] zxtune-android: simplified packed files hierarchy displaying in browser
+[*] zxtune-android: show comments in brief information panel
+[*] zxtune-android: fixed found and reported crashes
+
 --- Rev5080 from 06.12.2024
 
 [+] Supported channels muting for some formats
