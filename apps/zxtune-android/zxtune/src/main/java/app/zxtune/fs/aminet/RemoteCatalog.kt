@@ -39,6 +39,7 @@ class RemoteCatalog(http: MultisourceHttpProvider) : app.zxtune.fs.httpdir.Remot
         getBaseUri()
             .path("search")
             .appendQueryParameter("path", "mods/${path}")
+            .build()
             .let { uri ->
                 parseDir(uri, visitor)
             }
@@ -52,21 +53,22 @@ class RemoteCatalog(http: MultisourceHttpProvider) : app.zxtune.fs.httpdir.Remot
             .appendQueryParameter("q_desc", "OR")
             .appendQueryParameter("desc", query)
             .appendQueryParameter("path[]", "mods")
+            .build()
             .let { uri ->
                 parseDir(uri, visitor)
             }
 
-    private fun parseDir(base: Uri.Builder, visitor: Catalog.DirVisitor) {
+    private fun parseDir(base: Uri, visitor: Catalog.DirVisitor) {
         //http://aminet.net/search?name=disco&path[]=mods&q_desc=OR&desc=disco
-        var start = 0
+        var page = 0
         while (true) {
-            HtmlUtils.parseDoc(readPage(base, start))
+            HtmlUtils.parseDoc(readPage(base, page))
                 .select("tr.lightrow,tr.darkrow")
                 .also { list ->
                     if (list.isEmpty()) {
                         return@parseDir
                     } else {
-                        start += list.size
+                        ++page
                     }
                 }
                 .forEach { el ->
@@ -83,8 +85,13 @@ class RemoteCatalog(http: MultisourceHttpProvider) : app.zxtune.fs.httpdir.Remot
         }
     }
 
-    private fun readPage(base: Uri.Builder, start: Int) = base
-        .appendQueryParameter("start", start.toString())
+    private fun readPage(base: Uri, start: Int) = base
+        .buildUpon()
+        .apply {
+            if (start != 0) {
+                appendQueryParameter("page", start.toString())
+            }
+        }
         .build()
         .let { uri ->
             http.getInputStream(uri)

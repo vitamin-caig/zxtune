@@ -23,7 +23,7 @@ class RemoteCatalogTest(remoteUrlIdx: Int) : RemoteCatalogTestBase(remoteUrlIdx)
     fun `test root`() = with(Path.create()) {
         //hardcoded entries, filtered in Root
         val entries = arrayOf(
-            "32bit", "@MP3s by 32bit choonz (2 packages)",
+            "32bit", "@MP3s by 32bit choonz (6 packages)",
             "xm", "@Multichannel xm mods (413 packages)"
         )
         test(this, entries, Mode.CHECK_MISSED)
@@ -41,8 +41,8 @@ class RemoteCatalogTest(remoteUrlIdx: Int) : RemoteCatalogTestBase(remoteUrlIdx)
     @Test
     fun `test search`() {
         val entries = arrayOf( //filename
-            "/misc/BeginLife.lha", "116K@Rymix/[Death] mod: 'Beginning of Life'",  //description
-            "/neuro/nd-cls03.lha", "105K@The new Beginning (older Module by Neurodancer/1oo%)"
+            "/misc/BeginLife.lha", "116K@Rymix/[Death] mod: \\'Beginning of Life\\'",  //description
+            "/wmr/newbegin.lha", "155K@IMM-Mon: \\\"A New Beginning\\\" by Deeno"
         )
         with(CheckingVisitor(entries, Mode.CHECK_MISSED)) {
             (catalog as RemoteCatalog).find("begin", this)
