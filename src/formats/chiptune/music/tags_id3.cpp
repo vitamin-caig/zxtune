@@ -10,6 +10,9 @@
 
 #include "formats/chiptune/music/tags_id3.h"
 
+#include "strings/src/utf8.h"
+
+#include "strings/encoding.h"
 #include "strings/sanitize.h"
 
 #include "string_view.h"
@@ -18,6 +21,168 @@
 
 namespace Formats::Chiptune::Id3
 {
+  constexpr auto operator""_tag(const char* tag, std::size_t)
+  {
+    return (uint_t(tag[0]) << 24) | (uint_t(tag[1]) << 16) | (uint_t(tag[2]) << 8) | tag[3];
+  }
+
+  namespace Tags
+  {
+    // 0 - not found, else priority (higher the better)
+    template<class T>
+    uint_t FindIn(const T& tags, uint32_t tag)
+    {
+      const auto end = std::end(tags);
+      return end - std::find(std::begin(tags), end, tag);
+    }
+
+    constexpr uint32_t FOR_TITLE[] = {
+        "TIT2"_tag,
+        "TIT3"_tag,
+    };
+
+    constexpr uint32_t FOR_AUTHOR[] = {
+        "TPE1"_tag,
+        "TOPE"_tag,
+        "TCOM"_tag,
+    };
+
+    constexpr uint32_t FOR_PROGRAM[] = {
+        "TSSE"_tag,
+    };
+
+    constexpr uint32_t FOR_COMMENT[] = {
+        "COMM"_tag,
+        "TALB"_tag,
+        "TOAL"_tag,
+    };
+  }  // namespace Tags
+
+  class PrioritizedString
+  {
+  public:
+    void Set(uint_t prio, String value)
+    {
+      if (prio > Prio)
+      {
+        Prio = prio;
+        Value = std::move(value);
+      }
+    }
+
+    const String* Get() const
+    {
+      return Prio > 0 ? &Value : nullptr;
+    }
+
+  private:
+    uint_t Prio = 0;
+    String Value;
+  };
+
+  class TagMetaAdapter
+  {
+  public:
+    explicit TagMetaAdapter(MetaBuilder& delegate)
+      : Delegate(delegate)
+    {}
+
+    void SetTag(uint32_t tag, Binary::View data)
+    {
+      if (const auto asTitle = Tags::FindIn(Tags::FOR_TITLE, tag))
+      {
+        Title.Set(asTitle, GetString(data));
+      }
+      else if (const auto asAuthor = Tags::FindIn(Tags::FOR_AUTHOR, tag))
+      {
+        Author.Set(asAuthor, GetString(data));
+      }
+      else if (const auto asProgram = Tags::FindIn(Tags::FOR_PROGRAM, tag))
+      {
+        Program.Set(asProgram, GetString(data));
+      }
+      else if (const auto asComment = Tags::FindIn(Tags::FOR_COMMENT, tag))
+      {
+        Comment.Set(asComment, tag == "COMM"_tag ? ParseText(data.SubView(4)).second : GetString(data));
+      }
+      else if (tag == "TXXX"_tag)
+      {
+        const auto& text = ParseText(data.SubView(1));
+        Strings.emplace_back(text.first + ": " + text.second);
+      }
+      else if (tag == "APIC"_tag)
+      {
+        SetPicture(data);
+      }
+    }
+
+    void Apply()
+    {
+      if (const auto* val = Title.Get())
+      {
+        Delegate.SetTitle(*val);
+      }
+      if (const auto* val = Author.Get())
+      {
+        Delegate.SetAuthor(*val);
+      }
+      if (const auto* val = Program.Get())
+      {
+        Delegate.SetProgram(*val);
+      }
+      if (const auto* val = Comment.Get())
+      {
+        Delegate.SetComment(*val);
+      }
+      if (!Strings.empty())
+      {
+        Delegate.SetStrings(Strings);
+      }
+    }
+
+  private:
+    static String GetString(Binary::View data)
+    {
+      return Strings::Sanitize({data.As<char>() + 1, data.Size() - 1});
+    }
+
+    static std::pair<String, String> ParseText(Binary::View data)
+    {
+      StringView encodedString(data.As<char>(), data.Size());
+      String decodedStorage;
+      if (Strings::IsUtf16(encodedString))
+      {
+        decodedStorage = Strings::ToAutoUtf8(encodedString);
+        encodedString = decodedStorage;
+      }
+      // http://id3.org/id3v2.3.0#User_defined_text_information_frame
+      const auto zeroPos = encodedString.find('\x00');
+      if (zeroPos != StringView::npos)
+      {
+        return std::make_pair(Strings::Sanitize(encodedString.substr(0, zeroPos)),
+                              Strings::Sanitize(encodedString.substr(zeroPos + 1)));
+      }
+      return std::make_pair(String(), Strings::Sanitize(encodedString));
+    }
+
+    void SetPicture(Binary::View data)
+    {
+      Binary::DataInputStream input(data);
+      input.ReadByte();                // encoding
+      input.ReadCString(data.Size());  // mime
+      input.ReadByte();                // type
+      input.ReadCString(data.Size());  // description
+      Delegate.SetPicture(input.ReadRestData());
+    }
+
+  private:
+    MetaBuilder& Delegate;
+    PrioritizedString Title;
+    PrioritizedString Author;
+    PrioritizedString Program;
+    PrioritizedString Comment;
+    Strings::Array Strings;
+  };
   // support V2.2+ only due to different tag size
   class V2Format
   {
@@ -29,6 +194,7 @@ namespace Formats::Chiptune::Id3
     void Parse(MetaBuilder& target)
     {
       static const size_t HEADER_SIZE = 10;
+      TagMetaAdapter out(target);
       while (Stream.GetRestSize() >= HEADER_SIZE)
       {
         const uint_t id = Stream.Read<be_uint32_t>();
@@ -39,78 +205,10 @@ namespace Formats::Chiptune::Id3
         const auto body = Stream.ReadData(chunkize);
         if (!compressed && !encrypted && chunkize > 0)
         {
-          ParseTag(id, body, target);
+          out.SetTag(id, body);
         }
       }
-    }
-
-  private:
-    static void ParseTag(uint32_t id, Binary::View data, MetaBuilder& target)
-    {
-      // http://id3.org/id3v2.3.0#Text_information_frames
-      StringView encodedString(data.As<char>() + 1, data.Size() - 1);
-      switch (id)
-      {
-      case 0x54495432:  //'TIT2'
-        target.SetTitle(Strings::Sanitize(encodedString));
-        break;
-      case 0x54504531:  //'TPE1'
-      case 0x544f5045:  //'TOPE'
-        target.SetAuthor(Strings::Sanitize(encodedString));
-        break;
-      case 0x434f4d4d:  //'COMM'
-        // http://id3.org/id3v2.3.0#Comments
-        encodedString = encodedString.substr(3);
-        [[fallthrough]];
-      case 0x54585858:  //'TXXX'
-      {
-        // http://id3.org/id3v2.3.0#User_defined_text_information_frame
-        const auto zeroPos = encodedString.find('\x00');
-        Strings::Array strings;
-        if (zeroPos != StringView::npos)
-        {
-          auto descr = Strings::Sanitize(encodedString.substr(0, zeroPos));
-          if (!descr.empty())
-          {
-            strings.emplace_back(std::move(descr));
-          }
-          auto value = Strings::Sanitize(encodedString.substr(zeroPos + 1));
-          if (!value.empty())
-          {
-            strings.emplace_back(std::move(value));
-          }
-        }
-        else
-        {
-          auto val = Strings::Sanitize(encodedString);
-          if (!val.empty())
-          {
-            strings.emplace_back(std::move(val));
-          }
-        }
-        if (!strings.empty())
-        {
-          target.SetStrings(strings);
-        }
-      }
-      break;
-      case 0x54535345:  //'TSSE'
-      case 0x54454e43:  //'TENC'
-        target.SetProgram(Strings::Sanitize(encodedString));
-        break;
-      case 0x41504943:  // 'APIC'
-      {
-        Binary::DataInputStream input(data);
-        input.ReadByte();                // encoding
-        input.ReadCString(data.Size());  // mime
-        input.ReadByte();                // type
-        input.ReadCString(data.Size());  // description
-        target.SetPicture(input.ReadRestData());
-      }
-      break;
-      default:
-        break;
-      }
+      out.Apply();
     }
 
   private:
@@ -179,11 +277,10 @@ namespace Formats::Chiptune::Id3
         target.SetTitle(Strings::Sanitize(MakeStringView(tag->Title)));
         target.SetAuthor(Strings::Sanitize(MakeStringView(tag->Artist)));
       }
-      // TODO: add MetaBuilder::SetComment field
       {
         const auto comment = MakeStringView(tag->Comment);
         const auto hasTrackNum = comment[28] == 0 || comment[28] == 0xff;  // standard violation
-        target.SetStrings({Strings::Sanitize(hasTrackNum ? comment.substr(0, 28) : comment)});
+        target.SetComment(Strings::Sanitize(hasTrackNum ? comment.substr(0, 28) : comment));
       }
       return true;
     }
