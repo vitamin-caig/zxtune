@@ -51,9 +51,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
     override fun queryGroups(visitor: Catalog.GroupsVisitor) =
         getQueryUri("groups", "").let { uri ->
             LOG.d { "queryGroups()" }
-            readDoc(uri).select("tr>td>a[href^=newresult.php?request=groupid]").also {
-                visitor.setCountHint(it.size)
-            }.forEach { el ->
+            readDoc(uri).select("tr>td>a[href^=newresult.php?request=groupid]").forEach { el ->
                 HtmlUtils.getQueryInt(el, "search")?.let { id ->
                     visitor.accept(Group(id, el.text()))
                 }
@@ -86,9 +84,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
     override fun queryTracks(author: Author, visitor: Catalog.TracksVisitor) =
         getAuthorTracksUri(author.id).let { uri ->
             LOG.d { "queryTracks(author=${author.id})" }
-            readDoc(uri).select("table>tbody>tr:has(>td>a[href^=downmod.php])").also {
-                visitor.setCountHint(it.size)
-            }.forEach { el ->
+            readDoc(uri).select("table>tbody>tr:has(>td>a[href^=downmod.php])").forEach { el ->
                 val nameEl = el.child(0).child(0)
                 val sizeEl = el.child(3)
                 val id = HtmlUtils.getQueryInt(nameEl, "index") ?: return@forEach

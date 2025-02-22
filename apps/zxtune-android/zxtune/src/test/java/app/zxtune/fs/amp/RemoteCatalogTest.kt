@@ -31,7 +31,6 @@ class RemoteCatalogTest {
         val visitor = mock<Catalog.GroupsVisitor>()
         catalog.queryGroups(visitor)
         val groupsApprox = 8800
-        verify(visitor).setCountHint(gt(groupsApprox))
         verify(visitor).accept(Group(6018, "0-Dezign"))
         verify(visitor).accept(Group(6013, "ABSENCE"))
         // multiline
@@ -91,7 +90,6 @@ class RemoteCatalogTest {
         val visitor = mock<Catalog.TracksVisitor>()
         catalog.queryTracks(Author(2085, "doh", "Nicolas Dessesart"), visitor)
         val tracksApprox = 160
-        verify(visitor).setCountHint(gt(tracksApprox))
         verify(visitor).accept(Track(15892, "egometriosporasie", 186))
         verify(visitor).accept(Track(15934, "un peu + a l'ouest", 309))
         verify(visitor).accept(Track(15804, "yapleindmondalagas", 190))

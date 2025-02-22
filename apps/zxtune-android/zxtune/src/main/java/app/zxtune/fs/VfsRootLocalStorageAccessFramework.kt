@@ -48,14 +48,13 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
         else -> super.getExtension(id)
     }
 
-    override fun enumerate(visitor: VfsDir.Visitor) =
-        manager.storageVolumes.also { visitor.onItemsCount(it.size) }.forEach {
-            if (it.isMounted()) {
-                StorageRoot(Identifier.fromRoot(it.rootId()), it.getDescription(context)).run {
-                    visitor.onDir(this)
-                }
+    override fun enumerate(visitor: VfsDir.Visitor) = manager.storageVolumes.forEach {
+        if (it.isMounted()) {
+            StorageRoot(Identifier.fromRoot(it.rootId()), it.getDescription(context)).run {
+                visitor.onDir(this)
             }
         }
+    }
 
     override fun resolve(uri: Uri): VfsObject? {
         val id = Identifier.fromFsUri(uri) ?: return Document.tryResolve(context, uri)
@@ -145,7 +144,6 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
             DocumentsContract.Document.COLUMN_SUMMARY,
             DocumentsContract.Document.COLUMN_SIZE,
         )?.use { cursor ->
-            visitor.onItemsCount(cursor.count)
             while (cursor.moveToNext()) {
                 val subId = Identifier.fromDocumentId(cursor.getString(0))
                 val type = cursor.getString(1)
@@ -161,10 +159,9 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
     }
 
     private fun getPhantomDirs(id: Identifier, visitor: VfsDir.Visitor) =
-        accessibleDirectories.getDirectChildrenOf(id).also { visitor.onItemsCount(it.size) }
-            .forEach {
-                visitor.onDir(LocalDir(it))
-            }
+        accessibleDirectories.getDirectChildrenOf(id).forEach {
+            visitor.onDir(LocalDir(it))
+        }
 
     private inner class LocalFile(
         id: Identifier,

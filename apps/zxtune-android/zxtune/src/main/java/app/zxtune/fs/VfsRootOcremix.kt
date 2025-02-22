@@ -5,15 +5,11 @@ import android.net.Uri
 import app.zxtune.R
 import app.zxtune.Util
 import app.zxtune.fs.http.MultisourceHttpProvider
-import app.zxtune.fs.ocremix.Album
 import app.zxtune.fs.ocremix.Catalog
 import app.zxtune.fs.ocremix.FilePath
-import app.zxtune.fs.ocremix.Game
 import app.zxtune.fs.ocremix.Identifier
-import app.zxtune.fs.ocremix.Organization
 import app.zxtune.fs.ocremix.Remix
 import app.zxtune.fs.ocremix.RemoteCatalog
-import app.zxtune.fs.ocremix.System
 
 class VfsRootOcremix(
     override val parent: VfsObject, private val context: Context, http: MultisourceHttpProvider
@@ -110,26 +106,18 @@ class VfsRootOcremix(
         private fun child(entity: Identifier.PathElement, description: String = "") =
             EntityDir(chain + entity, description)
 
-        private fun querySystems(visitor: VfsDir.Visitor) =
-            catalog.querySystems(object : Catalog.Visitor<System> {
-                override fun setCountHint(count: Int) = visitor.onItemsCount(count)
-                override fun accept(obj: System) =
-                    visitor.onDir(child(Identifier.SystemElement(obj)))
-            })
+        private fun querySystems(visitor: VfsDir.Visitor) = catalog.querySystems { obj ->
+            visitor.onDir(child(Identifier.SystemElement(obj)))
+        }
 
         private fun queryOrganizations(visitor: VfsDir.Visitor) =
-            catalog.queryOrganizations(object : Catalog.Visitor<Organization> {
-                override fun setCountHint(count: Int) = visitor.onItemsCount(count)
-                override fun accept(obj: Organization) =
-                    visitor.onDir(child(Identifier.OrganizationElement(obj)))
+            catalog.queryOrganizations({ obj ->
+                visitor.onDir(child(Identifier.OrganizationElement(obj)))
             }, visitor)
 
         private fun queryGames(visitor: VfsDir.Visitor) =
-            catalog.queryGames(scope, object : Catalog.GamesVisitor {
-                override fun setCountHint(count: Int) = visitor.onItemsCount(count)
-                override fun accept(
-                    game: Game, system: System, organization: Organization?
-                ) = visitor.onDir(
+            catalog.queryGames(scope, { game, system, organization ->
+                visitor.onDir(
                     child(
                         Identifier.GameElement(game), "${system.title}/${organization?.title ?: ""}"
                     )
@@ -137,9 +125,8 @@ class VfsRootOcremix(
             }, visitor)
 
         private fun queryRemixes(visitor: VfsDir.Visitor) =
-            catalog.queryRemixes(scope, object : Catalog.RemixesVisitor {
-                override fun setCountHint(count: Int) = visitor.onItemsCount(count)
-                override fun accept(remix: Remix, game: Game) = visitor.onFile(
+            catalog.queryRemixes(scope, { remix, game ->
+                visitor.onFile(
                     RemixFile(
                         chain + Identifier.RemixElement(remix), remix, game.title
                     )
@@ -147,10 +134,8 @@ class VfsRootOcremix(
             }, visitor)
 
         private fun queryAlbums(visitor: VfsDir.Visitor) =
-            catalog.queryAlbums(scope, object : Catalog.AlbumsVisitor {
-                override fun setCountHint(count: Int) = visitor.onItemsCount(count)
-                override fun accept(album: Album, image: FilePath?) =
-                    visitor.onDir(child(Identifier.AlbumElement(album)))
+            catalog.queryAlbums(scope, { album, image ->
+                visitor.onDir(child(Identifier.AlbumElement(album)))
             }, visitor)
     }
 
@@ -181,17 +166,11 @@ class VfsRootOcremix(
                 onDir(child(Identifier.AggregateType.Albums))
             }
 
-            is Identifier.AlbumElement -> catalog.queryAlbumTracks(
-                el.album.id,
-                object : Catalog.AlbumTracksVisitor {
-                    override fun accept(filePath: FilePath, size: Long) = visitor.onFile(
-                        File(
-                            chain + Identifier.FileElement(filePath),
-                            filePath,
-                            Util.formatSize(size)
-                        )
-                    )
-                })
+            is Identifier.AlbumElement -> catalog.queryAlbumTracks(el.album.id) { filePath, size ->
+                visitor.onFile(
+                    File(chain + Identifier.FileElement(filePath), filePath, Util.formatSize(size))
+                )
+            }
 
             else -> Unit
         }

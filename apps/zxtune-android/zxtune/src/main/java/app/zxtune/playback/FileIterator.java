@@ -243,11 +243,6 @@ public class FileIterator implements Iterator {
     }
     parentDir.enumerate(new VfsDir.Visitor() {
       @Override
-      public void onItemsCount(int count) {
-        result.ensureCapacity(count);
-      }
-
-      @Override
       public void onDir(VfsDir dir) {
       }
 

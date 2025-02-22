@@ -48,35 +48,30 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     private val workingRemote = mock<RemoteCatalog> {
         on { queryAuthors(any()) } doAnswer {
             it.getArgument<Catalog.AuthorsVisitor>(0).run {
-                setCountHint(2)
                 accept(author1)
                 accept(author2)
             }
         }
         on { queryAuthorTracks(eq(queryAuthor), any()) } doAnswer {
             it.getArgument<Catalog.TracksVisitor>(1).run {
-                setCountHint(2)
                 accept(track1)
                 accept(track2)
             }
         }
         on { queryParties(any()) } doAnswer {
             it.getArgument<Catalog.PartiesVisitor>(0).run {
-                setCountHint(2)
                 accept(party1)
                 accept(party2)
             }
         }
         on { queryPartyTracks(eq(queryParty), any()) } doAnswer {
             it.getArgument<Catalog.TracksVisitor>(1).run {
-                setCountHint(2)
                 accept(track2)
                 accept(track3)
             }
         }
         on { queryTopTracks(any(), any()) } doAnswer {
             it.getArgument<Catalog.TracksVisitor>(1).run {
-                setCountHint(3)
                 accept(track2)
                 accept(track3)
                 accept(track1)

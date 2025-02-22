@@ -52,28 +52,18 @@ class DatabaseTest {
     fun `test empty database`() = with(underTest) {
         val systems = mock<Catalog.Visitor<System>> {}.apply {
             assertFalse(querySystems(this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         val organizations = mock<Catalog.Visitor<Organization>> {}.apply {
             assertFalse(queryOrganizations(this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         val games = mock<Catalog.GamesVisitor> {}.apply {
             assertFalse(queryGames(null, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         val remixes = mock<Catalog.RemixesVisitor> {}.apply {
             assertFalse(queryRemixes(null, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         val albums = mock<Catalog.AlbumsVisitor> {}.apply {
             assertFalse(queryAlbums(null, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         assertArrayEquals(emptyArray(), queryMusicFiles("id"))
         assertEquals(null, queryImage("id"))
@@ -89,7 +79,6 @@ class DatabaseTest {
         val allSystems = mock<Catalog.Visitor<System>> {}.apply {
             assertTrue(querySystems(this))
         }.also {
-            verify(it).setCountHint(3)
             verify(it).accept(systems[0])
             verify(it).accept(systems[1])
             verify(it).accept(systems[2])
@@ -97,14 +86,12 @@ class DatabaseTest {
         val allOrganizations = mock<Catalog.Visitor<Organization>> {}.apply {
             assertTrue(queryOrganizations(this))
         }.also {
-            verify(it).setCountHint(2)
             verify(it).accept(organizations[0])
             verify(it).accept(organizations[1])
         }
         val allGames = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(null, this))
         }.also {
-            verify(it).setCountHint(4)
             verify(it).accept(games[0], systems[0], organizations[0])
             verify(it).accept(games[1], systems[1], organizations[0])
             verify(it).accept(games[2], systems[0], organizations[1])
@@ -113,44 +100,35 @@ class DatabaseTest {
         val sys0Games = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(systems[0].asScope, this))
         }.also {
-            verify(it).setCountHint(2)
             verify(it).accept(games[0], systems[0], organizations[0])
             verify(it).accept(games[2], systems[0], organizations[1])
         }
         val sys1Games = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(systems[1].asScope, this))
         }.also {
-            verify(it).setCountHint(1)
             verify(it).accept(games[1], systems[1], organizations[0])
         }
         val sys2Games = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(systems[2].asScope, this))
         }.also {
-            verify(it).setCountHint(1)
             verify(it).accept(games[3], systems[2], null)
         }
         val sys3Games = mock<Catalog.GamesVisitor> {}.apply {
             assertFalse(queryGames(systems[3].asScope, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         val org0Games = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(organizations[0].asScope, this))
         }.also {
-            verify(it).setCountHint(2)
             verify(it).accept(games[0], systems[0], organizations[0])
             verify(it).accept(games[1], systems[1], organizations[0])
         }
         val org1Games = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(organizations[1].asScope, this))
         }.also {
-            verify(it).setCountHint(1)
             verify(it).accept(games[2], systems[0], organizations[1])
         }
         val org2Games = mock<Catalog.GamesVisitor> {}.apply {
             assertFalse(queryGames(organizations[2].asScope, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         verifyNoMoreInteractions(
             allSystems,
@@ -175,7 +153,6 @@ class DatabaseTest {
         val allRemixes = mock<Catalog.RemixesVisitor> {}.apply {
             assertTrue(queryRemixes(null, this))
         }.also {
-            verify(it).setCountHint(4)
             verify(it).accept(remixes[0], games[0])
             verify(it).accept(remixes[1], games[0])
             verify(it).accept(remixes[2], games[1])
@@ -184,48 +161,37 @@ class DatabaseTest {
         val game0Remixes = mock<Catalog.RemixesVisitor> {}.apply {
             assertTrue(queryRemixes(games[0].asScope, this))
         }.also {
-            verify(it).setCountHint(2)
             verify(it).accept(remixes[0], games[0])
             verify(it).accept(remixes[1], games[0])
         }
         val game1Remixes = mock<Catalog.RemixesVisitor> {}.apply {
             assertTrue(queryRemixes(games[1].asScope, this))
         }.also {
-            verify(it).setCountHint(1)
             verify(it).accept(remixes[2], games[1])
         }
         val game2Remixes = mock<Catalog.RemixesVisitor> {}.apply {
             assertTrue(queryRemixes(games[2].asScope, this))
         }.also {
-            verify(it).setCountHint(1)
             verify(it).accept(remixes[3], games[2])
         }
         val game3Remixes = mock<Catalog.RemixesVisitor> {}.apply {
             assertFalse(queryRemixes(games[3].asScope, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         val sys0Remixes = mock<Catalog.RemixesVisitor> {}.apply {
             assertTrue(queryRemixes(systems[0].asScope, this))
         }.also {
-            verify(it).setCountHint(1)
             verify(it).accept(remixes[2], games[1])
         }
         val sys1Remixes = mock<Catalog.RemixesVisitor> {}.apply {
             assertFalse(queryRemixes(systems[1].asScope, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         val org0Remixes = mock<Catalog.RemixesVisitor> {}.apply {
             assertTrue(queryRemixes(organizations[0].asScope, this))
         }.also {
-            verify(it).setCountHint(1)
             verify(it).accept(remixes[3], games[2])
         }
         val org1Remixes = mock<Catalog.RemixesVisitor> {}.apply {
             assertFalse(queryRemixes(organizations[1].asScope, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         verifyNoMoreInteractions(
             allRemixes,
@@ -252,7 +218,6 @@ class DatabaseTest {
         val allAlbums = mock<Catalog.AlbumsVisitor> {}.apply {
             assertTrue(queryAlbums(null, this))
         }.also {
-            verify(it).setCountHint(4)
             verify(it).accept(albums[0], images[0])
             verify(it).accept(albums[1], images[2])
             verify(it).accept(albums[2], null)
@@ -261,36 +226,27 @@ class DatabaseTest {
         val game0Albums = mock<Catalog.AlbumsVisitor> {}.apply {
             assertTrue(queryAlbums(games[0].asScope, this))
         }.also {
-            verify(it).setCountHint(2)
             verify(it).accept(albums[1], images[2])
             verify(it).accept(albums[2], null)
         }
         val game1Albums = mock<Catalog.AlbumsVisitor> {}.apply {
             assertFalse(queryAlbums(games[1].asScope, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         val sys0Albums = mock<Catalog.AlbumsVisitor> {}.apply {
             assertTrue(queryAlbums(systems[0].asScope, this))
         }.also {
-            verify(it).setCountHint(1)
             verify(it).accept(albums[1], images[2])
         }
         val sys1Albums = mock<Catalog.AlbumsVisitor> {}.apply {
             assertFalse(queryAlbums(systems[1].asScope, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         val org0Albums = mock<Catalog.AlbumsVisitor> {}.apply {
             assertTrue(queryAlbums(organizations[0].asScope, this))
         }.also {
-            verify(it).setCountHint(1)
             verify(it).accept(albums[3], images[3])
         }
         val org1Albums = mock<Catalog.AlbumsVisitor> {}.apply {
             assertFalse(queryAlbums(organizations[1].asScope, this))
-        }.also {
-            verify(it).setCountHint(0)
         }
         verifyNoMoreInteractions(
             allAlbums, game0Albums, game1Albums, sys0Albums, sys1Albums, org0Albums, org1Albums

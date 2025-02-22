@@ -62,7 +62,6 @@ class RemoteCatalogTest {
     fun `test systems`() {
         val systemsMin = 79
         catalog.querySystems(systemsVisitor)
-        verify(systemsVisitor).setCountHint(geq(systemsMin))
         verify(systemsVisitor).accept(sys("3do", "3DO"))
         verify(systemsVisitor).accept(sys("axlxe", "Atari 400/800/XL/XE"))
         verify(systemsVisitor).accept(sys("spec", "ZX Spectrum"))
@@ -73,7 +72,6 @@ class RemoteCatalogTest {
     fun `test organizations`() {
         val orgsMin = 300
         catalog.queryOrganizations(organizationsVisitor, progress)
-        verify(organizationsVisitor).setCountHint(geq(orgsMin))
         verify(organizationsVisitor).accept(org("2/nintendo", "Nintendo"))
         verify(progress).onProgressUpdate(250, orgsMin)
         verify(organizationsVisitor).accept(org("3502/zeboyd-games", "Zeboyd Games"))
@@ -86,7 +84,6 @@ class RemoteCatalogTest {
         val gamesMin = 1354
         catalog.queryGames(null, gamesVisitor, progress)
 
-        verify(gamesVisitor).setCountHint(geq(gamesMin))
         //page1
         verify(gamesVisitor).accept(
             game("43663/007-tomorrow-never-dies-ps1", "007: Tomorrow Never Dies"),
@@ -146,7 +143,6 @@ class RemoteCatalogTest {
         val gamesMin = 164
         val sys = sys("win", "Windows")
         catalog.queryGames(Catalog.SystemScope(sys.id), gamesVisitor, progress)
-        verify(gamesVisitor).setCountHint(geq(gamesMin))
         //page1
         verify(gamesVisitor).accept(
             game("943/3-d-ultra-pinball-creep-night-win", "3-D Ultra Pinball: Creep Night"),
@@ -179,7 +175,6 @@ class RemoteCatalogTest {
         val gamesMin = 9
         val org = org("43/midway", "Midway")
         catalog.queryGames(Catalog.OrganizationScope(org.id), gamesVisitor, progress)
-        verify(gamesVisitor).setCountHint(geq(gamesMin))
         verify(gamesVisitor).accept(
             game("2956/doom-64-n64", "Doom 64"), sys("n64", "Nintendo 64"), org
         )
@@ -193,7 +188,6 @@ class RemoteCatalogTest {
     fun `test all remixes`() {
         val remixesMin = 4570
         catalog.queryRemixes(null, remixesVisitor, progress)
-        verify(remixesVisitor).setCountHint(geq(remixesMin))
         verify(remixesVisitor).accept(
             remix("OCR04768", "Frozen Light"), game("6/final-fantasy-vi-snes", "Final Fantasy VI")
         )
@@ -215,7 +209,6 @@ class RemoteCatalogTest {
         val mainGame = game("50/ducktales-nes", "DuckTales")
         catalog.queryRemixes(Catalog.GameScope(mainGame.id), remixesVisitor, progress)
 
-        verify(remixesVisitor).setCountHint(geq(remixesMin))
         verify(remixesVisitor).accept(
             remix("OCR03284", "Apollo Duck"), mainGame
         )
@@ -235,7 +228,6 @@ class RemoteCatalogTest {
             Catalog.OrganizationScope(Organization.Id("22/enix")), remixesVisitor, progress
         )
 
-        verify(remixesVisitor).setCountHint(geq(remixesMin))
         verify(remixesVisitor).accept(
             remix("OCR00541", "Fill More Funk"), game("25/actraiser-snes", "ActRaiser")
         )
@@ -260,7 +252,6 @@ class RemoteCatalogTest {
         val remixesMin = 33
         catalog.queryRemixes(Catalog.SystemScope(System.Id("amiga")), remixesVisitor, progress)
 
-        verify(remixesVisitor).setCountHint(geq(remixesMin))
         verify(remixesVisitor).accept(
             remix("OCR01512", "AmberTrance"), game("484/amberstar-amiga", "Amberstar")
         )
@@ -278,7 +269,6 @@ class RemoteCatalogTest {
         val albumsMin = 148
         catalog.queryAlbums(null, albumsVisitor, progress)
 
-        verify(albumsVisitor).setCountHint(geq(albumsMin))
         verify(albumsVisitor).accept(
             album("60065/the-impact-of-iwata", "The Impact of Iwata"),
             FilePath("images/albums/5/8/60065-258.png"),
@@ -309,7 +299,6 @@ class RemoteCatalogTest {
             progress
         )
 
-        verify(albumsVisitor).setCountHint(geq(albumsMin))
         verify(albumsVisitor).accept(
             album("86/sophomore-year", "Sophomore Year"),
             FilePath("images/albums/6/2/86-222.png"),
@@ -327,7 +316,6 @@ class RemoteCatalogTest {
             Catalog.OrganizationScope(Organization.Id("2/nintendo")), albumsVisitor, progress
         )
 
-        verify(albumsVisitor).setCountHint(geq(albumsMin))
         verify(albumsVisitor).accept(
             album("60065/the-impact-of-iwata", "The Impact of Iwata"),
             FilePath("images/albums/5/8/60065-258.png"),
@@ -347,7 +335,6 @@ class RemoteCatalogTest {
             Catalog.SystemScope(System.Id("sat")), albumsVisitor, progress
         )
 
-        verify(albumsVisitor).setCountHint(geq(albumsMin))
         verify(albumsVisitor).accept(
             album("86/sophomore-year", "Sophomore Year"),
             FilePath("images/albums/6/2/86-222.png"),

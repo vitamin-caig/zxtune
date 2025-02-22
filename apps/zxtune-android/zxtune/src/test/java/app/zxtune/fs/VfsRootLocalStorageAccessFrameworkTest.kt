@@ -59,7 +59,6 @@ class VfsRootLocalStorageAccessFrameworkTest {
         inOrder(context, storageManager, visitor) {
             verify(context).getSystemService(StorageManager::class.java)
             verify(storageManager).storageVolumes
-            verify(visitor).onItemsCount(0)
         }
     }
 
@@ -89,7 +88,6 @@ class VfsRootLocalStorageAccessFrameworkTest {
             verify(context).contentResolver
             // resolve(try real, try phantom) + permission query uri + enumerate
             verify(resolver, times(4)).persistedUriPermissions
-            verify(visitor).onItemsCount(2)
             verify(visitor, times(2)).onDir(captor.capture())
         }
         verify(context).packageName //intent, somewhere in the middle of uri permissions requests
@@ -229,7 +227,6 @@ class VfsRootLocalStorageAccessFrameworkTest {
         inOrder(context, storageManager, visitor) {
             verify(context).getSystemService(StorageManager::class.java)
             verify(storageManager).storageVolumes
-            verify(visitor).onItemsCount(3)
             verify(visitor, times(2)).onDir(captor.capture())
         }
         assertEquals(2, captor.allValues.size)
@@ -300,7 +297,6 @@ class VfsRootLocalStorageAccessFrameworkTest {
             verify(resolver).query(
                 eq(id.getTreeChildDocumentUri(permId)), any(), eq(null), eq(null)
             )
-            verify(visitor).onItemsCount(2)
             verify(visitor).onDir(argThat {
                 assertEquals("subdir", name)
                 assertEquals("Directory", description)

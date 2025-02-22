@@ -204,11 +204,6 @@ private class ModuleBuilder {
 
 private fun createAuthorsParserRoot(visitor: Catalog.AuthorsVisitor) = createRootElement().apply {
     getChild("authors").run {
-        setStartElementListener { attributes: Attributes ->
-            tryGetInteger(attributes.getValue("count"))?.let { count ->
-                visitor.setCountHint(count)
-            }
-        }
         val builder = AuthorBuilder()
         getChild("author").run {
             setStartElementListener { attributes: Attributes ->
@@ -229,26 +224,19 @@ private fun createAuthorsParserRoot(visitor: Catalog.AuthorsVisitor) = createRoo
 
 private fun createModulesParserRoot(visitor: Catalog.TracksVisitor) = createRootElement().apply {
     val builder = ModuleBuilder()
-    getChild("tracks").run {
+    getChild("tracks").getChild("track").run {
         setStartElementListener { attributes: Attributes ->
-            tryGetInteger(attributes.getValue("count"))?.let { count ->
-                visitor.setCountHint(count)
+            builder.setId(attributes.getValue("id"))
+        }
+        setEndElementListener {
+            builder.captureResult()?.let {
+                visitor.accept(it)
             }
         }
-        getChild("track").run {
-            setStartElementListener { attributes: Attributes ->
-                builder.setId(attributes.getValue("id"))
-            }
-            setEndElementListener {
-                builder.captureResult()?.let {
-                    visitor.accept(it)
-                }
-            }
-            getChild("filename").setEndTextElementListener(builder::setFilename)
-            getChild("title").setEndTextElementListener(builder::setTitle)
-            getChild("duration").setEndTextElementListener(builder::setDuration)
-            getChild("date").setEndTextElementListener(builder::setDate)
-        }
+        getChild("filename").setEndTextElementListener(builder::setFilename)
+        getChild("title").setEndTextElementListener(builder::setTitle)
+        getChild("duration").setEndTextElementListener(builder::setDuration)
+        getChild("date").setEndTextElementListener(builder::setDate)
     }
 }
 

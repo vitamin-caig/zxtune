@@ -67,7 +67,6 @@ class DatabaseTest {
     fun `test queryAuthors`() = testQueryObjects(
         addObject = ::addAuthor,
         queryObjects = underTest::queryAuthors,
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, author -> visitor.accept(author) }
     )
 
@@ -75,7 +74,6 @@ class DatabaseTest {
     fun `test queryParties`() = testQueryObjects(
         addObject = ::addParty,
         queryObjects = underTest::queryParties,
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, party -> visitor.accept(party) }
     )
 
@@ -85,7 +83,6 @@ class DatabaseTest {
         addGroup = ::makeAuthor,
         addObjectToGroup = underTest::addAuthorTrack,
         queryObjects = underTest::queryAuthorTracks,
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, track -> visitor.accept(track) }
     )
 
@@ -95,7 +92,6 @@ class DatabaseTest {
         addGroup = ::makeParty,
         addObjectToGroup = underTest::addPartyTrack,
         queryObjects = underTest::queryPartyTracks,
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, track -> visitor.accept(track) }
     )
 
@@ -108,7 +104,6 @@ class DatabaseTest {
         testVisitor<Catalog.TracksVisitor> { visitor ->
             assertTrue(underTest.queryTopTracks(3, visitor))
             inOrder(visitor).run {
-                verify(visitor).setCountHint(3)
                 verify(visitor).accept(tracks[4])
                 verify(visitor).accept(tracks[3])
                 verify(visitor).accept(tracks[2])
@@ -126,7 +121,6 @@ class DatabaseTest {
             underTest.findTracks("3", visitor)
             makeTrack(3)
         },
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, author, track -> visitor.accept(author, track) }
     )
 

@@ -158,16 +158,8 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthors(new Catalog.AuthorsVisitor() {
-        @Override
-        public void setCountHint(int hint) {
-          visitor.onItemsCount(hint);
-        }
-
-        @Override
-        public void accept(Author obj) {
-          visitor.onDir(new AuthorDir(obj));
-        }
+      catalog.queryAuthors((obj) -> {
+        visitor.onDir(new AuthorDir(obj));
       });
     }
 
@@ -230,20 +222,12 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       final SparseIntArray dates = new SparseIntArray();
-      catalog.queryAuthorTracks(author, new Catalog.TracksVisitor() {
-        @Override
-        public void setCountHint(int size) {
-          visitor.onItemsCount(size);
-        }
-
-        @Override
-        public void accept(Track obj) {
-          if (isEmptyDate(obj.getDate())) {
-            final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), obj).build();
-            visitor.onFile(new TrackFile(uri, obj));
-          } else {
-            dates.put(obj.getDate(), 1 + dates.get(obj.getDate()));
-          }
+      catalog.queryAuthorTracks(author, (obj) -> {
+        if (isEmptyDate(obj.getDate())) {
+          final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), obj).build();
+          visitor.onFile(new TrackFile(uri, obj));
+        } else {
+          dates.put(obj.getDate(), 1 + dates.get(obj.getDate()));
         }
       });
       for (int i = 0, lim = dates.size(); i != lim; ++i) {
@@ -304,18 +288,10 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthorTracks(author, new Catalog.TracksVisitor() {
-        @Override
-        public void setCountHint(int size) {
-          visitor.onItemsCount(size);
-        }
-
-        @Override
-        public void accept(Track obj) {
-          if (!isEmptyDate(obj.getDate()) && date == obj.getDate()) {
-            final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), obj).build();
-            visitor.onFile(new TrackFile(uri, obj));
-          }
+      catalog.queryAuthorTracks(author, (obj) -> {
+        if (!isEmptyDate(obj.getDate()) && date == obj.getDate()) {
+          final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), obj).build();
+          visitor.onFile(new TrackFile(uri, obj));
         }
       });
     }
@@ -423,17 +399,9 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     @Override
     public void find(String query, final Visitor visitor) {
-      catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
-
-        // TODO: remove
-        @Override
-        public void setCountHint(int size) {}
-
-        @Override
-        public void accept(Author author, Track track) {
-          final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), track).build();
-          visitor.onFile(new TrackFile(uri, track));
-        }
+      catalog.findTracks(query, (author, track) -> {
+        final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), track).build();
+        visitor.onFile(new TrackFile(uri, track));
       });
     }
   }

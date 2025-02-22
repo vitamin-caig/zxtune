@@ -11,27 +11,19 @@ import app.zxtune.utils.ProgressCallback
 import java.io.IOException
 
 interface Catalog {
-    interface WithCountHint {
-        fun setCountHint(count: Int) {}
-    }
-
-    fun interface AuthorsVisitor : WithCountHint {
-        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
+    fun interface AuthorsVisitor {
         fun accept(obj: Author)
     }
 
-    fun interface GenresVisitor : WithCountHint {
-        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
+    fun interface GenresVisitor {
         fun accept(obj: Genre)
     }
 
-    fun interface TracksVisitor : WithCountHint {
-        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
+    fun interface TracksVisitor {
         fun accept(obj: Track)
     }
 
-    fun interface FoundTracksVisitor : WithCountHint {
-        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
+    fun interface FoundTracksVisitor {
         fun accept(author: Author, track: Track)
     }
 
@@ -83,9 +75,7 @@ interface Catalog {
     companion object {
         @JvmStatic
         fun create(
-            context: Context,
-            http: MultisourceHttpProvider,
-            key: String
+            context: Context, http: MultisourceHttpProvider, key: String
         ): CachingCatalog {
             val remote = RemoteCatalog(http, key)
             val db = Database(context)

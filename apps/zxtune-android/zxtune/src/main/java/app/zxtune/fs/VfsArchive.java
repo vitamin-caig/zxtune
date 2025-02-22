@@ -182,19 +182,11 @@ public final class VfsArchive {
   }
 
   private void listArchive(final VfsObject parent, final Visitor visitor) {
-    service.listDir(parent.getUri(), new ArchivesService.ListingCallback() {
-      @Override
-      public void onItemsCount(int hint) {
-        visitor.onItemsCount(hint);
-      }
-
-      @Override
-      public void onEntry(Entry entry) {
-        if (entry.track != null) {
-          visitor.onFile(new ArchiveFile(parent, entry.dirEntry, entry.track));
-        } else {
-          visitor.onDir(new ArchiveDir(parent, entry.dirEntry));
-        }
+    service.listDir(parent.getUri(), (entry) -> {
+      if (entry.track != null) {
+        visitor.onFile(new ArchiveFile(parent, entry.dirEntry, entry.track));
+      } else {
+        visitor.onDir(new ArchiveDir(parent, entry.dirEntry));
       }
     });
   }

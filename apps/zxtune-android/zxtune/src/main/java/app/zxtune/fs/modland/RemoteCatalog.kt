@@ -56,7 +56,6 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
                 override fun onPage(title: String, results: Int, doc: Document): Boolean {
                     if (total == 0) {
                         total = results
-                        visitor.setCountHint(total)
                     }
                     done += parseGroups(doc, visitor)
                     progress.onProgressUpdate(done, total)
@@ -92,7 +91,6 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
                 override fun onPage(title: String, results: Int, doc: Document): Boolean {
                     if (total == 0) {
                         total = results
-                        visitor.setCountHint(total)
                     }
                     val tracks = parseTracks(doc, visitor)
                     done += tracks

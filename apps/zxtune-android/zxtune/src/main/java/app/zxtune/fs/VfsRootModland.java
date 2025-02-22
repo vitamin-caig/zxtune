@@ -53,8 +53,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     }
 
     static Uri.Builder makeUri() {
-      return new Uri.Builder().scheme(SCHEME)
-          .authority(HOST);
+      return new Uri.Builder().scheme(SCHEME).authority(HOST);
     }
   }
 
@@ -75,14 +74,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     this.parent = parent;
     this.context = context;
     final CachingCatalog catalog = Catalog.create(context, http);
-    this.groups = new GroupsDir[]{
-        new GroupsDir("Authors",
-            R.string.vfs_modland_authors_name, catalog.getAuthors()),
-        new GroupsDir("Collections",
-            R.string.vfs_modland_collections_name, catalog.getCollections()),
-        new GroupsDir("Formats",
-            R.string.vfs_modland_formats_name, catalog.getFormats())
-    };
+    this.groups = new GroupsDir[]{new GroupsDir("Authors", R.string.vfs_modland_authors_name, catalog.getAuthors()), new GroupsDir("Collections", R.string.vfs_modland_collections_name, catalog.getCollections()), new GroupsDir("Formats", R.string.vfs_modland_formats_name, catalog.getFormats())};
   }
 
   @Override
@@ -242,17 +234,8 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
       @Override
       public void enumerate(final Visitor visitor) throws IOException {
-        group.queryGroups(letter, new Catalog.GroupsVisitor() {
-
-          @Override
-          public void setCountHint(int count) {
-            visitor.onItemsCount(count);
-          }
-
-          @Override
-          public void accept(Group obj) {
-            visitor.onDir(new GroupDir(obj));
-          }
+        group.queryGroups(letter, (obj) -> {
+          visitor.onDir(new GroupDir(obj));
         }, visitor);
       }
 
@@ -304,18 +287,9 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
         @Override
         public void enumerate(final Visitor visitor) throws IOException {
-          group.queryTracks(obj.getId(), new Catalog.TracksVisitor() {
-
-            @Override
-            public void setCountHint(int count) {
-              visitor.onItemsCount(count);
-            }
-
-            @Override
-            public boolean accept(Track obj) {
-              visitor.onFile(new TrackFile(obj));
-              return true;
-            }
+          group.queryTracks(obj.getId(), (obj) -> {
+            visitor.onFile(new TrackFile(obj));
+            return true;
           }, visitor);
         }
 
@@ -330,9 +304,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
         }
 
         final Uri.Builder groupUri() {
-          return groupLetterUri()
-              .appendPath(obj.getName())
-              .appendQueryParameter(PARAM_ID, String.valueOf(obj.getId()));
+          return groupLetterUri().appendPath(obj.getName()).appendQueryParameter(PARAM_ID, String.valueOf(obj.getId()));
         }
 
         private class TrackFile extends FreeTrackFile {
@@ -348,8 +320,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
           @Override
           Uri.Builder trackUri() {
-            return groupUri()
-                .appendPath(track.getFilename());
+            return groupUri().appendPath(track.getFilename());
           }
         }
       }

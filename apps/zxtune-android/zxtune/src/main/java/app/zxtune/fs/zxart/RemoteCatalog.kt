@@ -77,13 +77,11 @@ private class Uris {
     private val delegate = Uri.Builder()
 
     init {
-        delegate.scheme("https")
-            .authority("zxart.ee") // no www. prefix!
+        delegate.scheme("https").authority("zxart.ee") // no www. prefix!
     }
 
     fun action(action: String) = apply {
-        delegate.appendPath("zxtune")
-            .appendEncodedPath("language:eng")
+        delegate.appendPath("zxtune").appendEncodedPath("language:eng")
             .appendEncodedPath("action:${action}")
     }
 
@@ -268,7 +266,6 @@ private class ModuleBuilder {
 
 private fun createAuthorsParserRoot(visitor: Catalog.AuthorsVisitor) = createRootElement().apply {
     getChild("responseData").run {
-        bindCountHint(this, visitor)
         getChild("authors").getChild("author").run {
             val builder = AuthorBuilder()
             setEndElementListener {
@@ -285,7 +282,6 @@ private fun createAuthorsParserRoot(visitor: Catalog.AuthorsVisitor) = createRoo
 
 private fun createPartiesParserRoot(visitor: PartiesVisitor) = createRootElement().apply {
     getChild("responseData").run {
-        bindCountHint(this, visitor)
         getChild("parties").getChild("party").run {
             val builder = PartiesBuilder()
             setEndElementListener {
@@ -301,14 +297,14 @@ private fun createPartiesParserRoot(visitor: PartiesVisitor) = createRootElement
 }
 
 private fun createModulesParserRoot(visitor: Catalog.TracksVisitor) =
-    createModulesParserRoot(visitor) { builder ->
+    createModulesParserRoot { builder ->
         builder.captureResult()?.let {
             visitor.accept(it)
         }
     }
 
 private fun createModulesParserRoot(visitor: Catalog.FoundTracksVisitor) =
-    createModulesParserRoot(visitor) { builder ->
+    createModulesParserRoot { builder ->
         builder.captureResultAuthor()?.let { author ->
             builder.captureResult()?.let { track ->
                 visitor.accept(author, track)
@@ -317,11 +313,9 @@ private fun createModulesParserRoot(visitor: Catalog.FoundTracksVisitor) =
     }
 
 private fun createModulesParserRoot(
-    hint: Catalog.WithCountHint,
     callback: (ModuleBuilder) -> Unit
 ) = createRootElement().apply {
     getChild("responseData").run {
-        bindCountHint(this, hint)
         getChild("tunes").getChild("tune").run {
             val builder = ModuleBuilder()
             setEndElementListener {
@@ -331,13 +325,6 @@ private fun createModulesParserRoot(
         }
     }
 }
-
-private fun bindCountHint(item: Element, visitor: Catalog.WithCountHint) =
-    item.getChild("totalAmount").setEndTextElementListener { body: String? ->
-        tryGetInteger(body)?.let { count ->
-            visitor.setCountHint(count)
-        }
-    }
 
 private fun bindXmlActions(item: Element, builder: ModuleBuilder) = with(item) {
     getChild("id").setEndTextElementListener(builder::setId)

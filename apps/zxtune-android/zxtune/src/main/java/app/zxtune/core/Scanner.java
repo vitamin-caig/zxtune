@@ -73,12 +73,6 @@ public final class Scanner {
     final ArrayList<VfsFile> files = new ArrayList<>();
     try {
       directory.enumerate(new VfsDir.Visitor() {
-
-        @Override
-        public void onItemsCount(int count) {
-          files.ensureCapacity(count);
-        }
-
         @Override
         public void onFile(VfsFile file) {
           files.add(file);

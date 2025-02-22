@@ -10,23 +10,15 @@ import app.zxtune.fs.http.MultisourceHttpProvider
 import java.io.IOException
 
 interface Catalog {
-
-    interface WithCountHint {
-        fun setCountHint(count: Int) {}
-    }
-
-    fun interface AuthorsVisitor : WithCountHint {
-        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
+    fun interface AuthorsVisitor{
         fun accept(obj: Author)
     }
 
-    fun interface TracksVisitor : WithCountHint {
-        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
+    fun interface TracksVisitor{
         fun accept(obj: Track)
     }
 
-    fun interface FoundTracksVisitor : WithCountHint {
-        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
+    fun interface FoundTracksVisitor {
         fun accept(author: Author, track: Track)
     }
 

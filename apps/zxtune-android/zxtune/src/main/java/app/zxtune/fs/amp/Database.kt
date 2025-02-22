@@ -52,9 +52,9 @@ internal open class Database(context: Context) {
     private val authorTracks = Tables.AuthorTracks(helper)
     private val tracks = Tables.Tracks(helper)
     private val timestamps = Timestamps(helper)
-    private val findQuery = "SELECT * FROM authors LEFT OUTER JOIN tracks ON " +
-            "tracks.${Tables.Tracks.getSelection(authorTracks.getIdsSelection("authors._id"))} " +
-            "WHERE tracks.filename LIKE '%' || ? || '%'"
+    private val findQuery = "SELECT * FROM authors LEFT OUTER JOIN tracks ON " + "tracks.${
+        Tables.Tracks.getSelection(authorTracks.getIdsSelection("authors._id"))
+    } " + "WHERE tracks.filename LIKE '%' || ? || '%'"
 
     fun close() = helper.close()
 
@@ -69,91 +69,66 @@ internal open class Database(context: Context) {
     open fun getAuthorTracksLifetime(author: Author, ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Authors.NAME + author.id, ttl)
 
-    open fun getGroupsLifetime(ttl: TimeStamp) =
-        timestamps.getLifetime(Tables.Groups.NAME, ttl)
+    open fun getGroupsLifetime(ttl: TimeStamp) = timestamps.getLifetime(Tables.Groups.NAME, ttl)
 
     open fun getGroupLifetime(group: Group, ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Groups.NAME + group.id, ttl)
 
-    open fun queryAuthors(handleFilter: String, visitor: Catalog.AuthorsVisitor): Boolean {
-        val selection = Tables.Authors.getHandlesSelection(handleFilter)
-        return queryAuthorsInternal(selection, visitor)
-    }
+    open fun queryAuthors(handleFilter: String, visitor: Catalog.AuthorsVisitor) =
+        Tables.Authors.getHandlesSelection(handleFilter).let {
+            queryAuthorsInternal(it, visitor)
+        }
 
-    open fun queryAuthors(country: Country, visitor: Catalog.AuthorsVisitor): Boolean {
-        val selection = Tables.Authors.getSelection(countryAuthors.getAuthorsIdsSelection(country))
-        return queryAuthorsInternal(selection, visitor)
-    }
+    open fun queryAuthors(country: Country, visitor: Catalog.AuthorsVisitor) =
+        Tables.Authors.getSelection(countryAuthors.getAuthorsIdsSelection(country)).let {
+            queryAuthorsInternal(it, visitor)
+        }
 
-    open fun queryAuthors(group: Group, visitor: Catalog.AuthorsVisitor): Boolean {
-        val selection = Tables.Authors.getSelection(groupAuthors.getAuthorsIdsSelection(group))
-        return queryAuthorsInternal(selection, visitor)
-    }
+    open fun queryAuthors(group: Group, visitor: Catalog.AuthorsVisitor) =
+        Tables.Authors.getSelection(groupAuthors.getAuthorsIdsSelection(group)).let {
+            queryAuthorsInternal(it, visitor)
+        }
 
-    private fun queryAuthorsInternal(selection: String, visitor: Catalog.AuthorsVisitor): Boolean {
+    private fun queryAuthorsInternal(selection: String, visitor: Catalog.AuthorsVisitor) =
         helper.readableDatabase.query(Tables.Authors.NAME, null, selection, null, null, null, null)
             ?.use { cursor ->
-                val count = cursor.count
-                if (count != 0) {
-                    visitor.setCountHint(count)
-                    while (cursor.moveToNext()) {
-                        visitor.accept(Tables.Authors.createAuthor(cursor))
-                    }
-                    return true
+                while (cursor.moveToNext()) {
+                    visitor.accept(Tables.Authors.createAuthor(cursor))
                 }
-            }
-        return false
-    }
+                cursor.count != 0
+            } ?: false
 
-    open fun queryTracks(author: Author, visitor: Catalog.TracksVisitor): Boolean {
-        val selection = Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author))
-        return queryTracksInternal(selection, visitor)
-    }
+    open fun queryTracks(author: Author, visitor: Catalog.TracksVisitor) =
+        Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author)).let {
+            queryTracksInternal(it, visitor)
+        }
 
-    private fun queryTracksInternal(selection: String, visitor: Catalog.TracksVisitor): Boolean {
+    private fun queryTracksInternal(selection: String, visitor: Catalog.TracksVisitor) =
         helper.readableDatabase.query(Tables.Tracks.NAME, null, selection, null, null, null, null)
             ?.use { cursor ->
-                val count = cursor.count
-                if (count != 0) {
-                    visitor.setCountHint(count)
-                    while (cursor.moveToNext()) {
-                        visitor.accept(Tables.Tracks.createTrack(cursor))
-                    }
-                    return true
+                while (cursor.moveToNext()) {
+                    visitor.accept(Tables.Tracks.createTrack(cursor))
                 }
-            }
-        return false
-    }
+                cursor.count != 0
+            } ?: false
 
-    open fun queryGroups(visitor: Catalog.GroupsVisitor): Boolean {
+    open fun queryGroups(visitor: Catalog.GroupsVisitor) =
         helper.readableDatabase.query(Tables.Groups.NAME, null, null, null, null, null, null)
             ?.use { cursor ->
-                val count = cursor.count
-                if (count != 0) {
-                    visitor.setCountHint(count)
-                    while (cursor.moveToNext()) {
-                        visitor.accept(Tables.Groups.createGroup(cursor))
-                    }
-                    return true
-                }
-            }
-        return false
-    }
-
-    open fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) {
-        helper.readableDatabase.rawQuery(findQuery, arrayOf(query))?.use { cursor ->
-            val count = cursor.count
-            if (count != 0) {
-                visitor.setCountHint(count)
                 while (cursor.moveToNext()) {
-                    val author = Tables.Authors.createAuthor(cursor)
-                    val track =
-                        Tables.Tracks.createTrack(cursor, Tables.Authors.FIELDS_COUNT)
-                    visitor.accept(author, track)
+                    visitor.accept(Tables.Groups.createGroup(cursor))
                 }
+                cursor.count != 0
+            } ?: false
+
+    open fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) =
+        helper.readableDatabase.rawQuery(findQuery, arrayOf(query))?.use { cursor ->
+            while (cursor.moveToNext()) {
+                val author = Tables.Authors.createAuthor(cursor)
+                val track = Tables.Tracks.createTrack(cursor, Tables.Authors.FIELDS_COUNT)
+                visitor.accept(author, track)
             }
-        }
-    }
+        } ?: Unit
 
     open fun addCountryAuthor(country: Country, author: Author) =
         countryAuthors.add(country, author)
@@ -169,8 +144,7 @@ internal open class Database(context: Context) {
     open fun addAuthorTrack(author: Author, track: Track) = authorTracks.add(author, track)
 }
 
-private class Helper(context: Context) :
-    SQLiteOpenHelper(context, NAME, null, VERSION) {
+private class Helper(context: Context) : SQLiteOpenHelper(context, NAME, null, VERSION) {
     override fun onCreate(db: SQLiteDatabase) {
         LOG.d { "Creating database" }
         db.execSQL(Tables.CountryAuthors.CREATE_QUERY)
@@ -202,11 +176,8 @@ private class Tables {
 
         companion object {
             const val NAME = "authors"
-            const val CREATE_QUERY = "CREATE TABLE authors (" +
-                    "_id INTEGER PRIMARY KEY, " +
-                    "handle TEXT NOT NULL, " +
-                    "real_name TEXT NOT NULL" +
-                    ");"
+            const val CREATE_QUERY =
+                "CREATE TABLE authors (" + "_id INTEGER PRIMARY KEY, " + "handle TEXT NOT NULL, " + "real_name TEXT NOT NULL" + ");"
             const val FIELDS_COUNT = 3
 
             fun createAuthor(cursor: Cursor) = run {
@@ -218,10 +189,9 @@ private class Tables {
 
             fun getSelection(subquery: String) = "_id IN ($subquery)"
 
-            fun getHandlesSelection(filter: String) = if (Catalog.NON_LETTER_FILTER == filter)
-                "SUBSTR(handle, 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
-            else
-                "handle LIKE '${filter}%'"
+            fun getHandlesSelection(filter: String) =
+                if (Catalog.NON_LETTER_FILTER == filter) "SUBSTR(handle, 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
+                else "handle LIKE '${filter}%'"
 
         }
     }
@@ -231,11 +201,8 @@ private class Tables {
 
         companion object {
             const val NAME = "tracks"
-            const val CREATE_QUERY = "CREATE TABLE tracks (" +
-                    "_id INTEGER PRIMARY KEY, " +
-                    "filename TEXT NOT NULL, " +
-                    "size INTEGER NOT NULL" +
-                    ");"
+            const val CREATE_QUERY =
+                "CREATE TABLE tracks (" + "_id INTEGER PRIMARY KEY, " + "filename TEXT NOT NULL, " + "size INTEGER NOT NULL" + ");"
             const val FIELDS_COUNT = 3
 
             fun createTrack(cursor: Cursor, fieldOffset: Int = 0) = run {
@@ -264,11 +231,8 @@ private class Tables {
     class AuthorPictures(helper: DBProvider) : Objects(helper, NAME, FIELDS_COUNT) {
         companion object {
             const val NAME = "author_pictures"
-            const val CREATE_QUERY = "CREATE TABLE author_pictures (" +
-                    "author INTEGER NOT NULL, " +
-                    "path TEXT NOT NULL, " +
-                    "PRIMARY KEY(author, path)" +
-                    ");"
+            const val CREATE_QUERY =
+                "CREATE TABLE author_pictures (" + "author INTEGER NOT NULL, " + "path TEXT NOT NULL, " + "PRIMARY KEY(author, path)" + ");"
             const val FIELDS_COUNT = 2
         }
     }
@@ -289,10 +253,8 @@ private class Tables {
 
         companion object {
             const val NAME = "groups"
-            const val CREATE_QUERY = "CREATE TABLE groups (" +
-                    "_id INTEGER PRIMARY KEY, " +
-                    "name TEXT NOT NULL" +
-                    ");"
+            const val CREATE_QUERY =
+                "CREATE TABLE groups (" + "_id INTEGER PRIMARY KEY, " + "name TEXT NOT NULL" + ");"
             const val FIELDS_COUNT = 2
 
             fun createGroup(cursor: Cursor) = run {

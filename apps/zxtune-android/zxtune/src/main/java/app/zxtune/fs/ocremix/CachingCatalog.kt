@@ -25,10 +25,7 @@ class CachingCatalog(private val remote: RemoteCatalog, private val db: Database
                 get() = lifetime.isExpired
 
             override fun updateCache() = db.runInTransaction {
-                remote.querySystems(object : Catalog.Visitor<System> {
-                    override fun accept(obj: System) = db.addSystem(obj)
-                    override fun setCountHint(count: Int) = Unit
-                })
+                remote.querySystems(db::addSystem)
                 lifetime.update()
             }
 
@@ -44,10 +41,7 @@ class CachingCatalog(private val remote: RemoteCatalog, private val db: Database
             get() = lifetime.isExpired
 
         override fun updateCache() = db.runInTransaction {
-            remote.queryOrganizations(object : Catalog.Visitor<Organization> {
-                override fun accept(obj: Organization) = db.addOrganization(obj)
-                override fun setCountHint(count: Int) = Unit
-            }, progress)
+            remote.queryOrganizations(db::addOrganization, progress)
             lifetime.update()
         }
 
@@ -63,12 +57,7 @@ class CachingCatalog(private val remote: RemoteCatalog, private val db: Database
             get() = lifetime.isExpired
 
         override fun updateCache() = db.runInTransaction {
-            remote.queryGames(scope, object : Catalog.GamesVisitor {
-                override fun accept(game: Game, system: System, organization: Organization?) =
-                    db.addGame(game, system, organization)
-
-                override fun setCountHint(count: Int) = Unit
-            }, progress)
+            remote.queryGames(scope, db::addGame, progress)
             lifetime.update()
         }
 
@@ -84,10 +73,7 @@ class CachingCatalog(private val remote: RemoteCatalog, private val db: Database
             get() = lifetime.isExpired
 
         override fun updateCache() = db.runInTransaction {
-            remote.queryRemixes(scope, object : Catalog.RemixesVisitor {
-                override fun accept(remix: Remix, game: Game) = db.addRemix(scope, remix, game)
-                override fun setCountHint(count: Int) = Unit
-            }, progress)
+            remote.queryRemixes(scope, { remix, game -> db.addRemix(scope, remix, game) }, progress)
             lifetime.update()
         }
 
@@ -103,12 +89,9 @@ class CachingCatalog(private val remote: RemoteCatalog, private val db: Database
             get() = lifetime.isExpired
 
         override fun updateCache() = db.runInTransaction {
-            remote.queryAlbums(scope, object : Catalog.AlbumsVisitor {
-                override fun accept(album: Album, image: FilePath?) =
-                    db.addAlbum(scope, album, image)
-
-                override fun setCountHint(count: Int) = Unit
-            }, progress)
+            remote.queryAlbums(
+                scope, { album, image -> db.addAlbum(scope, album, image) }, progress
+            )
             lifetime.update()
         }
 

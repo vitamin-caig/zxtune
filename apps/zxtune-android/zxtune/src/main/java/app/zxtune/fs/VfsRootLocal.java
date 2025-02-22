@@ -180,7 +180,6 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
       if (files == null) {
         throw new IOException("Failed to enumerate files at " + object.getAbsolutePath());
       }
-      visitor.onItemsCount(files.length);
       for (File file : files) {
         if (file.isDirectory()) {
           visitor.onDir(buildDir(file));

@@ -24,9 +24,8 @@ public class ArchivesService {
 
   private static final String TAG = ArchivesService.class.getName();
 
+  @FunctionalInterface
   public interface ListingCallback {
-    void onItemsCount(int hint);
-
     void onEntry(Entry entry);
   }
 
@@ -81,7 +80,6 @@ public class ArchivesService {
   public final void listDir(Uri uri, ListingCallback cb) {
     final Cursor cursor = db.queryListing(uri);
     try {
-      cb.onItemsCount(cursor.getCount());
       while (cursor.moveToNext()) {
         cb.onEntry(Entry.fromCursor(cursor));
       }

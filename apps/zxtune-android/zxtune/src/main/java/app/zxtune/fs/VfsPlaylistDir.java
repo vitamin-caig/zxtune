@@ -90,7 +90,6 @@ final class VfsPlaylistDir implements VfsDir {
 
   @Override
   public void enumerate(Visitor visitor) {
-    visitor.onItemsCount(entries.size());
     for (int idx = 0, lim = entries.size(); idx < lim; ++idx) {
       visitor.onFile(new PlaylistEntryFile(this, entries.get(idx), idx));
     }

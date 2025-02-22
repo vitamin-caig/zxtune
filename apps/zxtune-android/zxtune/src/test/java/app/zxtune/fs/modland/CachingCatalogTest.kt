@@ -64,7 +64,6 @@ class CachingCatalogTest(private val cat: Category, case: TestCase) : CachingCat
     private val workingGrouping = mock<Catalog.Grouping> {
         on { queryGroups(eq(filter), any(), any()) } doAnswer {
             it.getArgument<Catalog.GroupsVisitor>(1).run {
-                setCountHint(2)
                 accept(group1)
                 accept(group2)
             }
@@ -72,7 +71,6 @@ class CachingCatalogTest(private val cat: Category, case: TestCase) : CachingCat
         on { getGroup(queryGroup.id) } doReturn queryGroup
         on { queryTracks(eq(queryGroup.id), any(), any()) } doAnswer {
             it.getArgument<Catalog.TracksVisitor>(1).run {
-                setCountHint(2)
                 accept(track1)
                 accept(track2)
             }

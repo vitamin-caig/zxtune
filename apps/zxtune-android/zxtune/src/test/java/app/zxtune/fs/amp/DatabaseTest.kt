@@ -71,7 +71,6 @@ class DatabaseTest {
         testVisitor<Catalog.AuthorsVisitor> { visitor ->
             assertTrue(underTest.queryAuthors("", visitor))
             inOrder(visitor).run {
-                verify(visitor).setCountHint(4)
                 verify(visitor).accept(digit)
                 verify(visitor).accept(sign)
                 verify(visitor).accept(upper)
@@ -82,7 +81,6 @@ class DatabaseTest {
         testVisitor<Catalog.AuthorsVisitor> { visitor ->
             assertTrue(underTest.queryAuthors(Catalog.NON_LETTER_FILTER, visitor))
             inOrder(visitor).run {
-                verify(visitor).setCountHint(2)
                 verify(visitor).accept(digit)
                 verify(visitor).accept(sign)
             }
@@ -91,7 +89,6 @@ class DatabaseTest {
         testVisitor<Catalog.AuthorsVisitor> { visitor ->
             assertTrue(underTest.queryAuthors("A", visitor))
             inOrder(visitor).run {
-                verify(visitor).setCountHint(1)
                 verify(visitor).accept(lower)
             }
         }
@@ -99,7 +96,6 @@ class DatabaseTest {
         testVisitor<Catalog.AuthorsVisitor> { visitor ->
             assertTrue(underTest.queryAuthors("Z", visitor))
             inOrder(visitor).run {
-                verify(visitor).setCountHint(1)
                 verify(visitor).accept(upper)
             }
         }
@@ -115,7 +111,6 @@ class DatabaseTest {
         addGroup = ::makeCountry,
         addObjectToGroup = underTest::addCountryAuthor,
         queryObjects = underTest::queryAuthors,
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, author -> visitor.accept(author) }
     )
 
@@ -125,7 +120,6 @@ class DatabaseTest {
         addGroup = ::makeGroup,
         addObjectToGroup = underTest::addGroupAuthor,
         queryObjects = underTest::queryAuthors,
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, author -> visitor.accept(author) }
     )
 
@@ -135,7 +129,6 @@ class DatabaseTest {
         addGroup = ::makeAuthor,
         addObjectToGroup = underTest::addAuthorTrack,
         queryObjects = underTest::queryTracks,
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, track -> visitor.accept(track) }
     )
 
@@ -143,7 +136,6 @@ class DatabaseTest {
     fun `test queryGroups`() = testQueryObjects(
         addObject = ::addGroup,
         queryObjects = underTest::queryGroups,
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, group -> visitor.accept(group) }
     )
 
@@ -157,7 +149,6 @@ class DatabaseTest {
             underTest.findTracks("3", visitor)
             makeTrack(3)
         },
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, author, track -> visitor.accept(author, track) }
     )
 

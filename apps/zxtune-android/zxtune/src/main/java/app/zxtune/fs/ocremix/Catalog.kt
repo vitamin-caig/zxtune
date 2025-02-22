@@ -5,27 +5,23 @@ import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.utils.ProgressCallback
 
 interface Catalog {
-    interface WithCountHint {
-        fun setCountHint(count: Int)
-    }
-
-    interface Visitor<T> : WithCountHint {
+    fun interface Visitor<T> {
         fun accept(obj: T)
     }
 
-    interface GamesVisitor : WithCountHint {
+    fun interface GamesVisitor {
         fun accept(game: Game, system: System, organization: Organization?)
     }
 
-    interface RemixesVisitor : WithCountHint {
+    fun interface RemixesVisitor {
         fun accept(remix: Remix, game: Game)
     }
 
-    interface AlbumsVisitor : WithCountHint {
+    fun interface AlbumsVisitor {
         fun accept(album: Album, image: FilePath?)
     }
 
-    interface AlbumTracksVisitor {
+    fun interface AlbumTracksVisitor {
         fun accept(filePath: FilePath, size: Long)
     }
 

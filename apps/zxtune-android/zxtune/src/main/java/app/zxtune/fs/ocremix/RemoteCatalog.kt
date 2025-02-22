@@ -17,24 +17,18 @@ private val LOG = Logger(RemoteCatalog::class.java.name)
 class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
     override fun querySystems(visitor: Catalog.Visitor<System>) {
         LOG.d { "querySystems()" }
-        readPage(baseUri.scoped(null, EntityTypes.SYSTEMS)).apply {
-            selectFirst("head>title:containsOwn(Systems)")?.let { el ->
-                el.text().split('(', ')').getOrNull(1)?.toIntOrNull()?.let {
-                    visitor.setCountHint(it)
+        readPage(baseUri.scoped(null, EntityTypes.SYSTEMS)).select("table>tbody>tr.area-link")
+            .forEach { row ->
+                row.findIdNode("/system/")?.let { node ->
+                    visitor.accept(System(System.Id(node.id), node.text))
                 }
             }
-        }.select("table>tbody>tr.area-link").forEach { row ->
-            row.findIdNode("/system/")?.let { node ->
-                visitor.accept(System(System.Id(node.id), node.text))
-            }
-        }
     }
 
     override fun queryOrganizations(
         visitor: Catalog.Visitor<Organization>, progress: ProgressCallback
     ) {
         var total = 300 // only with games or remixes
-        visitor.setCountHint(total)
         val uri = baseUri.scoped(null, EntityTypes.ORGANIZATIONS)
             .appendQueryParameter("sort", "gamecountdesc").build()
         var offset = 0
@@ -75,7 +69,6 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
             val rows = doc.select("table>tbody>tr.row1")
             if (total == null) {
                 total = doc.findTotal() ?: rows.size
-                visitor.setCountHint(total)
             } else {
                 progress.onProgressUpdate(offset, total)
             }
@@ -110,8 +103,6 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
             val rows = doc.select("table>tbody>tr")
             if (offset == 0) {
                 total = doc.findTotal()
-                // exact or approximate value rows=games+remixes
-                visitor.setCountHint(total ?: rows.size)
             } else if (total != null) {
                 progress.onProgressUpdate(offset, total)
             }
@@ -140,7 +131,6 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
             val rows = doc.select("table>tbody>tr.area-link")
             if (total == null) {
                 total = doc.findTotal() ?: rows.size
-                visitor.setCountHint(total)
             } else {
                 progress.onProgressUpdate(offset, total)
             }

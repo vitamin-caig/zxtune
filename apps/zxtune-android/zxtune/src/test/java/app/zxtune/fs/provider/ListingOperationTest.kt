@@ -98,7 +98,6 @@ class ListingOperationTest {
         val dir = mock<VfsDir> {
             on { enumerate(any()) } doAnswer {
                 it.getArgument<VfsDir.Visitor>(0).run {
-                    onItemsCount(4)
                     onDir(dir2)
                     onFile(file4)
                     onDir(dir1)

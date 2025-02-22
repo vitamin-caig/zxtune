@@ -75,11 +75,9 @@ class VfsRootZxart(
             else -> super.getExtension(id)
         }
 
-        override fun enumerate(visitor: VfsDir.Visitor) =
-            catalog.queryAuthors(object : Catalog.AuthorsVisitor {
-                override fun setCountHint(count: Int) = visitor.onItemsCount(count)
-                override fun accept(obj: Author) = visitor.onDir(AuthorDir(obj))
-            })
+        override fun enumerate(visitor: VfsDir.Visitor) = catalog.queryAuthors { obj ->
+            visitor.onDir(AuthorDir(obj))
+        }
 
         // use plain resolving to avoid deep hierarchy
         // check most frequent cases first
@@ -107,15 +105,11 @@ class VfsRootZxart(
         override val parent
             get() = groups[0] // TODO
 
-        override fun enumerate(visitor: VfsDir.Visitor) {
-            val years = SparseIntArray().apply {
-                catalog.queryAuthorTracks(author) { obj -> put(obj.year, 1 + get(obj.year)) }
-            }
-            visitor.onItemsCount(years.size())
-            years.keyIterator().forEach { year ->
-                // handle count when required
-                visitor.onDir(AuthorYearDir(author, year))
-            }
+        override fun enumerate(visitor: VfsDir.Visitor) = SparseIntArray().apply {
+            catalog.queryAuthorTracks(author) { obj -> put(obj.year, 1 + get(obj.year)) }
+        }.keyIterator().forEach { year ->
+            // handle count when required
+            visitor.onDir(AuthorYearDir(author, year))
         }
     }
 
@@ -131,16 +125,12 @@ class VfsRootZxart(
         override val parent
             get() = AuthorDir(author)
 
-        override fun enumerate(visitor: VfsDir.Visitor) =
-            catalog.queryAuthorTracks(author, object : Catalog.TracksVisitor {
-                override fun setCountHint(count: Int) = visitor.onItemsCount(count)
-                override fun accept(obj: Track) {
-                    if (year == obj.year) {
-                        val uri = Identifier.forTrack(id, obj).build()
-                        visitor.onFile(AuthorTrackFile(uri, obj))
-                    }
-                }
-            })
+        override fun enumerate(visitor: VfsDir.Visitor) = catalog.queryAuthorTracks(author) { obj ->
+            if (year == obj.year) {
+                val uri = Identifier.forTrack(id, obj).build()
+                visitor.onFile(AuthorTrackFile(uri, obj))
+            }
+        }
     }
 
     private inner class AuthorTrackFile(uri: Uri, track: Track) : BaseTrackFile(uri, track) {
@@ -163,15 +153,11 @@ class VfsRootZxart(
         override val parent
             get() = this@VfsRootZxart
 
-        override fun enumerate(visitor: VfsDir.Visitor) {
-            val years = SparseIntArray().apply {
-                catalog.queryParties { obj -> put(obj.year, 1 + get(obj.year)) }
-            }
-            visitor.onItemsCount(years.size())
-            years.keyIterator().forEach { year ->
-                // handle count when required
-                visitor.onDir(PartyYearDir(year))
-            }
+        override fun enumerate(visitor: VfsDir.Visitor) = SparseIntArray().apply {
+            catalog.queryParties { obj -> put(obj.year, 1 + get(obj.year)) }
+        }.keyIterator().forEach { year ->
+            // handle count when required
+            visitor.onDir(PartyYearDir(year))
         }
 
         override fun resolve(uri: Uri, path: List<String>) =
@@ -212,14 +198,10 @@ class VfsRootZxart(
         override val parent
             get() = PartyYearDir(party.year)
 
-        override fun enumerate(visitor: VfsDir.Visitor) {
-            val compos = HashSet<String>().apply {
-                catalog.queryPartyTracks(party) { obj -> add(obj.compo) }
-            }
-            visitor.onItemsCount(compos.size)
-            compos.forEach { compo ->
-                visitor.onDir(PartyCompoDir(party, compo))
-            }
+        override fun enumerate(visitor: VfsDir.Visitor) = HashSet<String>().apply {
+            catalog.queryPartyTracks(party) { obj -> add(obj.compo) }
+        }.forEach { compo ->
+            visitor.onDir(PartyCompoDir(party, compo))
         }
     }
 
@@ -314,14 +296,10 @@ class VfsRootZxart(
             else -> super.getExtension(id)
         }
 
-        override fun enumerate(visitor: VfsDir.Visitor) =
-            catalog.queryTopTracks(100, object : Catalog.TracksVisitor {
-                override fun setCountHint(count: Int) = visitor.onItemsCount(count)
-                override fun accept(obj: Track) {
-                    val uri = Identifier.forTrack(id, obj).build()
-                    visitor.onFile(TopTrackFile(uri, obj))
-                }
-            })
+        override fun enumerate(visitor: VfsDir.Visitor) = catalog.queryTopTracks(100) { obj ->
+            val uri = Identifier.forTrack(id, obj).build()
+            visitor.onFile(TopTrackFile(uri, obj))
+        }
 
         override fun resolve(uri: Uri, path: List<String>) =
             Identifier.findTopTrack(uri, path)?.let { track ->

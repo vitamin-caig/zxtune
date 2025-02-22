@@ -15,11 +15,6 @@ internal class ListingCursorBuilder {
     private var total = 0
     private var done = 0
 
-    fun reserve(count: Int) {
-        dirs.ensureCapacity(count)
-        files.ensureCapacity(count)
-    }
-
     fun addDir(dir: VfsDir) {
         dirs.add(dir)
     }

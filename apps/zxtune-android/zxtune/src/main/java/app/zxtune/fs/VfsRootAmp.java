@@ -19,7 +19,6 @@ import app.zxtune.Util;
 import app.zxtune.fs.amp.Author;
 import app.zxtune.fs.amp.CachingCatalog;
 import app.zxtune.fs.amp.Catalog;
-import app.zxtune.fs.amp.Catalog.GroupsVisitor;
 import app.zxtune.fs.amp.Country;
 import app.zxtune.fs.amp.Group;
 import app.zxtune.fs.amp.Identifier;
@@ -220,15 +219,8 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthors(letter, new Catalog.AuthorsVisitor() {
-        //TODO: remove
-        @Override
-        public void setCountHint(int count) {}
-
-        @Override
-        public void accept(Author obj) {
-          visitor.onDir(makeSubdir(obj));
-        }
+      catalog.queryAuthors(letter, (obj) -> {
+        visitor.onDir(makeSubdir(obj));
       });
     }
   }
@@ -292,16 +284,8 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthors(country, new Catalog.AuthorsVisitor() {
-        @Override
-        public void setCountHint(int count) {
-          visitor.onItemsCount(count);
-        }
-
-        @Override
-        public void accept(Author obj) {
-          visitor.onDir(makeSubdir(obj));
-        }
+      catalog.queryAuthors(country, (obj) -> {
+        visitor.onDir(makeSubdir(obj));
       });
     }
   }
@@ -320,17 +304,8 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryGroups(new GroupsVisitor() {
-
-        @Override
-        public void setCountHint(int hint) {
-          visitor.onItemsCount(hint);
-        }
-
-        @Override
-        public void accept(Group group) {
-          visitor.onDir(new HandleByGroupDir(group));
-        }
+      catalog.queryGroups((group) -> {
+        visitor.onDir(new HandleByGroupDir(group));
       });
     }
 
@@ -366,16 +341,8 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthors(group, new Catalog.AuthorsVisitor() {
-        @Override
-        public void setCountHint(int count) {
-          visitor.onItemsCount(count);
-        }
-
-        @Override
-        public void accept(Author obj) {
-          visitor.onDir(makeSubdir(obj));
-        }
+      catalog.queryAuthors(group, (obj) -> {
+        visitor.onDir(makeSubdir(obj));
       });
     }
   }
@@ -413,17 +380,9 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryTracks(author, new Catalog.TracksVisitor() {
-        @Override
-        public void setCountHint(int count) {
-          visitor.onItemsCount(count);
-        }
-
-        @Override
-        public void accept(Track obj) {
-          final Uri fileUri = Identifier.forTrack(uri.buildUpon(), obj).build();
-          visitor.onFile(new TrackFile(fileUri, obj));
-        }
+      catalog.queryTracks(author, (obj) -> {
+        final Uri fileUri = Identifier.forTrack(uri.buildUpon(), obj).build();
+        visitor.onFile(new TrackFile(fileUri, obj));
       });
     }
   }
@@ -489,20 +448,12 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public void find(String query, final Visitor visitor) throws IOException {
-      catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
-
-        // TODO: remove
-        @Override
-        public void setCountHint(int count) {}
-
-        @Override
-        public void accept(Author author, Track track) {
-          final String letter = author.getHandle().substring(0, 1);
-          final Uri.Builder categoryUri = Identifier.forHandleLetter(Identifier.isHandleLetter(letter) ? letter : Catalog.NON_LETTER_FILTER);
-          final Uri.Builder authorsUri = Identifier.forAuthor(categoryUri, author);
-          final Uri.Builder trackUri = Identifier.forTrack(authorsUri, track);
-          visitor.onFile(new TrackFile(trackUri.build(), track));
-        }
+      catalog.findTracks(query, (author, track) -> {
+        final String letter = author.getHandle().substring(0, 1);
+        final Uri.Builder categoryUri = Identifier.forHandleLetter(Identifier.isHandleLetter(letter) ? letter : Catalog.NON_LETTER_FILTER);
+        final Uri.Builder authorsUri = Identifier.forAuthor(categoryUri, author);
+        final Uri.Builder trackUri = Identifier.forTrack(authorsUri, track);
+        visitor.onFile(new TrackFile(trackUri.build(), track));
       });
     }
   }

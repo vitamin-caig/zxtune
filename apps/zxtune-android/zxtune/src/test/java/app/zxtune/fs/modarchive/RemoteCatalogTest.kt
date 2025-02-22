@@ -37,7 +37,6 @@ class RemoteCatalogTest {
         val pagesMin = 65
         val authorsApprox = 2400
         catalog.queryAuthors(visitor, progress)
-        verify(visitor, atLeast(pagesMin)).setCountHint(gt(authorsApprox))
         verify(visitor).accept(Author(68877, "_Matt_"))
         verify(visitor).accept(Author(83394, "4mat"))
         verify(visitor).accept(Author(0, "!Unknown"))
@@ -52,7 +51,6 @@ class RemoteCatalogTest {
         val visitor = mock<Catalog.GenresVisitor>()
         val genresApprox = 75
         catalog.queryGenres(visitor)
-        verify(visitor).setCountHint(gt(genresApprox))
         fun matchesGenre(id: Int, name: String, tracksMin: Int) = { genre: Genre ->
             genre.id == id && genre.name == name && genre.tracks >= tracksMin
         }
@@ -125,7 +123,6 @@ class RemoteCatalogTest {
 
         catalog.findRandomTracks(visitor)
 
-        verify(visitor, never()).setCountHint(any())
         verify(visitor, atLeastOnce()).accept(any())
     }
 

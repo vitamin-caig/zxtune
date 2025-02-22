@@ -37,26 +37,22 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     private val workingRemote = mock<RemoteCatalog> {
         on { querySystems(any()) } doAnswer {
             with(it.getArgument<Catalog.Visitor<System>>(0)) {
-                setCountHint(systems.size)
                 systems.forEach(this::accept)
             }
         }
         on { queryOrganizations(any(), any()) } doAnswer {
             with(it.getArgument<Catalog.Visitor<Organization>>(0)) {
-                setCountHint(organizations.size)
                 organizations.forEach(this::accept)
             }
         }
         on { queryGames(anyOrNull(), any(), any()) } doAnswer {
             with(it.getArgument<Catalog.GamesVisitor>(1)) {
                 if (it.getArgument<Catalog.Scope>(0) == null) {
-                    setCountHint(4)
                     accept(games[0], systems[0], organizations[0])
                     accept(games[1], systems[1], organizations[0])
                     accept(games[2], systems[0], organizations[1])
                     accept(games[3], systems[2], null)
                 } else {
-                    setCountHint(2)
                     accept(games[0], systems[0], organizations[0])
                     accept(games[2], systems[0], organizations[1])
                 }
@@ -65,13 +61,11 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
         on { queryRemixes(anyOrNull(), any(), any()) } doAnswer {
             with(it.getArgument<Catalog.RemixesVisitor>(1)) {
                 if (it.getArgument<Catalog.Scope>(0) == null) {
-                    setCountHint(4)
                     accept(remixes[0], games[0])
                     accept(remixes[1], games[0])
                     accept(remixes[2], games[1])
                     accept(remixes[3], games[2])
                 } else {
-                    setCountHint(2)
                     accept(remixes[0], games[0])
                     accept(remixes[1], games[0])
                 }
@@ -80,13 +74,11 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
         on { queryAlbums(anyOrNull(), any(), any()) } doAnswer {
             with(it.getArgument<Catalog.AlbumsVisitor>(1)) {
                 if (it.getArgument<Catalog.Scope>(0) == null) {
-                    setCountHint(4)
                     accept(albums[0], images[0])
                     accept(albums[1], images[2])
                     accept(albums[2], null)
                     accept(albums[3], images[3])
                 } else {
-                    setCountHint(2)
                     accept(albums[1], images[2])
                     accept(albums[2], null)
                 }

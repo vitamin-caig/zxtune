@@ -13,7 +13,10 @@ import app.zxtune.Logger
 import app.zxtune.fs.HtmlUtils.tryGetInteger
 import app.zxtune.fs.api.Cdn
 import app.zxtune.fs.http.MultisourceHttpProvider
-import app.zxtune.fs.modarchive.Catalog.*
+import app.zxtune.fs.modarchive.Catalog.AuthorsVisitor
+import app.zxtune.fs.modarchive.Catalog.FoundTracksVisitor
+import app.zxtune.fs.modarchive.Catalog.GenresVisitor
+import app.zxtune.fs.modarchive.Catalog.TracksVisitor
 import app.zxtune.utils.ProgressCallback
 import app.zxtune.utils.StubProgressCallback
 import app.zxtune.utils.Xml
@@ -48,12 +51,10 @@ import java.io.BufferedInputStream
 private val LOG = Logger(RemoteCatalog::class.java.name)
 
 open class RemoteCatalog internal constructor(
-    private val http: MultisourceHttpProvider,
-    private val key: String
+    private val http: MultisourceHttpProvider, private val key: String
 ) : Catalog {
 
-    private fun builderForRequest(request: String) =
-        ApiUriBuilder.forQuery(key).setRequest(request)
+    private fun builderForRequest(request: String) = ApiUriBuilder.forQuery(key).setRequest(request)
 
     override fun queryAuthors(visitor: AuthorsVisitor, progress: ProgressCallback) {
         LOG.d { "queryAuthors()" }
@@ -71,9 +72,7 @@ open class RemoteCatalog internal constructor(
     }
 
     override fun queryTracks(
-        author: Author,
-        visitor: TracksVisitor,
-        progress: ProgressCallback
+        author: Author, visitor: TracksVisitor, progress: ProgressCallback
     ) {
         LOG.d { "queryTracks(author=${author.id})" }
         val uri = builderForRequest("view_modules_by_artistid").setQuery(author.id).build()
@@ -82,9 +81,7 @@ open class RemoteCatalog internal constructor(
     }
 
     override fun queryTracks(
-        genre: Genre,
-        visitor: TracksVisitor,
-        progress: ProgressCallback
+        genre: Genre, visitor: TracksVisitor, progress: ProgressCallback
     ) {
         LOG.d { "queryTracks(genre=${genre.id})" }
         val uri = builderForRequest("search").setType("genre").setQuery(genre.id).build()
@@ -136,8 +133,7 @@ open class RemoteCatalog internal constructor(
     companion object {
         @JvmStatic
         fun getTrackUris(id: Int) = arrayOf(
-            Cdn.modarchive(id),
-            ApiUriBuilder.forDownload(id).buildUri()
+            Cdn.modarchive(id), ApiUriBuilder.forDownload(id).buildUri()
         )
     }
 }
@@ -255,30 +251,19 @@ private class TrackBuilder {
     }
 }
 
-private fun createAuthorsParserRoot(visitor: AuthorsVisitor) =
-    createRootElement().apply {
-        getChild("total_results").setEndTextElementListener { body: String? ->
-            tryGetInteger(body)?.let { result ->
-                visitor.setCountHint(result)
+private fun createAuthorsParserRoot(visitor: AuthorsVisitor) = createRootElement().apply {
+    val builder = AuthorBuilder()
+    getChild("items").getChild("item").run {
+        setEndElementListener {
+            builder.captureResult()?.let {
+                visitor.accept(it)
             }
         }
-        val builder = AuthorBuilder()
-        getChild("items").getChild("item").run {
-            setEndElementListener {
-                builder.captureResult()?.let {
-                    visitor.accept(it)
-                }
-            }
-            bindAuthorFields(this, builder)
-        }
+        bindAuthorFields(this, builder)
     }
+}
 
 private fun createGenresParserRoot(visitor: GenresVisitor) = createRootElement().apply {
-    getChild("results").setEndTextElementListener { body: String? ->
-        tryGetInteger(body)?.let { result ->
-            visitor.setCountHint(result)
-        }
-    }
     val builder = GenreBuilder()
     getChild("parent").getChild("children").getChild("child").run {
         setEndElementListener {
@@ -293,11 +278,6 @@ private fun createGenresParserRoot(visitor: GenresVisitor) = createRootElement()
 }
 
 private fun createTracksParserRoot(visitor: TracksVisitor) = createRootElement().apply {
-    getChild("total_results").setEndTextElementListener { body: String? ->
-        tryGetInteger(body)?.let { result ->
-            visitor.setCountHint(result)
-        }
-    }
     val builder = TrackBuilder()
     getChild("module").run {
         setEndElementListener {
@@ -310,11 +290,6 @@ private fun createTracksParserRoot(visitor: TracksVisitor) = createRootElement()
 }
 
 private fun createFoundTracksParserRoot(visitor: FoundTracksVisitor) = createRootElement().apply {
-    getChild("total_results").setEndTextElementListener { body: String? ->
-        tryGetInteger(body)?.let { result ->
-            visitor.setCountHint(result)
-        }
-    }
     val trackBuilder = TrackBuilder()
     val authorBuilder = AuthorBuilder()
     getChild("module").run {

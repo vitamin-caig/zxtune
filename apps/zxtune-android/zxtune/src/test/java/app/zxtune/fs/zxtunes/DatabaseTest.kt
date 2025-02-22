@@ -59,7 +59,6 @@ class DatabaseTest {
     fun `test queryAuthors`() = testQueryObjects(
         addObject = ::addAuthor,
         queryObjects = underTest::queryAuthors,
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, author -> visitor.accept(author) }
     )
 
@@ -69,7 +68,6 @@ class DatabaseTest {
         addGroup = ::makeAuthor,
         addObjectToGroup = underTest::addAuthorTrack,
         queryObjects = underTest::queryAuthorTracks,
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, track -> visitor.accept(track) }
     )
 
@@ -83,7 +81,6 @@ class DatabaseTest {
             underTest.findTracks("3", visitor)
             makeTrack(3)
         },
-        checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
         checkAccept = { visitor, author, track -> visitor.accept(author, track) }
     )
 

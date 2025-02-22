@@ -38,14 +38,12 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
     fun addSystem(system: System) = db.catalog().add(system)
 
     fun querySystems(visitor: Catalog.Visitor<System>) =
-        db.catalog().querySystems().also { visitor.setCountHint(it.size) }
-            .onEach { visitor.accept(it) }.isNotEmpty()
+        db.catalog().querySystems().onEach { visitor.accept(it) }.isNotEmpty()
 
     fun addOrganization(organization: Organization) = db.catalog().add(organization)
 
     fun queryOrganizations(visitor: Catalog.Visitor<Organization>) =
-        db.catalog().queryOrganizations().also { visitor.setCountHint(it.size) }
-            .onEach { visitor.accept(it) }.isNotEmpty()
+        db.catalog().queryOrganizations().onEach { visitor.accept(it) }.isNotEmpty()
 
     fun addGame(game: Game, system: System, organization: Organization?) = with(db.catalog()) {
         add(game)
@@ -59,7 +57,7 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
     }
 
     fun queryGames(scope: Catalog.Scope?, visitor: Catalog.GamesVisitor) =
-        db.catalog().queryGames(scope?.id ?: ALL_GAMES_SCOPE).also { visitor.setCountHint(it.size) }
+        db.catalog().queryGames(scope?.id ?: ALL_GAMES_SCOPE)
             .onEach { visitor.accept(it.game, it.system, it.organization) }.isNotEmpty()
 
     fun addRemix(scope: Catalog.Scope?, remix: Remix, game: Game) = with(db.catalog()) {
@@ -75,8 +73,7 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
 
     fun queryRemixes(scope: Catalog.Scope?, visitor: Catalog.RemixesVisitor) =
         db.catalog().queryRemixes(scope?.id ?: ALL_REMIXES_SCOPE)
-            .also { visitor.setCountHint(it.size) }.onEach { visitor.accept(it.remix, it.game) }
-            .isNotEmpty()
+            .onEach { visitor.accept(it.remix, it.game) }.isNotEmpty()
 
     fun addAlbum(scope: Catalog.Scope?, album: Album, image: FilePath?) = with(db.catalog()) {
         add(album)
@@ -91,8 +88,7 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
 
     fun queryAlbums(scope: Catalog.Scope?, visitor: Catalog.AlbumsVisitor) =
         db.catalog().queryAlbums(scope?.id ?: ALL_ALBUMS_SCOPE)
-            .also { visitor.setCountHint(it.size) }.onEach { visitor.accept(it.album, it.image) }
-            .isNotEmpty()
+            .onEach { visitor.accept(it.album, it.image) }.isNotEmpty()
 
     fun addMusicFile(id: String, path: FilePath, size: Long? = null) =
         db.catalog().add(MusicRecord(id, path, size))

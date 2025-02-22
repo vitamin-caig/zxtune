@@ -10,7 +10,6 @@ object DatabaseTestUtils {
     internal inline fun <Object, reified Visitor : Any> testQueryObjects(
         addObject: (Int) -> Object,
         queryObjects: (Visitor) -> Boolean,
-        checkCountHint: (Visitor, Int) -> Unit,
         checkAccept: (Visitor, Object) -> Unit
     ) {
         val objects = (1..10).map(addObject)
@@ -19,7 +18,6 @@ object DatabaseTestUtils {
             assertTrue(queryObjects(visitor))
 
             inOrder(visitor).run {
-                checkCountHint(verify(visitor), 10)
                 objects.forEach { checkAccept(verify(visitor), it) }
             }
         }
@@ -30,7 +28,6 @@ object DatabaseTestUtils {
         addGroup: (Int) -> Group,
         addObjectToGroup: (Group, Object) -> Unit,
         queryObjects: (Group, Visitor) -> Boolean,
-        noinline checkCountHint: ((Visitor, Int) -> Unit)?,
         checkAccept: (Visitor, Object) -> Unit
     ) {
         val objects = (1..10).map(addObject)
@@ -53,14 +50,11 @@ object DatabaseTestUtils {
             }
 
             inOrder(visitor) {
-                checkCountHint?.invoke(verify(visitor), 1)
                 checkAccept(verify(visitor), objects[0])
 
-                checkCountHint?.invoke(verify(visitor), 2)
                 checkAccept(verify(visitor), objects[1])
                 checkAccept(verify(visitor), objects[2])
 
-                checkCountHint?.invoke(verify(visitor), 3)
                 checkAccept(verify(visitor), objects[3])
                 checkAccept(verify(visitor), objects[4])
                 checkAccept(verify(visitor), objects[5])
@@ -79,22 +73,18 @@ object DatabaseTestUtils {
             }
 
             inOrder(visitor) {
-                checkCountHint?.invoke(verify(visitor), 2)
                 checkAccept(verify(visitor), objects[0])
                 checkAccept(verify(visitor), objects[2])
 
-                checkCountHint?.invoke(verify(visitor), 3)
                 checkAccept(verify(visitor), objects[0])
                 checkAccept(verify(visitor), objects[1])
                 checkAccept(verify(visitor), objects[2])
 
-                checkCountHint?.invoke(verify(visitor), 4)
                 checkAccept(verify(visitor), objects[3])
                 checkAccept(verify(visitor), objects[4])
                 checkAccept(verify(visitor), objects[5])
                 checkAccept(verify(visitor), objects[6])
 
-                checkCountHint?.invoke(verify(visitor), 1)
                 checkAccept(verify(visitor), objects[8])
             }
         }
@@ -106,7 +96,6 @@ object DatabaseTestUtils {
         addObjectToGroup: (Group, Object) -> Unit,
         findAll: (Visitor) -> Unit,
         findSpecific: (Visitor) -> Object,
-        checkCountHint: (Visitor, Int) -> Unit,
         checkAccept: (Visitor, Group, Object) -> Unit
     ) {
         val objects = (1..10).map(addObject)
@@ -126,7 +115,6 @@ object DatabaseTestUtils {
             findAll(visitor)
 
             inOrder(visitor) {
-                checkCountHint(verify(visitor), obj2group.size)
                 obj2group.forEachIndexed { objIdx, groupIdx ->
                     checkAccept(verify(visitor), groups[groupIdx], objects[objIdx])
                 }
@@ -140,7 +128,6 @@ object DatabaseTestUtils {
             val groupIdx = obj2group[objIdx]
 
             inOrder(visitor) {
-                checkCountHint(verify(visitor), 1)
                 checkAccept(verify(visitor), groups[groupIdx], found)
             }
         }

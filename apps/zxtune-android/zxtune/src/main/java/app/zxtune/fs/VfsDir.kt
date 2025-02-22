@@ -24,11 +24,6 @@ interface VfsDir : VfsObject {
          */
         abstract fun onFile(file: VfsFile)
 
-        /**
-         * Called when items count is known (at any moment, maybe approximate)
-         */
-        open fun onItemsCount(count: Int) {}
-
         override fun onProgressUpdate(done: Int, total: Int) {}
     }
 

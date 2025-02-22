@@ -34,7 +34,6 @@ class RemoteCatalogTest {
         // https://zxart.ee/zxtune/language:eng/action:authors
         catalog.queryAuthors(visitor)
 
-        verify(visitor).setCountHint(gt(authorsMin))
         verify(visitor).accept(Author(57761, "!de", ""))
         verify(visitor).accept(Author(20333, "4-Mat", "Matthew Simmonds"))
         verify(visitor).accept(Author(85837, "Sim&Sim", "Igor Dmitriev, Sergey Dmitriev"))
@@ -50,7 +49,6 @@ class RemoteCatalogTest {
         // https://zxart.ee/zxtune/language:eng/action:tunes/authorId:40406
         catalog.queryAuthorTracks(Author(40406, "UNUSED", "UNUSED"), visitor)
 
-        verify(visitor).setCountHint(gt(tracksMin))
         // internal title
         verify(visitor).accept(argThat {
             matches(
@@ -92,7 +90,6 @@ class RemoteCatalogTest {
         // https://zxart.ee/zxtune/language:eng/action:parties
         catalog.queryParties(visitor)
 
-        verify(visitor).setCountHint(gt(partiesMin))
         verify(visitor).accept(Party(12351, "3BM OpenAir 2012", 2012))
         verify(visitor).accept(
             Party(50251, "BotB OHC \"Locked In The Classroom With No Ammo Left\"", 2014)
@@ -109,7 +106,6 @@ class RemoteCatalogTest {
         // https://zxart.ee/zxtune/language:eng/action:tunes/partyId:4045
         catalog.queryPartyTracks(Party(4045, "UNUSED", -100), visitor)
 
-        verify(visitor).setCountHint(gt(tracksMin))
         verify(visitor).accept(argThat {
             matches(
                 44800,
@@ -145,7 +141,6 @@ class RemoteCatalogTest {
         catalog.queryTopTracks(limit, visitor)
 
         // TODO: fix to return limit
-        verify(visitor).setCountHint(gt(25000))
         verify(visitor, times(limit)).accept(any())
         verify(visitor).accept(argThat {
             matches(
@@ -178,7 +173,6 @@ class RemoteCatalogTest {
         // https://zxart.ee/zxtune/language:eng/action:search/query:test
         catalog.findTracks("test", visitor)
 
-        verify(visitor).setCountHint(gt(tracksMin))
         verify(visitor).accept(eq(Author(391481, "Author391481", "")), argThat {
             matches(
                 75480,

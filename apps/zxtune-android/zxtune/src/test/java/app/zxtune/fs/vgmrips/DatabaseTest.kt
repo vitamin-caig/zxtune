@@ -104,7 +104,6 @@ class DatabaseTest {
         addGroup = ::makeGroup,
         addObjectToGroup = { group, pack -> underTest.addGroupPack(group.id, pack) },
         queryObjects = { group, visitor -> underTest.queryGroupPacks(group.id, visitor) },
-        checkCountHint = null,
         checkAccept = { visitor, pack -> visitor.accept(pack) }
     )
 

@@ -11,7 +11,11 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import app.zxtune.Logger
 import app.zxtune.TimeStamp
-import app.zxtune.fs.dbhelpers.*
+import app.zxtune.fs.dbhelpers.DBProvider
+import app.zxtune.fs.dbhelpers.Grouping
+import app.zxtune.fs.dbhelpers.Objects
+import app.zxtune.fs.dbhelpers.Timestamps
+import app.zxtune.fs.dbhelpers.Utils
 import app.zxtune.fs.modarchive.Catalog.GenresVisitor
 
 /**
@@ -40,9 +44,9 @@ internal open class Database(context: Context) {
     private val genreTracks = Tables.GenreTracks(helper)
     private val tracks = Tables.Tracks(helper)
     private val timestamps = Timestamps(helper)
-    private val findQuery = "SELECT * FROM authors LEFT OUTER JOIN tracks ON " +
-            "tracks.${Tables.Tracks.getSelection(authorTracks.getIdsSelection("authors._id"))} " +
-            "WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'"
+    private val findQuery = "SELECT * FROM authors LEFT OUTER JOIN tracks ON " + "tracks.${
+        Tables.Tracks.getSelection(authorTracks.getIdsSelection("authors._id"))
+    } " + "WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'"
 
     fun close() {
         helper.close()
@@ -60,102 +64,72 @@ internal open class Database(context: Context) {
     open fun getGenreTracksLifetime(genre: Genre, ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Genres.NAME + genre.id, ttl)
 
-    open fun queryAuthors(visitor: Catalog.AuthorsVisitor): Boolean {
+    open fun queryAuthors(visitor: Catalog.AuthorsVisitor) =
         helper.readableDatabase.query(Tables.Authors.NAME, null, null, null, null, null, null)
             ?.use { cursor ->
-                val count = cursor.count
-                if (count != 0) {
-                    visitor.setCountHint(count)
-                    while (cursor.moveToNext()) {
-                        visitor.accept(Tables.Authors.createAuthor(cursor))
-                    }
-                    return true
+                while (cursor.moveToNext()) {
+                    visitor.accept(Tables.Authors.createAuthor(cursor))
                 }
-            }
-        return false
-    }
+                cursor.count != 0
+            } ?: false
 
     open fun addAuthor(obj: Author) = authors.add(obj)
 
-    open fun queryGenres(visitor: GenresVisitor): Boolean {
+    open fun queryGenres(visitor: GenresVisitor) =
         helper.readableDatabase.query(Tables.Genres.NAME, null, null, null, null, null, null)
             ?.use { cursor ->
-                val count = cursor.count
-                if (count != 0) {
-                    visitor.setCountHint(count)
-                    while (cursor.moveToNext()) {
-                        visitor.accept(Tables.Genres.createGenre(cursor))
-                    }
-                    return true
+                while (cursor.moveToNext()) {
+                    visitor.accept(Tables.Genres.createGenre(cursor))
                 }
-            }
-        return false
-    }
+                cursor.count != 0
+            } ?: false
 
     open fun addGenre(obj: Genre) = genres.add(obj)
 
-    open fun queryTracks(author: Author, visitor: Catalog.TracksVisitor): Boolean {
-        val selection = Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author))
-        return queryTracksInternal(selection, visitor)
-    }
+    open fun queryTracks(author: Author, visitor: Catalog.TracksVisitor) =
+        Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author)).let {
+            queryTracksInternal(it, visitor)
+        }
 
-    open fun queryTracks(genre: Genre, visitor: Catalog.TracksVisitor): Boolean {
-        val selection = Tables.Tracks.getSelection(genreTracks.getTracksIdsSelection(genre))
-        return queryTracksInternal(selection, visitor)
-    }
+    open fun queryTracks(genre: Genre, visitor: Catalog.TracksVisitor) =
+        Tables.Tracks.getSelection(genreTracks.getTracksIdsSelection(genre)).let {
+            queryTracksInternal(it, visitor)
+        }
 
     open fun queryRandomTracks(visitor: Catalog.TracksVisitor) {
         queryTracksInternal(null, "RANDOM() LIMIT 100", visitor)
     }
 
-    private fun queryTracksInternal(selection: String?, visitor: Catalog.TracksVisitor): Boolean {
-        return queryTracksInternal(selection, null, visitor)
-    }
+    private fun queryTracksInternal(selection: String?, visitor: Catalog.TracksVisitor) =
+        queryTracksInternal(selection, null, visitor)
 
     private fun queryTracksInternal(
-        selection: String?,
-        order: String?,
-        visitor: Catalog.TracksVisitor
-    ): Boolean {
-        helper.readableDatabase.query(Tables.Tracks.NAME, null, selection, null, null, null, order)
-            ?.use { cursor ->
-                val count = cursor.count
-                if (count != 0) {
-                    visitor.setCountHint(count)
-                    while (cursor.moveToNext()) {
-                        visitor.accept(Tables.Tracks.createTrack(cursor))
-                    }
-                    return true
-                }
+        selection: String?, order: String?, visitor: Catalog.TracksVisitor
+    ) = helper.readableDatabase.query(Tables.Tracks.NAME, null, selection, null, null, null, order)
+        ?.use { cursor ->
+            while (cursor.moveToNext()) {
+                visitor.accept(Tables.Tracks.createTrack(cursor))
             }
-        return false
-    }
+            cursor.count != 0
+        } ?: false
 
-    open fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) {
+    open fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) =
         helper.readableDatabase.rawQuery(findQuery, arrayOf(query))?.use { cursor ->
-            val count = cursor.count
-            if (count != 0) {
-                visitor.setCountHint(count)
-                while (cursor.moveToNext()) {
-                    val author = Tables.Authors.createAuthor(cursor)
-                    val track =
-                        Tables.Tracks.createTrack(cursor, Tables.Authors.FIELDS_COUNT)
-                    visitor.accept(author, track)
-                }
+            while (cursor.moveToNext()) {
+                val author = Tables.Authors.createAuthor(cursor)
+                val track = Tables.Tracks.createTrack(cursor, Tables.Authors.FIELDS_COUNT)
+                visitor.accept(author, track)
             }
-        }
-    }
+        } ?: Unit
 
     open fun addTrack(obj: Track) = tracks.add(obj)
 
     open fun addAuthorTrack(author: Author, track: Track) = authorTracks.add(author, track)
 
     open fun addGenreTrack(genre: Genre, track: Track) = genreTracks.add(genre, track)
-
 }
 
-private class Helper(context: Context) :
-    SQLiteOpenHelper(context, NAME, null, VERSION) {
+private class Helper(context: Context) : SQLiteOpenHelper(context, NAME, null, VERSION) {
     override fun onCreate(db: SQLiteDatabase) {
         LOG.d { "Creating database" }
         db.execSQL(Tables.Authors.CREATE_QUERY)
@@ -180,10 +154,8 @@ private class Tables {
 
         companion object {
             const val NAME = "authors"
-            const val CREATE_QUERY = "CREATE TABLE authors (" +
-                    "_id INTEGER PRIMARY KEY, " +
-                    "alias TEXT NOT NULL" +
-                    ");"
+            const val CREATE_QUERY =
+                "CREATE TABLE authors (" + "_id INTEGER PRIMARY KEY, " + "alias TEXT NOT NULL" + ");"
             const val FIELDS_COUNT = 2
 
             fun createAuthor(cursor: Cursor) = run {
@@ -199,12 +171,8 @@ private class Tables {
 
         companion object {
             const val NAME = "tracks"
-            const val CREATE_QUERY = "CREATE TABLE tracks (" +
-                    "_id INTEGER PRIMARY KEY, " +
-                    "filename TEXT NOT NULL, " +
-                    "title TEXT NOT NULL, " +
-                    "size INTEGER NOT NULL" +
-                    ");"
+            const val CREATE_QUERY =
+                "CREATE TABLE tracks (" + "_id INTEGER PRIMARY KEY, " + "filename TEXT NOT NULL, " + "title TEXT NOT NULL, " + "size INTEGER NOT NULL" + ");"
             const val FIELDS_COUNT = 4
 
             fun createTrack(cursor: Cursor, fieldOffset: Int = 0) = run {
@@ -222,8 +190,7 @@ private class Tables {
     class AuthorTracks(helper: DBProvider) : Grouping(helper, NAME, 32) {
         fun add(author: Author, track: Track) = add(author.id.toLong(), track.id.toLong())
 
-        fun getTracksIdsSelection(author: Author): String =
-            getIdsSelection(author.id.toLong())
+        fun getTracksIdsSelection(author: Author): String = getIdsSelection(author.id.toLong())
 
         companion object {
             const val NAME = "author_tracks"
@@ -237,11 +204,8 @@ private class Tables {
 
         companion object {
             const val NAME = "genres"
-            const val CREATE_QUERY = "CREATE TABLE genres (" +
-                    "_id INTEGER PRIMARY KEY, " +
-                    "name TEXT NOT NULL, " +
-                    "tracks INTEGER NOT NULL" +
-                    ");"
+            const val CREATE_QUERY =
+                "CREATE TABLE genres (" + "_id INTEGER PRIMARY KEY, " + "name TEXT NOT NULL, " + "tracks INTEGER NOT NULL" + ");"
             const val FIELDS_COUNT = 3
 
             fun createGenre(cursor: Cursor) = run {

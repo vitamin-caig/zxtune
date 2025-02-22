@@ -12,18 +12,11 @@ import app.zxtune.utils.ProgressCallback
 import java.io.IOException
 
 interface Catalog {
-
-    interface WithCountHint {
-        fun setCountHint(count: Int) {}
-    }
-
-    fun interface GroupsVisitor : WithCountHint {
-        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
+    fun interface GroupsVisitor {
         fun accept(obj: Group)
     }
 
-    fun interface TracksVisitor : WithCountHint {
-        override fun setCountHint(count: Int) {} // TODO: remove after KT-41670 fix
+    fun interface TracksVisitor {
         //too many tracks possible, so enable breaking
         fun accept(obj: Track): Boolean
     }

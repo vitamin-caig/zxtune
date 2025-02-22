@@ -39,7 +39,6 @@ class RemoteCatalogTest {
         val groupsApprox = 95
         catalog.getAuthors().queryGroups("#", visitor, progress)
 
-        verify(visitor).setCountHint(geq(groupsApprox))
         verify(visitor).accept(argThat { matches(24209, "$4753 Softcopy", 33) })
         verify(visitor).accept(argThat { matches(22396, "9Nobo8", 1) })
         verify(visitor, atLeast(groupsApprox)).accept(any())
@@ -60,7 +59,6 @@ class RemoteCatalogTest {
         val tracksTotal = 700
         catalog.getAuthors().queryTracks(172 /*4-Mat*/, visitor, progress)
 
-        verify(visitor).setCountHint(gt(tracksTotal))
         verify(visitor).accept(
             Track(
                 "/pub/modules/Nintendo%20SPC/4-Mat/Micro%20Machines/01%20-%20main%20theme.spc",
@@ -81,7 +79,6 @@ class RemoteCatalogTest {
         val groupsApprox = 150
         catalog.getCollections().queryGroups("O", visitor, progress)
 
-        verify(visitor).setCountHint(gt(groupsApprox))
         verify(visitor).accept(argThat { matches(5307, "O&F", 10) })
         verify(visitor).accept(argThat { matches(5607, "Ozzyoss", 5) })
         verify(visitor, atLeast(groupsApprox)).accept(any())
@@ -98,7 +95,6 @@ class RemoteCatalogTest {
         val pagesMin = 1
         val groupsApprox = 25
         catalog.getFormats().queryGroups("M", visitor, progress)
-        verify(visitor).setCountHint(gt(groupsApprox))
         verify(visitor).accept(argThat { matches(278, "Mad Tracker 2", 93) })
         verify(visitor).accept(argThat { matches(264, "MVX Module", 12) })
         verify(visitor, atLeast(groupsApprox)).accept(any())

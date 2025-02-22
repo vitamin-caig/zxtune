@@ -16,7 +16,6 @@ internal class ListingOperation(
 
     override fun call() = maybeResolve()?.let { dir ->
         dir.enumerate(object : VfsDir.Visitor() {
-            override fun onItemsCount(count: Int) = builder.reserve(count)
             override fun onProgressUpdate(done: Int, total: Int) {
                 callback.checkForCancel()
                 builder.setProgress(done, total)

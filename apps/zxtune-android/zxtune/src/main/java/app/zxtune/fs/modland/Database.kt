@@ -12,7 +12,11 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.net.Uri
 import app.zxtune.Logger
 import app.zxtune.TimeStamp
-import app.zxtune.fs.dbhelpers.*
+import app.zxtune.fs.dbhelpers.DBProvider
+import app.zxtune.fs.dbhelpers.Grouping
+import app.zxtune.fs.dbhelpers.Objects
+import app.zxtune.fs.dbhelpers.Timestamps
+import app.zxtune.fs.dbhelpers.Utils
 
 /**
  * Version 1
@@ -65,53 +69,35 @@ internal open class Database(context: Context) {
         timestamps.getLifetime(category + id, ttl)
 
     open fun queryGroups(
-        category: String,
-        filter: String,
-        visitor: Catalog.GroupsVisitor
-    ): Boolean {
-        val selection = TablesInternal.Groups.getFilterSelection(filter)
-        helper.readableDatabase.query(category, null, selection, null, null, null, null)
-            ?.use { cursor ->
-                val count = cursor.count
-                if (count != 0) {
-                    visitor.setCountHint(count)
-                    while (cursor.moveToNext()) {
-                        visitor.accept(TablesInternal.Groups.createGroup(cursor))
-                    }
-                    return true
-                }
-            }
-        return false
-    }
-
-    open fun queryGroup(category: String, id: Int): Group? {
-        val selection = TablesInternal.Groups.getIdSelection(id)
-        return helper.readableDatabase.query(
-            category, null, selection, null, null, null, null
-        )?.use { cursor ->
-            if (cursor.moveToNext()) TablesInternal.Groups.createGroup(cursor) else null
+        category: String, filter: String, visitor: Catalog.GroupsVisitor
+    ) = helper.readableDatabase.query(
+        category, null, TablesInternal.Groups.getFilterSelection(filter), null, null, null, null
+    )?.use { cursor ->
+        while (cursor.moveToNext()) {
+            visitor.accept(TablesInternal.Groups.createGroup(cursor))
         }
+        cursor.count != 0
+    } ?: false
+
+    open fun queryGroup(category: String, id: Int) = helper.readableDatabase.query(
+        category, null, TablesInternal.Groups.getIdSelection(id), null, null, null, null
+    )?.use { cursor ->
+        if (cursor.moveToNext()) TablesInternal.Groups.createGroup(cursor) else null
     }
 
     open fun addGroup(category: String, obj: Group) = groups[category]?.add(obj)
 
-    open fun queryTracks(category: String, id: Int, visitor: Catalog.TracksVisitor): Boolean {
-        val selection = TablesInternal.Tracks.getSelection(
-            groupTracks[category]!!.getIdsSelection(id.toLong())
-        )
-        helper.readableDatabase.query(TablesInternal.Tracks.NAME, null, selection, null, null, null, null)
-            ?.use { cursor ->
-                val count = cursor.count
-                if (count != 0) {
-                    visitor.setCountHint(count)
-                    while (cursor.moveToNext()) {
-                        visitor.accept(TablesInternal.Tracks.createTrack(cursor))
-                    }
-                    return true
-                }
+    open fun queryTracks(category: String, id: Int, visitor: Catalog.TracksVisitor) =
+        helper.readableDatabase.query(
+            TablesInternal.Tracks.NAME, null, TablesInternal.Tracks.getSelection(
+                requireNotNull(groupTracks[category]).getIdsSelection(id.toLong())
+            ), null, null, null, null
+        )?.use { cursor ->
+            while (cursor.moveToNext()) {
+                visitor.accept(TablesInternal.Tracks.createTrack(cursor))
             }
-        return false
-    }
+            cursor.count != 0
+        } ?: false
 
     open fun findTrack(category: String, id: Int, filename: String): Track? {
         val encodedFilename =
@@ -121,8 +107,7 @@ internal open class Database(context: Context) {
             TablesInternal.Tracks.getSelectionWithPath(groupTracks[category]!!.getIdsSelection(id.toLong()))
         val selectionArgs = arrayOf("%/$encodedFilename")
         helper.readableDatabase.query(
-            TablesInternal.Tracks.NAME, null, selection, selectionArgs, null,
-            null, null
+            TablesInternal.Tracks.NAME, null, selection, selectionArgs, null, null, null
         )?.use { cursor ->
             if (cursor.moveToFirst()) {
                 return TablesInternal.Tracks.createTrack(cursor)
@@ -189,10 +174,9 @@ private object TablesInternal {
                 Group(id, title, tracks)
             }
 
-            fun getFilterSelection(filter: String) = if (filter == "#")
-                "SUBSTR(name, 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
-            else
-                "name LIKE '$filter%'"
+            fun getFilterSelection(filter: String) =
+                if (filter == "#") "SUBSTR(name, 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
+                else "name LIKE '$filter%'"
 
             fun getIdSelection(id: Int) = "_id = $id"
         }

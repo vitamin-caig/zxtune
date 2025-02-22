@@ -60,7 +60,6 @@ class DatabaseTest {
             assertTrue(underTest.queryGroups(category, "", visitor))
 
             inOrder(visitor).run {
-                verify(visitor).setCountHint(10)
                 verify(visitor).accept(nonletter)
                 groups.forEach { verify(visitor).accept(it) }
             }
@@ -70,7 +69,6 @@ class DatabaseTest {
             assertTrue(underTest.queryGroups(category, "#", visitor))
 
             inOrder(visitor).run {
-                verify(visitor).setCountHint(1)
                 verify(visitor).accept(nonletter)
             }
         }
@@ -79,7 +77,6 @@ class DatabaseTest {
             assertTrue(underTest.queryGroups(category, "gr", visitor))
 
             inOrder(visitor).run {
-                verify(visitor).setCountHint(9)
                 groups.forEach { verify(visitor).accept(it) }
             }
         }
@@ -97,7 +94,6 @@ class DatabaseTest {
             addGroup = ::makeGroup,
             addObjectToGroup = { group, track -> underTest.addGroupTrack(category, group.id, track) },
             queryObjects = { group, visitor -> underTest.queryTracks(category, group.id, visitor) },
-            checkCountHint = { visitor, hint -> visitor.setCountHint(hint) },
             checkAccept = { visitor, track -> visitor.accept(track) }
         )
     }
