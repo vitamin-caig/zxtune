@@ -48,7 +48,7 @@ private val LOG = Logger(RemoteCatalog::class.java.name)
 
 open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
-    override fun queryGroups(visitor: Catalog.GroupsVisitor) =
+    override fun queryGroups(visitor: Catalog.Visitor<Group>) =
         getQueryUri("groups", "").let { uri ->
             LOG.d { "queryGroups()" }
             readDoc(uri).select("tr>td>a[href^=newresult.php?request=groupid]").forEach { el ->
@@ -58,30 +58,30 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
             }
         }
 
-    override fun queryAuthors(handleFilter: String, visitor: Catalog.AuthorsVisitor) =
+    override fun queryAuthors(handleFilter: String, visitor: Catalog.Visitor<Author>) =
         getQueryUri("list", handleFilter).let { uri ->
             LOG.d { "queryAuthors(handleFilter=${handleFilter})" }
             queryAuthorsInternal(uri, visitor)
         }
 
-    override fun queryAuthors(country: Country, visitor: Catalog.AuthorsVisitor) =
+    override fun queryAuthors(country: Country, visitor: Catalog.Visitor<Author>) =
         getQueryUri("country", country.id.toString()).let { uri ->
             LOG.d { "queryAuthors(country=${country.id})" }
             queryAuthorsInternal(uri, visitor)
         }
 
-    override fun queryAuthors(group: Group, visitor: Catalog.AuthorsVisitor) =
+    override fun queryAuthors(group: Group, visitor: Catalog.Visitor<Author>) =
         getQueryUri("groupid", group.id.toString()).let { uri ->
             LOG.d { "queryAuthors(group=${group.id})" }
             queryAuthorsInternal(uri, visitor)
         }
 
-    private fun queryAuthorsInternal(uri: Uri, visitor: Catalog.AuthorsVisitor) =
+    private fun queryAuthorsInternal(uri: Uri, visitor: Catalog.Visitor<Author>) =
         loadPages(uri, allowCache = true) { doc ->
             parseAuthors(doc, visitor)
         }
 
-    override fun queryTracks(author: Author, visitor: Catalog.TracksVisitor) =
+    override fun queryTracks(author: Author, visitor: Catalog.Visitor<Track>) =
         getAuthorTracksUri(author.id).let { uri ->
             LOG.d { "queryTracks(author=${author.id})" }
             readDoc(uri).select("table>tbody>tr:has(>td>a[href^=downmod.php])").forEach { el ->
@@ -160,11 +160,7 @@ private fun getAuthorTracksUri(id: Int) =
     getMainUriBuilder().appendPath("detail.php").appendQueryParameter("detail", "modules")
         .appendQueryParameter("view", id.toString()).build()
 
-private fun getAuthorPicturesUri(id: Int) =
-    getMainUriBuilder().appendPath("detail.php").appendQueryParameter("detail", "photos")
-        .appendQueryParameter("view", id.toString()).build()
-
-private fun parseAuthors(doc: Document, visitor: Catalog.AuthorsVisitor) {
+private fun parseAuthors(doc: Document, visitor: Catalog.Visitor<Author>) {
     for (el in doc.select("table:has(>caption)>tbody>tr>td>table>tbody")) {
         val handleEl = el.findFirst("a[href^=detail.php]") ?: continue
         val realNameEl = el.findFirst("td:containsOwn(Real Name) + td") ?: continue

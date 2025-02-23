@@ -8,7 +8,6 @@ package app.zxtune.fs.zxart
 import app.zxtune.TimeStamp
 import app.zxtune.fs.dbhelpers.CommandExecutor
 import app.zxtune.fs.dbhelpers.QueryCommand
-import app.zxtune.fs.zxart.Catalog.PartiesVisitor
 
 private val AUTHORS_TTL = TimeStamp.fromDays(7)
 private val PARTIES_TTL = TimeStamp.fromDays(7)
@@ -20,11 +19,11 @@ class CachingCatalog internal constructor(
 ) : Catalog {
     private val executor: CommandExecutor = CommandExecutor("zxart")
 
-    override fun queryAuthors(visitor: Catalog.AuthorsVisitor) =
+    override fun queryAuthors(visitor: Catalog.Visitor<Author>) =
         executor.executeQuery("authors", object : QueryCommand {
             private val lifetime = db.getAuthorsLifetime(AUTHORS_TTL)
 
-            override val isCacheExpired: Boolean
+            override val isCacheExpired
                 get() = lifetime.isExpired
 
             override fun updateCache() = db.runInTransaction {
@@ -35,11 +34,11 @@ class CachingCatalog internal constructor(
             override fun queryFromCache() = db.queryAuthors(visitor)
         })
 
-    override fun queryAuthorTracks(author: Author, visitor: Catalog.TracksVisitor) =
+    override fun queryAuthorTracks(author: Author, visitor: Catalog.Visitor<Track>) =
         executor.executeQuery("tracks", object : QueryCommand {
             private val lifetime = db.getAuthorTracksLifetime(author, TRACKS_TTL)
 
-            override val isCacheExpired: Boolean
+            override val isCacheExpired
                 get() = lifetime.isExpired
 
             override fun updateCache() = db.runInTransaction {
@@ -53,7 +52,7 @@ class CachingCatalog internal constructor(
             override fun queryFromCache() = db.queryAuthorTracks(author, visitor)
         })
 
-    override fun queryParties(visitor: PartiesVisitor) =
+    override fun queryParties(visitor: Catalog.Visitor<Party>) =
         executor.executeQuery("parties", object : QueryCommand {
             private val lifetime = db.getPartiesLifetime(PARTIES_TTL)
 
@@ -68,7 +67,7 @@ class CachingCatalog internal constructor(
             override fun queryFromCache() = db.queryParties(visitor)
         })
 
-    override fun queryPartyTracks(party: Party, visitor: Catalog.TracksVisitor) =
+    override fun queryPartyTracks(party: Party, visitor: Catalog.Visitor<Track>) =
         executor.executeQuery("tracks", object : QueryCommand {
             private val lifetime = db.getPartyTracksLifetime(party, TRACKS_TTL)
 
@@ -86,7 +85,7 @@ class CachingCatalog internal constructor(
             override fun queryFromCache() = db.queryPartyTracks(party, visitor)
         })
 
-    override fun queryTopTracks(limit: Int, visitor: Catalog.TracksVisitor) =
+    override fun queryTopTracks(limit: Int, visitor: Catalog.Visitor<Track>) =
         executor.executeQuery("tracks", object : QueryCommand {
             private val lifetime = db.getTopLifetime(TRACKS_TTL)
 

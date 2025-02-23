@@ -38,7 +38,7 @@ class CachingCatalog internal constructor(remote: RemoteCatalog, private val db:
 
         override fun queryGroups(
             filter: String,
-            visitor: Catalog.GroupsVisitor,
+            visitor: Catalog.Visitor<Group>,
             progress: ProgressCallback
         ) = executor.executeQuery(category, object : QueryCommand {
             private val lifetime = db.getGroupsLifetime(category, filter, GROUPS_TTL)
@@ -66,7 +66,7 @@ class CachingCatalog internal constructor(remote: RemoteCatalog, private val db:
 
         override fun queryTracks(
             id: Int,
-            visitor: Catalog.TracksVisitor,
+            visitor: Catalog.Visitor<Track>,
             progress: ProgressCallback
         ) = executor.executeQuery("tracks", object : QueryCommand {
             private val lifetime = db.getGroupTracksLifetime(category, id, GROUP_TRACKS_TTL)
@@ -77,7 +77,6 @@ class CachingCatalog internal constructor(remote: RemoteCatalog, private val db:
                 remote.queryTracks(id, { obj ->
                     db.addTrack(obj)
                     db.addGroupTrack(category, id, obj)
-                    true
                 }, progress)
                 lifetime.update()
             }
@@ -96,7 +95,6 @@ class CachingCatalog internal constructor(remote: RemoteCatalog, private val db:
                         if (obj.filename == filename) {
                             found = obj
                         }
-                        true
                     }, StubProgressCallback.instance())
                     return found
                         ?: throw IOException("Failed to get track '${filename}' from group=${id}")

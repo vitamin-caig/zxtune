@@ -13,7 +13,6 @@ import app.zxtune.Logger
 import app.zxtune.Util
 import app.zxtune.fs.HtmlUtils.tryGetInteger
 import app.zxtune.fs.http.MultisourceHttpProvider
-import app.zxtune.fs.zxart.Catalog.PartiesVisitor
 import app.zxtune.utils.Xml
 import app.zxtune.utils.ifNotNulls
 import java.io.BufferedInputStream
@@ -22,34 +21,34 @@ private val LOG = Logger(RemoteCatalog::class.java.name)
 
 open class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
 
-    override fun queryAuthors(visitor: Catalog.AuthorsVisitor) {
+    override fun queryAuthors(visitor: Catalog.Visitor<Author>) {
         LOG.d { "queryAuthors()" }
         val root = createAuthorsParserRoot(visitor)
         performQuery(Uris.forAuthors(), root)
     }
 
-    override fun queryAuthorTracks(author: Author, visitor: Catalog.TracksVisitor) {
+    override fun queryAuthorTracks(author: Author, visitor: Catalog.Visitor<Track>) {
         LOG.d { "queryAuthorTracks(author=${author.id})" }
         queryTracks(visitor, Uris.forTracksOf(author))
     }
 
-    override fun queryParties(visitor: PartiesVisitor) {
+    override fun queryParties(visitor: Catalog.Visitor<Party>) {
         LOG.d { "queryParties()" }
         val root = createPartiesParserRoot(visitor)
         performQuery(Uris.forParties(), root)
     }
 
-    override fun queryPartyTracks(party: Party, visitor: Catalog.TracksVisitor) {
+    override fun queryPartyTracks(party: Party, visitor: Catalog.Visitor<Track>) {
         LOG.d { "queryPartyTracks(party=${party.id}" }
         queryTracks(visitor, Uris.forTracksOf(party))
     }
 
-    override fun queryTopTracks(limit: Int, visitor: Catalog.TracksVisitor) {
+    override fun queryTopTracks(limit: Int, visitor: Catalog.Visitor<Track>) {
         LOG.d { "queryTopTracks()" }
         queryTracks(visitor, Uris.forTop(limit))
     }
 
-    private fun queryTracks(visitor: Catalog.TracksVisitor, uri: Uri) {
+    private fun queryTracks(visitor: Catalog.Visitor<Track>, uri: Uri) {
         val root = createModulesParserRoot(visitor)
         performQuery(uri, root)
     }
@@ -264,7 +263,7 @@ private class ModuleBuilder {
     }
 }
 
-private fun createAuthorsParserRoot(visitor: Catalog.AuthorsVisitor) = createRootElement().apply {
+private fun createAuthorsParserRoot(visitor: Catalog.Visitor<Author>) = createRootElement().apply {
     getChild("responseData").run {
         getChild("authors").getChild("author").run {
             val builder = AuthorBuilder()
@@ -280,7 +279,7 @@ private fun createAuthorsParserRoot(visitor: Catalog.AuthorsVisitor) = createRoo
     }
 }
 
-private fun createPartiesParserRoot(visitor: PartiesVisitor) = createRootElement().apply {
+private fun createPartiesParserRoot(visitor: Catalog.Visitor<Party>) = createRootElement().apply {
     getChild("responseData").run {
         getChild("parties").getChild("party").run {
             val builder = PartiesBuilder()
@@ -296,7 +295,7 @@ private fun createPartiesParserRoot(visitor: PartiesVisitor) = createRootElement
     }
 }
 
-private fun createModulesParserRoot(visitor: Catalog.TracksVisitor) =
+private fun createModulesParserRoot(visitor: Catalog.Visitor<Track>) =
     createModulesParserRoot { builder ->
         builder.captureResult()?.let {
             visitor.accept(it)

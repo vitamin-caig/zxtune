@@ -13,10 +13,6 @@ import app.zxtune.Logger
 import app.zxtune.fs.HtmlUtils.tryGetInteger
 import app.zxtune.fs.api.Cdn
 import app.zxtune.fs.http.MultisourceHttpProvider
-import app.zxtune.fs.modarchive.Catalog.AuthorsVisitor
-import app.zxtune.fs.modarchive.Catalog.FoundTracksVisitor
-import app.zxtune.fs.modarchive.Catalog.GenresVisitor
-import app.zxtune.fs.modarchive.Catalog.TracksVisitor
 import app.zxtune.utils.ProgressCallback
 import app.zxtune.utils.StubProgressCallback
 import app.zxtune.utils.Xml
@@ -56,7 +52,7 @@ open class RemoteCatalog internal constructor(
 
     private fun builderForRequest(request: String) = ApiUriBuilder.forQuery(key).setRequest(request)
 
-    override fun queryAuthors(visitor: AuthorsVisitor, progress: ProgressCallback) {
+    override fun queryAuthors(visitor: Catalog.Visitor<Author>, progress: ProgressCallback) {
         LOG.d { "queryAuthors()" }
         val uri = builderForRequest("search_artist").build()
         val root = createAuthorsParserRoot(visitor)
@@ -64,7 +60,7 @@ open class RemoteCatalog internal constructor(
         visitor.accept(Author.UNKNOWN)
     }
 
-    override fun queryGenres(visitor: GenresVisitor) {
+    override fun queryGenres(visitor: Catalog.Visitor<Genre>) {
         LOG.d { "queryGenres()" }
         val uri = builderForRequest("view_genres").build()
         val root = createGenresParserRoot(visitor)
@@ -72,7 +68,7 @@ open class RemoteCatalog internal constructor(
     }
 
     override fun queryTracks(
-        author: Author, visitor: TracksVisitor, progress: ProgressCallback
+        author: Author, visitor: Catalog.Visitor<Track>, progress: ProgressCallback
     ) {
         LOG.d { "queryTracks(author=${author.id})" }
         val uri = builderForRequest("view_modules_by_artistid").setQuery(author.id).build()
@@ -81,7 +77,7 @@ open class RemoteCatalog internal constructor(
     }
 
     override fun queryTracks(
-        genre: Genre, visitor: TracksVisitor, progress: ProgressCallback
+        genre: Genre, visitor: Catalog.Visitor<Track>, progress: ProgressCallback
     ) {
         LOG.d { "queryTracks(genre=${genre.id})" }
         val uri = builderForRequest("search").setType("genre").setQuery(genre.id).build()
@@ -91,7 +87,7 @@ open class RemoteCatalog internal constructor(
 
     open fun searchSupported() = http.hasConnection()
 
-    override fun findTracks(query: String, visitor: FoundTracksVisitor) {
+    override fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) {
         LOG.d { "findTracks(query=$query)" }
         val uri = builderForRequest("search").setType("filename_or_songtitle").setQuery("*$query*")
             .build()
@@ -99,7 +95,7 @@ open class RemoteCatalog internal constructor(
         loadPages(uri, root, StubProgressCallback.instance())
     }
 
-    override fun findRandomTracks(visitor: TracksVisitor) {
+    override fun findRandomTracks(visitor: Catalog.Visitor<Track>) {
         LOG.d { "findRandomTracks()" }
         val uri = builderForRequest("random").build()
         val root = createTracksParserRoot(visitor)
@@ -251,7 +247,7 @@ private class TrackBuilder {
     }
 }
 
-private fun createAuthorsParserRoot(visitor: AuthorsVisitor) = createRootElement().apply {
+private fun createAuthorsParserRoot(visitor: Catalog.Visitor<Author>) = createRootElement().apply {
     val builder = AuthorBuilder()
     getChild("items").getChild("item").run {
         setEndElementListener {
@@ -263,7 +259,7 @@ private fun createAuthorsParserRoot(visitor: AuthorsVisitor) = createRootElement
     }
 }
 
-private fun createGenresParserRoot(visitor: GenresVisitor) = createRootElement().apply {
+private fun createGenresParserRoot(visitor: Catalog.Visitor<Genre>) = createRootElement().apply {
     val builder = GenreBuilder()
     getChild("parent").getChild("children").getChild("child").run {
         setEndElementListener {
@@ -277,7 +273,7 @@ private fun createGenresParserRoot(visitor: GenresVisitor) = createRootElement()
     }
 }
 
-private fun createTracksParserRoot(visitor: TracksVisitor) = createRootElement().apply {
+private fun createTracksParserRoot(visitor: Catalog.Visitor<Track>) = createRootElement().apply {
     val builder = TrackBuilder()
     getChild("module").run {
         setEndElementListener {
@@ -289,20 +285,21 @@ private fun createTracksParserRoot(visitor: TracksVisitor) = createRootElement()
     }
 }
 
-private fun createFoundTracksParserRoot(visitor: FoundTracksVisitor) = createRootElement().apply {
-    val trackBuilder = TrackBuilder()
-    val authorBuilder = AuthorBuilder()
-    getChild("module").run {
-        setEndElementListener {
-            val author = authorBuilder.captureResult()
-            trackBuilder.captureResult()?.let { track ->
-                visitor.accept(author ?: Author.UNKNOWN, track)
+private fun createFoundTracksParserRoot(visitor: Catalog.FoundTracksVisitor) =
+    createRootElement().apply {
+        val trackBuilder = TrackBuilder()
+        val authorBuilder = AuthorBuilder()
+        getChild("module").run {
+            setEndElementListener {
+                val author = authorBuilder.captureResult()
+                trackBuilder.captureResult()?.let { track ->
+                    visitor.accept(author ?: Author.UNKNOWN, track)
+                }
             }
+            bindTrackFields(this, trackBuilder)
+            bindAuthorFields(getChild("artist_info").getChild("artist"), authorBuilder)
         }
-        bindTrackFields(this, trackBuilder)
-        bindAuthorFields(getChild("artist_info").getChild("artist"), authorBuilder)
     }
-}
 
 private fun bindTrackFields(item: Element, builder: TrackBuilder) = with(item) {
     getChild("id").setEndTextElementListener(builder::setId)

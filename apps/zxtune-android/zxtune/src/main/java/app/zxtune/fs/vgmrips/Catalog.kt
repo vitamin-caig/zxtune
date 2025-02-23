@@ -1,15 +1,14 @@
 package app.zxtune.fs.vgmrips
 
 import android.content.Context
+import androidx.core.util.Consumer
 import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.utils.ProgressCallback
 import java.io.IOException
 
 interface Catalog {
 
-    fun interface Visitor<T> {
-        fun accept(obj: T)
-    }
+    fun interface Visitor<T> : Consumer<T>
 
     interface Grouping {
         @Throws(IOException::class)

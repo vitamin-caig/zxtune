@@ -43,25 +43,19 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
     private inner class BaseGrouping(val tag: String, val headerPrefix: String) : Catalog.Grouping {
         override fun queryGroups(
-            filter: String,
-            visitor: Catalog.GroupsVisitor,
-            progress: ProgressCallback
+            filter: String, visitor: Catalog.Visitor<Group>, progress: ProgressCallback
         ) {
             LOG.d { "queryGroups(type=${tag}, filter=${filter})" }
-            loadPages(getGroupsUri(tag, filter), object : PagesVisitor {
-
-                private var total = 0
-                private var done = 0
-
-                override fun onPage(title: String, results: Int, doc: Document): Boolean {
-                    if (total == 0) {
-                        total = results
-                    }
-                    done += parseGroups(doc, visitor)
-                    progress.onProgressUpdate(done, total)
-                    return true
+            var total = 0
+            var done = 0
+            loadPages(getGroupsUri(tag, filter)) { _, results, doc ->
+                if (total == 0) {
+                    total = results
                 }
-            })
+                done += parseGroups(doc, visitor)
+                progress.onProgressUpdate(done, total)
+                true
+            }
         }
 
         override fun getGroup(id: Int): Group {
@@ -78,41 +72,31 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         }
 
         override fun queryTracks(
-            id: Int,
-            visitor: Catalog.TracksVisitor,
-            progress: ProgressCallback
+            id: Int, visitor: Catalog.Visitor<Track>, progress: ProgressCallback
         ) {
             LOG.d { "queryGroupTracks(type=${tag}, id=${id})" }
-            loadPages(getTracksUri(tag, id), object : PagesVisitor {
-
-                private var total = 0
-                private var done = 0
-
-                override fun onPage(title: String, results: Int, doc: Document): Boolean {
-                    if (total == 0) {
-                        total = results
-                    }
-                    val tracks = parseTracks(doc, visitor)
-                    done += tracks
-                    progress.onProgressUpdate(done, total)
-                    return tracks != 0
+            var total = 0
+            var done = 0
+            loadPages(getTracksUri(tag, id)) { _, results, doc ->
+                if (total == 0) {
+                    total = results
                 }
-            })
+                val tracks = parseTracks(doc, visitor)
+                done += tracks
+                progress.onProgressUpdate(done, total)
+                tracks != 0
+            }
         }
 
         override fun getTrack(id: Int, filename: String): Track {
             LOG.d { "getGroupTrack(type=${tag}, id=${id}, filename=${filename})" }
-            val resultRef = arrayOfNulls<Track>(1)
+            var result: Track? = null
             queryTracks(id, {
                 if (it.filename == filename) {
-                    resultRef[0] = it
-                    false
-                } else {
-                    true
+                    result = it
                 }
             }, StubProgressCallback.instance())
-            return resultRef[0]
-                ?: throw IOException("Failed to get track '${filename}' with id=${id}")
+            return result ?: throw IOException("Failed to get track '${filename}' with id=${id}")
         }
     }
 
@@ -120,22 +104,19 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
         @JvmStatic
         fun getTrackUris(id: String) = arrayOf(
-            Cdn.modland(id),
-            Uri.parse("http://ftp.amigascne.org/mirrors/ftp.modland.com$id")
+            Cdn.modland(id), Uri.parse("http://ftp.amigascne.org/mirrors/ftp.modland.com$id")
         )
     }
 
-    private fun interface PagesVisitor {
-        fun onPage(title: String, results: Int, doc: Document): Boolean
-    }
-
-    private fun loadPages(query: Uri, visitor: PagesVisitor) {
+    private fun loadPages(
+        query: Uri, onPage: (title: String, results: Int, doc: Document) -> Boolean
+    ) {
         for (pg in 1..Int.MAX_VALUE) {
             val doc = HtmlUtils.parseDoc(readPage(query, pg))
             val hdr = doc.findFirstText("table>caption") ?: break
             val matcher = PAGINATOR.matcher(hdr)
             if (!matcher.find()) break
-            LOG.d { "Load page: ${hdr}" }
+            LOG.d { "Load page: $hdr" }
             val header = matcher.group(1) ?: break
             val results = matcher.group(2) ?: break
             val page = matcher.group(3) ?: break
@@ -143,7 +124,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
             if (pg != page.toInt()) {
                 throw IOException("Invalid paginator structure")
             }
-            if (visitor.onPage(header, results.toInt(), doc) && pg < pagesTotal.toInt()) {
+            if (onPage(header, results.toInt(), doc) && pg < pagesTotal.toInt()) {
                 continue
             }
             break
@@ -156,51 +137,38 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         }
 }
 
-private fun getMainUriBuilder() = Uri.Builder()
-    .scheme("https")
-    .authority("www.exotica.org.uk")
-    .path("mediawiki/index.php")
-    .appendQueryParameter("title", "Special:Modland")
+private fun getMainUriBuilder() =
+    Uri.Builder().scheme("https").authority("www.exotica.org.uk").path("mediawiki/index.php")
+        .appendQueryParameter("title", "Special:Modland")
 
 private fun getGroupsUri(type: String, filter: String) =
-    getMainUriBuilder()
-        .appendQueryParameter("md", "b_${type}")
-        .appendQueryParameter("st", filter).build()
+    getMainUriBuilder().appendQueryParameter("md", "b_${type}").appendQueryParameter("st", filter)
+        .build()
 
 private fun getTracksUri(type: String, id: Int) =
-    getMainUriBuilder()
-        .appendQueryParameter("md", type)
-        .appendQueryParameter("id", id.toString()).build()
+    getMainUriBuilder().appendQueryParameter("md", type).appendQueryParameter("id", id.toString())
+        .build()
 
-private fun parseGroups(doc: Document, visitor: Catalog.GroupsVisitor): Int {
-    var result = 0
-    for (el in doc.select("table:has(>caption)>tbody>tr:has(>td>a[href*=md=])")) {
+private fun parseGroups(doc: Document, visitor: Catalog.Visitor<Group>) =
+    doc.select("table:has(>caption)>tbody>tr:has(>td>a[href*=md=])").onEach { el ->
         val nameEl = el.child(0).child(0)
         val countEl = el.child(1)
-        val id = HtmlUtils.getQueryInt(nameEl, "id") ?: continue
+        val id = HtmlUtils.getQueryInt(nameEl, "id") ?: return@onEach
         val name = nameEl.text()
-        val tracks = HtmlUtils.tryGetInteger(countEl.text()) ?: continue
+        val tracks = HtmlUtils.tryGetInteger(countEl.text()) ?: return@onEach
         if (name.isNotEmpty()) {
             visitor.accept(Group(id, name, tracks))
-            ++result
         }
-    }
-    return result
-}
+    }.size
 
-private fun parseTracks(doc: Document, visitor: Catalog.TracksVisitor): Int {
-    var result = 0
-    for (el in doc.select("table:has(>caption)>tbody>tr:has(>td>a[href*=file=pub/])")) {
+private fun parseTracks(doc: Document, visitor: Catalog.Visitor<Track>) =
+    doc.select("table:has(>caption)>tbody>tr:has(>td>a[href*=file=pub/])").onEach { el ->
         val pathEl = el.child(0).child(0)
         val sizeEl = el.child(4)
         val href = pathEl.attr("href")
         val pathPos = href.indexOf("pub/modules/")
         val path = "/${href.substring(pathPos)}"
-        val size = HtmlUtils.tryGetInteger(sizeEl.text()) ?: continue
-        if (!visitor.accept(Track(path, size))) {
-            return 0
+        HtmlUtils.tryGetInteger(sizeEl.text())?.let { size ->
+            visitor.accept(Track(path, size))
         }
-        ++result
-    }
-    return result
-}
+    }.size

@@ -63,18 +63,17 @@ class CachingCatalogTest(private val cat: Category, case: TestCase) : CachingCat
 
     private val workingGrouping = mock<Catalog.Grouping> {
         on { queryGroups(eq(filter), any(), any()) } doAnswer {
-            it.getArgument<Catalog.GroupsVisitor>(1).run {
+            it.getArgument<Catalog.Visitor<Group>>(1).run {
                 accept(group1)
                 accept(group2)
             }
         }
         on { getGroup(queryGroup.id) } doReturn queryGroup
         on { queryTracks(eq(queryGroup.id), any(), any()) } doAnswer {
-            it.getArgument<Catalog.TracksVisitor>(1).run {
+            it.getArgument<Catalog.Visitor<Track>>(1).run {
                 accept(track1)
                 accept(track2)
             }
-            Unit
         }
     }
 
@@ -88,8 +87,8 @@ class CachingCatalogTest(private val cat: Category, case: TestCase) : CachingCat
         on { getFormats() } doReturn grouping
     }
 
-    private val groupsVisitor = mock<Catalog.GroupsVisitor>()
-    private val tracksVisitor = mock<Catalog.TracksVisitor>()
+    private val groupsVisitor = mock<Catalog.Visitor<Group>>()
+    private val tracksVisitor = mock<Catalog.Visitor<Track>>()
 
     private val allMocks = arrayOf(
         lifetime,
@@ -202,10 +201,11 @@ class CachingCatalogTest(private val cat: Category, case: TestCase) : CachingCat
             // required to return valid value finally to avoid exception from method
             database.stub {
                 on { queryTracks(eq(category), eq(queryGroup.id), any()) } doAnswer {
-                    it.getArgument<Catalog.TracksVisitor>(2).run {
+                    it.getArgument<Catalog.Visitor<Track>>(2).run {
                         accept(track1)
                         accept(track2)
                     }
+                    true
                 }
             }
         }

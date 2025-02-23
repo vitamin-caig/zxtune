@@ -47,13 +47,13 @@ class DatabaseTest {
 
     @Test
     fun `test empty database`() {
-        testVisitor<Catalog.AuthorsVisitor> { visitor ->
+        testVisitor<Catalog.Visitor<Author>> { visitor ->
             assertFalse(underTest.queryAuthors(visitor))
         }
-        testVisitor<Catalog.GenresVisitor> { visitor ->
+        testVisitor<Catalog.Visitor<Genre>> { visitor ->
             assertFalse(underTest.queryGenres(visitor))
         }
-        testVisitor<Catalog.TracksVisitor> { visitor ->
+        testVisitor<Catalog.Visitor<Track>> { visitor ->
             underTest.queryRandomTracks(visitor)
         }
         testVisitor<Catalog.FoundTracksVisitor> { visitor ->
@@ -97,7 +97,7 @@ class DatabaseTest {
     fun `test queryRandomTracks`() {
         val tracks = (1..10).map(::addTrack)
 
-        testVisitor<Catalog.TracksVisitor> { visitor ->
+        testVisitor<Catalog.Visitor<Track>> { visitor ->
             underTest.queryRandomTracks(visitor)
             tracks.forEach { verify(visitor).accept(it) }
         }

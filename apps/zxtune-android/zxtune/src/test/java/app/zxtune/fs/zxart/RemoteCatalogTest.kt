@@ -29,7 +29,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryAuthors`() {
-        val visitor = mock<Catalog.AuthorsVisitor>()
+        val visitor = mock<Catalog.Visitor<Author>>()
         val authorsMin = 1270
         // https://zxart.ee/zxtune/language:eng/action:authors
         catalog.queryAuthors(visitor)
@@ -44,7 +44,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryAuthorTracks`() {
-        val visitor = mock<Catalog.TracksVisitor>()
+        val visitor = mock<Catalog.Visitor<Track>>()
         val tracksMin = 110
         // https://zxart.ee/zxtune/language:eng/action:tunes/authorId:40406
         catalog.queryAuthorTracks(Author(40406, "UNUSED", "UNUSED"), visitor)
@@ -84,7 +84,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryParties`() {
-        val visitor = mock<Catalog.PartiesVisitor>()
+        val visitor = mock<Catalog.Visitor<Party>>()
         val partiesMin = 180
 
         // https://zxart.ee/zxtune/language:eng/action:parties
@@ -100,7 +100,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryPartyTracks`() {
-        val visitor = mock<Catalog.TracksVisitor>()
+        val visitor = mock<Catalog.Visitor<Track>>()
         val tracksMin = 20
 
         // https://zxart.ee/zxtune/language:eng/action:tunes/partyId:4045
@@ -134,7 +134,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryTopTracks`() {
-        val visitor = mock<Catalog.TracksVisitor>()
+        val visitor = mock<Catalog.Visitor<Track>>()
 
         // https://zxart.ee/zxtune/language:eng/action:topTunes/limit:10
         val limit = 20

@@ -74,22 +74,22 @@ internal open class Database(context: Context) {
     open fun getGroupLifetime(group: Group, ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Groups.NAME + group.id, ttl)
 
-    open fun queryAuthors(handleFilter: String, visitor: Catalog.AuthorsVisitor) =
+    open fun queryAuthors(handleFilter: String, visitor: Catalog.Visitor<Author>) =
         Tables.Authors.getHandlesSelection(handleFilter).let {
             queryAuthorsInternal(it, visitor)
         }
 
-    open fun queryAuthors(country: Country, visitor: Catalog.AuthorsVisitor) =
+    open fun queryAuthors(country: Country, visitor: Catalog.Visitor<Author>) =
         Tables.Authors.getSelection(countryAuthors.getAuthorsIdsSelection(country)).let {
             queryAuthorsInternal(it, visitor)
         }
 
-    open fun queryAuthors(group: Group, visitor: Catalog.AuthorsVisitor) =
+    open fun queryAuthors(group: Group, visitor: Catalog.Visitor<Author>) =
         Tables.Authors.getSelection(groupAuthors.getAuthorsIdsSelection(group)).let {
             queryAuthorsInternal(it, visitor)
         }
 
-    private fun queryAuthorsInternal(selection: String, visitor: Catalog.AuthorsVisitor) =
+    private fun queryAuthorsInternal(selection: String, visitor: Catalog.Visitor<Author>) =
         helper.readableDatabase.query(Tables.Authors.NAME, null, selection, null, null, null, null)
             ?.use { cursor ->
                 while (cursor.moveToNext()) {
@@ -98,12 +98,12 @@ internal open class Database(context: Context) {
                 cursor.count != 0
             } ?: false
 
-    open fun queryTracks(author: Author, visitor: Catalog.TracksVisitor) =
+    open fun queryTracks(author: Author, visitor: Catalog.Visitor<Track>) =
         Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author)).let {
             queryTracksInternal(it, visitor)
         }
 
-    private fun queryTracksInternal(selection: String, visitor: Catalog.TracksVisitor) =
+    private fun queryTracksInternal(selection: String, visitor: Catalog.Visitor<Track>) =
         helper.readableDatabase.query(Tables.Tracks.NAME, null, selection, null, null, null, null)
             ?.use { cursor ->
                 while (cursor.moveToNext()) {
@@ -112,7 +112,7 @@ internal open class Database(context: Context) {
                 cursor.count != 0
             } ?: false
 
-    open fun queryGroups(visitor: Catalog.GroupsVisitor) =
+    open fun queryGroups(visitor: Catalog.Visitor<Group>) =
         helper.readableDatabase.query(Tables.Groups.NAME, null, null, null, null, null, null)
             ?.use { cursor ->
                 while (cursor.moveToNext()) {

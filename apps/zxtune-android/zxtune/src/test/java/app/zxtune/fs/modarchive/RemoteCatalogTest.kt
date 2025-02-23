@@ -9,13 +9,11 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.AdditionalMatchers.geq
-import org.mockito.AdditionalMatchers.gt
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.atLeast
 import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
@@ -32,7 +30,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryAuthors`() {
-        val visitor = mock<Catalog.AuthorsVisitor>()
+        val visitor = mock<Catalog.Visitor<Author>>()
         val progress = mock<ProgressCallback>()
         val pagesMin = 65
         val authorsApprox = 2400
@@ -48,7 +46,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryGenres`() {
-        val visitor = mock<Catalog.GenresVisitor>()
+        val visitor = mock<Catalog.Visitor<Genre>>()
         val genresApprox = 75
         catalog.queryGenres(visitor)
         fun matchesGenre(id: Int, name: String, tracksMin: Int) = { genre: Genre ->
@@ -63,7 +61,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryTracks by author`() {
-        val visitor = mock<Catalog.TracksVisitor>()
+        val visitor = mock<Catalog.Visitor<Track>>()
         val progress = mock<ProgressCallback>()
         val tracksMin = 370
         val pagesMin = 10
@@ -81,7 +79,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryTracks by genre`() {
-        val visitor = mock<Catalog.TracksVisitor>()
+        val visitor = mock<Catalog.Visitor<Track>>()
         val progress = mock<ProgressCallback>()
         val tracksMin = 440
         val pagesMin = 10
@@ -119,7 +117,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test findRandomTracks`() {
-        val visitor = mock<Catalog.TracksVisitor>()
+        val visitor = mock<Catalog.Visitor<Track>>()
 
         catalog.findRandomTracks(visitor)
 

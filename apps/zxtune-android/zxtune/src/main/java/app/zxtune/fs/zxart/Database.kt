@@ -72,7 +72,7 @@ internal open class Database(context: Context) {
 
     open fun getTopLifetime(ttl: TimeStamp) = timestamps.getLifetime(Tables.Tracks.NAME, ttl)
 
-    open fun queryAuthors(visitor: Catalog.AuthorsVisitor) =
+    open fun queryAuthors(visitor: Catalog.Visitor<Author>) =
         helper.readableDatabase.query(Tables.Authors.NAME, null, null, null, null, null, null)
             ?.use { cursor ->
                 while (cursor.moveToNext()) {
@@ -83,7 +83,7 @@ internal open class Database(context: Context) {
 
     open fun addAuthor(obj: Author) = authors.add(obj)
 
-    open fun queryParties(visitor: Catalog.PartiesVisitor) =
+    open fun queryParties(visitor: Catalog.Visitor<Party>) =
         helper.readableDatabase.query(Tables.Parties.NAME, null, null, null, null, null, null)
             ?.use { cursor ->
                 while (cursor.moveToNext()) {
@@ -94,23 +94,23 @@ internal open class Database(context: Context) {
 
     open fun addParty(obj: Party) = parties.add(obj)
 
-    open fun queryAuthorTracks(author: Author, visitor: Catalog.TracksVisitor) =
+    open fun queryAuthorTracks(author: Author, visitor: Catalog.Visitor<Track>) =
         Tables.Tracks.getSelection(authorsTracks.getTracksIdsSelection(author)).let {
             queryTracks(it, visitor)
         }
 
-    open fun queryPartyTracks(party: Party, visitor: Catalog.TracksVisitor) =
+    open fun queryPartyTracks(party: Party, visitor: Catalog.Visitor<Track>) =
         Tables.Tracks.getSelection(partiesTracks.getTracksIdsSelection(party)).let {
             queryTracks(it, visitor)
         }
 
-    private fun queryTracks(selection: String, visitor: Catalog.TracksVisitor) =
+    private fun queryTracks(selection: String, visitor: Catalog.Visitor<Track>) =
         helper.readableDatabase.query(Tables.Tracks.NAME, null, selection, null, null, null, null)
             .let { cursor ->
                 queryTracks(cursor, visitor)
             }
 
-    open fun queryTopTracks(limit: Int, visitor: Catalog.TracksVisitor) =
+    open fun queryTopTracks(limit: Int, visitor: Catalog.Visitor<Track>) =
         helper.readableDatabase.query(
             Tables.Tracks.NAME, null, null, null, null, null, "votes DESC", limit.toString()
         ).let { cursor ->
@@ -134,7 +134,7 @@ internal open class Database(context: Context) {
     open fun addPartyTrack(party: Party, track: Track) = partiesTracks.add(party, track)
 }
 
-private fun queryTracks(cursor: Cursor?, visitor: Catalog.TracksVisitor): Boolean {
+private fun queryTracks(cursor: Cursor?, visitor: Catalog.Visitor<Track>): Boolean {
     cursor?.use {
         while (cursor.moveToNext()) {
             visitor.accept(Tables.Tracks.createTrack(cursor))

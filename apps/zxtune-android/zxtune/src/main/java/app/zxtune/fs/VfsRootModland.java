@@ -289,7 +289,6 @@ final class VfsRootModland extends StubObject implements VfsRoot {
         public void enumerate(final Visitor visitor) throws IOException {
           group.queryTracks(obj.getId(), (obj) -> {
             visitor.onFile(new TrackFile(obj));
-            return true;
           }, visitor);
         }
 

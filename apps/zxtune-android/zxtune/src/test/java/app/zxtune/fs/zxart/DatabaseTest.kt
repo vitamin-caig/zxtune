@@ -49,13 +49,13 @@ class DatabaseTest {
 
     @Test
     fun `test empty database`() {
-        testVisitor<Catalog.AuthorsVisitor> { visitor ->
+        testVisitor<Catalog.Visitor<Author>> { visitor ->
             assertFalse(underTest.queryAuthors(visitor))
         }
-        testVisitor<Catalog.PartiesVisitor> { visitor ->
+        testVisitor<Catalog.Visitor<Party>> { visitor ->
             assertFalse(underTest.queryParties(visitor))
         }
-        testVisitor<Catalog.TracksVisitor> { visitor ->
+        testVisitor<Catalog.Visitor<Track>> { visitor ->
             assertFalse(underTest.queryTopTracks(100, visitor))
         }
         testVisitor<Catalog.FoundTracksVisitor> { visitor ->
@@ -101,7 +101,7 @@ class DatabaseTest {
             (1..5).map { id -> Track(id, "track$id", "", id.toDouble().toString(), "", 0, "", 0) }
                 .onEach { underTest.addTrack(it) }
 
-        testVisitor<Catalog.TracksVisitor> { visitor ->
+        testVisitor<Catalog.Visitor<Track>> { visitor ->
             assertTrue(underTest.queryTopTracks(3, visitor))
             inOrder(visitor).run {
                 verify(visitor).accept(tracks[4])

@@ -16,15 +16,15 @@ private val TRACKS_TTL = TimeStamp.fromDays(7)
 private val LOG = Logger(CachingCatalog::class.java.name)
 
 class CachingCatalog internal constructor(
-    private val remote: Catalog,
-    private val db: Database
+    private val remote: Catalog, private val db: Database
 ) : Catalog {
     private val executor: CommandExecutor = CommandExecutor("zxtunes")
 
-    override fun queryAuthors(visitor: Catalog.AuthorsVisitor) = queryAuthorsInternal(visitor, null)
+    override fun queryAuthors(visitor: Catalog.Visitor<Author>) =
+        queryAuthorsInternal(visitor, null)
 
     override fun queryAuthor(id: Int): Author? {
-        val visitor = object : Catalog.AuthorsVisitor {
+        val visitor = object : Catalog.Visitor<Author> {
             var result: Author? = null
             override fun accept(obj: Author) {
                 require(result == null)
@@ -36,11 +36,11 @@ class CachingCatalog internal constructor(
     }
 
 
-    private fun queryAuthorsInternal(visitor: Catalog.AuthorsVisitor, id: Int?) =
+    private fun queryAuthorsInternal(visitor: Catalog.Visitor<Author>, id: Int?) =
         executor.executeQuery("authors", object : QueryCommand {
             private val lifetime = db.getAuthorsLifetime(AUTHORS_TTL)
 
-            override val isCacheExpired: Boolean
+            override val isCacheExpired
                 get() = lifetime.isExpired
 
             override fun updateCache() = db.runInTransaction {
@@ -51,11 +51,11 @@ class CachingCatalog internal constructor(
             override fun queryFromCache() = db.queryAuthors(visitor, id)
         })
 
-    override fun queryAuthorTracks(author: Author, visitor: Catalog.TracksVisitor) =
+    override fun queryAuthorTracks(author: Author, visitor: Catalog.Visitor<Track>) =
         executor.executeQuery("tracks", object : QueryCommand {
             private val lifetime = db.getAuthorTracksLifetime(author, TRACKS_TTL)
 
-            override val isCacheExpired: Boolean
+            override val isCacheExpired
                 get() = lifetime.isExpired
 
             override fun updateCache() = db.runInTransaction {

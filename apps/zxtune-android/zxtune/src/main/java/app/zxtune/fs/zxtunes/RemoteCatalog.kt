@@ -19,7 +19,7 @@ import java.io.IOException
 private val LOG = Logger(RemoteCatalog::class.java.name)
 
 class RemoteCatalog internal constructor(private val http: MultisourceHttpProvider) : Catalog {
-    override fun queryAuthors(visitor: Catalog.AuthorsVisitor) {
+    override fun queryAuthors(visitor: Catalog.Visitor<Author>) {
         LOG.d { "queryAuthors()" }
         val root = createAuthorsParserRoot(visitor)
         performQuery(Uris.forAllAuthors(), root)
@@ -27,7 +27,7 @@ class RemoteCatalog internal constructor(private val http: MultisourceHttpProvid
 
     override fun queryAuthor(id: Int): Author? {
         LOG.d { "queryAuthor(id=${id})" }
-        val visitor = object : Catalog.AuthorsVisitor {
+        val visitor = object : Catalog.Visitor<Author> {
             var result: Author? = null
             override fun accept(obj: Author) {
                 require(result == null)
@@ -39,12 +39,12 @@ class RemoteCatalog internal constructor(private val http: MultisourceHttpProvid
         return visitor.result
     }
 
-    override fun queryAuthorTracks(author: Author, visitor: Catalog.TracksVisitor) {
+    override fun queryAuthorTracks(author: Author, visitor: Catalog.Visitor<Track>) {
         LOG.d { "queryAuthorTracks(author=${author.id})" }
         queryTracks(visitor, Uris.forTracks(author))
     }
 
-    private fun queryTracks(visitor: Catalog.TracksVisitor, uri: Uri) {
+    private fun queryTracks(visitor: Catalog.Visitor<Track>, uri: Uri) {
         val root = createModulesParserRoot(visitor)
         performQuery(uri, root)
     }
@@ -202,7 +202,7 @@ private class ModuleBuilder {
     }
 }
 
-private fun createAuthorsParserRoot(visitor: Catalog.AuthorsVisitor) = createRootElement().apply {
+private fun createAuthorsParserRoot(visitor: Catalog.Visitor<Author>) = createRootElement().apply {
     getChild("authors").run {
         val builder = AuthorBuilder()
         getChild("author").run {
@@ -222,7 +222,7 @@ private fun createAuthorsParserRoot(visitor: Catalog.AuthorsVisitor) = createRoo
     }
 }
 
-private fun createModulesParserRoot(visitor: Catalog.TracksVisitor) = createRootElement().apply {
+private fun createModulesParserRoot(visitor: Catalog.Visitor<Track>) = createRootElement().apply {
     val builder = ModuleBuilder()
     getChild("tracks").getChild("track").run {
         setStartElementListener { attributes: Attributes ->

@@ -7,19 +7,13 @@
 package app.zxtune.fs.modland
 
 import android.content.Context
+import androidx.core.util.Consumer
 import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.utils.ProgressCallback
 import java.io.IOException
 
 interface Catalog {
-    fun interface GroupsVisitor {
-        fun accept(obj: Group)
-    }
-
-    fun interface TracksVisitor {
-        //too many tracks possible, so enable breaking
-        fun accept(obj: Track): Boolean
-    }
+    fun interface Visitor<T> : Consumer<T>
 
     interface Grouping {
 
@@ -29,7 +23,7 @@ interface Catalog {
          * @param visitor result receiver
          */
         @Throws(IOException::class)
-        fun queryGroups(filter: String, visitor: GroupsVisitor, progress: ProgressCallback)
+        fun queryGroups(filter: String, visitor: Visitor<Group>, progress: ProgressCallback)
 
         /**
          * Query single group object
@@ -44,7 +38,7 @@ interface Catalog {
          * @param visitor result receiver
          */
         @Throws(IOException::class)
-        fun queryTracks(id: Int, visitor: TracksVisitor, progress: ProgressCallback)
+        fun queryTracks(id: Int, visitor: Visitor<Track>, progress: ProgressCallback)
 
         /**
          * Query track by name

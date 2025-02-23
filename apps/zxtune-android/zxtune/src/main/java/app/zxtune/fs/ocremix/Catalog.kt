@@ -1,13 +1,12 @@
 package app.zxtune.fs.ocremix
 
 import android.content.Context
+import androidx.core.util.Consumer
 import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.utils.ProgressCallback
 
 interface Catalog {
-    fun interface Visitor<T> {
-        fun accept(obj: T)
-    }
+    fun interface Visitor<T> : Consumer<T>
 
     fun interface GamesVisitor {
         fun accept(game: Game, system: System, organization: Organization?)

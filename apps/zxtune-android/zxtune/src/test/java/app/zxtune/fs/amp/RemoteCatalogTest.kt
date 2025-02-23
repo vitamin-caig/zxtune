@@ -7,9 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.AdditionalMatchers.gt
 import org.mockito.kotlin.any
-import org.mockito.kotlin.argThat
 import org.mockito.kotlin.atLeast
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -28,7 +26,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test groups`() {
-        val visitor = mock<Catalog.GroupsVisitor>()
+        val visitor = mock<Catalog.Visitor<Group>>()
         catalog.queryGroups(visitor)
         val groupsApprox = 8800
         verify(visitor).accept(Group(6018, "0-Dezign"))
@@ -44,7 +42,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test authors by handle`() {
-        val visitor = mock<Catalog.AuthorsVisitor>()
+        val visitor = mock<Catalog.Visitor<Author>>()
         catalog.queryAuthors("0-9", visitor)
         val authorsApprox = 50
         // Pagination with unknown size
@@ -62,7 +60,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test authors by country`() {
-        val visitor = mock<Catalog.AuthorsVisitor>()
+        val visitor = mock<Catalog.Visitor<Author>>()
         catalog.queryAuthors(Country(44, "Russia"), visitor)
         val authorsApprox = 200
         verify(visitor).accept(Author(13606, "Agent Orange", "Oleg Sharonov"))
@@ -75,7 +73,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test authors by group`() {
-        val visitor = mock<Catalog.AuthorsVisitor>()
+        val visitor = mock<Catalog.Visitor<Author>>()
         catalog.queryAuthors(Group(1770, "Farbrausch"), visitor)
         val authorsApprox = 10
         verify(visitor).accept(Author(14354, "BeRo", "Benjamin Rosseaux"))
@@ -87,7 +85,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test authors tracks`() {
-        val visitor = mock<Catalog.TracksVisitor>()
+        val visitor = mock<Catalog.Visitor<Track>>()
         catalog.queryTracks(Author(2085, "doh", "Nicolas Dessesart"), visitor)
         val tracksApprox = 160
         verify(visitor).accept(Track(15892, "egometriosporasie", 186))

@@ -6,17 +6,12 @@
 package app.zxtune.fs.zxtunes
 
 import android.content.Context
+import androidx.core.util.Consumer
 import app.zxtune.fs.http.MultisourceHttpProvider
 import java.io.IOException
 
 interface Catalog {
-    fun interface AuthorsVisitor{
-        fun accept(obj: Author)
-    }
-
-    fun interface TracksVisitor{
-        fun accept(obj: Track)
-    }
+    fun interface Visitor<T> : Consumer<T>
 
     fun interface FoundTracksVisitor {
         fun accept(author: Author, track: Track)
@@ -27,7 +22,7 @@ interface Catalog {
      * @param visitor result receiver
      */
     @Throws(IOException::class)
-    fun queryAuthors(visitor: AuthorsVisitor)
+    fun queryAuthors(visitor: Visitor<Author>)
 
     @Throws(IOException::class)
     fun queryAuthor(id: Int): Author?
@@ -38,7 +33,7 @@ interface Catalog {
      * @param visitor result receiver
      */
     @Throws(IOException::class)
-    fun queryAuthorTracks(author: Author, visitor: TracksVisitor)
+    fun queryAuthorTracks(author: Author, visitor: Visitor<Track>)
 
     /**
      * Checks whether tracks can be found directly from catalogue instead of scanning

@@ -16,7 +16,6 @@ import app.zxtune.fs.dbhelpers.Grouping
 import app.zxtune.fs.dbhelpers.Objects
 import app.zxtune.fs.dbhelpers.Timestamps
 import app.zxtune.fs.dbhelpers.Utils
-import app.zxtune.fs.modarchive.Catalog.GenresVisitor
 
 /**
  * Version 1
@@ -64,7 +63,7 @@ internal open class Database(context: Context) {
     open fun getGenreTracksLifetime(genre: Genre, ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Genres.NAME + genre.id, ttl)
 
-    open fun queryAuthors(visitor: Catalog.AuthorsVisitor) =
+    open fun queryAuthors(visitor: Catalog.Visitor<Author>) =
         helper.readableDatabase.query(Tables.Authors.NAME, null, null, null, null, null, null)
             ?.use { cursor ->
                 while (cursor.moveToNext()) {
@@ -75,7 +74,7 @@ internal open class Database(context: Context) {
 
     open fun addAuthor(obj: Author) = authors.add(obj)
 
-    open fun queryGenres(visitor: GenresVisitor) =
+    open fun queryGenres(visitor: Catalog.Visitor<Genre>) =
         helper.readableDatabase.query(Tables.Genres.NAME, null, null, null, null, null, null)
             ?.use { cursor ->
                 while (cursor.moveToNext()) {
@@ -86,25 +85,25 @@ internal open class Database(context: Context) {
 
     open fun addGenre(obj: Genre) = genres.add(obj)
 
-    open fun queryTracks(author: Author, visitor: Catalog.TracksVisitor) =
+    open fun queryTracks(author: Author, visitor: Catalog.Visitor<Track>) =
         Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author)).let {
             queryTracksInternal(it, visitor)
         }
 
-    open fun queryTracks(genre: Genre, visitor: Catalog.TracksVisitor) =
+    open fun queryTracks(genre: Genre, visitor: Catalog.Visitor<Track>) =
         Tables.Tracks.getSelection(genreTracks.getTracksIdsSelection(genre)).let {
             queryTracksInternal(it, visitor)
         }
 
-    open fun queryRandomTracks(visitor: Catalog.TracksVisitor) {
+    open fun queryRandomTracks(visitor: Catalog.Visitor<Track>) {
         queryTracksInternal(null, "RANDOM() LIMIT 100", visitor)
     }
 
-    private fun queryTracksInternal(selection: String?, visitor: Catalog.TracksVisitor) =
+    private fun queryTracksInternal(selection: String?, visitor: Catalog.Visitor<Track>) =
         queryTracksInternal(selection, null, visitor)
 
     private fun queryTracksInternal(
-        selection: String?, order: String?, visitor: Catalog.TracksVisitor
+        selection: String?, order: String?, visitor: Catalog.Visitor<Track>
     ) = helper.readableDatabase.query(Tables.Tracks.NAME, null, selection, null, null, null, order)
         ?.use { cursor ->
             while (cursor.moveToNext()) {

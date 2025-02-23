@@ -69,7 +69,7 @@ internal open class Database(context: Context) {
         timestamps.getLifetime(category + id, ttl)
 
     open fun queryGroups(
-        category: String, filter: String, visitor: Catalog.GroupsVisitor
+        category: String, filter: String, visitor: Catalog.Visitor<Group>
     ) = helper.readableDatabase.query(
         category, null, TablesInternal.Groups.getFilterSelection(filter), null, null, null, null
     )?.use { cursor ->
@@ -87,7 +87,7 @@ internal open class Database(context: Context) {
 
     open fun addGroup(category: String, obj: Group) = groups[category]?.add(obj)
 
-    open fun queryTracks(category: String, id: Int, visitor: Catalog.TracksVisitor) =
+    open fun queryTracks(category: String, id: Int, visitor: Catalog.Visitor<Track>) =
         helper.readableDatabase.query(
             TablesInternal.Tracks.NAME, null, TablesInternal.Tracks.getSelection(
                 requireNotNull(groupTracks[category]).getIdsSelection(id.toLong())

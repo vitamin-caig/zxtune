@@ -47,7 +47,7 @@ class DatabaseTest {
 
     @Test
     fun `test empty database`() {
-        testVisitor<Catalog.AuthorsVisitor> { visitor ->
+        testVisitor<Catalog.Visitor<Author>> { visitor ->
             assertFalse(underTest.queryAuthors(visitor))
         }
         testVisitor<Catalog.FoundTracksVisitor> { visitor ->

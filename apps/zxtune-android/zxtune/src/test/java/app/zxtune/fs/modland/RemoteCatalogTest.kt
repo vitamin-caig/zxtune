@@ -33,7 +33,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test authors`() {
-        val visitor = mock<Catalog.GroupsVisitor>()
+        val visitor = mock<Catalog.Visitor<Group>>()
         val progress = mock<ProgressCallback>()
         val pagesMin = 3
         val groupsApprox = 95
@@ -48,15 +48,9 @@ class RemoteCatalogTest {
 
     @Test
     fun `test authors tracks`() {
-        val tracksProcessed = 100
-        var doneTracks = 0
-        // accept no more than 100 tracks
-        val visitor = mock<Catalog.TracksVisitor> {
-            on { accept(any()) } doAnswer { ++doneTracks < tracksProcessed }
-        }
+        val visitor = mock<Catalog.Visitor<Track>>()
         val progress = mock<ProgressCallback>()
-        val pagesMin = 3
-        val tracksTotal = 700
+        val minTracks = 700
         catalog.getAuthors().queryTracks(172 /*4-Mat*/, visitor, progress)
 
         verify(visitor).accept(
@@ -66,14 +60,14 @@ class RemoteCatalogTest {
             )
         )
         verify(visitor).accept(Track("/pub/modules/Fasttracker%202/4-Mat/blade1.xm", 24504))
-        verify(visitor, times(doneTracks)).accept(any())
-        verify(progress, atLeast(pagesMin)).onProgressUpdate(lt(tracksProcessed), gt(tracksTotal))
+        verify(visitor, atLeast(minTracks)).accept(any())
+        verify(progress, atLeast(minTracks / 40)).onProgressUpdate(any(), gt(minTracks))
         verifyNoMoreInteractions(visitor, progress)
     }
 
     @Test
     fun `test collections`() {
-        val visitor = mock<Catalog.GroupsVisitor>()
+        val visitor = mock<Catalog.Visitor<Group>>()
         val progress = mock<ProgressCallback>()
         val pagesMin = 5
         val groupsApprox = 150
@@ -90,7 +84,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test formats`() {
-        val visitor = mock<Catalog.GroupsVisitor>()
+        val visitor = mock<Catalog.Visitor<Group>>()
         val progress = mock<ProgressCallback>()
         val pagesMin = 1
         val groupsApprox = 25

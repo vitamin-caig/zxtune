@@ -31,7 +31,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryAuthors`() {
-        val visitor = mock<Catalog.AuthorsVisitor>()
+        val visitor = mock<Catalog.Visitor<Author>>()
         val authorsMin = 900
         // http://zxtunes.com/xml.php?scope=authors&fields=nickname,name,tracks
         catalog.queryAuthors(visitor)
@@ -56,7 +56,7 @@ class RemoteCatalogTest {
 
     @Test
     fun `test queryAuthorTracks`() {
-        val visitor = mock<Catalog.TracksVisitor>()
+        val visitor = mock<Catalog.Visitor<Track>>()
         val tracksMin = 120
 
         // http://zxtunes.com/xml.php?scope=tracks&fields=filename,title,duration,date&author_id=483

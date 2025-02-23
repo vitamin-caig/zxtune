@@ -19,7 +19,7 @@ class CachingCatalog internal constructor(
 ) : Catalog {
     private val executor = CommandExecutor("amp")
 
-    override fun queryGroups(visitor: Catalog.GroupsVisitor) =
+    override fun queryGroups(visitor: Catalog.Visitor<Group>) =
         executor.executeQuery("groups", object : QueryCommand {
             private val lifetime = db.getGroupsLifetime(GROUPS_TTL)
             override val isCacheExpired
@@ -33,7 +33,7 @@ class CachingCatalog internal constructor(
             override fun queryFromCache() = db.queryGroups(visitor)
         })
 
-    override fun queryAuthors(handleFilter: String, visitor: Catalog.AuthorsVisitor) =
+    override fun queryAuthors(handleFilter: String, visitor: Catalog.Visitor<Author>) =
         executor.executeQuery("authors", object : QueryCommand {
             private val lifetime = db.getAuthorsLifetime(handleFilter, AUTHORS_TTL)
             override val isCacheExpired
@@ -48,7 +48,7 @@ class CachingCatalog internal constructor(
             override fun queryFromCache() = db.queryAuthors(handleFilter, visitor)
         })
 
-    override fun queryAuthors(country: Country, visitor: Catalog.AuthorsVisitor) =
+    override fun queryAuthors(country: Country, visitor: Catalog.Visitor<Author>) =
         executor.executeQuery("authors", object : QueryCommand {
             private val lifetime = db.getCountryLifetime(country, AUTHORS_TTL)
             override val isCacheExpired
@@ -67,7 +67,7 @@ class CachingCatalog internal constructor(
             override fun queryFromCache() = db.queryAuthors(country, visitor)
         })
 
-    override fun queryAuthors(group: Group, visitor: Catalog.AuthorsVisitor) =
+    override fun queryAuthors(group: Group, visitor: Catalog.Visitor<Author>) =
         executor.executeQuery("authors", object : QueryCommand {
             private val lifetime = db.getGroupLifetime(group, AUTHORS_TTL)
             override val isCacheExpired
@@ -84,7 +84,7 @@ class CachingCatalog internal constructor(
             override fun queryFromCache() = db.queryAuthors(group, visitor)
         })
 
-    override fun queryTracks(author: Author, visitor: Catalog.TracksVisitor) =
+    override fun queryTracks(author: Author, visitor: Catalog.Visitor<Track>) =
         executor.executeQuery("tracks", object : QueryCommand {
             private val lifetime = db.getAuthorTracksLifetime(author, TRACKS_TTL)
             override val isCacheExpired

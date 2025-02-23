@@ -62,7 +62,7 @@ internal open class Database(context: Context) {
     open fun getAuthorTracksLifetime(author: Author, ttl: TimeStamp) =
         timestamps.getLifetime(Tables.Authors.NAME + author.id, ttl)
 
-    open fun queryAuthors(visitor: Catalog.AuthorsVisitor, id: Int? = null) =
+    open fun queryAuthors(visitor: Catalog.Visitor<Author>, id: Int? = null) =
         helper.readableDatabase.query(
             Tables.Authors.NAME,
             null,
@@ -80,12 +80,12 @@ internal open class Database(context: Context) {
 
     open fun addAuthor(obj: Author) = authors.add(obj)
 
-    open fun queryAuthorTracks(author: Author, visitor: Catalog.TracksVisitor) =
+    open fun queryAuthorTracks(author: Author, visitor: Catalog.Visitor<Track>) =
         Tables.Tracks.getSelection(authorsTracks.getTracksIdsSelection(author)).let {
             queryTracks(it, visitor)
         }
 
-    private fun queryTracks(selection: String, visitor: Catalog.TracksVisitor) =
+    private fun queryTracks(selection: String, visitor: Catalog.Visitor<Track>) =
         helper.readableDatabase.query(Tables.Tracks.NAME, null, selection, null, null, null, null)
             ?.use { cursor ->
                 while (cursor.moveToNext()) {

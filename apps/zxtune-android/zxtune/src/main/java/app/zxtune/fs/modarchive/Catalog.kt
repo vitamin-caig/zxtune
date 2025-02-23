@@ -6,22 +6,13 @@
 package app.zxtune.fs.modarchive
 
 import android.content.Context
+import androidx.core.util.Consumer
 import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.utils.ProgressCallback
 import java.io.IOException
 
 interface Catalog {
-    fun interface AuthorsVisitor {
-        fun accept(obj: Author)
-    }
-
-    fun interface GenresVisitor {
-        fun accept(obj: Genre)
-    }
-
-    fun interface TracksVisitor {
-        fun accept(obj: Track)
-    }
+    fun interface Visitor<T> : Consumer<T>
 
     fun interface FoundTracksVisitor {
         fun accept(author: Author, track: Track)
@@ -32,14 +23,14 @@ interface Catalog {
      * @param visitor result receiver
      */
     @Throws(IOException::class)
-    fun queryAuthors(visitor: AuthorsVisitor, progress: ProgressCallback)
+    fun queryAuthors(visitor: Visitor<Author>, progress: ProgressCallback)
 
     /**
      * Query all genres
      * @param visitor result receiver
      */
     @Throws(IOException::class)
-    fun queryGenres(visitor: GenresVisitor)
+    fun queryGenres(visitor: Visitor<Genre>)
 
     /**
      * Query authors's tracks
@@ -47,7 +38,7 @@ interface Catalog {
      * @param visitor result receiver
      */
     @Throws(IOException::class)
-    fun queryTracks(author: Author, visitor: TracksVisitor, progress: ProgressCallback)
+    fun queryTracks(author: Author, visitor: Visitor<Track>, progress: ProgressCallback)
 
     /**
      * Query genre's tracks
@@ -55,7 +46,7 @@ interface Catalog {
      * @param visitor result receiver
      */
     @Throws(IOException::class)
-    fun queryTracks(genre: Genre, visitor: TracksVisitor, progress: ProgressCallback)
+    fun queryTracks(genre: Genre, visitor: Visitor<Track>, progress: ProgressCallback)
 
     /**
      * Find tracks by query substring
@@ -70,7 +61,7 @@ interface Catalog {
      * @throws IOException
      */
     @Throws(IOException::class)
-    fun findRandomTracks(visitor: TracksVisitor)
+    fun findRandomTracks(visitor: Visitor<Track>)
 
     companion object {
         @JvmStatic

@@ -55,31 +55,31 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
 
     private val workingRemote = mock<RemoteCatalog> {
         on { queryGroups(any()) } doAnswer {
-            it.getArgument<Catalog.GroupsVisitor>(0).run {
+            it.getArgument<Catalog.Visitor<Group>>(0).run {
                 accept(group1)
                 accept(group2)
             }
         }
         on { queryAuthors(eq(query), any()) } doAnswer {
-            it.getArgument<Catalog.AuthorsVisitor>(1).run {
+            it.getArgument<Catalog.Visitor<Author>>(1).run {
                 accept(author1)
                 accept(author2)
             }
         }
         on { queryAuthors(eq(queryCountry), any()) } doAnswer {
-            it.getArgument<Catalog.AuthorsVisitor>(1).run {
+            it.getArgument<Catalog.Visitor<Author>>(1).run {
                 accept(author2)
                 accept(author3)
             }
         }
         on { queryAuthors(eq(queryGroup), any()) } doAnswer {
-            it.getArgument<Catalog.AuthorsVisitor>(1).run {
+            it.getArgument<Catalog.Visitor<Author>>(1).run {
                 accept(author1)
                 accept(author3)
             }
         }
         on { queryTracks(eq(queryAuthor), any()) } doAnswer {
-            it.getArgument<Catalog.TracksVisitor>(1).run {
+            it.getArgument<Catalog.Visitor<Track>>(1).run {
                 accept(track1)
                 accept(track2)
             }
@@ -96,9 +96,9 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
         doAnswer { remoteCatalogueAvailable }.whenever(remote).searchSupported()
     }
 
-    private val groupsVisitor = mock<Catalog.GroupsVisitor>()
-    private val authorsVisitor = mock<Catalog.AuthorsVisitor>()
-    private val tracksVisitor = mock<Catalog.TracksVisitor>()
+    private val groupsVisitor = mock<Catalog.Visitor<Group>>()
+    private val authorsVisitor = mock<Catalog.Visitor<Author>>()
+    private val tracksVisitor = mock<Catalog.Visitor<Track>>()
     private val foundTracksVisitor = mock<Catalog.FoundTracksVisitor>()
 
     private val allMocks = arrayOf(
@@ -245,6 +245,6 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     companion object {
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
-        fun data() = TestCase.entries.toList()
+        fun data() = TestCase.entries
     }
 }
