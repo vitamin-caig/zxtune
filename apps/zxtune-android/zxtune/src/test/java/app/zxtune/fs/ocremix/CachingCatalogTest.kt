@@ -3,6 +3,7 @@ package app.zxtune.fs.ocremix
 import app.zxtune.fs.CachingCatalogTestBase
 import app.zxtune.fs.dbhelpers.Utils
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
@@ -20,6 +21,8 @@ import org.robolectric.ParameterizedRobolectricTestRunner
 
 @RunWith(ParameterizedRobolectricTestRunner::class)
 class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
+    private val cachedMusicFiles = if (case.hasCache) musics else emptyArray()
+    private val cachedImage = if (case.hasCache) images[0] else null
     private val database = mock<Database> {
         on { runInTransaction(any()) } doAnswer {
             it.getArgument<Utils.ThrowingRunnable>(0).run()
@@ -30,8 +33,8 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
         on { queryGames(anyOrNull(), any()) } doReturn case.hasCache
         on { queryRemixes(anyOrNull(), any()) } doReturn case.hasCache
         on { queryAlbums(anyOrNull(), any()) } doReturn case.hasCache
-        on { queryMusicFiles(any()) } doReturn if (case.hasCache) musics else emptyArray()
-        on { queryImage(any()) } doReturn if (case.hasCache) images[0] else null
+        on { queryMusicFiles(any()) } doReturn cachedMusicFiles
+        on { queryImage(any()) } doReturn cachedImage
     }
 
     private val workingRemote = mock<RemoteCatalog> {
@@ -84,7 +87,7 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
                 }
             }
         }
-        on { findRemixPath(any()) } doReturn musics[0].path
+        on { findRemixPath(any()) } doReturn musics[1].path
         on { queryAlbumTracks(any(), any()) } doAnswer {
             with(it.getArgument<Catalog.AlbumTracksVisitor>(1)) {
                 musics.forEachIndexed { idx, file ->
@@ -290,7 +293,9 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     @Test
     fun `test findRemixPath succeed`(): Unit = with(CachingCatalog(remote, database)) {
         val id = "remixid"
-        checkedQuery { findRemixPath(Remix.Id(id)) }
+        checkedQuery {
+            assertEquals(cachedMusicFiles.firstOrNull()?.path, findRemixPath(Remix.Id(id)))
+        }
         inOrder(*allMocks).run {
             verify(database).getLifetime(eq("mp3@remixid"), any())
             verify(lifetime).isExpired
@@ -299,7 +304,7 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
                 verify(remote).findRemixPath(Remix.Id(id))
                 if (!case.isFailedRemote) {
                     verify(database).deleteMusicFiles(id)
-                    verify(database).addMusicFile(id, musics[0].path, null)
+                    verify(database).addMusicFile(id, musics[1].path, null)
                     verify(lifetime).update()
                 }
             }
@@ -313,7 +318,9 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
             on { findRemixPath(any()) } doReturn null
         }
         val id = "remixid"
-        checkedQuery { findRemixPath(Remix.Id(id)) }
+        checkedQuery {
+            assertEquals(cachedMusicFiles.firstOrNull()?.path, findRemixPath(Remix.Id(id)))
+        }
         inOrder(*allMocks).run {
             verify(database).getLifetime(eq("mp3@remixid"), any())
             verify(lifetime).isExpired
@@ -382,14 +389,21 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
             val hasChiptune = (flag and 1) != 0
             val hasImage = (flag and 2) != 0
             clearInvocations(*allMocks)
+            val reply = Game.Details(cachedMusicFiles.firstOrNull().takeIf { hasChiptune }?.path,
+                cachedImage.takeIf { hasImage })
             workingRemote.stub {
-                on { queryGameDetails(any()) } doAnswer {
-                    Game.Details(
-                        if (hasChiptune) musics[1].path else null, if (hasImage) images[0] else null
-                    )
-                }
+                on { queryGameDetails(any()) } doReturn Game.Details(musics[1].path.takeIf { hasChiptune },
+                    images[1].takeIf { hasImage })
             }
-            checkedQuery { queryGameDetails(Game.Id(id)) }
+            database.stub {
+                on { queryImage(id) } doReturn reply.image
+                on { queryMusicFiles(id) } doReturn (reply.chiptunePath?.let {
+                    arrayOf(QueriedMusic(it, null))
+                } ?: emptyArray<QueriedMusic>())
+            }
+            checkedQuery {
+                assertEquals(reply, queryGameDetails(Game.Id(id)))
+            }
             inOrder(*allMocks).run {
                 verify(database).getLifetime(eq("gameid"), any())
                 verify(lifetime).isExpired
@@ -398,7 +412,7 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
                     verify(remote).queryGameDetails(Game.Id(id))
                     if (!case.isFailedRemote) {
                         if (hasImage) {
-                            verify(database).addImage(id, images[0])
+                            verify(database).addImage(id, images[1])
                         }
                         if (hasChiptune) {
                             verify(database).deleteMusicFiles(id)
@@ -409,8 +423,8 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
                         }
                     }
                 }
-                verify(database).queryImage(id)
                 verify(database).queryMusicFiles(id)
+                verify(database).queryImage(id)
             }
             verifyNoMoreInteractions(*allMocks)
         }
@@ -419,7 +433,9 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     @Test
     fun `test queryAlbumImage succeed`(): Unit = with(CachingCatalog(remote, database)) {
         val id = "albumid"
-        checkedQuery { queryAlbumImage(Album.Id(id)) }
+        checkedQuery {
+            assertEquals(cachedImage, queryAlbumImage(Album.Id(id)))
+        }
         inOrder(*allMocks).run {
             verify(database).getLifetime(eq("albumid"), any())
             verify(lifetime).isExpired
@@ -442,7 +458,9 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
             on { queryAlbumImage(any()) } doReturn null
         }
         val id = "albumid"
-        checkedQuery { queryAlbumImage(Album.Id(id)) }
+        checkedQuery {
+            assertEquals(cachedImage, queryAlbumImage(Album.Id(id)))
+        }
         inOrder(*allMocks).run {
             verify(database).getLifetime(eq("albumid"), any())
             verify(lifetime).isExpired

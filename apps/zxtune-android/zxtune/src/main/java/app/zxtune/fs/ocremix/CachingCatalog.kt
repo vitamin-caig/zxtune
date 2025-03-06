@@ -4,7 +4,6 @@ import app.zxtune.TimeStamp.Companion.fromDays
 import app.zxtune.fs.dbhelpers.CommandExecutor
 import app.zxtune.fs.dbhelpers.QueryCommand
 import app.zxtune.utils.ProgressCallback
-import app.zxtune.utils.ifNotNulls
 
 private val SYSTEMS_TTL = fromDays(30)
 private val ORGANIZATIONS_TTL = fromDays(30)
@@ -13,8 +12,7 @@ private val REMIXES_TTL = fromDays(2)
 private val ALBUMS_TTL = fromDays(7)
 private val OBJECTS_TTL = fromDays(14)
 
-class CachingCatalog(private val remote: RemoteCatalog, private val db: Database) :
-    Catalog by remote {
+class CachingCatalog(private val remote: RemoteCatalog, private val db: Database) : Catalog {
     private val executor = CommandExecutor("ocremix")
 
     override fun querySystems(visitor: Catalog.Visitor<System>) =
@@ -116,9 +114,9 @@ class CachingCatalog(private val remote: RemoteCatalog, private val db: Database
                 }
             }
 
-            override fun queryFromCache() = db.queryMusicFiles(id.value).onEach {
-                result = it.path
-            }.isNotEmpty()
+            override fun queryFromCache() = db.queryMusicFiles(id.value).firstOrNull().also {
+                result = it?.path
+            } != null
         })
         return result
     }
@@ -174,12 +172,13 @@ class CachingCatalog(private val remote: RemoteCatalog, private val db: Database
                 }
             }
 
-            override fun queryFromCache() = ifNotNulls(
-                db.queryImage(id.value), db.queryMusicFiles(id.value).firstOrNull()?.path
-            ) { image, chiptune ->
-                result = Game.Details(chiptune, image)
-                true
-            } ?: false
+            override fun queryFromCache() = with(db) {
+                Game.Details(queryMusicFiles(id.value).firstOrNull()?.path, queryImage(id.value))
+            }.also {
+                result = it
+            }.run {
+                chiptunePath != null || image != null
+            }
         })
         return result ?: Game.Details(null, null)
     }
@@ -199,10 +198,9 @@ class CachingCatalog(private val remote: RemoteCatalog, private val db: Database
                 }
             }
 
-            override fun queryFromCache() = db.queryImage(id.value)?.let { image ->
-                result = image
-                true
-            } ?: false
+            override fun queryFromCache() = db.queryImage(id.value).also {
+                result = it
+            } != null
         })
         return result
     }
