@@ -113,8 +113,15 @@ suspend fun ViewPropertyAnimator.await() = suspendCancellableCoroutine { cont ->
     val listener = object : Animator.AnimatorListener {
         override fun onAnimationStart(animation: Animator) = Unit
         override fun onAnimationEnd(animation: Animator) = cont.resume(this@await)
-        override fun onAnimationCancel(animation: Animator) {cont.cancel()}
+        override fun onAnimationCancel(animation: Animator) = Unit
         override fun onAnimationRepeat(animation: Animator) = Unit
     }
     setListener(listener)
+    cont.invokeOnCancellation {
+        setListener(null)
+        // may be not the main thread...
+        runCatching {
+            cancel()
+        }
+    }
 }
