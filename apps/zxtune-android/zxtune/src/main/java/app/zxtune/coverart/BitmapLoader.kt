@@ -64,21 +64,23 @@ class BitmapLoader(
         cache.put(uri, it)
     }
 
-    private suspend fun loadAndResize(uri: Uri) = runCatching {
+    private suspend fun loadAndResize(uri: Uri): BitmapReference {
         val bitmap = loadBitmap(uri)
-        ifNotNulls(bitmap, maxImageSize) { it, size ->
+        return BitmapReference(ifNotNulls(bitmap, maxImageSize) { it, size ->
             resize(it, size)
-        } ?: bitmap
-    }.onFailure { log.w(it) { "Failed to load image" } }.getOrNull().let {
-        BitmapReference(it)
+        } ?: bitmap)
     }
 
     private suspend fun loadBitmap(uri: Uri) = withContext(readDispatcher) {
-        // TODO: use ImageDecoder.Source, @see ImageView.getDrawableFromUri
+        loadBitmapFromUri(uri)
+    }
+
+    // TODO: use ImageDecoder.Source, @see ImageView.getDrawableFromUri
+    private fun loadBitmapFromUri(uri: Uri) = runCatching {
         resolver.openInputStream(uri)?.use {
             BitmapFactory.decodeStream(it)
         }
-    }
+    }.onFailure { log.w(it) { "Failed to load bitmap" } }.getOrNull()
 
     private suspend fun resize(bitmap: Bitmap, size: Int) = withContext(resizeDispatcher) {
         bitmap.fitScaledTo(size, size).also { res ->
