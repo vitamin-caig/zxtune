@@ -13,7 +13,7 @@
                 type="app.zxtune.ui.browser.ListingEntry" />
     </data>
 
-    <RelativeLayout style="@style/ListItem">
+    <RelativeLayout style="@style/ListItem.Large">
 
         <FrameLayout
                 android:id="@+id/browser_entry_icon"
@@ -26,20 +26,29 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
-                    android:paddingLeft="0dp"
-                    android:paddingRight="@dimen/spacing_full"
-                    android:paddingVertical="@dimen/spacing_full"
+                    android:padding="@dimen/spacing_full"
                     app:resource="@{entry.getMainIcon()}"
                     tools:src="@sample/browser.json/data/icon" />
+
+            <ImageView
+                    android:id="@+id/browser_entry_main_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+                    android:paddingVertical="@dimen/spacing_half"
+                    android:paddingLeft="0dp"
+                    android:paddingRight="@dimen/spacing_full"
+                    android:scaleType="fitCenter"
+                    tools:src="@sample/browser.json/data/image" />
 
             <ImageView
                     android:id="@+id/browser_entry_additional_icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:paddingLeft="0dp"
-                    android:paddingRight="@dimen/spacing_full"
+                    android:paddingHorizontal="@dimen/spacing_half"
                     app:resource="@{entry.getAdditionalIcon()}"
+                    tools:layout_gravity="@sample/browser.json/data/badge_gravity"
                     tools:src="@sample/browser.json/data/badge" />
         </FrameLayout>
 
@@ -81,3 +90,4 @@
                 tools:text="@sample/browser.json/data/details" />
     </RelativeLayout>
 </layout>
+

@@ -111,9 +111,16 @@ fun <T1, T2, R> combineTransformLatest(
 
 suspend fun ViewPropertyAnimator.await() = suspendCancellableCoroutine { cont ->
     val listener = object : Animator.AnimatorListener {
+        private var canceled = false
         override fun onAnimationStart(animation: Animator) = Unit
-        override fun onAnimationEnd(animation: Animator) = cont.resume(this@await)
-        override fun onAnimationCancel(animation: Animator) = Unit
+        override fun onAnimationEnd(animation: Animator) {
+            if (!canceled && cont.isActive) cont.resume(this@await)
+        }
+
+        override fun onAnimationCancel(animation: Animator) {
+            canceled = true
+        }
+
         override fun onAnimationRepeat(animation: Animator) = Unit
     }
     setListener(listener)

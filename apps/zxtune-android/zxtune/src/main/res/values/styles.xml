@@ -17,6 +17,11 @@
         <item name="android:focusable">true</item>
     </style>
 
+    <style name="ListItem.Large">
+        <item name="android:layout_height">?android:listPreferredItemHeight</item>
+        <item name="android:paddingLeft">0px</item>
+    </style>
+
     <style name="Button" parent="Widget.AppCompat.Button.Borderless">
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_width">wrap_content</item>
