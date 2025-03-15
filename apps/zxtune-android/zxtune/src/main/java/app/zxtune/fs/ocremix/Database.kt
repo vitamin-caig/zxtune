@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.annotation.VisibleForTesting
 import androidx.room.ColumnInfo
 import androidx.room.Dao
+import androidx.room.DatabaseView
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Insert
@@ -18,8 +19,13 @@ import app.zxtune.TimeStamp
 import app.zxtune.fs.dbhelpers.Timestamps
 import app.zxtune.fs.dbhelpers.Utils
 
+/*
+ * Version 1 - initial
+ * Version 2 - avoid WITH statement with VIEW. Supported only from sqlite 3.8.3 (sdk 21+)
+ */
+
 const val NAME = "ocremix"
-const val VERSION = 1
+const val VERSION = 2
 
 class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) {
 
@@ -110,6 +116,15 @@ class SystemRecord(
 @Entity(tableName = "organizations", primaryKeys = ["id"])
 class OrganizationRecord(
     @Embedded val organization: Organization
+)
+
+@DatabaseView(
+    """
+    SELECT scopes.id AS owned,organizations.id AS id,organizations.title AS title FROM scopes 
+    INNER JOIN organizations ON scopes.scope=organizations.id""", viewName = "organizations_owned"
+)
+class OrganizationsOwned(
+    @PrimaryKey val owned: String, @Embedded val organization: Organization
 )
 
 @Entity(tableName = "games", primaryKeys = ["id"])
@@ -205,15 +220,12 @@ interface CatalogDao {
 
     @Query(
         """
-    WITH maybe_org(child,id,title) AS (
-     SELECT scopes.id,organizations.id,organizations.title FROM scopes 
-      INNER JOIN organizations ON scopes.scope=organizations.id)
     SELECT games.id AS g_id,games.title AS g_title,systems.id AS s_id,systems.title AS s_title,
-     maybe_org.id AS o_id,maybe_org.title AS o_title FROM games 
+     organizations_owned.id AS o_id,organizations_owned.title AS o_title FROM games 
      INNER JOIN scopes AS g_scopes ON games.id=g_scopes.id AND g_scopes.scope=:scope 
      INNER JOIN scopes AS s_scopes ON games.id=s_scopes.id 
      INNER JOIN systems ON systems.id=s_scopes.scope 
-     LEFT JOIN maybe_org ON games.id=maybe_org.child
+     LEFT JOIN organizations_owned ON games.id=organizations_owned.owned
     """
     )
     fun queryGames(scope: String): Array<QueriedGame>
@@ -303,6 +315,7 @@ object Converters {
 
 @androidx.room.Database(
     entities = [SystemRecord::class, OrganizationRecord::class, GameRecord::class, RemixRecord::class, AlbumRecord::class, ImageRecord::class, MusicRecord::class, ScopeRecord::class, Timestamps.DAO.Record::class],
+    views = [OrganizationsOwned::class],
     version = VERSION
 )
 @TypeConverters(Converters::class)
