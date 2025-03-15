@@ -28,7 +28,7 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
     fun cleanupFor(uri: Uri) = db.remove(uri)
 
     fun addEmbedded(id: Identifier, module: Module) {
-        if (!db.hasEmbedded(id)) {
+        if (null == db.findEmbedded(id)) {
             module.getPicture()?.let {
                 addPicture(id, it)
             }
@@ -56,24 +56,27 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
             }
         }
         LOG.d { "Added ${blob.size} bytes image for $id" }
-        db.addEmbedded(id, blob)
+        db.addImage(id, blob)
         blob
     } else {
         LOG.d { "Failed to parse raw image at $id" }
         null
     }
 
-    private fun addReference(id: Identifier, uri: Uri) = db.addExternal(id, uri).also {
+    private fun addReference(id: Identifier, uri: Uri) = db.addInferred(id, uri).also {
         LOG.d { "Added external picture $uri for $id" }
     }
 
-    fun imageFor(uri: Uri): Any? {
-        val ref = db.query(Identifier(uri)) ?: return uri // unknown, use self
-        return ref.externalPicture ?: ref.embeddedPicture
+    private fun bind(id: Identifier, uri: Uri) = db.addBoundImage(id, uri).also {
+        LOG.d { "Bind external picture $uri for $id" }
     }
 
+    fun imageFor(uri: Uri): Any? = db.queryImage(Identifier(uri))?.run {
+        return pic?.data ?: url
+    } ?: uri
+
     // Embedded to file
-    fun coverArtOf(id: Identifier) = if (db.hasEmbedded(id)) {
+    fun coverArtOf(id: Identifier) = if (null != db.findEmbedded(id)) {
         id.fullLocation
     } else {
         null
@@ -82,8 +85,8 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
     // External, bound to dir or archive
     fun albumArtOf(id: Identifier, dataObject: VfsObject): Uri? {
         // cached
-        db.query(id)?.run {
-            return externalPicture
+        db.queryImageReferences(id)?.let {
+            return it.url
         }
         // Do not mix archive and storage worlds
         if (id.archiveEntryName != null) {
@@ -92,8 +95,8 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
         var ref = dataObject.parent
         while (ref != null) {
             val refId = Identifier(ref.uri)
-            db.query(refId)?.run {
-                return externalPicture
+            db.queryImageReferences(refId)?.let {
+                return it.url
             }
             ref.coverArtUri?.let {
                 // cache coverart for object
@@ -113,23 +116,20 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
     fun archiveArtOf(id: Identifier, dataObject: VfsObject): Uri? {
         require(id.subPath.isNotEmpty())
         val dataLocation = id.dataLocation
+        val dataId = Identifier(dataLocation)
         // per-archive as reference
-        db.query(Identifier(dataLocation))?.run {
-            externalPicture?.let {
-                return it
-            }
-            if (embeddedPicture == null) {
-                // no any icons
-                return null
-            }
+        db.queryImageReferences(dataId)?.let {
+            return it.url
         }
         val images = ImagesSet(db.listArchiveImages(dataLocation))
         if (images.isEmpty()) {
             LOG.d { "Archive $dataLocation has no images" }
-            return dataObject.coverArtUri.also {
-                if (true != it?.isRandomized()) {
-                    db.setArchiveImage(dataLocation, it)
-                }
+            return dataObject.coverArtUri.also { artUri ->
+                artUri?.let {
+                    if (!it.isRandomized()) {
+                        bind(dataId, it)
+                    }
+                } ?: db.setNoImage(dataId)
             }
         }
 

@@ -123,17 +123,17 @@ class CoverartServiceTest {
     @Test
     fun `addEmbedded cached`() {
         db.stub {
-            on { hasEmbedded(any()) } doReturn true
+            on { findEmbedded(any()) } doReturn mock()
         }
         underTest.addEmbedded(archivedModuleId, module)
-        verify(db).hasEmbedded(archivedModuleId)
+        verify(db).findEmbedded(archivedModuleId)
     }
 
     @Test
     fun `addEmbedded absent`() {
         underTest.addEmbedded(archivedModuleId, module)
         inOrder(db, module) {
-            verify(db).hasEmbedded(archivedModuleId)
+            verify(db).findEmbedded(archivedModuleId)
             verify(module).getProperty(ModuleAttributes.PICTURE, null)
         }
     }
@@ -145,7 +145,7 @@ class CoverartServiceTest {
         }
         underTest.addEmbedded(archivedModuleId, module)
         inOrder(db, module, ShadowBitmapFactory.mock) {
-            verify(db).hasEmbedded(archivedModuleId)
+            verify(db).findEmbedded(archivedModuleId)
             verify(module).getProperty(ModuleAttributes.PICTURE, null)
             verify(ShadowBitmapFactory.mock).invoke(picBlob, 0, picBlob.size)
         }
@@ -166,7 +166,7 @@ class CoverartServiceTest {
         }
         underTest.addEmbedded(archivedModuleId, module)
         inOrder(db, module, ShadowBitmapFactory.mock, bitmap) {
-            verify(db).hasEmbedded(archivedModuleId)
+            verify(db).findEmbedded(archivedModuleId)
             verify(module).getProperty(ModuleAttributes.PICTURE, null)
             verify(ShadowBitmapFactory.mock).invoke(picBlob, 0, picBlob.size)
             verify(bitmap).width
@@ -174,65 +174,63 @@ class CoverartServiceTest {
             verify(bitmap).allocationByteCount
             verify(bitmap).compress(eq(Bitmap.CompressFormat.JPEG), eq(90), any())
             verify(bitmap).recycle()
-            verify(db).addEmbedded(eq(archivedModuleId), argThat<ByteArray> { isEmpty() })
+            verify(db).addImage(eq(archivedModuleId), argThat<ByteArray> { isEmpty() })
         }
     }
 
     @Test
     fun `imageFor cases`() {
         db.stub {
-            on { query(any()) } doReturn null doReturn Reference(
-                archivedModuleId.dataLocation, archivedModuleId.subPath
-            ) doReturn Reference(
-                archivedModuleId.dataLocation, archivedModuleId.subPath, externalPicture = picUri
-            ) doReturn Reference(
-                archivedModuleId.dataLocation, archivedModuleId.subPath, embeddedPicture = picBlob
-            )
+            on { queryImage(any()) } doReturn null doReturn PicOrUrl(null, null) doReturn PicOrUrl(
+                picUri
+            ) doReturn PicOrUrl(picBlob)
         }
         assertSame("unknown", archiveUri, underTest.imageFor(archiveUri))
         assertEquals("no images", null, underTest.imageFor(archiveUri))
         assertSame("external image", picUri, underTest.imageFor(archiveUri))
         assertSame("embedded image", picBlob, underTest.imageFor(archiveUri))
 
-        verify(db, times(4)).query(argThat { dataLocation == archiveUri && subPath == "" })
+        verify(db, times(4)).queryImage(argThat { dataLocation == archiveUri && subPath == "" })
     }
 
     @Test
     fun `coverArtOf cases`() {
         db.stub {
-            on { hasEmbedded(any()) } doReturn false doReturn true
+            on { findEmbedded(any()) } doReturn null doReturn mock()
         }
 
         assertEquals("unknown", null, underTest.coverArtOf(archivedModuleId))
         assertEquals("known", archivedModuleId.fullLocation, underTest.coverArtOf(archivedModuleId))
 
-        verify(db, times(2)).hasEmbedded(archivedModuleId)
+        verify(db, times(2)).findEmbedded(archivedModuleId)
     }
 
     @Test
     fun `albumArtOf cached`() {
+        // Dunno why inlined mock doesn't work...
+        val picRef = mock<Reference.Target> {
+            on { url } doReturn picUri
+        }
         db.stub {
-            on { query(any()) } doReturn Reference(
-                archivedModuleId.dataLocation, archivedModuleId.subPath, externalPicture = picUri
-            )
+            on { queryImageReferences(any()) } doReturn picRef
         }
         assertSame(picUri, underTest.albumArtOf(archivedModuleId, obj))
 
-        verify(db).query(archivedModuleId)
+        verify(db).queryImageReferences(archivedModuleId)
     }
 
     @Test
     fun `albumArtOf archive with cached image`() {
         db.stub {
-            on { query(any()) } doReturn null doReturn Reference(
-                Uri.EMPTY, "unused", externalPicture = picUri
-            )
+            on { queryImageReferences(any()) } doReturn null doReturn mock {
+                on { url } doReturn picUri
+            }
         }
         assertSame(picUri, underTest.albumArtOf(archivedModuleId, obj))
 
         inOrder(db) {
-            verify(db).query(archivedModuleId)
-            verify(db).query(archiveId)
+            verify(db).queryImageReferences(archivedModuleId)
+            verify(db).queryImageReferences(archiveId)
         }
     }
 
@@ -244,11 +242,11 @@ class CoverartServiceTest {
     @Test
     fun `archiveArtOf cached archive with no images`() {
         db.stub {
-            on { query(any()) } doReturn Reference(Uri.EMPTY, "unused")
+            on { queryImageReferences(any()) } doReturn mock()
         }
         assertNull(underTest.archiveArtOf(archivedModuleId, obj))
 
-        verify(db).query(archiveId)
+        verify(db).queryImageReferences(archiveId)
     }
 
     @Test
@@ -256,10 +254,10 @@ class CoverartServiceTest {
         assertNull(underTest.archiveArtOf(archivedModuleId, obj))
 
         inOrder(db, obj) {
-            verify(db).query(archiveId)
+            verify(db).queryImageReferences(archiveId)
             verify(db).listArchiveImages(archiveUri)
             verify(obj).getExtension(VfsExtensions.COVER_ART_URI)
-            verify(db).setArchiveImage(archiveUri, null)
+            verify(db).setNoImage(archiveId)
         }
     }
 
@@ -271,10 +269,10 @@ class CoverartServiceTest {
         assertEquals(picUri, underTest.archiveArtOf(archivedModuleId, obj))
 
         inOrder(db, obj) {
-            verify(db).query(archiveId)
+            verify(db).queryImageReferences(archiveId)
             verify(db).listArchiveImages(archiveUri)
             verify(obj).getExtension(VfsExtensions.COVER_ART_URI)
-            verify(db).setArchiveImage(archiveUri, picUri)
+            verify(db).addBoundImage(archiveId, picUri)
         }
     }
 
@@ -286,7 +284,7 @@ class CoverartServiceTest {
         assertEquals(archivedPicId.fullLocation, underTest.archiveArtOf(archivedModuleId, obj))
 
         inOrder(db) {
-            verify(db).query(archiveId)
+            verify(db).queryImageReferences(archiveId)
             verify(db).listArchiveImages(archiveUri)
         }
     }
@@ -299,7 +297,7 @@ class CoverartServiceTest {
         assertEquals(archivedPicId.fullLocation, underTest.archiveArtOf(archivedModuleId, obj))
 
         inOrder(db) {
-            verify(db).query(archiveId)
+            verify(db).queryImageReferences(archiveId)
             verify(db).listArchiveImages(archiveUri)
             // image is not set for archive - depends on module
         }
@@ -310,11 +308,11 @@ class CoverartServiceTest {
         assertNull(underTest.albumArtOf(archivedModuleId, obj))
 
         inOrder(db, obj) {
-            verify(db).query(archivedModuleId)
-            verify(db).query(archiveId)
+            verify(db).queryImageReferences(archivedModuleId)
+            verify(db).queryImageReferences(archiveId)
             verify(db).listArchiveImages(archiveUri)
             verify(obj).getExtension(VfsExtensions.COVER_ART_URI)
-            verify(db).setArchiveImage(archiveUri, null)
+            verify(db).setNoImage(archiveId)
         }
     }
 
@@ -325,20 +323,20 @@ class CoverartServiceTest {
             on { parent } doReturn obj
         }
         db.stub {
-            on { query(any()) } doReturn null doReturn null doReturn Reference(
-                Uri.EMPTY, "unused", externalPicture = picUri
-            )
+            on { queryImageReferences(any()) } doReturn null doReturn null doReturn mock {
+                on { url } doReturn picUri
+            }
         }
         assertEquals(picUri, underTest.albumArtOf(moduleId, obj))
         inOrder(db, obj) {
-            verify(db).query(moduleId)
+            verify(db).queryImageReferences(moduleId)
             verify(obj).parent
             verify(obj).uri
-            verify(db).query(Identifier(dirUri))
+            verify(db).queryImageReferences(Identifier(dirUri))
             verify(obj).getExtension(VfsExtensions.COVER_ART_URI)
             verify(obj).parent
             verify(obj).uri
-            verify(db).query(Identifier(rootUri))
+            verify(db).queryImageReferences(Identifier(rootUri))
         }
     }
 
@@ -351,13 +349,13 @@ class CoverartServiceTest {
         }
         assertEquals(picUri, underTest.albumArtOf(complexModuleId, obj))
         inOrder(db, obj) {
-            verify(db).query(complexModuleId)
+            verify(db).queryImageReferences(complexModuleId)
             verify(obj).parent
             verify(obj).uri
-            verify(db).query(Identifier(dirUri))
+            verify(db).queryImageReferences(Identifier(dirUri))
             verify(obj).getExtension(VfsExtensions.COVER_ART_URI)
-            verify(db).addExternal(complexModuleId, picUri)
-            verify(db).addExternal(Identifier(dirUri), picUri)
+            verify(db).addInferred(complexModuleId, picUri)
+            verify(db).addInferred(Identifier(dirUri), picUri)
         }
     }
 }
