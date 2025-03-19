@@ -51,7 +51,7 @@ class Provider @VisibleForTesting internal constructor(
 
     private fun query(uri: Uri, projection: Array<String>?, signal: CancellationSignal?) =
         runCatching {
-            if (Query.TYPE_NOTIFICATION == Query.getUriType(uri)) {
+            if (Query.Type.NOTIFICATION == Query.getUriType(uri)) {
                 queryNotification(uri)
             } else {
                 val op = createOperation(uri, projection, makeCallback(uri, signal))
@@ -101,19 +101,19 @@ class Provider @VisibleForTesting internal constructor(
     ): AsyncQueryOperation {
         val path = Query.getPathFrom(uri)
         return when (Query.getUriType(uri)) {
-            Query.TYPE_RESOLVE -> ResolveOperation(path, resolver, schema, callback)
-            Query.TYPE_LISTING -> ListingOperation(path, resolver, schema, callback)
-            Query.TYPE_PARENTS -> ParentsOperation(path, resolver, schema)
-            Query.TYPE_SEARCH -> SearchOperation(
+            Query.Type.RESOLVE -> ResolveOperation(path, resolver, schema, callback)
+            Query.Type.LISTING -> ListingOperation(path, resolver, schema, callback)
+            Query.Type.PARENTS -> ParentsOperation(path, resolver, schema)
+            Query.Type.SEARCH -> SearchOperation(
                 path, resolver, schema, callback, Query.getQueryFrom(uri)
             )
 
-            Query.TYPE_FILE -> FileOperation(path, Query.getSizeFrom(uri), resolver, projection)
+            Query.Type.FILE -> FileOperation(path, Query.getSizeFrom(uri), resolver, projection)
             else -> throw UnsupportedOperationException("Unsupported uri $uri")
         }
     }
 
-    override fun getType(uri: Uri) = Query.mimeTypeOf(uri)
+    override fun getType(uri: Uri) = Query.getUriType(uri)?.mime
 
     override fun insert(uri: Uri, values: ContentValues?): Uri? = null
 
@@ -124,7 +124,7 @@ class Provider @VisibleForTesting internal constructor(
     ): Int = 0
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
-        require(Query.getUriType(uri) == Query.TYPE_FILE)
+        require(Query.getUriType(uri) == Query.Type.FILE)
         require("r" == mode) { "Invalid mode: $mode" }
         val path = Query.getPathFrom(uri)
         val size = Query.getSizeFrom(uri)

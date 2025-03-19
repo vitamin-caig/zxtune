@@ -8,7 +8,6 @@ package app.zxtune.fs.provider
 import android.content.ContentResolver
 import android.content.UriMatcher
 import android.net.Uri
-import androidx.annotation.IntDef
 
 /*
  * ${path} is full data uri (including subpath in fragment) stored as string
@@ -21,27 +20,23 @@ import androidx.annotation.IntDef
  * content://app.zxtune.vfs/notification/${path} - get path-related notification
  */
 internal object Query {
-    @Retention(AnnotationRetention.SOURCE)
-    @IntDef(
-        TYPE_RESOLVE, TYPE_LISTING, TYPE_PARENTS, TYPE_SEARCH, TYPE_FILE, TYPE_NOTIFICATION
-    )
-    annotation class Type
+    enum class Type(val path: String, val mime: String) {
+        RESOLVE("resolve", MIME_ITEM),
 
-    const val TYPE_RESOLVE = 0
-    const val TYPE_LISTING = 1
-    const val TYPE_PARENTS = 2
-    const val TYPE_SEARCH = 3
-    const val TYPE_FILE = 4
-    const val TYPE_NOTIFICATION = 5
+        LISTING("listing", MIME_ITEMS_SET),
+
+        PARENTS("parents", MIME_SIMPLE_ITEMS_SET),
+
+        SEARCH("search", MIME_ITEMS_SET),
+
+        FILE("file", MIME_ITEM),
+
+        NOTIFICATION("notification", MIME_NOTIFICATION),
+    }
+
     private const val AUTHORITY = "app.zxtune.vfs"
-    private const val RESOLVE_PATH = "resolve"
-    private const val LISTING_PATH = "listing"
-    private const val PARENTS_PATH = "parents"
-    private const val SEARCH_PATH = "search"
     private const val QUERY_PARAM = "query"
-    private const val FILE_PATH = "file"
     private const val SIZE_PARAM = "size"
-    private const val NOTIFICATION_PATH = "notification"
     private const val ITEM_SUBTYPE = "vnd.$AUTHORITY.item"
     private const val SIMPLE_ITEM_SUBTYPE = "vnd.$AUTHORITY.simple_item"
     private const val NOTIFICATION_SUBTYPE = "vnd.$AUTHORITY.notification"
@@ -52,62 +47,46 @@ internal object Query {
     private const val MIME_NOTIFICATION =
         "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$NOTIFICATION_SUBTYPE"
     private val uriTemplate = UriMatcher(UriMatcher.NO_MATCH).apply {
-        addURI(AUTHORITY, RESOLVE_PATH, TYPE_RESOLVE)
-        addURI(AUTHORITY, "$RESOLVE_PATH/*", TYPE_RESOLVE)
-        addURI(AUTHORITY, LISTING_PATH, TYPE_LISTING)
-        addURI(AUTHORITY, "$LISTING_PATH/*", TYPE_LISTING)
-        addURI(AUTHORITY, PARENTS_PATH, TYPE_PARENTS)
-        addURI(AUTHORITY, "$PARENTS_PATH/*", TYPE_PARENTS)
-        addURI(AUTHORITY, SEARCH_PATH, TYPE_SEARCH)
-        addURI(AUTHORITY, "$SEARCH_PATH/*", TYPE_SEARCH)
-        addURI(AUTHORITY, "$FILE_PATH/*", TYPE_FILE)
-        addURI(AUTHORITY, "$NOTIFICATION_PATH", TYPE_NOTIFICATION)
-        addURI(AUTHORITY, "$NOTIFICATION_PATH/*", TYPE_NOTIFICATION)
+        Type.entries.forEach {
+            // Empty path for empty root url
+            addURI(AUTHORITY, it.path, it.ordinal)
+            addURI(AUTHORITY, "${it.path}/*", it.ordinal)
+        }
     }
 
-    //! @return Mime type of uri (used in content provider)
-    fun mimeTypeOf(uri: Uri) = when (uriTemplate.match(uri)) {
-        TYPE_RESOLVE, TYPE_FILE -> MIME_ITEM
-        TYPE_LISTING, TYPE_SEARCH -> MIME_ITEMS_SET
-        TYPE_PARENTS -> MIME_SIMPLE_ITEMS_SET
-        TYPE_NOTIFICATION -> MIME_NOTIFICATION
-        else -> throw IllegalArgumentException("Wrong URI: $uri")
-    }
+    fun getUriType(uri: Uri) = Type.entries.getOrNull(uriTemplate.match(uri))
 
-    fun getPathFrom(uri: Uri): Uri = when (uriTemplate.match(uri)) {
-        TYPE_RESOLVE, TYPE_LISTING, TYPE_PARENTS, TYPE_SEARCH, TYPE_FILE, TYPE_NOTIFICATION ->
-            uri.pathSegments.getOrNull(1)?.let { Uri.parse(it) } ?: Uri.EMPTY
+    fun getPathFrom(uri: Uri): Uri = when (getUriType(uri)) {
+        Type.RESOLVE, Type.LISTING, Type.PARENTS, Type.SEARCH, Type.FILE, Type.NOTIFICATION -> uri.pathSegments.getOrNull(
+            1
+        )?.let { Uri.parse(it) } ?: Uri.EMPTY
+
         else -> throw IllegalArgumentException("Wrong URI: $uri")
     }
 
     fun getQueryFrom(uri: Uri) =
-        uri.takeIf { uriTemplate.match(uri) == TYPE_SEARCH }?.getQueryParameter(QUERY_PARAM)
+        uri.takeIf { getUriType(uri) == Type.SEARCH }?.getQueryParameter(QUERY_PARAM)
             ?: throw IllegalArgumentException("Wrong search URI: $uri")
 
     fun getSizeFrom(uri: Uri) =
-        uri.takeIf { uriTemplate.match(uri) == TYPE_FILE }?.getQueryParameter(SIZE_PARAM)
-            ?.toLongOrNull() ?: throw IllegalArgumentException("Wrong file URI: $uri")
+        uri.takeIf { getUriType(uri) == Type.FILE }?.getQueryParameter(SIZE_PARAM)?.toLongOrNull()
+            ?: throw IllegalArgumentException("Wrong file URI: $uri")
 
-    @Type
-    fun getUriType(uri: Uri) = uriTemplate.match(uri)
+    fun resolveUriFor(uri: Uri): Uri = makeUri(Type.RESOLVE, uri).build()
 
-    fun resolveUriFor(uri: Uri): Uri = makeUri(RESOLVE_PATH, uri).build()
+    fun listingUriFor(uri: Uri): Uri = makeUri(Type.LISTING, uri).build()
 
-    fun listingUriFor(uri: Uri): Uri = makeUri(LISTING_PATH, uri).build()
-
-    fun parentsUriFor(uri: Uri): Uri = makeUri(PARENTS_PATH, uri).build()
+    fun parentsUriFor(uri: Uri): Uri = makeUri(Type.PARENTS, uri).build()
 
     fun searchUriFor(uri: Uri, query: String): Uri =
-        makeUri(SEARCH_PATH, uri).appendQueryParameter(QUERY_PARAM, query).build()
+        makeUri(Type.SEARCH, uri).appendQueryParameter(QUERY_PARAM, query).build()
 
     fun fileUriFor(uri: Uri, size: Long): Uri =
-        makeUri(FILE_PATH, uri).appendQueryParameter(SIZE_PARAM, size.toString()).build()
+        makeUri(Type.FILE, uri).appendQueryParameter(SIZE_PARAM, size.toString()).build()
 
-    fun notificationUriFor(uri: Uri): Uri = makeUri(NOTIFICATION_PATH, uri).build()
+    fun notificationUriFor(uri: Uri): Uri = makeUri(Type.NOTIFICATION, uri).build()
 
-    private fun makeUri(path: String, uri: Uri) = Uri.Builder()
-        .scheme(ContentResolver.SCHEME_CONTENT)
-        .authority(AUTHORITY)
-        .encodedPath(path)
-        .appendPath(uri.toString())
+    private fun makeUri(type: Type, uri: Uri) =
+        Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
+            .encodedPath(type.path).appendPath(uri.toString())
 }
