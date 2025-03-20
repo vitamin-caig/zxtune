@@ -335,8 +335,8 @@ class BrowserFragmentTest {
                 entries = Array(dirs + files) { idx ->
                     val builder = uri.buildUpon()
                     if (idx < dirs) {
-                        ListingEntry.makeFolder(uri = builder.appendEncodedPath("dir$idx")
-                            .build(),
+                        ListingEntry.makeFolder(
+                            uri = builder.appendEncodedPath("dir$idx").build(),
                             title = "Dir$idx",
                             description = "Directory $idx",
                             icon = folderIcon().takeIf { idx == 0 } // first one

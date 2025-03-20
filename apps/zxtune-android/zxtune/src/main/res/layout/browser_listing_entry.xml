@@ -8,8 +8,6 @@
 
         <import type="android.view.View" />
 
-        <import type="android.text.TextUtils" />
-
         <variable
                 name="entry"
                 type="app.zxtune.ui.browser.ListingEntry" />
@@ -17,15 +15,33 @@
 
     <RelativeLayout style="@style/ListItem">
 
-        <ImageView
+        <FrameLayout
                 android:id="@+id/browser_entry_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_centerVertical="true"
-                android:layout_marginRight="?android:listPreferredItemPaddingLeft"
-                app:resource="@{entry.getDisplayIcon()}"
-                tools:src="@drawable/ic_browser_folder" />
+                android:layout_width="?android:listPreferredItemHeight"
+                android:layout_height="match_parent"
+                android:layout_alignParentLeft="true">
+
+            <ImageView
+                    android:id="@+id/browser_entry_main_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:paddingLeft="0dp"
+                    android:paddingRight="@dimen/spacing_full"
+                    android:paddingVertical="@dimen/spacing_full"
+                    app:resource="@{entry.getMainIcon()}"
+                    tools:src="@sample/browser.json/data/icon" />
+
+            <ImageView
+                    android:id="@+id/browser_entry_additional_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:paddingLeft="0dp"
+                    android:paddingRight="@dimen/spacing_full"
+                    app:resource="@{entry.getAdditionalIcon()}"
+                    tools:src="@sample/browser.json/data/badge" />
+        </FrameLayout>
 
         <LinearLayout
                 android:layout_width="match_parent"
@@ -41,17 +57,16 @@
                     android:maxLines="1"
                     android:text="@{entry.title}"
                     android:textAppearance="?android:textAppearanceListItem"
-                    tools:text="@tools:sample/lorem/random" />
+                    tools:text="@sample/browser.json/data/title" />
 
             <TextView
                     android:id="@+id/list_item_text_aux"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:maxLines="1"
-                    android:text="@{entry.description}"
+                    app:text="@{entry.description}"
                     android:textAppearance="?textAppearanceListItemSecondary"
-                    android:visibility="@{TextUtils.isEmpty(entry.description) ? View.GONE : View.VISIBLE}"
-                    tools:text="@tools:sample/full_names" />
+                    tools:text="@sample/browser.json/data/subtitle" />
         </LinearLayout>
 
         <TextView
@@ -61,9 +76,8 @@
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="?android:listPreferredItemPaddingRight"
-                android:text="@{entry.details}"
+                app:text="@{entry.details}"
                 android:textAppearance="?android:textAppearanceListItemSmall"
-                android:visibility="@{TextUtils.isEmpty(entry.details) ? View.GONE : View.VISIBLE}"
-                tools:text="@tools:sample/date/day_of_week" />
+                tools:text="@sample/browser.json/data/details" />
     </RelativeLayout>
 </layout>

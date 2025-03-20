@@ -1,0 +1,51 @@
+{"data": [
+ {
+   "title": "Folder",
+   "subtitle": "Regular",
+   "details": " ",
+   "icon": "@drawable/ic_browser_folder",
+   "badge": 0
+ },
+ {
+   "title": "Folder",
+   "subtitle": "With icon",
+   "details": " ",
+   "icon": "@drawable/ic_browser_vfs_aminet",
+   "badge": 0
+ },
+ {
+   "title": "File",
+   "subtitle": "Remote",
+   "details": "123",
+   "icon": "@drawable/ic_browser_file",
+   "badge": "@drawable/ic_browser_file_remote"
+ },
+ {
+   "title": "File",
+   "subtitle": "Unknown",
+   "details": "45kB",
+   "icon": "@drawable/ic_browser_file",
+   "badge": "@drawable/ic_browser_file_unknown"
+ },
+ {
+   "title": "File",
+   "subtitle": "Archive",
+   "details": "67Mb",
+   "icon": "@drawable/ic_browser_file",
+   "badge": "@drawable/ic_browser_file_archive"
+ },
+ {
+   "title": "File",
+   "subtitle": "Track",
+   "details": "8Gb",
+   "icon": "@drawable/ic_browser_file",
+   "badge": "@drawable/ic_browser_file_track"
+ },
+ {
+   "title": "File",
+   "subtitle": "Unsupported",
+   "details": "82Gb",
+   "icon": "@drawable/ic_browser_file",
+   "badge": 0
+ }
+]}

@@ -12,8 +12,6 @@ import app.zxtune.analytics.Analytics
 import app.zxtune.fs.provider.Schema
 import app.zxtune.fs.provider.VfsProviderClient
 import app.zxtune.fs.provider.VfsProviderClient.ParentsCallback
-import app.zxtune.ui.browser.ListingEntry.Companion.makeFile
-import app.zxtune.ui.browser.ListingEntry.Companion.makeFolder
 import app.zxtune.ui.utils.FilteredListState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -396,11 +394,11 @@ class Model @VisibleForTesting internal constructor(
             entry.title.contains(filter, true) || entry.description.contains(filter, true)
 
         private fun makeFolder(dir: Schema.Listing.Dir) = dir.run {
-            makeFolder(uri, name, description, icon)
+            ListingEntry.makeFolder(uri, name, description, icon)
         }
 
         private fun makeFile(file: Schema.Listing.File) = file.run {
-            makeFile(uri, name, description, details, tracks, isCached)
+            ListingEntry.makeFile(uri, name, description, details, tracks, isCached)
         }
     }
 }

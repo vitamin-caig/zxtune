@@ -526,15 +526,9 @@ private fun matchState(
 }
 
 private fun VfsProviderClient.ListingCallback.feed(entry: ListingEntry) = with(entry) {
-    when (type) {
-        ListingEntry.FILE -> onFile(
-            Schema.Listing.File(
-                uri, title, description, details.orEmpty(), tracks, cached
-            )
-        )
-
-        ListingEntry.FOLDER -> onDir(Schema.Listing.Dir(uri, title, description, icon, false))
-    }
+    details?.let {
+        onFile(Schema.Listing.File(uri, title, description, it, null, null))
+    } ?: onDir(Schema.Listing.Dir(uri, title, description, mainIcon, false))
 }
 
 private fun VfsProviderClient.ParentsCallback.feed(entry: BreadcrumbsEntry) = with(entry) {
