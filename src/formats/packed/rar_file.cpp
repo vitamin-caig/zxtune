@@ -224,8 +224,13 @@ namespace Formats::Packed
     String FileBlockHeader::GetName() const
     {
       const auto* const self = safe_ptr_cast<const uint8_t*>(this);
-      const uint8_t* const filename = self + (IsBigFile() ? sizeof(BigFileBlockHeader) : sizeof(FileBlockHeader));
-      return {filename, filename + NameSize};
+      const auto* const filename = self + (IsBigFile() ? sizeof(BigFileBlockHeader) : sizeof(FileBlockHeader));
+      auto* end = filename + NameSize;
+      if (Extended.Block.Flags & FileBlockHeader::FLAG_UNICODE_FILENAME)
+      {
+        end = std::find(filename, end, '\0');
+      }
+      return {filename, end};
     }
 
     bool FileBlockHeader::IsValid() const

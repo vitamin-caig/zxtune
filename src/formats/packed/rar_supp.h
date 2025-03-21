@@ -87,6 +87,7 @@ namespace Formats::Packed::Rar
       FLAG_SOLID = 0x10,
       FLAG_DIRECTORY = 0xe0,
       FLAG_BIG_FILE = 0x100,
+      FLAG_UNICODE_FILENAME = 0x200,
 
       MIN_VERSION = 15,
       MAX_VERSION = 36
