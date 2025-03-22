@@ -1,7 +1,11 @@
 package app.zxtune.coverart
 
-import android.net.Uri
+import android.content.Context
+import app.zxtune.core.Identifier
 
-object CoverartProviderClient {
-    fun getUriFor(uri: Uri) = Query.uriFor(uri)
+class CoverartProviderClient(ctx: Context) {
+    private val resolver = ctx.contentResolver
+
+    fun getMediaUris(id: Identifier) =
+        resolver.call(Query.rootUri, Provider.METHOD_GET_MEDIA_URIS, id.toString(), null)
 }

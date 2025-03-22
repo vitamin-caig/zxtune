@@ -15,7 +15,6 @@ import app.zxtune.core.Identifier
 import app.zxtune.core.ModuleAttributes
 import app.zxtune.coverart.BitmapLoader
 import app.zxtune.coverart.CoverartProviderClient
-import app.zxtune.coverart.CoverartService
 import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.shareUrl
@@ -34,6 +33,7 @@ internal class StatusCallback private constructor(
 ) : Callback {
     private val builder = PlaybackStateCompat.Builder()
     private val scope = MainScope()
+    private val coverartClient = CoverartProviderClient(ctx)
     private val lockscreenImageUrl = AtomicReference<Uri>()
     private val bitmapLoader by lazy {
         BitmapLoader("lockscreen", ctx, maxSize = 5, maxImageSize = 320)
@@ -88,11 +88,37 @@ internal class StatusCallback private constructor(
         }
         fillObjectUrls(dataId, builder).takeIf { Build.VERSION.SDK_INT <= 29 }?.let {
             // https://developer.android.com/media/legacy/mediasession#album_artwork
-            fillAlbumArtwork(CoverartProviderClient.getUriFor(it), builder)
+            fillAlbumArtwork(it, builder)
         }
         session.setMetadata(builder.build())
     } catch (e: Exception) {
         LOG.w(e) { "onItemChanged()" }
+    }
+
+    private fun fillObjectUrls(
+        dataId: Identifier, builder: MediaMetadataCompat.Builder
+    ): Uri? = with(builder) {
+        try {
+            val obj = Vfs.resolve(dataId.dataLocation)
+            putNonEmptyString(VfsExtensions.SHARE_URL, obj.shareUrl)
+            coverartClient.getMediaUris(dataId)?.let { uris ->
+                var preferableResult: Uri? = null
+                for (key in arrayOf(
+                    MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI,
+                    MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI,
+                    MediaMetadataCompat.METADATA_KEY_ART_URI
+                )) {
+                    uris.getParcelable<Uri>(key)?.let {
+                        preferableResult = it
+                        putString(key, it.toString())
+                    }
+                }
+                return preferableResult
+            }
+        } catch (e: Exception) {
+            LOG.w(e) { "Failed to get object urls" }
+        }
+        return null
     }
 
     override fun onError(e: String) {
@@ -133,39 +159,11 @@ internal class StatusCallback private constructor(
                 session.setRepeatMode(trackMode.toRepeatMode())
             }
         })
-
-        private fun fillObjectUrls(
-            dataId: Identifier, builder: MediaMetadataCompat.Builder
-        ): Uri? = with(builder) {
-            try {
-                val location = dataId.dataLocation
-                val obj = Vfs.resolve(location)
-                putNonEmptyString(VfsExtensions.SHARE_URL, obj.shareUrl)
-                with(CoverartService.get()) {
-                    val coverArt = coverArtOf(dataId)
-                    val albumArt = albumArtOf(dataId, obj)
-                    val displayIcon = iconOf(dataId)
-                    maybeAddImageUri(MediaMetadataCompat.METADATA_KEY_ART_URI, coverArt)
-                    maybeAddImageUri(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, albumArt)
-                    maybeAddImageUri(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, displayIcon)
-                    return coverArt ?: albumArt ?: displayIcon
-                }
-            } catch (e: Exception) {
-                LOG.w(e) { "Failed to get object urls" }
-            }
-            return null
-        }
     }
 }
 
 private fun MediaMetadataCompat.Builder.putNonEmptyString(key: String, value: String?) = apply {
     if (!TextUtils.isEmpty(value)) {
         putString(key, value)
-    }
-}
-
-private fun MediaMetadataCompat.Builder.maybeAddImageUri(key: String, value: Uri?) = apply {
-    if (value != null) {
-        putString(key, CoverartProviderClient.getUriFor(value).toString())
     }
 }

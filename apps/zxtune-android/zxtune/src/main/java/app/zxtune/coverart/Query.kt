@@ -14,14 +14,16 @@ import app.zxtune.BuildConfig
 internal object Query {
 
     private const val AUTHORITY = "${BuildConfig.APPLICATION_ID}.coverart"
+    private val baseUriBuilder
+        get() = Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
 
     private val uriTemplate = UriMatcher(UriMatcher.NO_MATCH).apply {
         addURI(AUTHORITY, "*", 0)
     }
 
-    fun uriFor(uri: Uri): Uri =
-        Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
-            .appendPath(uri.toString()).build()
+    val rootUri: Uri = baseUriBuilder.build()
+
+    fun uriFor(uri: Uri): Uri = baseUriBuilder.appendPath(uri.toString()).build()
 
     fun getPathFrom(uri: Uri): Uri = when (uriTemplate.match(uri)) {
         UriMatcher.NO_MATCH -> throw IllegalArgumentException("Wrong URI: $uri")

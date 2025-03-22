@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
+import android.support.v4.media.MediaMetadataCompat
 import androidx.annotation.DrawableRes
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.content.res.AppCompatResources
@@ -32,10 +33,10 @@ class Provider @VisibleForTesting internal constructor(
 ) : ContentProvider() {
     constructor() : this(::resolve)
 
+    private val svc = CoverartService.get()
     private val source = CoversSource(1_048_576, this::loadImage)
 
     private fun loadImage(uri: Uri, size: Point?): ByteBuffer? {
-        val svc = CoverartService.get()
         val img = svc.imageFor(uri) ?: return null
         (img as? ByteArray)?.let {
             LOG.d { "Load blob image for $uri" }
@@ -96,6 +97,24 @@ class Provider @VisibleForTesting internal constructor(
         uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?
     ) = TODO("Not yet implemented")
 
+    override fun call(method: String, arg: String?, extras: Bundle?) = when (method) {
+        METHOD_GET_MEDIA_URIS -> arg?.let { getMediaUris(Identifier.parse(it)) }
+        else -> null
+    }
+
+    private fun getMediaUris(id: Identifier) = resolve(id.dataLocation)?.let { obj ->
+        Bundle().apply {
+            svc.coverArtOf(id)?.let {
+                putParcelable(MediaMetadataCompat.METADATA_KEY_ART_URI, Query.uriFor(it))
+            } ?: svc.albumArtOf(id, obj)?.let {
+                putParcelable(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, Query.uriFor(it))
+            }
+            putParcelable(
+                MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, Query.uriFor(svc.iconOf(id))
+            )
+        }
+    }
+
     override fun openFile(uri: Uri, mode: String) = openPipeHelper(
         Query.getPathFrom(uri), "image/*", null, null, ImageDataWriter(source)
     )
@@ -132,6 +151,7 @@ class Provider @VisibleForTesting internal constructor(
     companion object {
         internal val LOG = Logger(Provider::class.java.name)
         private val DEFAULT_ICON_SIZE = Point(256, 256)
+        internal const val METHOD_GET_MEDIA_URIS = "get_media_uris"
 
         private fun sizeFrom(opts: Bundle?) = if (Build.VERSION.SDK_INT >= 21) {
             opts?.getParcelable<Point>(ContentResolver.EXTRA_SIZE)
