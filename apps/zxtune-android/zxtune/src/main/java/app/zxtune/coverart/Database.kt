@@ -49,6 +49,8 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
     fun findEmbedded(id: Identifier) = db.dao()
         .queryReference(id.dataLocation, id.subPath, Reference.DIRECT_PIC, Reference.DIRECT_PIC)
 
+    fun queryBlob(id: Long) = db.dao().queryBlob(id)
+
     fun queryImageReferences(id: Identifier) = db.dao().queryReference(
         id.dataLocation, id.subPath, Reference.DIRECT_PIC, Reference.INFERRED_PIC
     )
@@ -95,7 +97,10 @@ data class Reference(
     data class Target(
         val pic: Long?,
         val url: Uri?,
-    )
+    ) {
+        constructor(pic: Long) : this(pic, null)
+        constructor(url: Uri) : this(null, url)
+    }
 
     constructor(id: Identifier, flags: Int, uri: Uri?) : this(
         id.dataLocation, id.subPath, flags, Target(null, uri)

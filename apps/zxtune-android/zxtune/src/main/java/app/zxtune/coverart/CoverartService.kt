@@ -29,7 +29,7 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
 
     fun addEmbedded(id: Identifier, module: Module) {
         if (null == db.findEmbedded(id)) {
-            module.getPicture()?.let {
+            module.picture?.let {
                 addPicture(id, it)
             }
         }
@@ -42,22 +42,13 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
         addBitmap(id, BitmapFactory.decodeStream(data))
 
     private fun addBitmap(id: Identifier, bitmap: Bitmap?) = if (bitmap != null) {
-        val w = bitmap.width
-        val h = bitmap.height
-        LOG.d { "Found ${w}x${h} raw image" }
-        val blob = bitmap.use {
-            if (maxOf(w, h) >= MAX_PICTURE_SIZE) {
-                bitmap.fitScaledTo(MAX_PICTURE_SIZE, MAX_PICTURE_SIZE).use { scaled ->
-                    LOG.d { " Scaled to ${scaled.width}x${scaled.height}" }
-                    scaled.toJpeg()
-                }
-            } else {
-                bitmap.toJpeg()
-            }
+        LOG.d { "Found ${bitmap.width}x${bitmap.height} raw image" }
+        bitmap.use {
+            bitmap.publish(MAX_PICTURE_SIZE)
+        }.let { pic ->
+            LOG.d { "Added ${pic.size} bytes image for $id" }
+            db.addImage(id, pic)
         }
-        LOG.d { "Added ${blob.size} bytes image for $id" }
-        db.addImage(id, blob)
-        blob
     } else {
         LOG.d { "Failed to parse raw image at $id" }
         null
@@ -71,55 +62,71 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
         LOG.d { "Bind external picture $uri for $id" }
     }
 
-    fun imageFor(uri: Uri): Any? = db.queryImage(Identifier(uri))?.run {
-        return pic?.data ?: url
-    } ?: uri
+    fun getBlob(id: Long) = db.queryBlob(id)
+    fun imageFor(uri: Uri) = db.queryImage(Identifier(uri))
 
-    // Embedded to file
-    fun coverArtOf(id: Identifier) = if (null != db.findEmbedded(id)) {
-        id.fullLocation
-    } else {
-        null
-    }
+    // Returns:
+    // - raw blob url if exists
+    // - null elsewhere
+    fun coverArtUriOf(id: Identifier) = coverArtOf(id)?.toPictureUrl()
 
-    // External, bound to dir or archive
-    fun albumArtOf(id: Identifier, dataObject: VfsObject): Uri? {
-        // cached
-        db.queryImageReferences(id)?.let {
-            return it.url
-        }
+    @VisibleForTesting
+    fun coverArtOf(id: Identifier) = db.findEmbedded(id)
+
+    // Returns:
+    // - null if id is known as having no albumart
+    // - archive's bound image or nearest in archive if id is for archived
+    // - bound image of id or any parent
+    fun albumArtUriOf(id: Identifier, dataObject: VfsObject) =
+        albumArtOf(id, dataObject)?.toPictureUrl()
+
+    @VisibleForTesting
+    fun albumArtOf(id: Identifier, dataObject: VfsObject): Reference.Target? {
         // Do not mix archive and storage worlds
         if (id.archiveEntryName != null) {
             return archiveArtOf(id, dataObject)
         }
-        var ref = dataObject.parent
-        while (ref != null) {
+        var ref = dataObject
+        for (step in 0..Int.MAX_VALUE) {
             val refId = Identifier(ref.uri)
-            db.queryImageReferences(refId)?.let {
-                return it.url
+            // Just to keep invariant for tests, VfsObject.parent returns this
+            assert(step > 0 || id.dataLocation == refId.fullLocation) {
+                "$id (${id.dataLocation} + ${id.subPath}) and $refId"
             }
-            ref.coverArtUri?.let {
-                // cache coverart for object
-                addReference(id, it)
-                // cache coverart for folder if it's not random
-                if (!it.isRandomized()) {
-                    addReference(refId, it)
-                }
+            db.queryImageReferences(refId)?.let {
+                // cached or explicit none
                 return it
             }
-            ref = ref.parent
+            ref.coverArtUri?.let {
+                coverArtOf(Identifier(it))?.let {
+                    return it
+                }
+                // cache coverart if it's not random
+                if (!it.isRandomized()) {
+                    if (id != refId) {
+                        addReference(id, it)
+                    }
+                    bind(refId, it)
+                }
+                return Reference.Target(it)
+            }
+            ref = ref.parent ?: break
         }
         return null
     }
 
     @VisibleForTesting
-    fun archiveArtOf(id: Identifier, dataObject: VfsObject): Uri? {
+    fun archiveArtOf(id: Identifier, dataObject: VfsObject): Reference.Target? {
         require(id.subPath.isNotEmpty())
+        db.queryImageReferences(id)?.let {
+            // cached or explicit none
+            return it
+        }
         val dataLocation = id.dataLocation
         val dataId = Identifier(dataLocation)
-        // per-archive as reference
+        // bound to archive - higher priority
         db.queryImageReferences(dataId)?.let {
-            return it.url
+            return it
         }
         val images = ImagesSet(db.listArchiveImages(dataLocation))
         if (images.isEmpty()) {
@@ -130,6 +137,8 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
                         bind(dataId, it)
                     }
                 } ?: db.setNoImage(dataId)
+            }?.let {
+                Reference.Target(it)
             }
         }
 
@@ -137,11 +146,12 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
         return images.selectAlbumArt(id.subPath)?.let { path ->
             Identifier(dataLocation, path).fullLocation.also {
                 LOG.d { "Select internal picture $it for archive $dataLocation" }
+                addReference(id, it)
+            }.let {
+                Reference.Target(it)
             }
         }
     }
-
-    fun iconOf(id: Identifier): Uri = Uri.Builder().scheme(id.dataLocation.scheme).build()
 }
 
 @VisibleForTesting
@@ -234,6 +244,24 @@ class ImagesSet(paths: List<String>) {
 
 private fun Uri.isRandomized() = getQueryParameter("seed") != null
 
-private fun Module.getPicture() = runCatching {
-    getProperty(ModuleAttributes.PICTURE, null)
-}.getOrNull()
+private val Module.picture
+    get() = runCatching {
+        getProperty(ModuleAttributes.PICTURE, null)
+    }.getOrNull()
+
+private fun Bitmap.publish(maxSize: Int) = if (maxOf(width, height) > maxSize) {
+    fitScaledTo(maxSize, maxSize).use { scaled ->
+        scaled.compress()
+    }
+} else {
+    compress()
+}
+
+private fun Bitmap.compress() = if (hasAlpha()) toPng() else toJpeg()
+
+@VisibleForTesting
+fun Reference.Target.toPictureUrl() = when {
+    pic != null -> Query.uriFor(Query.Case.RAW, pic.toString())
+    url != null -> Query.uriFor(Query.Case.IMAGE, url.toString())
+    else -> null
+}

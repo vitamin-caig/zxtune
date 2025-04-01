@@ -8,7 +8,9 @@ import app.zxtune.BuildConfig
 /*
  * ${path} is full data uri (including subpath in fragment) stored as string
  *
- * content://app.zxtune.coverart/${path} - get object properties by full path
+ * content://${authority}/raw/${imageid} - get blob for existing image
+ * content://${authority}/res/${drawableRes} - get bitmap from drawable
+ * content://${authority}/image/${path} - optional blob for object by path
  */
 
 internal object Query {
@@ -17,16 +19,22 @@ internal object Query {
     private val baseUriBuilder
         get() = Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
 
+    enum class Case(val path: String) {
+        RAW("raw"), RES("res"), IMAGE("image")
+    }
+
     private val uriTemplate = UriMatcher(UriMatcher.NO_MATCH).apply {
-        addURI(AUTHORITY, "*", 0)
+        Case.entries.forEach {
+            addURI(AUTHORITY, "${it.path}/*", it.ordinal)
+        }
     }
 
     val rootUri: Uri = baseUriBuilder.build()
 
-    fun uriFor(uri: Uri): Uri = baseUriBuilder.appendPath(uri.toString()).build()
+    fun getCase(uri: Uri) = Case.entries.getOrNull(uriTemplate.match(uri))
 
-    fun getPathFrom(uri: Uri): Uri = when (uriTemplate.match(uri)) {
-        UriMatcher.NO_MATCH -> throw IllegalArgumentException("Wrong URI: $uri")
-        else -> uri.pathSegments.getOrNull(0)?.let { Uri.parse(it) } ?: Uri.EMPTY
-    }
+    fun uriFor(case: Case, id: String): Uri =
+        baseUriBuilder.appendPath(case.path).appendPath(id).build()
+
+    fun idFrom(uri: Uri) = uri.pathSegments.getOrNull(1)
 }
