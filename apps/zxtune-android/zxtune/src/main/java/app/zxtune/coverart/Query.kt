@@ -10,7 +10,7 @@ import app.zxtune.BuildConfig
  *
  * content://${authority}/raw/${imageid} - get blob for existing image
  * content://${authority}/res/${drawableRes} - get bitmap from drawable
- * content://${authority}/image/${path} - optional blob for object by path
+ * content://${authority}/{image,icon}/${path} - optional blob for object by path
  */
 
 internal object Query {
@@ -20,7 +20,7 @@ internal object Query {
         get() = Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
 
     enum class Case(val path: String) {
-        RAW("raw"), RES("res"), IMAGE("image")
+        RAW("raw"), RES("res"), IMAGE("image"), ICON("icon"),
     }
 
     private val uriTemplate = UriMatcher(UriMatcher.NO_MATCH).apply {

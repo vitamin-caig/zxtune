@@ -59,9 +59,14 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         id.dataLocation, id.subPath, Reference.DIRECT_PIC, Reference.INFERRED_PIC
     )
 
+    fun queryIcon(id: Identifier) = db.dao()
+        .queryPicOrUrl(id.dataLocation, id.subPath, Reference.DIRECT_ICON, Reference.BOUND_ICON)
+
     fun addImage(id: Identifier, blob: ByteArray) = db.dao().add(id, Reference.DIRECT_PIC, blob)
     fun addBoundImage(id: Identifier, uri: Uri) = db.dao().add(id, Reference.BOUND_PIC, uri)
     fun addInferred(id: Identifier, uri: Uri) = db.dao().add(id, Reference.INFERRED_PIC, uri)
+
+    fun addIcon(id: Identifier, blob: ByteArray) = db.dao().add(id, Reference.DIRECT_ICON, blob)
 
     fun setNoImage(id: Identifier) = db.dao().setNoImage(id)
 
@@ -92,6 +97,8 @@ data class Reference(
         internal const val DIRECT_PIC = 0
         internal const val BOUND_PIC = 1
         internal const val INFERRED_PIC = 2
+        internal const val DIRECT_ICON = 3
+        internal const val BOUND_ICON = 4
     }
 
     data class Target(
@@ -172,6 +179,7 @@ abstract class CoverArtDao {
     @Transaction
     open fun setNoImage(id: Identifier) {
         add(Reference(id, Reference.DIRECT_PIC, null))
+        add(Reference(id, Reference.DIRECT_ICON, null))
     }
 
     @Transaction

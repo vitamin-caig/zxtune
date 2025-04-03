@@ -20,6 +20,7 @@ import androidx.core.net.toUri
 import app.zxtune.Logger
 import app.zxtune.MainApplication
 import app.zxtune.core.Identifier
+import app.zxtune.coverart.Provider.Companion.LOG
 import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsFile
 import app.zxtune.fs.VfsObject
@@ -41,6 +42,7 @@ class Provider @VisibleForTesting internal constructor(
         Query.Case.RAW -> id.toLongOrNull()?.let { fetchBlob(it) }
         Query.Case.RES -> id.toIntOrNull()?.let { renderIcon(it, size ?: DEFAULT_ICON_SIZE) }
         Query.Case.IMAGE -> loadImageFile(id.toUri(), size)
+        Query.Case.ICON -> loadIcon(id.toUri())
     }
 
     private fun fetchBlob(id: Long) = svc.getBlob(id)?.toByteBuffer()
@@ -52,6 +54,10 @@ class Provider @VisibleForTesting internal constructor(
             it.toPng()
         }?.toByteBuffer()
 
+    // uri may be:
+    // - raw blob id (if cached or coverart)
+    // - vfs entity's coverart url
+    // this is guaranteed by CoverartService.coverArtOf/albumArtOf queried in StatusCallback
     private fun loadImageFile(uri: Uri, size: Point?): ByteBuffer? {
         svc.imageFor(uri)?.run {
             pic?.data?.let {
@@ -64,14 +70,30 @@ class Provider @VisibleForTesting internal constructor(
             }
             return null
         }
-        val entry = resolve(uri) ?: return null
-        (entry as? VfsFile)?.let { file ->
-            LOG.d { "Load image $uri" }
-            return runCatching { Vfs.openStream(file) }.getOrNull()?.use {
-                svc.addPicture(Identifier(uri), it)?.data
-            }?.toByteBuffer()
+        return resolve(uri)?.inputStream?.use {
+            svc.addPicture(Identifier(uri), it)?.image?.data
+        }?.toByteBuffer()
+    }
+
+    // url may be:
+    // - raw blob url (if cached or coverart)
+    // - vfs entity's image url
+    private fun loadIcon(uri: Uri): ByteBuffer? {
+        // cache first
+        svc.iconFor(uri)?.run {
+            pic?.data?.let {
+                LOG.d { "Load blob icon for $uri" }
+                return it.toByteBuffer()
+            }
+            url?.let {
+                require(it != uri)
+                return loadIcon(it) // ????
+            }
+            return null
         }
-        return null
+        return resolve(uri)?.inputStream?.use {
+            svc.addIconOrPicture(Identifier(uri), it)?.data
+        }?.toByteBuffer()
     }
 
     override fun onCreate() = context?.run {
@@ -174,3 +196,10 @@ class Provider @VisibleForTesting internal constructor(
 }
 
 private fun ByteArray.toByteBuffer() = ByteBuffer.wrap(this)
+private val VfsObject.inputStream
+    get() = (this as? VfsFile)?.let { file ->
+        LOG.d { "Load image $uri" }
+        runCatching { Vfs.openStream(file) }.onFailure { err ->
+            LOG.w(err) { "Failed to load" }
+        }.getOrNull()
+    }

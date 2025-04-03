@@ -19,6 +19,8 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
 
     companion object {
         private const val MAX_PICTURE_SIZE = 800
+        private const val MIN_ICON_AS_PIC_SIZE = 400
+        private const val MAX_ICON_SIZE = 96
         private val LOG = Logger(CoverartService::class.java.name)
 
         @JvmStatic
@@ -35,6 +37,8 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
         }
     }
 
+    data class Mipmap(val image: Picture?, val icon: Picture)
+
     fun addPicture(id: Identifier, data: ByteArray) =
         addBitmap(id, BitmapFactory.decodeByteArray(data, 0, data.size))
 
@@ -44,13 +48,30 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
     private fun addBitmap(id: Identifier, bitmap: Bitmap?) = if (bitmap != null) {
         LOG.d { "Found ${bitmap.width}x${bitmap.height} raw image" }
         bitmap.use {
-            bitmap.publish(MAX_PICTURE_SIZE)
-        }.let { pic ->
-            LOG.d { "Added ${pic.size} bytes image for $id" }
-            db.addImage(id, pic)
+            bitmap.publish(MAX_PICTURE_SIZE) to bitmap.publish(MAX_ICON_SIZE)
+        }.let { (image, icon) ->
+            LOG.d { "Added ${image.size}/${icon.size} bytes image/icon for $id" }
+            Mipmap(db.addImage(id, image), db.addIcon(id, icon))
         }
     } else {
         LOG.d { "Failed to parse raw image at $id" }
+        null
+    }
+
+    fun addIconOrPicture(id: Identifier, data: InputStream) = BitmapFactory.decodeStream(data)?.use { bitmap ->
+        if (maxOf(bitmap.width, bitmap.height) >= MIN_ICON_AS_PIC_SIZE) {
+            bitmap.publish(MAX_PICTURE_SIZE) to bitmap.publish(MAX_ICON_SIZE)
+        } else {
+            null to bitmap.publish(MAX_ICON_SIZE)
+        }
+    }?.let { (image, icon) ->
+        LOG.d { "Added ${image?.size}/${icon.size} bytes image/icon for $id"}
+        image?.let {
+            db.addImage(id, it)
+        }
+        db.addIcon(id, icon)
+    } ?: run {
+        LOG.d { "Failed to parse raw image at $id"}
         null
     }
 
@@ -64,6 +85,7 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
 
     fun getBlob(id: Long) = db.queryBlob(id)
     fun imageFor(uri: Uri) = db.queryImage(Identifier(uri))
+    fun iconFor(uri: Uri) = db.queryIcon(Identifier(uri))
 
     // Returns:
     // - raw blob url if exists
@@ -249,7 +271,7 @@ private val Module.picture
         getProperty(ModuleAttributes.PICTURE, null)
     }.getOrNull()
 
-private fun Bitmap.publish(maxSize: Int) = if (maxOf(width, height) > maxSize) {
+private fun Bitmap.publish(maxSize: Int) = if (width > maxSize || height > maxSize) {
     fitScaledTo(maxSize, maxSize).use { scaled ->
         scaled.compress()
     }
