@@ -72,10 +72,10 @@ class DatabaseTest {
 
     @Test
     fun `test games`() = with(underTest) {
-        addGame(games[0], systems[0], organizations[0])
-        addGame(games[1], systems[1], organizations[0])
-        addGame(games[2], systems[0], organizations[1])
-        addGame(games[3], systems[2], null)
+        addGame(games[0], systems[0], organizations[0], images[0])
+        addGame(games[1], systems[1], organizations[0], images[1])
+        addGame(games[2], systems[0], organizations[1], images[2])
+        addGame(games[3], systems[2], null, null)
         val allSystems = mock<Catalog.Visitor<System>> {}.apply {
             assertTrue(querySystems(this))
         }.also {
@@ -92,26 +92,26 @@ class DatabaseTest {
         val allGames = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(null, this))
         }.also {
-            verify(it).accept(games[0], systems[0], organizations[0])
-            verify(it).accept(games[1], systems[1], organizations[0])
-            verify(it).accept(games[2], systems[0], organizations[1])
-            verify(it).accept(games[3], systems[2], null)
+            verify(it).accept(games[0], systems[0], organizations[0], images[0])
+            verify(it).accept(games[1], systems[1], organizations[0], images[1])
+            verify(it).accept(games[2], systems[0], organizations[1], images[2])
+            verify(it).accept(games[3], systems[2], null, null)
         }
         val sys0Games = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(systems[0].asScope, this))
         }.also {
-            verify(it).accept(games[0], systems[0], organizations[0])
-            verify(it).accept(games[2], systems[0], organizations[1])
+            verify(it).accept(games[0], systems[0], organizations[0], images[0])
+            verify(it).accept(games[2], systems[0], organizations[1], images[2])
         }
         val sys1Games = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(systems[1].asScope, this))
         }.also {
-            verify(it).accept(games[1], systems[1], organizations[0])
+            verify(it).accept(games[1], systems[1], organizations[0], images[1])
         }
         val sys2Games = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(systems[2].asScope, this))
         }.also {
-            verify(it).accept(games[3], systems[2], null)
+            verify(it).accept(games[3], systems[2], null, null)
         }
         val sys3Games = mock<Catalog.GamesVisitor> {}.apply {
             assertFalse(queryGames(systems[3].asScope, this))
@@ -119,13 +119,13 @@ class DatabaseTest {
         val org0Games = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(organizations[0].asScope, this))
         }.also {
-            verify(it).accept(games[0], systems[0], organizations[0])
-            verify(it).accept(games[1], systems[1], organizations[0])
+            verify(it).accept(games[0], systems[0], organizations[0], images[0])
+            verify(it).accept(games[1], systems[1], organizations[0], images[1])
         }
         val org1Games = mock<Catalog.GamesVisitor> {}.apply {
             assertTrue(queryGames(organizations[1].asScope, this))
         }.also {
-            verify(it).accept(games[2], systems[0], organizations[1])
+            verify(it).accept(games[2], systems[0], organizations[1], images[2])
         }
         val org2Games = mock<Catalog.GamesVisitor> {}.apply {
             assertFalse(queryGames(organizations[2].asScope, this))

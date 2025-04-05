@@ -80,10 +80,13 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
                     val org = row.findIdNode("/org/")?.run {
                         Organization(Organization.Id(id), text)
                     }
+                    val img = row.findImagePath("/img-size/500/files/")
+                        ?: row.findImagePath("/img-size/100/files/") // if any...
                     visitor.accept(
                         Game(Game.Id(game.id), game.text),
                         System(System.Id(system.id), system["title"] ?: system.text),
                         org,
+                        img,
                     )
                 }
             }

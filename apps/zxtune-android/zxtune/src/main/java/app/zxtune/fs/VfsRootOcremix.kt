@@ -103,8 +103,9 @@ class VfsRootOcremix(
                 else -> null
             }
 
-        private fun child(entity: Identifier.PathElement, description: String = "") =
-            EntityDir(chain + entity, description)
+        private fun child(
+            entity: Identifier.PathElement, description: String = "", image: FilePath? = null
+        ) = EntityDir(chain + entity, description, image)
 
         private fun querySystems(visitor: VfsDir.Visitor) = catalog.querySystems { obj ->
             visitor.onDir(child(Identifier.SystemElement(obj)))
@@ -116,10 +117,12 @@ class VfsRootOcremix(
             }, visitor)
 
         private fun queryGames(visitor: VfsDir.Visitor) =
-            catalog.queryGames(scope, { game, system, organization ->
+            catalog.queryGames(scope, { game, system, organization, image ->
                 visitor.onDir(
                     child(
-                        Identifier.GameElement(game), "${system.title}/${organization?.title ?: ""}"
+                        Identifier.GameElement(game), "${system.title}/${
+                            organization?.title ?: ""
+                        }", image
                     )
                 )
             }, visitor)
@@ -127,20 +130,20 @@ class VfsRootOcremix(
         private fun queryRemixes(visitor: VfsDir.Visitor) =
             catalog.queryRemixes(scope, { remix, game ->
                 visitor.onFile(
-                    RemixFile(
-                        chain + Identifier.RemixElement(remix), remix, game.title
-                    )
+                    RemixFile(chain + Identifier.RemixElement(remix), remix, game.title)
                 )
             }, visitor)
 
         private fun queryAlbums(visitor: VfsDir.Visitor) =
             catalog.queryAlbums(scope, { album, image ->
-                visitor.onDir(child(Identifier.AlbumElement(album)))
+                visitor.onDir(child(Identifier.AlbumElement(album), image = image))
             }, visitor)
     }
 
     private inner class EntityDir(
-        chain: Array<Identifier.PathElement>, override val description: String = ""
+        chain: Array<Identifier.PathElement>,
+        override val description: String = "",
+        private val image: FilePath? = null,
     ) : BaseObject(chain), VfsDir {
         init {
             check(chain.size >= 2)
@@ -179,16 +182,16 @@ class VfsRootOcremix(
             AggregateDir(chain + Identifier.AggregateElement(type), type)
 
         override fun getExtension(id: String) = when (id) {
-            VfsExtensions.COVER_ART_URI -> coverArtUri()
-            else -> super.getExtension(id)
-        }
-
-        private fun coverArtUri() = when (val el = element) {
-            is Identifier.GameElement -> gameDetails.image?.let { Identifier.forImage(it) }
-            is Identifier.AlbumElement -> catalog.queryAlbumImage(el.album.id)?.let {
+            VfsExtensions.COVER_ART_URI -> (image ?: coverArt())?.let {
                 Identifier.forImage(it)
             }
 
+            else -> super.getExtension(id)
+        }
+
+        private fun coverArt() = when (val el = element) {
+            is Identifier.GameElement -> gameDetails.image
+            is Identifier.AlbumElement -> catalog.queryAlbumImage(el.album.id)
             else -> null
         }
     }

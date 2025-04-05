@@ -9,7 +9,7 @@ interface Catalog {
     fun interface Visitor<T> : Consumer<T>
 
     fun interface GamesVisitor {
-        fun accept(game: Game, system: System, organization: Organization?)
+        fun accept(game: Game, system: System, organization: Organization?, image: FilePath?)
     }
 
     fun interface RemixesVisitor {
