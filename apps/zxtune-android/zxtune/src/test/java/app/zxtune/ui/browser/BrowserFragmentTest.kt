@@ -347,8 +347,13 @@ class BrowserFragmentTest {
                             title = "File$idx",
                             description = "File $idx",
                             details = "${idx}0K",
-                            tracks = (idx - (dirs + 1)).takeIf { it >= 0 },
-                            cached = (idx > dirs + 1)
+                            typeIcon = when ((idx - dirs) % 5) {
+                                1 -> R.drawable.ic_browser_file_remote
+                                2 -> R.drawable.ic_browser_file_unknown
+                                3 -> R.drawable.ic_browser_file_track
+                                4 -> R.drawable.ic_browser_file_archive
+                                else -> null
+                            }
                         )
                     }
                 }.toList(),

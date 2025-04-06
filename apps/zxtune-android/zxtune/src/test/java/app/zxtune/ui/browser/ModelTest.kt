@@ -2,7 +2,9 @@ package app.zxtune.ui.browser
 
 import android.net.Uri
 import android.os.CancellationSignal
+import app.zxtune.R
 import app.zxtune.TestUtils.mockCollectorOf
+import app.zxtune.fail
 import app.zxtune.fs.provider.Schema
 import app.zxtune.fs.provider.VfsProviderClient
 import kotlinx.coroutines.CoroutineScope
@@ -53,8 +55,35 @@ class ModelTest {
     )
     private val testContent = listOf(
         ListingEntry.makeFolder(Uri.EMPTY, "Dir", "Nested dir", 234),
-        ListingEntry.makeFile(Uri.EMPTY, "File", "Nested file", "Unused"),
-        ListingEntry.makeFile(Uri.EMPTY, "File2", "Nested file2", "Unused")
+        ListingEntry.makeFile(
+            Uri.EMPTY,
+            "File3",
+            "Remote",
+            "Unused",
+            R.drawable.ic_browser_file_remote,
+        ),
+        ListingEntry.makeFile(
+            Uri.EMPTY,
+            "File4",
+            "Track",
+            "Unused",
+            R.drawable.ic_browser_file_track,
+        ),
+        ListingEntry.makeFile(
+            Uri.EMPTY,
+            "File5",
+            "Archive",
+            "Unused",
+            R.drawable.ic_browser_file_archive,
+        ),
+        ListingEntry.makeFile(Uri.EMPTY, "File", "Unsupported", "Unused", null),
+        ListingEntry.makeFile(
+            Uri.EMPTY,
+            "File2",
+            "Unknown",
+            "Unused",
+            R.drawable.ic_browser_file_unknown,
+        ),
     )
 
     private val vfsClient = mock<VfsProviderClient> {
@@ -156,7 +185,11 @@ class ModelTest {
                     onProgress(Schema.Status.Progress(2, 2))
                     onFile(
                         Schema.Listing.File(
-                            it.getArgument(0), "unused", "unused", "unused", null, null
+                            it.getArgument(0),
+                            "unused",
+                            "unused",
+                            "unused",
+                            Schema.Listing.File.Type.UNKNOWN
                         )
                     )
                 }
@@ -479,10 +512,10 @@ class ModelTest {
     fun filtering() {
         setContent(testParents, testContent)
         execute {
-            filter = "Le"
+            filter = "uN"
         }
         execute {
-            filter = "le2"
+            filter = "uNk"
         }
         execute {
             filter = "e23"
@@ -495,10 +528,10 @@ class ModelTest {
             }
 
             verify(stateObserver).invoke(
-                matchState(testUri, testParents, testContent.takeLast(2), "Le")
+                matchState(testUri, testParents, testContent.takeLast(2), "uN")
             )
             verify(stateObserver).invoke(
-                matchState(testUri, testParents, testContent.takeLast(1), "le2")
+                matchState(testUri, testParents, testContent.takeLast(1), "uNk")
             )
             verify(stateObserver).invoke(
                 matchState(testUri, testParents, filter = "e23")
@@ -527,8 +560,17 @@ private fun matchState(
 
 private fun VfsProviderClient.ListingCallback.feed(entry: ListingEntry) = with(entry) {
     details?.let {
-        onFile(Schema.Listing.File(uri, title, description, it, null, null))
+        onFile(Schema.Listing.File(uri, title, description, it, fileTypeByIcon(additionalIcon)))
     } ?: onDir(Schema.Listing.Dir(uri, title, description, mainIcon, false))
+}
+
+private fun fileTypeByIcon(icon: Int?) = when (icon) {
+    null -> Schema.Listing.File.Type.UNSUPPORTED
+    R.drawable.ic_browser_file_unknown -> Schema.Listing.File.Type.UNKNOWN
+    R.drawable.ic_browser_file_remote -> Schema.Listing.File.Type.REMOTE
+    R.drawable.ic_browser_file_track -> Schema.Listing.File.Type.TRACK
+    R.drawable.ic_browser_file_archive -> Schema.Listing.File.Type.ARCHIVE
+    else -> fail("Unexpected icon")
 }
 
 private fun VfsProviderClient.ParentsCallback.feed(entry: BreadcrumbsEntry) = with(entry) {

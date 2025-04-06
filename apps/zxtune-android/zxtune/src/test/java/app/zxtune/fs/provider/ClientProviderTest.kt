@@ -156,7 +156,7 @@ class ClientProviderTest {
         Schema.Listing.Dir(arg.uri, arg.name, arg.description, null, false)
 
     private fun convert(arg: VfsFile) =
-        Schema.Listing.File(arg.uri, arg.name, arg.description, arg.size, null, null)
+        Schema.Listing.File(arg.uri, arg.name, arg.description, arg.size, Schema.Listing.File.Type.UNKNOWN)
 
     private fun convertParent(obj: VfsObject) = Schema.Parents.Object(obj.uri, obj.name, null)
 

@@ -30,23 +30,7 @@ data class ListingEntry(
             title: String,
             description: String,
             details: String,
-            tracks: Int? = null,
-            cached: Boolean? = null
-        ) = ListingEntry(
-            uri,
-            title,
-            description,
-            details,
-            null,
-            additionalIconFrom(tracks, cached)
-        )
-
-        private fun additionalIconFrom(tracks: Int?, cached: Boolean?) = when {
-            cached == false -> R.drawable.ic_browser_file_remote
-            tracks == null -> R.drawable.ic_browser_file_unknown
-            tracks == 0 -> null
-            tracks == 1 -> R.drawable.ic_browser_file_track
-            else -> R.drawable.ic_browser_file_archive
-        }
+            @DrawableRes typeIcon: Int?,
+        ) = ListingEntry(uri, title, description, details, null, typeIcon)
     }
 }

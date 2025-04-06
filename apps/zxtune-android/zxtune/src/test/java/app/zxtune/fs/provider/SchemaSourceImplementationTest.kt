@@ -80,8 +80,7 @@ class SchemaSourceImplementationTest {
             assertEquals(simpleFile.name, name)
             assertEquals(simpleFile.description, description)
             assertEquals(simpleFile.size, details)
-            assertEquals(null, tracks)
-            assertEquals(null, isCached)
+            assertEquals(Schema.Listing.File.Type.UNKNOWN, type)
         }
         assertEquals(null, underTest.resolved(mock()))
     }
@@ -140,24 +139,21 @@ class SchemaSourceImplementationTest {
             assertEquals(cachedFile.name, name)
             assertEquals(cachedFile.description, description)
             assertEquals(cachedFile.size, details)
-            assertEquals(true, isCached)
-            assertEquals(null, tracks)
+            assertEquals(Schema.Listing.File.Type.UNKNOWN, type)
         }
         it[1].run {
             assertEquals(simpleFile.uri, uri)
             assertEquals(simpleFile.name, name)
             assertEquals(simpleFile.description, description)
             assertEquals(simpleFile.size, details)
-            assertEquals(null, isCached)
-            assertEquals(0, tracks)
+            assertEquals(Schema.Listing.File.Type.UNSUPPORTED, type)
         }
         it[2].run {
             assertEquals(badCacheFile.uri, uri)
             assertEquals(badCacheFile.name, name)
             assertEquals(badCacheFile.description, description)
             assertEquals(badCacheFile.size, details)
-            assertEquals(false, isCached)
-            assertEquals(1, tracks)
+            assertEquals(Schema.Listing.File.Type.TRACK, type)
         }
     }
 }

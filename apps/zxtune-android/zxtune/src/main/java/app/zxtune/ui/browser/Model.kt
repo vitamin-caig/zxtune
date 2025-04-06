@@ -8,6 +8,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.zxtune.Logger
+import app.zxtune.R
 import app.zxtune.analytics.Analytics
 import app.zxtune.fs.provider.Schema
 import app.zxtune.fs.provider.VfsProviderClient
@@ -398,7 +399,15 @@ class Model @VisibleForTesting internal constructor(
         }
 
         private fun makeFile(file: Schema.Listing.File) = file.run {
-            ListingEntry.makeFile(uri, name, description, details, tracks, isCached)
+            ListingEntry.makeFile(uri, name, description, details, type.asIcon())
+        }
+
+        private fun Schema.Listing.File.Type.asIcon() = when (this) {
+            Schema.Listing.File.Type.REMOTE -> R.drawable.ic_browser_file_remote
+            Schema.Listing.File.Type.UNKNOWN -> R.drawable.ic_browser_file_unknown
+            Schema.Listing.File.Type.TRACK -> R.drawable.ic_browser_file_track
+            Schema.Listing.File.Type.ARCHIVE -> R.drawable.ic_browser_file_archive
+            Schema.Listing.File.Type.UNSUPPORTED -> null
         }
     }
 }

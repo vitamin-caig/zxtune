@@ -26,9 +26,11 @@ class SchemaTest {
     fun `test listing schema`() {
         testListingDir(URI1, NAME2, DESCRIPTION1, 123, false)
         testListingDir(URI2, NAME1, DESCRIPTION2, null, true)
-        testListingFile(URI1, NAME2, DESCRIPTION1, DETAILS2, null, null)
-        testListingFile(URI2, NAME1, DESCRIPTION2, DETAILS1, 100, true)
-        testListingFile(URI1, NAME2, DESCRIPTION1, DETAILS2, 1000, false)
+        testListingFile(URI1, NAME2, DESCRIPTION1, DETAILS2, Schema.Listing.File.Type.REMOTE)
+        testListingFile(URI2, NAME1, DESCRIPTION2, DETAILS1, Schema.Listing.File.Type.UNKNOWN)
+        testListingFile(URI1, NAME2, DESCRIPTION1, DETAILS2, Schema.Listing.File.Type.TRACK)
+        testListingFile(URI2, NAME1, DESCRIPTION2, DETAILS1, Schema.Listing.File.Type.ARCHIVE)
+        testListingFile(URI1, NAME2, DESCRIPTION1, DETAILS2, Schema.Listing.File.Type.UNSUPPORTED)
         testListingError(Exception("Some message"))
         testListingError(Exception("Topmost", Exception("Nested")))
         testListingProgress()
@@ -74,10 +76,9 @@ private fun testListingFile(
     name: String,
     description: String,
     details: String,
-    tracks: Int?,
-    isCached: Boolean?
+    type: Schema.Listing.File.Type,
 ) = MatrixCursor(Schema.Listing.COLUMNS).apply {
-    addRow(Schema.Listing.File(uri, name, description, details, tracks, isCached).serialize())
+    addRow(Schema.Listing.File(uri, name, description, details, type).serialize())
 }.use { cursor ->
     cursor.moveToFirst()
     (Schema.Object.parse(cursor) as Schema.Listing.File).let { file ->
@@ -85,8 +86,7 @@ private fun testListingFile(
         assertEquals(name, file.name)
         assertEquals(description, file.description)
         assertEquals(details, file.details)
-        assertEquals(tracks, file.tracks)
-        assertEquals(isCached, file.isCached)
+        assertEquals(type, file.type)
     }
 }
 

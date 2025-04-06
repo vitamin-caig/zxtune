@@ -1,6 +1,12 @@
 package app.zxtune.fs.provider
 
-import app.zxtune.fs.*
+import app.zxtune.fs.Vfs
+import app.zxtune.fs.VfsArchive
+import app.zxtune.fs.VfsDir
+import app.zxtune.fs.VfsFile
+import app.zxtune.fs.VfsObject
+import app.zxtune.fs.feed
+import app.zxtune.fs.icon
 
 internal class SchemaSourceImplementation : SchemaSource {
     override fun resolved(data: VfsObject) = when (data) {
@@ -11,14 +17,15 @@ internal class SchemaSourceImplementation : SchemaSource {
             icon = null,
             hasFeed = data.feed != null,
         )
+
         is VfsFile -> Schema.Listing.File(
             uri = data.uri,
             name = data.name,
             description = data.description,
             details = data.size,
-            tracks = null,
-            isCached = null,
+            type = Schema.Listing.File.Type.UNKNOWN,
         )
+
         else -> null
     }
 
@@ -49,9 +56,17 @@ internal class SchemaSourceImplementation : SchemaSource {
                 name = file.name,
                 description = file.description,
                 details = file.size,
-                isCached = Vfs.getCache(file)?.isFile,
-                tracks = tracks[idx],
+                type = getFileType(tracks[idx], file),
             )
+        }
+    }
+
+    companion object {
+        private fun getFileType(tracksCount: Int?, file: VfsFile) = when {
+            tracksCount == null -> if (false == Vfs.getCache(file)?.isFile) Schema.Listing.File.Type.REMOTE else Schema.Listing.File.Type.UNKNOWN
+            tracksCount > 1 -> Schema.Listing.File.Type.ARCHIVE
+            tracksCount == 1 -> Schema.Listing.File.Type.TRACK
+            else -> Schema.Listing.File.Type.UNSUPPORTED
         }
     }
 }
