@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.SearchView
+import androidx.core.net.toUri
 import androidx.core.view.get
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.recyclerview.widget.RecyclerView
@@ -339,8 +340,11 @@ class BrowserFragmentTest {
                             uri = builder.appendEncodedPath("dir$idx").build(),
                             title = "Dir$idx",
                             description = "Directory $idx",
-                            icon = folderIcon().takeIf { idx == 0 } // first one
-                        )
+                            icon = when (dirs % 3) {
+                                1 -> ListingEntry.DrawableIcon(folderIcon()) // first one
+                                2 -> ListingEntry.LoadableIcon("icon://uri/$idx".toUri())
+                                else -> null
+                            })
                     } else {
                         ListingEntry.makeFile(
                             uri = builder.appendEncodedPath("file$idx").build(),
@@ -352,6 +356,10 @@ class BrowserFragmentTest {
                                 2 -> R.drawable.ic_browser_file_unknown
                                 3 -> R.drawable.ic_browser_file_track
                                 4 -> R.drawable.ic_browser_file_archive
+                                else -> null
+                            },
+                            icon = when ((idx - dirs) % 2) {
+                                1 -> ListingEntry.LoadableIcon("icon://uri/$idx".toUri())
                                 else -> null
                             }
                         )

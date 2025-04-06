@@ -30,7 +30,7 @@ class ResolveOperationTest {
     private val callback = mock<AsyncQueryOperation.Callback>()
     private val file = TestFile(1, "unused")
     private val fileObject = Schema.Listing.File(
-        file.uri, file.name, file.description, file.size, Schema.Listing.File.Type.UNKNOWN
+        file.uri, file.name, file.description, null, file.size, Schema.Listing.File.Type.UNKNOWN
     )
     private val dir = TestDir(2)
     private val dirObject = Schema.Listing.Dir(dir.uri, dir.name, dir.description, null, false)

@@ -1,6 +1,7 @@
 package app.zxtune.fs.provider
 
 import android.net.Uri
+import androidx.core.net.toUri
 import app.zxtune.fs.*
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -119,7 +120,7 @@ class SchemaSourceImplementationTest {
             assertEquals(iconDir.uri, uri)
             assertEquals(iconDir.name, name)
             assertEquals(iconDir.description, description)
-            assertEquals(1, icon)
+            assertEquals("android.resource:/1".toUri(), icon)
             assertEquals(false, hasFeed)
         }
         it[2].run {

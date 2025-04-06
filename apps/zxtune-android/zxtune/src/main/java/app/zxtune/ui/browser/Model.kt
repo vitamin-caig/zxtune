@@ -1,6 +1,7 @@
 package app.zxtune.ui.browser
 
 import android.app.Application
+import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import android.os.OperationCanceledException
@@ -395,11 +396,26 @@ class Model @VisibleForTesting internal constructor(
             entry.title.contains(filter, true) || entry.description.contains(filter, true)
 
         private fun makeFolder(dir: Schema.Listing.Dir) = dir.run {
-            ListingEntry.makeFolder(uri, name, description, icon)
+            ListingEntry.makeFolder(uri, name, description, icon?.asListingEntryIcon())
         }
 
         private fun makeFile(file: Schema.Listing.File) = file.run {
-            ListingEntry.makeFile(uri, name, description, details, type.asIcon())
+            ListingEntry.makeFile(
+                uri,
+                name,
+                description,
+                details,
+                type.asIcon(),
+                icon?.asListingEntryIcon(),
+            )
+        }
+
+        private fun Uri.asListingEntryIcon() = when (scheme) {
+            ContentResolver.SCHEME_ANDROID_RESOURCE -> lastPathSegment?.toInt()?.let {
+                ListingEntry.DrawableIcon(it)
+            }
+
+            else -> ListingEntry.LoadableIcon(this)
         }
 
         private fun Schema.Listing.File.Type.asIcon() = when (this) {

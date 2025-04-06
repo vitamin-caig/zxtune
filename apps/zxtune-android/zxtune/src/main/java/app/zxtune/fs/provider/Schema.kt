@@ -24,7 +24,7 @@ object Schema {
     // string
     private const val COLUMN_DESCRIPTION = "description"
 
-    // int - optional icon res
+    // string - optional icon content/resource uri
     private const val COLUMN_ICON = "icon"
 
     // string - size for file, not null if dir has feed
@@ -71,6 +71,7 @@ object Schema {
         private fun getUri(cursor: Cursor) = cursor.getString(1).toUri()
         private fun getName(cursor: Cursor) = cursor.getString(2)
         private fun getDescription(cursor: Cursor) = cursor.getString(3)
+        private fun getIcon(cursor: Cursor) = cursor.getStringOrNull(4)?.toUri()
 
         fun parse(cursor: Cursor) = when(val type = cursor.getInt(0)) {
             TYPE_DIR -> Dir.parse(cursor)
@@ -81,7 +82,7 @@ object Schema {
             val uri: Uri,
             val name: String,
             val description: String,
-            val icon: Int?,
+            val icon: Uri?,
             val hasFeed: Boolean
         ) : Object {
 
@@ -99,7 +100,7 @@ object Schema {
                     uri = getUri(cursor),
                     name = getName(cursor),
                     description = getDescription(cursor),
-                    icon = cursor.getIntOrNull(4),
+                    icon = getIcon(cursor),
                     hasFeed = !cursor.isNull(5)
                 )
             }
@@ -109,6 +110,7 @@ object Schema {
             val uri: Uri,
             val name: String,
             val description: String,
+            val icon: Uri?,
             val details: String,
             val type: Type,
         ) : Object {
@@ -126,7 +128,7 @@ object Schema {
                 uri.toString(),
                 name,
                 description,
-                null,
+                icon,
                 details,
             )
 
@@ -135,6 +137,7 @@ object Schema {
                     uri = getUri(cursor),
                     name = getName(cursor),
                     description = getDescription(cursor),
+                    icon = getIcon(cursor),
                     details = cursor.getString(5),
                     type = Type.entries[type - TYPE_FILE]
                 )

@@ -2,6 +2,7 @@ package app.zxtune.ui.browser
 
 import android.net.Uri
 import android.os.CancellationSignal
+import androidx.core.net.toUri
 import app.zxtune.R
 import app.zxtune.TestUtils.mockCollectorOf
 import app.zxtune.fail
@@ -54,7 +55,7 @@ class ModelTest {
         BreadcrumbsEntry(testUri, "TestDir", 456)
     )
     private val testContent = listOf(
-        ListingEntry.makeFolder(Uri.EMPTY, "Dir", "Nested dir", 234),
+        ListingEntry.makeFolder(Uri.EMPTY, "Dir", "Nested dir", ListingEntry.DrawableIcon(234)),
         ListingEntry.makeFile(
             Uri.EMPTY,
             "File3",
@@ -188,6 +189,7 @@ class ModelTest {
                             it.getArgument(0),
                             "unused",
                             "unused",
+                            null,
                             "unused",
                             Schema.Listing.File.Type.UNKNOWN
                         )
@@ -560,8 +562,13 @@ private fun matchState(
 
 private fun VfsProviderClient.ListingCallback.feed(entry: ListingEntry) = with(entry) {
     details?.let {
-        onFile(Schema.Listing.File(uri, title, description, it, fileTypeByIcon(additionalIcon)))
-    } ?: onDir(Schema.Listing.Dir(uri, title, description, mainIcon, false))
+        onFile(Schema.Listing.File(uri, title, description, icon?.toUri(), it, fileTypeByIcon(additionalIcon)))
+    } ?: onDir(Schema.Listing.Dir(uri, title, description, icon?.toUri(), false))
+}
+
+private fun ListingEntry.Icon.toUri() = when(this) {
+    is ListingEntry.DrawableIcon -> "android.resource:/$id".toUri()
+    is ListingEntry.LoadableIcon -> uri
 }
 
 private fun fileTypeByIcon(icon: Int?) = when (icon) {

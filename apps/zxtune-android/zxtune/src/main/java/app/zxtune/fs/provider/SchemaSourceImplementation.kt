@@ -7,6 +7,7 @@ import app.zxtune.fs.VfsFile
 import app.zxtune.fs.VfsObject
 import app.zxtune.fs.feed
 import app.zxtune.fs.icon
+import app.zxtune.fs.iconUri
 
 internal class SchemaSourceImplementation : SchemaSource {
     override fun resolved(data: VfsObject) = when (data) {
@@ -22,6 +23,7 @@ internal class SchemaSourceImplementation : SchemaSource {
             uri = data.uri,
             name = data.name,
             description = data.description,
+            icon = null,
             details = data.size,
             type = Schema.Listing.File.Type.UNKNOWN,
         )
@@ -42,21 +44,32 @@ internal class SchemaSourceImplementation : SchemaSource {
             uri = it.uri,
             name = it.name,
             description = it.description,
-            icon = it.icon,
+            icon = it.iconUri,
             hasFeed = it.feed != null,
         )
     }
 
     override fun files(data: List<VfsFile>): List<Schema.Listing.File> {
+        /*
+         TODO:
+         - faster getModulesCount (everything is track if archive listed)
+         - batched query of coverart uris
+         - parallel querying
+         */
         val uris = data.map { it.uri }
         val tracks = VfsArchive.getModulesCount(uris.toTypedArray())
         return data.mapIndexed { idx, file ->
+            val uri = uris[idx]
+            val type = getFileType(tracks[idx], file)
             Schema.Listing.File(
-                uri = uris[idx],
+                uri = uri,
                 name = file.name,
                 description = file.description,
+                icon = file.iconUri ?: if (type == Schema.Listing.File.Type.TRACK) {
+                    uri // fallback to coverart
+                } else null,
                 details = file.size,
-                type = getFileType(tracks[idx], file),
+                type = type,
             )
         }
     }

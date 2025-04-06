@@ -10,19 +10,31 @@ data class ListingEntry(
     val title: String,
     val description: String,
     val details: String?,
-    @DrawableRes val icon: Int?,
+    val icon: Icon?,
     @DrawableRes val additionalIcon: Int?,
 ) {
     private val isFolder
         get() = details == null
 
+    sealed interface Icon
+
+    @JvmInline
+    value class DrawableIcon(@DrawableRes val id: Int) : Icon
+
+    @JvmInline
+    value class LoadableIcon(val uri: Uri) : Icon
+
     @get:DrawableRes
     val mainIcon
-        get() = icon ?: if (isFolder) R.drawable.ic_browser_folder else R.drawable.ic_browser_file
+        get() = when {
+            icon is DrawableIcon -> icon.id
+            isFolder -> R.drawable.ic_browser_folder
+            else -> R.drawable.ic_browser_file
+        }
 
     companion object {
         fun makeFolder(
-            uri: Uri, title: String, description: String, @DrawableRes icon: Int? = null
+            uri: Uri, title: String, description: String, icon: Icon? = null
         ) = ListingEntry(uri, title, description, null, icon, null)
 
         fun makeFile(
@@ -31,6 +43,7 @@ data class ListingEntry(
             description: String,
             details: String,
             @DrawableRes typeIcon: Int?,
-        ) = ListingEntry(uri, title, description, details, null, typeIcon)
+            icon: Icon? = null
+        ) = ListingEntry(uri, title, description, details, icon, typeIcon)
     }
 }
