@@ -107,8 +107,8 @@ class VfsRootOcremix(
             entity: Identifier.PathElement, description: String = "", image: FilePath? = null
         ) = EntityDir(chain + entity, description, image)
 
-        private fun querySystems(visitor: VfsDir.Visitor) = catalog.querySystems { obj ->
-            visitor.onDir(child(Identifier.SystemElement(obj)))
+        private fun querySystems(visitor: VfsDir.Visitor) = catalog.querySystems { sys, image ->
+            visitor.onDir(child(Identifier.SystemElement(sys), image = image))
         }
 
         private fun queryOrganizations(visitor: VfsDir.Visitor) =

@@ -50,7 +50,7 @@ class DatabaseTest {
 
     @Test
     fun `test empty database`() = with(underTest) {
-        val systems = mock<Catalog.Visitor<System>> {}.apply {
+        val systems = mock<Catalog.SystemsVisitor> {}.apply {
             assertFalse(querySystems(this))
         }
         val organizations = mock<Catalog.Visitor<Organization>> {}.apply {
@@ -76,12 +76,12 @@ class DatabaseTest {
         addGame(games[1], systems[1], organizations[0], images[1])
         addGame(games[2], systems[0], organizations[1], images[2])
         addGame(games[3], systems[2], null, null)
-        val allSystems = mock<Catalog.Visitor<System>> {}.apply {
+        val allSystems = mock<Catalog.SystemsVisitor> {}.apply {
             assertTrue(querySystems(this))
         }.also {
-            verify(it).accept(systems[0])
-            verify(it).accept(systems[1])
-            verify(it).accept(systems[2])
+            verify(it).accept(systems[0], null)
+            verify(it).accept(systems[1], null)
+            verify(it).accept(systems[2], null)
         }
         val allOrganizations = mock<Catalog.Visitor<Organization>> {}.apply {
             assertTrue(queryOrganizations(this))

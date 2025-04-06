@@ -39,8 +39,11 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
 
     private val workingRemote = mock<RemoteCatalog> {
         on { querySystems(any()) } doAnswer {
-            with(it.getArgument<Catalog.Visitor<System>>(0)) {
-                systems.forEach(this::accept)
+            with(it.getArgument<Catalog.SystemsVisitor>(0)) {
+                accept(systems[0], images[0])
+                accept(systems[1], images[1])
+                accept(systems[2], images[2])
+                accept(systems[3], null)
             }
         }
         on { queryOrganizations(any(), any()) } doAnswer {
@@ -101,7 +104,7 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     }
     private val failedRemote = mock<RemoteCatalog>(defaultAnswer = { throw error })
     private val remote = if (case.isFailedRemote) failedRemote else workingRemote
-    private val systemsVisitor = mock<Catalog.Visitor<System>>()
+    private val systemsVisitor = mock<Catalog.SystemsVisitor>()
     private val organizationsVisitor = mock<Catalog.Visitor<Organization>>()
     private val gamesVisitor = mock<Catalog.GamesVisitor>()
     private val remixesVisitor = mock<Catalog.RemixesVisitor>()
@@ -136,9 +139,10 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
                 verify(database).runInTransaction(any())
                 verify(remote).querySystems(any())
                 if (!case.isFailedRemote) {
-                    systems.forEach { sys ->
-                        verify(database).addSystem(sys)
-                    }
+                    verify(database).addSystem(systems[0], images[0])
+                    verify(database).addSystem(systems[1], images[1])
+                    verify(database).addSystem(systems[2], images[2])
+                    verify(database).addSystem(systems[3], null)
                     verify(lifetime).update()
                 }
             }

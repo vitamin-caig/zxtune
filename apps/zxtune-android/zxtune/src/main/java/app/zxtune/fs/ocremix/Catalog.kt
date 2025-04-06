@@ -12,6 +12,10 @@ interface Catalog {
         fun accept(game: Game, system: System, organization: Organization?, image: FilePath?)
     }
 
+    fun interface SystemsVisitor {
+        fun accept(sys: System, image: FilePath?)
+    }
+
     fun interface RemixesVisitor {
         fun accept(remix: Remix, game: Game)
     }
@@ -36,7 +40,7 @@ interface Catalog {
     @JvmInline
     value class GameScope(val id: Game.Id) : Scope
 
-    fun querySystems(visitor: Visitor<System>)
+    fun querySystems(visitor: SystemsVisitor)
     fun queryOrganizations(visitor: Visitor<Organization>, progress: ProgressCallback)
     fun queryGames(scope: Scope?, visitor: GamesVisitor, progress: ProgressCallback)
     fun queryRemixes(scope: Scope?, visitor: RemixesVisitor, progress: ProgressCallback)

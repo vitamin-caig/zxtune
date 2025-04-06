@@ -15,12 +15,13 @@ import org.jsoup.nodes.Element
 private val LOG = Logger(RemoteCatalog::class.java.name)
 
 class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
-    override fun querySystems(visitor: Catalog.Visitor<System>) {
+    override fun querySystems(visitor: Catalog.SystemsVisitor) {
         LOG.d { "querySystems()" }
         readPage(baseUri.scoped(null, EntityTypes.SYSTEMS)).select("table>tbody>tr.area-link")
             .forEach { row ->
                 row.findIdNode("/system/")?.let { node ->
-                    visitor.accept(System(System.Id(node.id), node.text))
+                    val image = row.findImagePath("/img-size/100/files/")
+                    visitor.accept(System(System.Id(node.id), node.text), image)
                 }
             }
     }

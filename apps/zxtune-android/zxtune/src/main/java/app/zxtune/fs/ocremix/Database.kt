@@ -41,10 +41,15 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
     fun runInTransaction(cmd: Utils.ThrowingRunnable) = Utils.runInTransaction(db, cmd)
     fun getLifetime(id: String, ttl: TimeStamp) = db.timestamps().getLifetime(id, ttl)
 
-    fun addSystem(system: System) = db.catalog().add(system)
+    fun addSystem(system: System, image: FilePath?) = with(db.catalog()) {
+        add(system)
+        image?.let {
+            addImage(system.id.value, it)
+        }
+    }
 
-    fun querySystems(visitor: Catalog.Visitor<System>) =
-        db.catalog().querySystems().onEach { visitor.accept(it) }.isNotEmpty()
+    fun querySystems(visitor: Catalog.SystemsVisitor) =
+        db.catalog().querySystems().onEach { visitor.accept(it.system, it.image) }.isNotEmpty()
 
     fun addOrganization(organization: Organization) = db.catalog().add(organization)
 
@@ -184,6 +189,11 @@ const val ALL_GAMES_SCOPE = "all_games"
 const val ALL_REMIXES_SCOPE = "all_remixes"
 const val ALL_ALBUMS_SCOPE = "all_albums"
 
+class QueriedSystem(
+    @Embedded val system: System,
+    val image: FilePath?,
+)
+
 class QueriedGame(
     @Embedded(prefix = "g_") val game: Game,
     @Embedded(prefix = "s_") val system: System,
@@ -211,8 +221,11 @@ interface CatalogDao {
     @Insert(entity = SystemRecord::class, onConflict = OnConflictStrategy.REPLACE)
     fun add(sys: System)
 
-    @Query("SELECT * FROM systems")
-    fun querySystems(): Array<System>
+    @Query("""
+    SELECT systems.id AS id,systems.title AS title,images.path as image FROM systems
+    LEFT JOIN images USING(id)
+    """)
+    fun querySystems(): Array<QueriedSystem>
 
     @Insert(entity = OrganizationRecord::class, onConflict = OnConflictStrategy.REPLACE)
     fun add(org: Organization)

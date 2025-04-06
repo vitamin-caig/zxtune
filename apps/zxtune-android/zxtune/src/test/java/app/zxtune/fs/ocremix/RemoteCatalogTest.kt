@@ -26,7 +26,7 @@ import java.io.FileNotFoundException
 class RemoteCatalogTest {
     private lateinit var catalog: RemoteCatalog
     private lateinit var progress: ProgressCallback
-    private lateinit var systemsVisitor: Catalog.Visitor<System>
+    private lateinit var systemsVisitor: Catalog.SystemsVisitor
     private lateinit var organizationsVisitor: Catalog.Visitor<Organization>
     private lateinit var gamesVisitor: Catalog.GamesVisitor
     private lateinit var remixesVisitor: Catalog.RemixesVisitor
@@ -62,10 +62,17 @@ class RemoteCatalogTest {
     fun `test systems`() {
         val systemsMin = 79
         catalog.querySystems(systemsVisitor)
-        verify(systemsVisitor).accept(sys("3do", "3DO"))
-        verify(systemsVisitor).accept(sys("axlxe", "Atari 400/800/XL/XE"))
-        verify(systemsVisitor).accept(sys("spec", "ZX Spectrum"))
-        verify(systemsVisitor, atLeast(systemsMin)).accept(any())
+        verify(systemsVisitor).accept(
+            sys("3do", "3DO"), FilePath("images/systems/3do-2.jpg")
+        )
+        verify(systemsVisitor).accept(
+            sys("axlxe", "Atari 400/800/XL/XE"), FilePath("images/systems/axlxe-44.png")
+        )
+        verify(systemsVisitor).accept(sys("bbcm", "BBC Micro"), null)
+        verify(systemsVisitor).accept(
+            sys("spec", "ZX Spectrum"), FilePath("images/systems/spec-242.png")
+        )
+        verify(systemsVisitor, atLeast(systemsMin)).accept(any(), anyOrNull())
     }
 
     @Test
