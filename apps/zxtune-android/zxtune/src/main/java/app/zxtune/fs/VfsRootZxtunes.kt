@@ -125,7 +125,10 @@ class VfsRootZxtunes(
         override fun getExtension(id: String) = when (id) {
             VfsExtensions.COVER_ART_URI -> catalog.queryAuthor(author.id)
                 ?.takeIf { true == it.hasPhoto }?.let { Identifier.forPhotoOf(it) }
-
+            // assume called on enumerated object with full Author
+            VfsExtensions.ICON_URI -> author.takeIf { true == it.hasPhoto }?.let {
+                Identifier.forPhotoOf(it)
+            }
             else -> super.getExtension(id)
         }
     }
