@@ -488,6 +488,27 @@ class RemoteCatalogTest {
                 get(0).toString()
             )
         }
+        RemoteCatalog.getRemoteUris(FilePath("images/systems/axlxe-44.png")).run {
+            assertEquals(2, size)
+            assertEquals(
+                "${BuildConfig.CDN_ROOT}/download/ocremix/files/images/systems/axlxe-44.png",
+                get(0).toString()
+            )
+            assertEquals(
+                "https://ocrmirror.org/files/images/systems/axlxe-44.png", get(1).toString()
+            )
+        }
+        RemoteCatalog.getThumbUris(FilePath("images/systems/axlxe-44.png")).run {
+            assertEquals(2, size)
+            assertEquals(
+                "${BuildConfig.CDN_ROOT}/download/ocremix/img-size/100/files/images/systems/axlxe-44.png",
+                get(0).toString()
+            )
+            assertEquals(
+                "https://ocremix.org/img-size/100/files/images/systems/axlxe-44.png",
+                get(1).toString()
+            )
+        }
     }
 
     companion object {

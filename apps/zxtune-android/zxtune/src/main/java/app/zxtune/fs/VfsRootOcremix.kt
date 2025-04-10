@@ -43,33 +43,32 @@ class VfsRootOcremix(
         if (!Identifier.isFromRoot(uri)) {
             return null
         }
-        Identifier.findImagePath(uri)?.let {
-            return File(arrayOf(Identifier.FileElement(it)), it, "")
-        }
         return resolveChain(Identifier.findElementsChain(uri))
     }
 
     private fun resolveChain(chain: Array<Identifier.PathElement>) = when {
         chain.isEmpty() -> this@VfsRootOcremix
-        chain.size == 1 -> (chain.last() as? Identifier.AggregateElement)?.let {
-            roots[it.aggregate]
+        chain.size == 1 -> when (val tail = chain.last()) {
+            is Identifier.AggregateElement -> roots[tail.aggregate]
+            is Identifier.PictureElement -> PictureFile(tail)
+            else -> null
         }
 
         else -> when (val tail = chain.last()) {
             is Identifier.AggregateElement -> AggregateDir(chain, tail.aggregate)
             is Identifier.RemixElement -> RemixFile(chain, tail.remix)
             is Identifier.FileElement -> File(chain, tail.path, "")
+            is Identifier.PictureElement -> PictureFile(tail)
             else -> EntityDir(chain)
         }
     }
 
-    private open inner class BaseObject(protected val chain: Array<Identifier.PathElement>) :
-        StubObject() {
+    private open inner class BaseObject(val chain: Array<Identifier.PathElement>) : StubObject() {
         init {
             check(chain.isNotEmpty())
         }
 
-        protected val element
+        val element
             get() = chain.last()
         override val uri: Uri
             get() = Identifier.forElementsChain(chain)
@@ -182,6 +181,10 @@ class VfsRootOcremix(
             AggregateDir(chain + Identifier.AggregateElement(type), type)
 
         override fun getExtension(id: String) = when (id) {
+            VfsExtensions.ICON_URI -> image?.let {
+                Identifier.forThumb(it)
+            }
+
             VfsExtensions.COVER_ART_URI -> (image ?: coverArt())?.let {
                 Identifier.forImage(it)
             }
@@ -245,5 +248,27 @@ class VfsRootOcremix(
             }
             return null
         }
+    }
+
+    private inner class PictureFile(
+        private val tail: Identifier.PictureElement,
+        override val parent: VfsObject? = null,
+        override val size: String = ""
+    ) : StubObject(), VfsFile {
+        override val uri
+            get() = Identifier.forElementsChain(arrayOf(tail))
+        override val name
+            get() = tail.path.displayName
+
+        override fun getExtension(id: String) = when (id) {
+            VfsExtensions.DOWNLOAD_URIS -> downloadUri
+            else -> super.getExtension(id)
+        }
+
+        private val downloadUri
+            get() = when (tail.type) {
+                Identifier.PictureElement.Type.Image -> RemoteCatalog.getRemoteUris(tail.path)
+                Identifier.PictureElement.Type.Thumb -> RemoteCatalog.getThumbUris(tail.path)
+            }
     }
 }

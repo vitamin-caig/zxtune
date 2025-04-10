@@ -190,12 +190,22 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
         private const val ALBUMS_PATH = "albums/"
 
         fun getRemoteUris(path: FilePath) = path.value.let {
-            if (it.startsWith(ALBUMS_PATH)) arrayOf(Cdn.ocremix(it))
+            val withPrefix = "files/$it"
+            if (it.startsWith(ALBUMS_PATH)) arrayOf(Cdn.ocremix(withPrefix)) // only at cdn
             else arrayOf(
-                Cdn.ocremix(it), Uri.Builder().scheme("https").apply {
+                Cdn.ocremix(withPrefix), Uri.Builder().scheme("https").apply {
                     if (path.isTorrent) authority("bt.ocremix.org").path(it)
-                    else authority("ocrmirror.org").path("files/$it")
+                    else authority("ocrmirror.org").path(withPrefix)
                 }.build()
+            )
+        }
+
+        fun getThumbUris(path: FilePath) = path.value.let {
+            assert(it.startsWith("images/"))
+            val withPrefix = "img-size/100/files/$it"
+            arrayOf(
+                Cdn.ocremix(withPrefix),
+                Uri.Builder().scheme("https").authority("ocremix.org").path(withPrefix).build()
             )
         }
     }
