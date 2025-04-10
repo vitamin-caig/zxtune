@@ -385,9 +385,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     @Override
     @Nullable
     public Object getExtension(String id) {
-      if (VfsExtensions.CACHE_PATH.equals(id)) {
-        return author.getId() + ".jpg";
-      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+      if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return RemoteCatalog.getImageUris(author.getId());
       } else {
         return super.getExtension(id);

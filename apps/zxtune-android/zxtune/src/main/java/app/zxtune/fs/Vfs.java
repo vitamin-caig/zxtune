@@ -12,6 +12,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -72,6 +73,12 @@ public final class Vfs {
     if (asDescriptor != null) {
       return new FileInputStream(asDescriptor);
     }
+    if (file.getExtension(VfsExtensions.CACHE_PATH) == null) {
+      final Object uris = file.getExtension(VfsExtensions.DOWNLOAD_URIS);
+      if (uris instanceof Uri[]) {
+        return new BufferedInputStream(Holder.INSTANCE.network.getInputStream((Uri[]) uris));
+      }
+    }
     return Io.createByteBufferInputStream(download(file, null));
   }
 
@@ -125,8 +132,7 @@ public final class Vfs {
       return null;
     }
     final String compatId = getCacheCompatId(id);
-    return Holder.INSTANCE.cache.find(id + "/" + path,
-        compatId + "/" + path);
+    return Holder.INSTANCE.cache.find(id + "/" + path, compatId + "/" + path);
   }
 
   private static String getCacheCompatId(String id) {

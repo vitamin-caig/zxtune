@@ -535,9 +535,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     @Nullable
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.CACHE_PATH.equals(id)) {
-        return object.getId() + "/image.png";
-      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+      if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return RemoteCatalog.getImageRemoteUris(object);
       } else {
         return super.getExtension(id);
