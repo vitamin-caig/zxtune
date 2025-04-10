@@ -20,18 +20,17 @@ import app.zxtune.MainApplication
 import app.zxtune.core.Identifier
 import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsFile
+import app.zxtune.fs.VfsObject
 import app.zxtune.fs.icon
-import app.zxtune.fs.provider.CachingResolver
-import app.zxtune.fs.provider.Resolver
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
 
 class Provider @VisibleForTesting internal constructor(
-    private val resolver: Resolver,
+    private val resolve: (Uri) -> VfsObject?,
 ) : ContentProvider() {
-    constructor() : this(CachingResolver(cacheSize = 100))
+    constructor() : this(::resolve)
 
     private val source = CoversSource(1_048_576, this::loadImage)
 
@@ -48,8 +47,7 @@ class Provider @VisibleForTesting internal constructor(
                 return it
             }
         }
-        // no callback to disable archive analysis
-        val entry = resolver.resolve(fsUri) ?: return null
+        val entry = resolve(fsUri) ?: return null
         entry.icon?.let { icon ->
             LOG.d { "Render icon for $fsUri" }
             return loadIcon(icon, size ?: DEFAULT_ICON_SIZE)?.let {
@@ -140,5 +138,9 @@ class Provider @VisibleForTesting internal constructor(
         } else {
             null
         }
+
+        private fun resolve(uri: Uri) = runCatching {
+            Vfs.resolve(uri)
+        }.getOrNull()
     }
 }
