@@ -1,11 +1,10 @@
 package app.zxtune.fs.vgmrips
 
 import android.net.Uri
-import app.zxtune.TimeStamp
+import androidx.annotation.VisibleForTesting
 import app.zxtune.fs.HtmlUtils
 import app.zxtune.fs.Jsoup.findFirst
 import app.zxtune.fs.Jsoup.findFirstText
-import app.zxtune.fs.Jsoup.nextElementSibling
 import app.zxtune.fs.Jsoup.parent
 import app.zxtune.fs.api.Cdn
 import app.zxtune.fs.http.MultisourceHttpProvider
@@ -38,42 +37,48 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
     override fun systems(): Catalog.Grouping = systems
 
-    override fun findPack(id: String, visitor: Catalog.Visitor<Track>): Pack? =
-        findPackInternal("/packs/pack/${id}", visitor)
+    override fun findPack(id: Pack.Id) = findPackInternal("/packs/pack/${id.value}", null)
 
-    override fun findRandomPack(visitor: Catalog.Visitor<Track>): Pack? =
+    override fun findRandomPack(visitor: Catalog.Visitor<FilePath>) =
         findPackInternal("/packs/random", visitor)
 
-    private fun findPackInternal(path: String, visitor: Catalog.Visitor<Track>) =
+    @VisibleForTesting
+    fun findPackInternal(path: String, visitor: Catalog.Visitor<FilePath>?): Pack? =
         readDoc(buildUri(path)).let { doc ->
-            val url = doc.findFirst("meta[property=og:url]")?.attr("content") ?: return null
-            val id = getSuffix(url, "/packs/pack/")
-            val title = doc.findFirstText("div.row>section>h1") ?: ""
-            tryMakePack(id, title)?.apply {
-                updateRating(this, doc)
-                updateImage(this, doc, "/packs/images/large/")
-                parsePackTracks(this, visitor, doc)
+            val id = doc.findFirst("meta[property=og:url]")?.extract("content", "/packs/pack/")
+                ?: return null
+            val title = doc.findFirstText("div.row>section>h1") ?: return null
+            val archive = doc.findFirst("a[href*=/files/]:has(span.icon-download)")
+                ?.extract("href", "/files/") ?: return null
+            val image = doc.findFirst("div.image>a>img")?.extract("src", "/packs/images/large/")
+            Pack(Pack.Id(id), title, FilePath(archive), image?.let { FilePath(it) }).also {
+                visitor?.let {
+                    parsePackTracks(doc, it)
+                }
             }
         }
 
     open fun isAvailable() = http.hasConnection()
 
     companion object {
-        @JvmStatic
-        fun getRemoteUris(track: Track) =
-            arrayOf(
-                Cdn.vgmrips(track.location),
-                buildBaseUri("packs/vgm/${track.location}").build()
-            )
+        fun getRemoteUris(path: FilePath) =
+            when (path.value.substringAfterLast('.', "").lowercase()) {
+                "zip" -> getUris("files/${path.value}")
+                "vgz" -> getTrackUris(path.value)
+                "png", "jpg" -> getImageUris(path.value)
+                else -> emptyArray<Uri>()
+            }
 
-        @JvmStatic
-        fun getImageRemoteUris(pack: Pack) = requireNotNull(pack.imageLocation).run {
-            arrayOf(
-                substringAfterLast('/').substringBeforeLast("_(").replace('_', ' ').let { stem ->
-                    Cdn.vgmrips("${this}/${stem}.png")
-                }, buildBaseUri("packs/images/large/${this}.png").build()
-            )
-        }
+        private fun getUris(path: String) = arrayOf(
+            Cdn.vgmrips(path), buildBaseUri(path).build()
+        )
+
+        private fun getTrackUris(path: String) = arrayOf(
+            Cdn.vgmrips(path), buildBaseUri("packs/vgm/$path").build()
+        )
+
+        private fun getImageUris(path: String, size: String = "large") =
+            getUris("packs/images/${size}/${path}")
     }
 
     private fun readDoc(uri: Uri): Document = HtmlUtils.parseDoc(http.getInputStream(uri))
@@ -81,92 +86,78 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
     private inner class CompaniesGrouping : Catalog.Grouping {
 
         override fun query(visitor: Catalog.Visitor<Group>) =
-            readDoc(buildUri(COMPANIES_DIR_PATH))
-                .select("table>tbody>tr>td.link>a[href*=net/packs/company]")
+            readDoc(buildUri(COMPANIES_DIR_PATH)).select("table>tbody>tr>td.link>a[href*=net/packs/company]")
                 .forEach { ref ->
-                    val id = extractId(ref, COMPANIES_FILE_PREFIX)
+                    val id = ref.extract("href", COMPANIES_FILE_PREFIX) ?: return@forEach
                     val title = ref.attr("title")
                     val packs = tryGetPacksCountFromBadge(ref.parent?.parent, "a[href$=/developed]")
                     if (id.isNotEmpty() && title.isNotEmpty() && packs != 0) {
-                        visitor.accept(Group(id, title, packs))
+                        visitor.accept(Group(Group.Id(id), title, packs))
                     }
                 }
 
         override fun queryPacks(
-            id: String,
-            visitor: Catalog.Visitor<Pack>,
-            progress: ProgressCallback
-        ) = parsePacks("${COMPANIES_FILE_PREFIX}${id}/developed", visitor, progress)
+            id: Group.Id, visitor: Catalog.Visitor<Pack>, progress: ProgressCallback
+        ) = parsePacks("${COMPANIES_FILE_PREFIX}${id.value}/developed", visitor, progress)
     }
 
     private inner class ComposersGrouping : Catalog.Grouping {
 
         override fun query(visitor: Catalog.Visitor<Group>) =
-            readDoc(buildUri(COMPOSERS_DIR_PATH))
-                .select("li.composer>a[href*=net/packs/composer/]")
+            readDoc(buildUri(COMPOSERS_DIR_PATH)).select("li.composer>a[href*=net/packs/composer/]")
                 .forEach { ref ->
-                    val id = extractId(ref, COMPOSERS_FILE_PREFIX)
+                    val id = ref.extract("href", COMPOSERS_FILE_PREFIX) ?: return@forEach
                     val name = ref.ownText()
                     val packs = tryGetPacksCountFromBadge(ref)
-                    if (id.isNotEmpty() && name.isNotEmpty() && packs != 0) {
-                        visitor.accept(Group(id, name, packs))
+                    if (packs != 0) {
+                        visitor.accept(Group(Group.Id(id), name, packs))
                     }
                 }
 
         override fun queryPacks(
-            id: String,
-            visitor: Catalog.Visitor<Pack>,
-            progress: ProgressCallback
-        ) = parsePacks("${COMPOSERS_FILE_PREFIX}${id}", visitor, progress)
+            id: Group.Id, visitor: Catalog.Visitor<Pack>, progress: ProgressCallback
+        ) = parsePacks("${COMPOSERS_FILE_PREFIX}${id.value}", visitor, progress)
     }
 
     private inner class ChipsGrouping : Catalog.Grouping {
 
         override fun query(visitor: Catalog.Visitor<Group>) {
-            readDoc(buildUri(CHIPS_DIR_PATH))
-                .select("div.chip>a[href*=net/packs/chip/]")
+            readDoc(buildUri(CHIPS_DIR_PATH)).select("div.chip>a[href*=net/packs/chip/]")
                 .forEach { ref ->
-                    val id = extractId(ref, CHIPS_FILE_PREFIX)
+                    val id = ref.extract("href", CHIPS_FILE_PREFIX) ?: return@forEach
                     val name = ref.ownText()
                     val packs = tryGetPacksCountFromBadge(ref.parent)
-                    if (id.isNotEmpty() && name.isNotEmpty() && packs != 0) {
-                        visitor.accept(Group(id, name, packs))
+                    if (packs != 0) {
+                        visitor.accept(Group(Group.Id(id), name, packs))
                     }
                 }
         }
 
         override fun queryPacks(
-            id: String,
-            visitor: Catalog.Visitor<Pack>,
-            progress: ProgressCallback
-        ) = parsePacks("${CHIPS_FILE_PREFIX}${id}", visitor, progress)
+            id: Group.Id, visitor: Catalog.Visitor<Pack>, progress: ProgressCallback
+        ) = parsePacks("${CHIPS_FILE_PREFIX}${id.value}", visitor, progress)
     }
 
     private inner class SystemsGrouping : Catalog.Grouping {
 
         override fun query(visitor: Catalog.Visitor<Group>) =
-            readDoc(buildUri(SYSTEMS_DIR_PATH))
-                .select("a[href*=net/packs/system/]:has(>img,div>span)")
+            readDoc(buildUri(SYSTEMS_DIR_PATH)).select("a[href*=net/packs/system/]:has(>img,div>span)")
                 .forEach { ref ->
-                    val id = extractId(ref, SYSTEMS_FILE_PREFIX)
-                    val title = getSuffix(ref.attr("title"), SYSTEMS_TITLE_PREFIX)
+                    val id = ref.extract("href", SYSTEMS_FILE_PREFIX) ?: return@forEach
+                    val title = ref.extract("title", SYSTEMS_TITLE_PREFIX) ?: return@forEach
                     val packs = tryGetPacksCountFromBadge(ref)
-                    if (id.isNotEmpty() && title.isNotEmpty() && packs != 0) {
-                        visitor.accept(Group(id, title, packs))
+                    if (packs != 0) {
+                        visitor.accept(Group(Group.Id(id), title, packs))
                     }
                 }
 
         override fun queryPacks(
-            id: String,
-            visitor: Catalog.Visitor<Pack>,
-            progress: ProgressCallback
-        ) = parsePacks("${SYSTEMS_FILE_PREFIX}${id}", visitor, progress)
+            id: Group.Id, visitor: Catalog.Visitor<Pack>, progress: ProgressCallback
+        ) = parsePacks("${SYSTEMS_FILE_PREFIX}${id.value}", visitor, progress)
     }
 
     private fun parsePacks(
-        path: String,
-        visitor: Catalog.Visitor<Pack>,
-        progress: ProgressCallback
+        path: String, visitor: Catalog.Visitor<Pack>, progress: ProgressCallback
     ) {
         for (page in 0..Int.MAX_VALUE) {
             val uri = buildPagedUri(path, page)
@@ -188,112 +179,56 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
     }
 }
 
-private fun buildBaseUri(path: String) = Uri.Builder()
-    .scheme("https")
-    .authority("vgmrips.net")
-    .path(path)
+private fun buildBaseUri(path: String) =
+    Uri.Builder().scheme("https").authority("vgmrips.net").path(path)
 
 private fun buildUri(path: String) = buildBaseUri(path).build()
 
 private fun buildPagedUri(path: String, page: Int) =
-    buildBaseUri(path)
-        .appendQueryParameter("p", page.toString())
-        .build()
+    buildBaseUri(path).appendQueryParameter("p", page.toString()).build()
 
-private fun extractId(ref: Element, prefix: String) =
-    ref.attr("href").substringAfter(prefix, "")
-
-private fun getSuffix(str: String, prefix: String): String = str.substringAfter(prefix, "")
+private fun Element.extract(attr: String, prefix: String) =
+    attr(attr).substringAfter(prefix, "").takeIf { it.isNotEmpty() }?.let {
+        Uri.decode(it)
+    }
 
 private fun tryGetPacksCountFromBadge(el: Element?) = tryGetPacksCountFromBadge(el, "span.badge")
 
-private fun tryGetPacksCountFromBadge(el: Element?, query: String) =
-    el?.findFirstText(query)?.let {
-        tryParseIntPrefix(it)
-    } ?: 0
+private fun tryGetPacksCountFromBadge(el: Element?, query: String) = el?.findFirstText(query)?.let {
+    tryParseIntPrefix(it)
+} ?: 0
 
 private fun tryParseIntPrefix(txt: String) = txt.takeWhile { it.isDigit() }.toIntOrNull() ?: 0
 
-private fun parsePackTracks(result: Pack, visitor: Catalog.Visitor<Track>, doc: Element) =
-    doc.select("table.playlist>tbody>tr:has(>td.title)")
-        .forEach { track ->
-            val number = tryParseIntPrefix(track.attr("data-order"))
-            val title = track.findFirstText("td.title>a.beginPlay")
-            val location = Uri.decode(getSuffix(track.attr("data-vgmurl"), "/packs/vgm/"))
-            if (number > 0 && !title.isNullOrEmpty() && location.isNotEmpty()) {
-                val duration =
-                    TimeStamp.fromSeconds(tryParseIntPrefix(track.attr("data-duration")).toLong())
-                visitor.accept(Track(number, title, duration, location))
-                ++result.songs
-            }
-        }
-
-private fun parsePack(el: Element) =
-    el.findFirst("div.details")?.let { details ->
-        tryParsePackFromDetails(details)
-    }?.also { pack ->
-        el.findFirst("div.image:has(>a:has(>img))")?.let {
-            updateRating(pack, it)
-            updateImage(pack, it, "/packs/images/small/")
+private fun parsePackTracks(doc: Element, visitor: Catalog.Visitor<FilePath>) =
+    doc.select("table.playlist>tbody>tr:has(>td.title)").forEach { track ->
+        track.extract("data-vgmurl", "/packs/vgm/")?.let {
+            visitor.accept(FilePath(it))
         }
     }
 
-private fun tryParsePackFromDetails(el: Element) =
-    el.findFirst("a[href*=/packs/pack/]:gt(0)")?.let { ref ->
-        tryMakePack(ref)
-    }?.also { pack ->
-        el.findFirstText("a.download[href*=/files/]")?.let { str ->
-            //[X,songs,*,Y,KB]
-            str.split(' ').takeIf { it.size == 5 }?.run {
-                pack.songs = tryParseIntPrefix(first())
-            }
-        }
-    }
-
-private fun tryMakePack(el: Element) = with(el) {
-    val id = getSuffix(attr("href"), "/packs/pack/")
-    val title = text()
-    tryMakePack(id, title)
+private fun parsePack(el: Element): Pack? = el.run {
+    val img = findFirst("div.image>a>img") ?: return null
+    val download = findFirst("div.details a.download:has(>small)") ?: return null
+    val id = img.parent?.extract("href", "/packs/pack/") ?: return null
+    val title = img.attr("alt").takeIf { it.isNotEmpty() } ?: return null
+    val archive = download.extract("href", "/files/") ?: return null
+    val image = img.extract("src", "/packs/images/small/")
+    //[X,songs,*,Y,KB]
+    val details = download.text().split(' ').takeIf { it.size == 5 }
+    val songs = details?.getOrNull(0)?.let { tryParseIntPrefix(it) } ?: 0
+    val size = details?.takeLast(2)?.joinToString(" ") ?: ""
+    Pack(Pack.Id(id), title, FilePath(archive), image?.let { FilePath(it) }, songs, size)
 }
-
-private fun tryMakePack(id: String, title: String) =
-    if (id.isNotEmpty() && title.isNotEmpty()) {
-        Pack(id, title)
-    } else {
-        null
-    }
-
-private fun updateRating(pack: Pack, el: Element) = el.findFirst("div.stars")?.run {
-    pack.score = parsePackScore(classNames())
-    pack.ratings = nextElementSibling?.run { tryParseIntPrefix(text()) } ?: 0
-}
-
-private fun updateImage(pack: Pack, el: Element, imagePathPart: String) =
-    el.findFirst("div.image>a>img[src*=packs/images/]")?.let { img ->
-        pack.imageLocation = Uri.decode(getSuffix(img.attr("src"), imagePathPart))
-            .removeSuffix(".png").removeSuffix(".PNG")
-    }
-
-private fun parsePackScore(classNames: Iterable<String>) = classNames
-    .asSequence()
-    .map { getSuffix(it, "stars") }
-    .filter { it.isNotEmpty() }
-    .map { tryParseIntPrefix(it) }
-    .firstOrNull() ?: -1
 
 private fun parsePacksProgress(el: Element) =
     el.findFirst("div.container:has(>div.clearfix)")?.run {
         // [Packs, XX, to, YY, of, ZZ, total]
-        textNodes().asSequence()
-            .map { it.text() }
-            .filter { it.startsWith("Packs") }
-            .map { it.split(' ') }
-            .filter { it.size == 7 }
-            .map {
+        textNodes().asSequence().map { it.text() }.filter { it.startsWith("Packs") }
+            .map { it.split(' ') }.filter { it.size == 7 }.map {
                 val done = HtmlUtils.tryGetInteger(it[3])
                 val total = HtmlUtils.tryGetInteger(it[5])
                 Pair(done, total)
-            }
-            .firstOrNull()
+            }.firstOrNull()
     }
 

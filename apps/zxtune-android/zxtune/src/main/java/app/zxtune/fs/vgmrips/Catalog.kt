@@ -15,7 +15,7 @@ interface Catalog {
         fun query(visitor: Visitor<Group>)
 
         @Throws(IOException::class)
-        fun queryPacks(id: String, visitor: Visitor<Pack>, progress: ProgressCallback)
+        fun queryPacks(id: Group.Id, visitor: Visitor<Pack>, progress: ProgressCallback)
     }
 
     fun companies(): Grouping
@@ -24,10 +24,10 @@ interface Catalog {
     fun systems(): Grouping
 
     @Throws(IOException::class)
-    fun findPack(id: String, visitor: Visitor<Track>): Pack?
+    fun findPack(id: Pack.Id): Pack?
 
     @Throws(IOException::class)
-    fun findRandomPack(visitor: Visitor<Track>): Pack?
+    fun findRandomPack(visitor: Visitor<FilePath>): Pack?
 
     companion object {
         @JvmStatic

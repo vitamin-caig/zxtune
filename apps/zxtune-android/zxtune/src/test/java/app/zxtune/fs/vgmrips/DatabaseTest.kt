@@ -2,11 +2,15 @@ package app.zxtune.fs.vgmrips
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import app.zxtune.TimeStamp
 import app.zxtune.fs.DatabaseTestUtils.testCheckObjectGrouping
 import app.zxtune.fs.DatabaseTestUtils.testVisitor
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -112,7 +116,7 @@ class DatabaseTest {
         val packs = (1..10).map(::addPack)
 
         packs.forEach { assertEquals(it, underTest.queryPack(it.id)) }
-        assertNull(underTest.queryPack("0"))
+        assertNull(underTest.queryPack(Pack.Id("0")))
     }
 
     @Test
@@ -147,13 +151,13 @@ class DatabaseTest {
     fun `test queryPackTracks`() {
         val pack = makePack(100)
 
-        testVisitor<Catalog.Visitor<Track>> { visitor ->
+        testVisitor<Catalog.Visitor<FilePath>> { visitor ->
             assertFalse(underTest.queryPackTracks(pack.id, visitor))
         }
 
         val tracks = (1..5).map(::makeTrack).onEach { underTest.addPackTrack(pack.id, it) }
 
-        testVisitor<Catalog.Visitor<Track>> { visitor ->
+        testVisitor<Catalog.Visitor<FilePath>> { visitor ->
             assertTrue(underTest.queryPackTracks(pack.id, visitor))
 
             inOrder(visitor).run {
@@ -165,7 +169,6 @@ class DatabaseTest {
     private fun addPack(id: Int) = makePack(id).also(underTest::addPack)
 }
 
-private fun makeGroup(id: Int) = Group(id.toString(), "Group $id", id * 3)
-private fun makePack(id: Int) = Pack(id.toString(), "Pack $id")
-private fun makeTrack(id: Int) =
-    Track(id, "Track $id", TimeStamp.fromSeconds(id.toLong()), "track${id}")
+private fun makeGroup(id: Int) = Group(Group.Id(id.toString()), "Group $id", id * 3)
+private fun makePack(id: Int) = Pack(Pack.Id(id.toString()), "Pack $id", FilePath("pack${id}"))
+private fun makeTrack(id: Int) = FilePath("track${id}")
