@@ -20,7 +20,6 @@ private const val CHIPS_DIR_PATH = "/packs/chips/"
 private const val CHIPS_FILE_PREFIX = "/packs/chip/"
 private const val SYSTEMS_DIR_PATH = "/packs/systems/"
 private const val SYSTEMS_FILE_PREFIX = "/packs/system/"
-private const val SYSTEMS_TITLE_PREFIX = "View games on "
 
 open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
@@ -65,7 +64,11 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
             when (path.value.substringAfterLast('.', "").lowercase()) {
                 "zip" -> getUris("files/${path.value}")
                 "vgz" -> getTrackUris(path.value)
-                "png", "jpg" -> getImageUris(path.value)
+                "png", "jpg" -> path.value.run {
+                    require(startsWith("images/") || startsWith("icons/"))
+                    getUris("packs/${this}")
+                }
+
                 else -> emptyArray<Uri>()
             }
 
@@ -76,9 +79,6 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
         private fun getTrackUris(path: String) = arrayOf(
             Cdn.vgmrips(path), buildBaseUri("packs/vgm/$path").build()
         )
-
-        private fun getImageUris(path: String, size: String = "large") =
-            getUris("packs/images/${size}/${path}")
     }
 
     private fun readDoc(uri: Uri): Document = HtmlUtils.parseDoc(http.getInputStream(uri))
@@ -86,15 +86,15 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
     private inner class CompaniesGrouping : Catalog.Grouping {
 
         override fun query(visitor: Catalog.Visitor<Group>) =
-            readDoc(buildUri(COMPANIES_DIR_PATH)).select("table>tbody>tr>td.link>a[href*=net/packs/company]")
-                .forEach { ref ->
-                    val id = ref.extract("href", COMPANIES_FILE_PREFIX) ?: return@forEach
-                    val title = ref.attr("title")
-                    val packs = tryGetPacksCountFromBadge(ref.parent?.parent, "a[href$=/developed]")
-                    if (id.isNotEmpty() && title.isNotEmpty() && packs != 0) {
-                        visitor.accept(Group(Group.Id(id), title, packs))
-                    }
+            readDoc(buildUri(COMPANIES_DIR_PATH)).select("table>tbody>tr").forEach { row ->
+                val ref = row.findFirst("a[href*=net/packs/company]") ?: return@forEach
+                val id = ref.extract("href", COMPANIES_FILE_PREFIX) ?: return@forEach
+                val title = ref.attr("title")
+                val packs = tryGetPacksCountFromBadge(row, "a[href$=/developed]")
+                if (title.isNotEmpty() && packs != 0) {
+                    visitor.accept(Group(Group.Id(id), title, packs, row.findIcon()))
                 }
+            }
 
         override fun queryPacks(
             id: Group.Id, visitor: Catalog.Visitor<Pack>, progress: ProgressCallback
@@ -109,7 +109,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
                     val id = ref.extract("href", COMPOSERS_FILE_PREFIX) ?: return@forEach
                     val name = ref.ownText()
                     val packs = tryGetPacksCountFromBadge(ref)
-                    if (packs != 0) {
+                    if (name.isNotEmpty() && packs != 0) {
                         visitor.accept(Group(Group.Id(id), name, packs))
                     }
                 }
@@ -122,15 +122,15 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
     private inner class ChipsGrouping : Catalog.Grouping {
 
         override fun query(visitor: Catalog.Visitor<Group>) {
-            readDoc(buildUri(CHIPS_DIR_PATH)).select("div.chip>a[href*=net/packs/chip/]")
-                .forEach { ref ->
-                    val id = ref.extract("href", CHIPS_FILE_PREFIX) ?: return@forEach
-                    val name = ref.ownText()
-                    val packs = tryGetPacksCountFromBadge(ref.parent)
-                    if (packs != 0) {
-                        visitor.accept(Group(Group.Id(id), name, packs))
-                    }
+            readDoc(buildUri(CHIPS_DIR_PATH)).select("div.chip").forEach { row ->
+                val ref = row.selectFirst("a[href*=packs/chip/]:not(:has(>img))") ?: return@forEach
+                val id = ref.extract("href", CHIPS_FILE_PREFIX) ?: return@forEach
+                val name = ref.ownText()
+                val packs = tryGetPacksCountFromBadge(row)
+                if (name.isNotEmpty() && packs != 0) {
+                    visitor.accept(Group(Group.Id(id), name, packs, row.findIcon()))
                 }
+            }
         }
 
         override fun queryPacks(
@@ -141,15 +141,15 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
     private inner class SystemsGrouping : Catalog.Grouping {
 
         override fun query(visitor: Catalog.Visitor<Group>) =
-            readDoc(buildUri(SYSTEMS_DIR_PATH)).select("a[href*=net/packs/system/]:has(>img,div>span)")
-                .forEach { ref ->
-                    val id = ref.extract("href", SYSTEMS_FILE_PREFIX) ?: return@forEach
-                    val title = ref.extract("title", SYSTEMS_TITLE_PREFIX) ?: return@forEach
-                    val packs = tryGetPacksCountFromBadge(ref)
-                    if (packs != 0) {
-                        visitor.accept(Group(Group.Id(id), title, packs))
-                    }
+            readDoc(buildUri(SYSTEMS_DIR_PATH)).select("div.system").forEach { row ->
+                val ref = row.findFirst("div.name>a[href*=packs/system/]") ?: return@forEach
+                val id = ref.extract("href", SYSTEMS_FILE_PREFIX) ?: return@forEach
+                val title = ref.ownText()
+                val packs = tryGetPacksCountFromBadge(row)
+                if (title.isNotEmpty() && packs != 0) {
+                    visitor.accept(Group(Group.Id(id), title, packs, row.findIcon()))
                 }
+            }
 
         override fun queryPacks(
             id: Group.Id, visitor: Catalog.Visitor<Pack>, progress: ProgressCallback
@@ -158,15 +158,13 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
     private fun parsePacks(
         path: String, visitor: Catalog.Visitor<Pack>, progress: ProgressCallback
-    ) {
-        for (page in 0..Int.MAX_VALUE) {
-            val uri = buildPagedUri(path, page)
-            parsePacksPage(uri, visitor)?.run {
-                if (first != null && second != null) {
-                    progress.onProgressUpdate(first!!, second!!)
-                }
-            } ?: break
-        }
+    ) = (0..Int.MAX_VALUE).forEach { page ->
+        val uri = buildPagedUri(path, page)
+        parsePacksPage(uri, visitor)?.run {
+            if (first != null && second != null) {
+                progress.onProgressUpdate(first!!, second!!)
+            }
+        } ?: return@parsePacks
     }
 
     // done, total
@@ -190,6 +188,11 @@ private fun buildPagedUri(path: String, page: Int) =
 private fun Element.extract(attr: String, prefix: String) =
     attr(attr).substringAfter(prefix, "").takeIf { it.isNotEmpty() }?.let {
         Uri.decode(it)
+    }
+
+private fun Element.findIcon() =
+    findFirst("img[src*=packs/icons/]")?.extract("src", "packs/")?.let {
+        FilePath(it)
     }
 
 private fun tryGetPacksCountFromBadge(el: Element?) = tryGetPacksCountFromBadge(el, "span.badge")

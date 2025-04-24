@@ -27,8 +27,7 @@ class DatabaseTest {
     fun setUp() {
         underTest = Database(
             Room.inMemoryDatabaseBuilder(
-                ApplicationProvider.getApplicationContext(),
-                DatabaseDelegate::class.java
+                ApplicationProvider.getApplicationContext(), DatabaseDelegate::class.java
             ).allowMainThreadQueries().build()
         )
     }
@@ -108,8 +107,7 @@ class DatabaseTest {
         addGroup = ::makeGroup,
         addObjectToGroup = { group, pack -> underTest.addGroupPack(group.id, pack) },
         queryObjects = { group, visitor -> underTest.queryGroupPacks(group.id, visitor) },
-        checkAccept = { visitor, pack -> visitor.accept(pack) }
-    )
+        checkAccept = { visitor, pack -> visitor.accept(pack) })
 
     @Test
     fun `test queryPack`() {
@@ -132,10 +130,9 @@ class DatabaseTest {
         assertEquals(hasTracks1, underTest.queryRandomPack())
         assertEquals(hasTracks1, underTest.queryRandomPack())
 
-        val withTracks =
-            (3..10).map(::addPack).onEach {
-                underTest.addPackTrack(it.id, makeTrack(1))
-            }
+        val withTracks = (3..10).map(::addPack).onEach {
+            underTest.addPackTrack(it.id, makeTrack(1))
+        }
 
         while (true) {
             val res = underTest.queryRandomPack()
@@ -169,6 +166,19 @@ class DatabaseTest {
     private fun addPack(id: Int) = makePack(id).also(underTest::addPack)
 }
 
-private fun makeGroup(id: Int) = Group(Group.Id(id.toString()), "Group $id", id * 3)
-private fun makePack(id: Int) = Pack(Pack.Id(id.toString()), "Pack $id", FilePath("pack${id}"))
+private fun makeGroup(id: Int) = Group(
+    id = Group.Id(id.toString()),
+    title = "Group $id",
+    packs = id * 3,
+    image = id.takeIf { it % 2 == 0 }?.let { FilePath("image${id}") })
+
+private fun makePack(id: Int) = Pack(
+    id = Pack.Id(id.toString()),
+    title = "Pack $id",
+    archive = FilePath("pack${id}"),
+    image = id.takeIf { it % 2 == 0 }?.let { FilePath("image${id}") },
+    songs = id * 3 + 1,
+    size = "${id} KB"
+)
+
 private fun makeTrack(id: Int) = FilePath("track${id}")

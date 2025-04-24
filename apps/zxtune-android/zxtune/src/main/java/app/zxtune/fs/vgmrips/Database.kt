@@ -132,7 +132,7 @@ object Converters {
 
 @Dao
 abstract class CatalogDao {
-    @Query("SELECT id, title, packs FROM groups WHERE type = :type")
+    @Query("SELECT id, title, packs, image FROM groups WHERE type = :type")
     abstract fun queryGroups(@Database.Type type: Int): Array<Group>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

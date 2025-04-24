@@ -43,7 +43,7 @@ class RemoteCatalogTest {
     fun `test companies`() = checkGroups(
         catalog.companies(),
         groupsMin = 555,
-        makeGroup("konami", "Konami", 219),
+        makeGroup("konami", "Konami", 219, "icons/companies/konami.png"),
         makeGroup("naxat-soft", "Naxat Soft", 5),
         makeGroup("c-s-ware", "C's Ware", 4),
         makeGroup("crea-tech", "Crea-Tech", 1)
@@ -83,8 +83,12 @@ class RemoteCatalogTest {
     )
 
     @Test
-    fun `test chips`() =
-        checkGroups(catalog.chips(), groupsMin = 50, makeGroup("nes-apu", "NES APU", 437))
+    fun `test chips`() = checkGroups(
+        catalog.chips(),
+        groupsMin = 50,
+        makeGroup("nes-apu", "NES APU", 437, "icons/chips/nes-apu.png"),
+        makeGroup("ncr8496", "NCR8496", 3, "icons/chips/chip.png")
+    )
 
     @Test
     fun `test chip packs`() = checkPacks(
@@ -102,8 +106,13 @@ class RemoteCatalogTest {
     fun `test systems`() = checkGroups(
         catalog.systems(),
         groupsMin = 180,
-        makeGroup("nintendo/family-computer", "Family Computer", 333),
-        makeGroup("ascii/msx", "MSX", 89),
+        makeGroup(
+            "nintendo/family-computer",
+            "Family Computer",
+            333,
+            "icons/systems/nintendo/family-computer.png"
+        ),
+        makeGroup("ascii/msx", "MSX", 89, "icons/systems/ascii/msx.png"),
         makeGroup("snk/neo-geo-pocket", "Neo Geo Pocket", 1)
     )
 
@@ -182,15 +191,15 @@ class RemoteCatalogTest {
 
     @Test
     fun `test getImageUris`() = with(
-        RemoteCatalog.getRemoteUris(FilePath("pack/file.PNG"))
+        RemoteCatalog.getRemoteUris(FilePath("images/pack/file.PNG"))
     ) {
         assertEquals(2L, size.toLong())
         assertEquals(
-            "${BuildConfig.CDN_ROOT}/download/vgmrips/packs/images/large/pack/file.PNG",
+            "${BuildConfig.CDN_ROOT}/download/vgmrips/packs/images/pack/file.PNG",
             get(0).toString()
         )
         assertEquals(
-            "https://vgmrips.net/packs/images/large/pack/file.PNG", get(1).toString()
+            "https://vgmrips.net/packs/images/pack/file.PNG", get(1).toString()
         )
     }
 
@@ -198,9 +207,7 @@ class RemoteCatalogTest {
         grouping.query(groupsVisitor)
 
         groups.forEach { expected ->
-            verify(groupsVisitor).accept(argThat {
-                id == expected.id && title == expected.title && packs >= expected.packs
-            })
+            verify(groupsVisitor).accept(argThat { matches(expected) })
         }
         verify(groupsVisitor, atLeast(groupsMin)).accept(any())
     }
@@ -222,10 +229,14 @@ class RemoteCatalogTest {
     }
 }
 
+private fun Group.matches(expected: Group) =
+    id == expected.id && title == expected.title && packs >= expected.packs && image == expected.image
+
 private fun Pack.matches(expected: Pack) =
     id == expected.id && title == expected.title && songs == expected.songs && size == expected.size && archive == expected.archive && image == expected.image
 
-private fun makeGroup(id: String, title: String, packs: Int) = Group(Group.Id(id), title, packs)
+private fun makeGroup(id: String, title: String, packs: Int, image: String? = null) =
+    Group(Group.Id(id), title, packs, image?.let { FilePath(it) })
 
 private fun makePack(
     id: String, title: String, songs: Int, size: String, archive: String, image: String

@@ -203,14 +203,24 @@ class VfsRootVgmrips(
         }
     }
 
-    private inner class GroupDir(override val parent: GroupingDir, private val group: Group) :
-        StubObject(), ParentDir {
+    private inner class GroupDir(
+        override val parent: GroupingDir,
+        private val group: Group,
+    ) : StubObject(), ParentDir {
         override val uri: Uri
             get() = makeUri().build()
         override val name
             get() = group.title
         override val description
             get() = context.resources.getQuantityString(R.plurals.packs, group.packs, group.packs)
+
+        override fun getExtension(id: String) = when (id) {
+            VfsExtensions.ICON_URI -> group.image?.let {
+                Identifier.forImage(it)
+            }
+
+            else -> super.getExtension(id)
+        }
 
         override fun enumerate(visitor: VfsDir.Visitor) = parent.grouping.queryPacks(
             group.id,
@@ -234,7 +244,8 @@ class VfsRootVgmrips(
             get() = pack.size
 
         override fun getExtension(id: String) = when (id) {
-            VfsExtensions.COVER_ART_URI -> image.value?.let { Identifier.forImage(it) }
+            VfsExtensions.COVER_ART_URI -> image.value?.let { Identifier.forImage(FilePath("images/large/${it.value}")) }
+            VfsExtensions.ICON_URI -> image.value?.let { Identifier.forImage(FilePath("images/small/${it.value}")) }
             VfsExtensions.DOWNLOAD_URIS -> RemoteCatalog.getRemoteUris(pack.archive)
             VfsExtensions.CACHE_PATH -> pack.archive.value
             else -> super.getExtension(id)
