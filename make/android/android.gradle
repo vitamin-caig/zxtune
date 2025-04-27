@@ -64,6 +64,12 @@ android {
             keyPassword aliasPassword("upload_${name}")
           }
         }
+
+        fdroid {
+          initWith release
+          keyAlias 'fdroid'
+          keyPassword aliasPassword('fdroid')
+        }
     }
 
     buildTypes {
@@ -84,12 +90,6 @@ android {
             debuggable true
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules-develop.pro'
-        }
-    }
-
-    sourceSets {
-        develop {
-            java.srcDirs = ['src/develop/java', 'src/main/java', 'src/debug/java']
         }
     }
 

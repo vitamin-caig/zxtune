@@ -93,7 +93,8 @@ android {
         fdroid {
             dimension 'packaging'
             versionNameSuffix '-fdroid'
-            signingConfig signingConfigs.release
+            applicationIdSuffix 'fdroid'
+            signingConfig signingConfigs.fdroid
             packagingType = PackagingType.SPLIT_APK
             nameTag = 'fdroid'
         }
