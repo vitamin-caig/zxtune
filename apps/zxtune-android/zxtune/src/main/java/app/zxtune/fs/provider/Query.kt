@@ -8,6 +8,7 @@ package app.zxtune.fs.provider
 import android.content.ContentResolver
 import android.content.UriMatcher
 import android.net.Uri
+import app.zxtune.BuildConfig
 
 /*
  * ${path} is full data uri (including subpath in fragment) stored as string
@@ -34,7 +35,7 @@ internal object Query {
         NOTIFICATION("notification", MIME_NOTIFICATION),
     }
 
-    private const val AUTHORITY = "app.zxtune.vfs"
+    private const val AUTHORITY = "${BuildConfig.APPLICATION_ID}.vfs"
     private const val QUERY_PARAM = "query"
     private const val SIZE_PARAM = "size"
     private const val ITEM_SUBTYPE = "vnd.$AUTHORITY.item"

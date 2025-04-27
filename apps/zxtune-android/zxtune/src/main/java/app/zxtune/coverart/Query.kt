@@ -3,6 +3,7 @@ package app.zxtune.coverart
 import android.content.ContentResolver
 import android.content.UriMatcher
 import android.net.Uri
+import app.zxtune.BuildConfig
 
 /*
  * ${path} is full data uri (including subpath in fragment) stored as string
@@ -12,7 +13,7 @@ import android.net.Uri
 
 internal object Query {
 
-    private const val AUTHORITY = "app.zxtune.coverart"
+    private const val AUTHORITY = "${BuildConfig.APPLICATION_ID}.coverart"
 
     private val uriTemplate = UriMatcher(UriMatcher.NO_MATCH).apply {
         addURI(AUTHORITY, "*", 0)

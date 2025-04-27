@@ -9,6 +9,7 @@ import android.media.AudioTrack
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import app.zxtune.BuildConfig
 import app.zxtune.Logger
 import app.zxtune.MainApplication
 import app.zxtune.auth.Auth
@@ -140,7 +141,7 @@ class Provider : ContentProvider() {
         const val METHOD_PUSH = "push"
 
         val URI: Uri = Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
-            .authority("app.zxtune.analytics.internal").build()
+            .authority("${BuildConfig.APPLICATION_ID}.analytics.internal").build()
     }
 }
 

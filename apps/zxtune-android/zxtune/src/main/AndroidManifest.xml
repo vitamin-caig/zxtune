@@ -129,7 +129,7 @@
                 android:exported="false"
                 tools:node="merge">
             <meta-data
-                    android:name="${applicationId}.ui.utils.ThemeInitializer"
+                    android:name="app.zxtune.ui.utils.ThemeInitializer"
                     android:value="androidx.startup" />
         </provider>
 

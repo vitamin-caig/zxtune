@@ -62,7 +62,7 @@ public final class PluginsProvider extends ContentProvider {
     }
   }
 
-  private static final String AUTHORITY = "app.zxtune.plugins";
+  private static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".plugins";
   private static final String MIME = "vnd.android.cursor.dir/vnd." + AUTHORITY;
 
   @Override

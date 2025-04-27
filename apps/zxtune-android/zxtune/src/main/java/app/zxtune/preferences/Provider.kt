@@ -8,6 +8,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import androidx.core.content.edit
+import app.zxtune.BuildConfig
 import app.zxtune.Logger
 import app.zxtune.MainApplication
 
@@ -118,7 +119,7 @@ class Provider : ContentProvider() {
 
         private fun builder() = Uri.Builder()
             .scheme(ContentResolver.SCHEME_CONTENT)
-            .authority("app.zxtune.preferences")
+            .authority("${BuildConfig.APPLICATION_ID}.preferences")
 
         const val METHOD_GET = "get"
         const val METHOD_LIST = "list"

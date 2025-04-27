@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Arrays;
 
+import app.zxtune.BuildConfig;
 import app.zxtune.playlist.Database.Tables;
 
 /*
@@ -43,7 +44,7 @@ public class PlaylistQuery {
     }
   }
 
-  private static final String AUTHORITY = "app.zxtune.playlist";
+  private static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".playlist";
   private static final String ITEMS_PATH = "items";
   private static final String STATISTICS_PATH = "statistics";
   private static final String SAVED_PATH = "saved";
