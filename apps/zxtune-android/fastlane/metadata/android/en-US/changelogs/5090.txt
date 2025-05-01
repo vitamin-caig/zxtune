@@ -1,0 +1,10 @@
+Build 5090:
+
+* supported ocremix.org online catalogue
+* fixed fading for VGM playback
+* improved German translation
+* improved loading speed for some online catalogues
+* do not show digital photos as cover images
+* simplified packed files hierarchy displaying in browser
+* show comments in brief information panel
+* fixed found and reported crashes
