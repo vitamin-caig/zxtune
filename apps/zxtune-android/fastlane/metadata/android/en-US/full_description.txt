@@ -1,0 +1,63 @@
+Visit official project site at https://zxtune.bitbucket.io
+
+Supported formats:
+
+* ZX Spectrum (ASC, FTC, GTR, PSC, PSG, PSM, PT1/PT2/PT3, SQT, STC/ST1/ST3, STP, VTX, YM, TurboSound tracks, AY with embedded player, TXT files for Vortex Tracker II, CHI, DMM, DST, ET1, PDT, SQD, STR, TFC, TFD, TFE)
+* PC (669, AMF, AMS, C67, DMF, DSM, FAR, FMT, FNK, GDM, IMF, IT, J2B, LIQ, PLM, PSM, MDL, MO3, MT2, MTM, PTM, RTM, S3M, STIM, STM, STX, ULT, V2M, XM)
+* Amiga (DBM, EMOD, MOD, IMS, MED, OKT, SFX, AHX)
+* Atari (DTM, GTK, TCB, SAP, RMT)
+* Acorn (DTT)
+* Sam Coupe (COP)
+* Commodore 64/128 MOS6581 (SID)
+* Amstrad CPC (AYC)
+* Super Nintendo (SPC)
+* Multiplatform (MTC, VGM, GYM, S98)
+* Nintendo (NSF, NSFe)
+* GameBoy (GBS, GSF)
+* TurboGrafX (HES)
+* MSX (KSS)
+* PlayStation (PSF, PSF2, AT3, AT9)
+* Ultra64 (USF)
+* Nintendo DS (2SF, NCSF)
+* Dreamcast (DSF)
+* Saturn (SSF)
+* Generic (MP3, OGG, WAV, FLAC)
+* XSPF (import and export) and AYL (import only) playlists
+* Archives (ZIP, RAR, LHA, UMX, GZip, 7zip and FSB)
+
+Integration with music catalogues
+
+* ZX Spectrum music catalogue https://zxtunes.com
+* ModLand music collection ftp://ftp.modland.com
+* High Voltage SID Collection catalogue https://www.hvsc.c64.org
+* Modern ZX Spectrum music catalogue https://www.zxart.ee/eng/music
+* Josh W catalogues http://joshw.info
+* Amiga Music Preservation https://amp.dascene.net
+* The AY Great Original Resource http://abrimaal.pro-e.pl/aygor/
+* The Mod Archive https://modarchive.org
+* Atari SAP Music Archive http://asma.atari.org
+* Aminet catalogue https://aminet.net
+* VGMRips https://vgmrips.net
+* Scene.org file archive https://files.scene.org/
+* OverClocked ReMix https://ocremix.org
+
+Functionality:
+
+* single version for phones and tablets
+* supported resolutions up to xxhdpi
+* works on Android starting from 4.1 (API v16)
+* pausing while incoming/outgoing calls
+* headset playback control (not for all devices)
+* different interpolation modes with performance and quality optimizations
+* caching of playlist entries on local SD card
+* home screen widget
+* send modules and share references to modules from https://zxtunes.com, https://www.zxart.ee/eng/music and https://modarchive.org
+* ability to set chiptune as ringtone
+* search and playback modules from archives
+
+Used permissions:
+
+* internet access/network status for remote data sources access
+* read/write SD card for local data sources access and playlists export
+* wake lock for scan service speedup
+* change system settings to set chiptune as ringtone
