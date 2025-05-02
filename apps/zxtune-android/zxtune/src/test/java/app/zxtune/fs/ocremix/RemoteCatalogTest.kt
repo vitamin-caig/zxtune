@@ -26,7 +26,7 @@ import java.io.FileNotFoundException
 class RemoteCatalogTest {
     private lateinit var catalog: RemoteCatalog
     private lateinit var progress: ProgressCallback
-    private lateinit var systemsVisitor: Catalog.Visitor<System>
+    private lateinit var systemsVisitor: Catalog.SystemsVisitor
     private lateinit var organizationsVisitor: Catalog.Visitor<Organization>
     private lateinit var gamesVisitor: Catalog.GamesVisitor
     private lateinit var remixesVisitor: Catalog.RemixesVisitor
@@ -62,10 +62,17 @@ class RemoteCatalogTest {
     fun `test systems`() {
         val systemsMin = 79
         catalog.querySystems(systemsVisitor)
-        verify(systemsVisitor).accept(sys("3do", "3DO"))
-        verify(systemsVisitor).accept(sys("axlxe", "Atari 400/800/XL/XE"))
-        verify(systemsVisitor).accept(sys("spec", "ZX Spectrum"))
-        verify(systemsVisitor, atLeast(systemsMin)).accept(any())
+        verify(systemsVisitor).accept(
+            sys("3do", "3DO"), FilePath("images/systems/3do-2.jpg")
+        )
+        verify(systemsVisitor).accept(
+            sys("axlxe", "Atari 400/800/XL/XE"), FilePath("images/systems/axlxe-44.png")
+        )
+        verify(systemsVisitor).accept(sys("bbcm", "BBC Micro"), null)
+        verify(systemsVisitor).accept(
+            sys("spec", "ZX Spectrum"), FilePath("images/systems/spec-242.png")
+        )
+        verify(systemsVisitor, atLeast(systemsMin)).accept(any(), anyOrNull())
     }
 
     @Test
@@ -89,11 +96,13 @@ class RemoteCatalogTest {
             game("43663/007-tomorrow-never-dies-ps1", "007: Tomorrow Never Dies"),
             sys("ps1", "PlayStation"),
             org("21/electronic-arts", "Electronic Arts"),
+            FilePath("images/games/ps1/3/007-tomorrow-never-dies-ps1-title-81143.png"),
         )
         verify(gamesVisitor).accept(
             game("450/artura-c64", "Artura"),
             sys("c64", "Commodore 64"),
             org("26/gremlin", "Gremlin"),
+            FilePath("images/games/c64/0/artura-c64-title-77275.gif"),
         )
         //page2
         verify(progress).onProgressUpdate(eq(50), geq(gamesMin))
@@ -101,11 +110,13 @@ class RemoteCatalogTest {
             game("95511/assassins-creed-brotherhood-ps3", "Assassin's Creed Brotherhood"),
             sys("ps3", "PlayStation 3"),
             org("68/ubisoft", "Ubisoft"),
+            FilePath("images/games/ps3/1/assassins-creed-brotherhood-ps3-title-80024.png"),
         )
         verify(gamesVisitor).accept(
             game("103/black-and-white-win", "Black & White"),
             sys("win", "Windows"),
             org("21/electronic-arts", "Electronic Arts"),
+            FilePath("images/games/win/3/black-and-white-win-title-81141.png"),
         )
         //page3
         verify(progress).onProgressUpdate(eq(100), geq(gamesMin))
@@ -113,11 +124,13 @@ class RemoteCatalogTest {
             game("87/blast-corps-n64", "Blast Corps"),
             sys("n64", "Nintendo 64"),
             org("2/nintendo", "Nintendo"),
+            FilePath("images/games/n64/7/blast-corps-n64-title-613.gif"),
         )
         verify(gamesVisitor).accept(
             game("104/castlevania-n64", "Castlevania"),
             sys("n64", "Nintendo 64"),
             org("5/konami", "Konami"),
+            FilePath("images/games/n64/4/castlevania-n64-title-31440.gif"),
         )
         //page4
         verify(progress).onProgressUpdate(eq(150), geq(gamesMin))
@@ -125,16 +138,20 @@ class RemoteCatalogTest {
             game("18/castlevania-nes", "Castlevania"),
             sys("nes", "NES"),
             org("5/konami", "Konami"),
+            FilePath("images/games/nes/8/castlevania-nes-title-80953.png"),
         )
 
         //last
         verify(gamesVisitor).accept(
             game(
                 "8437/zool-ninja-of-the-nth-dimension-amiga", "Zool: Ninja of the \"Nth\" Dimension"
-            ), sys("amiga", "Amiga"), org("26/gremlin", "Gremlin")
+            ),
+            sys("amiga", "Amiga"),
+            org("26/gremlin", "Gremlin"),
+            FilePath("images/games/amiga/7/zool-ninja-of-the-nth-dimension-amiga-title-78080.jpg"),
         )
 
-        verify(gamesVisitor, atLeast(gamesMin)).accept(any(), any(), anyOrNull())
+        verify(gamesVisitor, atLeast(gamesMin)).accept(any(), any(), anyOrNull(), anyOrNull())
         verify(progress, atLeast(gamesMin / 50)).onProgressUpdate(any(), geq(gamesMin))
     }
 
@@ -148,11 +165,13 @@ class RemoteCatalogTest {
             game("943/3-d-ultra-pinball-creep-night-win", "3-D Ultra Pinball: Creep Night"),
             sys,
             org("58/sierra", "Sierra"),
+            FilePath("images/games/win/3/3-d-ultra-pinball-creep-night-win-title-77991.jpg"),
         )
         verify(gamesVisitor).accept(
             game("714/binding-of-isaac-win", "The Binding of Isaac"),
             sys,
-            null, //!!! - no organization
+            null, // no organization!
+            FilePath("images/games/win/4/binding-of-isaac-win-title-71480.jpg"),
         )
         //page2
         verify(progress).onProgressUpdate(eq(50), geq(gamesMin))
@@ -160,13 +179,15 @@ class RemoteCatalogTest {
             game("553/elder-scrolls-iv-oblivion-win", "The Elder Scrolls IV: Oblivion"),
             sys,
             org("137/2k-games", "2K Games"),
+            FilePath("images/games/win/3/elder-scrolls-iv-oblivion-win-title-77037.jpg"),
         )
         verify(gamesVisitor).accept(
             game("539/myst-iii-exile-win", "Myst III: Exile"),
             sys,
             org("68/ubisoft", "Ubisoft"),
+            FilePath("images/games/win/9/myst-iii-exile-win-title-79405.png"),
         )
-        verify(gamesVisitor, atLeast(gamesMin)).accept(any(), any(), anyOrNull())
+        verify(gamesVisitor, atLeast(gamesMin)).accept(any(), any(), anyOrNull(), anyOrNull())
         verify(progress, atLeast(gamesMin / 50)).onProgressUpdate(any(), geq(gamesMin))
     }
 
@@ -176,12 +197,18 @@ class RemoteCatalogTest {
         val org = org("43/midway", "Midway")
         catalog.queryGames(Catalog.OrganizationScope(org.id), gamesVisitor, progress)
         verify(gamesVisitor).accept(
-            game("2956/doom-64-n64", "Doom 64"), sys("n64", "Nintendo 64"), org
+            game("2956/doom-64-n64", "Doom 64"),
+            sys("n64", "Nintendo 64"),
+            org,
+            FilePath("images/games/n64/6/doom-64-n64-title-81043.png"),
         )
         verify(gamesVisitor).accept(
-            game("966/shadow-hearts-ps2", "Shadow Hearts"), sys("ps2", "PlayStation 2"), org
+            game("966/shadow-hearts-ps2", "Shadow Hearts"),
+            sys("ps2", "PlayStation 2"),
+            org,
+            FilePath("images/games/ps2/6/shadow-hearts-ps2-title-80179.png"),
         )
-        verify(gamesVisitor, atLeast(gamesMin)).accept(any(), any(), anyOrNull())
+        verify(gamesVisitor, atLeast(gamesMin)).accept(any(), any(), anyOrNull(), anyOrNull())
     }
 
     @Test
@@ -377,7 +404,7 @@ class RemoteCatalogTest {
         catalog.queryGameDetails(Game.Id("43663/007-tomorrow-never-dies-ps1")).run {
             assertEquals(null, chiptunePath)
             assertEquals(
-                "images/games/ps1/3/007-tomorrow-never-dies-ps1-cover-front-49000.jpg", image?.value
+                "images/games/ps1/3/007-tomorrow-never-dies-ps1-title-81143.png", image?.value
             )
         }
         catalog.queryGameDetails(Game.Id("501/1943-the-battle-of-midway-nes")).run {
@@ -459,6 +486,27 @@ class RemoteCatalogTest {
             assertEquals(
                 "${BuildConfig.CDN_ROOT}/download/ocremix/files/albums/Some%20Album/Track.mp3",
                 get(0).toString()
+            )
+        }
+        RemoteCatalog.getRemoteUris(FilePath("images/systems/axlxe-44.png")).run {
+            assertEquals(2, size)
+            assertEquals(
+                "${BuildConfig.CDN_ROOT}/download/ocremix/files/images/systems/axlxe-44.png",
+                get(0).toString()
+            )
+            assertEquals(
+                "https://ocrmirror.org/files/images/systems/axlxe-44.png", get(1).toString()
+            )
+        }
+        RemoteCatalog.getThumbUris(FilePath("images/systems/axlxe-44.png")).run {
+            assertEquals(2, size)
+            assertEquals(
+                "${BuildConfig.CDN_ROOT}/download/ocremix/img-size/100/files/images/systems/axlxe-44.png",
+                get(0).toString()
+            )
+            assertEquals(
+                "https://ocremix.org/img-size/100/files/images/systems/axlxe-44.png",
+                get(1).toString()
             )
         }
     }

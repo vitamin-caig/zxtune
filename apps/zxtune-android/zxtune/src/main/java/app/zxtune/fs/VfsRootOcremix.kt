@@ -43,33 +43,32 @@ class VfsRootOcremix(
         if (!Identifier.isFromRoot(uri)) {
             return null
         }
-        Identifier.findImagePath(uri)?.let {
-            return File(arrayOf(Identifier.FileElement(it)), it, "")
-        }
         return resolveChain(Identifier.findElementsChain(uri))
     }
 
     private fun resolveChain(chain: Array<Identifier.PathElement>) = when {
         chain.isEmpty() -> this@VfsRootOcremix
-        chain.size == 1 -> (chain.last() as? Identifier.AggregateElement)?.let {
-            roots[it.aggregate]
+        chain.size == 1 -> when (val tail = chain.last()) {
+            is Identifier.AggregateElement -> roots[tail.aggregate]
+            is Identifier.PictureElement -> PictureFile(tail)
+            else -> null
         }
 
         else -> when (val tail = chain.last()) {
             is Identifier.AggregateElement -> AggregateDir(chain, tail.aggregate)
             is Identifier.RemixElement -> RemixFile(chain, tail.remix)
             is Identifier.FileElement -> File(chain, tail.path, "")
+            is Identifier.PictureElement -> PictureFile(tail)
             else -> EntityDir(chain)
         }
     }
 
-    private open inner class BaseObject(protected val chain: Array<Identifier.PathElement>) :
-        StubObject() {
+    private open inner class BaseObject(val chain: Array<Identifier.PathElement>) : StubObject() {
         init {
             check(chain.isNotEmpty())
         }
 
-        protected val element
+        val element
             get() = chain.last()
         override val uri: Uri
             get() = Identifier.forElementsChain(chain)
@@ -103,11 +102,12 @@ class VfsRootOcremix(
                 else -> null
             }
 
-        private fun child(entity: Identifier.PathElement, description: String = "") =
-            EntityDir(chain + entity, description)
+        private fun child(
+            entity: Identifier.PathElement, description: String = "", image: FilePath? = null
+        ) = EntityDir(chain + entity, description, image)
 
-        private fun querySystems(visitor: VfsDir.Visitor) = catalog.querySystems { obj ->
-            visitor.onDir(child(Identifier.SystemElement(obj)))
+        private fun querySystems(visitor: VfsDir.Visitor) = catalog.querySystems { sys, image ->
+            visitor.onDir(child(Identifier.SystemElement(sys), image = image))
         }
 
         private fun queryOrganizations(visitor: VfsDir.Visitor) =
@@ -116,10 +116,12 @@ class VfsRootOcremix(
             }, visitor)
 
         private fun queryGames(visitor: VfsDir.Visitor) =
-            catalog.queryGames(scope, { game, system, organization ->
+            catalog.queryGames(scope, { game, system, organization, image ->
                 visitor.onDir(
                     child(
-                        Identifier.GameElement(game), "${system.title}/${organization?.title ?: ""}"
+                        Identifier.GameElement(game), "${system.title}/${
+                            organization?.title ?: ""
+                        }", image
                     )
                 )
             }, visitor)
@@ -127,20 +129,20 @@ class VfsRootOcremix(
         private fun queryRemixes(visitor: VfsDir.Visitor) =
             catalog.queryRemixes(scope, { remix, game ->
                 visitor.onFile(
-                    RemixFile(
-                        chain + Identifier.RemixElement(remix), remix, game.title
-                    )
+                    RemixFile(chain + Identifier.RemixElement(remix), remix, game.title)
                 )
             }, visitor)
 
         private fun queryAlbums(visitor: VfsDir.Visitor) =
             catalog.queryAlbums(scope, { album, image ->
-                visitor.onDir(child(Identifier.AlbumElement(album)))
+                visitor.onDir(child(Identifier.AlbumElement(album), image = image))
             }, visitor)
     }
 
     private inner class EntityDir(
-        chain: Array<Identifier.PathElement>, override val description: String = ""
+        chain: Array<Identifier.PathElement>,
+        override val description: String = "",
+        private val image: FilePath? = null,
     ) : BaseObject(chain), VfsDir {
         init {
             check(chain.size >= 2)
@@ -179,16 +181,20 @@ class VfsRootOcremix(
             AggregateDir(chain + Identifier.AggregateElement(type), type)
 
         override fun getExtension(id: String) = when (id) {
-            VfsExtensions.COVER_ART_URI -> coverArtUri()
-            else -> super.getExtension(id)
-        }
+            VfsExtensions.ICON_URI -> image?.let {
+                Identifier.forThumb(it)
+            }
 
-        private fun coverArtUri() = when (val el = element) {
-            is Identifier.GameElement -> gameDetails.image?.let { Identifier.forImage(it) }
-            is Identifier.AlbumElement -> catalog.queryAlbumImage(el.album.id)?.let {
+            VfsExtensions.COVER_ART_URI -> (image ?: coverArt())?.let {
                 Identifier.forImage(it)
             }
 
+            else -> super.getExtension(id)
+        }
+
+        private fun coverArt() = when (val el = element) {
+            is Identifier.GameElement -> gameDetails.image
+            is Identifier.AlbumElement -> catalog.queryAlbumImage(el.album.id)
             else -> null
         }
     }
@@ -242,5 +248,27 @@ class VfsRootOcremix(
             }
             return null
         }
+    }
+
+    private inner class PictureFile(
+        private val tail: Identifier.PictureElement,
+        override val parent: VfsObject? = null,
+        override val size: String = ""
+    ) : StubObject(), VfsFile {
+        override val uri
+            get() = Identifier.forElementsChain(arrayOf(tail))
+        override val name
+            get() = tail.path.displayName
+
+        override fun getExtension(id: String) = when (id) {
+            VfsExtensions.DOWNLOAD_URIS -> downloadUri
+            else -> super.getExtension(id)
+        }
+
+        private val downloadUri
+            get() = when (tail.type) {
+                Identifier.PictureElement.Type.Image -> RemoteCatalog.getRemoteUris(tail.path)
+                Identifier.PictureElement.Type.Thumb -> RemoteCatalog.getThumbUris(tail.path)
+            }
     }
 }

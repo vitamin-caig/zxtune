@@ -3,6 +3,7 @@ package app.zxtune.fs.provider
 import android.content.Intent
 import android.database.MatrixCursor
 import android.net.Uri
+import androidx.core.net.toUri
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,14 +22,23 @@ class SchemaTest {
 
     private val URI1 = Uri.parse("schema://host/path/subpath?query=value#fragment")
     private val URI2 = Uri.parse("http://example.com")
+    private val ICON_URI1 = "icon://uri/of".toUri()
 
     @Test
     fun `test listing schema`() {
-        testListingDir(URI1, NAME2, DESCRIPTION1, 123, false)
+        testListingDir(URI1, NAME2, DESCRIPTION1, ICON_URI1, false)
         testListingDir(URI2, NAME1, DESCRIPTION2, null, true)
-        testListingFile(URI1, NAME2, DESCRIPTION1, DETAILS2, null, null)
-        testListingFile(URI2, NAME1, DESCRIPTION2, DETAILS1, 100, true)
-        testListingFile(URI1, NAME2, DESCRIPTION1, DETAILS2, 1000, false)
+        testListingFile(URI1, NAME2, DESCRIPTION1, null, DETAILS2, Schema.Listing.File.Type.REMOTE)
+        testListingFile(URI2, NAME1, DESCRIPTION2, null, DETAILS1, Schema.Listing.File.Type.UNKNOWN)
+        testListingFile(
+            URI1, NAME2, DESCRIPTION1, ICON_URI1, DETAILS2, Schema.Listing.File.Type.TRACK
+        )
+        testListingFile(
+            URI2, NAME1, DESCRIPTION2, ICON_URI1, DETAILS1, Schema.Listing.File.Type.ARCHIVE
+        )
+        testListingFile(
+            URI1, NAME2, DESCRIPTION1, ICON_URI1, DETAILS2, Schema.Listing.File.Type.UNSUPPORTED
+        )
         testListingError(Exception("Some message"))
         testListingError(Exception("Topmost", Exception("Nested")))
         testListingProgress()
@@ -51,11 +61,7 @@ class SchemaTest {
 }
 
 private fun testListingDir(
-    uri: Uri,
-    name: String,
-    description: String,
-    icon: Int?,
-    hasFeed: Boolean
+    uri: Uri, name: String, description: String, icon: Uri?, hasFeed: Boolean
 ) = MatrixCursor(Schema.Listing.COLUMNS).apply {
     addRow(Schema.Listing.Dir(uri, name, description, icon, hasFeed).serialize())
 }.use { cursor ->
@@ -73,20 +79,20 @@ private fun testListingFile(
     uri: Uri,
     name: String,
     description: String,
+    icon: Uri?,
     details: String,
-    tracks: Int?,
-    isCached: Boolean?
+    type: Schema.Listing.File.Type,
 ) = MatrixCursor(Schema.Listing.COLUMNS).apply {
-    addRow(Schema.Listing.File(uri, name, description, details, tracks, isCached).serialize())
+    addRow(Schema.Listing.File(uri, name, description, icon, details, type).serialize())
 }.use { cursor ->
     cursor.moveToFirst()
     (Schema.Object.parse(cursor) as Schema.Listing.File).let { file ->
         assertEquals(uri, file.uri)
         assertEquals(name, file.name)
         assertEquals(description, file.description)
+        assertEquals(icon, file.icon)
         assertEquals(details, file.details)
-        assertEquals(tracks, file.tracks)
-        assertEquals(isCached, file.isCached)
+        assertEquals(type, file.type)
     }
 }
 
@@ -95,8 +101,7 @@ private fun testListingError(e: Exception) = MatrixCursor(Schema.Status.COLUMNS)
 }.use { cursor ->
     cursor.moveToFirst()
     assertEquals(
-        e.cause?.message ?: e.message,
-        (Schema.Object.parse(cursor) as Schema.Status.Error).error
+        e.cause?.message ?: e.message, (Schema.Object.parse(cursor) as Schema.Status.Error).error
     )
 }
 
@@ -123,9 +128,7 @@ private fun testListingProgress() = MatrixCursor(Schema.Status.COLUMNS).apply {
 }
 
 private fun testParent(
-    uri: Uri,
-    name: String,
-    icon: Int?
+    uri: Uri, name: String, icon: Int?
 ) = MatrixCursor(Schema.Parents.COLUMNS).apply {
     addRow(Schema.Parents.Object(uri, name, icon).serialize())
 }.use { cursor ->

@@ -15,7 +15,7 @@ private val OBJECTS_TTL = fromDays(14)
 class CachingCatalog(private val remote: RemoteCatalog, private val db: Database) : Catalog {
     private val executor = CommandExecutor("ocremix")
 
-    override fun querySystems(visitor: Catalog.Visitor<System>) =
+    override fun querySystems(visitor: Catalog.SystemsVisitor) =
         executor.executeQuery("systems", object : QueryCommand {
             private val lifetime = db.getLifetime("systems", SYSTEMS_TTL)
 

@@ -163,7 +163,7 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
     private fun setupListing(view: View) =
         view.findViewById<RecyclerView>(R.id.browser_content).apply {
             setHasFixedSize(true)
-            val adapter = ListingViewAdapter().apply {
+            val adapter = ListingViewAdapter(context).apply {
                 adapter = this
             }
             selectionTracker = SelectionTracker.Builder(

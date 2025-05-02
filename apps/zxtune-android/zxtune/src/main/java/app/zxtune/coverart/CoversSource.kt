@@ -9,30 +9,31 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-class CoversSource(maxCacheSize: Int, private val factory: (Uri, size: Point?) -> ByteBuffer?) {
-
-    private val storage = lruCache<Uri, AtomicReference<ByteBuffer?>>(maxCacheSize,
-        sizeOf = { _, value -> value.get()?.capacity() ?: 0 },
+internal class CoversSource(
+    maxCacheSize: Int, private val factory: (Query.Case, String, size: Point?) -> ByteBuffer?
+) {
+    private val storage = lruCache<Uri, AtomicReference<ByteBuffer?>>(
+        maxCacheSize,
+        sizeOf = { _, value -> value.get()?.capacity() ?: 16 },
         onEntryRemoved = { _, uri, _, _ -> Provider.LOG.d { "Remove cached cover for $uri" } })
     private val lock = ReentrantReadWriteLock()
 
     fun query(uri: Uri, size: Point? = null): ByteBuffer? = lock.read {
         storage.get(uri)?.let {
-            Provider.LOG.d { "Reuse cached cover for $uri" }
             return it.get()
         }
-        lock.write { // upgrade lock, safe to nest
-            // double check cache
-            storage.get(uri)?.let {
-                Provider.LOG.d { "Reuse cached cover for $uri" }
-                return it.get()
+        val case = Query.getCase(uri) ?: return null
+        val id = Query.idFrom(uri) ?: return null
+        Provider.LOG.d { "Query $case for $id" }
+        val res = factory(case, id, size)
+        if (res == null || case == Query.Case.IMAGE || case == Query.Case.RES) {
+            Provider.LOG.d {
+                "Cache $uri (${res?.capacity() ?: 0} bytes, ${size ?: "<any size>"})"
             }
-            factory(uri, size).also {
-                Provider.LOG.d {
-                    "Create and cache cover for $uri (${it?.capacity() ?: 0} bytes, ${size ?: "<any size>"})"
-                }
-                storage.put(uri, AtomicReference(it))
+            lock.write { // upgrade lock, safe to nest
+                storage.put(uri, AtomicReference(res))
             }
         }
+        return res
     }
 }

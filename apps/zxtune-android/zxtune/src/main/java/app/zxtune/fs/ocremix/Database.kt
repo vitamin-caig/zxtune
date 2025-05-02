@@ -41,30 +41,39 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
     fun runInTransaction(cmd: Utils.ThrowingRunnable) = Utils.runInTransaction(db, cmd)
     fun getLifetime(id: String, ttl: TimeStamp) = db.timestamps().getLifetime(id, ttl)
 
-    fun addSystem(system: System) = db.catalog().add(system)
+    fun addSystem(system: System, image: FilePath?) = with(db.catalog()) {
+        add(system)
+        image?.let {
+            addImage(system.id.value, it)
+        }
+    }
 
-    fun querySystems(visitor: Catalog.Visitor<System>) =
-        db.catalog().querySystems().onEach { visitor.accept(it) }.isNotEmpty()
+    fun querySystems(visitor: Catalog.SystemsVisitor) =
+        db.catalog().querySystems().onEach { visitor.accept(it.system, it.image) }.isNotEmpty()
 
     fun addOrganization(organization: Organization) = db.catalog().add(organization)
 
     fun queryOrganizations(visitor: Catalog.Visitor<Organization>) =
         db.catalog().queryOrganizations().onEach { visitor.accept(it) }.isNotEmpty()
 
-    fun addGame(game: Game, system: System, organization: Organization?) = with(db.catalog()) {
-        add(game)
-        add(system)
-        add(game ownedBy system)
-        organization?.let {
-            add(it)
-            add(game ownedBy it)
+    fun addGame(game: Game, system: System, organization: Organization?, image: FilePath?) =
+        with(db.catalog()) {
+            add(game)
+            add(system)
+            add(game ownedBy system)
+            organization?.let {
+                add(it)
+                add(game ownedBy it)
+            }
+            image?.let {
+                addImage(game.id.value, it)
+            }
+            add(game ownedBy ALL_GAMES_SCOPE)
         }
-        add(game ownedBy ALL_GAMES_SCOPE)
-    }
 
     fun queryGames(scope: Catalog.Scope?, visitor: Catalog.GamesVisitor) =
         db.catalog().queryGames(scope?.id ?: ALL_GAMES_SCOPE)
-            .onEach { visitor.accept(it.game, it.system, it.organization) }.isNotEmpty()
+            .onEach { visitor.accept(it.game, it.system, it.organization, it.image) }.isNotEmpty()
 
     fun addRemix(scope: Catalog.Scope?, remix: Remix, game: Game) = with(db.catalog()) {
         add(game)
@@ -180,10 +189,16 @@ const val ALL_GAMES_SCOPE = "all_games"
 const val ALL_REMIXES_SCOPE = "all_remixes"
 const val ALL_ALBUMS_SCOPE = "all_albums"
 
+class QueriedSystem(
+    @Embedded val system: System,
+    val image: FilePath?,
+)
+
 class QueriedGame(
     @Embedded(prefix = "g_") val game: Game,
     @Embedded(prefix = "s_") val system: System,
     @Embedded(prefix = "o_") val organization: Organization?,
+    val image: FilePath?,
 )
 
 class QueriedRemix(
@@ -206,8 +221,11 @@ interface CatalogDao {
     @Insert(entity = SystemRecord::class, onConflict = OnConflictStrategy.REPLACE)
     fun add(sys: System)
 
-    @Query("SELECT * FROM systems")
-    fun querySystems(): Array<System>
+    @Query("""
+    SELECT systems.id AS id,systems.title AS title,images.path as image FROM systems
+    LEFT JOIN images USING(id)
+    """)
+    fun querySystems(): Array<QueriedSystem>
 
     @Insert(entity = OrganizationRecord::class, onConflict = OnConflictStrategy.REPLACE)
     fun add(org: Organization)
@@ -221,11 +239,13 @@ interface CatalogDao {
     @Query(
         """
     SELECT games.id AS g_id,games.title AS g_title,systems.id AS s_id,systems.title AS s_title,
-     organizations_owned.id AS o_id,organizations_owned.title AS o_title FROM games 
+     organizations_owned.id AS o_id,organizations_owned.title AS o_title,images.path AS image
+     FROM games 
      INNER JOIN scopes AS g_scopes ON games.id=g_scopes.id AND g_scopes.scope=:scope 
      INNER JOIN scopes AS s_scopes ON games.id=s_scopes.id 
      INNER JOIN systems ON systems.id=s_scopes.scope 
      LEFT JOIN organizations_owned ON games.id=organizations_owned.owned
+     LEFT JOIN images ON games.id=images.id
     """
     )
     fun queryGames(scope: String): Array<QueriedGame>

@@ -15,12 +15,13 @@ import org.jsoup.nodes.Element
 private val LOG = Logger(RemoteCatalog::class.java.name)
 
 class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
-    override fun querySystems(visitor: Catalog.Visitor<System>) {
+    override fun querySystems(visitor: Catalog.SystemsVisitor) {
         LOG.d { "querySystems()" }
         readPage(baseUri.scoped(null, EntityTypes.SYSTEMS)).select("table>tbody>tr.area-link")
             .forEach { row ->
                 row.findIdNode("/system/")?.let { node ->
-                    visitor.accept(System(System.Id(node.id), node.text))
+                    val image = row.findImagePath("/img-size/100/files/")
+                    visitor.accept(System(System.Id(node.id), node.text), image)
                 }
             }
     }
@@ -80,10 +81,13 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
                     val org = row.findIdNode("/org/")?.run {
                         Organization(Organization.Id(id), text)
                     }
+                    val img = row.findImagePath("/img-size/500/files/")
+                        ?: row.findImagePath("/img-size/100/files/") // if any...
                     visitor.accept(
                         Game(Game.Id(game.id), game.text),
                         System(System.Id(system.id), system["title"] ?: system.text),
                         org,
+                        img,
                     )
                 }
             }
@@ -186,12 +190,22 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
         private const val ALBUMS_PATH = "albums/"
 
         fun getRemoteUris(path: FilePath) = path.value.let {
-            if (it.startsWith(ALBUMS_PATH)) arrayOf(Cdn.ocremix(it))
+            val withPrefix = "files/$it"
+            if (it.startsWith(ALBUMS_PATH)) arrayOf(Cdn.ocremix(withPrefix)) // only at cdn
             else arrayOf(
-                Cdn.ocremix(it), Uri.Builder().scheme("https").apply {
+                Cdn.ocremix(withPrefix), Uri.Builder().scheme("https").apply {
                     if (path.isTorrent) authority("bt.ocremix.org").path(it)
-                    else authority("ocrmirror.org").path("files/$it")
+                    else authority("ocrmirror.org").path(withPrefix)
                 }.build()
+            )
+        }
+
+        fun getThumbUris(path: FilePath) = path.value.let {
+            assert(it.startsWith("images/"))
+            val withPrefix = "img-size/100/files/$it"
+            arrayOf(
+                Cdn.ocremix(withPrefix),
+                Uri.Builder().scheme("https").authority("ocremix.org").path(withPrefix).build()
             )
         }
     }

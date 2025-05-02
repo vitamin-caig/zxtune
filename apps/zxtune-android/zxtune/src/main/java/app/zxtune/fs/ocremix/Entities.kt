@@ -21,6 +21,7 @@ data class Game(val id: Id, val title: String) {
 // music/remixes/${filename}
 // torrents/${filename}
 // albums/${folder}/${path}
+// images/{albums,games}/...
 data class FilePath(val value: String) {
     init {
         require(value.isNotEmpty() && '/' != value.first())

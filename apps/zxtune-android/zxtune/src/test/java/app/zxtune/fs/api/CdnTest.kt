@@ -1,10 +1,12 @@
 package app.zxtune.fs.api
 
 import app.zxtune.BuildConfig
+import app.zxtune.assertThrows
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import kotlin.IllegalArgumentException
 
 @RunWith(RobolectricTestRunner::class)
 class CdnTest {
@@ -113,7 +115,14 @@ class CdnTest {
     fun `test ocremix`() {
         assertEquals(
             "${BuildConfig.CDN_ROOT}/download/ocremix/files/some/file%20name",
-            Cdn.ocremix("some/file name").toString()
+            Cdn.ocremix("files/some/file name").toString()
         )
+        assertEquals(
+            "${BuildConfig.CDN_ROOT}/download/ocremix/img-size/100/files/some/file%20name",
+            Cdn.ocremix("img-size/100/files/some/file name").toString()
+        )
+        assertThrows<IllegalArgumentException> {
+            Cdn.ocremix("invalid/path")
+        }
     }
 }

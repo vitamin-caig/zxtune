@@ -86,12 +86,26 @@ class IdentifierTest {
     }
 
     @Test
-    fun `images path`() {
-        Uri.parse("ocremix:/Images?file=path%2Fto%2Fimage.png").let { uri ->
-            assertEquals(0, Identifier.findElementsChain(uri).size)
-            val path = requireNotNull(Identifier.findImagePath(uri))
-            assertEquals("path/to/image.png", path.value)
-            assertEquals(uri, Identifier.forImage(path))
+    fun `pictures paths`() {
+        Uri.parse("ocremix:/Image?file=path%2Fto%2Fimage.png").let { uri ->
+            val chain = Identifier.findElementsChain(uri)
+            assertEquals(1, chain.size)
+            assertEquals("/Image[file=path/to/image.png]", serialize(chain))
+            (chain.last() as Identifier.PictureElement).run {
+                assertEquals(Identifier.PictureElement.Type.Image, type)
+                assertEquals("path/to/image.png", path.value)
+                assertEquals(uri, Identifier.forImage(path))
+            }
+        }
+        Uri.parse("ocremix:/Thumb?file=path%2Fto%2Fthumb.jpg").let { uri ->
+            val chain = Identifier.findElementsChain(uri)
+            assertEquals(1, chain.size)
+            assertEquals("/Thumb[file=path/to/thumb.jpg]", serialize(chain))
+            (chain.last() as Identifier.PictureElement).run {
+                assertEquals(Identifier.PictureElement.Type.Thumb, type)
+                assertEquals("path/to/thumb.jpg", path.value)
+                assertEquals(uri, Identifier.forThumb(path))
+            }
         }
     }
 }

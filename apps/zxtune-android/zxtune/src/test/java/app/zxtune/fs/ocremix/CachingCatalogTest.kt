@@ -39,8 +39,11 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
 
     private val workingRemote = mock<RemoteCatalog> {
         on { querySystems(any()) } doAnswer {
-            with(it.getArgument<Catalog.Visitor<System>>(0)) {
-                systems.forEach(this::accept)
+            with(it.getArgument<Catalog.SystemsVisitor>(0)) {
+                accept(systems[0], images[0])
+                accept(systems[1], images[1])
+                accept(systems[2], images[2])
+                accept(systems[3], null)
             }
         }
         on { queryOrganizations(any(), any()) } doAnswer {
@@ -51,13 +54,13 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
         on { queryGames(anyOrNull(), any(), any()) } doAnswer {
             with(it.getArgument<Catalog.GamesVisitor>(1)) {
                 if (it.getArgument<Catalog.Scope>(0) == null) {
-                    accept(games[0], systems[0], organizations[0])
-                    accept(games[1], systems[1], organizations[0])
-                    accept(games[2], systems[0], organizations[1])
-                    accept(games[3], systems[2], null)
+                    accept(games[0], systems[0], organizations[0], images[0])
+                    accept(games[1], systems[1], organizations[0], images[1])
+                    accept(games[2], systems[0], organizations[1], images[2])
+                    accept(games[3], systems[2], null, null)
                 } else {
-                    accept(games[0], systems[0], organizations[0])
-                    accept(games[2], systems[0], organizations[1])
+                    accept(games[0], systems[0], organizations[0], images[0])
+                    accept(games[2], systems[0], organizations[1], images[1])
                 }
             }
         }
@@ -101,7 +104,7 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     }
     private val failedRemote = mock<RemoteCatalog>(defaultAnswer = { throw error })
     private val remote = if (case.isFailedRemote) failedRemote else workingRemote
-    private val systemsVisitor = mock<Catalog.Visitor<System>>()
+    private val systemsVisitor = mock<Catalog.SystemsVisitor>()
     private val organizationsVisitor = mock<Catalog.Visitor<Organization>>()
     private val gamesVisitor = mock<Catalog.GamesVisitor>()
     private val remixesVisitor = mock<Catalog.RemixesVisitor>()
@@ -136,9 +139,10 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
                 verify(database).runInTransaction(any())
                 verify(remote).querySystems(any())
                 if (!case.isFailedRemote) {
-                    systems.forEach { sys ->
-                        verify(database).addSystem(sys)
-                    }
+                    verify(database).addSystem(systems[0], images[0])
+                    verify(database).addSystem(systems[1], images[1])
+                    verify(database).addSystem(systems[2], images[2])
+                    verify(database).addSystem(systems[3], null)
                     verify(lifetime).update()
                 }
             }
@@ -177,10 +181,10 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
                 verify(database).runInTransaction(any())
                 verify(remote).queryGames(eq(null), any(), eq(progress))
                 if (!case.isFailedRemote) {
-                    verify(database).addGame(games[0], systems[0], organizations[0])
-                    verify(database).addGame(games[1], systems[1], organizations[0])
-                    verify(database).addGame(games[2], systems[0], organizations[1])
-                    verify(database).addGame(games[3], systems[2], null)
+                    verify(database).addGame(games[0], systems[0], organizations[0], images[0])
+                    verify(database).addGame(games[1], systems[1], organizations[0], images[1])
+                    verify(database).addGame(games[2], systems[0], organizations[1], images[2])
+                    verify(database).addGame(games[3], systems[2], null, null)
                     verify(lifetime).update()
                 }
             }
@@ -199,8 +203,8 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
                 verify(database).runInTransaction(any())
                 verify(remote).queryGames(eq(scope), any(), eq(progress))
                 if (!case.isFailedRemote) {
-                    verify(database).addGame(games[0], systems[0], organizations[0])
-                    verify(database).addGame(games[2], systems[0], organizations[1])
+                    verify(database).addGame(games[0], systems[0], organizations[0], images[0])
+                    verify(database).addGame(games[2], systems[0], organizations[1], images[1])
                     verify(lifetime).update()
                 }
             }

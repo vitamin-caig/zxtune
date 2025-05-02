@@ -11,68 +11,90 @@ import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
+import android.support.v4.media.MediaMetadataCompat
 import androidx.annotation.DrawableRes
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.net.toUri
 import app.zxtune.Logger
 import app.zxtune.MainApplication
 import app.zxtune.core.Identifier
+import app.zxtune.coverart.Provider.Companion.LOG
 import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsFile
+import app.zxtune.fs.VfsObject
 import app.zxtune.fs.icon
-import app.zxtune.fs.provider.CachingResolver
-import app.zxtune.fs.provider.Resolver
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
 
 class Provider @VisibleForTesting internal constructor(
-    private val resolver: Resolver,
+    private val resolve: (Uri) -> VfsObject?,
 ) : ContentProvider() {
-    constructor() : this(CachingResolver(cacheSize = 100))
+    constructor() : this(::resolve)
 
+    private val svc = CoverartService.get()
     private val source = CoversSource(1_048_576, this::loadImage)
 
-    private fun loadImage(uri: Uri, size: Point?): ByteBuffer? {
-        val svc = CoverartService.get()
-        val img = svc.imageFor(uri) ?: return null
-        (img as? ByteArray)?.let {
-            LOG.d { "Load blob image for $uri" }
-            return ByteBuffer.wrap(it)
-        }
-        val fsUri = img as Uri
-        if (fsUri != uri) {
-            loadImage(fsUri, size)?.let {
-                return it
-            }
-        }
-        // no callback to disable archive analysis
-        val entry = resolver.resolve(fsUri) ?: return null
-        entry.icon?.let { icon ->
-            LOG.d { "Render icon for $fsUri" }
-            return loadIcon(icon, size ?: DEFAULT_ICON_SIZE)?.let {
-                ByteBuffer.wrap(it)
-            }
-        }
-        (entry as? VfsFile)?.let { file ->
-            LOG.d { "Load image $fsUri" }
-            return runCatching { Vfs.openStream(file) }.getOrNull()?.use {
-                svc.addPicture(Identifier(fsUri), it)
-            }?.let {
-                ByteBuffer.wrap(it)
-            }
-        }
-        return null
+    private fun loadImage(case: Query.Case, id: String, size: Point?) = when (case) {
+        Query.Case.RAW -> id.toLongOrNull()?.let { fetchBlob(it) }
+        Query.Case.RES -> id.toIntOrNull()?.let { renderIcon(it, size ?: DEFAULT_ICON_SIZE) }
+        Query.Case.IMAGE -> loadImageFile(id.toUri(), size)
+        Query.Case.ICON -> loadIcon(id.toUri())
     }
 
-    private fun loadIcon(@DrawableRes res: Int, size: Point) =
+    private fun fetchBlob(id: Long) = svc.getBlob(id)?.toByteBuffer()
+
+    private fun renderIcon(@DrawableRes res: Int, size: Point) =
         AppCompatResources.getDrawable(requireNotNull(context), res)?.toBitmap(
             size.x, size.y, Bitmap.Config.RGB_565
         )?.use {
             it.toPng()
+        }?.toByteBuffer()
+
+    // uri may be:
+    // - raw blob id (if cached or coverart)
+    // - vfs entity's coverart url
+    // this is guaranteed by CoverartService.coverArtOf/albumArtOf queried in StatusCallback
+    private fun loadImageFile(uri: Uri, size: Point?): ByteBuffer? {
+        svc.imageFor(uri)?.run {
+            pic?.data?.let {
+                LOG.d { "Load blob image for $uri" }
+                return it.toByteBuffer()
+            }
+            url?.let {
+                require(it != uri)
+                return loadImageFile(it, size)
+            }
+            return null
         }
+        return resolve(uri)?.inputStream?.use {
+            svc.addPicture(Identifier(uri), it)?.image?.data
+        }?.toByteBuffer()
+    }
+
+    // url may be:
+    // - raw blob url (if cached or coverart)
+    // - vfs entity's image url
+    private fun loadIcon(uri: Uri): ByteBuffer? {
+        // cache first
+        svc.iconFor(uri)?.run {
+            pic?.data?.let {
+                LOG.d { "Load blob icon for $uri" }
+                return it.toByteBuffer()
+            }
+            url?.let {
+                require(it != uri)
+                return loadIcon(it) // ????
+            }
+            return null
+        }
+        return resolve(uri)?.inputStream?.use {
+            svc.addIconOrPicture(Identifier(uri), it)?.data
+        }?.toByteBuffer()
+    }
 
     override fun onCreate() = context?.run {
         MainApplication.initialize(applicationContext)
@@ -98,14 +120,39 @@ class Provider @VisibleForTesting internal constructor(
         uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?
     ) = TODO("Not yet implemented")
 
+    override fun call(method: String, arg: String?, extras: Bundle?) = when (method) {
+        METHOD_GET_MEDIA_URIS -> arg?.let { getMediaUris(Identifier.parse(it)) }
+        else -> null
+    }
+
+    private fun getMediaUris(id: Identifier) = resolve(id.dataLocation)?.let { obj ->
+        Bundle().apply {
+            svc.coverArtUriOf(id)?.let {
+                putParcelable(
+                    MediaMetadataCompat.METADATA_KEY_ART_URI, it
+                )
+            } ?: svc.albumArtUriOf(id, obj)?.let {
+                putParcelable(
+                    MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, it
+                )
+            }
+            resolve(Uri.Builder().scheme(id.dataLocation.scheme).build())?.icon?.let {
+                putParcelable(
+                    MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI,
+                    Query.uriFor(Query.Case.RES, it.toString())
+                )
+            }
+        }
+    }
+
     override fun openFile(uri: Uri, mode: String) = openPipeHelper(
-        Query.getPathFrom(uri), "image/*", null, null, ImageDataWriter(source)
+        uri, "image/*", null, null, ImageDataWriter(source)
     )
 
     override fun openTypedAssetFile(
         uri: Uri, mimeTypeFilter: String, opts: Bundle?, signal: CancellationSignal?
     ) = openPipeHelper(
-        Query.getPathFrom(uri), mimeTypeFilter, opts, sizeFrom(opts), ImageDataWriter(source)
+        uri, mimeTypeFilter, opts, sizeFrom(opts), ImageDataWriter(source)
     ).let {
         AssetFileDescriptor(it, 0, -1)
     }
@@ -134,11 +181,25 @@ class Provider @VisibleForTesting internal constructor(
     companion object {
         internal val LOG = Logger(Provider::class.java.name)
         private val DEFAULT_ICON_SIZE = Point(256, 256)
+        internal const val METHOD_GET_MEDIA_URIS = "get_media_uris"
 
         private fun sizeFrom(opts: Bundle?) = if (Build.VERSION.SDK_INT >= 21) {
             opts?.getParcelable<Point>(ContentResolver.EXTRA_SIZE)
         } else {
             null
         }
+
+        private fun resolve(uri: Uri) = runCatching {
+            Vfs.resolve(uri)
+        }.getOrNull()
     }
 }
+
+private fun ByteArray.toByteBuffer() = ByteBuffer.wrap(this)
+private val VfsObject.inputStream
+    get() = (this as? VfsFile)?.let { file ->
+        LOG.d { "Load image $uri" }
+        runCatching { Vfs.openStream(file) }.onFailure { err ->
+            LOG.w(err) { "Failed to load" }
+        }.getOrNull()
+    }

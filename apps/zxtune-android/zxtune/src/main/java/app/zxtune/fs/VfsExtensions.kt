@@ -5,6 +5,7 @@
  */
 package app.zxtune.fs
 
+import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.DrawableRes
@@ -35,6 +36,9 @@ object VfsExtensions {
 
     // @DrawableRes
     const val ICON = "ICON"
+
+    // Uri of vfs object
+    const val ICON_URI = "ICON_URI"
 
     // Intent
     const val PERMISSION_QUERY_INTENT = "PERMISSION_QUERY_INTENT"
@@ -77,6 +81,12 @@ val VfsFile.file
 @get:DrawableRes
 val VfsObject.icon
     get() = getExtension(VfsExtensions.ICON) as? Int
+
+val VfsObject.iconUri
+    get() = icon?.let {
+        Uri.Builder().scheme(ContentResolver.SCHEME_ANDROID_RESOURCE).appendPath(it.toString())
+            .build()
+    } ?: getExtension(VfsExtensions.ICON_URI) as? Uri
 
 val VfsObject.permissionQueryIntent
     get() = getExtension(VfsExtensions.PERMISSION_QUERY_INTENT) as? Intent

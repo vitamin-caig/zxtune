@@ -2,67 +2,48 @@ package app.zxtune.ui.browser
 
 import android.net.Uri
 import androidx.annotation.DrawableRes
-import androidx.annotation.IntDef
 import app.zxtune.R
 
 // public for binding
 data class ListingEntry(
-    @Type val type: Int,
     val uri: Uri,
     val title: String,
     val description: String,
-    @DrawableRes var icon: Int? = null,
-    var details: String? = null,
-    var tracks: Int? = null,
-    var cached: Boolean? = null,
+    val details: String?,
+    val icon: Icon?,
+    @DrawableRes val additionalIcon: Int?,
 ) {
-    @Retention(AnnotationRetention.SOURCE)
-    @IntDef(FOLDER, FILE)
-    private annotation class Type
+    private val isFolder
+        get() = details == null
+
+    sealed interface Icon
+
+    @JvmInline
+    value class DrawableIcon(@DrawableRes val id: Int) : Icon
+
+    @JvmInline
+    value class LoadableIcon(val uri: Uri) : Icon
+
+    @get:DrawableRes
+    val mainIcon
+        get() = when {
+            icon is DrawableIcon -> icon.id
+            isFolder -> R.drawable.ic_browser_folder
+            else -> R.drawable.ic_browser_file
+        }
 
     companion object {
-        const val FOLDER = 0
-        const val FILE = 1
-
         fun makeFolder(
-            uri: Uri,
-            title: String,
-            description: String,
-            @DrawableRes icon: Int? = null
-        ) = ListingEntry(
-            type = FOLDER,
-            uri = uri,
-            title = title,
-            description = description,
-            icon = icon
-        )
+            uri: Uri, title: String, description: String, icon: Icon? = null
+        ) = ListingEntry(uri, title, description, null, icon, null)
 
         fun makeFile(
             uri: Uri,
             title: String,
             description: String,
             details: String,
-            tracks: Int? = null,
-            cached: Boolean? = null
-        ) = ListingEntry(
-            type = FILE,
-            uri = uri,
-            title = title,
-            description = description,
-            details = details,
-            tracks = tracks,
-            cached = cached
-        )
+            @DrawableRes typeIcon: Int?,
+            icon: Icon? = null
+        ) = ListingEntry(uri, title, description, details, icon, typeIcon)
     }
-
-    @get:DrawableRes
-    val displayIcon
-        get() = icon ?: when {
-            type == FOLDER -> R.drawable.ic_browser_folder
-            cached == false -> R.drawable.ic_browser_file_remote
-            tracks == null -> R.drawable.ic_browser_file_unknown
-            tracks == 0 -> R.drawable.ic_browser_file_unsupported
-            tracks == 1 -> R.drawable.ic_browser_file_track
-            else -> R.drawable.ic_browser_file_archive
-        }
 }

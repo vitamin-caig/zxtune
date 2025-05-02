@@ -1,6 +1,7 @@
 package app.zxtune.ui.browser
 
 import android.app.Application
+import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import android.os.OperationCanceledException
@@ -8,12 +9,11 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.zxtune.Logger
+import app.zxtune.R
 import app.zxtune.analytics.Analytics
 import app.zxtune.fs.provider.Schema
 import app.zxtune.fs.provider.VfsProviderClient
 import app.zxtune.fs.provider.VfsProviderClient.ParentsCallback
-import app.zxtune.ui.browser.ListingEntry.Companion.makeFile
-import app.zxtune.ui.browser.ListingEntry.Companion.makeFolder
 import app.zxtune.ui.utils.FilteredListState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -396,11 +396,34 @@ class Model @VisibleForTesting internal constructor(
             entry.title.contains(filter, true) || entry.description.contains(filter, true)
 
         private fun makeFolder(dir: Schema.Listing.Dir) = dir.run {
-            makeFolder(uri, name, description, icon)
+            ListingEntry.makeFolder(uri, name, description, icon?.asListingEntryIcon())
         }
 
         private fun makeFile(file: Schema.Listing.File) = file.run {
-            makeFile(uri, name, description, details, tracks, isCached)
+            ListingEntry.makeFile(
+                uri,
+                name,
+                description,
+                details,
+                type.asIcon(),
+                icon?.asListingEntryIcon(),
+            )
+        }
+
+        private fun Uri.asListingEntryIcon() = when (scheme) {
+            ContentResolver.SCHEME_ANDROID_RESOURCE -> lastPathSegment?.toInt()?.let {
+                ListingEntry.DrawableIcon(it)
+            }
+
+            else -> ListingEntry.LoadableIcon(this)
+        }
+
+        private fun Schema.Listing.File.Type.asIcon() = when (this) {
+            Schema.Listing.File.Type.REMOTE -> R.drawable.ic_browser_file_remote
+            Schema.Listing.File.Type.UNKNOWN -> R.drawable.ic_browser_file_unknown
+            Schema.Listing.File.Type.TRACK -> R.drawable.ic_browser_file_track
+            Schema.Listing.File.Type.ARCHIVE -> R.drawable.ic_browser_file_archive
+            Schema.Listing.File.Type.UNSUPPORTED -> null
         }
     }
 }

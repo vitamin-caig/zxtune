@@ -1,5 +1,6 @@
 package app.zxtune.fs.provider
 
+import androidx.core.net.toUri
 import app.zxtune.fs.TestDir
 import app.zxtune.fs.TestFile
 import app.zxtune.fs.TestObject
@@ -8,26 +9,50 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class ListingCursorBuilderTest {
 
+    private val dirIconUri = "icon://for/dir".toUri()
+    private val file1IconUri = "icon://for/file1".toUri()
+    private val file2IconUri = "icon://for/file2".toUri()
+
     private val dir1 = TestDir(1)
-    private val dirObject1 = Schema.Listing.Dir(dir1.uri, dir1.name, dir1.description, 123, false)
+    private val dirObject1 =
+        Schema.Listing.Dir(dir1.uri, dir1.name, dir1.description, dirIconUri, false)
     private val dir2 = TestDir(2)
     private val dirObject2 = Schema.Listing.Dir(dir2.uri, dir2.name, dir2.description, null, true)
 
     private val file1 = TestFile(10, "100")
-    private val fileObject1 =
-        Schema.Listing.File(file1.uri, file1.name, file1.description, file1.size, null, false)
+    private val fileObject1 = Schema.Listing.File(
+        file1.uri,
+        file1.name,
+        file1.description,
+        file1IconUri,
+        file1.size,
+        Schema.Listing.File.Type.REMOTE
+    )
     private val file2 = TestFile(20, "Cached")
-    private val fileObject2 =
-        Schema.Listing.File(file2.uri, file2.name, file2.description, file2.size, 0, true)
+    private val fileObject2 = Schema.Listing.File(
+        file2.uri,
+        file2.name,
+        file2.description,
+        file2IconUri,
+        file2.size,
+        Schema.Listing.File.Type.UNSUPPORTED
+    )
     private val file3 = TestFile(30, "Invalid cache")
-    private val fileObject3 =
-        Schema.Listing.File(file3.uri, file3.name, file3.description, file3.size, 1, false)
+    private val fileObject3 = Schema.Listing.File(
+        file3.uri, file3.name, file3.description, null, file3.size, Schema.Listing.File.Type.TRACK
+    )
 
     private val schema = mock<SchemaSource>()
 
@@ -60,8 +85,7 @@ class ListingCursorBuilderTest {
             assertEquals(1, count)
             moveToFirst()
             assertEquals(
-                Schema.Status.Progress(12, 34),
-                Schema.Object.parse(this) as Schema.Status.Progress
+                Schema.Status.Progress(12, 34), Schema.Object.parse(this) as Schema.Status.Progress
             )
         }
     }

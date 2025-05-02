@@ -27,18 +27,16 @@ internal class CachingCatalog(private val remote: RemoteCatalog, private val db:
     override fun systems(): Catalog.Grouping =
         CachedGrouping(Database.TYPE_SYSTEM, "system", remote.systems())
 
-    override fun findPack(id: String, visitor: Catalog.Visitor<Track>): Pack? {
+    override fun findPack(id: Pack.Id): Pack? {
         var result: Pack? = null
         executor.executeQuery("pack", object : QueryCommand {
-            private val lifetime = db.getLifetime(id, PACK_TRACKS_TTL)
+            private val lifetime = db.getLifetime(id.value, PACK_TRACKS_TTL)
 
             override val isCacheExpired: Boolean
                 get() = lifetime.isExpired
 
             override fun updateCache() = db.runInTransaction {
-                result = remote.findPack(id) { obj ->
-                    db.addPackTrack(id, obj)
-                }?.also {
+                result = remote.findPack(id)?.also {
                     db.addPack(it)
                 }
                 lifetime.update()
@@ -47,15 +45,13 @@ internal class CachingCatalog(private val remote: RemoteCatalog, private val db:
             // TODO: improve tests to not ignore remote query result if cache doesn't store anything
             override fun queryFromCache(): Boolean {
                 result = db.queryPack(id)
-                return result?.run {
-                    db.queryPackTracks(id, visitor)
-                } ?: false
+                return result != null
             }
         })
         return result
     }
 
-    override fun findRandomPack(visitor: Catalog.Visitor<Track>) = if (remote.isAvailable()) {
+    override fun findRandomPack(visitor: Catalog.Visitor<FilePath>) = if (remote.isAvailable()) {
         findRandomPackAndCache(visitor)
     } else {
         findRandomPackFromCache(visitor)
@@ -63,10 +59,10 @@ internal class CachingCatalog(private val remote: RemoteCatalog, private val db:
 
     // TODO: simplify - transaction after remote query
     // TODO: return null if no tracks?
-    private fun findRandomPackAndCache(visitor: Catalog.Visitor<Track>): Pack? {
+    private fun findRandomPackAndCache(visitor: Catalog.Visitor<FilePath>): Pack? {
         var res: Pack? = null
         db.runInTransaction {
-            val tracks = ArrayList<Track>()
+            val tracks = ArrayList<FilePath>()
             remote.findRandomPack(tracks::add)?.let {
                 res = it
                 db.addPack(it)
@@ -79,12 +75,12 @@ internal class CachingCatalog(private val remote: RemoteCatalog, private val db:
         return res
     }
 
-    private fun findRandomPackFromCache(visitor: Catalog.Visitor<Track>) =
+    private fun findRandomPackFromCache(visitor: Catalog.Visitor<FilePath>) =
         db.queryRandomPack()?.apply {
             db.queryPackTracks(id, visitor)
         }
 
-    private inner class CachedGrouping constructor(
+    private inner class CachedGrouping(
         @Database.Type private val type: Int,
         private val scope: String,
         private val remote: Catalog.Grouping
@@ -107,11 +103,11 @@ internal class CachingCatalog(private val remote: RemoteCatalog, private val db:
             })
 
         override fun queryPacks(
-            id: String,
+            id: Group.Id,
             visitor: Catalog.Visitor<Pack>,
             progress: ProgressCallback
         ) = executor.executeQuery(scope, object : QueryCommand {
-            private val lifetime = db.getLifetime(id, GROUP_PACKS_TTL)
+            private val lifetime = db.getLifetime(id.value, GROUP_PACKS_TTL)
 
             override val isCacheExpired: Boolean
                 get() = lifetime.isExpired

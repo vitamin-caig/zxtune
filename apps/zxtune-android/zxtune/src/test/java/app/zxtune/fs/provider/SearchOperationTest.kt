@@ -147,7 +147,7 @@ class SearchOperationTest {
 
     companion object {
         private fun makeFileObject(file: VfsFile) = with(file) {
-            Schema.Listing.File(uri, name, description, size, null, null)
+            Schema.Listing.File(uri, name, description, null, size, Schema.Listing.File.Type.UNKNOWN)
         }
     }
 }

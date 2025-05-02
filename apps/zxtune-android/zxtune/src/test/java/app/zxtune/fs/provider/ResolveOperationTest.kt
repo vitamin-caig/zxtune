@@ -9,7 +9,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
@@ -20,8 +29,9 @@ class ResolveOperationTest {
     private val schema = mock<SchemaSource>()
     private val callback = mock<AsyncQueryOperation.Callback>()
     private val file = TestFile(1, "unused")
-    private val fileObject =
-        Schema.Listing.File(file.uri, file.name, file.description, file.size, null, null)
+    private val fileObject = Schema.Listing.File(
+        file.uri, file.name, file.description, null, file.size, Schema.Listing.File.Type.UNKNOWN
+    )
     private val dir = TestDir(2)
     private val dirObject = Schema.Listing.Dir(dir.uri, dir.name, dir.description, null, false)
 

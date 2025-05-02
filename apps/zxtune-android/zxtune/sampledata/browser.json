@@ -1,0 +1,119 @@
+{"data": [
+ {
+   "title": "Folder",
+   "subtitle": "Regular",
+   "details": " ",
+   "icon": "@drawable/ic_browser_folder",
+   "image": 0,
+   "badge": 0,
+   "badge_gravity": 0
+ },
+ {
+   "title": "Folder",
+   "subtitle": "With icon",
+   "details": " ",
+   "icon": "@drawable/ic_browser_vfs_aminet",
+   "image": 0,
+   "badge": 0,
+   "badge_gravity": 0
+ },
+ {
+   "title": "Folder",
+   "subtitle": "With square image",
+   "details": " ",
+   "icon": 0,
+   "image": "@sample/drawable[0]",
+   "badge": 0,
+   "badge_gravity": 0
+ },
+ {
+   "title": "Folder",
+   "subtitle": "With wide image",
+   "details": " ",
+   "icon": 0,
+   "image": "@sample/drawable[1]",
+   "badge": 0,
+   "badge_gravity": 0
+ },
+ {
+   "title": "Folder",
+   "subtitle": "With tall image",
+   "details": " ",
+   "icon": 0,
+   "image": "@sample/drawable[2]",
+   "badge": 0,
+   "badge_gravity": 0
+ },
+ {
+   "title": "File",
+   "subtitle": "Remote",
+   "details": "123",
+   "icon": "@drawable/ic_browser_file",
+   "image": 0,
+   "badge": "@drawable/ic_browser_file_remote",
+   "badge_gravity": "center"
+ },
+ {
+   "title": "File",
+   "subtitle": "Unknown",
+   "details": "45kB",
+   "icon": "@drawable/ic_browser_file",
+   "image": 0,
+   "badge": "@drawable/ic_browser_file_unknown",
+   "badge_gravity": "center"
+ },
+ {
+   "title": "File",
+   "subtitle": "Archive",
+   "details": "67Mb",
+   "icon": "@drawable/ic_browser_file",
+   "image": 0,
+   "badge": "@drawable/ic_browser_file_archive",
+   "badge_gravity": "center"
+ },
+ {
+   "title": "File",
+   "subtitle": "Track",
+   "details": "8Gb",
+   "icon": "@drawable/ic_browser_file",
+   "image": 0,
+   "badge": "@drawable/ic_browser_file_track",
+   "badge_gravity": "center"
+ },
+ {
+   "title": "File",
+   "subtitle": "Unsupported",
+   "details": "82Gb",
+   "icon": "@drawable/ic_browser_file",
+   "image": 0,
+   "badge": 0,
+   "badge_gravity": "center"
+ },
+ {
+   "title": "File",
+   "subtitle": "Remote with image",
+   "details": "10kB",
+   "icon": "@sample/drawable[0]",
+   "image": 0,
+   "badge": "@drawable/ic_browser_file_remote",
+   "badge_gravity": "left|bottom"
+ },
+ {
+   "title": "File",
+   "subtitle": "Track with image",
+   "details": "20Mb",
+   "icon": "@sample/drawable[1]",
+   "image": 0,
+   "badge": "@drawable/ic_browser_file_track",
+   "badge_gravity": "left|bottom"
+ },
+ {
+   "title": "File",
+   "subtitle": "Archive with image",
+   "details": "30Mb",
+   "icon": "@sample/drawable[2]",
+   "image": 0,
+   "badge": "@drawable/ic_browser_file_archive",
+   "badge_gravity": "left|bottom"
+ }
+]}

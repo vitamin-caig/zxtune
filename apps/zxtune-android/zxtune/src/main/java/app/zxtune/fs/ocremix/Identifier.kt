@@ -52,7 +52,6 @@ import android.net.Uri
 
 object Identifier {
     private const val SCHEME = "ocremix"
-    private const val IMAGES = "Images"
 
     enum class AggregateType {
         Systems, Organizations, Remixes, Albums, Games
@@ -156,10 +155,25 @@ object Identifier {
             get() = FILE_KEY to path.value
 
         companion object {
-            fun tryFind(uri: Uri, lastPathSegment: String): FileElement? =
-                uri.getQueryParameter(FILE_KEY)?.let {
-                    val path = FilePath(it)
-                    return if (lastPathSegment == path.displayName) FileElement(path) else null
+            fun tryFind(path: FilePath, lastPathSegment: String) =
+                FileElement(path).takeIf { lastPathSegment == it.title }
+        }
+    }
+
+    class PictureElement(val type: Type, val path: FilePath) : PathElement {
+        enum class Type {
+            Image, Thumb,
+        }
+
+        override val title
+            get() = type.name
+        override val key
+            get() = FILE_KEY to path.value
+
+        companion object {
+            fun tryFind(path: FilePath, lastPathSegment: String) =
+                Type.entries.find { it.name == lastPathSegment }?.let {
+                    PictureElement(it, path)
                 }
         }
     }
@@ -183,10 +197,18 @@ object Identifier {
             val aggregateOrFilename = path[idx]
             if (idx == path.size - 1) {
                 // shorthand
-                val asPath = FileElement.tryFind(uri, aggregateOrFilename)
-                if (asPath != null) {
-                    add(asPath)
-                    break
+                val path = uri.filePath
+                // TODO: use let since kotlin 2.2
+                if (path != null) {
+                    val asPath =
+                        FileElement.tryFind(path, aggregateOrFilename) ?: PictureElement.tryFind(
+                            path, aggregateOrFilename
+                        )
+                    if (asPath != null) {
+                        add(asPath)
+                        break
+                    }
+                    return emptyArray<PathElement>()
                 }
             }
             val aggr =
@@ -205,18 +227,10 @@ object Identifier {
         }
     }.toTypedArray()
 
-    fun forImage(path: FilePath) = forRoot().apply {
-        appendPath(IMAGES)
-        appendQueryParameter(FILE_KEY, path.value)
-    }.build()
-
-    fun findImagePath(uri: Uri) = if (uri.pathSegments.firstOrNull() == IMAGES) {
-        uri.getQueryParameter(FILE_KEY)?.let {
-            FilePath(it)
-        }
-    } else {
-        null
-    }
+    fun forImage(path: FilePath) =
+        forElementsChain(arrayOf(PictureElement(PictureElement.Type.Image, path)))
+    fun forThumb(path: FilePath) =
+        forElementsChain(arrayOf(PictureElement(PictureElement.Type.Thumb, path)))
 
     private const val SYSTEM_KEY = "sys"
     private const val ORGANIZATION_KEY = "org"
@@ -224,4 +238,9 @@ object Identifier {
     private const val ALBUM_KEY = "album"
     private const val REMIX_KEY = "remix"
     private const val FILE_KEY = "file"
+
+    private val Uri.filePath
+        get() = getQueryParameter(FILE_KEY)?.let {
+            FilePath(it)
+        }
 }

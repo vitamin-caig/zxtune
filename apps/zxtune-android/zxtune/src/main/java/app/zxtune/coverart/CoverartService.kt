@@ -19,6 +19,8 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
 
     companion object {
         private const val MAX_PICTURE_SIZE = 800
+        private const val MIN_ICON_AS_PIC_SIZE = 400
+        private const val MAX_ICON_SIZE = 96
         private val LOG = Logger(CoverartService::class.java.name)
 
         @JvmStatic
@@ -28,12 +30,14 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
     fun cleanupFor(uri: Uri) = db.remove(uri)
 
     fun addEmbedded(id: Identifier, module: Module) {
-        if (!db.hasEmbedded(id)) {
-            module.getPicture()?.let {
+        if (null == db.findEmbedded(id)) {
+            module.picture?.let {
                 addPicture(id, it)
             }
         }
     }
+
+    data class Mipmap(val image: Picture?, val icon: Picture)
 
     fun addPicture(id: Identifier, data: ByteArray) =
         addBitmap(id, BitmapFactory.decodeByteArray(data, 0, data.size))
@@ -42,94 +46,121 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
         addBitmap(id, BitmapFactory.decodeStream(data))
 
     private fun addBitmap(id: Identifier, bitmap: Bitmap?) = if (bitmap != null) {
-        val w = bitmap.width
-        val h = bitmap.height
-        LOG.d { "Found ${w}x${h} raw image" }
-        val blob = bitmap.use {
-            if (maxOf(w, h) >= MAX_PICTURE_SIZE) {
-                bitmap.fitScaledTo(MAX_PICTURE_SIZE, MAX_PICTURE_SIZE).use { scaled ->
-                    LOG.d { " Scaled to ${scaled.width}x${scaled.height}" }
-                    scaled.toJpeg()
-                }
-            } else {
-                bitmap.toJpeg()
-            }
+        LOG.d { "Found ${bitmap.width}x${bitmap.height} raw image" }
+        bitmap.use {
+            bitmap.publish(MAX_PICTURE_SIZE) to bitmap.publish(MAX_ICON_SIZE)
+        }.let { (image, icon) ->
+            LOG.d { "Added ${image.size}/${icon.size} bytes image/icon for $id" }
+            Mipmap(db.addImage(id, image), db.addIcon(id, icon))
         }
-        LOG.d { "Added ${blob.size} bytes image for $id" }
-        db.addEmbedded(id, blob)
-        blob
     } else {
         LOG.d { "Failed to parse raw image at $id" }
         null
     }
 
-    private fun addReference(id: Identifier, uri: Uri) = db.addExternal(id, uri).also {
-        LOG.d { "Added external picture $uri for $id" }
-    }
-
-    fun imageFor(uri: Uri): Any? {
-        val ref = db.query(Identifier(uri)) ?: return uri // unknown, use self
-        return ref.externalPicture ?: ref.embeddedPicture
-    }
-
-    // Embedded to file
-    fun coverArtOf(id: Identifier) = if (db.hasEmbedded(id)) {
-        id.fullLocation
-    } else {
+    fun addIconOrPicture(id: Identifier, data: InputStream) = BitmapFactory.decodeStream(data)?.use { bitmap ->
+        if (maxOf(bitmap.width, bitmap.height) >= MIN_ICON_AS_PIC_SIZE) {
+            bitmap.publish(MAX_PICTURE_SIZE) to bitmap.publish(MAX_ICON_SIZE)
+        } else {
+            null to bitmap.publish(MAX_ICON_SIZE)
+        }
+    }?.let { (image, icon) ->
+        LOG.d { "Added ${image?.size}/${icon.size} bytes image/icon for $id"}
+        image?.let {
+            db.addImage(id, it)
+        }
+        db.addIcon(id, icon)
+    } ?: run {
+        LOG.d { "Failed to parse raw image at $id"}
         null
     }
 
-    // External, bound to dir or archive
-    fun albumArtOf(id: Identifier, dataObject: VfsObject): Uri? {
-        // cached
-        db.query(id)?.run {
-            return externalPicture
-        }
+    private fun addReference(id: Identifier, uri: Uri) = db.addInferred(id, uri).also {
+        LOG.d { "Added external picture $uri for $id" }
+    }
+
+    private fun bind(id: Identifier, uri: Uri) = db.addBoundImage(id, uri).also {
+        LOG.d { "Bind external picture $uri for $id" }
+    }
+
+    fun getBlob(id: Long) = db.queryBlob(id)
+    fun imageFor(uri: Uri) = db.queryImage(Identifier(uri))
+    fun iconFor(uri: Uri) = db.queryIcon(Identifier(uri))
+
+    // Returns:
+    // - raw blob url if exists
+    // - null elsewhere
+    fun coverArtUriOf(id: Identifier) = coverArtOf(id)?.toPictureUrl()
+
+    @VisibleForTesting
+    fun coverArtOf(id: Identifier) = db.findEmbedded(id)
+
+    // Returns:
+    // - null if id is known as having no albumart
+    // - archive's bound image or nearest in archive if id is for archived
+    // - bound image of id or any parent
+    fun albumArtUriOf(id: Identifier, dataObject: VfsObject) =
+        albumArtOf(id, dataObject)?.toPictureUrl()
+
+    @VisibleForTesting
+    fun albumArtOf(id: Identifier, dataObject: VfsObject): Reference.Target? {
         // Do not mix archive and storage worlds
         if (id.archiveEntryName != null) {
             return archiveArtOf(id, dataObject)
         }
-        var ref = dataObject.parent
-        while (ref != null) {
+        var ref = dataObject
+        for (step in 0..Int.MAX_VALUE) {
             val refId = Identifier(ref.uri)
-            db.query(refId)?.run {
-                return externalPicture
+            // Just to keep invariant for tests, VfsObject.parent returns this
+            assert(step > 0 || id.dataLocation == refId.fullLocation) {
+                "$id (${id.dataLocation} + ${id.subPath}) and $refId"
             }
-            ref.coverArtUri?.let {
-                // cache coverart for object
-                addReference(id, it)
-                // cache coverart for folder if it's not random
-                if (!it.isRandomized()) {
-                    addReference(refId, it)
-                }
+            db.queryImageReferences(refId)?.let {
+                // cached or explicit none
                 return it
             }
-            ref = ref.parent
+            ref.coverArtUri?.let {
+                coverArtOf(Identifier(it))?.let {
+                    return it
+                }
+                // cache coverart if it's not random
+                if (!it.isRandomized()) {
+                    if (id != refId) {
+                        addReference(id, it)
+                    }
+                    bind(refId, it)
+                }
+                return Reference.Target(it)
+            }
+            ref = ref.parent ?: break
         }
         return null
     }
 
     @VisibleForTesting
-    fun archiveArtOf(id: Identifier, dataObject: VfsObject): Uri? {
+    fun archiveArtOf(id: Identifier, dataObject: VfsObject): Reference.Target? {
         require(id.subPath.isNotEmpty())
+        db.queryImageReferences(id)?.let {
+            // cached or explicit none
+            return it
+        }
         val dataLocation = id.dataLocation
-        // per-archive as reference
-        db.query(Identifier(dataLocation))?.run {
-            externalPicture?.let {
-                return it
-            }
-            if (embeddedPicture == null) {
-                // no any icons
-                return null
-            }
+        val dataId = Identifier(dataLocation)
+        // bound to archive - higher priority
+        db.queryImageReferences(dataId)?.let {
+            return it
         }
         val images = ImagesSet(db.listArchiveImages(dataLocation))
         if (images.isEmpty()) {
             LOG.d { "Archive $dataLocation has no images" }
-            return dataObject.coverArtUri.also {
-                if (true != it?.isRandomized()) {
-                    db.setArchiveImage(dataLocation, it)
-                }
+            return dataObject.coverArtUri.also { artUri ->
+                artUri?.let {
+                    if (!it.isRandomized()) {
+                        bind(dataId, it)
+                    }
+                } ?: db.setNoImage(dataId)
+            }?.let {
+                Reference.Target(it)
             }
         }
 
@@ -137,11 +168,12 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
         return images.selectAlbumArt(id.subPath)?.let { path ->
             Identifier(dataLocation, path).fullLocation.also {
                 LOG.d { "Select internal picture $it for archive $dataLocation" }
+                addReference(id, it)
+            }.let {
+                Reference.Target(it)
             }
         }
     }
-
-    fun iconOf(id: Identifier): Uri = Uri.Builder().scheme(id.dataLocation.scheme).build()
 }
 
 @VisibleForTesting
@@ -234,6 +266,24 @@ class ImagesSet(paths: List<String>) {
 
 private fun Uri.isRandomized() = getQueryParameter("seed") != null
 
-private fun Module.getPicture() = runCatching {
-    getProperty(ModuleAttributes.PICTURE, null)
-}.getOrNull()
+private val Module.picture
+    get() = runCatching {
+        getProperty(ModuleAttributes.PICTURE, null)
+    }.getOrNull()
+
+private fun Bitmap.publish(maxSize: Int) = if (width > maxSize || height > maxSize) {
+    fitScaledTo(maxSize, maxSize).use { scaled ->
+        scaled.compress()
+    }
+} else {
+    compress()
+}
+
+private fun Bitmap.compress() = if (hasAlpha()) toPng() else toJpeg()
+
+@VisibleForTesting
+fun Reference.Target.toPictureUrl() = when {
+    pic != null -> Query.uriFor(Query.Case.RAW, pic.toString())
+    url != null -> Query.uriFor(Query.Case.IMAGE, url.toString())
+    else -> null
+}

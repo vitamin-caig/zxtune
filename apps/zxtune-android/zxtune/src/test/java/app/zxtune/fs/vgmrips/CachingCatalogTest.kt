@@ -1,6 +1,5 @@
 package app.zxtune.fs.vgmrips
 
-import app.zxtune.TimeStamp
 import app.zxtune.fs.CachingCatalogTestBase
 import app.zxtune.fs.dbhelpers.Utils
 import org.junit.After
@@ -51,23 +50,23 @@ private object Systems : Category {
 @RunWith(ParameterizedRobolectricTestRunner::class)
 class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
 
-    private val group1 = Group("1", "group1", 10)
-    private val group2 = Group("2", "group2", 20)
-    private val group3 = Group("3", "group3", 30)
+    private val group1 = makeGroup("1", "group1", 10)
+    private val group2 = makeGroup("2", "group2", 20)
+    private val group3 = makeGroup("3", "group3", 30)
 
     private val queryGroup = group1
     private val unknownGroup = group3
 
-    private val pack1 = Pack("100", "Pack 1")
-    private val pack2 = Pack("200", "Pack 2")
-    private val pack3 = Pack("300", "Pack 3")
+    private val pack1 = makePack("100", "Pack 1")
+    private val pack2 = makePack("200", "Pack 2")
+    private val pack3 = makePack("300", "Pack 3")
 
     private val queryPack = pack1
     private val randomPack = pack2
     private val unknownPack = pack3
 
-    private val track1 = Track(1000, "Track1", TimeStamp.fromSeconds(10), "location1")
-    private val track2 = Track(2000, "Track2", TimeStamp.fromSeconds(20), "location2")
+    private val track1 = FilePath("location1")
+    private val track2 = FilePath("location2")
 
     private val database = mock<Database> {
         on { runInTransaction(any()) } doAnswer {
@@ -96,15 +95,9 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     }
 
     private val workingRemote = mock<RemoteCatalog> {
-        on { findPack(eq(queryPack.id), any()) } doAnswer {
-            it.getArgument<Catalog.Visitor<Track>>(1).run {
-                accept(track1)
-                accept(track2)
-            }
-            queryPack
-        }
+        on { findPack(eq(queryPack.id)) } doReturn queryPack
         on { findRandomPack(any()) } doAnswer {
-            it.getArgument<Catalog.Visitor<Track>>(0).run {
+            it.getArgument<Catalog.Visitor<FilePath>>(0).run {
                 accept(track2)
                 accept(track1)
             }
@@ -130,7 +123,7 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
 
     private val groupsVisitor = mock<Catalog.Visitor<Group>>()
     private val packsVisitor = mock<Catalog.Visitor<Pack>>()
-    private val tracksVisitor = mock<Catalog.Visitor<Track>>()
+    private val tracksVisitor = mock<Catalog.Visitor<FilePath>>()
 
     private val allMocks = arrayOf(
         lifetime,
@@ -185,7 +178,7 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
 
             inOrder(*allMocks).run {
                 cat.subcategory(verify(remote))
-                verify(database).getLifetime(eq(queryGroup.id), any())
+                verify(database).getLifetime(eq(queryGroup.id.value), any())
                 verify(lifetime).isExpired
                 if (case.isCacheExpired) {
                     verify(database).runInTransaction(any())
@@ -212,7 +205,7 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
 
             inOrder(*allMocks).run {
                 cat.subcategory(verify(remote))
-                verify(database).getLifetime(eq(unknownGroup.id), any())
+                verify(database).getLifetime(eq(unknownGroup.id.value), any())
                 verify(lifetime).isExpired
                 if (case.isCacheExpired) {
                     verify(database).runInTransaction(any())
@@ -230,47 +223,42 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     @Test
     fun `test findPack`(): Unit = CachingCatalog(remote, database).let { underTest ->
         var result: Pack? = null
-        checkedQuery { result = underTest.findPack(queryPack.id, tracksVisitor) }
+        checkedQuery { result = underTest.findPack(queryPack.id) }
 
-        if (case.hasCache && !(case.isCacheExpired && case.isFailedRemote)) {
+        if (case.hasCache) {
             assertEquals(queryPack, result)
         } else {
             assertNull(result)
         }
 
         inOrder(*allMocks).run {
-            verify(database).getLifetime(eq(queryPack.id), any())
+            verify(database).getLifetime(eq(queryPack.id.value), any())
             verify(lifetime).isExpired
             if (case.isCacheExpired) {
                 verify(database).runInTransaction(any())
-                verify(remote).findPack(eq(queryPack.id), any())
+                verify(remote).findPack(eq(queryPack.id))
                 if (!case.isFailedRemote) {
-                    verify(database).addPackTrack(queryPack.id, track1)
-                    verify(database).addPackTrack(queryPack.id, track2)
                     verify(database).addPack(queryPack)
                     verify(lifetime).update()
                 }
             }
             verify(database).queryPack(queryPack.id)
-            if (case.hasCache) {
-                verify(database).queryPackTracks(queryPack.id, tracksVisitor)
-            }
         }
     }
 
     @Test
     fun `test findPack unknown`(): Unit = CachingCatalog(remote, database).let { underTest ->
         var result: Pack? = null
-        checkedQuery { result = underTest.findPack(unknownPack.id, tracksVisitor) }
+        checkedQuery { result = underTest.findPack(unknownPack.id) }
 
         assertNull(result)
 
         inOrder(*allMocks).run {
-            verify(database).getLifetime(eq(unknownPack.id), any())
+            verify(database).getLifetime(eq(unknownPack.id.value), any())
             verify(lifetime).isExpired
             if (case.isCacheExpired) {
                 verify(database).runInTransaction(any())
-                verify(remote).findPack(eq(unknownPack.id), any())
+                verify(remote).findPack(eq(unknownPack.id))
                 if (!case.isFailedRemote) {
                     verify(lifetime).update()
                 }
@@ -314,6 +302,12 @@ class CachingCatalogTest(case: TestCase) : CachingCatalogTestBase(case) {
     companion object {
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
-        fun data() = TestCase.values().asList()
+        fun data() = TestCase.entries
+
+        private fun makeGroup(id: String, title: String, packs: Int) =
+            Group(Group.Id(id), title, packs)
+
+        private fun makePack(id: String, title: String) =
+            Pack(Pack.Id(id), title, FilePath("$id/$title"))
     }
 }
