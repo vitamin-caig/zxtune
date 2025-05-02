@@ -14,7 +14,7 @@ class Path private constructor(elements: List<String>, isDir: Boolean) :
         arrayOf(
             Cdn.aminet(path),
             Uri.Builder()
-                .scheme("http")
+                .scheme("https")
                 .authority("aminet.net")
                 .path("mods/${path}")
                 .build()

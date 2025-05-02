@@ -99,6 +99,6 @@ class RemoteCatalog(http: MultisourceHttpProvider) : app.zxtune.fs.httpdir.Remot
 }
 
 private fun getBaseUri() = Uri.Builder()
-    .scheme("http")
+    .scheme("https")
     .authority("aminet.net")
 

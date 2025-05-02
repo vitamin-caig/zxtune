@@ -72,7 +72,7 @@ private class Uris {
     private val delegate = Uri.Builder()
 
     init {
-        delegate.scheme("http") //TODO: https
+        delegate.scheme("https")
             .authority("zxtunes.com")
     }
 

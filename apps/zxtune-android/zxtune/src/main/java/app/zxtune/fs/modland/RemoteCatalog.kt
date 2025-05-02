@@ -18,6 +18,7 @@ import app.zxtune.utils.StubProgressCallback
 import org.jsoup.nodes.Document
 import java.io.IOException
 import java.util.regex.Pattern
+import androidx.core.net.toUri
 
 /**
  * There's additional api gate for xbmc plugin at
@@ -104,7 +105,7 @@ open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
         @JvmStatic
         fun getTrackUris(id: String) = arrayOf(
-            Cdn.modland(id), Uri.parse("http://ftp.amigascne.org/mirrors/ftp.modland.com$id")
+            Cdn.modland(id), "https://ftp.amigascne.org/mirrors/ftp.modland.com$id".toUri()
         )
     }
 

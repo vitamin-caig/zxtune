@@ -351,7 +351,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     @Nullable
     private String getShareUrl() {
       final Author author = Identifier.findAuthor(uri, uri.getPathSegments());
-      return author != null ? String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.getId(), module.getId()) : null;
+      return author != null ? String.format(Locale.US, "https://zxtunes.com/author.php?id=%d&play=%d", author.getId(), module.getId()) : null;
     }
   }
 
