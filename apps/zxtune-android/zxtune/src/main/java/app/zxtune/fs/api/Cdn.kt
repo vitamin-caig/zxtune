@@ -31,6 +31,11 @@ object Cdn {
         root.path("download/ocremix/$this").build()
     }
 
+    fun khinsider(path: String): Uri = path.run {
+        require(startsWith("soundtracks/")) { path }
+        root.path("download/khinsider/$this").build()
+    }
+
     private val root: Uri.Builder
         get() = ROOT.buildUpon()
 }

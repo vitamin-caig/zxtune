@@ -197,6 +197,17 @@
     <string name="vfs_ocremix_remixes_name">リミックス</string>
     <string name="vfs_ocremix_albums_name">アルバム</string>
     <string name="vfs_ocremix_games_name">ゲーム</string>
+    <!-- khinsider -->
+    <string name="vfs_khinsider_random_name">アルバムからの曲</string>
+    <string name="vfs_khinsider_top_name">ベストアルバム</string>
+    <string name="vfs_khinsider_series_name">人気シリーズ</string>
+    <string name="vfs_khinsider_platforms_name">プラットフォーム</string>
+    <string name="vfs_khinsider_types_name">タイプ別のアルバム</string>
+    <string name="vfs_khinsider_albumsletters_name">手紙によるアルバム</string>
+    <string name="vfs_khinsider_albumsyears_name">年別のアルバム</string>
+    <string name="vfs_khinsider_top_new100_name">ベスト100新しく追加された</string>
+    <string name="vfs_khinsider_top_40_name">ベスト40</string>
+    <string name="vfs_khinsider_top_favorites_name">最もお気に入り</string>
     <!-- errors -->
     <string name="network_inaccessible">ネットワークに接続できませんでした</string>
     <string name="failed_resolve">%s の解決に失敗しました</string>

@@ -196,6 +196,17 @@
     <string name="vfs_ocremix_remixes_name">Remixes</string>
     <string name="vfs_ocremix_albums_name">Álbuns</string>
     <string name="vfs_ocremix_games_name">Jogos</string>
+    <!-- khinsider -->
+    <string name="vfs_khinsider_random_name">Canção do álbum Aleatório</string>
+    <string name="vfs_khinsider_top_name">Melhores álbuns</string>
+    <string name="vfs_khinsider_series_name">Séries populares</string>
+    <string name="vfs_khinsider_platforms_name">Plataformas</string>
+    <string name="vfs_khinsider_types_name">Álbuns por tipo</string>
+    <string name="vfs_khinsider_albumsletters_name">Álbuns por letra</string>
+    <string name="vfs_khinsider_albumsyears_name">Álbuns por ano</string>
+    <string name="vfs_khinsider_top_new100_name">Melhores 100 recém-adicionados</string>
+    <string name="vfs_khinsider_top_40_name">Melhores 40</string>
+    <string name="vfs_khinsider_top_favorites_name">Mais favoritos</string>
     <!-- errors -->
     <string name="network_inaccessible">Internet não disponível</string>
     <string name="failed_resolve">Falha ao resolver %s</string>

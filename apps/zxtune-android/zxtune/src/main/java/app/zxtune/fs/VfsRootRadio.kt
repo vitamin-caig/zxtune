@@ -4,11 +4,12 @@ import android.content.Context
 import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.core.net.toUri
 import app.zxtune.Logger
 import app.zxtune.R
 
 internal class VfsRootRadio(private val ctx: Context) : StubObject(), VfsRoot {
-    override val uri = Uri.fromParts("radio", "", "")
+    override val uri: Uri = Uri.fromParts("radio", "", "")
     private val children by lazy {
         ArrayList<VfsDir>().apply {
             maybeAdd(
@@ -18,9 +19,16 @@ internal class VfsRootRadio(private val ctx: Context) : StubObject(), VfsRoot {
                 R.drawable.ic_browser_vfs_modarchive
             )
             maybeAdd(
-                this, "vgmrips:/Random",
+                this,
+                "vgmrips:/Random",
                 R.string.vfs_vgmrips_root_name,
                 R.drawable.ic_browser_vfs_vgmrips
+            )
+            maybeAdd(
+                this,
+                "khinsider:/Random",
+                R.string.vfs_khinsider_root_name,
+                R.drawable.ic_browser_vfs_khinsider
             )
         }
     }
@@ -42,10 +50,7 @@ internal class VfsRootRadio(private val ctx: Context) : StubObject(), VfsRoot {
     override fun enumerate(visitor: VfsDir.Visitor) = children.forEach(visitor::onDir)
 
     private fun maybeAdd(
-        list: ArrayList<VfsDir>,
-        uri: String,
-        @StringRes description: Int,
-        @DrawableRes icon: Int
+        list: ArrayList<VfsDir>, uri: String, @StringRes description: Int, @DrawableRes icon: Int
     ) = runCatching {
         list.add(BaseEntry(uri, description, icon))
     }.onFailure { e ->
@@ -59,10 +64,8 @@ internal class VfsRootRadio(private val ctx: Context) : StubObject(), VfsRoot {
     ) : StubObject(), VfsDir by delegate {
 
         constructor(
-            uri: String,
-            @StringRes descr: Int,
-            @DrawableRes icon: Int
-        ) : this(Vfs.resolve(Uri.parse(uri)) as VfsDir, descr, icon)
+            uri: String, @StringRes descr: Int, @DrawableRes icon: Int
+        ) : this(Vfs.resolve(uri.toUri()) as VfsDir, descr, icon)
 
         override val description
             get() = ctx.getString(descr)

@@ -25,6 +25,7 @@ internal class VfsRootNetwork(private val ctx: Context, http: MultisourceHttpPro
         addSubroot(VfsRootVgmrips(this, ctx, http))
         addSubroot(VfsRootScene(this, ctx, http))
         addSubroot(VfsRootOcremix(this, ctx, http))
+        addSubroot(VfsRootKhinsider(this, ctx, http))
     }
 
     override val name: String

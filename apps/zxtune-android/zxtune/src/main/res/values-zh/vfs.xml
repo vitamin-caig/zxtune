@@ -197,6 +197,17 @@
     <string name="vfs_ocremix_remixes_name">混音</string>
     <string name="vfs_ocremix_albums_name">专辑</string>
     <string name="vfs_ocremix_games_name">游戏</string>
+    <!-- khinsider -->
+    <string name="vfs_khinsider_random_name">随机专辑</string>
+    <string name="vfs_khinsider_top_name">最佳专辑</string>
+    <string name="vfs_khinsider_series_name">流行系列</string>
+    <string name="vfs_khinsider_platforms_name">平台</string>
+    <string name="vfs_khinsider_types_name">类型专辑</string>
+    <string name="vfs_khinsider_albumsletters_name">字母专辑</string>
+    <string name="vfs_khinsider_albumsyears_name">年度专辑</string>
+    <string name="vfs_khinsider_top_new100_name">最佳100新添加</string>
+    <string name="vfs_khinsider_top_40_name">最佳40</string>
+    <string name="vfs_khinsider_top_favorites_name">最爱</string>
     <!-- errors -->
     <string name="network_inaccessible">无法访问网络</string>
     <string name="failed_resolve">无法解析 %s</string>
