@@ -15,13 +15,24 @@ import java.io.InputStream
 @RunWith(RobolectricTestRunner::class)
 class MultisourceHttpProviderTest {
 
-    private val goodHost = "good.host"
-    private val badHost = "bad.host"
-    private val goodHostUri = Uri.Builder().scheme("http").authority(goodHost).build()
-    private val badHostUri = Uri.Builder().scheme("http").authority(badHost).build()
-    private val stream = mock<InputStream>()
-    private val httpObject = mock<HttpObject>()
-    private val err = IOException("Error!")
+    companion object {
+        private val goodHost = "good.host"
+        private val badHost = "bad.host"
+        private val goodHostUri = Uri.Builder().scheme("http").authority(goodHost).build()
+        private val badHostUri = Uri.Builder().scheme("http").authority(badHost).build()
+        private val stream = mock<InputStream>()
+        private val httpObject = mock<HttpObject>()
+        private val err = IOException("Error!")
+
+        private fun urisWithLimiterOf(vararg uris: Uri) = iterator {
+            assertEquals(goodHostUri, uris.last())
+            for (uri in uris) {
+                yield(uri)
+            }
+            fail("Should not be called")
+        }
+    }
+
     private val delegate = mock<HttpProvider> {
         on { getInputStream(goodHostUri) } doReturn stream
         on { getInputStream(badHostUri) } doThrow err
@@ -62,8 +73,8 @@ class MultisourceHttpProviderTest {
 
     @Test
     fun `test successful url`() {
-        assertSame(stream, underTest.getInputStream(arrayOf(goodHostUri, badHostUri)))
-        assertSame(httpObject, underTest.getObject(arrayOf(goodHostUri, badHostUri)))
+        assertSame(stream, underTest.getInputStream(urisWithLimiterOf(goodHostUri)))
+        assertSame(httpObject, underTest.getObject(urisWithLimiterOf(goodHostUri)))
 
         inOrder(delegate, timeSource).run {
             verify(timeSource).nowMillis()
@@ -76,7 +87,7 @@ class MultisourceHttpProviderTest {
     @Test
     fun `test getInputStream one url error`() {
         try {
-            underTest.getInputStream(arrayOf(badHostUri))
+            underTest.getInputStream(arrayOf(badHostUri).iterator())
             fail()
         } catch (e: IOException) {
             assertSame(e, err)
@@ -84,6 +95,7 @@ class MultisourceHttpProviderTest {
         inOrder(delegate, timeSource).run {
             verify(timeSource).nowMillis()
             verify(delegate).getInputStream(badHostUri)
+            verify(delegate).hasConnection()
         }
     }
 
@@ -93,7 +105,7 @@ class MultisourceHttpProviderTest {
         doAnswer { now }.whenever(timeSource).nowMillis()
         // no ban for the first error
         run {
-            assertSame(stream, underTest.getInputStream(arrayOf(badHostUri, goodHostUri)))
+            assertSame(stream, underTest.getInputStream(urisWithLimiterOf(badHostUri, goodHostUri)))
             assertFalse(underTest.isHostDisabledFor(badHost, now + 1))
 
             inOrderVerifyAndReset(delegate, timeSource) {
@@ -107,7 +119,7 @@ class MultisourceHttpProviderTest {
         // ban for 1s
         run {
             now += 100
-            assertSame(httpObject, underTest.getObject(arrayOf(badHostUri, goodHostUri)))
+            assertSame(httpObject, underTest.getObject(urisWithLimiterOf(badHostUri, goodHostUri)))
             verifyBadHostBannedTill(now + 1000)
 
             inOrderVerifyAndReset(delegate, timeSource) {
@@ -120,7 +132,7 @@ class MultisourceHttpProviderTest {
         // no request to bad host
         run {
             now += 100
-            assertSame(stream, underTest.getInputStream(arrayOf(badHostUri, goodHostUri)))
+            assertSame(stream, underTest.getInputStream(urisWithLimiterOf(badHostUri, goodHostUri)))
 
             inOrderVerifyAndReset(delegate, timeSource) {
                 verify(timeSource).nowMillis()
@@ -130,7 +142,7 @@ class MultisourceHttpProviderTest {
         // next ban for 2s
         run {
             now += 1000
-            assertSame(httpObject, underTest.getObject(arrayOf(badHostUri, goodHostUri)))
+            assertSame(httpObject, underTest.getObject(urisWithLimiterOf(badHostUri, goodHostUri)))
             verifyBadHostBannedTill(now + 2000)
 
             inOrderVerifyAndReset(delegate, timeSource) {
@@ -145,12 +157,12 @@ class MultisourceHttpProviderTest {
             for (delay in 2..3600) {
                 now += delay * 1000
                 verifyBadHostBannedTill(now)
-                assertSame(stream, underTest.getInputStream(arrayOf(badHostUri, goodHostUri)))
+                assertSame(stream, underTest.getInputStream(urisWithLimiterOf(badHostUri, goodHostUri)))
             }
             clearInvocations(delegate, timeSource)
 
             now += 10_000_000
-            assertSame(httpObject, underTest.getObject(arrayOf(badHostUri, goodHostUri)))
+            assertSame(httpObject, underTest.getObject(urisWithLimiterOf(badHostUri, goodHostUri)))
             verifyBadHostBannedTill(now + 3600_000)
 
             inOrderVerifyAndReset(delegate, timeSource) {
@@ -164,7 +176,7 @@ class MultisourceHttpProviderTest {
         run {
             doAnswer { stream }.whenever(delegate).getInputStream(badHostUri)
             now += 3600_000
-            assertSame(stream, underTest.getInputStream(arrayOf(badHostUri, goodHostUri)))
+            assertSame(stream, underTest.getInputStream(urisWithLimiterOf(badHostUri, goodHostUri)))
 
             inOrderVerifyAndReset(delegate, timeSource) {
                 verify(timeSource).nowMillis()
@@ -175,12 +187,12 @@ class MultisourceHttpProviderTest {
         run {
             repeat(1800) {
                 now += 1000
-                assertSame(stream, underTest.getInputStream(arrayOf(badHostUri, goodHostUri)))
+                assertSame(stream, underTest.getInputStream(urisWithLimiterOf(badHostUri, goodHostUri)))
             }
             clearInvocations(delegate, timeSource)
 
             now += 1000
-            assertSame(httpObject, underTest.getObject(arrayOf(badHostUri, goodHostUri)))
+            assertSame(httpObject, underTest.getObject(urisWithLimiterOf(badHostUri, goodHostUri)))
             inOrderVerifyAndReset(delegate, timeSource) {
                 verify(timeSource).nowMillis()
                 verify(delegate).getObject(badHostUri)
@@ -191,7 +203,7 @@ class MultisourceHttpProviderTest {
             assertFalse(underTest.isHostDisabledFor(badHost, now))
 
             now += 1000
-            assertSame(httpObject, underTest.getObject(arrayOf(badHostUri, goodHostUri)))
+            assertSame(httpObject, underTest.getObject(urisWithLimiterOf(badHostUri, goodHostUri)))
             // 3605 failed and 1801 successful requests
             verifyBadHostBannedTill(now + 1803_000)
             inOrderVerifyAndReset(delegate, timeSource) {
@@ -207,7 +219,7 @@ class MultisourceHttpProviderTest {
 
             delegate.stub { on { hasConnection() } doReturn false }
             try {
-                underTest.getObject(arrayOf(badHostUri, goodHostUri))
+                underTest.getObject(urisWithLimiterOf(badHostUri, goodHostUri))
                 fail()
             } catch (e: IOException) {
                 assertSame(e, err)

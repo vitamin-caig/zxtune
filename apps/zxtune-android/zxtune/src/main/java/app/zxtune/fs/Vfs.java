@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 
 import app.zxtune.Features;
 import app.zxtune.MainApplication;
@@ -60,6 +61,7 @@ public final class Vfs {
     }
   }
 
+  @SuppressWarnings("unchecked")
   public static InputStream openStream(VfsFile file) throws IOException {
     final InputStream asStream = VfsExtensionsKt.getInputStream(file);
     if (asStream != null) {
@@ -77,6 +79,8 @@ public final class Vfs {
       final Object uris = file.getExtension(VfsExtensions.DOWNLOAD_URIS);
       if (uris instanceof Uri[]) {
         return new BufferedInputStream(Holder.INSTANCE.network.getInputStream((Uri[]) uris));
+      } else if (uris instanceof Iterator) {
+        return new BufferedInputStream(Holder.INSTANCE.network.getInputStream((Iterator<Uri>) uris));
       }
     }
     return Io.createByteBufferInputStream(download(file, null));
@@ -111,10 +115,13 @@ public final class Vfs {
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public HttpObject getRemote() throws IOException {
         final Object uris = file.getExtension(VfsExtensions.DOWNLOAD_URIS);
         if (uris instanceof Uri[]) {
           return Holder.INSTANCE.network.getObject((Uri[]) uris);
+        } else if (uris instanceof Iterator) {
+          return Holder.INSTANCE.network.getObject((Iterator<Uri>) uris);
         }
         throw new IOException("Failed to get download uris for " + uri);
       }
