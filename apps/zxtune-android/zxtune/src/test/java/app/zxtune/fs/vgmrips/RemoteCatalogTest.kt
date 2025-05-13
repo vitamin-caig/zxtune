@@ -13,6 +13,7 @@ import org.mockito.AdditionalMatchers.geq
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.atLeast
+import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -37,7 +38,7 @@ class RemoteCatalogTest {
     }
 
     @After
-    fun tearDown() = verifyNoMoreInteractions(groupsVisitor, packsVisitor, progress)
+    fun tearDown() = verifyNoMoreInteractions(groupsVisitor, packsVisitor, tracksVisitor, progress)
 
     @Test
     fun `test companies`() = checkGroups(
@@ -134,6 +135,14 @@ class RemoteCatalogTest {
             "Computers/ZX_Spectrum/Altered_Beast_(ZX_Spectrum_128).png"
         )
     )
+
+    @Test
+    fun `test random pack`() {
+        requireNotNull(catalog.findRandomPack(tracksVisitor)).run {
+            assertEquals(0, songs)
+        }
+        verify(tracksVisitor, atLeastOnce()).accept(any())
+    }
 
     @Test
     fun `test pack tracks`() {

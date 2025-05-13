@@ -2,7 +2,6 @@ package app.zxtune.fs
 
 import android.content.Context
 import android.net.Uri
-import android.util.SparseIntArray
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import app.zxtune.Logger
@@ -14,7 +13,6 @@ import app.zxtune.fs.vgmrips.Group
 import app.zxtune.fs.vgmrips.Identifier
 import app.zxtune.fs.vgmrips.Pack
 import app.zxtune.fs.vgmrips.RemoteCatalog
-import app.zxtune.utils.ifNotNulls
 
 class VfsRootVgmrips(
     override val parent: VfsObject,
@@ -159,47 +157,37 @@ class VfsRootVgmrips(
     }
 
     private inner class FeedIterator : Iterator<VfsFile> {
-        private val tracks = ArrayDeque<Pair<Pack, FilePath>>()
-
-        // hash(pack.id) => hit count
-        private val history = SparseIntArray()
+        private var track: Pair<Pack, FilePath>? = null
 
         override fun hasNext(): Boolean {
-            if (tracks.isEmpty()) {
-                loadRandomTracks()
+            if (track == null) {
+                repeat(5) {
+                    track = loadRandomTrack().getOrNull()
+                    if (track != null) {
+                        return true
+                    }
+                }
+                LOG.d { "Failed to find next random track" }
             }
-            return !tracks.isEmpty()
+            return true
         }
 
-        override fun next(): VfsFile = tracks.removeFirst().let { (pack, track) ->
-            TrackFile(
-                Identifier.forRandomTrack(pack.id, track), lazyOf(pack), track
-            )
-        }
+        override fun next(): VfsFile =
+            requireNotNull(track).also { track = null }.let { (pack, track) ->
+                TrackFile(
+                    Identifier.forRandomTrack(pack.id, track), lazyOf(pack), track
+                )
+            }
 
-        fun loadRandomTracks() = runCatching {
-            loadNextTrack()?.takeIf { canPlay(it.first) }?.let {
-                tracks.addLast(it)
+        fun loadRandomTrack() = runCatching {
+            val tracks = ArrayList<FilePath>()
+            catalog.findRandomPack(tracks::add)?.let { pack ->
+                tracks.randomOrNull()?.let { track ->
+                    pack to track
+                }
             }
         }.onFailure { e ->
             LOG.w(e) { "Failed to get next track" }
-        }
-
-        fun loadNextTrack(): Pair<Pack, FilePath>? {
-            val tracks = ArrayList<FilePath>()
-            val pack = catalog.findRandomPack(tracks::add)
-            return ifNotNulls(pack, tracks.randomOrNull(), ::Pair)
-        }
-
-        fun canPlay(pack: Pack): Boolean {
-            val key = pack.id.hashCode()
-            var donePlays = history.get(key, 0)
-            ++donePlays
-            if (donePlays > pack.songs) {
-                return false
-            }
-            history.put(key, donePlays)
-            return true
         }
     }
 
@@ -265,7 +253,7 @@ class VfsRootVgmrips(
             get() = resolve(uri, uri.pathSegments)
 
         override fun getExtension(id: String) = when (id) {
-            VfsExtensions.COVER_ART_URI -> pack.value?.image?.let { Identifier.forImage(it) }
+            VfsExtensions.COVER_ART_URI -> pack.value?.image?.let { Identifier.forImage(FilePath("images/large/${it.value}")) }
             VfsExtensions.DOWNLOAD_URIS -> RemoteCatalog.getRemoteUris(track)
             VfsExtensions.CACHE_PATH -> track.value
             else -> super.getExtension(id)
