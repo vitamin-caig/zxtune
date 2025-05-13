@@ -189,6 +189,12 @@
     <string name="vfs_vgmrips_chips_name">Chips</string>
     <string name="vfs_vgmrips_systems_name">Systeme</string>
     <string name="vfs_vgmrips_random_name">Zufällige Melodien</string>
+    <!-- ocremix.org -->
+    <string name="vfs_ocremix_systems_name">Systeme</string>
+    <string name="vfs_ocremix_organizations_name">Organisationen</string>
+    <string name="vfs_ocremix_remixes_name">Remixe</string>
+    <string name="vfs_ocremix_albums_name">Alben</string>
+    <string name="vfs_ocremix_games_name">Spiele</string>
     <!-- errors -->
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
     <string name="failed_resolve">Adresse %s konnte nicht aufgelöst werden</string>

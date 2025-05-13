@@ -191,6 +191,12 @@
     <string name="vfs_vgmrips_chips_name">Čipy</string>
     <string name="vfs_vgmrips_systems_name">Systémy</string>
     <string name="vfs_vgmrips_random_name">Náhodné melodie</string>
+    <!-- ocremix.org -->
+    <string name="vfs_ocremix_systems_name">Systémy</string>
+    <string name="vfs_ocremix_organizations_name">Organizace</string>
+    <string name="vfs_ocremix_remixes_name">Remixy</string>
+    <string name="vfs_ocremix_albums_name">Alba</string>
+    <string name="vfs_ocremix_games_name">Hry</string>
     <!-- errors -->
     <string name="network_inaccessible">Síť není dostupná</string>
     <string name="failed_resolve">Podařilo se zrušit %s</string>

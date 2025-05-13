@@ -78,13 +78,12 @@ class VfsRootOcremix(
             get() = resolveChain(chain.sliceArray(0..<chain.size - 1))
     }
 
-
     private inner class AggregateDir(
         chain: Array<Identifier.PathElement>,
         private val aggregate: Identifier.AggregateType,
     ) : BaseObject(chain), VfsDir {
         override val name
-            get() = aggregate.name // TODO: localize
+            get() = context.getString(aggregate.localized)
 
         override fun enumerate(visitor: VfsDir.Visitor) = when (aggregate) {
             Identifier.AggregateType.Systems -> querySystems(visitor)

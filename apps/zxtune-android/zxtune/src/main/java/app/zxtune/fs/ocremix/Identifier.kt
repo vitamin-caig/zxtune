@@ -1,6 +1,8 @@
 package app.zxtune.fs.ocremix
 
 import android.net.Uri
+import androidx.annotation.StringRes
+import app.zxtune.R
 
 /**
  * + - folder, else file (terminal)
@@ -53,8 +55,12 @@ import android.net.Uri
 object Identifier {
     private const val SCHEME = "ocremix"
 
-    enum class AggregateType {
-        Systems, Organizations, Remixes, Albums, Games
+    enum class AggregateType(@StringRes val localized: Int) {
+        Systems(R.string.vfs_ocremix_systems_name), //
+        Organizations(R.string.vfs_ocremix_organizations_name), //
+        Remixes(R.string.vfs_ocremix_remixes_name), //
+        Albums(R.string.vfs_ocremix_albums_name), //
+        Games(R.string.vfs_ocremix_games_name), //
     }
 
     sealed interface PathElement {
@@ -229,6 +235,7 @@ object Identifier {
 
     fun forImage(path: FilePath) =
         forElementsChain(arrayOf(PictureElement(PictureElement.Type.Image, path)))
+
     fun forThumb(path: FilePath) =
         forElementsChain(arrayOf(PictureElement(PictureElement.Type.Thumb, path)))
 

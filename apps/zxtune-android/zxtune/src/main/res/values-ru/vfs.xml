@@ -193,6 +193,12 @@
     <string name="vfs_vgmrips_chips_name">Чипы</string>
     <string name="vfs_vgmrips_systems_name">Системы</string>
     <string name="vfs_vgmrips_random_name">Случайные треки</string>
+    <!-- ocremix.org -->
+    <string name="vfs_ocremix_systems_name">Системы</string>
+    <string name="vfs_ocremix_organizations_name">Организации</string>
+    <string name="vfs_ocremix_remixes_name">Ремиксы</string>
+    <string name="vfs_ocremix_albums_name">Альбомы</string>
+    <string name="vfs_ocremix_games_name">Игры</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
     <string name="failed_resolve">Не найден путь %s</string>

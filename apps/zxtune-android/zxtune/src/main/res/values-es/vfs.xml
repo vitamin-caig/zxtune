@@ -190,6 +190,12 @@
     <string name="vfs_vgmrips_chips_name">Chips</string>
     <string name="vfs_vgmrips_systems_name">Sistemas</string>
     <string name="vfs_vgmrips_random_name">Melodías aleatorias</string>
+    <!-- ocremix.org -->
+    <string name="vfs_ocremix_systems_name">Sistemas</string>
+    <string name="vfs_ocremix_organizations_name">Organizaciones</string>
+    <string name="vfs_ocremix_remixes_name">Remezclas</string>
+    <string name="vfs_ocremix_albums_name">Álbumes</string>
+    <string name="vfs_ocremix_games_name">Juegos</string>
     <!--errors-->
     <string name="network_inaccessible">La red no es accesible</string>
     <string name="failed_resolve">No se pudo resolver %s</string>

@@ -248,6 +248,11 @@
     <!-- ocremix -->
     <string name="vfs_ocremix_root_name" translatable="false">OverClocked ReMix</string>
     <string name="vfs_ocremix_root_description" translatable="false">https://ocremix.org</string>
+    <string name="vfs_ocremix_systems_name">Systems</string>
+    <string name="vfs_ocremix_organizations_name">Organizations</string>
+    <string name="vfs_ocremix_remixes_name">Remixes</string>
+    <string name="vfs_ocremix_albums_name">Albums</string>
+    <string name="vfs_ocremix_games_name">Games</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
