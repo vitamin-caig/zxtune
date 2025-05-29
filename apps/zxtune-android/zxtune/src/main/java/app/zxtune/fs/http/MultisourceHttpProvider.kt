@@ -27,21 +27,27 @@ class MultisourceHttpProvider @VisibleForTesting internal constructor(
     fun hasConnection() = delegate.hasConnection()
 
     @Throws(IOException::class)
-    fun getObject(uris: Array<Uri>) = getSingleObject(uris, delegate::getObject)
+    fun getObject(uris: Iterator<Uri>) = getSingleObject(uris, delegate::getObject)
+
+    @Deprecated("Use Iterator<Uri> version")
+    fun getObject(uris: Array<Uri>) = getObject(uris.iterator())
 
     @Throws(IOException::class)
     fun getInputStream(uri: Uri) = delegate.getInputStream(uri)
 
     @Throws(IOException::class)
-    fun getInputStream(uris: Array<Uri>) = getSingleObject(uris, delegate::getInputStream)
+    fun getInputStream(uris: Iterator<Uri>) = getSingleObject(uris, delegate::getInputStream)
 
-    private fun <T> getSingleObject(uris: Array<Uri>, getter: (Uri) -> T): T {
+    @Deprecated("Use Iterator<Uri> version")
+    fun getInputStream(uris: Array<Uri>) = getInputStream(uris.iterator())
+
+    private fun <T> getSingleObject(uris: Iterator<Uri>, getter: (Uri) -> T): T {
         val now = time.nowMillis()
-        for ((idx, uri) in uris.withIndex()) {
+        for (uri in uris) {
             val host: String = uri.host ?: continue
             val stat = getStat(host)
-            val isLast = idx == uris.size - 1
-            if (!isLast && stat.isDisabledFor(now)) {
+            // call hasNext lazily!!!
+            if (stat.isDisabledFor(now) && uris.hasNext()) {
                 continue
             }
             try {
@@ -49,7 +55,7 @@ class MultisourceHttpProvider @VisibleForTesting internal constructor(
                 stat.onSuccess(now)
                 return result
             } catch (ex: IOException) {
-                if (isLast || !delegate.hasConnection()) {
+                if (!delegate.hasConnection() || !uris.hasNext()) {
                     throw ex
                 } else {
                     stat.onError(now, IOException(ex))
@@ -65,7 +71,7 @@ class MultisourceHttpProvider @VisibleForTesting internal constructor(
     @Synchronized
     private fun getStat(host: String) = hostStat.getOrPut(host) { HostStatistics(host) }
 
-    private class HostStatistics constructor(private val host: String) {
+    private class HostStatistics(private val host: String) {
         private var successes = 0
         private var lastSuccess: Long = 0
         private var errors = 0

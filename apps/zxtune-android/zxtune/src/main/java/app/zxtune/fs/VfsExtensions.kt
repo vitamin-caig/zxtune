@@ -31,7 +31,7 @@ object VfsExtensions {
     // File
     const val FILE = "FILE"
 
-    // Uri[]
+    // Uri[]/Iterator<Uri>
     const val DOWNLOAD_URIS = "DOWNLOAD_URIS"
 
     // @DrawableRes

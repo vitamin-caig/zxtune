@@ -197,6 +197,17 @@
     <string name="vfs_ocremix_remixes_name">Remixy</string>
     <string name="vfs_ocremix_albums_name">Alba</string>
     <string name="vfs_ocremix_games_name">Hry</string>
+    <!-- khinsider -->
+    <string name="vfs_khinsider_random_name">Píseň z náhodného alba</string>
+    <string name="vfs_khinsider_top_name">Nejlepší alba</string>
+    <string name="vfs_khinsider_series_name">Populární série</string>
+    <string name="vfs_khinsider_platforms_name">Platformy</string>
+    <string name="vfs_khinsider_types_name">Alba podle typu</string>
+    <string name="vfs_khinsider_albumsletters_name">Alba podle písmene</string>
+    <string name="vfs_khinsider_albumsyears_name">Alba podle roku</string>
+    <string name="vfs_khinsider_top_new100_name">100 nejlepších nově přidaných</string>
+    <string name="vfs_khinsider_top_40_name">40 nejlepších</string>
+    <string name="vfs_khinsider_top_favorites_name">Nejoblíbenější</string>
     <!-- errors -->
     <string name="network_inaccessible">Síť není dostupná</string>
     <string name="failed_resolve">Podařilo se zrušit %s</string>

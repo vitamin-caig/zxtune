@@ -253,6 +253,19 @@
     <string name="vfs_ocremix_remixes_name">Remixes</string>
     <string name="vfs_ocremix_albums_name">Albums</string>
     <string name="vfs_ocremix_games_name">Games</string>
+    <!-- khinsider -->
+    <string name="vfs_khinsider_root_name" translatable="false">Video Game Music</string>
+    <string name="vfs_khinsider_root_description" translatable="false">https://downloads.khinsider.com</string>
+    <string name="vfs_khinsider_random_name">Song from random album</string>
+    <string name="vfs_khinsider_top_name">Top albums</string>
+    <string name="vfs_khinsider_series_name">Popular series</string>
+    <string name="vfs_khinsider_platforms_name">Platforms</string>
+    <string name="vfs_khinsider_types_name">Albums By Type</string>
+    <string name="vfs_khinsider_albumsletters_name">Albums By Letter</string>
+    <string name="vfs_khinsider_albumsyears_name">Albums By Year</string>
+    <string name="vfs_khinsider_top_new100_name">Top 100 Newly Added</string>
+    <string name="vfs_khinsider_top_40_name">Top 40</string>
+    <string name="vfs_khinsider_top_favorites_name">Most Favorites</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
