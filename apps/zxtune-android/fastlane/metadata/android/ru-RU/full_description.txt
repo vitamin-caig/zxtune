@@ -1,0 +1,59 @@
+﻿Посетите официальный сайт проекта https://zxtune.bitbucket.io
+
+Поддерживаемые форматы:
+* ZX Spectrum (ASC, FTC, GTR, PSC, PSG, PSM, PT1/PT2/PT3, SQT, STC/ST1/ST3, STP, VTX, YM, TurboSound треки, AY со встроенным плеером, TXT файлы для Vortex Tracker II, CHI, DMM, DST, ET1, PDT, SQD, STR, TFC, TFD, TFE)
+* PC (669, AMF, AMS, C67, DMF, DSM, FAR, FMT, FNK, GDM, IMF, IT, J2B, LIQ, PLM, PSM, MDL, MO3, MT2, MTM, PTM, RTM, S3M, STIM, STM, STX, ULT, V2M, XM)
+* Amiga (DBM, EMOD, MOD, IMS, MED, OKT, SFX, AHX)
+* Atari (DTM, GTK, TCB, SAP, RMT)
+* Acorn (DTT)
+* Sam Coupe (COP)
+* Commodore 64/128 MOS6581 (SID)
+* Amstrad CPC (AYC)
+* Super Nintendo (SPC)
+* мультиплатформенные (MTC, VGM, GYM, S98)
+* Nintendo (NSF, NSFe)
+* GameBoy (GBS, GSF)
+* TurboGrafX (HES)
+* MSX (KSS)
+* PlayStation (PSF, PSF2, AT3, AT9)
+* Ultra64 (USF)
+* Nintendo DS (2SF, NCSF)
+* Dreamcast (DSF)
+* Saturn (SSF)
+* универсальные (MP3, OGG, WAV, FLAC)
+* плейлисты формата XSPF (импорт и экспорт) и AYL (только импорт)
+* архивы (ZIP, RAR, LHA, UMX, GZip, 7zip и FSB)
+
+Интеграция с онлайн-каталогами:
+* Музыка для ZX Spectrum http://zxtunes.com
+* Коллекция музыки ModLand ftp://ftp.modland.com
+* High Voltage SID Collection https://www.hvsc.c64.org
+* Каталог новой музыки ZX Spectrum https://www.zxart.ee/rus/muzyka
+* Каталоги Josh W http://joshw.info
+* Каталог Amiga Music Preservation https://amp.dascene.net
+* The AY Great Original Resource http://abrimaal.pro-e.pl/aygor/
+* The Mod Archive https://modarchive.org
+* Atari SAP Music Archive http://asma.atari.org
+* Каталог Aminet https://aminet.net
+* VGMRips https://vgmrips.net
+* файловый архив Scene.org https://files.scene.org
+* OverClocked ReMix https://ocremix.org
+
+Функциональность:
+* единая версия для телефонов и планшетов
+* поддержка разрешений вплоть до xxhdpi
+* поддержка разных версий Android начиная с 4.0.3 (API v14)
+* пауза при входящем и исходящем звонках
+* управление воспроизведением с гарнитуры (не для всех устройств)
+* различные режимы интерполяции с оптимизацией по скорости работы и по качеству звука
+* кеширование треков из плейлиста на SD карте
+* виджет для главного экрана
+* возможность отправлять модули и делиться ссылками на модули с http://zxtunes.com, http://www.zxart.ee/rus/muzyka и http://modarchive.org
+* возможность установить модуль на входящий звонок
+* поиск и воспроизведение треков из архивов
+
+Используемые разрешения и их назначение:
+* доступ к интернету/статус сетевого соединения для доступа к сетевым источникам данных
+* чтение/изменение содержимого SD-карты для доступа к локальным источникам данных и экспорта списков
+* предотвращение перехода в режим ожидания для ускорения работы сервиса сканирования
+* изменение системных настроек для установки модуля на звонок
