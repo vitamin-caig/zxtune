@@ -1,0 +1,8 @@
+﻿Build 5100:
+
+* supported downloads.khinsider.com online catalogue
+* icons in browser (tracks' coverart and graphics for some online catalogues entities)
+* fixed aminet catalogue
+* fixed ocremix catalogue for old android devices
+* fixed ID3 tags processing
+* fixed RAR processing with unicode filenames

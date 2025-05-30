@@ -5,7 +5,16 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
---- Rev5090 from 18.02.2024
+--- Rev5100 from 30.05.2025
+
+[*] Fixed ID3 tags processing
+[*] Fixed RAR processing with unicode filenames
+[+] zxtune-android: supported downloads.khinsider.com online catalogue
+[+] zxtune-android: icons in browser (tracks' coverart and graphics for some online catalogues entities)
+[*] zxtune-android: fixed aminet catalogue
+[*] zxtune-android: fixed ocremix catalogue for old android devices
+
+--- Rev5090 from 18.02.2025
 
 [*] Fixed fading for VGM playback
 [+] zxtune-android: supported ocremix.org online catalogue
