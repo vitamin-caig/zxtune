@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper
 class DBProvider(private val delegate: SQLiteOpenHelper) {
 
     init {
-        Utils.sendStatistics(delegate)
+        DBStatistics.send(delegate)
     }
 
     fun close() = delegate.close()

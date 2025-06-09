@@ -20,7 +20,7 @@ internal interface Sink {
     fun sendPlaylistEvent(action: Analytics.PlaylistAction, param: Int)
     fun sendVfsEvent(id: String, scope: String, action: Analytics.VfsAction, duration: Long)
     fun sendNoTracksFoundEvent(uri: Uri)
-    fun sendDbMetrics(name: String, size: Long, tablesRows: HashMap<String, Long>)
+    fun sendDbMetrics(name: String, size: Long, tablesRows: HashMap<String, Long>, duration: Long)
 
     fun sendEvent(id: String, vararg arguments: Pair<String, *>)
 }

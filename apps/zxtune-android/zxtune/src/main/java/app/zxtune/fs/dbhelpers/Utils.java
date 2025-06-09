@@ -56,12 +56,13 @@ public final class Utils {
   }
 
   private static void sendStatistics(String dbName, String path, DbQuery db) {
+    final long start = System.currentTimeMillis();
     final long size = new File(path).length();
     final HashMap<String, Long> tables = new HashMap<>();
     for (String table : getObjects(db, "table")) {
       tables.put(table, getRecordsCount(db, table));
     }
-    Analytics.sendDbMetrics(dbName, size, tables);
+    Analytics.sendDbMetrics(dbName, size, tables, System.currentTimeMillis() - start);
   }
 
   private interface DbQuery {
@@ -75,7 +76,7 @@ public final class Utils {
     try {
       while (cursor.moveToNext()) {
         final String name = cursor.getString(0);
-        if (!"android_metadata".equals(name)) {
+        if (!"android_metadata".equals(name) && !"sqlite_sequence".equals(name) && !"room_master_table".equals(name)) {
           result.add(name);
         }
       }
@@ -102,7 +103,7 @@ public final class Utils {
     void run() throws IOException;
   }
 
-  public static void runInTransaction(DBProvider helper, ThrowingRunnable cmd) throws IOException{
+  public static void runInTransaction(DBProvider helper, ThrowingRunnable cmd) throws IOException {
     final SQLiteDatabase db = helper.getWritableDatabase();
     db.beginTransaction();
     try {

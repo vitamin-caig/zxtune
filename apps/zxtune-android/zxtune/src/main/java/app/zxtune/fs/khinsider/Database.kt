@@ -15,6 +15,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import app.zxtune.TimeStamp
+import app.zxtune.fs.dbhelpers.DBStatistics
 import app.zxtune.fs.dbhelpers.Timestamps
 import app.zxtune.fs.dbhelpers.Utils
 
@@ -26,7 +27,7 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         Room.databaseBuilder(ctx, DatabaseDelegate::class.java, NAME)
             .fallbackToDestructiveMigration().build()
     ) {
-        Utils.sendStatistics(db.openHelper)
+        DBStatistics.send(db.openHelper)
     }
 
     fun close() = db.close()

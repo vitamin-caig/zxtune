@@ -23,6 +23,7 @@ import androidx.annotation.Nullable;
 import java.util.Locale;
 
 import app.zxtune.Log;
+import app.zxtune.fs.dbhelpers.DBStatistics;
 import app.zxtune.fs.dbhelpers.Utils;
 
 /*
@@ -153,7 +154,7 @@ public class Database {
 
   public Database(Context context) {
     this.dbHelper = new DBHelper(context);
-    Utils.sendStatistics(dbHelper);
+    DBStatistics.send(dbHelper);
   }
   
   // ! @return Cursor with statistics
