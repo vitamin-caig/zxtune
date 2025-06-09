@@ -94,7 +94,11 @@ android {
             dimension 'packaging'
             versionNameSuffix '-fdroid'
             applicationIdSuffix 'fdroid'
-            signingConfig signingConfigs.fdroid
+            if (signingConfigs.fdroid.keyPassword == null) {
+              println 'Use empty signing for fdroid'
+            } else {
+              signingConfig signingConfigs.fdroid
+            }
             packagingType = PackagingType.SPLIT_APK
             nameTag = 'fdroid'
         }
