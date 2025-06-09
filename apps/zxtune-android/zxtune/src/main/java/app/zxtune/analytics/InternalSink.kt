@@ -114,16 +114,18 @@ internal class InternalSink(ctx: Context) : Sink {
         send(it)
     }
 
-    override fun sendDbMetrics(name: String, size: Long, tablesRows: HashMap<String, Long>) =
-        UrlsBuilder("db/stat").apply {
-            addParam("name", name)
-            addParam("size", size)
-            for ((key, value) in tablesRows) {
-                addParam("rows_$key", value)
-            }
-        }.let {
-            send(it)
+    override fun sendDbMetrics(
+        name: String, size: Long, tablesRows: HashMap<String, Long>, duration: Long
+    ) = UrlsBuilder("db/stat").apply {
+        addParam("name", name)
+        addParam("size", size)
+        for ((key, value) in tablesRows) {
+            addParam("rows_$key", value)
         }
+        addParam("duration", duration)
+    }.let {
+        send(it)
+    }
 
     override fun sendEvent(id: String, vararg arguments: Pair<String, *>) = UrlsBuilder(id).apply {
         for ((key, second) in arguments) {

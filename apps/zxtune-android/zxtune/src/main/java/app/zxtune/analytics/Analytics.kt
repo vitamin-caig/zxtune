@@ -70,8 +70,8 @@ object Analytics {
     fun sendNoTracksFoundEvent(uri: Uri) = sink?.sendNoTracksFoundEvent(uri) ?: Unit
 
     @JvmStatic
-    fun sendDbMetrics(name: String, size: Long, tablesRows: HashMap<String, Long>) =
-        sink?.sendDbMetrics(name, size, tablesRows) ?: Unit
+    fun sendDbMetrics(name: String, size: Long, tablesRows: HashMap<String, Long>, duration: Long) =
+        sink?.sendDbMetrics(name, size, tablesRows, duration) ?: Unit
 
     @JvmStatic
     fun sendEvent(id: String, vararg arguments: Pair<String, Any?>) = sink?.sendEvent(

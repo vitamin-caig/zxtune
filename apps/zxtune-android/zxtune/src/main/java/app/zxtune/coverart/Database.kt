@@ -19,6 +19,7 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.zxtune.core.Identifier
+import app.zxtune.fs.dbhelpers.DBStatistics
 import app.zxtune.fs.dbhelpers.Utils
 import java.util.zip.CRC32
 
@@ -41,7 +42,7 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
                 }
             }).build()
     ) {
-        Utils.sendStatistics(db.openHelper)
+        DBStatistics.send(db.openHelper)
     }
 
     fun close() = db.close()
