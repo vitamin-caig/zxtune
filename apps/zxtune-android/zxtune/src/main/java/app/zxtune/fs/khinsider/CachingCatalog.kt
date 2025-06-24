@@ -91,7 +91,7 @@ class CachingCatalog(private val remote: RemoteCatalog, private val db: Database
         album: Album.Id, visitor: Consumer<TrackAndDetails>
     ): AlbumAndDetails? {
         var result: AlbumAndDetails? = null
-        executor.executeQuery(album.value, object : QueryCommand {
+        executor.executeQuery("album", object : QueryCommand {
             private val lifetime = db.getLifetime(album.value, ALBUM_TTL)
 
             override val isCacheExpired
