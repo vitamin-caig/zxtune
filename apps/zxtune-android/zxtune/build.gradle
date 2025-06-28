@@ -145,6 +145,7 @@ android {
         if (proxyRoot != null) {
             buildConfigField("String", "PROXY_ROOT", "\"${proxyRoot}\"")
         }
+        buildConfigField("int", "VERSION_CODE", "0")
     }
 
     buildTypes {
