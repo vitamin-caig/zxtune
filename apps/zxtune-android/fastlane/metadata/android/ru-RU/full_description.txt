@@ -1,6 +1,7 @@
-﻿Посетите официальный сайт проекта https://zxtune.bitbucket.io
+Посетите официальный сайт проекта https://zxtune.bitbucket.io
 
 Поддерживаемые форматы:
+
 * ZX Spectrum (ASC, FTC, GTR, PSC, PSG, PSM, PT1/PT2/PT3, SQT, STC/ST1/ST3, STP, VTX, YM, TurboSound треки, AY со встроенным плеером, TXT файлы для Vortex Tracker II, CHI, DMM, DST, ET1, PDT, SQD, STR, TFC, TFD, TFE)
 * PC (669, AMF, AMS, C67, DMF, DSM, FAR, FMT, FNK, GDM, IMF, IT, J2B, LIQ, PLM, PSM, MDL, MO3, MT2, MTM, PTM, RTM, S3M, STIM, STM, STX, ULT, V2M, XM)
 * Amiga (DBM, EMOD, MOD, IMS, MED, OKT, SFX, AHX)
@@ -25,6 +26,7 @@
 * архивы (ZIP, RAR, LHA, UMX, GZip, 7zip и FSB)
 
 Интеграция с онлайн-каталогами:
+
 * Музыка для ZX Spectrum http://zxtunes.com
 * Коллекция музыки ModLand ftp://ftp.modland.com
 * High Voltage SID Collection https://www.hvsc.c64.org
@@ -38,11 +40,13 @@
 * VGMRips https://vgmrips.net
 * файловый архив Scene.org https://files.scene.org
 * OverClocked ReMix https://ocremix.org
+* Video Game Music https://downloads.khinsider.com/
 
 Функциональность:
+
 * единая версия для телефонов и планшетов
 * поддержка разрешений вплоть до xxhdpi
-* поддержка разных версий Android начиная с 4.0.3 (API v14)
+* поддержка разных версий Android начиная с 4.1 (API v16)
 * пауза при входящем и исходящем звонках
 * управление воспроизведением с гарнитуры (не для всех устройств)
 * различные режимы интерполяции с оптимизацией по скорости работы и по качеству звука
@@ -53,6 +57,7 @@
 * поиск и воспроизведение треков из архивов
 
 Используемые разрешения и их назначение:
+
 * доступ к интернету/статус сетевого соединения для доступа к сетевым источникам данных
 * чтение/изменение содержимого SD-карты для доступа к локальным источникам данных и экспорта списков
 * предотвращение перехода в режим ожидания для ускорения работы сервиса сканирования

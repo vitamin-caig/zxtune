@@ -40,6 +40,7 @@ Integration with music catalogues
 * VGMRips https://vgmrips.net
 * Scene.org file archive https://files.scene.org/
 * OverClocked ReMix https://ocremix.org
+* Video Game Music https://downloads.khinsider.com/
 
 Functionality:
 
