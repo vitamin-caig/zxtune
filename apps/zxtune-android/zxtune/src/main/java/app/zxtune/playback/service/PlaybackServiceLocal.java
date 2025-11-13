@@ -26,7 +26,6 @@ import app.zxtune.TimeStamp;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.core.Properties;
 import app.zxtune.core.PropertiesContainer;
-import app.zxtune.core.PropertiesModifier;
 import app.zxtune.device.sound.SoundOutputSamplesTarget;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CompositeCallback;
@@ -42,7 +41,7 @@ import app.zxtune.playback.stubs.IteratorStub;
 import app.zxtune.playback.stubs.PlayableItemStub;
 import app.zxtune.playback.stubs.VisualizerStub;
 import app.zxtune.preferences.DataStore;
-import app.zxtune.sound.AsyncPlayer;
+import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
 import app.zxtune.sound.SamplesSource;
 import app.zxtune.sound.SamplesTarget;
@@ -66,7 +65,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final DispatchedVisualizer visualizer;
   private final AtomicReference<Iterator> iterator;
   private final AtomicReference<Holder> holder;
-  private final AsyncPlayer player;
+  private final Player player;
 
   private interface Command {
     void execute() throws Exception;
@@ -86,7 +85,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     final PlayerEventsListener events = new PlaybackEvents(callbacks, playback, seek);
     this.iterator = new AtomicReference<>(IteratorStub.instance());
     this.holder = new AtomicReference<>(Holder.instance());
-    this.player = AsyncPlayer.create(target, events);
+    this.player = Player.create(target, events);
     callbacks.onInitialState(PlaybackControl.State.STOPPED);
   }
 
