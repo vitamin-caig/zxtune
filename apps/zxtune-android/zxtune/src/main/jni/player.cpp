@@ -175,22 +175,17 @@ namespace
       : Delegate(Sound::FFTAnalyzer::Create())
     {}
 
-    void FrameStarted()
-    {
-      const std::scoped_lock guard(Lock);
-      Current.Buffer.swap(Next.Buffer);
-      Next.Parts = Current.Parts;
-      Current.Parts = 0;
-    }
-
+    // Large frames should be splitted
     void FrameReady(uint_t count, void* buffer)
     {
       if (count && ++IdleFrames < 10)
       {
         const std::scoped_lock guard(Lock);
         const auto samples = count / Sound::Sample::CHANNELS;
-        Next.Buffer.resize(samples);
-        std::memcpy(Next.Buffer.data(), buffer, samples * sizeof(Sound::Sample));
+        Buffer.resize(samples);
+        std::memcpy(Buffer.data(), buffer, samples * sizeof(Sound::Sample));
+        MaxParts = std::max(MaxParts, CurrentPart);
+        CurrentPart = 0;
       }
     }
 
@@ -204,21 +199,14 @@ namespace
     }
 
   private:
-    struct State
-    {
-      Sound::Chunk Buffer;
-      uint_t Parts = 0;
-    };
-
     void FeedPart() const
     {
-      const auto done = Current.Parts++;
-      const auto total = std::max<uint_t>(Next.Parts, done + 1);
-      if (const auto samples = Current.Buffer.size())
+      const auto done = CurrentPart++;
+      if (const auto samples = Buffer.size(); samples != 0 && done < MaxParts)
       {
-        const auto start = samples * done / total;
-        const auto end = samples * (done + 1) / total;
-        Delegate->FeedSound(Current.Buffer.data() + start, end - start);
+        const auto start = samples * done / MaxParts;
+        const auto end = samples * (done + 1) / MaxParts;
+        Delegate->FeedSound(Buffer.data() + start, end - start);
       }
       else
       {
@@ -230,8 +218,9 @@ namespace
   private:
     const Sound::FFTAnalyzer::Ptr Delegate;
     mutable std::mutex Lock;
-    mutable State Current;
-    State Next;
+    mutable uint_t CurrentPart = 0;
+    uint_t MaxParts = 0;
+    Sound::Chunk Buffer;
     mutable std::atomic<uint_t> IdleFrames = 0;
   };
 
@@ -266,7 +255,6 @@ namespace
 
     bool Render(uint_t samples, int16_t* buffer) override
     {
-      Analyzer.FrameStarted();
       auto rest = samples;
       auto* target = buffer;
       for (;;)
