@@ -10,6 +10,7 @@ import app.zxtune.core.Identifier
 import app.zxtune.core.jni.Api
 import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsFile
+import kotlinx.coroutines.Deferred
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.WritableByteChannel
@@ -20,14 +21,14 @@ internal class FileOperation @VisibleForTesting constructor(
     private val resolver: Resolver,
     projection: Array<String>?,
     private val readData: (VfsFile) -> ByteBuffer,
-    private val api: Api,
+    private val api: Deferred<Api>,
 ) : AsyncQueryOperation {
 
     private val id = Identifier(uri)
     private val columns = projection ?: COLUMNS
 
     constructor(uri: Uri, size: Long, resolver: Resolver, projection: Array<String>?) : this(
-        uri, size, resolver, projection, Vfs::read, Api.instance()
+        uri, size, resolver, projection, Vfs::read, Api.load()
     )
 
     override fun call() = maybeResolve()?.let {
@@ -38,14 +39,14 @@ internal class FileOperation @VisibleForTesting constructor(
 
     override fun status(): Cursor? = null
 
-    fun consumeContent(out: WritableByteChannel) {
+    suspend fun consumeContent(out: WritableByteChannel) {
         val file = maybeResolve() ?: throw IOException("Failed to resolve $id")
         val rawData = readData(file)
         if (id.subPath.isEmpty()) {
             LOG.d { "Streaming ${size}/${rawData.limit()} bytes from $id" }
             out.write(rawData.asReadOnlyBuffer().limit(size.toInt()) as ByteBuffer)
         } else {
-            api.loadModuleData(rawData, id.subPath) { moduleData ->
+            api.await().loadModuleData(rawData, id.subPath) { moduleData ->
                 LOG.d { "Streaming ${size}/${moduleData.capacity()} unpacked bytes from $id" }
                 out.write(moduleData.asReadOnlyBuffer().limit(size.toInt()) as ByteBuffer)
             }

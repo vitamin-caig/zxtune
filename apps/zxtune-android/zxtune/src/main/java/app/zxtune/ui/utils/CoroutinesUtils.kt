@@ -7,10 +7,12 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.CancellationSignal
 import android.os.OperationCanceledException
+import android.os.ParcelFileDescriptor
 import android.view.ViewPropertyAnimator
 import androidx.tracing.trace
 import androidx.tracing.traceAsync
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
@@ -21,6 +23,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.io.FileOutputStream
+import java.nio.channels.WritableByteChannel
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -73,6 +77,19 @@ suspend fun <T> ContentResolver.query(
             cont.resumeWithException(e)
         }
     }
+}
+
+fun openOutputPipe(
+    scope: CoroutineScope, block: suspend (WritableByteChannel) -> Unit
+): ParcelFileDescriptor = with(ParcelFileDescriptor.createPipe()) {
+    scope.launch(Dispatchers.IO) {
+        get(1).use { descriptor ->
+            FileOutputStream(descriptor.fileDescriptor).use {
+                block(it.channel)
+            }
+        }
+    }
+    get(0)
 }
 
 fun <T> flowValueOf(flow: Flow<T>, scope: CoroutineScope, initial: T) =

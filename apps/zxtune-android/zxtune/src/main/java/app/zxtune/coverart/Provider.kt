@@ -10,7 +10,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
-import android.os.ParcelFileDescriptor
 import android.support.v4.media.MediaMetadataCompat
 import androidx.annotation.DrawableRes
 import androidx.annotation.VisibleForTesting
@@ -25,16 +24,18 @@ import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsFile
 import app.zxtune.fs.VfsObject
 import app.zxtune.fs.icon
-import java.io.FileOutputStream
-import java.io.OutputStream
+import app.zxtune.ui.utils.openOutputPipe
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import java.nio.ByteBuffer
-import java.nio.channels.Channels
+import java.nio.channels.WritableByteChannel
 
 class Provider @VisibleForTesting internal constructor(
     private val resolve: (Uri) -> VfsObject?,
 ) : ContentProvider() {
     constructor() : this(::resolve)
 
+    private val scope = MainScope()
     private val svc = CoverartService.get()
     private val source = CoversSource(1_048_576, this::loadImage)
 
@@ -101,6 +102,11 @@ class Provider @VisibleForTesting internal constructor(
         true
     } ?: false
 
+    override fun shutdown() {
+        scope.cancel()
+        super.shutdown()
+    }
+
     override fun query(
         uri: Uri,
         projection: Array<String>?,
@@ -145,38 +151,25 @@ class Provider @VisibleForTesting internal constructor(
         }
     }
 
-    override fun openFile(uri: Uri, mode: String) = openPipeHelper(
-        uri, "image/*", null, null, ImageDataWriter(source)
-    )
+    override fun openFile(uri: Uri, mode: String) = openOutputPipe(scope) { out ->
+        writeData(uri, null, out)
+    }
 
     override fun openTypedAssetFile(
         uri: Uri, mimeTypeFilter: String, opts: Bundle?, signal: CancellationSignal?
-    ) = openPipeHelper(
-        uri, mimeTypeFilter, opts, sizeFrom(opts), ImageDataWriter(source)
-    ).let {
+    ) = openOutputPipe(scope) { out ->
+        writeData(uri, sizeFrom(opts), out)
+    }.let {
         AssetFileDescriptor(it, 0, -1)
     }
 
-    private class ImageDataWriter(
-        private val src: CoversSource,
-    ) : PipeDataWriter<Point?> {
-
-        override fun writeDataToPipe(
-            output: ParcelFileDescriptor, uri: Uri, mimeType: String, opts: Bundle?, size: Point?
-        ) = FileOutputStream(output.fileDescriptor).use {
-            writeData(uri, size, it)
-            Unit
+    private fun writeData(uri: Uri, size: Point?, out: WritableByteChannel) = runCatching {
+        source.query(uri, size)?.let {
+            out.write(it.asReadOnlyBuffer())
         }
-
-        private fun writeData(uri: Uri, size: Point?, out: OutputStream) = runCatching {
-            src.query(uri, size)?.let {
-                Channels.newChannel(out).write(it.asReadOnlyBuffer())
-            }
-        }.onFailure { err ->
-            LOG.w(err) { "Failed to send coverart" }
-        }
+    }.onFailure { err ->
+        LOG.w(err) { "Failed to send coverart" }
     }
-
 
     companion object {
         internal val LOG = Logger(Provider::class.java.name)

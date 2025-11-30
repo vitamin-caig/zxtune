@@ -8,12 +8,15 @@ import android.os.ParcelFileDescriptor
 import androidx.annotation.VisibleForTesting
 import app.zxtune.Logger
 import app.zxtune.MainApplication
-import java.io.FileOutputStream
+import app.zxtune.ui.utils.openOutputPipe
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import java.util.concurrent.ConcurrentHashMap
 
 class Provider @VisibleForTesting internal constructor(
     private val resolver: Resolver, private val schema: SchemaSource
 ) : ContentProvider() {
+    private val scope = MainScope()
     private val operations = ConcurrentHashMap<Uri, Operation>()
 
     // should be initialized in main thread
@@ -29,6 +32,7 @@ class Provider @VisibleForTesting internal constructor(
 
     override fun shutdown() {
         notifications.shutdown()
+        scope.cancel()
         super.shutdown()
     }
 
@@ -128,13 +132,9 @@ class Provider @VisibleForTesting internal constructor(
         require("r" == mode) { "Invalid mode: $mode" }
         val path = Query.getPathFrom(uri)
         val size = Query.getSizeFrom(uri)
-        return openPipeHelper(
-            path, "application/octet", null, null
-        ) { out, _, _, _, _ ->
+        return openOutputPipe(scope) { out ->
             runCatching {
-                FileOutputStream(out.fileDescriptor).use {
-                    FileOperation(path, size, resolver, null).consumeContent(it.channel)
-                }
+                FileOperation(path, size, resolver, null).consumeContent(out)
             }.onFailure {
                 LOG.w(it) { "Failed to open file for $uri" }
             }

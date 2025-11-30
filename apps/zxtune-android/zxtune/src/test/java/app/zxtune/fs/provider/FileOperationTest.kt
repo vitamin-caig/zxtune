@@ -7,6 +7,9 @@ import app.zxtune.core.jni.Api
 import app.zxtune.core.jni.DataCallback
 import app.zxtune.fs.VfsDir
 import app.zxtune.fs.VfsFile
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -32,6 +35,7 @@ import java.nio.channels.WritableByteChannel
 
 @RunWith(RobolectricTestRunner::class)
 class FileOperationTest {
+    private val dispatcher = StandardTestDispatcher()
 
     private val fileUri = Uri.parse("schema://host/path?query")
     private val fullUri = fileUri.buildUpon().fragment("subpath").build()
@@ -49,14 +53,16 @@ class FileOperationTest {
     fun tearDown() = verifyNoMoreInteractions(resolver, file, reader, api, result)
 
     private fun underTest(uri: Uri = fullUri, projection: Array<String>? = null) =
-        FileOperation(uri, size, resolver, projection, reader, api)
+        FileOperation(uri, size, resolver, projection, reader, CompletableDeferred(api))
 
     @Test
     fun `not resolved`() {
         underTest().run {
             assertEquals(null, call())
             assertEquals(null, status())
-            assertThrows<IOException> { consumeContent(result) }
+            runTest(dispatcher) {
+                assertThrows<IOException> { consumeContent(result) }
+            }
         }
         verify(resolver, times(2)).resolve(fileUri)
     }
@@ -70,7 +76,9 @@ class FileOperationTest {
         underTest().run {
             assertEquals(null, call())
             assertEquals(null, status())
-            assertThrows<IOException> { consumeContent(result) }
+            runTest(dispatcher) {
+                assertThrows<IOException> { consumeContent(result) }
+            }
         }
         verify(resolver, times(2)).resolve(fileUri)
     }
@@ -124,7 +132,9 @@ class FileOperationTest {
         }
         underTest().run {
             assertEquals(null, status())
-            assertThrows<IOException> { consumeContent(result) }
+            runTest(dispatcher) {
+                assertThrows<IOException> { consumeContent(result) }
+            }
         }
         verify(resolver).resolve(fileUri)
         verify(reader).invoke(file)
@@ -144,7 +154,9 @@ class FileOperationTest {
         val out = mock<WritableByteChannel>()
         underTest(uri = fileUri).run {
             assertNull(status())
-            consumeContent(out)
+            runTest(dispatcher) {
+                consumeContent(out)
+            }
         }
         verify(resolver).resolve(fileUri)
         verify(reader).invoke(file)
@@ -184,7 +196,9 @@ class FileOperationTest {
         val out = mock<WritableByteChannel>()
         underTest().run {
             assertNull(status())
-            consumeContent(out)
+            runTest(dispatcher) {
+                consumeContent(out)
+            }
         }
         verify(resolver).resolve(fileUri)
         verify(reader).invoke(file)
