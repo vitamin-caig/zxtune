@@ -31,6 +31,7 @@ import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.HttpProviderFactory;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
+import app.zxtune.utils.DatabaseUtilsKt;
 import app.zxtune.utils.ProgressCallback;
 
 public final class Vfs {
@@ -166,7 +167,8 @@ public final class Vfs {
     return parent.isDirectory() || (parent.mkdirs() && parent.isDirectory());
   }
 
-  private VfsRoot createRoot(Context appContext) {
+  private VfsRoot createRoot(Context context) {
+    final Context appContext = DatabaseUtilsKt.getWithCachedDirDatabases(context);
     final VfsRootComposite composite = new VfsRootComposite(null);
     if (Features.StorageAccessFramework.isEnabled()) {
       composite.addSubroot(new VfsRootLocalStorageAccessFramework(appContext));

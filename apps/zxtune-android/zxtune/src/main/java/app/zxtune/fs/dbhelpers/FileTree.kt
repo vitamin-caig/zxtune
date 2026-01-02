@@ -10,7 +10,13 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import app.zxtune.Logger
 import app.zxtune.TimeStamp
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInput
+import java.io.DataInputStream
+import java.io.DataOutput
+import java.io.DataOutputStream
+import java.io.IOException
 
 /**
  * Version 1
@@ -47,9 +53,7 @@ open class FileTree(context: Context, id: String) {
         val size = sizeParam.orEmpty()
 
         constructor(input: DataInput) : this(
-            input.readUTF(),
-            input.readUTF(),
-            input.readUTF()
+            input.readUTF(), input.readUTF(), input.readUTF()
         )
 
         fun save(out: DataOutput) {
@@ -78,16 +82,16 @@ open class FileTree(context: Context, id: String) {
     }
 }
 
-private class Helper constructor(context: Context, name: String) :
+private class Helper(context: Context, name: String) :
     SQLiteOpenHelper(context, name, null, VERSION) {
     override fun onCreate(db: SQLiteDatabase) {
-        LOG.d { "Creating database" }
+        LOG.d { "Creating database $databaseName" }
         db.execSQL(Table.CREATE_QUERY)
         db.execSQL(Timestamps.CREATE_QUERY)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        LOG.d { "Upgrading database $oldVersion -> $newVersion" }
+        LOG.d { "Upgrading database $databaseName $oldVersion -> $newVersion" }
         Utils.cleanupDb(db)
         onCreate(db)
     }
@@ -105,13 +109,12 @@ class Table(helper: DBProvider) {
 
     operator fun get(id: String) =
         db.query("dirs", arrayOf("entries"), "_id = ?", arrayOf(id), null, null, null)
-            ?.use { cursor ->
+            .use { cursor ->
                 if (cursor.moveToFirst()) cursor.getBlob(0) else null
             }
 
     companion object {
-        const val CREATE_QUERY =
-            "CREATE TABLE dirs (_id TEXT PRIMARY KEY, entries BLOB NOT NULL);"
+        const val CREATE_QUERY = "CREATE TABLE dirs (_id TEXT PRIMARY KEY, entries BLOB NOT NULL);"
     }
 }
 
