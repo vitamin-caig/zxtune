@@ -21,6 +21,7 @@ import app.zxtune.Log;
 import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Utils;
+import app.zxtune.utils.DatabaseUtilsKt;
 
 /*
  * Archived content DB model.
@@ -351,7 +352,7 @@ class Database {
   private static class DBHelper extends SQLiteOpenHelper {
 
     DBHelper(Context context) {
-      super(context, NAME, null, VERSION);
+      super(DatabaseUtilsKt.getWithCachedDirDatabases(context), NAME, null, VERSION);
     }
 
     @Override
