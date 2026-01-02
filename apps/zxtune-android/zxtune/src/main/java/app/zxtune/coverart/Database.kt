@@ -21,6 +21,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import app.zxtune.core.Identifier
 import app.zxtune.fs.dbhelpers.DBStatistics
 import app.zxtune.fs.dbhelpers.Utils
+import app.zxtune.utils.withCachedDirDatabases
 import java.util.zip.CRC32
 
 /*
@@ -35,7 +36,7 @@ const val VERSION = 4
 
 class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) {
     constructor(ctx: Context) : this(
-        Room.databaseBuilder(ctx, DatabaseDelegate::class.java, NAME)
+        Room.databaseBuilder(ctx.withCachedDirDatabases, DatabaseDelegate::class.java, NAME)
             .fallbackToDestructiveMigration().addCallback(object : RoomDatabase.Callback() {
                 override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
                     db.execSQL("DROP TABLE IF EXISTS images")
