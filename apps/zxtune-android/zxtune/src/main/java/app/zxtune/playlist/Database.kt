@@ -104,8 +104,6 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         columns: Array<String>?, selection: String?, args: Array<String>?, order: String?
     ): Cursor = TODO()
 
-    fun insertPlaylistItem(values: ContentValues?): Long = TODO()
-
     fun deletePlaylistItems(selection: String?, args: Array<String>?): Int = TODO()
 
     fun updatePlaylistItems(values: ContentValues?, selection: String?, args: Array<String>?): Int =

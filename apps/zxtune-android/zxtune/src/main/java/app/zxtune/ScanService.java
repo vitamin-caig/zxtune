@@ -27,10 +27,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
+import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Scanner;
 import app.zxtune.device.ui.Notifications;
-import app.zxtune.playlist.Item;
 import app.zxtune.playlist.ProviderClient;
+import app.zxtune.playlist.Track;
 
 public class ScanService extends IntentService {
 
@@ -53,7 +54,7 @@ public class ScanService extends IntentService {
   public static void add(Context ctx, app.zxtune.playback.Item source) {
     try {
       final ProviderClient client = ProviderClient.create(ctx);
-      client.addItem(new app.zxtune.playlist.Item(source));
+      client.add(new Track.Metadata(source.getDataId(), source.getTitle(), source.getAuthor(), source.getDuration()));
       client.notifyChanges();
       Analytics.sendPlaylistEvent(Analytics.PlaylistAction.ADD, 1);
     } catch (Exception error) {
@@ -84,8 +85,7 @@ public class ScanService extends IntentService {
 
   private static PendingIntent createCancelPendingIntent(Context ctx) {
     final Intent cancelIntent = new Intent(ctx, ScanService.class).setAction(ACTION_CANCEL);
-    final int flags = PendingIntent.FLAG_UPDATE_CURRENT |
-        (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
+    final int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
     return PendingIntent.getService(ctx, 0, cancelIntent, flags);
   }
 
@@ -154,7 +154,7 @@ public class ScanService extends IntentService {
         @Override
         public void onModule(Identifier id, Module module) {
           signal.throwIfCanceled();
-          client.addItem(new Item(id, module));
+          client.add(new Track.Metadata(id, module.getProperty(ModuleAttributes.TITLE, ""), module.getProperty(ModuleAttributes.AUTHOR, ""), module.getDuration()));
           module.release();
           addedItems.incrementAndGet();
           error = null;
@@ -220,12 +220,7 @@ public class ScanService extends IntentService {
       StatusNotification() {
         this.titlePrefix = getText(R.string.scanning_title);
         this.delegate = Notifications.createForService(ScanService.this, R.drawable.ic_stat_notify_scan);
-        delegate.getBuilder()
-            .addAction(0, getText(R.string.scanning_text), createCancelPendingIntent(ScanService.this))
-            .setOngoing(true)
-            .setProgress(0, 0, true)
-            .setContentTitle(titlePrefix)
-        ;
+        delegate.getBuilder().addAction(0, getText(R.string.scanning_text), createCancelPendingIntent(ScanService.this)).setOngoing(true).setProgress(0, 0, true).setContentTitle(titlePrefix);
       }
 
       final void show() {

@@ -17,6 +17,7 @@ import androidx.core.os.bundleOf
 import app.zxtune.Log
 import app.zxtune.MainApplication
 import app.zxtune.playlist.Database.Tables.Playlist
+import app.zxtune.playlist.IO.toTrackMetadata
 import app.zxtune.playlist.xspf.XspfStorage
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
@@ -66,9 +67,11 @@ class Provider : ContentProvider() {
 
     override fun insert(uri: Uri, values: ContentValues?): Uri? {
         require(null == PlaylistQuery.idOf(uri)) { "Wrong URI: $uri" }
-        val result = db.insertPlaylistItem(values)
+        requireNotNull(values)
+        val playlist = db.getPlaylist()
+        val result = playlist.addTrack(values.toTrackMetadata())
         //do not notify about change
-        return PlaylistQuery.uriFor(result)
+        return PlaylistQuery.uriFor(result.value)
     }
 
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?) =

@@ -1,5 +1,6 @@
 package app.zxtune.playlist
 
+import android.content.ContentValues
 import androidx.annotation.VisibleForTesting
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
@@ -72,4 +73,25 @@ data class Track(
     )
 
     data class Statistics(val count: Long, val locations: Long, val duration: TimeStamp)
+}
+
+object IO {
+    @VisibleForTesting
+    enum class TrackColumns {
+        ID, LOCATION, TITLE, AUTHOR, DURATION
+    }
+
+    fun Track.Metadata.toContentValues() = ContentValues().apply {
+        put(TrackColumns.LOCATION.name, Converters.writeLocation(location))
+        put(TrackColumns.TITLE.name, title)
+        put(TrackColumns.AUTHOR.name, author)
+        put(TrackColumns.DURATION.name, Converters.writeTimeStamp(duration))
+    }
+
+    fun ContentValues.toTrackMetadata() = Track.Metadata(
+        location = Converters.readLocation(getAsString(TrackColumns.LOCATION.name)),
+        title = getAsString(TrackColumns.TITLE.name),
+        author = getAsString(TrackColumns.AUTHOR.name),
+        duration = Converters.readTimeStamp(getAsLong(TrackColumns.DURATION.name)),
+    )
 }

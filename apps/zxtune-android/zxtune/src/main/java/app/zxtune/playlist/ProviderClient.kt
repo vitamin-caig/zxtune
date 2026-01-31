@@ -8,6 +8,7 @@ import androidx.annotation.VisibleForTesting
 import app.zxtune.TimeStamp
 import app.zxtune.analytics.Analytics
 import app.zxtune.core.Identifier
+import app.zxtune.playlist.IO.toContentValues
 import app.zxtune.ui.playlist.Entry
 import app.zxtune.ui.utils.observeChanges
 import app.zxtune.ui.utils.query
@@ -33,9 +34,7 @@ class ProviderClient @VisibleForTesting constructor(
         asc, desc
     }
 
-    fun addItem(item: Item) {
-        resolver.insert(PlaylistQuery.ALL, item.toContentValues())
-    }
+    fun add(track: Track.Metadata) = resolver.insert(PlaylistQuery.ALL, track.toContentValues())
 
     fun notifyChanges() = resolver.notifyChange(PlaylistQuery.ALL, null)
 
