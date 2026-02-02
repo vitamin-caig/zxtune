@@ -11,7 +11,7 @@ import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsFile
 import app.zxtune.playback.PlayableItem
 import app.zxtune.playlist.PlaylistQuery
-import app.zxtune.ui.playlist.Entry
+import app.zxtune.playlist.Track
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.trySendBlocking
@@ -21,14 +21,14 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 
 internal class Loader {
-    suspend fun load(entry: Entry) = load(entry.location)?.let {
+    suspend fun load(track: Track) = load(track.meta.location)?.let {
         object : PlayableItem by it {
             override val id
-                get() = PlaylistQuery.uriFor(entry.id)
+                get() = PlaylistQuery.uriFor(track.id.value)
             override val title
-                get() = entry.title
+                get() = track.meta.title
             override val author
-                get() = entry.author
+                get() = track.meta.author
         }
     }
 

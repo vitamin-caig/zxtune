@@ -5,7 +5,6 @@
  */
 package app.zxtune.ui.playlist
 
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -48,7 +47,7 @@ import kotlinx.coroutines.launch
 class PlaylistFragment : Fragment() {
     private lateinit var listing: RecyclerView
     private lateinit var search: SearchView
-    private lateinit var selectionTracker: SelectionTracker<Long>
+    private lateinit var selectionTracker: SelectionTracker<IdType>
 
     private val model by activityViewModels<Model>()
     private val mediaModel
@@ -109,7 +108,7 @@ class PlaylistFragment : Fragment() {
                 this,
                 ViewAdapter.KeyProvider(adapter),
                 ViewAdapter.DetailsLookup(this, adapter),
-                StorageStrategy.createLongStorage()
+                StorageStrategy.createLongStorage(), // Way too complex to implement alternative
             ).withSelectionPredicate(SelectionPredicates.createSelectAnything())
                 .withOnItemActivatedListener { item, _ ->
                     item.selectionKey?.let { onItemClick(it) }
@@ -139,9 +138,9 @@ class PlaylistFragment : Fragment() {
                 }
                 launch {
                     mediaModel.metadata.collect { metadata ->
-                        metadata?.let {
-                            val uri = Uri.parse(it.description.mediaId)
-                            adapter.setNowPlaying(ProviderClient.findId(uri))
+                        metadata?.description?.mediaId?.let {
+                            val uri = it.toUri()
+                            adapter.setNowPlaying(ProviderClient.findId(uri)?.let(Track::Id))
                         }
                     }
                 }
@@ -187,27 +186,27 @@ class PlaylistFragment : Fragment() {
         }
     }
 
-    private fun onItemClick(id: Long) = mediaController?.transportControls?.playFromUri(
+    private fun onItemClick(id: IdType) = mediaController?.transportControls?.playFromUri(
         ProviderClient.createUri(id), null
     ) ?: Unit
 
     // ArchivesService for selection
     private inner class SelectionClient(private val adapter: ViewAdapter) :
-        SelectionUtils.Client<Long> {
+        SelectionUtils.Client<IdType> {
         override fun getTitle(count: Int) =
             resources.getQuantityString(R.plurals.tracks, count, count)
 
         override val allItems
-            get() = adapter.currentList.map(Entry::id)
+            get() = adapter.currentList.map { it.id.value }
 
         override fun fillMenu(inflater: MenuInflater, menu: Menu) =
             inflater.inflate(R.menu.playlist_items, menu)
 
-        override fun processMenu(itemId: Int, selection: Selection<Long>) =
+        override fun processMenu(itemId: Int, selection: Selection<IdType>) =
             processMenuItem(itemId, selection)
     }
 
-    private fun processMenuItem(itemId: Int, selection: Selection<Long>): Boolean {
+    private fun processMenuItem(itemId: Int, selection: Selection<IdType>): Boolean {
         when (itemId) {
             R.id.action_clear -> deletionAlert(R.string.delete_all_items_query) {
                 model.deleteAll()
@@ -233,17 +232,17 @@ class PlaylistFragment : Fragment() {
                 action()
             }.show()
 
-    private fun savePlaylist(ids: LongArray?) = lifecycleScope.launch {
+    private fun savePlaylist(tracks: Track.IdSet?) = lifecycleScope.launch {
         val persistentStorageSetupAction =
-            VfsProviderClient(requireContext()).getNotification(Uri.parse("playlists:/"))?.action
+            VfsProviderClient(requireContext()).getNotification("playlists:/".toUri())?.action
         val fragment = persistentStorageSetupAction?.let {
             PersistentStorageSetupFragment.createInstance(it)
-        } ?: PlaylistSaveFragment.createInstance(ids)
+        } ?: PlaylistSaveFragment.createInstance(tracks)
         fragment.show(parentFragmentManager, "save")
     }
 
-    private fun showStatistics(ids: LongArray?) =
-        PlaylistStatisticsFragment.createInstance(ids).show(parentFragmentManager, "statistics")
+    private fun showStatistics(tracks: Track.IdSet?) =
+        PlaylistStatisticsFragment.createInstance(tracks).show(parentFragmentManager, "statistics")
 
     companion object {
         @StringRes
@@ -260,10 +259,10 @@ class PlaylistFragment : Fragment() {
         }
 
         @VisibleForTesting
-        fun convertSelection(selection: Selection<Long>) =
+        fun convertSelection(selection: Selection<IdType>) =
             selection.takeUnless { it.isEmpty }?.iterator()?.let { iterator ->
-                LongArray(selection.size()) {
-                    iterator.next()
+                Track.IdSet(selection.size()) {
+                    Track.Id(iterator.next())
                 }
             }
     }

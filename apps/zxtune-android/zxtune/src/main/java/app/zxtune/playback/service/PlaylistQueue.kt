@@ -6,7 +6,7 @@ import app.zxtune.Logger
 import app.zxtune.playback.PlayableItem
 import app.zxtune.playlist.PlaylistQuery
 import app.zxtune.playlist.ProviderClient
-import app.zxtune.ui.playlist.Entry
+import app.zxtune.playlist.Track
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,7 +37,7 @@ internal class PlaylistQueue(ctx: Context, loader: Loader) : Queue {
         get() = currentStream
 
     override suspend fun activate(uri: Uri) {
-        val id = requireNotNull(PlaylistQuery.idOf(uri))
+        val id = Track.Id(requireNotNull(PlaylistQuery.idOf(uri)))
         state.navigate(id)?.let {
             activate(it)
         }
@@ -59,8 +59,8 @@ internal class PlaylistQueue(ctx: Context, loader: Loader) : Queue {
     override fun release() = scope.cancel()
 }
 
-private typealias PlaylistStorage = ShuffledList<Entry>
-private typealias PlaylistCursor = ShuffledList.Cursor<Entry>
+private typealias PlaylistStorage = ShuffledList<Track>
+private typealias PlaylistCursor = ShuffledList.Cursor<Track>
 
 @OptIn(ExperimentalAtomicApi::class)
 private class PlaylistQueueState(
@@ -114,7 +114,7 @@ private class PlaylistQueueState(
         }
     }
 
-    suspend fun navigate(id: Long) = withContent {
+    suspend fun navigate(id: Track.Id) = withContent {
         find { it.id == id }
     }
 

@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
-typealias State = FilteredListState<Entry>
+typealias State = FilteredListState<Track>
 
 class Model @VisibleForTesting internal constructor(
     application: Application,
@@ -74,7 +74,7 @@ class Model @VisibleForTesting internal constructor(
 
     fun deleteAll() = runAsync { client.deleteAll() }
 
-    fun delete(ids: LongArray) = runAsync { client.delete(Track.IdSet(ids)) }
+    fun delete(tracks: Track.IdSet) = runAsync { client.delete(tracks) }
 
     private fun runAsync(task: suspend () -> Unit) {
         viewModelScope.launch {
@@ -88,9 +88,9 @@ class Model @VisibleForTesting internal constructor(
         @VisibleForTesting
         fun createState() = State(::matchEntry)
 
-        private fun matchEntry(entry: Entry, filter: String) =
-            entry.title.contains(filter, true) || entry.author.contains(
+        private fun matchEntry(entry: Track, filter: String) =
+            entry.meta.title.contains(filter, true) || entry.meta.author.contains(
                 filter, true
-            ) || entry.location.displayFilename.contains(filter, true)
+            ) || entry.meta.location.displayFilename.contains(filter, true)
     }
 }

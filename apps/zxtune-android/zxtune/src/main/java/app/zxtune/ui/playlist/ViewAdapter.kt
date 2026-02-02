@@ -17,10 +17,11 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
 import app.zxtune.databinding.PlaylistEntryBinding
+import app.zxtune.playlist.IdType
 import app.zxtune.playlist.Track
 
 internal class ViewAdapter(private val client: Client) :
-    ListAdapter<Entry, ViewAdapter.EntryViewHolder>(DiffCallback()) {
+    ListAdapter<Track, ViewAdapter.TrackViewHolder>(DiffCallback()) {
     internal fun interface Client {
         fun move(track: Track.Id, delta: Int)
     }
@@ -30,14 +31,14 @@ internal class ViewAdapter(private val client: Client) :
     }
 
     private val positionsCache: LongSparseArray<Int> = LongSparseArray()
-    private var mutableList: MutableList<Entry>? = null
-    private lateinit var selection: Selection<Long>
+    private var mutableList: MutableList<Track>? = null
+    private lateinit var selection: Selection<IdType>
     private lateinit var touchHelper: CustomTouchHelper
     private var isPlaying = false
-    private var nowPlaying: Long? = null
+    private var nowPlaying: Track.Id? = null
     private var nowPlayingPos: Int? = null
 
-    fun setSelection(selection: Selection<Long>) {
+    fun setSelection(selection: Selection<IdType>) {
         this.selection = selection
     }
 
@@ -48,12 +49,12 @@ internal class ViewAdapter(private val client: Client) :
         }
     }
 
-    fun setNowPlaying(id: Long?) {
+    fun setNowPlaying(id: Track.Id?) {
         if (nowPlaying != null && nowPlaying != id) {
             updateNowPlaying()
         }
         nowPlaying = id
-        nowPlayingPos = id?.let { getPosition(it) }
+        nowPlayingPos = id?.let { getPosition(it.value) }
         updateNowPlaying()
     }
 
@@ -61,15 +62,15 @@ internal class ViewAdapter(private val client: Client) :
         notifyItemChanged(it)
     } ?: Unit
 
-    private fun getPosition(id: Long): Int? {
+    private fun getPosition(id: IdType): Int? {
         positionsCache[id]?.let {
             return it
         }
         //TODO: lookup?
         for (pos in positionsCache.size() until itemCount) {
             val itemId = getItem(pos).id
-            positionsCache.append(itemId, pos)
-            if (id == itemId) {
+            positionsCache.append(itemId.value, pos)
+            if (id == itemId.value) {
                 return pos
             }
         }
@@ -84,9 +85,9 @@ internal class ViewAdapter(private val client: Client) :
         if (maxOf(fromPosition, toPosition) >= list.size) {
             return
         }
-        val placeItem = { pos: Int, entry: Entry ->
-            list[pos] = entry
-            positionsCache.put(entry.id, pos)
+        val placeItem = { pos: Int, track: Track ->
+            list[pos] = track
+            positionsCache.put(track.id.value, pos)
         }
         val moved = list[fromPosition]
         if (fromPosition < toPosition) {
@@ -103,39 +104,39 @@ internal class ViewAdapter(private val client: Client) :
     }
 
     // TODO: think about another solution about D&D detection
-    override fun submitList(list: List<Entry>?, callback: Runnable?) {
+    override fun submitList(list: List<Track>?, callback: Runnable?) {
         if (touchHelper.isDragging) {
             callback?.run()
         } else {
             positionsCache.clear()
-            mutableList = list as? MutableList<Entry>
+            mutableList = list as? MutableList<Track>
             super.submitList(list, callback)
         }
     }
 
-    override fun getItemId(position: Int) = getItem(position).id
+    override fun getItemId(position: Int) = getItem(position).id.value
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EntryViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val binding: PlaylistEntryBinding =
             DataBindingUtil.inflate(inflater, R.layout.playlist_entry, parent, false)
-        return EntryViewHolder(binding)
+        return TrackViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: EntryViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: TrackViewHolder, position: Int) {
         getItem(position).let { entry ->
             holder.bind(entry, isPlaying && isNowPlaying(entry.id), isSelected(entry.id))
         }
     }
 
-    private fun isNowPlaying(id: Long) = id == nowPlaying
+    private fun isNowPlaying(id: Track.Id) = id == nowPlaying
 
-    private fun isSelected(id: Long) = selection.contains(id)
+    private fun isSelected(id: Track.Id) = selection.contains(id.value)
 
     private fun hasSelection() = !selection.isEmpty
 
     @SuppressLint("ClickableViewAccessibility")
-    override fun onViewAttachedToWindow(holder: EntryViewHolder) {
+    override fun onViewAttachedToWindow(holder: TrackViewHolder) {
         holder.binding.playlistEntryState.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN && !hasSelection() && mutableList != null) {
                 touchHelper.startDrag(holder)
@@ -147,7 +148,7 @@ internal class ViewAdapter(private val client: Client) :
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    override fun onViewDetachedFromWindow(holder: EntryViewHolder) =
+    override fun onViewDetachedFromWindow(holder: TrackViewHolder) =
         holder.binding.playlistEntryState.setOnTouchListener(null)
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
@@ -216,10 +217,10 @@ internal class ViewAdapter(private val client: Client) :
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
     }
 
-    internal class EntryViewHolder(val binding: PlaylistEntryBinding) :
+    internal class TrackViewHolder(val binding: PlaylistEntryBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(entry: Entry, isPlaying: Boolean, isSelected: Boolean) {
-            binding.entry = entry
+        fun bind(track: Track, isPlaying: Boolean, isSelected: Boolean) {
+            binding.meta = track.meta
             binding.isPlaying = isPlaying
             binding.executePendingBindings()
             itemView.isSelected = isSelected
@@ -227,22 +228,25 @@ internal class ViewAdapter(private val client: Client) :
     }
 
     internal class HolderItemDetails(private val holder: RecyclerView.ViewHolder) :
-        ItemDetails<Long>() {
+        ItemDetails<IdType>() {
         override fun getPosition() = holder.bindingAdapterPosition
 
         override fun getSelectionKey() = holder.itemId
     }
 
     internal class KeyProvider(private val adapter: ViewAdapter) :
-        ItemKeyProvider<Long>(SCOPE_MAPPED) {
-        override fun getKey(position: Int) = adapter.getItem(position).id
+        ItemKeyProvider<IdType>(SCOPE_MAPPED) {
+        override fun getKey(position: Int) = adapter.getItem(position).id.value
 
-        override fun getPosition(key: Long) = adapter.getPosition(key) ?: RecyclerView.NO_POSITION
+        override fun getPosition(key: IdType) = adapter.getPosition(key) ?: RecyclerView.NO_POSITION
     }
 
-    internal class DetailsLookup(private val listing: RecyclerView, private val adapter : ViewAdapter) : ItemDetailsLookup<Long>
+    internal class DetailsLookup(
+        private val listing: RecyclerView,
+        private val adapter: ViewAdapter
+    ) : ItemDetailsLookup<IdType>
         () {
-        override fun getItemDetails(e: MotionEvent): ItemDetails<Long>? {
+        override fun getItemDetails(e: MotionEvent): ItemDetails<IdType>? {
             if (adapter.touchHelper.isDragging) {
                 return null
             }
@@ -250,7 +254,7 @@ internal class ViewAdapter(private val client: Client) :
             var y = e.y
             val item = listing.findChildViewUnder(x, y)
             if (item != null) {
-                val holder = listing.getChildViewHolder(item) as EntryViewHolder
+                val holder = listing.getChildViewHolder(item) as TrackViewHolder
                 val rect = Rect()
                 holder.binding.playlistEntryState.getHitRect(rect)
                 x -= item.x
@@ -262,9 +266,9 @@ internal class ViewAdapter(private val client: Client) :
         }
     }
 
-    private class DiffCallback : DiffUtil.ItemCallback<Entry>() {
-        override fun areItemsTheSame(oldItem: Entry, newItem: Entry) = oldItem.id == newItem.id
+    private class DiffCallback : DiffUtil.ItemCallback<Track>() {
+        override fun areItemsTheSame(oldItem: Track, newItem: Track) = oldItem.id == newItem.id
 
-        override fun areContentsTheSame(oldItem: Entry, newItem: Entry) = oldItem == newItem
+        override fun areContentsTheSame(oldItem: Track, newItem: Track) = oldItem == newItem
     }
 }

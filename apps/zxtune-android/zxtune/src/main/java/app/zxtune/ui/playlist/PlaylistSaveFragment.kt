@@ -23,7 +23,6 @@ import androidx.lifecycle.viewModelScope
 import app.zxtune.R
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.playlist.Track
-import app.zxtune.ui.utils.FragmentLongArrayProperty
 import app.zxtune.ui.utils.whenLifecycleStarted
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
@@ -35,7 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class PlaylistSaveFragment : DialogFragment() {
-    private var ids by FragmentLongArrayProperty
+    private var ids by FragmentIdSetProperty
     private val model by activityViewModels<SaveFragmentModel>()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -64,7 +63,7 @@ class PlaylistSaveFragment : DialogFragment() {
     }
 
     companion object {
-        fun createInstance(ids: LongArray?) = PlaylistSaveFragment().apply {
+        fun createInstance(ids: Track.IdSet?) = PlaylistSaveFragment().apply {
             this.ids = ids
         }
     }
@@ -116,11 +115,11 @@ class SaveFragmentModel(application: Application) : AndroidViewModel(application
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(500), ButtonState.Disabled)
 
-    fun save(ids: LongArray?) = MainScope().launch {
+    fun save(ids: Track.IdSet?) = MainScope().launch {
         saveBlocking(ids)
     }
 
-    private suspend fun saveBlocking(ids: LongArray?) {
+    private suspend fun saveBlocking(ids: Track.IdSet?) {
         val ctx = getApplication<Application>()
         val showToast = { txt: String, duration: Int ->
             Toast.makeText(ctx, txt, duration).show()

@@ -95,13 +95,13 @@ class ProviderClientTest {
         requireNotNull(ProviderClient(resolver, dispatcher).queryContent()).run {
             assertEquals(1, size)
             get(0).run {
-                assertEquals(123, id)
+                assertEquals(Track.Id(123), id)
                 assertEquals(
-                    Identifier.parse("scheme://host/path#fragment"), location
+                    Identifier.parse("scheme://host/path#fragment"), meta.location
                 )
-                assertEquals("author", author)
-                assertEquals("title", title)
-                assertEquals(TimeStamp.fromMilliseconds(123456), duration)
+                assertEquals("author", meta.author)
+                assertEquals("title", meta.title)
+                assertEquals(TimeStamp.fromMilliseconds(123456), meta.duration)
             }
         }
         verify(resolver).query(PlaylistQuery.ALL, null, null, null, null, signal)

@@ -114,12 +114,12 @@ class Provider : ContentProvider() {
 
     private fun reorder(track: Track.Id, delta: Int) = db.getPlaylist().reorder(track, delta)
 
-    private fun save(id: String, tracks: Track.IdSet?) = (tracks?.let {
+    private fun save(name: String, tracks: Track.IdSet?) = (tracks?.let {
         db.queryTracks(it)
     } ?: db.getPlaylist().queryTracks()).use { cursor ->
         runCatching {
             runBlocking {
-                storage.createPlaylist(id, cursor)
+                storage.createPlaylist(name, cursor)
             }
             null
         }.recover { err ->
@@ -161,8 +161,8 @@ class Provider : ContentProvider() {
                 putDelta(delta)
             })
 
-        fun save(resolver: ContentResolver, id: String?, tracks: Track.IdSet?) =
-            resolver.call(PlaylistQuery.ALL, METHOD_SAVE, id, tracks?.toBundle())?.run {
+        fun save(resolver: ContentResolver, name: String, tracks: Track.IdSet?) =
+            resolver.call(PlaylistQuery.ALL, METHOD_SAVE, name, tracks?.toBundle())?.run {
                 throw getSerializable("error") as Throwable
             }
 

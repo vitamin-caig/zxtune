@@ -12,7 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import app.zxtune.R
 import app.zxtune.playlist.ProviderClient
-import app.zxtune.ui.utils.FragmentLongArrayProperty
+import app.zxtune.playlist.Track
 import app.zxtune.ui.utils.whenLifecycleStarted
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -20,12 +20,12 @@ import kotlinx.coroutines.withContext
 class PlaylistStatisticsFragment : DialogFragment() {
 
     companion object {
-        fun createInstance(ids: LongArray?): DialogFragment = PlaylistStatisticsFragment().apply {
+        fun createInstance(ids: Track.IdSet?): DialogFragment = PlaylistStatisticsFragment().apply {
             this.ids = ids
         }
     }
 
-    private var ids by FragmentLongArrayProperty
+    private var ids by FragmentIdSetProperty
     private lateinit var adapter: ArrayAdapter<String>
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

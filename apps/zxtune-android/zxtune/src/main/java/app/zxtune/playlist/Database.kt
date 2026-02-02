@@ -103,16 +103,6 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
 
     fun queryStatistics(tracks: Track.IdSet) = db.tracks().queryStatistics(tracks.storage).data
 
-    object Tables {
-        object Playlist {
-            const val NAME = "playlist"
-
-            enum class Fields {
-                _id, pos, location, author, title, duration, properties,
-            }
-        }
-    }
-
     companion object {
         const val NAME = "playlist"
         const val VERSION = 3

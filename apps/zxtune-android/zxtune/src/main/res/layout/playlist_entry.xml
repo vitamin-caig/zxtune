@@ -7,10 +7,11 @@
     <data>
 
         <import type="android.view.View" />
+        <import type="app.zxtune.Util" />
 
         <variable
-                name="entry"
-                type="app.zxtune.ui.playlist.Entry" />
+                name="meta"
+                type="app.zxtune.playlist.Track.Metadata" />
 
         <variable
                 name="isPlaying"
@@ -42,7 +43,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:maxLines="1"
-                    android:text="@{entry.getDisplayTitle()}"
+                    android:text="@{Util.formatTrackTitle(meta.getTitle(), meta.getLocation())}"
                     android:textAppearance="?android:textAppearanceListItem"
                     tools:text="@tools:sample/lorem/random" />
 
@@ -51,9 +52,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:maxLines="1"
-                    android:text="@{entry.getAuthor()}"
+                    android:text="@{meta.getAuthor()}"
                     android:textAppearance="?textAppearanceListItemSecondary"
-                    android:visibility="@{entry.getAuthor().isEmpty() ? View.GONE : View.VISIBLE}"
+                    android:visibility="@{meta.getAuthor().isEmpty() ? View.GONE : View.VISIBLE}"
                     tools:text="@tools:sample/full_names" />
         </LinearLayout>
 
@@ -64,7 +65,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="?android:listPreferredItemPaddingRight"
-                android:text="@{entry.getDuration().toString()}"
+                android:text="@{meta.getDuration().toString()}"
                 android:textAppearance="?android:textAppearanceListItemSmall"
                 tools:text="@tools:sample/date/hhmm" />
 

@@ -15,6 +15,7 @@ import app.zxtune.TestUtils.flushEvents
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
 import app.zxtune.device.media.MediaModel
+import app.zxtune.playlist.Track
 import app.zxtune.ui.AsyncDifferInMainThreadRule
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
@@ -73,12 +74,13 @@ class PlaylistFragmentTest {
     @Test
     fun `with state`() = runTest {
         val content = MutableList(5) {
-            Entry(
-                it.toLong(),
-                Identifier.parse("scheme://host/path/$it"),
-                "Title $it",
-                "Author $it",
-                TimeStamp.fromSeconds(it + 10L)
+            Track(
+                Track.Id(it.toLong()), Track.Metadata(
+                    Identifier.parse("scheme://host/path/$it"),
+                    "Title $it",
+                    "Author $it",
+                    TimeStamp.fromSeconds(it + 10L)
+                )
             )
         }
         val testStateFlow = MutableStateFlow(Model.createState())
@@ -114,10 +116,13 @@ class PlaylistFragmentTest {
 
     @Test
     fun `search filtering`() = runTest {
+        val makeTrack = { id: Long, title: String, author: String ->
+            Track(Track.Id(id), Track.Metadata(Identifier.EMPTY, title, author, TimeStamp.EMPTY))
+        }
         val content = arrayListOf(
-            Entry(1, Identifier.EMPTY, "First entry", "Author1", TimeStamp.EMPTY),
-            Entry(2, Identifier.EMPTY, "Second entry", "Author2", TimeStamp.EMPTY),
-            Entry(3, Identifier.EMPTY, "Third entry", "second author", TimeStamp.EMPTY)
+            makeTrack(1, "First", "Author1"),
+            makeTrack(2, "Second", "Author2"),
+            makeTrack(3, "Third", "second author")
         )
         val testStateFlow = MutableStateFlow(Model.createState().withContent(content))
         val testPlaybackState = MutableStateFlow<PlaybackStateCompat?>(null)
@@ -164,12 +169,12 @@ class PlaylistFragmentTest {
         selection.add(2)
         with(requireNotNull(PlaylistFragment.convertSelection(selection))) {
             assertEquals(1, size)
-            assertEquals(2, get(0))
+            assertEquals(Track.Id(2), get(0))
         }
         selection.add(5)
         with(requireNotNull(PlaylistFragment.convertSelection(selection))) {
             assertEquals(2, size)
-            assertEquals(5, get(1))
+            assertEquals(Track.Id(5), get(1))
         }
     }
 }

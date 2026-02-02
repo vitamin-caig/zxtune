@@ -1,7 +1,6 @@
 package app.zxtune.playlist.xspf
 
 import android.util.Xml
-import app.zxtune.playlist.Item
 import app.zxtune.playlist.Track
 import org.xmlpull.v1.XmlSerializer
 import java.io.IOException
