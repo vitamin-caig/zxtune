@@ -46,33 +46,27 @@ public class PlaylistQuery {
 
   private static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".playlist";
   private static final String ITEMS_PATH = "items";
-  private static final String STATISTICS_PATH = "statistics";
   private static final String SAVED_PATH = "saved";
 
   private static final Type TYPE_ALL_ITEMS;
   private static final Type TYPE_ONE_ITEM;
-  private static final Type TYPE_STATISTICS;
   private static final Type TYPE_SAVED;
 
   private static final UriMatcher uriTemplate;
 
   public static final Uri ALL;
-  public static final Uri STATISTICS;
   public static final Uri SAVED;
 
   static {
     TYPE_ALL_ITEMS = Type.dir(ITEMS_PATH);
     TYPE_ONE_ITEM = Type.item(ITEMS_PATH);
-    TYPE_STATISTICS = Type.item(STATISTICS_PATH);
     TYPE_SAVED = Type.dir(SAVED_PATH);
     uriTemplate = new UriMatcher(UriMatcher.NO_MATCH);
     uriTemplate.addURI(AUTHORITY, ITEMS_PATH, TYPE_ALL_ITEMS.id);
     uriTemplate.addURI(AUTHORITY, ITEMS_PATH + "/#", TYPE_ONE_ITEM.id);
-    uriTemplate.addURI(AUTHORITY, STATISTICS_PATH, TYPE_STATISTICS.id);
     uriTemplate.addURI(AUTHORITY, SAVED_PATH, TYPE_SAVED.id);
 
     ALL = uriFor(null);
-    STATISTICS = uriForPath(STATISTICS_PATH).build();
     SAVED = uriForPath(SAVED_PATH).build();
   }
 
@@ -93,8 +87,6 @@ public class PlaylistQuery {
       return TYPE_ALL_ITEMS.mime;
     } else if (uriType == TYPE_ONE_ITEM.id) {
       return TYPE_ONE_ITEM.mime;
-    } else if (uriType == TYPE_STATISTICS.id) {
-      return TYPE_STATISTICS.mime;
     } else if (uriType == TYPE_SAVED.id) {
       return TYPE_SAVED.mime;
     } else {

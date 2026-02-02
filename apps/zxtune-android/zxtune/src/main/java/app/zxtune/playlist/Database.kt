@@ -98,8 +98,6 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
     fun queryStatistics(tracks: Track.IdSet) = db.tracks().queryStatistics(tracks.storage).data
 
     // COMPAT
-    fun queryStatistics(selection: String?): Cursor = TODO()
-
     fun queryPlaylistItems(
         columns: Array<String>?, selection: String?, args: Array<String>?, order: String?
     ): Cursor = TODO()
@@ -119,12 +117,6 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
 
             enum class Fields {
                 _id, pos, location, author, title, duration, properties,
-            }
-        }
-
-        object Statistics {
-            enum class Fields {
-                count, locations, duration,
             }
         }
     }

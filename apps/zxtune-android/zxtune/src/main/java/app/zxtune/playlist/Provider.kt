@@ -17,6 +17,8 @@ import androidx.core.os.bundleOf
 import app.zxtune.Log
 import app.zxtune.MainApplication
 import app.zxtune.playlist.Database.Tables.Playlist
+import app.zxtune.playlist.IO.getTrackIdSet
+import app.zxtune.playlist.IO.toBundle
 import app.zxtune.playlist.IO.toTrackMetadata
 import app.zxtune.playlist.xspf.XspfStorage
 import kotlinx.coroutines.runBlocking
@@ -42,7 +44,6 @@ class Provider : ContentProvider() {
         selectionArgs: Array<String>?,
         sortOrder: String?
     ): Cursor = when (uri) {
-        PlaylistQuery.STATISTICS -> db.queryStatistics(selection)
         PlaylistQuery.SAVED -> querySavedPlaylists(selection)
         else -> {
             val select =
@@ -87,6 +88,7 @@ class Provider : ContentProvider() {
 
 
     override fun call(method: String, arg: String?, extras: Bundle?) = when {
+        METHOD_STATISTICS == method -> statistics(extras?.getTrackIdSet())
         arg == null -> null
         METHOD_SAVE == method -> save(arg, extras!!.getLongArray("ids"))
         METHOD_SORT == method -> {
@@ -178,6 +180,10 @@ class Provider : ContentProvider() {
         }.getOrNull()
     }
 
+    private fun statistics(tracks: Track.IdSet?) = (tracks?.let {
+        db.queryStatistics(it)
+    } ?: db.getPlaylist().queryStatistics()).toBundle()
+
     override fun getType(uri: Uri) = runCatching {
         PlaylistQuery.mimeTypeOf(uri)
     }.getOrNull()
@@ -188,6 +194,7 @@ class Provider : ContentProvider() {
         private const val METHOD_SORT = "sort"
         private const val METHOD_MOVE = "move"
         private const val METHOD_SAVE = "save"
+        private const val METHOD_STATISTICS = "statistics"
 
         fun sort(resolver: ContentResolver, by: String, order: String) = resolver.call(
             PlaylistQuery.ALL, METHOD_SORT, "$by $order", null
@@ -201,5 +208,8 @@ class Provider : ContentProvider() {
             resolver.call(PlaylistQuery.ALL, METHOD_SAVE, id, bundleOf("ids" to ids))?.run {
                 throw getSerializable("error") as Throwable
             }
+
+        fun statistics(resolver: ContentResolver, tracks: Track.IdSet?) =
+            resolver.call(PlaylistQuery.ALL, METHOD_STATISTICS, null, tracks?.toBundle())
     }
 }

@@ -1,6 +1,7 @@
 package app.zxtune.playlist
 
 import android.content.ContentValues
+import android.os.Bundle
 import androidx.annotation.VisibleForTesting
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
@@ -94,4 +95,31 @@ object IO {
         author = getAsString(TrackColumns.AUTHOR.name),
         duration = Converters.readTimeStamp(getAsLong(TrackColumns.DURATION.name)),
     )
+
+    private enum class BundleKeys {
+        TRACK_IDSET, COUNT, LOCATIONS, DURATION,
+    }
+
+    fun Bundle.getTrackIdSet() = getLongArray(BundleKeys.TRACK_IDSET.name)?.let {
+        Track.IdSet(it)
+    }
+
+    fun Bundle.putTrackIdSet(value: Track.IdSet) =
+        putLongArray(BundleKeys.TRACK_IDSET.name, value.storage)
+
+    fun Track.IdSet.toBundle() = Bundle().apply {
+        putTrackIdSet(this@toBundle)
+    }
+
+    fun Bundle.asStatistics() = Track.Statistics(
+        getLong(BundleKeys.COUNT.name),
+        getLong(BundleKeys.LOCATIONS.name),
+        Converters.readTimeStamp(getLong(BundleKeys.DURATION.name))
+    )
+
+    fun Track.Statistics.toBundle() = Bundle().apply {
+        putLong(BundleKeys.COUNT.name, count)
+        putLong(BundleKeys.LOCATIONS.name, locations)
+        putLong(BundleKeys.DURATION.name, Converters.writeTimeStamp(duration))
+    }
 }

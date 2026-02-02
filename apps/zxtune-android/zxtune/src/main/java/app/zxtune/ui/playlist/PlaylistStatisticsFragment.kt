@@ -11,7 +11,6 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import app.zxtune.R
-import app.zxtune.analytics.Analytics
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.utils.FragmentLongArrayProperty
 import app.zxtune.ui.utils.whenLifecycleStarted
@@ -23,8 +22,6 @@ class PlaylistStatisticsFragment : DialogFragment() {
     companion object {
         fun createInstance(ids: LongArray?): DialogFragment = PlaylistStatisticsFragment().apply {
             this.ids = ids
-        }.also {
-            Analytics.sendPlaylistEvent(Analytics.PlaylistAction.STATISTICS, ids?.size ?: 0)
         }
     }
 
@@ -49,7 +46,8 @@ class PlaylistStatisticsFragment : DialogFragment() {
     private suspend fun fillContent() = adapter.run {
         clear()
         loadStatistics()?.let { stat ->
-            val tracks = resources.getQuantityString(R.plurals.tracks, stat.total, stat.total)
+            val tracks =
+                resources.getQuantityString(R.plurals.tracks, stat.count.toInt(), stat.count)
             val duration = stat.duration.toString()
             addAll(
                 getString(R.string.statistics_tracks) + ": " + tracks,

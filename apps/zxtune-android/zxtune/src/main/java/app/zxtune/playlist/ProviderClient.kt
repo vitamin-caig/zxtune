@@ -8,6 +8,7 @@ import androidx.annotation.VisibleForTesting
 import app.zxtune.TimeStamp
 import app.zxtune.analytics.Analytics
 import app.zxtune.core.Identifier
+import app.zxtune.playlist.IO.asStatistics
 import app.zxtune.playlist.IO.toContentValues
 import app.zxtune.ui.playlist.Entry
 import app.zxtune.ui.utils.observeChanges
@@ -85,15 +86,8 @@ class ProviderClient @VisibleForTesting constructor(
     }
 
     suspend fun statistics(ids: LongArray?) = withContext(dispatcher) {
-        resolver.query(
-            PlaylistQuery.STATISTICS, selection = PlaylistQuery.selectionFor(ids)
-        ) { cursor ->
-            if (cursor.moveToFirst()) {
-                Statistics(cursor)
-            } else {
-                null
-            }
-        }
+        Analytics.sendPlaylistEvent(Analytics.PlaylistAction.STATISTICS, ids?.size ?: 0)
+        Provider.statistics(resolver, ids?.let { Track.IdSet(it) })?.asStatistics()
     }
 
     // id => path
