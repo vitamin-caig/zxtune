@@ -56,9 +56,9 @@ class ProviderClient @VisibleForTesting constructor(
         }
     }
 
-    suspend fun delete(ids: LongArray) {
-        deleteItems(PlaylistQuery.selectionFor(ids))
-        Analytics.sendPlaylistEvent(Analytics.PlaylistAction.DELETE, ids.size)
+    suspend fun delete(tracks: Track.IdSet) {
+        deleteItems(tracks)
+        Analytics.sendPlaylistEvent(Analytics.PlaylistAction.DELETE, tracks.size)
     }
 
     suspend fun deleteAll() {
@@ -66,8 +66,8 @@ class ProviderClient @VisibleForTesting constructor(
         Analytics.sendPlaylistEvent(Analytics.PlaylistAction.DELETE, 0)
     }
 
-    private suspend fun deleteItems(selection: String?) = withContext(dispatcher) {
-        resolver.delete(PlaylistQuery.ALL, selection, null)
+    private suspend fun deleteItems(tracks: Track.IdSet?) = withContext(dispatcher) {
+        Provider.delete(resolver, tracks)
         notifyChanges()
     }
 

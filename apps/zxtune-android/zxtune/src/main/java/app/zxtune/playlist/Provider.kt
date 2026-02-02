@@ -76,19 +76,19 @@ class Provider : ContentProvider() {
     }
 
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?) =
-        PlaylistQuery.idOf(uri)?.let { id ->
-            db.deletePlaylistItems(PlaylistQuery.selectionFor(id), null)
-        } ?: db.deletePlaylistItems(selection, selectionArgs)
+        TODO("Not implemented")
 
     override fun update(
         uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?
-    ) = PlaylistQuery.idOf(uri)?.let { id ->
-        db.updatePlaylistItems(values, PlaylistQuery.selectionFor(id), null)
-    } ?: db.updatePlaylistItems(values, selection, selectionArgs)
-
+    ) = TODO("Not implemented")
 
     override fun call(method: String, arg: String?, extras: Bundle?) = when {
         METHOD_STATISTICS == method -> statistics(extras?.getTrackIdSet())
+        METHOD_DELETE == method -> {
+            delete(extras?.getTrackIdSet())
+            null
+        }
+
         arg == null -> null
         METHOD_SAVE == method -> save(arg, extras!!.getLongArray("ids"))
         METHOD_SORT == method -> {
@@ -184,6 +184,12 @@ class Provider : ContentProvider() {
         db.queryStatistics(it)
     } ?: db.getPlaylist().queryStatistics()).toBundle()
 
+    private fun delete(tracks: Track.IdSet?) = with(db.getPlaylist()) {
+        tracks?.let {
+            deleteTracks(it)
+        } ?: delete()
+    }
+
     override fun getType(uri: Uri) = runCatching {
         PlaylistQuery.mimeTypeOf(uri)
     }.getOrNull()
@@ -195,6 +201,7 @@ class Provider : ContentProvider() {
         private const val METHOD_MOVE = "move"
         private const val METHOD_SAVE = "save"
         private const val METHOD_STATISTICS = "statistics"
+        private const val METHOD_DELETE = "delete"
 
         fun sort(resolver: ContentResolver, by: String, order: String) = resolver.call(
             PlaylistQuery.ALL, METHOD_SORT, "$by $order", null
@@ -211,5 +218,8 @@ class Provider : ContentProvider() {
 
         fun statistics(resolver: ContentResolver, tracks: Track.IdSet?) =
             resolver.call(PlaylistQuery.ALL, METHOD_STATISTICS, null, tracks?.toBundle())
+
+        fun delete(resolver: ContentResolver, tracks: Track.IdSet?) =
+            resolver.call(PlaylistQuery.ALL, METHOD_DELETE, null, tracks?.toBundle())
     }
 }

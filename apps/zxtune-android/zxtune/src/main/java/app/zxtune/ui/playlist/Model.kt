@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import app.zxtune.Logger
 import app.zxtune.playlist.PlaylistContent
 import app.zxtune.playlist.ProviderClient
+import app.zxtune.playlist.Track
 import app.zxtune.ui.utils.FilteredListState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -73,9 +74,7 @@ class Model @VisibleForTesting internal constructor(
 
     fun deleteAll() = runAsync { client.deleteAll() }
 
-    fun delete(ids: LongArray) = runAsync {
-        client.delete(ids)
-    }
+    fun delete(ids: LongArray) = runAsync { client.delete(Track.IdSet(ids)) }
 
     private fun runAsync(task: suspend () -> Unit) {
         viewModelScope.launch {
