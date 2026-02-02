@@ -50,7 +50,7 @@ object Analytics {
     fun sendUiEvent(action: UiAction) = sink?.sendUiEvent(action) ?: Unit
 
     enum class PlaylistAction(val key: String) {
-        ADD("add"), DELETE("delete"), MOVE("move"), SORT("sort"), SAVE("save"), STATISTICS("statistics"),
+        ADD("add"), DELETE("delete"), SORT("sort"), SAVE("save"), STATISTICS("statistics"),
     }
 
     @JvmStatic

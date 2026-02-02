@@ -12,17 +12,20 @@ import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
 import android.os.Bundle
-import android.util.SparseIntArray
 import androidx.core.os.bundleOf
 import app.zxtune.Log
 import app.zxtune.MainApplication
 import app.zxtune.playlist.Database.Tables.Playlist
+import app.zxtune.playlist.IO.getDelta
+import app.zxtune.playlist.IO.getTrackId
 import app.zxtune.playlist.IO.getTrackIdSet
+import app.zxtune.playlist.IO.putDelta
+import app.zxtune.playlist.IO.putTrackId
 import app.zxtune.playlist.IO.toBundle
 import app.zxtune.playlist.IO.toTrackMetadata
 import app.zxtune.playlist.xspf.XspfStorage
+import app.zxtune.utils.ifNotNulls
 import kotlinx.coroutines.runBlocking
-import kotlin.math.abs
 
 class Provider : ContentProvider() {
     private lateinit var db: Database
@@ -88,16 +91,15 @@ class Provider : ContentProvider() {
             delete(extras?.getTrackIdSet())
             null
         }
+        METHOD_REORDER == method -> {
+            ifNotNulls(extras?.getTrackId(), extras?.getDelta(), this::reorder)
+            null
+        }
 
         arg == null -> null
         METHOD_SAVE == method -> save(arg, extras!!.getLongArray("ids"))
         METHOD_SORT == method -> {
             sort(arg.substringBefore(' '), arg.substringAfter(' '))
-            null
-        }
-
-        METHOD_MOVE == method -> {
-            move(arg.substringBefore(' ').toLong(), arg.substringAfter(' ').toInt())
             null
         }
 
@@ -108,63 +110,7 @@ class Provider : ContentProvider() {
         Playlist.Fields.valueOf(fieldName), order
     )
 
-    /*
-    * @param id item to move
-    * @param delta position change
-    *//*
-   * pos idx     pos idx
-   *       <-+
-   * p0  i0  |   p0  i0 -+
-   * p1  i1  |   p1  i1  |
-   * p2  i2  |   p2  i2  |
-   * p3  i3  |   p3  i3  |
-   * p4  i4  |   p4  i4  |
-   * p5  i5 -+   p5  i5  |
-   *                   <-+
-   *
-   * move(i5,-5) move(i0,5)
-   *
-   * select:
-   * i5 i4 i3 i2 i1 i0
-   * p5 p4 p3 p2 p1 p0
-   *
-   *             i0 i1 i2 i3 i4 i5
-   *             p0 p1 p2 p3 p4 p5
-   *
-   * p0  i5      p0  i1
-   * p1  i0      p1  i2
-   * p2  i1      p2  i3
-   * p3  i2      p3  i4
-   * p4  i3      p4  i5
-   * p5  i4      p5  i0
-   *
-   */
-    private fun move(id: Long, delta: Int) = getNewPositions(id, delta).let {
-        db.updatePlaylistItemsOrder(it)
-    }
-
-    // TODO:
-    //  - SparseLongArray and revert mapping
-    //  - batch processing in updatePlaylistItemsOrder
-    private fun getNewPositions(id: Long, delta: Int) = SparseIntArray().apply {
-        val proj = arrayOf(Playlist.Fields._id.name, Playlist.Fields.pos.name)
-        val sel = PlaylistQuery.positionSelection(if (delta > 0) ">=" else "<=", id)
-        val count = (abs(delta.toDouble()) + 1).toInt()
-        val ord = PlaylistQuery.limitedOrder(if (delta > 0) delta + 1 else delta - 1)
-        val ids = IntArray(count)
-        val pos = IntArray(count)
-        db.queryPlaylistItems(proj, sel, null, ord).use { cursor ->
-            var i = 0
-            while (cursor.moveToNext()) {
-                ids[(i + count - 1) % count] = cursor.getInt(0)
-                pos[i] = cursor.getInt(1)
-                ++i
-            }
-        }
-        for (i in 0 until count) {
-            append(ids[i], pos[i])
-        }
-    }
+    private fun reorder(track: Track.Id, delta: Int) = db.getPlaylist().reorder(track, delta)
 
     private fun save(id: String, ids: LongArray?) = db.queryPlaylistItems(
         null, PlaylistQuery.selectionFor(ids), null, null
@@ -198,7 +144,7 @@ class Provider : ContentProvider() {
         private val TAG: String = Provider::class.java.name
 
         private const val METHOD_SORT = "sort"
-        private const val METHOD_MOVE = "move"
+        private const val METHOD_REORDER = "reorder"
         private const val METHOD_SAVE = "save"
         private const val METHOD_STATISTICS = "statistics"
         private const val METHOD_DELETE = "delete"
@@ -207,8 +153,11 @@ class Provider : ContentProvider() {
             PlaylistQuery.ALL, METHOD_SORT, "$by $order", null
         )
 
-        fun move(resolver: ContentResolver, id: Long, delta: Int) = resolver.call(
-            PlaylistQuery.ALL, METHOD_MOVE, "$id $delta", null
+        fun reorder(resolver: ContentResolver, track: Track.Id, delta: Int) = resolver.call(
+            PlaylistQuery.ALL, METHOD_REORDER, null, Bundle().apply {
+                putTrackId(track)
+                putDelta(delta)
+            }
         )
 
         fun save(resolver: ContentResolver, id: String?, ids: LongArray?) =

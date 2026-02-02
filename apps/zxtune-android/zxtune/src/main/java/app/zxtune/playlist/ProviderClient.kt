@@ -71,10 +71,10 @@ class ProviderClient @VisibleForTesting constructor(
         notifyChanges()
     }
 
-    suspend fun move(id: Long, delta: Int) = withContext(dispatcher) {
-        Provider.move(resolver, id, delta)
+    suspend fun reorder(track: Track.Id, delta: Int) = withContext(dispatcher) {
+        Provider.reorder(resolver, track, delta)
         notifyChanges()
-        Analytics.sendPlaylistEvent(Analytics.PlaylistAction.MOVE, 1)
+        Analytics.sendEvent("ui/playlist/reorder", "delta" to delta)
     }
 
     suspend fun sort(by: SortBy, order: SortOrder) = withContext(dispatcher) {

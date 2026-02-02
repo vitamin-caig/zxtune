@@ -1,9 +1,7 @@
 package app.zxtune.playlist
 
-import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
-import android.util.SparseIntArray
 import androidx.annotation.VisibleForTesting
 import androidx.core.util.Consumer
 import androidx.room.Dao
@@ -101,8 +99,6 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
     fun queryPlaylistItems(
         columns: Array<String>?, selection: String?, args: Array<String>?, order: String?
     ): Cursor = TODO()
-
-    fun updatePlaylistItemsOrder(positions: SparseIntArray): Unit = TODO()
 
     fun sortPlaylistItems(field: Tables.Playlist.Fields, order: String): Unit = TODO()
 

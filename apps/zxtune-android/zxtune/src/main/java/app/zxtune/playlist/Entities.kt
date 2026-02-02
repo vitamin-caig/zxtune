@@ -97,7 +97,7 @@ object IO {
     )
 
     private enum class BundleKeys {
-        TRACK_IDSET, COUNT, LOCATIONS, DURATION,
+        TRACK_IDSET, COUNT, LOCATIONS, DURATION, TRACK_ID, DELTA,
     }
 
     fun Bundle.getTrackIdSet() = getLongArray(BundleKeys.TRACK_IDSET.name)?.let {
@@ -111,6 +111,13 @@ object IO {
         putTrackIdSet(this@toBundle)
     }
 
+    fun Bundle.getTrackId() = getLong(BundleKeys.TRACK_ID.name, 0L).takeIf { it > 0L }?.let {
+        Track.Id(it)
+    }
+
+    fun Bundle.putTrackId(value: Track.Id) = putLong(BundleKeys.TRACK_ID.name, value.value)
+
+
     fun Bundle.asStatistics() = Track.Statistics(
         getLong(BundleKeys.COUNT.name),
         getLong(BundleKeys.LOCATIONS.name),
@@ -122,4 +129,7 @@ object IO {
         putLong(BundleKeys.LOCATIONS.name, locations)
         putLong(BundleKeys.DURATION.name, Converters.writeTimeStamp(duration))
     }
+
+    fun Bundle.getDelta() = getInt(BundleKeys.DELTA.name, 0).takeIf { it != 0 }
+    fun Bundle.putDelta(delta: Int) = putInt(BundleKeys.DELTA.name, delta)
 }

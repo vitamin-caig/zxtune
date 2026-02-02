@@ -17,11 +17,12 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
 import app.zxtune.databinding.PlaylistEntryBinding
+import app.zxtune.playlist.Track
 
 internal class ViewAdapter(private val client: Client) :
     ListAdapter<Entry, ViewAdapter.EntryViewHolder>(DiffCallback()) {
     internal fun interface Client {
-        fun move(id: Long, delta: Int)
+        fun move(track: Track.Id, delta: Int)
     }
 
     init {
@@ -165,7 +166,7 @@ internal class ViewAdapter(private val client: Client) :
     private inner class TouchHelperCallback :
         ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
 
-        private var draggedItem: Long? = null
+        private var draggedItem: Track.Id? = null
         private var dragDelta = 0
 
         val isDragging
@@ -205,7 +206,7 @@ internal class ViewAdapter(private val client: Client) :
             val srcPos = source.bindingAdapterPosition
             val tgtPos = target.bindingAdapterPosition
             if (draggedItem == null) {
-                draggedItem = source.itemId
+                draggedItem = Track.Id(source.itemId)
             }
             dragDelta += tgtPos - srcPos
             onItemMove(srcPos, tgtPos)

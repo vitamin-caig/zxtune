@@ -70,7 +70,7 @@ class Model @VisibleForTesting internal constructor(
     fun sort(by: ProviderClient.SortBy, order: ProviderClient.SortOrder) =
         runAsync { client.sort(by, order) }
 
-    fun move(id: Long, delta: Int) = runAsync { client.move(id, delta) }
+    fun reorder(track: Track.Id, delta: Int) = runAsync { client.reorder(track, delta) }
 
     fun deleteAll() = runAsync { client.deleteAll() }
 

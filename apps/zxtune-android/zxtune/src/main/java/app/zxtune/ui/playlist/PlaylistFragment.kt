@@ -97,7 +97,7 @@ class PlaylistFragment : Fragment() {
     private fun setupListing(panel: FrameLayout, listing: RecyclerView, stub: View) =
         listing.apply {
             setHasFixedSize(true)
-            val adapter = ViewAdapter(model::move).apply {
+            val adapter = ViewAdapter(model::reorder).apply {
                 adapter = this
             }
             selectionTracker = SelectionTracker.Builder(
