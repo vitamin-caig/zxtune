@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.annotation.VisibleForTesting
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
+import app.zxtune.utils.ifNotNulls
 
 // TODO: see app.zxtune.fs.ocremix.Entities notes
 typealias IdType = Long
@@ -97,7 +98,7 @@ object IO {
     )
 
     private enum class BundleKeys {
-        TRACK_IDSET, COUNT, LOCATIONS, DURATION, TRACK_ID, DELTA,
+        TRACK_IDSET, COUNT, LOCATIONS, DURATION, TRACK_ID, DELTA, SORT_BY, SORT_ORDER,
     }
 
     fun Bundle.getTrackIdSet() = getLongArray(BundleKeys.TRACK_IDSET.name)?.let {
@@ -117,7 +118,6 @@ object IO {
 
     fun Bundle.putTrackId(value: Track.Id) = putLong(BundleKeys.TRACK_ID.name, value.value)
 
-
     fun Bundle.asStatistics() = Track.Statistics(
         getLong(BundleKeys.COUNT.name),
         getLong(BundleKeys.LOCATIONS.name),
@@ -132,4 +132,16 @@ object IO {
 
     fun Bundle.getDelta() = getInt(BundleKeys.DELTA.name, 0).takeIf { it != 0 }
     fun Bundle.putDelta(delta: Int) = putInt(BundleKeys.DELTA.name, delta)
+
+    fun Bundle.asSorting() = ifNotNulls(
+        getString(BundleKeys.SORT_BY.name), getString(BundleKeys.SORT_ORDER.name)
+    ) { by, order ->
+        Playlist.Sorting(Playlist.Sorting.By.valueOf(by), Playlist.Sorting.Order.valueOf(order))
+    }
+
+    fun Playlist.Sorting.toBundle() = Bundle().apply {
+        putString(BundleKeys.SORT_BY.name, by.name)
+        putString(BundleKeys.SORT_ORDER.name, order.name)
+    }
+
 }

@@ -15,7 +15,7 @@ import android.os.Bundle
 import androidx.core.os.bundleOf
 import app.zxtune.Log
 import app.zxtune.MainApplication
-import app.zxtune.playlist.Database.Tables.Playlist
+import app.zxtune.playlist.IO.asSorting
 import app.zxtune.playlist.IO.getDelta
 import app.zxtune.playlist.IO.getTrackId
 import app.zxtune.playlist.IO.getTrackIdSet
@@ -91,24 +91,26 @@ class Provider : ContentProvider() {
             delete(extras?.getTrackIdSet())
             null
         }
+
         METHOD_REORDER == method -> {
             ifNotNulls(extras?.getTrackId(), extras?.getDelta(), this::reorder)
             null
         }
 
-        arg == null -> null
-        METHOD_SAVE == method -> save(arg, extras!!.getLongArray("ids"))
         METHOD_SORT == method -> {
-            sort(arg.substringBefore(' '), arg.substringAfter(' '))
+            extras?.asSorting()?.let {
+                sort(it)
+            }
             null
         }
+
+        arg == null -> null
+        METHOD_SAVE == method -> save(arg, extras!!.getLongArray("ids"))
 
         else -> null
     }
 
-    private fun sort(fieldName: String, order: String) = db.sortPlaylistItems(
-        Playlist.Fields.valueOf(fieldName), order
-    )
+    private fun sort(spec: Playlist.Sorting) = db.getPlaylist().sort(spec)
 
     private fun reorder(track: Track.Id, delta: Int) = db.getPlaylist().reorder(track, delta)
 
@@ -149,16 +151,15 @@ class Provider : ContentProvider() {
         private const val METHOD_STATISTICS = "statistics"
         private const val METHOD_DELETE = "delete"
 
-        fun sort(resolver: ContentResolver, by: String, order: String) = resolver.call(
-            PlaylistQuery.ALL, METHOD_SORT, "$by $order", null
+        fun sort(resolver: ContentResolver, spec: Playlist.Sorting) = resolver.call(
+            PlaylistQuery.ALL, METHOD_SORT, null, spec.toBundle()
         )
 
         fun reorder(resolver: ContentResolver, track: Track.Id, delta: Int) = resolver.call(
             PlaylistQuery.ALL, METHOD_REORDER, null, Bundle().apply {
                 putTrackId(track)
                 putDelta(delta)
-            }
-        )
+            })
 
         fun save(resolver: ContentResolver, id: String?, ids: LongArray?) =
             resolver.call(PlaylistQuery.ALL, METHOD_SAVE, id, bundleOf("ids" to ids))?.run {

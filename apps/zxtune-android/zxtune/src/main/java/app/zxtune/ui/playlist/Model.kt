@@ -5,6 +5,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.zxtune.Logger
+import app.zxtune.playlist.Playlist
 import app.zxtune.playlist.PlaylistContent
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.playlist.Track
@@ -67,8 +68,7 @@ class Model @VisibleForTesting internal constructor(
             _filter.tryEmit(value.trim())
         }
 
-    fun sort(by: ProviderClient.SortBy, order: ProviderClient.SortOrder) =
-        runAsync { client.sort(by, order) }
+    fun sort(spec: Playlist.Sorting) = runAsync { client.sort(spec) }
 
     fun reorder(track: Track.Id, delta: Int) = runAsync { client.reorder(track, delta) }
 

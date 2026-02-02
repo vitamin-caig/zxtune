@@ -26,15 +26,6 @@ class ProviderClient @VisibleForTesting constructor(
     private val resolver: ContentResolver,
     private val dispatcher: CoroutineDispatcher,
 ) {
-    //should be name-compatible with Database
-    enum class SortBy {
-        title, author, duration
-    }
-
-    enum class SortOrder {
-        asc, desc
-    }
-
     fun add(track: Track.Metadata) = resolver.insert(PlaylistQuery.ALL, track.toContentValues())
 
     fun notifyChanges() = resolver.notifyChange(PlaylistQuery.ALL, null)
@@ -77,11 +68,13 @@ class ProviderClient @VisibleForTesting constructor(
         Analytics.sendEvent("ui/playlist/reorder", "delta" to delta)
     }
 
-    suspend fun sort(by: SortBy, order: SortOrder) = withContext(dispatcher) {
-        Provider.sort(resolver, by.name, order.name)
+    suspend fun sort(spec: Playlist.Sorting) = withContext(dispatcher) {
+        Provider.sort(resolver, spec)
         notifyChanges()
-        Analytics.sendPlaylistEvent(
-            Analytics.PlaylistAction.SORT, 100 * by.ordinal + order.ordinal
+        Analytics.sendEvent(
+            "ui/playlist/sort",
+            "by" to spec.by.name.lowercase(),
+            "order" to spec.order.name.lowercase()
         )
     }
 

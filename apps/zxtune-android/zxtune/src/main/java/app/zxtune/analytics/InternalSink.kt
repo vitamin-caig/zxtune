@@ -15,8 +15,6 @@ import app.zxtune.analytics.internal.UrlsBuilder
 import app.zxtune.core.ModuleAttributes
 import app.zxtune.core.Player
 import app.zxtune.playback.PlayableItem
-import app.zxtune.playlist.ProviderClient
-import app.zxtune.playlist.ProviderClient.SortBy
 
 internal class InternalSink(ctx: Context) : Sink {
     private val delegate = createClientEndpoint(ctx)
@@ -81,14 +79,7 @@ internal class InternalSink(ctx: Context) : Sink {
 
     override fun sendPlaylistEvent(action: PlaylistAction, param: Int) =
         UrlsBuilder("ui/playlist/${action.key}").apply {
-            if (action == PlaylistAction.SORT) {
-                addParam("by", SortBy.entries.toTypedArray()[param / 100].name)
-                addParam("order", ProviderClient.SortOrder.entries.toTypedArray()[param % 100].name)
-            } else {
-                addParam(
-                    "count", if (param != 0) param.toLong() else UrlsBuilder.DEFAULT_LONG_VALUE
-                )
-            }
+            addParam("count", if (param != 0) param.toLong() else UrlsBuilder.DEFAULT_LONG_VALUE)
         }.let {
             send(it)
         }

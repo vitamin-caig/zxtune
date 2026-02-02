@@ -100,8 +100,6 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         columns: Array<String>?, selection: String?, args: Array<String>?, order: String?
     ): Cursor = TODO()
 
-    fun sortPlaylistItems(field: Tables.Playlist.Fields, order: String): Unit = TODO()
-
     object Tables {
         object Playlist {
             const val NAME = "playlist"

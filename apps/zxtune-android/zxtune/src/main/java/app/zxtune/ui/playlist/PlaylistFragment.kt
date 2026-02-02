@@ -34,6 +34,7 @@ import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
 import app.zxtune.device.media.MediaModel
 import app.zxtune.fs.provider.VfsProviderClient
+import app.zxtune.playlist.Playlist
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.PersistentStorageSetupFragment
 import app.zxtune.ui.utils.SelectionUtils
@@ -75,11 +76,11 @@ class PlaylistFragment : Fragment() {
                 // for some reason, onPrepareMenu is not called anymore if menu is shown via
                 // showAsAction for some items
                 requireNotNull(menu.item(R.id.action_sort).subMenu).run {
-                    for (sortBy in ProviderClient.SortBy.values()) {
-                        for (sortOrder in ProviderClient.SortOrder.values()) {
+                    for (sortBy in Playlist.Sorting.By.entries) {
+                        for (sortOrder in Playlist.Sorting.Order.entries) {
                             add(getMenuTitle(sortBy)).run {
                                 setOnMenuItemClickListener {
-                                    model.sort(sortBy, sortOrder)
+                                    model.sort(Playlist.Sorting(sortBy, sortOrder))
                                     true
                                 }
                                 setIcon(getMenuIcon(sortOrder))
@@ -243,16 +244,16 @@ class PlaylistFragment : Fragment() {
 
     companion object {
         @StringRes
-        private fun getMenuTitle(by: ProviderClient.SortBy) = when (by) {
-            ProviderClient.SortBy.title -> R.string.information_title
-            ProviderClient.SortBy.author -> R.string.information_author
-            ProviderClient.SortBy.duration -> R.string.statistics_duration //TODO: extract
+        private fun getMenuTitle(by: Playlist.Sorting.By) = when (by) {
+            Playlist.Sorting.By.TITLE -> R.string.information_title
+            Playlist.Sorting.By.AUTHOR -> R.string.information_author
+            Playlist.Sorting.By.DURATION -> R.string.statistics_duration //TODO: extract
         }
 
         @DrawableRes
-        private fun getMenuIcon(order: ProviderClient.SortOrder) = when (order) {
-            ProviderClient.SortOrder.asc -> android.R.drawable.arrow_up_float
-            ProviderClient.SortOrder.desc -> android.R.drawable.arrow_down_float
+        private fun getMenuIcon(order: Playlist.Sorting.Order) = when (order) {
+            Playlist.Sorting.Order.ASCENDING -> android.R.drawable.arrow_up_float
+            Playlist.Sorting.Order.DESCENDING -> android.R.drawable.arrow_down_float
         }
 
         @VisibleForTesting
