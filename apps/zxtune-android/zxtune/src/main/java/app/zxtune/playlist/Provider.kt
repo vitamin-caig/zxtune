@@ -48,13 +48,11 @@ class Provider : ContentProvider() {
         sortOrder: String?
     ): Cursor = when (uri) {
         PlaylistQuery.SAVED -> querySavedPlaylists(selection)
-        else -> {
-            val select =
-                PlaylistQuery.idOf(uri)?.let { PlaylistQuery.selectionFor(it) } ?: selection
-            db.queryPlaylistItems(projection, select, selectionArgs, sortOrder).apply {
-                setNotificationUri(resolver, PlaylistQuery.ALL)
-            }
+        PlaylistQuery.ALL -> db.getPlaylist().queryTracks().apply {
+            setNotificationUri(resolver, uri)
         }
+
+        else -> throw IllegalArgumentException("Invalid uri: $uri")
     }
 
     private fun querySavedPlaylists(selection: String?) =
@@ -85,27 +83,29 @@ class Provider : ContentProvider() {
         uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?
     ) = TODO("Not implemented")
 
-    override fun call(method: String, arg: String?, extras: Bundle?) = when {
-        METHOD_STATISTICS == method -> statistics(extras?.getTrackIdSet())
-        METHOD_DELETE == method -> {
+    override fun call(method: String, arg: String?, extras: Bundle?) = when(method) {
+        METHOD_STATISTICS -> statistics(extras?.getTrackIdSet())
+        METHOD_DELETE -> {
             delete(extras?.getTrackIdSet())
             null
         }
 
-        METHOD_REORDER == method -> {
+        METHOD_REORDER -> {
             ifNotNulls(extras?.getTrackId(), extras?.getDelta(), this::reorder)
             null
         }
 
-        METHOD_SORT == method -> {
+        METHOD_SORT -> {
             extras?.asSorting()?.let {
                 sort(it)
             }
             null
         }
 
-        arg == null -> null
-        METHOD_SAVE == method -> save(arg, extras!!.getLongArray("ids"))
+        METHOD_SAVE -> {
+            ifNotNulls(arg, extras?.getTrackIdSet(), this::save)
+            null
+        }
 
         else -> null
     }
@@ -114,9 +114,9 @@ class Provider : ContentProvider() {
 
     private fun reorder(track: Track.Id, delta: Int) = db.getPlaylist().reorder(track, delta)
 
-    private fun save(id: String, ids: LongArray?) = db.queryPlaylistItems(
-        null, PlaylistQuery.selectionFor(ids), null, null
-    ).use { cursor ->
+    private fun save(id: String, tracks: Track.IdSet?) = (tracks?.let {
+        db.queryTracks(it)
+    } ?: db.getPlaylist().queryTracks()).use { cursor ->
         runCatching {
             runBlocking {
                 storage.createPlaylist(id, cursor)
@@ -161,8 +161,8 @@ class Provider : ContentProvider() {
                 putDelta(delta)
             })
 
-        fun save(resolver: ContentResolver, id: String?, ids: LongArray?) =
-            resolver.call(PlaylistQuery.ALL, METHOD_SAVE, id, bundleOf("ids" to ids))?.run {
+        fun save(resolver: ContentResolver, id: String?, tracks: Track.IdSet?) =
+            resolver.call(PlaylistQuery.ALL, METHOD_SAVE, id, tracks?.toBundle())?.run {
                 throw getSerializable("error") as Throwable
             }
 

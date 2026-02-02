@@ -11,7 +11,7 @@ import android.database.Cursor
 import androidx.annotation.VisibleForTesting
 import app.zxtune.Logger
 import app.zxtune.device.PersistentStorage
-import app.zxtune.playlist.Item
+import app.zxtune.playlist.IO.toTrack
 import java.io.IOException
 
 class XspfStorage @VisibleForTesting constructor(
@@ -50,7 +50,7 @@ class XspfStorage @VisibleForTesting constructor(
             Builder(stream).apply {
                 writePlaylistProperties(name, cursor.count)
                 while (cursor.moveToNext()) {
-                    writeTrack(Item(cursor))
+                    writeTrack(cursor.toTrack().meta)
                 }
             }.finish()
         }

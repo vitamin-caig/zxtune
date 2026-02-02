@@ -1,6 +1,7 @@
 package app.zxtune.playlist
 
 import android.content.ContentValues
+import android.database.Cursor
 import android.os.Bundle
 import androidx.annotation.VisibleForTesting
 import app.zxtune.TimeStamp
@@ -144,4 +145,12 @@ object IO {
         putString(BundleKeys.SORT_ORDER.name, order.name)
     }
 
+    fun Cursor.toTrack() = Track(
+        id = Track.Id(getLong(TrackColumns.ID.ordinal)), meta = Track.Metadata(
+            location = Converters.readLocation(getString(TrackColumns.LOCATION.ordinal)),
+            title = getString(TrackColumns.TITLE.ordinal),
+            author = getString(TrackColumns.AUTHOR.ordinal),
+            duration = Converters.readTimeStamp(getLong(TrackColumns.DURATION.ordinal)),
+        )
+    )
 }

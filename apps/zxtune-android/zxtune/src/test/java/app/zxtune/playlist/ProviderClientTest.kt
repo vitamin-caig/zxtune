@@ -77,14 +77,9 @@ class ProviderClientTest {
 
     @Test
     fun query() = runTest {
-        // _id, pos, location, author, title, duration, properties
-        val columns = Database.Tables.Playlist.Fields.values().map { it.toString() }.toTypedArray()
+        val columns = IO.TrackColumns.entries.map { it.name }.toTypedArray()
         val content = MatrixCursor(columns, 1).apply {
-            addRow(
-                arrayOf(
-                    123, 0, "scheme://host/path#fragment", "author", "title", 123456L, byteArrayOf()
-                )
-            )
+            addRow(arrayOf<Any>(123L, "scheme://host/path#fragment", "title", "author", 123456L))
         }
         lateinit var signal: CancellationSignal
         resolver.stub {

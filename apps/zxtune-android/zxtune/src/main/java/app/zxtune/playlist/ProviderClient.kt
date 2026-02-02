@@ -2,14 +2,12 @@ package app.zxtune.playlist
 
 import android.content.ContentResolver
 import android.content.Context
-import android.database.Cursor
 import android.net.Uri
 import androidx.annotation.VisibleForTesting
-import app.zxtune.TimeStamp
 import app.zxtune.analytics.Analytics
-import app.zxtune.core.Identifier
 import app.zxtune.playlist.IO.asStatistics
 import app.zxtune.playlist.IO.toContentValues
+import app.zxtune.playlist.IO.toTrack
 import app.zxtune.ui.playlist.Entry
 import app.zxtune.ui.utils.observeChanges
 import app.zxtune.ui.utils.query
@@ -42,7 +40,15 @@ class ProviderClient @VisibleForTesting constructor(
     suspend fun queryContent() = resolver.query(PlaylistQuery.ALL) { cursor ->
         PlaylistContent(cursor.count).apply {
             while (cursor.moveToNext()) {
-                add(createItem(cursor))
+                add(cursor.toTrack().run {
+                    Entry(
+                        id.value,
+                        meta.location,
+                        meta.title,
+                        meta.author,
+                        meta.duration,
+                    )
+                })
             }
         }
     }
@@ -98,21 +104,11 @@ class ProviderClient @VisibleForTesting constructor(
 
     @Throws(Exception::class)
     suspend fun savePlaylist(id: String, ids: LongArray?) = withContext(dispatcher) {
-        Provider.save(resolver, id, ids)
+        Provider.save(resolver, id, ids?.let { Track.IdSet(it) })
         Analytics.sendPlaylistEvent(Analytics.PlaylistAction.SAVE, ids?.size ?: 0)
     }
 
     companion object {
-        private fun createItem(cursor: Cursor) = cursor.run {
-            Entry(
-                getLong(Database.Tables.Playlist.Fields._id.ordinal),
-                Identifier.parse(getString(Database.Tables.Playlist.Fields.location.ordinal)),
-                getString(Database.Tables.Playlist.Fields.title.ordinal),
-                getString(Database.Tables.Playlist.Fields.author.ordinal),
-                TimeStamp.fromMilliseconds(getLong(Database.Tables.Playlist.Fields.duration.ordinal))
-            )
-        }
-
         @JvmStatic
         fun create(ctx: Context) = ProviderClient(ctx.contentResolver, Dispatchers.IO)
 

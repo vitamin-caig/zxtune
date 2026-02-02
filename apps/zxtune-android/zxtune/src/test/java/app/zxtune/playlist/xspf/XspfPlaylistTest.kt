@@ -4,9 +4,11 @@ import android.net.Uri
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
 import app.zxtune.io.Io.copy
-import app.zxtune.playlist.Item
+import app.zxtune.playlist.Track
 import app.zxtune.playlist.xspf.XspfIterator.parse
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -146,7 +148,7 @@ private fun getPlaylistReference(name: String) = with(ByteArrayOutputStream()) {
 }
 
 private fun makeItem(id: String, title: String, author: String, duration: Long) =
-    Item(createIdentifier(id), title, author, TimeStamp.fromMilliseconds(duration))
+    Track.Metadata(createIdentifier(id), title, author, TimeStamp.fromMilliseconds(duration))
 
 // To force encoding
 private fun createIdentifier(decoded: String) = with(Uri.parse(decoded)) {

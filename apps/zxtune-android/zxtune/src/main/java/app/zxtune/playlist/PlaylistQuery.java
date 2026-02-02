@@ -13,10 +13,7 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
-import java.util.Arrays;
-
 import app.zxtune.BuildConfig;
-import app.zxtune.playlist.Database.Tables;
 
 /*
  * content://app.zxtune.playlist/items - all items
@@ -112,22 +109,5 @@ public class PlaylistQuery {
       builder.appendPath(id.toString());
     }
     return builder.build();
-  }
-
-  public static String selectionFor(long id) {
-    return Database.Tables.Playlist.Fields._id + " = " + id;
-  }
-
-  @Nullable
-  public static String selectionFor(@Nullable long[] ids) {
-    if (ids == null) {
-      return null;
-    } else {
-      //ids => '[a, b, c]'
-      final String rawArgs = Arrays.toString(ids);
-      final String args = rawArgs.substring(1, rawArgs.length() - 1);
-      //placeholders doesn't work and has limitations
-      return Database.Tables.Playlist.Fields._id + " IN (" + args + ")";
-    }
   }
 }

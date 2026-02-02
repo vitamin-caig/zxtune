@@ -22,6 +22,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.zxtune.R
 import app.zxtune.playlist.ProviderClient
+import app.zxtune.playlist.Track
 import app.zxtune.ui.utils.FragmentLongArrayProperty
 import app.zxtune.ui.utils.whenLifecycleStarted
 import kotlinx.coroutines.MainScope

@@ -25,6 +25,7 @@ import androidx.sqlite.db.SupportSQLiteQuery
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
 import app.zxtune.fs.dbhelpers.DBStatistics
+import app.zxtune.playlist.IO.toTrack
 
 class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) {
     constructor(ctx: Context) : this(
@@ -47,13 +48,20 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         fun exists(): Boolean
         fun addTrack(track: Track.Metadata): Track.Id
         fun addTracks(tracks: Track.IdSet)
-        fun queryTracks(visitor: Consumer<Track>)
+        fun queryTracks(): Cursor
         fun queryStatistics(): Track.Statistics
         fun delete()
         fun deleteTracks(tracks: Track.IdSet)
         fun moveTracks(tracks: Track.IdSet, target: Playlist.Id)
         fun sort(spec: Playlist.Sorting)
         fun reorder(track: Track.Id, delta: Int)
+
+        @VisibleForTesting
+        fun queryTracks(visitor: Consumer<Track>) = queryTracks().use { cursor ->
+            while (cursor.moveToNext()) {
+                visitor.accept(cursor.toTrack())
+            }
+        }
     }
 
     fun getPlaylist(playlist: Playlist.Id = Playlist.DEFAULT_ID) = object : PlaylistFacade {
@@ -67,11 +75,7 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
 
         override fun addTracks(tracks: Track.IdSet) = db.tracks().add(playlist, tracks)
 
-        override fun queryTracks(visitor: Consumer<Track>) {
-            db.tracks().query(playlist).onEach {
-                visitor.accept(Track(id = it.id, meta = it.meta))
-            }
-        }
+        override fun queryTracks() = db.tracks().query(playlist)
 
         override fun queryStatistics() = db.playlists().queryStatistics(playlist).data
 
@@ -88,17 +92,16 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
             db.tracks().reorder(playlist, track, delta)
     }
 
-    fun queryTracks(tracks: Track.IdSet, visitor: Consumer<Track>) =
-        db.tracks().query(tracks.storage).onEach {
-            visitor.accept(Track(id = it.id, meta = it.meta))
+    fun queryTracks(tracks: Track.IdSet) = db.tracks().query(tracks.storage)
+
+    @VisibleForTesting
+    fun queryTracks(tracks: Track.IdSet, visitor: Consumer<Track>) = queryTracks(tracks).use { cursor ->
+        while (cursor.moveToNext()) {
+            visitor.accept(cursor.toTrack())
         }
+    }
 
     fun queryStatistics(tracks: Track.IdSet) = db.tracks().queryStatistics(tracks.storage).data
-
-    // COMPAT
-    fun queryPlaylistItems(
-        columns: Array<String>?, selection: String?, args: Array<String>?, order: String?
-    ): Cursor = TODO()
 
     object Tables {
         object Playlist {
@@ -258,14 +261,14 @@ abstract class TracksDao {
      ORDER BY refs.position
             """
     )
-    abstract fun query(playlist: Playlist.Id): Array<TrackRecord>
+    abstract fun query(playlist: Playlist.Id): Cursor
 
     @Query(
         """
             SELECT * FROM tracks WHERE id IN (:tracks)
         """
     )
-    abstract fun query(tracks: IdArrayType): Array<TrackRecord>
+    abstract fun query(tracks: IdArrayType): Cursor
 
     @Query(
         """

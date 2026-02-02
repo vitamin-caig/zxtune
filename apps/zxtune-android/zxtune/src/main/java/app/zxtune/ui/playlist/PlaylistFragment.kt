@@ -22,6 +22,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.net.toUri
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -34,8 +35,10 @@ import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
 import app.zxtune.device.media.MediaModel
 import app.zxtune.fs.provider.VfsProviderClient
+import app.zxtune.playlist.IdType
 import app.zxtune.playlist.Playlist
 import app.zxtune.playlist.ProviderClient
+import app.zxtune.playlist.Track
 import app.zxtune.ui.PersistentStorageSetupFragment
 import app.zxtune.ui.utils.SelectionUtils
 import app.zxtune.ui.utils.item
