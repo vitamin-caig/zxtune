@@ -10,7 +10,8 @@ import app.zxtune.core.ModuleDetectCallback
 import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsFile
 import app.zxtune.playback.PlayableItem
-import app.zxtune.playlist.PlaylistQuery
+import app.zxtune.playlist.Playlist
+import app.zxtune.playlist.ProviderClient
 import app.zxtune.playlist.Track
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
@@ -21,10 +22,10 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 
 internal class Loader {
-    suspend fun load(track: Track) = load(track.meta.location)?.let {
+    suspend fun load(playlist: Playlist.Id, track: Track) = load(track.meta.location)?.let {
         object : PlayableItem by it {
             override val id
-                get() = PlaylistQuery.uriFor(track.id.value)
+                get() = ProviderClient.createUri(Track.FullIdentifier(playlist, track.id))
             override val title
                 get() = track.meta.title
             override val author

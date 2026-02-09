@@ -8,12 +8,13 @@ package app.zxtune.fs
 import android.content.Context
 import android.net.Uri
 import app.zxtune.R
-import app.zxtune.playlist.ProviderClient.Companion.create
+import app.zxtune.playlist.AggregatingProviderClient
 import kotlinx.coroutines.runBlocking
 import java.io.FileNotFoundException
+import androidx.core.net.toUri
 
 internal class VfsRootPlaylists(private val context: Context) : StubObject(), VfsRoot {
-    private val client by lazy { create(context) }
+    private val client by lazy { AggregatingProviderClient.create(context) }
 
     override val uri: Uri
         get() = rootUriBuilder().build()
@@ -68,7 +69,7 @@ internal class VfsRootPlaylists(private val context: Context) : StubObject(), Vf
             if (path == null) {
                 path = runBlocking { client.getSavedPlaylists(name)?.get(name) }
             }
-            path?.let { context.contentResolver.openInputStream(Uri.parse(it)) }
+            path?.let { context.contentResolver.openInputStream(it.toUri()) }
         } catch (e: FileNotFoundException) {
             null
         }

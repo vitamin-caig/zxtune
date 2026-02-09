@@ -4,8 +4,9 @@ import android.content.Context
 import android.net.Uri
 import app.zxtune.Logger
 import app.zxtune.playback.PlayableItem
-import app.zxtune.playlist.PlaylistQuery
+import app.zxtune.playlist.Playlist
 import app.zxtune.playlist.ProviderClient
+import app.zxtune.playlist.Query
 import app.zxtune.playlist.Track
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +26,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 private val LOG = Logger(PlaylistQueue::class.java.name)
 
-internal class PlaylistQueue(ctx: Context, loader: Loader) : Queue {
+internal class PlaylistQueue(ctx: Context, loader: Loader, val playlist : Playlist.Id) : Queue {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val currentStream = MutableSharedFlow<ReceiveChannel<PlayableItem>>(
         replay = 1, extraBufferCapacity = 0, onBufferOverflow = BufferOverflow.DROP_OLDEST
@@ -37,8 +38,8 @@ internal class PlaylistQueue(ctx: Context, loader: Loader) : Queue {
         get() = currentStream
 
     override suspend fun activate(uri: Uri) {
-        val id = Track.Id(requireNotNull(PlaylistQuery.idOf(uri)))
-        state.navigate(id)?.let {
+        val id = requireNotNull(Query.findTrackId(uri))
+        state.navigate(id.track)?.let {
             activate(it)
         }
     }
@@ -106,7 +107,7 @@ private class PlaylistQueueState(
         LOG.d { "Start sequence from $first" }
         var current = first
         while (true) {
-            loader.load(current.data)?.let {
+            loader.load(playlist.id, current.data)?.let {
                 send(it)
                 currentPosition = current
             }

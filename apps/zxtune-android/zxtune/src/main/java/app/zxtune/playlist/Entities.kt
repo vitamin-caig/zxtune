@@ -25,6 +25,8 @@ data class Playlist(val id: Id, val title: String) {
         }
     }
 
+    data class OperationScope(val playlist: Id, val tracks: Track.IdSet?)
+
     companion object {
         val DEFAULT_ID = Id(0)
     }
@@ -76,6 +78,8 @@ data class Track(
     )
 
     data class Statistics(val count: Long, val locations: Long, val duration: TimeStamp)
+
+    data class FullIdentifier(val playlist: Playlist.Id, val track: Id)
 }
 
 object IO {
@@ -99,7 +103,7 @@ object IO {
     )
 
     private enum class BundleKeys {
-        TRACK_IDSET, COUNT, LOCATIONS, DURATION, TRACK_ID, DELTA, SORT_BY, SORT_ORDER,
+        TRACK_IDSET, COUNT, LOCATIONS, DURATION, TRACK_ID, DELTA, SORT_BY, SORT_ORDER, PLAYLIST_ID,
     }
 
     fun Bundle.getTrackIdSet() = getLongArray(BundleKeys.TRACK_IDSET.name)?.let {
@@ -152,5 +156,45 @@ object IO {
             author = getString(TrackColumns.AUTHOR.ordinal),
             duration = Converters.readTimeStamp(getLong(TrackColumns.DURATION.ordinal)),
         )
+    )
+
+    fun Bundle.getPlaylistId() =
+        getLong(BundleKeys.PLAYLIST_ID.name, Playlist.DEFAULT_ID.value).let {
+            Playlist.Id(it)
+        }
+
+    fun Bundle.putPlaylistId(id: Playlist.Id) = putLong(BundleKeys.PLAYLIST_ID.name, id.value)
+
+    fun Playlist.Id.toBundle() = Bundle().apply {
+        putPlaylistId(this@toBundle)
+    }
+
+    fun Playlist.OperationScope.toBundle() = Bundle().apply {
+        putPlaylistId(playlist)
+        tracks?.let {
+            putTrackIdSet(tracks)
+        }
+    }
+
+    fun Bundle.getPlaylistOperationScope() =
+        Playlist.OperationScope(getPlaylistId(), getTrackIdSet())
+
+    fun Track.FullIdentifier.toBundle() = Bundle().apply {
+        putPlaylistId(playlist)
+        putTrackId(track)
+    }
+
+    fun Bundle.getTrackFullIdentifier() = getTrackId()?.let {
+        Track.FullIdentifier(getPlaylistId(), it)
+    }
+
+    @VisibleForTesting
+    enum class PlaylistColumns {
+        ID, TITLE,
+    }
+
+    fun Cursor.toPlaylist() = Playlist(
+        id = Playlist.Id(getLong(PlaylistColumns.ID.ordinal)),
+        title = getString(PlaylistColumns.TITLE.ordinal),
     )
 }

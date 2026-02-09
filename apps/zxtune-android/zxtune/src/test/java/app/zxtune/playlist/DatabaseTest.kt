@@ -38,7 +38,7 @@ class DatabaseTest {
             TestConsumer<Playlist>().apply {
                 queryPlaylists(this)
             }.assertValues(emptyList())
-            getPlaylist().verifyTracksAre(
+            getPlaylist(Playlist.DEFAULT_ID).verifyTracksAre(
                 makeTrack(
                     1,
                     "zxart:/Top/nq%20-%20synchronization%20(2015).pt3?track=60891",
@@ -70,7 +70,7 @@ class DatabaseTest {
             TestConsumer<Playlist>().apply {
                 queryPlaylists(this)
             }.assertValues(emptyList())
-            getPlaylist().verifyTracksAre(
+            getPlaylist(Playlist.DEFAULT_ID).verifyTracksAre(
                 makeTrack(
                     120,
                     "zxart:/Top/Mister%20BEEP%20-%20Nebula%20Fight%20(2010)%20(DiHalt%202010%2C%201).ay?track=47899",
@@ -132,7 +132,7 @@ class DatabaseTest {
     @Test
     fun `duplicates policy`() = with(underTest) {
         val originalMeta = makeTrack(0)
-        val playlist = getPlaylist()
+        val playlist = getPlaylist(Playlist.DEFAULT_ID)
         val originalId = playlist.addTrack(track = originalMeta)
         val unchangedMeta = makeTrack(1)
         val unchangedId = playlist.addTrack(track = unchangedMeta)
@@ -151,7 +151,7 @@ class DatabaseTest {
 
     @Test
     fun statistics() = with(underTest) {
-        val playlist1 = getPlaylist()
+        val playlist1 = getPlaylist(Playlist.DEFAULT_ID)
         val duplicatedTrack1 = makeTrack(1)
         val ids1 = arrayOf(
             playlist1.addTrack(makeTrack(2)),
@@ -192,7 +192,7 @@ class DatabaseTest {
     @Test
     fun deleting() = with(underTest) {
         val meta = makeTrack(0)
-        val playlist1 = getPlaylist()
+        val playlist1 = getPlaylist(Playlist.DEFAULT_ID)
         val tracks1 = Track.IdSet(3) {
             playlist1.addTrack(meta)
         }
@@ -234,7 +234,7 @@ class DatabaseTest {
     @Test
     fun sorting() = with(underTest) {
         val location = makeLocation(0)
-        val playlist = getPlaylist()
+        val playlist = getPlaylist(Playlist.DEFAULT_ID)
         // 1324/4231 2341/1432 3142/2413
         val t1 = playlist.addTrack(Track.Metadata(location, "A", "d", TimeStamp.fromSeconds(6)))
         val t2 = playlist.addTrack(Track.Metadata(location, "C", "a", TimeStamp.fromSeconds(8)))
@@ -334,7 +334,7 @@ class DatabaseTest {
 
     @Test
     fun migrating() = with(underTest) {
-        val source = getPlaylist()
+        val source = getPlaylist(Playlist.DEFAULT_ID)
         val targetId = addPlaylist("target")
         val target = getPlaylist(targetId)
         val meta = makeTrack(0)

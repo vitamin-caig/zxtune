@@ -21,8 +21,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.zxtune.R
-import app.zxtune.playlist.ProviderClient
-import app.zxtune.playlist.Track
+import app.zxtune.playlist.AggregatingProviderClient
+import app.zxtune.playlist.Playlist
 import app.zxtune.ui.utils.whenLifecycleStarted
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
@@ -34,14 +34,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class PlaylistSaveFragment : DialogFragment() {
-    private var ids by FragmentIdSetProperty
+    private var scope by FragmentPlaylistOperationScopeProperty
     private val model by activityViewModels<SaveFragmentModel>()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val ctx = requireContext()
         return AlertDialog.Builder(ctx).setTitle(R.string.save).setView(createEditText(ctx))
             .setPositiveButton(R.string.save) { _, _ ->
-                model.save(ids)
+                model.save(scope)
             }.create().apply {
                 whenLifecycleStarted {
                     trackButton(getButton(DialogInterface.BUTTON_POSITIVE))
@@ -63,14 +63,14 @@ class PlaylistSaveFragment : DialogFragment() {
     }
 
     companion object {
-        fun createInstance(ids: Track.IdSet?) = PlaylistSaveFragment().apply {
-            this.ids = ids
+        fun createInstance(scope: Playlist.OperationScope) = PlaylistSaveFragment().apply {
+            this.scope = scope
         }
     }
 }
 
 class SaveFragmentModel(application: Application) : AndroidViewModel(application) {
-    private val client = ProviderClient.create(application)
+    private val client = AggregatingProviderClient.create(application)
 
     private val usedNames = flow {
         client.getSavedPlaylists()?.let {
@@ -115,11 +115,11 @@ class SaveFragmentModel(application: Application) : AndroidViewModel(application
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(500), ButtonState.Disabled)
 
-    fun save(ids: Track.IdSet?) = MainScope().launch {
-        saveBlocking(ids)
+    fun save(scope: Playlist.OperationScope) = MainScope().launch {
+        saveBlocking(scope)
     }
 
-    private suspend fun saveBlocking(ids: Track.IdSet?) {
+    private suspend fun saveBlocking(scope: Playlist.OperationScope) {
         val ctx = getApplication<Application>()
         val showToast = { txt: String, duration: Int ->
             Toast.makeText(ctx, txt, duration).show()
@@ -128,7 +128,7 @@ class SaveFragmentModel(application: Application) : AndroidViewModel(application
         runCatching {
             val name =
                 requireNotNull(enteredName.value.takeUnless { it.isEmpty() }) { "Invalid name" }
-            client.savePlaylist(name, ids)
+            client.getPlaylist(scope.playlist).save(name, scope.tracks)
         }.onFailure {
             showToast(ctx.getString(R.string.save_failed, it.message), Toast.LENGTH_LONG)
         }.onSuccess {

@@ -5,7 +5,7 @@ import android.net.Uri
 import app.zxtune.Logger
 import app.zxtune.fs.provider.Schema
 import app.zxtune.fs.provider.VfsProviderClient
-import app.zxtune.playlist.PlaylistQuery
+import app.zxtune.playlist.ProviderClient
 import app.zxtune.utils.ifNotNulls
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,14 +51,14 @@ class DispatcherQueue(private val ctx: Context) : Queue {
 
     override fun release() = currentQueue.release()
 
-    private suspend fun findQueue(uri: Uri): Queue? = if (PlaylistQuery.isPlaylistUri(uri)) {
-        if (null != (currentQueue as? PlaylistQueue)) {
+    private suspend fun findQueue(uri: Uri): Queue? = ProviderClient.findId(uri)?.let { id ->
+        if (id.playlist == (currentQueue as? PlaylistQueue)?.playlist) {
             LOG.d { "Reuse playlist queue" }
             currentQueue
         } else {
-            PlaylistQueue(ctx, loader)
+            PlaylistQueue(ctx, loader, id.playlist)
         }
-    } else {
+    } ?: run {
         var played: Uri? = null
         var parent: Uri? = null
         var dirWithFeed: Uri? = null

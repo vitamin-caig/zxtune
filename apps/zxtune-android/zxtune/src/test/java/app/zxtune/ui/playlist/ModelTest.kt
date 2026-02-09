@@ -4,6 +4,8 @@ import app.zxtune.TestUtils.flushEvents
 import app.zxtune.TestUtils.mockCollectorOf
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
+import app.zxtune.playlist.AggregatingProviderClient
+import app.zxtune.playlist.Playlist
 import app.zxtune.playlist.PlaylistContent
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.playlist.Track
@@ -15,6 +17,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
@@ -34,6 +37,9 @@ private fun assertEquals(ref: State, test: State) {
 class ModelTest {
 
     private val client = mock<ProviderClient>()
+    private val aggregatingClient = mock<AggregatingProviderClient>() {
+        on { getPlaylist(any()) } doReturn client
+    }
 
     private val dispatcher = StandardTestDispatcher()
 
@@ -41,11 +47,12 @@ class ModelTest {
     fun setUp() = reset(client)
 
     @After
-    fun tearDown() = verifyNoMoreInteractions(client)
+    fun tearDown() = verifyNoMoreInteractions(aggregatingClient, client)
 
     @Test
     fun `no state retrieval`() {
-        Model(mock(), client, dispatcher)
+        Model(mock(), aggregatingClient, dispatcher)
+        verify(aggregatingClient).getPlaylist(Playlist.DEFAULT_ID)
         verify(client).observeContent()
     }
 
@@ -65,8 +72,9 @@ class ModelTest {
         client.stub {
             on { observeContent() } doReturn contentFlow
         }
-        val cb = mockCollectorOf(Model(mock(), client, dispatcher).state)
+        val cb = mockCollectorOf(Model(mock(), aggregatingClient, dispatcher).listing)
         inOrder(cb, client) {
+            verify(aggregatingClient).getPlaylist(Playlist.DEFAULT_ID)
             flushEvents()
             verify(client).observeContent()
 

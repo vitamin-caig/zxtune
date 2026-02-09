@@ -25,6 +25,7 @@ import androidx.sqlite.db.SupportSQLiteQuery
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
 import app.zxtune.fs.dbhelpers.DBStatistics
+import app.zxtune.playlist.IO.toPlaylist
 import app.zxtune.playlist.IO.toTrack
 
 class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) {
@@ -40,8 +41,13 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         Playlist.Id(it)
     }
 
-    fun queryPlaylists(visitor: Consumer<Playlist>) = db.playlists().query().onEach {
-        visitor.accept(Playlist(id = it.id, title = it.title))
+    fun queryPlaylists() = db.playlists().query()
+
+    @VisibleForTesting
+    fun queryPlaylists(visitor: Consumer<Playlist>) = queryPlaylists().use { cursor ->
+        while (cursor.moveToNext()) {
+            visitor.accept(cursor.toPlaylist())
+        }
     }
 
     interface PlaylistFacade {
@@ -64,7 +70,7 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         }
     }
 
-    fun getPlaylist(playlist: Playlist.Id = Playlist.DEFAULT_ID) = object : PlaylistFacade {
+    fun getPlaylist(playlist: Playlist.Id) = object : PlaylistFacade {
         override fun exists() =
             playlist == Playlist.DEFAULT_ID || db.playlists().query(playlist) != null
 
@@ -95,11 +101,12 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
     fun queryTracks(tracks: Track.IdSet) = db.tracks().query(tracks.storage)
 
     @VisibleForTesting
-    fun queryTracks(tracks: Track.IdSet, visitor: Consumer<Track>) = queryTracks(tracks).use { cursor ->
-        while (cursor.moveToNext()) {
-            visitor.accept(cursor.toTrack())
+    fun queryTracks(tracks: Track.IdSet, visitor: Consumer<Track>) =
+        queryTracks(tracks).use { cursor ->
+            while (cursor.moveToNext()) {
+                visitor.accept(cursor.toTrack())
+            }
         }
-    }
 
     fun queryStatistics(tracks: Track.IdSet) = db.tracks().queryStatistics(tracks.storage).data
 
@@ -166,7 +173,7 @@ data class StatisticsRecord(@Embedded val data: Track.Statistics)
 @Dao
 abstract class PlaylistDao {
     @Query("SELECT * FROM playlists")
-    abstract fun query(): Array<PlaylistRecord>
+    abstract fun query(): Cursor
 
     @Query("SELECT * FROM playlists WHERE id = :playlist")
     abstract fun query(playlist: Playlist.Id): PlaylistRecord?

@@ -10,8 +10,8 @@ import android.os.Bundle
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import app.zxtune.R
-import app.zxtune.playlist.ProviderClient
 import app.zxtune.playlist.Track
 import app.zxtune.ui.utils.whenLifecycleStarted
 import kotlinx.coroutines.Dispatchers
@@ -20,12 +20,14 @@ import kotlinx.coroutines.withContext
 class PlaylistStatisticsFragment : DialogFragment() {
 
     companion object {
-        fun createInstance(ids: Track.IdSet?): DialogFragment = PlaylistStatisticsFragment().apply {
-            this.ids = ids
-        }
+        fun createInstance(tracks: Track.IdSet?): DialogFragment =
+            PlaylistStatisticsFragment().apply {
+                this.tracks = tracks
+            }
     }
 
-    private var ids by FragmentIdSetProperty
+    private var tracks by FragmentTrackIdSetProperty
+    private val model by activityViewModels<Model>()
     private lateinit var adapter: ArrayAdapter<String>
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -57,6 +59,6 @@ class PlaylistStatisticsFragment : DialogFragment() {
     }
 
     private suspend fun loadStatistics() = withContext(Dispatchers.IO) {
-        ProviderClient.create(requireContext()).statistics(ids)
+        model.controller.statistics(tracks)
     }
 }

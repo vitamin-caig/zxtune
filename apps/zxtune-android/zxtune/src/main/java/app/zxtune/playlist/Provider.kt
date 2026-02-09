@@ -17,9 +17,12 @@ import app.zxtune.Log
 import app.zxtune.MainApplication
 import app.zxtune.playlist.IO.asSorting
 import app.zxtune.playlist.IO.getDelta
+import app.zxtune.playlist.IO.getPlaylistId
 import app.zxtune.playlist.IO.getTrackId
-import app.zxtune.playlist.IO.getTrackIdSet
+import app.zxtune.playlist.IO.getPlaylistOperationScope
+import app.zxtune.playlist.IO.getTrackFullIdentifier
 import app.zxtune.playlist.IO.putDelta
+import app.zxtune.playlist.IO.putPlaylistId
 import app.zxtune.playlist.IO.putTrackId
 import app.zxtune.playlist.IO.toBundle
 import app.zxtune.playlist.IO.toTrackMetadata
@@ -46,9 +49,10 @@ class Provider : ContentProvider() {
         selection: String?,
         selectionArgs: Array<String>?,
         sortOrder: String?
-    ): Cursor = when (uri) {
-        PlaylistQuery.SAVED -> querySavedPlaylists(selection)
-        PlaylistQuery.ALL -> db.getPlaylist().queryTracks().apply {
+    ): Cursor = when (Query.getUriType(uri)) {
+        Query.Type.SAVED -> querySavedPlaylists(selection)
+        Query.Type.LOCAL -> db.queryPlaylists()
+        Query.Type.ITEMS -> db.getPlaylist(Query.getLocalPlaylistId(uri)).queryTracks().apply {
             setNotificationUri(resolver, uri)
         }
 
@@ -68,12 +72,11 @@ class Provider : ContentProvider() {
         }
 
     override fun insert(uri: Uri, values: ContentValues?): Uri? {
-        require(null == PlaylistQuery.idOf(uri)) { "Wrong URI: $uri" }
         requireNotNull(values)
-        val playlist = db.getPlaylist()
-        val result = playlist.addTrack(values.toTrackMetadata())
+        val playlist = Query.getLocalPlaylistId(uri)
+        val track = db.getPlaylist(playlist).addTrack(values.toTrackMetadata())
         //do not notify about change
-        return PlaylistQuery.uriFor(result.value)
+        return Query.itemUri(Track.FullIdentifier(playlist, track))
     }
 
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?) =
@@ -83,40 +86,35 @@ class Provider : ContentProvider() {
         uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?
     ) = TODO("Not implemented")
 
-    override fun call(method: String, arg: String?, extras: Bundle?) = when(method) {
-        METHOD_STATISTICS -> statistics(extras?.getTrackIdSet())
-        METHOD_DELETE -> {
-            delete(extras?.getTrackIdSet())
-            null
+    override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
+        if (extras == null) {
+            return null
         }
+        when (method) {
+            METHOD_STATISTICS -> return statistics(extras.getPlaylistOperationScope())
+            METHOD_DELETE -> delete(extras.getPlaylistOperationScope())
+            METHOD_REORDER -> ifNotNulls(
+                extras.getTrackFullIdentifier(),
+                extras.getDelta(),
+                this::reorder
+            )
 
-        METHOD_REORDER -> {
-            ifNotNulls(extras?.getTrackId(), extras?.getDelta(), this::reorder)
-            null
+            METHOD_SORT -> ifNotNulls(extras.getPlaylistId(), extras.asSorting(), this::sort)
+
+            METHOD_SAVE -> ifNotNulls(arg, extras.getPlaylistOperationScope(), this::save)
         }
-
-        METHOD_SORT -> {
-            extras?.asSorting()?.let {
-                sort(it)
-            }
-            null
-        }
-
-        METHOD_SAVE -> {
-            ifNotNulls(arg, extras?.getTrackIdSet(), this::save)
-            null
-        }
-
-        else -> null
+        return null
     }
 
-    private fun sort(spec: Playlist.Sorting) = db.getPlaylist().sort(spec)
+    private fun sort(playlist: Playlist.Id, spec: Playlist.Sorting) =
+        db.getPlaylist(playlist).sort(spec)
 
-    private fun reorder(track: Track.Id, delta: Int) = db.getPlaylist().reorder(track, delta)
+    private fun reorder(track : Track.FullIdentifier, delta: Int) =
+        db.getPlaylist(track.playlist).reorder(track.track, delta)
 
-    private fun save(name: String, tracks: Track.IdSet?) = (tracks?.let {
+    private fun save(name: String, scope: Playlist.OperationScope) = (scope.tracks?.let {
         db.queryTracks(it)
-    } ?: db.getPlaylist().queryTracks()).use { cursor ->
+    } ?: db.getPlaylist(scope.playlist).queryTracks()).use { cursor ->
         runCatching {
             runBlocking {
                 storage.createPlaylist(name, cursor)
@@ -128,19 +126,19 @@ class Provider : ContentProvider() {
         }.getOrNull()
     }
 
-    private fun statistics(tracks: Track.IdSet?) = (tracks?.let {
+    private fun statistics(scope: Playlist.OperationScope) = (scope.tracks?.let {
         db.queryStatistics(it)
-    } ?: db.getPlaylist().queryStatistics()).toBundle()
+    } ?: db.getPlaylist(scope.playlist).queryStatistics()).toBundle()
 
-    private fun delete(tracks: Track.IdSet?) = with(db.getPlaylist()) {
-        tracks?.let {
-            deleteTracks(it)
-        } ?: delete()
-    }
+    private fun delete(scope: Playlist.OperationScope) =
+        with(db.getPlaylist(scope.playlist)) {
+            // TODO: delete or clear?
+            scope.tracks?.let {
+                deleteTracks(it)
+            } ?: delete()
+        }
 
-    override fun getType(uri: Uri) = runCatching {
-        PlaylistQuery.mimeTypeOf(uri)
-    }.getOrNull()
+    override fun getType(uri: Uri) = Query.getUriType(uri)?.mime
 
     companion object {
         private val TAG: String = Provider::class.java.name
@@ -151,25 +149,27 @@ class Provider : ContentProvider() {
         private const val METHOD_STATISTICS = "statistics"
         private const val METHOD_DELETE = "delete"
 
-        fun sort(resolver: ContentResolver, spec: Playlist.Sorting) = resolver.call(
-            PlaylistQuery.ALL, METHOD_SORT, null, spec.toBundle()
-        )
+        fun sort(resolver: ContentResolver, playlist: Playlist.Id, spec: Playlist.Sorting) =
+            resolver.call(Query.ROOT_URI, METHOD_SORT, null, spec.toBundle().apply {
+                putPlaylistId(playlist)
+            })
 
-        fun reorder(resolver: ContentResolver, track: Track.Id, delta: Int) = resolver.call(
-            PlaylistQuery.ALL, METHOD_REORDER, null, Bundle().apply {
-                putTrackId(track)
+        fun reorder(
+            resolver: ContentResolver, track: Track.FullIdentifier, delta: Int
+        ) = resolver.call(
+            Query.ROOT_URI, METHOD_REORDER, null, track.toBundle().apply {
                 putDelta(delta)
             })
 
-        fun save(resolver: ContentResolver, name: String, tracks: Track.IdSet?) =
-            resolver.call(PlaylistQuery.ALL, METHOD_SAVE, name, tracks?.toBundle())?.run {
+        fun save(resolver: ContentResolver, name: String, scope: Playlist.OperationScope) =
+            resolver.call(Query.ROOT_URI, METHOD_SAVE, name, scope.toBundle())?.run {
                 throw getSerializable("error") as Throwable
             }
 
-        fun statistics(resolver: ContentResolver, tracks: Track.IdSet?) =
-            resolver.call(PlaylistQuery.ALL, METHOD_STATISTICS, null, tracks?.toBundle())
+        fun statistics(resolver: ContentResolver, scope: Playlist.OperationScope) =
+            resolver.call(Query.ROOT_URI, METHOD_STATISTICS, null, scope.toBundle())
 
-        fun delete(resolver: ContentResolver, tracks: Track.IdSet?) =
-            resolver.call(PlaylistQuery.ALL, METHOD_DELETE, null, tracks?.toBundle())
+        fun delete(resolver: ContentResolver, scope: Playlist.OperationScope) =
+            resolver.call(Query.ROOT_URI, METHOD_DELETE, null, scope.toBundle())
     }
 }

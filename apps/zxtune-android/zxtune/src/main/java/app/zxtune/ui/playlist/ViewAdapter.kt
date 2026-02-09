@@ -35,7 +35,7 @@ internal class ViewAdapter(private val client: Client) :
     private lateinit var selection: Selection<IdType>
     private lateinit var touchHelper: CustomTouchHelper
     private var isPlaying = false
-    private var nowPlaying: Track.Id? = null
+    private var nowPlaying: Track.FullIdentifier? = null
     private var nowPlayingPos: Int? = null
 
     fun setSelection(selection: Selection<IdType>) {
@@ -49,12 +49,12 @@ internal class ViewAdapter(private val client: Client) :
         }
     }
 
-    fun setNowPlaying(id: Track.Id?) {
+    fun setNowPlaying(id: Track.FullIdentifier?) {
         if (nowPlaying != null && nowPlaying != id) {
             updateNowPlaying()
         }
         nowPlaying = id
-        nowPlayingPos = id?.let { getPosition(it.value) }
+        nowPlayingPos = id?.let { getPosition(it.track.value) }
         updateNowPlaying()
     }
 

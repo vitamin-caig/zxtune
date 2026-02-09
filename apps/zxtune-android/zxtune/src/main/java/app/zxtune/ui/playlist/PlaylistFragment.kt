@@ -15,6 +15,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.annotation.VisibleForTesting
@@ -61,6 +62,7 @@ class PlaylistFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupMultiplaylist(view.findViewById(R.id.playlist_management))
         val panel = view.findViewById<FrameLayout>(R.id.playlist_top_panel)
         setupToolbarMenu(panel)
         listing = setupListing(
@@ -97,6 +99,21 @@ class PlaylistFragment : Fragment() {
         })
     }
 
+    private fun setupMultiplaylist(selector: TextView) {
+        viewLifecycleOwner.whenLifecycleStarted {
+            launch {
+                model.playlist.collect { playlist ->
+                    selector.text = playlist.title
+                }
+            }
+        }
+        selector.setOnClickListener {
+            selectPlaylist("Switch to playlist") { selected ->
+                model.currentPlaylist = selected
+            }
+        }
+    }
+
     private fun setupListing(panel: FrameLayout, listing: RecyclerView, stub: View) =
         listing.apply {
             setHasFixedSize(true)
@@ -119,7 +136,7 @@ class PlaylistFragment : Fragment() {
                 }
             viewLifecycleOwner.whenLifecycleStarted {
                 launch {
-                    model.state.collect { state ->
+                    model.listing.collect { state ->
                         adapter.submitList(state.entries) {
                             if (0 == adapter.itemCount) {
                                 visibility = View.GONE
@@ -140,7 +157,7 @@ class PlaylistFragment : Fragment() {
                     mediaModel.metadata.collect { metadata ->
                         metadata?.description?.mediaId?.let {
                             val uri = it.toUri()
-                            adapter.setNowPlaying(ProviderClient.findId(uri)?.let(Track::Id))
+                            adapter.setNowPlaying(ProviderClient.findId(uri))
                         }
                     }
                 }
@@ -187,7 +204,7 @@ class PlaylistFragment : Fragment() {
     }
 
     private fun onItemClick(id: IdType) = mediaController?.transportControls?.playFromUri(
-        ProviderClient.createUri(id), null
+        ProviderClient.createUri(Track.FullIdentifier(model.currentPlaylist.id, Track.Id(id))), null
     ) ?: Unit
 
     // ArchivesService for selection
@@ -225,6 +242,13 @@ class PlaylistFragment : Fragment() {
         return true
     }
 
+    private fun selectPlaylist(title: String, onSelect: (Playlist) -> Unit) {
+        val items = model.allPlaylists
+        AlertDialog.Builder(requireContext()).setTitle(title).setItems(
+            items.map(Playlist::title).toTypedArray()
+        ) { _, which -> onSelect(items[which]) }.show()
+    }
+
     // TODO: think about using DialogFragment - complicated lambda passing
     private fun deletionAlert(@StringRes message: Int, action: () -> Unit) =
         AlertDialog.Builder(requireContext()).setTitle(message)
@@ -237,7 +261,7 @@ class PlaylistFragment : Fragment() {
             VfsProviderClient(requireContext()).getNotification("playlists:/".toUri())?.action
         val fragment = persistentStorageSetupAction?.let {
             PersistentStorageSetupFragment.createInstance(it)
-        } ?: PlaylistSaveFragment.createInstance(tracks)
+        } ?: PlaylistSaveFragment.createInstance(model.scopeFor(tracks))
         fragment.show(parentFragmentManager, "save")
     }
 

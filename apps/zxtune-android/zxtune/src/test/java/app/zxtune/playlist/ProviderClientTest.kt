@@ -34,6 +34,7 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class ProviderClientTest {
 
+    private val playlist = Playlist.DEFAULT_ID
     private val dispatcher = StandardTestDispatcher()
     private val resolver = mock<ContentResolver>()
 
@@ -57,7 +58,8 @@ class ProviderClientTest {
             } doReturn mock()
         }
         launch(SupervisorJob()) {
-            ProviderClient(resolver, dispatcher).observeContent().collectIndexed { index, _ ->
+            ProviderClient(resolver, playlist,dispatcher).observeContent().collectIndexed {
+                index, _ ->
                 if (index == 9) {
                     cancel()
                 } else {
@@ -66,10 +68,11 @@ class ProviderClientTest {
             }
         }.join()
 
+        val uri = Query.localPlaylistUri(playlist)
         inOrder(resolver) {
-            verify(resolver).registerContentObserver(PlaylistQuery.ALL, true, observer)
+            verify(resolver).registerContentObserver(uri, true, observer)
             verify(resolver, times(10)).query(
-                eq(PlaylistQuery.ALL), eq(null), eq(null), eq(null), eq(null), any()
+                eq(uri), eq(null), eq(null), eq(null), eq(null), any()
             )
             verify(resolver).unregisterContentObserver(observer)
         }
@@ -92,7 +95,7 @@ class ProviderClientTest {
                 content
             }
         }
-        requireNotNull(ProviderClient(resolver, dispatcher).queryContent()).run {
+        requireNotNull(ProviderClient(resolver, playlist, dispatcher).queryContent()).run {
             assertEquals(1, size)
             get(0).run {
                 assertEquals(Track.Id(123), id)
@@ -104,7 +107,7 @@ class ProviderClientTest {
                 assertEquals(TimeStamp.fromMilliseconds(123456), meta.duration)
             }
         }
-        verify(resolver).query(PlaylistQuery.ALL, null, null, null, null, signal)
+        verify(resolver).query(Query.localPlaylistUri(playlist), null, null, null, null, signal)
     }
 
     //TODO: add another tests

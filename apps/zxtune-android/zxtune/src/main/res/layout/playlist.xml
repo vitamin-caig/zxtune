@@ -6,10 +6,21 @@
         android:layout_height="match_parent"
         tools:ignore="RtlHardcoded">
 
+    <TextView
+            style="@style/Button.Breadcrumbs"
+            android:layout_margin="@dimen/spacing_full"
+            android:id="@+id/playlist_management"
+            android:layout_alignBottom="@id/playlist_top_panel"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:textAllCaps="false"
+            tools:text="Default playlist"  />
+
     <FrameLayout
             android:id="@+id/playlist_top_panel"
-            android:layout_height="wrap_content"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/playlist_management"
             android:layout_alignParentTop="true">
 
         <androidx.appcompat.widget.Toolbar

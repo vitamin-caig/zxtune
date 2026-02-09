@@ -48,7 +48,7 @@ class PlaylistFragmentTest {
         val testPlaybackState = MutableStateFlow<PlaybackStateCompat?>(null)
         val testMetadata = MutableStateFlow<MediaMetadataCompat?>(null)
         val modelConstruction = construct<Model> {
-            on { state } doReturn testStateFlow
+            on { listing } doReturn testStateFlow
             on { filter } doReturn ""
         }
         val mediaModelConstruction = construct<MediaModel> {
@@ -61,7 +61,7 @@ class PlaylistFragmentTest {
                     flushEvents()
                     val model = modelConstruction.constructedInstance
                     val mediaModel = mediaModelConstruction.constructedInstance
-                    verify(model).state
+                    verify(model).listing
                     verify(mediaModel).playbackState
                     verify(mediaModel).metadata
                     verify(model).filter
@@ -87,7 +87,7 @@ class PlaylistFragmentTest {
         val testPlaybackState = MutableStateFlow<PlaybackStateCompat?>(null)
         val testMetadata = MutableStateFlow<MediaMetadataCompat?>(null)
         val modelConstruction = construct<Model> {
-            on { state } doReturn testStateFlow
+            on { listing } doReturn testStateFlow
             on { filter } doReturn ""
         }
         val mediaModelConstruction = construct<MediaModel> {
@@ -128,7 +128,7 @@ class PlaylistFragmentTest {
         val testPlaybackState = MutableStateFlow<PlaybackStateCompat?>(null)
         val testMetadata = MutableStateFlow<MediaMetadataCompat?>(null)
         val modelConstruction = construct<Model> {
-            on { state } doReturn testStateFlow
+            on { listing } doReturn testStateFlow
             on { filter } doReturn testStateFlow.value.filter
             on { filter = any() } doAnswer {
                 testStateFlow.value = testStateFlow.value.withFilter(it.getArgument(0))
