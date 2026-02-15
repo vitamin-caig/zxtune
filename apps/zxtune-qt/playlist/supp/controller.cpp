@@ -177,7 +177,8 @@ namespace
         }
       }
       const bool isRandom = Playlist::Item::RANDOMIZED == (playorderMode & Playlist::Item::RANDOMIZED);
-      const unsigned mappedIndex = isRandom ? Randomized(newIndex, itemsCount) : newIndex;
+      //const unsigned mappedIndex = isRandom ? Randomized(newIndex, itemsCount) : newIndex;
+      const unsigned mappedIndex = newIndex;
       return SelectItem(mappedIndex);
     }
 
