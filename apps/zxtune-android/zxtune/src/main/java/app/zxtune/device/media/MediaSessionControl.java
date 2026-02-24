@@ -18,8 +18,8 @@ import androidx.media.session.MediaButtonReceiver;
 
 import app.zxtune.MainActivity;
 import app.zxtune.Releaseable;
+import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.Visualizer;
-import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.rpc.ParcelableBinder;
 import app.zxtune.rpc.VisualizerProxy;
 
@@ -30,7 +30,7 @@ public class MediaSessionControl implements Releaseable {
   private final MediaSessionCompat session;
   private final Releaseable callback;
 
-  private MediaSessionControl(Context ctx, PlaybackServiceLocal svc) {
+  private MediaSessionControl(Context ctx, PlaybackService svc) {
     final ComponentName mbrComponent = new ComponentName(ctx, MediaButtonReceiver.class);
     session = new MediaSessionCompat(ctx, TAG, mbrComponent, null);
     session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
@@ -43,7 +43,7 @@ public class MediaSessionControl implements Releaseable {
     session.setExtras(createExtras(svc));
   }
 
-  private static Bundle createExtras(PlaybackServiceLocal svc) {
+  private static Bundle createExtras(PlaybackService svc) {
     final Bundle extras = new Bundle();
     if (Build.VERSION.SDK_INT >= 18) {
       extras.putBinder(Visualizer.class.getName(), VisualizerProxy.getServer(svc.getVisualizer()));
@@ -53,7 +53,7 @@ public class MediaSessionControl implements Releaseable {
     return extras;
   }
 
-  public static MediaSessionControl subscribe(Context context, PlaybackServiceLocal svc) {
+  public static MediaSessionControl subscribe(Context context, PlaybackService svc) {
     return new MediaSessionControl(context, svc);
   }
 

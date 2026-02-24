@@ -24,7 +24,7 @@ interface SamplesSource {
      * @param buf result buffer of 16-bit signed interleaved stereo signal
      * @return true if buffer filled, else reset position to initial
      */
-    fun getSamples(buf: ShortArray): Boolean
+    suspend fun getSamples(buf: ShortArray): Boolean
 
     /**
      * Current playback position
