@@ -15,8 +15,7 @@ import app.zxtune.device.media.MediaSessionControl
 import app.zxtune.device.media.NoisyAudioConnection
 import app.zxtune.device.ui.StatusNotification
 import app.zxtune.device.ui.WidgetHandler
-import app.zxtune.playback.service.PlaybackServiceLocal
-import app.zxtune.preferences.Preferences
+import app.zxtune.playback.PlaybackService
 import app.zxtune.preferences.Preferences.getDefaultSharedPreferences
 import app.zxtune.preferences.SharedPreferencesBridge.subscribe
 import kotlinx.coroutines.CoroutineScope
@@ -80,7 +79,7 @@ class MainService : MediaBrowserServiceCompat() {
     ) {
 
         private val resources = ArrayList<Releaseable>()
-        private val service: PlaybackServiceLocal
+        private val service: PlaybackService
         val session: MediaSessionCompat
 
         init {
@@ -89,7 +88,7 @@ class MainService : MediaBrowserServiceCompat() {
             val ctx = svc.applicationContext
             loadJni(ctx)
             trace.checkpoint("jni")
-            PlaybackServiceLocal(ctx, Preferences.getDataStore(ctx)).apply {
+            PlaybackService.create(ctx).apply {
                 service = this
                 addResource(this)
             }

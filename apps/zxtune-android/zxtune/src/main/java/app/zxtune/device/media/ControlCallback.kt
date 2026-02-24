@@ -13,14 +13,14 @@ import app.zxtune.ScanService
 import app.zxtune.TimeStamp.Companion.fromMilliseconds
 import app.zxtune.core.PropertiesAccessor
 import app.zxtune.core.PropertiesModifier
-import app.zxtune.playback.service.PlaybackServiceLocal
+import app.zxtune.playback.PlaybackService
 import app.zxtune.playback.stubs.PlayableItemStub
 import app.zxtune.preferences.RawPropertiesAdapter
 import app.zxtune.utils.ifNotNulls
 
 internal class ControlCallback(
     private val ctx: Context,
-    private val svc: PlaybackServiceLocal,
+    private val svc: PlaybackService,
     private val session: MediaSessionCompat,
 ) : MediaSessionCompat.Callback() {
     private val ctrl

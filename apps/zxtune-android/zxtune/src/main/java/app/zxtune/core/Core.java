@@ -25,7 +25,8 @@ import kotlin.Pair;
 public class Core {
   private static final String TAG = Core.class.getName();
 
-  static Module loadModule(VfsFile file, String subpath) throws IOException, ResolvingException {
+  public static Module loadModule(VfsFile file, String subpath) throws IOException,
+      ResolvingException {
     final Module result = loadModule(file, subpath, null);
     // TODO: move to another layer
     CoverartService.get().addEmbedded(new Identifier(file.getUri(), subpath), result);
