@@ -22,7 +22,6 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import app.zxtune.Features;
-import app.zxtune.MainApplication;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.cache.CacheFactory;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
@@ -40,8 +39,7 @@ public final class Vfs {
   private final CacheDir cache;
   private final VfsRoot root;
 
-  private Vfs() {
-    final Context appContext = MainApplication.getGlobalContext();
+  Vfs(Context appContext) {
     final HttpProvider http = HttpProviderFactory.createProvider(appContext);
     network = new MultisourceHttpProvider(http);
     cache = CacheFactory.create(appContext);
@@ -49,16 +47,20 @@ public final class Vfs {
   }
 
   public static VfsDir getRoot() {
-    return Holder.INSTANCE.root;
+    return instance().root;
   }
 
   public static VfsObject resolve(Uri uri) throws IOException {
-    final VfsObject res = Holder.INSTANCE.root.resolve(uri);
+    final VfsObject res = instance().root.resolve(uri);
     if (res != null) {
       return res;
     } else {
       throw new IOException("Failed to resolve " + uri);
     }
+  }
+
+  private static Vfs instance() {
+    return Loader.getVfs();
   }
 
   @SuppressWarnings("unchecked")
@@ -78,9 +80,9 @@ public final class Vfs {
     if (file.getExtension(VfsExtensions.CACHE_PATH) == null) {
       final Object uris = file.getExtension(VfsExtensions.DOWNLOAD_URIS);
       if (uris instanceof Uri[]) {
-        return new BufferedInputStream(Holder.INSTANCE.network.getInputStream((Uri[]) uris));
+        return new BufferedInputStream(instance().network.getInputStream((Uri[]) uris));
       } else if (uris instanceof Iterator) {
-        return new BufferedInputStream(Holder.INSTANCE.network.getInputStream((Iterator<Uri>) uris));
+        return new BufferedInputStream(instance().network.getInputStream((Iterator<Uri>) uris));
       }
     }
     return Io.createByteBufferInputStream(download(file, null));
@@ -119,9 +121,9 @@ public final class Vfs {
       public HttpObject getRemote() throws IOException {
         final Object uris = file.getExtension(VfsExtensions.DOWNLOAD_URIS);
         if (uris instanceof Uri[]) {
-          return Holder.INSTANCE.network.getObject((Uri[]) uris);
+          return instance().network.getObject((Uri[]) uris);
         } else if (uris instanceof Iterator) {
-          return Holder.INSTANCE.network.getObject((Iterator<Uri>) uris);
+          return instance().network.getObject((Iterator<Uri>) uris);
         }
         throw new IOException("Failed to get download uris for " + uri);
       }
@@ -139,7 +141,7 @@ public final class Vfs {
       return null;
     }
     final String compatId = getCacheCompatId(id);
-    return Holder.INSTANCE.cache.find(id + "/" + path, compatId + "/" + path);
+    return instance().cache.find(id + "/" + path, compatId + "/" + path);
   }
 
   private static String getCacheCompatId(String id) {
@@ -175,10 +177,5 @@ public final class Vfs {
     composite.addSubroot(new VfsRootPlaylists(appContext));
     composite.addSubroot(new VfsRootRadio(appContext));
     return composite;
-  }
-
-  //onDemand holder idiom
-  private static class Holder {
-    static final Vfs INSTANCE = new Vfs();
   }
 }
