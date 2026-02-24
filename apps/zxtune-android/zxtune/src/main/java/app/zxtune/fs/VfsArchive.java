@@ -6,6 +6,7 @@
 
 package app.zxtune.fs;
 
+import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
 
@@ -36,8 +37,12 @@ public final class VfsArchive {
 
   private final ArchivesService service;
 
-  private VfsArchive() {
-    this.service = new ArchivesService(MainApplication.getGlobalContext());
+  VfsArchive(Context appContext) {
+    this.service = new ArchivesService(appContext);
+  }
+
+  private static VfsArchive instance() {
+    return Loader.getArchive();
   }
 
   public static Integer[] getModulesCount(Uri[] uris) {
@@ -55,7 +60,7 @@ public final class VfsArchive {
         query.add(uri);
       }
     }
-    for (Archive arch : Holder.INSTANCE.service.findArchives(query)) {
+    for (Archive arch : instance().service.findArchives(query)) {
       final Integer pos = positions.get(arch.path);
       if (pos != null) {
         result[pos] = arch.modules;
@@ -77,7 +82,7 @@ public final class VfsArchive {
     if (file instanceof ArchiveFile) {
       return file;
     }
-    return Holder.INSTANCE.browseCachedFile(file);
+    return instance().browseCachedFile(file);
   }
 
   @Nullable
@@ -107,7 +112,7 @@ public final class VfsArchive {
    */
   @Nullable
   public static VfsObject browse(VfsFile file) {
-    return Holder.INSTANCE.browseFile(file, StubProgressCallback.instance());
+    return instance().browseFile(file, StubProgressCallback.instance());
   }
 
   @Nullable
@@ -127,12 +132,12 @@ public final class VfsArchive {
 
   @Nullable
   public static VfsObject resolve(Uri uri) throws IOException {
-    return Holder.INSTANCE.resolveUri(uri, null);
+    return instance().resolveUri(uri, null);
   }
 
   @Nullable
   public static VfsObject resolveForced(Uri uri, ProgressCallback cb) throws IOException {
-    return Holder.INSTANCE.resolveUri(uri, cb);
+    return instance().resolveUri(uri, cb);
   }
 
   // TODO: clarify forced == cb != 0 semantic
@@ -313,9 +318,5 @@ public final class VfsArchive {
 
   static boolean checkIfArchive(VfsDir dir) {
     return dir instanceof ArchiveRoot || dir instanceof ArchiveDir;
-  }
-
-  private static class Holder {
-    public static final VfsArchive INSTANCE = new VfsArchive();
   }
 }
