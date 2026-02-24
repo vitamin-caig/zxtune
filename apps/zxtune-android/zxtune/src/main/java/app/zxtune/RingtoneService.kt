@@ -23,8 +23,8 @@ import app.zxtune.analytics.Analytics
 import app.zxtune.core.Module
 import app.zxtune.core.Properties
 import app.zxtune.device.ui.Notifications
-import app.zxtune.playback.FileIterator
 import app.zxtune.playback.PlayableItem
+import app.zxtune.playback.service.Loader
 import app.zxtune.sound.SamplesSource
 import app.zxtune.sound.WaveWriteSamplesTarget
 import kotlinx.coroutines.Dispatchers
@@ -63,9 +63,7 @@ class RingtoneService : LifecycleService() {
         makeToast(it)
     }
 
-    private suspend fun load(uri: Uri) = withContext(Dispatchers.IO) {
-        FileIterator.create(applicationContext, uri).item
-    }
+    private suspend fun load(uri: Uri) = Loader().load(uri)
 
     private suspend fun getTargetLocation(moduleId: Long, seconds: Int) =
         withContext(Dispatchers.IO) {

@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.session.PlaybackStateCompat.RepeatMode
 import android.support.v4.media.session.PlaybackStateCompat.ShuffleMode
 import app.zxtune.Logger
@@ -13,14 +14,13 @@ import app.zxtune.ScanService
 import app.zxtune.TimeStamp.Companion.fromMilliseconds
 import app.zxtune.core.PropertiesAccessor
 import app.zxtune.core.PropertiesModifier
-import app.zxtune.playback.service.PlaybackServiceLocal
-import app.zxtune.playback.stubs.PlayableItemStub
+import app.zxtune.playback.PlaybackService
 import app.zxtune.preferences.RawPropertiesAdapter
 import app.zxtune.utils.ifNotNulls
 
 internal class ControlCallback(
     private val ctx: Context,
-    private val svc: PlaybackServiceLocal,
+    private val svc: PlaybackService,
     private val session: MediaSessionCompat,
 ) : MediaSessionCompat.Callback() {
     private val ctrl
@@ -28,7 +28,9 @@ internal class ControlCallback(
     private val seek
         get() = svc.seekControl
 
-    override fun onPlay() = ctrl.play()
+    override fun onPlay() {
+        ctrl.play()
+    }
 
     override fun onPause() = onStop()
 
@@ -74,19 +76,19 @@ internal class ControlCallback(
             else -> Unit
         }
 
-    private fun addCurrent() = svc.nowPlaying.takeIf { it !== PlayableItemStub.instance() }?.let {
+    private fun addCurrent() = svc.nowPlaying.value?.let {
         ScanService.add(ctx, it)
     } ?: Unit
 
-    override fun onSetShuffleMode(@ShuffleMode mode: Int) = fromShuffleMode(mode)?.let {
-        ctrl.sequenceMode = it
+    override fun onSetShuffleMode(@ShuffleMode mode: Int) {
+        ctrl.shuffledOrder = mode == PlaybackStateCompat.SHUFFLE_MODE_ALL
         session.setShuffleMode(mode)
-    } ?: Unit
+    }
 
-    override fun onSetRepeatMode(@RepeatMode mode: Int) = fromRepeatMode(mode)?.let {
-        ctrl.trackMode = it
+    override fun onSetRepeatMode(@RepeatMode mode: Int) {
+        ctrl.trackLooped = mode == PlaybackStateCompat.REPEAT_MODE_ONE
         session.setRepeatMode(mode)
-    } ?: Unit
+    }
 
     override fun onPlayFromUri(uri: Uri, extras: Bundle?) = svc.setNowPlaying(uri)
 

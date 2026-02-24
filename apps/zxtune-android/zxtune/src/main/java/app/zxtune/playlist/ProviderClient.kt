@@ -39,14 +39,15 @@ class ProviderClient @VisibleForTesting constructor(
 
     fun notifyChanges() = resolver.notifyChange(PlaylistQuery.ALL, null)
 
-    @OptIn(FlowPreview::class)
-    fun observeContent() = resolver.observeChanges(PlaylistQuery.ALL).debounce(1000).transform {
+    fun observeContent() = observeChanges().transform {
         queryContent()?.let {
             emit(it)
         }
     }
 
-    @VisibleForTesting
+    @OptIn(FlowPreview::class)
+    fun observeChanges() = resolver.observeChanges(PlaylistQuery.ALL).debounce(1000)
+
     suspend fun queryContent() = resolver.query(PlaylistQuery.ALL) { cursor ->
         PlaylistContent(cursor.count).apply {
             while (cursor.moveToNext()) {
