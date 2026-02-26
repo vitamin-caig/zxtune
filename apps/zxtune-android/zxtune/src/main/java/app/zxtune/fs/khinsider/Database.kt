@@ -53,7 +53,7 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
     fun addAlbum(album: AlbumAndDetails) = db.catalog().add(AlbumRecord(album))
 
     fun queryAlbums(scope: Scope.Id, visitor: Consumer<AlbumAndDetails>) = with(db.catalog()) {
-        queryAlbums(scope).onEach { visitor.accept(it.toDetails(this)) }.isNotEmpty()
+        queryAlbums(scope).onEach { it.toDetails(this)?.let { d -> visitor.accept(d) } }.isNotEmpty()
     }
 
     fun queryRandomAlbum() = with(db.catalog()) {
