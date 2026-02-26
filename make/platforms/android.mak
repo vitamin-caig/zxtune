@@ -11,9 +11,9 @@ ifeq ($(arch),)
 $(error Architecture is not defined)
 endif
 
-android.target.x86 = i686-linux-android16
+android.target.x86 = i686-linux-android19
 android.target.x86_64 = x86_64-linux-android21
-android.target.armeabi-v7a = armv7a-linux-androideabi16 -mthumb
+android.target.armeabi-v7a = armv7a-linux-androideabi19 -mthumb
 android.target.arm64-v8a = aarch64-linux-android21
 
 host=linux
@@ -34,7 +34,7 @@ endif
 
 # Do not change target level for compilation - no significant result but bloats compiler cache
 # TODO: use intcmp function after make 4.4+ available
-ifeq ($(android.minsdk),16)
+ifeq ($(android.minsdk),19)
 # Default safe value
 else ifeq ($(android.minsdk),23)
 android.ld.flags += -Wl,--pack-dyn-relocs=android

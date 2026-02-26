@@ -28,7 +28,7 @@ ext {
     localProperties = loadLocalProperties()
 
     aabStores = ['google', 'rustore']
-    minSdks = [16, 28]
+    minSdks = [19, 28]
 }
 
 def aliasPassword(alias) {
