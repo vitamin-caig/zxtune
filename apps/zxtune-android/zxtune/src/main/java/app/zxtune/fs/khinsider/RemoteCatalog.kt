@@ -144,7 +144,7 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
     }.build().let {
         LOG.d { "Load page $it" }
         // TODO: Proxy?
-        val input = if (scope === RANDOM_ALBUM)
+        val input = if (scope == RANDOM_ALBUM)
         // https -> http -> http redirects require manual resolving
             http.getObject(arrayOf(it)).input
         else http.getInputStream(it)

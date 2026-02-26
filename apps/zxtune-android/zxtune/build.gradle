@@ -15,10 +15,11 @@ android {
         //supported densities for vector drawables rasterization
         vectorDrawables.generatedDensities  "mdpi", "hdpi", "xhdpi", "xxhdpi"
 
-        // Disable till http://github.com/google/ksp/issues/861 resolved to avoid parallel builds conflict
-        /*ksp {
-            arg('room.schemaLocation', "${project.buildDir}/schemas")
-        }*/
+        ksp {
+            // Disable till http://github.com/google/ksp/issues/861 resolved to avoid parallel builds conflict
+            // arg('room.schemaLocation', "${project.buildDir}/schemas")
+            arg('room.generateKotlin', 'true')
+        }
     }
 
     buildFeatures {

@@ -19,10 +19,12 @@ data class Pack(
         }
     }
 
-    data class Id(val value: String)
+    @JvmInline
+    value class Id(val value: String)
 }
 
-data class FilePath(val value: String) {
+@JvmInline
+value class FilePath(val value: String) {
     init {
         require(value.isNotEmpty() && '/' != value.first())
     }
