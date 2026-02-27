@@ -23,7 +23,6 @@ import app.zxtune.playback.Visualizer
 import app.zxtune.playback.stubs.PlayableItemStub
 import app.zxtune.preferences.DataStore
 import app.zxtune.sound.Player
-import app.zxtune.sound.PlayerEventsListener
 import app.zxtune.sound.SamplesSource
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -43,14 +42,7 @@ class PlaybackServiceImpl(context: Context, private val prefs: DataStore) : Play
     private val callbacks = CompositeCallback().apply {
         onInitialState(PlaybackControl.State.STOPPED)
     }
-    private val events: PlayerEventsListener = object : PlayerEventsListener {
-        override fun onStart() = onStateChanged(PlaybackControl.State.PLAYING)
-        override fun onSeeking() = onStateChanged(PlaybackControl.State.SEEKING)
-        override fun onFinish() = Unit
-        override fun onStop() = onStateChanged(PlaybackControl.State.STOPPED)
-        override fun onError(e: Exception) = LOG.w(e) { "Error occurred" }
-    }
-    private val player = Player.create(SoundOutputSamplesTarget.create(context), events)
+    private val player = Player.create(SoundOutputSamplesTarget.create(context))
     private val _current = AtomicReference<Holder?>(null)
     private val current
         get() = _current.load()
@@ -67,6 +59,30 @@ class PlaybackServiceImpl(context: Context, private val prefs: DataStore) : Play
         async("Collect queue stream") {
             queue.items.collect { items ->
                 player.setSource(CompositeSource(items))
+            }
+        }
+        async("Translate state") {
+            player.stateFlow.collect { state ->
+                when (state) {
+                    is Player.State.Started -> onStateChanged(
+                        PlaybackControl.State.PLAYING, state.position
+                    )
+
+                    is Player.State.Stopped -> onStateChanged(
+                        PlaybackControl.State.STOPPED, state.position
+                    )
+
+                    is Player.State.Seeking -> onStateChanged(
+                        PlaybackControl.State.SEEKING, state.position
+                    )
+
+                    else -> Unit
+                }
+            }
+        }
+        async("Log errors") {
+            player.errorsFlow.collect {
+                LOG.w(it) { "Error occurred" }
             }
         }
         callbacks.add(object : Callback {
@@ -229,8 +245,8 @@ class PlaybackServiceImpl(context: Context, private val prefs: DataStore) : Play
         }
     }
 
-    private fun onStateChanged(state: PlaybackControl.State) =
-        callbacks.onStateChanged(state, player.position)
+    private fun onStateChanged(state: PlaybackControl.State, position: TimeStamp) =
+        callbacks.onStateChanged(state, position)
 
     companion object {
         private val LOG = Logger("PlaybackService")

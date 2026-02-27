@@ -18,22 +18,28 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
-import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalAtomicApi::class)
 class Player @VisibleForTesting constructor(
     private val target: SamplesTarget,
-    private val events: PlayerEventsListener,
     private val renderDispatcher: CoroutineDispatcher,
     private val playDispatcher: CoroutineDispatcher,
 ) : Releaseable {
@@ -41,27 +47,39 @@ class Player @VisibleForTesting constructor(
         LOG.w(err) {
             "Exception in ${ctx[CoroutineName]}"
         }
-        ((err.cause ?: err) as? Exception)?.let { events.onError(it) }
+        ((err.cause ?: err) as? Exception)?.let { errors.tryEmit(it) }
     }
     private val scope = CoroutineScope(errorHandler)
     private val source = MutableStateFlow<SamplesSource>(StubSamplesSource)
     private val queue = Buffering(target.preferableBufferSize)
-    private val seekRequest = AtomicReference<TimeStamp>(null)
-    private val playbackPosition = AtomicReference(TimeStamp.EMPTY)
+    private val seekRequest = AtomicReference<TimeStamp?>(null)
+    private val playbackPosition = AtomicReference<TimeStamp?>(null)
+
+    // Do not conflate similar states
+    private val state = MutableSharedFlow<State>(
+        replay = 1, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_LATEST
+    )
+    private val errors = MutableSharedFlow<Exception>(
+        replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_LATEST
+    )
     private var job: Job? = null
 
     val sampleRate
         get() = target.sampleRate
 
     var position: TimeStamp
-        get() = seekRequest.get() ?: playbackPosition.get()
+        get() = seekRequest.load() ?: playbackPosition.load() ?: TimeStamp.EMPTY
         set(value) {
-            seekRequest.set(value)
+            seekRequest.store(value)
         }
 
     fun setSource(src: SamplesSource) {
-        seekRequest.set(null)
-        source.value = src
+        seekRequest.store(null)
+        if (source.getAndUpdate { src } == StubSamplesSource) {
+            runCatching {
+                state.tryEmit(State.Stopped(src.position))
+            }.onFailure { (it as? Exception)?.let(errors::tryEmit) }
+        }
     }
 
     fun startPlayback() {
@@ -76,6 +94,19 @@ class Player @VisibleForTesting constructor(
 
     val isStarted
         get() = true == job?.isActive
+
+    sealed interface State {
+        data class Stopped(val position: TimeStamp = TimeStamp.EMPTY) : State
+        data class Seeking(val position: TimeStamp = TimeStamp.EMPTY) : State
+        data class Started(val position: TimeStamp = TimeStamp.EMPTY) : State
+        data class Finished(val position: TimeStamp = TimeStamp.EMPTY) : State
+    }
+
+    val stateFlow: Flow<State>
+        get() = state.asSharedFlow()
+
+    val errorsFlow: Flow<Exception>
+        get() = errors.asSharedFlow()
 
     override fun release() {
         scope.cancel()
@@ -93,65 +124,54 @@ class Player @VisibleForTesting constructor(
         launch(CoroutineName("RenderSound") + renderDispatcher) {
             source.collectLatest { src ->
                 LOG.d { "Start playback of $src" }
-                events.onStart()
-                var lastPosition: TimeStamp? = null
                 while (isActive) {
-                    if (maybeSeek(src)) {
-                        lastPosition = null
-                    }
-                    queue.produce(src)?.let {
-                        if (lastPosition != null && it <= lastPosition) {
-                            LOG.d { "Loop after $lastPosition" }
-                            events.onStart()
+                    maybeSeek(src)
+                    if (!queue.produce(src)) {
+                        playbackPosition.load()?.let {
+                            LOG.d { "Finished playback at $it" }
+                            state.emit(State.Finished(it))
                         }
-                        lastPosition = it
-                        yield() // for collectLatest cancellation
-                        continue
+                        break
                     }
-                    LOG.d { "Finished playback" }
-                    events.onFinish()
-                    break
                 }
                 // Wait for the next source
                 delay(5.seconds)
                 stopPlayback()
             }
-        }.apply {
-            invokeOnCompletion {
-                LOG.d { "Stopped playback ($it)" }
-                events.onStop()
-            }
         }
         launch(CoroutineName("PlaySound") + playDispatcher) {
             target.start()
+            var newStart = true
             while (isActive) {
                 queue.consume { buf ->
-                    playbackPosition.set(buf.position)
+                    val prev = playbackPosition.exchange(buf.position) ?: TimeStamp.EMPTY
+                    if (newStart || prev >= buf.position) {
+                        state.emit(State.Started(buf.position))
+                        newStart = false
+                    }
                     target.writeSamples(buf.sound)
                 }
             }
         }.invokeOnCompletion {
+            playbackPosition.load()?.let {
+                LOG.d { "Stopped playback at $it" }
+                state.tryEmit(State.Stopped(it))
+            }
             target.stop()
         }
     }
 
-    private suspend fun maybeSeek(src: SamplesSource): Boolean {
-        if (seekRequest.get() != null) {
-            events.onSeeking()
-            while (true) {
-                val newPos = seekRequest.get()
-                src.position = newPos
-                if (seekRequest.compareAndSet(newPos, null)) {
-                    // Mock new position till real playback happens
-                    playbackPosition.set(newPos)
-                    break
-                }
-                yield()
+    private suspend fun maybeSeek(src: SamplesSource) {
+        while (true) {
+            yield() // interruption point
+            val newPos = seekRequest.load() ?: break
+            state.emit(State.Seeking(newPos))
+            src.position = newPos
+            if (seekRequest.compareAndSet(newPos, null)) {
+                playbackPosition.store(newPos)
+                break
             }
-            events.onStart()
-            return true
         }
-        return false
     }
 
     private class Chunk(var position: TimeStamp, val sound: ShortArray, var owner: Any?) {
@@ -181,21 +201,20 @@ class Player @VisibleForTesting constructor(
         private var producing = Chunk(bufferSize)
         private var consuming = Chunk(bufferSize)
 
-        // @return timestamp for successfully produced chunk
         suspend fun produce(src: SamplesSource) = producing.run {
             if (isFrom(src) || fill(src)) { // may throw in rare cases
                 check(isFrom(src))
                 producing = swap(this, ready, free)
-                position
+                true
             } else {
-                null
+                false
             }
         }
 
-        suspend fun consume(block: (Chunk) -> Unit) = consuming.run {
+        suspend fun consume(block: suspend (Chunk) -> Unit) = consuming.run {
             if (!isFree) {
-                release()
                 block(this)
+                release()
             }
             consuming = swap(this, free, ready)
         }
@@ -220,8 +239,6 @@ class Player @VisibleForTesting constructor(
     companion object {
         private val LOG = Logger(Player::class.java.name)
 
-        @JvmStatic
-        fun create(target: SamplesTarget, events: PlayerEventsListener) =
-            Player(target, events, Dispatchers.Default, Dispatchers.IO)
+        fun create(target: SamplesTarget) = Player(target, Dispatchers.Default, Dispatchers.IO)
     }
 }
