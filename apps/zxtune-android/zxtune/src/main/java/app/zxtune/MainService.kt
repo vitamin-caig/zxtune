@@ -97,8 +97,6 @@ class MainService : MediaBrowserServiceCompat() {
             addResource(StatusNotification.connect(svc, session))
             addResource(WidgetHandler.connect(ctx, session))
             trace.checkpoint("cbs")
-            service.restoreSession()
-            trace.checkpoint("session")
             trace.endMethod()
         }
 

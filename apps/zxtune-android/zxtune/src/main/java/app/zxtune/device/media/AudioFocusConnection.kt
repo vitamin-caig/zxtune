@@ -7,11 +7,15 @@ import androidx.annotation.VisibleForTesting
 import androidx.core.content.getSystemService
 import app.zxtune.Logger
 import app.zxtune.Releaseable
-import app.zxtune.TimeStamp
 import app.zxtune.device.sound.SoundOutputSamplesTarget
 import app.zxtune.playback.PlaybackControl
 import app.zxtune.playback.PlaybackService
-import app.zxtune.playback.stubs.CallbackStub
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.plus
 
 private val LOG = Logger(AudioFocusConnection::class.java.name)
 
@@ -19,15 +23,17 @@ class AudioFocusConnection @VisibleForTesting constructor(
     private val manager: AudioManager,
     svc: PlaybackService,
 ) : Releaseable {
+    private val scope = MainScope() + CoroutineName("AudioFocusConnection")
 
     private val ctrl = svc.playbackControl
-    private val stateConnection = svc.subscribe(object : CallbackStub() {
-        override fun onStateChanged(state: PlaybackControl.State, pos: TimeStamp) = when (state) {
+
+    init {
+        svc.state.onEach { when (it.first) {
             PlaybackControl.State.PLAYING -> onPlaying()
             PlaybackControl.State.STOPPED -> onStopped()
             else -> Unit
-        }
-    })
+        } }.launchIn(scope)
+    }
     private val focusListener = OnAudioFocusChangeListener { focusChange ->
         when (focusChange) {
             AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
@@ -45,7 +51,7 @@ class AudioFocusConnection @VisibleForTesting constructor(
 
     override fun release() {
         releaseFocus()
-        stateConnection.release()
+        scope.cancel()
     }
 
     private fun gainFocus() =
@@ -92,7 +98,6 @@ class AudioFocusConnection @VisibleForTesting constructor(
     }
 
     companion object {
-        @JvmStatic
         fun create(ctx: Context, svc: PlaybackService): Releaseable =
             AudioFocusConnection(requireNotNull(ctx.getSystemService()), svc)
     }

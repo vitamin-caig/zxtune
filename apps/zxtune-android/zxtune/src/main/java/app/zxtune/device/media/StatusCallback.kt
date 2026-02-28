@@ -7,8 +7,8 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.TextUtils
-import android.widget.Toast
 import app.zxtune.Logger
+import app.zxtune.Releaseable
 import app.zxtune.TimeStamp
 import app.zxtune.Util
 import app.zxtune.core.Identifier
@@ -18,21 +18,28 @@ import app.zxtune.coverart.CoverartProviderClient
 import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.shareUrl
-import app.zxtune.playback.Callback
 import app.zxtune.playback.Item
 import app.zxtune.playback.PlayableItem
 import app.zxtune.playback.PlaybackControl
 import app.zxtune.playback.PlaybackService
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicReference
 
 //! Events gate from local service to mediasession
 internal class StatusCallback private constructor(
-    private val ctx: Context, private val session: MediaSessionCompat
-) : Callback {
+    private val ctx: Context,
+    svc: PlaybackService,
+    private val session: MediaSessionCompat
+) : Releaseable {
     private val builder = PlaybackStateCompat.Builder()
-    private val scope = MainScope()
+    private val scope = CoroutineScope(CoroutineName("SessionStatusCallback") + Dispatchers.IO)
     private val coverartClient = CoverartProviderClient(ctx)
     private val lockscreenImageUrl = AtomicReference<Uri>()
     private val bitmapLoader by lazy {
@@ -43,12 +50,19 @@ internal class StatusCallback private constructor(
         builder.setActions(
             PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or PlaybackStateCompat.ACTION_PLAY_PAUSE or PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_SKIP_TO_NEXT
         )
+        svc.playbackControl.run {
+            session.setShuffleMode(sequenceMode.toShuffleMode())
+            session.setRepeatMode(trackMode.toRepeatMode())
+        }
+        svc.nowPlaying.filterNotNull().onEach { onItemChanged(it) }.launchIn(scope)
+        svc.state.onEach { onStateChanged(it.first, it.second) }.launchIn(scope)
     }
 
-    override fun onInitialState(state: PlaybackControl.State) =
-        onStateChanged(state, TimeStamp.EMPTY)
+    override fun release() {
+        scope.cancel()
+    }
 
-    override fun onStateChanged(state: PlaybackControl.State, pos: TimeStamp) {
+    private fun onStateChanged(state: PlaybackControl.State, pos: TimeStamp) {
         builder.setState(state.toState(), pos.toMilliseconds(), 1f)
         session.run {
             setPlaybackState(builder.build())
@@ -56,7 +70,7 @@ internal class StatusCallback private constructor(
         }
     }
 
-    override fun onItemChanged(item: Item) = try {
+    private fun onItemChanged(item: Item) = try {
         val dataId = item.dataId
         val builder = MediaMetadataCompat.Builder().apply {
             val title = Util.formatTrackTitle(item.title, dataId)
@@ -121,12 +135,6 @@ internal class StatusCallback private constructor(
         return null
     }
 
-    override fun onError(e: String) {
-        scope.launch {
-            Toast.makeText(ctx, e, Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun fillAlbumArtwork(uri: Uri, builder: MediaMetadataCompat.Builder) {
         bitmapLoader.getCached(uri)?.bitmap?.let {
             LOG.d { "Cached album art" }
@@ -151,14 +159,8 @@ internal class StatusCallback private constructor(
         private val LOG = Logger(StatusCallback::class.java.name)
 
         @JvmStatic
-        fun subscribe(
-            ctx: Context, svc: PlaybackService, session: MediaSessionCompat
-        ) = svc.subscribe(StatusCallback(ctx, session).also {
-            svc.playbackControl.run {
-                session.setShuffleMode(sequenceMode.toShuffleMode())
-                session.setRepeatMode(trackMode.toRepeatMode())
-            }
-        })
+        fun subscribe(ctx: Context, svc: PlaybackService, session: MediaSessionCompat) =
+            StatusCallback(ctx, svc, session)
     }
 }
 

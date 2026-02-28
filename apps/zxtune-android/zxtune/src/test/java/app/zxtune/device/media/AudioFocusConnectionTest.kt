@@ -4,48 +4,55 @@ import android.media.AudioManager
 import app.zxtune.Releaseable
 import app.zxtune.TimeStamp
 import app.zxtune.device.sound.SoundOutputSamplesTarget
-import app.zxtune.playback.Callback
 import app.zxtune.playback.PlaybackControl
 import app.zxtune.playback.PlaybackService
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class AudioFocusConnectionTest {
 
     private val manager = mock<AudioManager>()
-    private var callback: Callback? = null
+    private val stateFlow = MutableSharedFlow<Pair<PlaybackControl.State, TimeStamp>>(
+        replay = 1, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_LATEST
+    )
     private val ctrl = mock<PlaybackControl> {
         var state = PlaybackControl.State.STOPPED
         on { play() } doAnswer {
             if (state != PlaybackControl.State.PLAYING) {
                 state = PlaybackControl.State.PLAYING
-                callback!!.onStateChanged(state, TimeStamp.EMPTY)
+                stateFlow.tryEmit(state to TimeStamp.EMPTY)
             }
         }
         on { stop() } doAnswer {
             if (state != PlaybackControl.State.STOPPED) {
                 state = PlaybackControl.State.STOPPED
-                callback!!.onStateChanged(state, TimeStamp.EMPTY)
+                stateFlow.tryEmit(state to TimeStamp.EMPTY)
             }
         }
     }
     private val callbackSubscription = mock<Releaseable>()
     private val service = mock<PlaybackService> {
-        on { subscribe(any()) } doAnswer {
-            callback = it.getArgument(0)
-            callbackSubscription
-        }
+        on { state } doReturn stateFlow.asSharedFlow()
         on { playbackControl } doReturn ctrl
     }
 
     @Before
     fun setUp() {
-        callback = null
         reset(manager, callbackSubscription)
     }
 
@@ -81,13 +88,11 @@ class AudioFocusConnectionTest {
         inOrder(manager, ctrl, callbackSubscription, service) {
             // init
             verify(service).playbackControl
-            verify(service).subscribe(callback!!)
+            verify(service).state
             // part1
             verify(ctrl).play()
             verify(manager).requestAudioFocus(
-                focusListener,
-                SoundOutputSamplesTarget.STREAM,
-                AudioManager.AUDIOFOCUS_GAIN
+                focusListener, SoundOutputSamplesTarget.STREAM, AudioManager.AUDIOFOCUS_GAIN
             )
             verify(ctrl).stop() // loss
             verify(ctrl).play() // gain
@@ -96,17 +101,13 @@ class AudioFocusConnectionTest {
             // part2
             verify(ctrl).play()
             verify(manager).requestAudioFocus(
-                focusListener,
-                SoundOutputSamplesTarget.STREAM,
-                AudioManager.AUDIOFOCUS_GAIN
+                focusListener, SoundOutputSamplesTarget.STREAM, AudioManager.AUDIOFOCUS_GAIN
             )
             verify(ctrl).stop() // loss
             verify(ctrl).play()
             verify(manager).abandonAudioFocus(focusListener)
             verify(manager).requestAudioFocus(
-                focusListener,
-                SoundOutputSamplesTarget.STREAM,
-                AudioManager.AUDIOFOCUS_GAIN
+                focusListener, SoundOutputSamplesTarget.STREAM, AudioManager.AUDIOFOCUS_GAIN
             )
             verify(ctrl).stop()
             verify(manager).abandonAudioFocus(focusListener)
@@ -133,13 +134,11 @@ class AudioFocusConnectionTest {
         inOrder(manager, ctrl, callbackSubscription, service) {
             // init
             verify(service).playbackControl
-            verify(service).subscribe(callback!!)
+            verify(service).state
             // part1
             verify(ctrl).play()
             verify(manager).requestAudioFocus(
-                focusListener,
-                SoundOutputSamplesTarget.STREAM,
-                AudioManager.AUDIOFOCUS_GAIN
+                focusListener, SoundOutputSamplesTarget.STREAM, AudioManager.AUDIOFOCUS_GAIN
             )
             verify(ctrl).stop() // failed to gain
             // final

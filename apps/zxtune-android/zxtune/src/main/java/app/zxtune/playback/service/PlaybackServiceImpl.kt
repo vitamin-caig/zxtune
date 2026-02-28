@@ -5,14 +5,10 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.core.net.toUri
 import app.zxtune.Logger
-import app.zxtune.Releaseable
 import app.zxtune.TimeStamp
 import app.zxtune.analytics.Analytics
 import app.zxtune.core.Properties
 import app.zxtune.device.sound.SoundOutputSamplesTarget
-import app.zxtune.playback.Callback
-import app.zxtune.playback.CompositeCallback
-import app.zxtune.playback.DispatcherQueue
 import app.zxtune.playback.Item
 import app.zxtune.playback.PlayableItem
 import app.zxtune.playback.PlaybackControl
@@ -20,40 +16,41 @@ import app.zxtune.playback.PlaybackControl.TrackMode
 import app.zxtune.playback.PlaybackService
 import app.zxtune.playback.SeekControl
 import app.zxtune.playback.Visualizer
-import app.zxtune.playback.stubs.PlayableItemStub
 import app.zxtune.preferences.DataStore
 import app.zxtune.sound.Player
 import app.zxtune.sound.SamplesSource
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalAtomicApi::class)
+@OptIn(ExperimentalAtomicApi::class, FlowPreview::class)
 class PlaybackServiceImpl(context: Context, private val prefs: DataStore) : PlaybackService {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val queue = DispatcherQueue(context)
-    private val callbacks = CompositeCallback().apply {
-        onInitialState(PlaybackControl.State.STOPPED)
-    }
     private val player = Player.create(SoundOutputSamplesTarget.create(context))
-    private val _current = AtomicReference<Holder?>(null)
+    private val _current = MutableStateFlow<Holder?>(null)
     private val current
-        get() = _current.load()
-    private val sessionRestoring =
-        scope.launch(CoroutineName("sessionRestore"), CoroutineStart.LAZY) {
-            prefs.session?.run {
-                LOG.d { "Restore last played item $this" }
-                queue.activate(id)
-                player.position = position
-            }
-        }
+        get() = _current.value
+    private val _activateJob = AtomicReference<Job?>(null)
 
     init {
         async("Collect queue stream") {
@@ -61,53 +58,42 @@ class PlaybackServiceImpl(context: Context, private val prefs: DataStore) : Play
                 player.setSource(CompositeSource(items))
             }
         }
-        async("Translate state") {
-            player.stateFlow.collect { state ->
-                when (state) {
-                    is Player.State.Started -> onStateChanged(
-                        PlaybackControl.State.PLAYING, state.position
-                    )
-
-                    is Player.State.Stopped -> onStateChanged(
-                        PlaybackControl.State.STOPPED, state.position
-                    )
-
-                    is Player.State.Seeking -> onStateChanged(
-                        PlaybackControl.State.SEEKING, state.position
-                    )
-
-                    else -> Unit
-                }
-            }
-        }
         async("Log errors") {
             player.errorsFlow.collect {
                 LOG.w(it) { "Error occurred" }
             }
         }
-        callbacks.add(object : Callback {
-            private var session: Session? = null
-
-            override fun onInitialState(state: PlaybackControl.State) = Unit
-            override fun onStateChanged(
-                state: PlaybackControl.State, pos: TimeStamp
-            ) {
-                pos.takeIf { state == PlaybackControl.State.STOPPED }?.let {
-                    session?.copy(position = it)?.let { session ->
-                        async("storeSession") {
-                            LOG.d { "Store last played $session" }
-                            prefs.session = session
-                        }
-                    } ?: LOG.d { "No current session" }
+        async("Session sync") {
+            val storedSession = prefs.session?.apply {
+                LOG.d { "Restore last played item $this" }
+                activate(id) {
+                    it.position = position
                 }
             }
-
-            override fun onItemChanged(item: Item) {
-                session = Session(item.id, TimeStamp.EMPTY)
+            merge(
+                player.stateFlow, _current
+            ).runningFold(storedSession) { session: Session?, update ->
+                when (update) {
+                    is Item -> Session(update.id, TimeStamp.EMPTY)
+                    is Player.State.Stopped -> session?.copy(position = update.position)
+                    else -> session
+                }
+            }.filterNotNull().distinctUntilChanged().debounce(10.seconds).collect { session ->
+                LOG.d { "Store last played $session" }
+                prefs.session = session
             }
+        }
+    }
 
-            override fun onError(e: String) = Unit
-        })
+    private fun activate(uri: Uri, onSuccess: suspend (Player) -> Unit) {
+        _activateJob.exchange(scope.launch(CoroutineName("activate($uri)")) {
+            val prev = current
+            queue.activate(uri)
+            // Do not match by url - real may differ from requested
+            _current.first { it != prev }
+            LOG.d { "Activated $uri as ${current?.id}" }
+            onSuccess(player)
+        })?.cancel()
     }
 
     private fun async(name: String, block: suspend CoroutineScope.() -> Unit) {
@@ -178,20 +164,22 @@ class PlaybackServiceImpl(context: Context, private val prefs: DataStore) : Play
     override val playbackProperties
         get() = current?.player
 
-    override val nowPlaying
-        get() = current ?: PlayableItemStub
-
-    override fun setNowPlaying(uri: Uri) = async("setNowPlaying") {
-        sessionRestoring.cancel()
-        queue.activate(uri)
-        player.startPlayback()
+    override fun setNowPlaying(uri: Uri) = activate(uri) {
+        it.startPlayback()
     }
 
-    override fun restoreSession() {
-        sessionRestoring.start()
-    }
+    override val state
+        get() = player.stateFlow.map {
+            when (it) {
+                is Player.State.Started -> PlaybackControl.State.PLAYING to it.position
+                is Player.State.Stopped -> PlaybackControl.State.STOPPED to it.position
+                is Player.State.Finished -> PlaybackControl.State.STOPPED to it.position
+                is Player.State.Seeking -> PlaybackControl.State.SEEKING to it.position
+            }
+        }
 
-    override fun subscribe(cb: Callback): Releaseable = callbacks.add(cb)
+    override val nowPlaying: StateFlow<Item?>
+        get() = _current
 
     private open class Holder(delegate: PlayableItem, sampleRate: Int) : PlayableItem by delegate {
         val player = module.createPlayer(sampleRate)
@@ -236,20 +224,18 @@ class PlaybackServiceImpl(context: Context, private val prefs: DataStore) : Play
             } ?: Unit
 
         private fun dispatchPlayer(): app.zxtune.core.Player? {
-            next.exchange(null)?.let {
-                LOG.d { "Set current item to ${it.id}" }
-                _current.exchange(Holder(it, player.sampleRate))?.release()
-                callbacks.onItemChanged(it)
+            next.exchange(null)?.let { next ->
+                LOG.d { "Set current item to ${next.id}" }
+                _current.getAndUpdate {
+                    Holder(next, player.sampleRate)
+                }?.release()
             }
             return current?.player
         }
     }
 
-    private fun onStateChanged(state: PlaybackControl.State, position: TimeStamp) =
-        callbacks.onStateChanged(state, position)
-
     companion object {
-        private val LOG = Logger("PlaybackService")
+        private val LOG = Logger(PlaybackServiceImpl::class.java.name)
         private const val PREF_LAST_PLAYED_PATH = "last_played_path"
         private const val PREF_LAST_PLAYED_POSITION = "last_played_position"
         private const val PREF_SHUFFLED_PLAYBACK = "playback.shuffled"

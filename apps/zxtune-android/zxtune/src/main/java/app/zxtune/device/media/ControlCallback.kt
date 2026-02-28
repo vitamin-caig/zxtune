@@ -14,7 +14,6 @@ import app.zxtune.TimeStamp.Companion.fromMilliseconds
 import app.zxtune.core.PropertiesAccessor
 import app.zxtune.core.PropertiesModifier
 import app.zxtune.playback.PlaybackService
-import app.zxtune.playback.stubs.PlayableItemStub
 import app.zxtune.preferences.RawPropertiesAdapter
 import app.zxtune.utils.ifNotNulls
 
@@ -28,7 +27,9 @@ internal class ControlCallback(
     private val seek
         get() = svc.seekControl
 
-    override fun onPlay() = ctrl.play()
+    override fun onPlay() {
+        ctrl.play()
+    }
 
     override fun onPause() = onStop()
 
@@ -74,7 +75,7 @@ internal class ControlCallback(
             else -> Unit
         }
 
-    private fun addCurrent() = svc.nowPlaying.takeIf { it !== PlayableItemStub.instance() }?.let {
+    private fun addCurrent() = svc.nowPlaying.value?.let {
         ScanService.add(ctx, it)
     } ?: Unit
 
