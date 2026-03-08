@@ -24,6 +24,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.KInOrder
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.clearInvocations
@@ -46,12 +47,27 @@ class ModelTest {
 
     private val testScope = TestScope()
 
-    private val testUri = Uri.parse("scheme://host/path?query#fragment")
+    private val testUri = "scheme://host/path?query#fragment".toUri()
+    private val testUriParentDir = "scheme://host/path".toUri()
+    private val testUriRootDir = "scheme://host".toUri()
     private val testQuery = "file"
 
+    private val testHierarchy = arrayOf(
+        Schema.Content.Dir(testUri, "TestDir", "unused", "android.resource:/456".toUri(), false),
+        Schema.Content.Dir(
+            testUriParentDir,
+            "ParentDir",
+            "unused",
+            "android.resource:/123".toUri(),
+            false
+        ),
+        Schema.Content.Dir(testUriRootDir, "RootDir", "unused", null, false),
+        Schema.Content.Dir(Uri.EMPTY, "unused", "unused", null, false)
+    )
+
     private val testParents = listOf(
-        BreadcrumbsEntry(Uri.parse("scheme://host"), "RootDir", null),
-        BreadcrumbsEntry(Uri.parse("scheme://host/path"), "ParentDir", 123),
+        BreadcrumbsEntry(testUriRootDir, "RootDir", null),
+        BreadcrumbsEntry(testUriParentDir, "ParentDir", 123),
         BreadcrumbsEntry(testUri, "TestDir", 456)
     )
     private val testContent = listOf(
@@ -185,13 +201,13 @@ class ModelTest {
                     onProgress(Schema.Status.Progress(1, 2))
                     onProgress(Schema.Status.Progress(2, 2))
                     onFile(
-                        Schema.Listing.File(
+                        Schema.Content.File(
                             it.getArgument(0),
                             "unused",
                             "unused",
                             null,
                             "unused",
-                            Schema.Listing.File.Type.UNKNOWN
+                            Schema.Content.File.Type.UNKNOWN
                         )
                     )
                 }
@@ -219,7 +235,7 @@ class ModelTest {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onProgress(Schema.Status.Progress(1, 200))
                     onProgress(Schema.Status.Progress(100, 200))
-                    onDir(Schema.Listing.Dir(it.getArgument(0), "unused", "unused", null, true))
+                    onDir(Schema.Content.Dir(it.getArgument(0), "unused", "unused", null, true))
                 }
             }
         }
@@ -242,12 +258,7 @@ class ModelTest {
             onBlocking { resolve(any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onProgress(Schema.Status.Progress(5, 10))
-                    onDir(Schema.Listing.Dir(it.getArgument(0), "unused", "unused", null, false))
-                }
-            }
-            onBlocking { parents(any(), any()) } doAnswer {
-                with(it.getArgument<VfsProviderClient.ParentsCallback>(1)) {
-                    testParents.forEach(this::feed)
+                    testHierarchy.forEach(this::onDir)
                 }
             }
             onBlocking { list(any(), any()) } doAnswer {
@@ -264,7 +275,6 @@ class ModelTest {
             verify(progressObserver).invoke(-1)
             verifyBlocking(vfsClient) { resolve(eq(testUri), any()) }
             verify(progressObserver).invoke(50)
-            verifyBlocking(vfsClient) { parents(eq(testUri), any()) }
             verifyBlocking(vfsClient) { list(eq(testUri), any()) }
             verify(progressObserver).invoke(20)
             verify(vfsClient).observeNotifications(testUri)
@@ -291,21 +301,40 @@ class ModelTest {
     }
 
     @Test
-    fun `browseParent with unresolvable state`() {
+    fun `browseParent with unlistable state`() {
         setContent(testParents, listOf())
+        val err = IllegalArgumentException("unused")
+        vfsClient.stub {
+            onBlocking { list(eq(testParents[1].uri), any()) } doThrow err
+        }
         execute {
             browseParent()
         }
         inOrder(vfsClient, stateObserver, progressObserver) {
             // setContent
-            testParents.last().uri.let { parentUri ->
-                verify(vfsClient).observeNotifications(parentUri)
-                verify(stateObserver).invoke(matchState(parentUri, testParents))
-            }
+            verifyState(testParents)
             verify(progressObserver).invoke(-1)
-            verifyBlocking(vfsClient) { resolve(eq(testParents[1].uri), any()) }
-            verifyBlocking(vfsClient) { resolve(eq(testParents[0].uri), any()) }
+            verifyBlocking(vfsClient) { list(eq(testParents[1].uri), any()) }
+            verifyBrowsed(testParents.subList(0, 1))
+        }
+    }
+
+    private fun KInOrder.verifyBrowsed(parents: List<BreadcrumbsEntry>) {
+        (parents.lastOrNull()?.uri ?: Uri.EMPTY).let { stateUri ->
+            verifyBlocking(vfsClient) { list(eq(stateUri), any()) }
+            verify(vfsClient).observeNotifications(stateUri)
             verify(progressObserver).invoke(null)
+            verify(stateObserver).invoke(matchState(stateUri, parents))
+        }
+    }
+
+    private fun KInOrder.verifyState(
+        parents: List<BreadcrumbsEntry>,
+        contents: List<ListingEntry> = emptyList()
+    ) {
+        (parents.lastOrNull()?.uri ?: Uri.EMPTY).let { stateUri ->
+            verify(vfsClient).observeNotifications(stateUri)
+            verify(stateObserver).invoke(matchState(stateUri, parents, contents))
         }
     }
 
@@ -315,7 +344,11 @@ class ModelTest {
         vfsClient.stub {
             onBlocking { resolve(any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
-                    onDir(Schema.Listing.Dir(it.getArgument(0), "unused", "unused", null, false))
+                    val uri = it.getArgument<Uri>(0)
+                    onDir(Schema.Content.Dir(uri, "unused", "unused", null, false))
+                    if (uri != testHierarchy.last().uri) {
+                        onDir(testHierarchy.last())
+                    }
                 }
             }
             on { observeNotifications(any()) } doAnswer {
@@ -334,13 +367,9 @@ class ModelTest {
             vfsClient, stateObserver, progressObserver, notificationsObserver
         ) {
             // setContent
-            testParents.last().uri.let { parentUri ->
-                verify(vfsClient).observeNotifications(parentUri)
-                verify(stateObserver).invoke(matchState(parentUri, testParents))
-            }
+            verifyState(testParents)
             testParents[1].uri.let { parentUri ->
                 verify(progressObserver).invoke(-1)
-                verifyBlocking(vfsClient) { resolve(eq(parentUri), any()) }
                 verifyBlocking(vfsClient) { list(eq(parentUri), any()) }
                 verify(vfsClient).observeNotifications(parentUri)
                 verify(notificationsObserver).invoke(argThat {
@@ -351,7 +380,6 @@ class ModelTest {
             }
             testParents[0].uri.let { parentUri ->
                 verify(progressObserver).invoke(-1)
-                verifyBlocking(vfsClient) { resolve(eq(parentUri), any()) }
                 verifyBlocking(vfsClient) { list(eq(parentUri), any()) }
                 verify(vfsClient).observeNotifications(parentUri)
                 verify(notificationsObserver).invoke(argThat {
@@ -365,30 +393,26 @@ class ModelTest {
 
     @Test
     fun `browseParent with single dir`() {
+        // Root uri should be resolved and listed
         val parents = testParents.subList(0, 1)
-        setContent(parents, listOf())
+        setContent(parents, emptyList())
+        vfsClient.stub {
+            onBlocking { resolve(eq(Uri.EMPTY), any()) } doAnswer {
+                with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
+                    onDir(testHierarchy.last())
+                }
+            }
+        }
         execute {
             browseParent()
         }
         inOrder(vfsClient, progressObserver, stateObserver) {
             // setContent
-            parents.last().uri.let { parentUri ->
-                verify(vfsClient).observeNotifications(parentUri)
-                verify(stateObserver).invoke(matchState(parentUri, parents))
-            }
+            verifyState(parents)
             verify(progressObserver).invoke(-1)
             verifyBlocking(vfsClient) { resolve(eq(Uri.EMPTY), any()) }
-            verify(progressObserver).invoke(null)
+            verifyBrowsed(emptyList())
         }
-    }
-
-    @Test
-    fun `browseParent failed to resolve`() {
-        val err = IllegalArgumentException("Fail")
-        vfsClient.stub {
-            onBlocking { resolve(any(), any()) } doThrow err
-        }
-        `browseParent with unresolvable state`()
     }
 
     // Published state has no query field since it's for filtering
@@ -418,10 +442,7 @@ class ModelTest {
         }
         inOrder(vfsClient, stateObserver, progressObserver) {
             // setContent
-            testParents.last().uri.let { parentUri ->
-                verify(vfsClient).observeNotifications(parentUri)
-                verify(stateObserver).invoke(matchState(parentUri, testParents, testContent))
-            }
+            verifyState(testParents, testContent)
             verify(progressObserver).invoke(-1)
             verifyBlocking(vfsClient) { search(eq(testUri), eq(noResultQuery), any()) }
             verify(progressObserver).invoke(null)
@@ -452,10 +473,7 @@ class ModelTest {
         }
         inOrder(vfsClient, stateObserver, progressObserver, errorsObserver) {
             // setContent
-            testParents.last().uri.let { parentUri ->
-                verify(vfsClient).observeNotifications(parentUri)
-                verify(stateObserver).invoke(matchState(parentUri, testParents, testContent))
-            }
+            verifyState(testParents, testContent)
             verify(progressObserver).invoke(-1)
             verifyBlocking(vfsClient) { search(eq(testUri), eq(testQuery), any()) }
             verify(progressObserver).invoke(null)
@@ -505,6 +523,7 @@ class ModelTest {
             // next op
             verify(progress).invoke(-1)
             verifyBlocking(vfsClient) { resolve(eq(testUri), any()) }
+            // no listing due to empty resolving
             verify(progress).invoke(null)
         }
         verifyNoMoreInteractions(progressObserver)
@@ -524,10 +543,7 @@ class ModelTest {
         }
         inOrder(vfsClient, stateObserver) {
             // setContent
-            testParents.last().uri.let { parentUri ->
-                verify(vfsClient).observeNotifications(parentUri)
-                verify(stateObserver).invoke(matchState(parentUri, testParents, testContent))
-            }
+            verifyState(testParents, testContent)
 
             verify(stateObserver).invoke(
                 matchState(testUri, testParents, testContent.takeLast(2), "uN")
@@ -562,24 +578,24 @@ private fun matchState(
 
 private fun VfsProviderClient.ListingCallback.feed(entry: ListingEntry) = with(entry) {
     details?.let {
-        onFile(Schema.Listing.File(uri, title, description, icon?.toUri(), it, fileTypeByIcon(additionalIcon)))
-    } ?: onDir(Schema.Listing.Dir(uri, title, description, icon?.toUri(), false))
+        onFile(
+            Schema.Content.File(
+                uri, title, description, icon?.toUri(), it, fileTypeByIcon(additionalIcon)
+            )
+        )
+    } ?: onDir(Schema.Content.Dir(uri, title, description, icon?.toUri(), false))
 }
 
-private fun ListingEntry.Icon.toUri() = when(this) {
+private fun ListingEntry.Icon.toUri() = when (this) {
     is ListingEntry.DrawableIcon -> "android.resource:/$id".toUri()
     is ListingEntry.LoadableIcon -> uri
 }
 
 private fun fileTypeByIcon(icon: Int?) = when (icon) {
-    null -> Schema.Listing.File.Type.UNSUPPORTED
-    R.drawable.ic_browser_file_unknown -> Schema.Listing.File.Type.UNKNOWN
-    R.drawable.ic_browser_file_remote -> Schema.Listing.File.Type.REMOTE
-    R.drawable.ic_browser_file_track -> Schema.Listing.File.Type.TRACK
-    R.drawable.ic_browser_file_archive -> Schema.Listing.File.Type.ARCHIVE
+    null -> Schema.Content.File.Type.UNSUPPORTED
+    R.drawable.ic_browser_file_unknown -> Schema.Content.File.Type.UNKNOWN
+    R.drawable.ic_browser_file_remote -> Schema.Content.File.Type.REMOTE
+    R.drawable.ic_browser_file_track -> Schema.Content.File.Type.TRACK
+    R.drawable.ic_browser_file_archive -> Schema.Content.File.Type.ARCHIVE
     else -> fail("Unexpected icon")
-}
-
-private fun VfsProviderClient.ParentsCallback.feed(entry: BreadcrumbsEntry) = with(entry) {
-    onObject(Schema.Parents.Object(uri, title, icon))
 }

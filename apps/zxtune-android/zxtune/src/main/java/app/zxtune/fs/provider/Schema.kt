@@ -7,7 +7,6 @@ import android.os.Parcel
 import androidx.core.database.getBlobOrNull
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
-import java.util.*
 import androidx.core.net.toUri
 
 object Schema {
@@ -53,12 +52,12 @@ object Schema {
         companion object {
             fun parse(cursor: Cursor) = when {
                 Status.isStatus(cursor) -> Status.parse(cursor)
-                else -> Listing.parse(cursor)
+                else -> Content.parse(cursor)
             }
         }
     }
 
-    object Listing {
+    object Content {
         val COLUMNS = arrayOf(
             COLUMN_TYPE,
             COLUMN_URI,
@@ -170,26 +169,6 @@ object Schema {
                 fun createIntermediate() = Progress(-1)
 
                 fun parse(cursor: Cursor) = Progress(cursor.getInt(0), cursor.getInt(1))
-            }
-        }
-    }
-
-    object Parents {
-        val COLUMNS = arrayOf(COLUMN_URI, COLUMN_NAME, COLUMN_ICON)
-
-        data class Object(val uri: Uri, val name: String, val icon: Int?) : Schema.Object {
-
-            override fun serialize() = arrayOf<Any?>(uri.toString(), name, icon)
-
-            companion object {
-                fun parse(cursor: Cursor) = when {
-                    Status.isStatus(cursor) -> Status.parse(cursor)
-                    else -> Object(
-                        cursor.getString(0).toUri(),
-                        cursor.getString(1),
-                        cursor.getIntOrNull(2)
-                    )
-                }
             }
         }
     }

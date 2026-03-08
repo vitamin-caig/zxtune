@@ -13,7 +13,6 @@ import app.zxtune.R
 import app.zxtune.analytics.Analytics
 import app.zxtune.fs.provider.Schema
 import app.zxtune.fs.provider.VfsProviderClient
-import app.zxtune.fs.provider.VfsProviderClient.ParentsCallback
 import app.zxtune.ui.utils.FilteredListState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -22,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -271,24 +269,15 @@ class Model @VisibleForTesting internal constructor(
         override val description
             get() = "browse ${uri.takeUnless { it == Uri.EMPTY }?.toString() ?: "root"}"
 
-        override suspend fun execute() = when (resolve(uri)) {
-            ObjectType.FILE, ObjectType.DIR_WITH_FEED -> coroutineScope { _toPlay.send(uri) }
-            ObjectType.DIR -> coroutineScope {
-                val entries = async { getEntries(uri) }
-                val parents = getParents()
-                updateContent(parents, entries.await())
+        override suspend fun execute() = resolveChain(uri)?.let { chain ->
+            if (chain.isNotEmpty()) {
+                // resolved
+                val isRoot = chain.first().uri == Uri.EMPTY
+                check(!isRoot || chain.size == 1) { "Invalid chain" }
+                val fixedChain = if (isRoot) emptyList() else chain
+                updateContent(fixedChain, getEntries(uri))
             }
-
-            else -> Unit
-        }
-
-        private suspend fun getParents() = ArrayList<BreadcrumbsEntry>().apply {
-            providerClient.parents(uri, object : ParentsCallback {
-                override fun onObject(obj: Schema.Parents.Object) {
-                    add(BreadcrumbsEntry(obj.uri, obj.name, obj.icon))
-                }
-            })
-        }
+        } ?: coroutineScope { _toPlay.send(uri) }
     }
 
     private inner class BrowseParentTask(private val items: List<BreadcrumbsEntry>) :
@@ -308,15 +297,12 @@ class Model @VisibleForTesting internal constructor(
         private suspend fun tryBrowseAt(idx: Int): Boolean {
             val uri = items[idx].uri
             try {
-                val type = resolve(uri)
-                if (ObjectType.DIR == type || ObjectType.DIR_WITH_FEED == type) {
-                    updateContent(items.subList(0, idx + 1), getEntries(uri))
-                    return true
-                }
+                updateContent(items.subList(0, idx + 1), getEntries(uri))
+                return true
             } catch (e: OperationCanceledException) {
                 throw e
             } catch (e: Exception) {
-                LOG.d { "Skipping $uri while navigating up" }
+                LOG.w(e) { "Skipping $uri while navigating up" }
             }
             return false
         }
@@ -335,8 +321,8 @@ class Model @VisibleForTesting internal constructor(
             // assume already resolved
             providerClient.search(uri, query, object : VfsProviderClient.ListingCallback {
                 override fun onProgress(status: Schema.Status.Progress) = Unit
-                override fun onDir(dir: Schema.Listing.Dir) = Unit
-                override fun onFile(file: Schema.Listing.File) {
+                override fun onDir(dir: Schema.Content.Dir) = Unit
+                override fun onFile(file: Schema.Content.File) {
                     content.add(makeFile(file))
                     publishState()
                 }
@@ -351,25 +337,30 @@ class Model @VisibleForTesting internal constructor(
         }
     }
 
-    internal enum class ObjectType {
-        DIR, DIR_WITH_FEED, FILE
-    }
-
-    private suspend fun resolve(uri: Uri): ObjectType? {
-        var result: ObjectType? = null
+    private suspend fun resolveChain(uri: Uri): List<BreadcrumbsEntry>? {
+        val result = ArrayList<BreadcrumbsEntry>()
+        var playable = false
         providerClient.resolve(uri, object : VfsProviderClient.ListingCallback {
             override fun onProgress(status: Schema.Status.Progress) =
                 updateProgress(status.done, status.total)
 
-            override fun onDir(dir: Schema.Listing.Dir) {
-                result = if (dir.hasFeed) ObjectType.DIR_WITH_FEED else ObjectType.DIR
+            override fun onDir(dir: Schema.Content.Dir) = when {
+                result.isEmpty() && dir.hasFeed -> playable = true
+                !playable -> {
+                    // TODO: use ListingEntry.icon
+                    val iconRes =
+                        dir.icon?.takeIf { it.scheme == ContentResolver.SCHEME_ANDROID_RESOURCE }?.lastPathSegment?.toInt()
+                    result.add(0, BreadcrumbsEntry(dir.uri, dir.name, iconRes))
+                }
+
+                else -> Unit
             }
 
-            override fun onFile(file: Schema.Listing.File) {
-                result = ObjectType.FILE
+            override fun onFile(file: Schema.Content.File) {
+                playable = true
             }
         })
-        return result
+        return result.takeUnless { playable }
     }
 
     private suspend fun getEntries(uri: Uri) = ArrayList<ListingEntry>().apply {
@@ -377,11 +368,11 @@ class Model @VisibleForTesting internal constructor(
             override fun onProgress(status: Schema.Status.Progress) =
                 updateProgress(status.done, status.total)
 
-            override fun onDir(dir: Schema.Listing.Dir) {
+            override fun onDir(dir: Schema.Content.Dir) {
                 add(makeFolder(dir))
             }
 
-            override fun onFile(file: Schema.Listing.File) {
+            override fun onFile(file: Schema.Content.File) {
                 add(makeFile(file))
             }
         })
@@ -395,11 +386,11 @@ class Model @VisibleForTesting internal constructor(
         private fun matchEntry(entry: ListingEntry, filter: String) =
             entry.title.contains(filter, true) || entry.description.contains(filter, true)
 
-        private fun makeFolder(dir: Schema.Listing.Dir) = dir.run {
+        private fun makeFolder(dir: Schema.Content.Dir) = dir.run {
             ListingEntry.makeFolder(uri, name, description, icon?.asListingEntryIcon())
         }
 
-        private fun makeFile(file: Schema.Listing.File) = file.run {
+        private fun makeFile(file: Schema.Content.File) = file.run {
             ListingEntry.makeFile(
                 uri,
                 name,
@@ -418,12 +409,12 @@ class Model @VisibleForTesting internal constructor(
             else -> ListingEntry.LoadableIcon(this)
         }
 
-        private fun Schema.Listing.File.Type.asIcon() = when (this) {
-            Schema.Listing.File.Type.REMOTE -> R.drawable.ic_browser_file_remote
-            Schema.Listing.File.Type.UNKNOWN -> R.drawable.ic_browser_file_unknown
-            Schema.Listing.File.Type.TRACK -> R.drawable.ic_browser_file_track
-            Schema.Listing.File.Type.ARCHIVE -> R.drawable.ic_browser_file_archive
-            Schema.Listing.File.Type.UNSUPPORTED -> null
+        private fun Schema.Content.File.Type.asIcon() = when (this) {
+            Schema.Content.File.Type.REMOTE -> R.drawable.ic_browser_file_remote
+            Schema.Content.File.Type.UNKNOWN -> R.drawable.ic_browser_file_unknown
+            Schema.Content.File.Type.TRACK -> R.drawable.ic_browser_file_track
+            Schema.Content.File.Type.ARCHIVE -> R.drawable.ic_browser_file_archive
+            Schema.Content.File.Type.UNSUPPORTED -> null
         }
     }
 }

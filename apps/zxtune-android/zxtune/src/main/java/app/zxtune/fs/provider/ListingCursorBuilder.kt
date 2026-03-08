@@ -36,7 +36,7 @@ internal class ListingCursorBuilder {
     }
 
     fun getResult(schema: SchemaSource): Cursor =
-        MatrixCursor(Schema.Listing.COLUMNS, dirs.size + files.size).apply {
+        MatrixCursor(Schema.Content.COLUMNS, dirs.size + files.size).apply {
             schema.directories(dirs).forEach { addRow(it.serialize()) }
             schema.files(files).forEach { addRow(it.serialize()) }
         }

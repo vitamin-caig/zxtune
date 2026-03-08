@@ -75,9 +75,9 @@ class SearchOperationTest {
             call().run {
                 assertEquals(2, count)
                 moveToNext()
-                assertEquals(rootObjectMatched, Schema.Object.parse(this) as Schema.Listing.File)
+                assertEquals(rootObjectMatched, Schema.Object.parse(this) as Schema.Content.File)
                 moveToNext()
-                assertEquals(nestedObjectMatched, Schema.Object.parse(this) as Schema.Listing.File)
+                assertEquals(nestedObjectMatched, Schema.Object.parse(this) as Schema.Content.File)
             }
             assertEquals(null, status())
         }
@@ -120,9 +120,9 @@ class SearchOperationTest {
                         (this@with).status()!!.run {
                             assertEquals(2, count)
                             moveToNext()
-                            assertEquals(object1, Schema.Object.parse(this) as Schema.Listing.File)
+                            assertEquals(object1, Schema.Object.parse(this) as Schema.Content.File)
                             moveToNext()
-                            assertEquals(object2, Schema.Object.parse(this) as Schema.Listing.File)
+                            assertEquals(object2, Schema.Object.parse(this) as Schema.Content.File)
                         }
                         onFile(file3)
                     }
@@ -131,7 +131,7 @@ class SearchOperationTest {
             call().run {
                 assertEquals(1, count)
                 moveToNext()
-                assertEquals(object3, Schema.Object.parse(this) as Schema.Listing.File)
+                assertEquals(object3, Schema.Object.parse(this) as Schema.Content.File)
             }
             assertEquals(null, status())
         }
@@ -147,7 +147,7 @@ class SearchOperationTest {
 
     companion object {
         private fun makeFileObject(file: VfsFile) = with(file) {
-            Schema.Listing.File(uri, name, description, null, size, Schema.Listing.File.Type.UNKNOWN)
+            Schema.Content.File(uri, name, description, null, size, Schema.Content.File.Type.UNKNOWN)
         }
     }
 }

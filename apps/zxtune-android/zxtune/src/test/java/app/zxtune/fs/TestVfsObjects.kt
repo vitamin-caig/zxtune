@@ -3,11 +3,15 @@ package app.zxtune.fs
 import android.net.Uri
 
 abstract class TestObject(val idx: Int) : VfsObject {
+    // Value should be persistent across calls
+    private val _parent by lazy {
+        if (idx > 0) TestDir(idx - 1) else null
+    }
     override val uri: Uri = Uri.parse("schema:/authority/path?${idx}")
     override val name = "object${idx}"
     override val description = "Object $idx"
     override val parent : VfsObject?
-        get() = TODO("Should not be called")
+        get() = _parent
 
     override fun getExtension(id: String): Any? = null
 }

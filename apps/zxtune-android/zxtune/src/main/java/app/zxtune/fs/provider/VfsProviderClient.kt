@@ -26,12 +26,8 @@ import kotlinx.coroutines.runBlocking
 class VfsProviderClient(ctx: Context) {
     interface ListingCallback {
         fun onProgress(status: Schema.Status.Progress)
-        fun onDir(dir: Schema.Listing.Dir)
-        fun onFile(file: Schema.Listing.File)
-    }
-
-    interface ParentsCallback {
-        fun onObject(obj: Schema.Parents.Object)
+        fun onDir(dir: Schema.Content.Dir)
+        fun onFile(file: Schema.Content.File)
     }
 
     private val resolver = ctx.contentResolver
@@ -39,11 +35,6 @@ class VfsProviderClient(ctx: Context) {
     suspend fun resolve(uri: Uri, cb: ListingCallback) = fetchListing(Query.resolveUriFor(uri), cb)
 
     suspend fun list(uri: Uri, cb: ListingCallback) = fetchListing(Query.listingUriFor(uri), cb)
-
-    suspend fun parents(uri: Uri, cb: ParentsCallback) = resolver.query(Query.parentsUriFor(uri)) {
-        getParents(it, cb)
-        Unit
-    }
 
     suspend fun search(uri: Uri, query: String, cb: ListingCallback) = fetchListing(
         Query.searchUriFor(uri, query), cb
@@ -88,24 +79,13 @@ class VfsProviderClient(ctx: Context) {
         private fun getListing(cursor: Cursor, cb: ListingCallback) {
             while (cursor.moveToNext()) {
                 when (val obj = Schema.Object.parse(cursor)) {
-                    is Schema.Listing.Dir -> cb.onDir(obj)
-                    is Schema.Listing.File -> cb.onFile(obj)
+                    is Schema.Content.Dir -> cb.onDir(obj)
+                    is Schema.Content.File -> cb.onFile(obj)
                     is Schema.Status.Error -> throw Exception(obj.error)
                     is Schema.Status.Progress -> cb.onProgress(obj)
                     else -> Unit
                 }
             }
-        }
-
-        private fun getParents(cursor: Cursor, cb: ParentsCallback): Boolean {
-            while (cursor.moveToNext()) {
-                when (val obj = Schema.Parents.Object.parse(cursor)) {
-                    is Schema.Status.Error -> throw Exception(obj.error)
-                    is Schema.Parents.Object -> cb.onObject(obj)
-                    else -> return false
-                }
-            }
-            return true
         }
 
         private fun getNotification(cursor: Cursor) = if (cursor.moveToNext()) {

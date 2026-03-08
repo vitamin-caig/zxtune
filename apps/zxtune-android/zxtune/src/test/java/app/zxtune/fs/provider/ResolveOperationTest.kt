@@ -12,6 +12,7 @@ import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -29,11 +30,11 @@ class ResolveOperationTest {
     private val schema = mock<SchemaSource>()
     private val callback = mock<AsyncQueryOperation.Callback>()
     private val file = TestFile(1, "unused")
-    private val fileObject = Schema.Listing.File(
-        file.uri, file.name, file.description, null, file.size, Schema.Listing.File.Type.UNKNOWN
+    private val fileObject = Schema.Content.File(
+        file.uri, file.name, file.description, null, file.size, Schema.Content.File.Type.UNKNOWN
     )
     private val dir = TestDir(2)
-    private val dirObject = Schema.Listing.Dir(dir.uri, dir.name, dir.description, null, false)
+    private val dirObject = Schema.Content.Dir(dir.uri, dir.name, dir.description, null, false)
 
     @Before
     fun setUp() = reset(resolver, schema, callback)
@@ -62,14 +63,21 @@ class ResolveOperationTest {
         resolver.stub {
             on { resolve(any(), any()) } doReturn file
         }
+        val fileParent = requireNotNull(file.parent)
+        val parentObject = fileParent.run {
+            Schema.Content.Dir(uri, name, description, null, false)
+        }
+        assertEquals(null, fileParent.parent)
         schema.stub {
-            on { resolved(any()) } doReturn fileObject
+            on { resolved(any()) } doReturnConsecutively listOf(fileObject, parentObject)
         }
         with(ResolveOperation(file.uri, resolver, schema, callback)) {
-            call()!!.run {
-                assertEquals(1, count)
+            requireNotNull(call()).run {
+                assertEquals(2, count)
                 moveToFirst()
-                assertEquals(fileObject, Schema.Object.parse(this) as Schema.Listing.File)
+                assertEquals(fileObject, Schema.Object.parse(this) as Schema.Content.File)
+                moveToNext()
+                assertEquals(parentObject, Schema.Object.parse(this) as Schema.Content.Dir)
             }
             status().run {
                 assertEquals(1, count)
@@ -82,6 +90,7 @@ class ResolveOperationTest {
         }
         verify(resolver).resolve(eq(file.uri), any())
         verify(schema).resolved(file)
+        verify(schema).resolved(fileParent)
     }
 
     @Test
@@ -92,14 +101,29 @@ class ResolveOperationTest {
                 dir
             }
         }
+        val dirParent = requireNotNull(dir.parent)
+        val dirParentObject = dirParent.run {
+            Schema.Content.Dir(uri, name, description, null, false)
+        }
+        val dirParentParent = requireNotNull(dirParent.parent)
+        val dirParentParentObject = dirParentParent.run {
+            Schema.Content.Dir(uri, name, description, null, false)
+        }
+        assertEquals(null, dirParentParent.parent)
         schema.stub {
-            on { resolved(any()) } doReturn dirObject
+            on { resolved(any()) } doReturnConsecutively listOf(
+                dirObject, dirParentObject, dirParentParentObject
+            )
         }
         with(ResolveOperation(dir.uri, resolver, schema, callback)) {
-            call()!!.run {
-                assertEquals(1, count)
+            requireNotNull(call()).run {
+                assertEquals(3, count)
                 moveToFirst()
-                assertEquals(dirObject, Schema.Object.parse(this) as Schema.Listing.Dir)
+                assertEquals(dirObject, Schema.Object.parse(this) as Schema.Content.Dir)
+                moveToNext()
+                assertEquals(dirParentObject, Schema.Object.parse(this) as Schema.Content.Dir)
+                moveToNext()
+                assertEquals(dirParentParentObject, Schema.Object.parse(this) as Schema.Content.Dir)
             }
             status().run {
                 assertEquals(1, count)
@@ -115,28 +139,8 @@ class ResolveOperationTest {
             verify(callback).checkForCancel()
             verify(callback).onStatusChanged()
             verify(schema).resolved(dir)
+            verify(schema).resolved(dirParent)
+            verify(schema).resolved(dirParentParent)
         }
-    }
-
-    @Test
-    fun `resolved unknown object`() {
-        resolver.stub {
-            on { resolve(any(), any()) } doReturn file
-        }
-        with(ResolveOperation(file.uri, resolver, schema, callback)) {
-            call()!!.run {
-                assertEquals(0, count)
-            }
-            status().run {
-                assertEquals(1, count)
-                moveToFirst()
-                assertEquals(
-                    Schema.Status.Progress.createIntermediate(),
-                    Schema.Object.parse(this) as Schema.Status.Progress
-                )
-            }
-        }
-        verify(resolver).resolve(eq(file.uri), any())
-        verify(schema).resolved(file)
     }
 }
