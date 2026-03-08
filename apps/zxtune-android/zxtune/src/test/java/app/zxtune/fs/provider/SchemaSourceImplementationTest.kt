@@ -2,11 +2,21 @@ package app.zxtune.fs.provider
 
 import android.net.Uri
 import androidx.core.net.toUri
-import app.zxtune.fs.*
+import app.zxtune.assertThrows
+import app.zxtune.fs.ShadowVfsArchive
+import app.zxtune.fs.TestDir
+import app.zxtune.fs.TestFile
+import app.zxtune.fs.Vfs
+import app.zxtune.fs.VfsExtensions
+import app.zxtune.fs.VfsFile
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implements
@@ -36,7 +46,7 @@ class SchemaSourceImplementationTest {
     private val cachedFile = TestFile(4, "Cached")
     private val badCacheFile = TestFile(5, "BadCache")
 
-    private val underTest = SchemaSourceImplementation()
+    private val underTest = SchemaSource()
 
     init {
         ShadowVfsArchive.doGetModulesCount.stub {
@@ -62,48 +72,28 @@ class SchemaSourceImplementationTest {
 
     @Test
     fun `resolve all`() {
-        (underTest.resolved(iconDir) as Schema.Listing.Dir).run {
+        (underTest.resolved(iconDir) as Schema.Content.Dir).run {
             assertEquals(iconDir.uri, uri)
             assertEquals(iconDir.name, name)
             assertEquals(iconDir.description, description)
-            assertEquals(null, icon)
+            assertEquals("android.resource:/1".toUri(), icon)
             assertEquals(false, hasFeed)
         }
-        (underTest.resolved(feedDir) as Schema.Listing.Dir).run {
+        (underTest.resolved(feedDir) as Schema.Content.Dir).run {
             assertEquals(feedDir.uri, uri)
             assertEquals(feedDir.name, name)
             assertEquals(feedDir.description, description)
             assertEquals(null, icon)
             assertEquals(true, hasFeed)
         }
-        (underTest.resolved(simpleFile) as Schema.Listing.File).run {
+        (underTest.resolved(simpleFile) as Schema.Content.File).run {
             assertEquals(simpleFile.uri, uri)
             assertEquals(simpleFile.name, name)
             assertEquals(simpleFile.description, description)
             assertEquals(simpleFile.size, details)
-            assertEquals(Schema.Listing.File.Type.UNKNOWN, type)
+            assertEquals(Schema.Content.File.Type.UNKNOWN, type)
         }
-        assertEquals(null, underTest.resolved(mock()))
-    }
-
-    @Test
-    fun `parents all`() = underTest.parents(listOf(feedDir, simpleDir, iconDir)).let {
-        assertEquals(3, it.size)
-        it[0].run {
-            assertEquals(feedDir.uri, uri)
-            assertEquals(feedDir.name, name)
-            assertEquals(null, icon)
-        }
-        it[1].run {
-            assertEquals(simpleDir.uri, uri)
-            assertEquals(simpleDir.name, name)
-            assertEquals(null, icon)
-        }
-        it[2].run {
-            assertEquals(iconDir.uri, uri)
-            assertEquals(iconDir.name, name)
-            assertEquals(1, icon)
-        }
+        assertThrows<IllegalStateException> { underTest.resolved(mock()) }
     }
 
     @Test
@@ -140,21 +130,21 @@ class SchemaSourceImplementationTest {
             assertEquals(cachedFile.name, name)
             assertEquals(cachedFile.description, description)
             assertEquals(cachedFile.size, details)
-            assertEquals(Schema.Listing.File.Type.UNKNOWN, type)
+            assertEquals(Schema.Content.File.Type.UNKNOWN, type)
         }
         it[1].run {
             assertEquals(simpleFile.uri, uri)
             assertEquals(simpleFile.name, name)
             assertEquals(simpleFile.description, description)
             assertEquals(simpleFile.size, details)
-            assertEquals(Schema.Listing.File.Type.UNSUPPORTED, type)
+            assertEquals(Schema.Content.File.Type.UNSUPPORTED, type)
         }
         it[2].run {
             assertEquals(badCacheFile.uri, uri)
             assertEquals(badCacheFile.name, name)
             assertEquals(badCacheFile.description, description)
             assertEquals(badCacheFile.size, details)
-            assertEquals(Schema.Listing.File.Type.TRACK, type)
+            assertEquals(Schema.Content.File.Type.TRACK, type)
         }
     }
 }

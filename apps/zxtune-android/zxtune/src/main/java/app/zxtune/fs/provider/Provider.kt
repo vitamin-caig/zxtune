@@ -19,7 +19,7 @@ class Provider @VisibleForTesting internal constructor(
     // should be initialized in main thread
     private lateinit var notifications: NotificationsSource
 
-    constructor() : this(CachingResolver(cacheSize = 10), SchemaSourceImplementation())
+    constructor() : this(CachingResolver(cacheSize = 10), SchemaSource())
 
     override fun onCreate() = context?.run {
         MainApplication.initialize(applicationContext)
@@ -103,7 +103,6 @@ class Provider @VisibleForTesting internal constructor(
         return when (Query.getUriType(uri)) {
             Query.Type.RESOLVE -> ResolveOperation(path, resolver, schema, callback)
             Query.Type.LISTING -> ListingOperation(path, resolver, schema, callback)
-            Query.Type.PARENTS -> ParentsOperation(path, resolver, schema)
             Query.Type.SEARCH -> SearchOperation(
                 path, resolver, schema, callback, Query.getQueryFrom(uri)
             )

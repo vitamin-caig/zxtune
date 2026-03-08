@@ -2,6 +2,7 @@ package app.zxtune.fs.provider
 
 import android.database.MatrixCursor
 import android.net.Uri
+import app.zxtune.fs.VfsObject
 
 internal class ResolveOperation(
     private val uri: Uri,
@@ -14,9 +15,13 @@ internal class ResolveOperation(
     private var total = 100
 
     override fun call() = maybeResolve()?.let { obj ->
-        MatrixCursor(Schema.Listing.COLUMNS, 1).apply {
-            schema.resolved(obj)?.let {
-                addRow(it.serialize())
+        MatrixCursor(Schema.Content.COLUMNS, 10).apply {
+            var current: VfsObject? = obj
+            while (true) {
+                current?.let {
+                    addRow(schema.resolved(it).serialize())
+                    current = it.parent
+                } ?: break
             }
         }
     }
