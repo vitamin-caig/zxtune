@@ -61,7 +61,7 @@ internal class SearchOperation(
     }
 
     private fun convert(found: ArrayList<VfsFile>) =
-        MatrixCursor(Schema.Listing.COLUMNS, found.size).apply {
+        MatrixCursor(Schema.Content.COLUMNS, found.size).apply {
             schema.files(found).forEach { addRow(it.serialize()) }
         }
 

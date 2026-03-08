@@ -28,26 +28,20 @@ class SchemaTest {
     fun `test listing schema`() {
         testListingDir(URI1, NAME2, DESCRIPTION1, ICON_URI1, false)
         testListingDir(URI2, NAME1, DESCRIPTION2, null, true)
-        testListingFile(URI1, NAME2, DESCRIPTION1, null, DETAILS2, Schema.Listing.File.Type.REMOTE)
-        testListingFile(URI2, NAME1, DESCRIPTION2, null, DETAILS1, Schema.Listing.File.Type.UNKNOWN)
+        testListingFile(URI1, NAME2, DESCRIPTION1, null, DETAILS2, Schema.Content.File.Type.REMOTE)
+        testListingFile(URI2, NAME1, DESCRIPTION2, null, DETAILS1, Schema.Content.File.Type.UNKNOWN)
         testListingFile(
-            URI1, NAME2, DESCRIPTION1, ICON_URI1, DETAILS2, Schema.Listing.File.Type.TRACK
+            URI1, NAME2, DESCRIPTION1, ICON_URI1, DETAILS2, Schema.Content.File.Type.TRACK
         )
         testListingFile(
-            URI2, NAME1, DESCRIPTION2, ICON_URI1, DETAILS1, Schema.Listing.File.Type.ARCHIVE
+            URI2, NAME1, DESCRIPTION2, ICON_URI1, DETAILS1, Schema.Content.File.Type.ARCHIVE
         )
         testListingFile(
-            URI1, NAME2, DESCRIPTION1, ICON_URI1, DETAILS2, Schema.Listing.File.Type.UNSUPPORTED
+            URI1, NAME2, DESCRIPTION1, ICON_URI1, DETAILS2, Schema.Content.File.Type.UNSUPPORTED
         )
         testListingError(Exception("Some message"))
         testListingError(Exception("Topmost", Exception("Nested")))
         testListingProgress()
-    }
-
-    @Test
-    fun `test parents schema`() {
-        testParent(URI1, NAME2, 123)
-        testParent(URI2, NAME1, null)
     }
 
     @Test
@@ -62,11 +56,11 @@ class SchemaTest {
 
 private fun testListingDir(
     uri: Uri, name: String, description: String, icon: Uri?, hasFeed: Boolean
-) = MatrixCursor(Schema.Listing.COLUMNS).apply {
-    addRow(Schema.Listing.Dir(uri, name, description, icon, hasFeed).serialize())
+) = MatrixCursor(Schema.Content.COLUMNS).apply {
+    addRow(Schema.Content.Dir(uri, name, description, icon, hasFeed).serialize())
 }.use { cursor ->
     cursor.moveToFirst()
-    (Schema.Object.parse(cursor) as Schema.Listing.Dir).let { dir ->
+    (Schema.Object.parse(cursor) as Schema.Content.Dir).let { dir ->
         assertEquals(uri, dir.uri)
         assertEquals(name, dir.name)
         assertEquals(description, dir.description)
@@ -81,12 +75,12 @@ private fun testListingFile(
     description: String,
     icon: Uri?,
     details: String,
-    type: Schema.Listing.File.Type,
-) = MatrixCursor(Schema.Listing.COLUMNS).apply {
-    addRow(Schema.Listing.File(uri, name, description, icon, details, type).serialize())
+    type: Schema.Content.File.Type,
+) = MatrixCursor(Schema.Content.COLUMNS).apply {
+    addRow(Schema.Content.File(uri, name, description, icon, details, type).serialize())
 }.use { cursor ->
     cursor.moveToFirst()
-    (Schema.Object.parse(cursor) as Schema.Listing.File).let { file ->
+    (Schema.Object.parse(cursor) as Schema.Content.File).let { file ->
         assertEquals(uri, file.uri)
         assertEquals(name, file.name)
         assertEquals(description, file.description)
@@ -124,19 +118,6 @@ private fun testListingProgress() = MatrixCursor(Schema.Status.COLUMNS).apply {
     (Schema.Object.parse(cursor) as Schema.Status.Progress).let {
         assertEquals(2, it.done)
         assertEquals(3, it.total)
-    }
-}
-
-private fun testParent(
-    uri: Uri, name: String, icon: Int?
-) = MatrixCursor(Schema.Parents.COLUMNS).apply {
-    addRow(Schema.Parents.Object(uri, name, icon).serialize())
-}.use { cursor ->
-    cursor.moveToFirst()
-    (Schema.Parents.Object.parse(cursor) as Schema.Parents.Object).let { parent ->
-        assertEquals(uri, parent.uri)
-        assertEquals(name, parent.name)
-        assertEquals(icon, parent.icon)
     }
 }
 

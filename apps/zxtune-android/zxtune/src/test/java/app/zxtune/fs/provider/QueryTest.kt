@@ -18,7 +18,6 @@ private const val AUTHORITY = "content://app.zxtune.vfs"
 
 private const val MIME_ITEM = "vnd.android.cursor.item/vnd.app.zxtune.vfs.item"
 private const val MIME_GROUP = "vnd.android.cursor.dir/vnd.app.zxtune.vfs.item"
-private const val MIME_SIMPLEITEMS = "vnd.android.cursor.dir/vnd.app.zxtune.vfs.simple_item"
 private const val MIME_NOTIFICATION = "vnd.android.cursor.item/vnd.app.zxtune.vfs.notification"
 
 @RunWith(RobolectricTestRunner::class)
@@ -26,7 +25,7 @@ class QueryTest {
 
     @Test
     fun `test resolve uri`() {
-        assertEquals(MIME_ITEM, Query.Type.RESOLVE.mime)
+        assertEquals(MIME_GROUP, Query.Type.RESOLVE.mime)
         Uri.parse("${AUTHORITY}/resolve/${ENCODED_PATH}").let { uri ->
             assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
@@ -57,24 +56,6 @@ class QueryTest {
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
             assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
             assertEquals(Query.Type.LISTING, Query.getUriType(uri))
-        }
-    }
-
-    @Test
-    fun `test parents uri`() {
-        assertEquals(MIME_SIMPLEITEMS, Query.Type.PARENTS.mime)
-        Uri.parse("${AUTHORITY}/parents/${ENCODED_PATH}").let { uri ->
-            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.PARENTS, Query.getUriType(uri))
-            assertEquals(uri, Query.parentsUriFor(Uri.parse(PATH)))
-        }
-        Uri.parse("${AUTHORITY}/parents").let { uri ->
-            assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.PARENTS, Query.getUriType(uri))
         }
     }
 

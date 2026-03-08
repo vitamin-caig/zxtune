@@ -125,6 +125,7 @@ class ClientProviderTest {
             }
             slowDir
         }
+        on { resolve(eq(deepUri), any()) } doReturn deepDir
         on { resolve(eq(failedUri), any()) } doThrow Error("Failed to resolve")
     }
     private val schema = mock<SchemaSource> {
@@ -135,43 +136,37 @@ class ClientProviderTest {
                 else -> null
             }
         }
-        on { parents(any()) } doAnswer {
-            it.getArgument<List<VfsObject>>(0).map(::convertParent)
-        }
         on { directories(any()) } doAnswer {
-            it.getArgument<List<VfsDir>>(0).map { dir -> mock.resolved(dir) as Schema.Listing.Dir }
+            it.getArgument<List<VfsDir>>(0).map { dir -> mock.resolved(dir) as Schema.Content.Dir }
         }
         on { files(any()) } doAnswer {
             it.getArgument<List<VfsFile>>(0)
-                .map { file -> mock.resolved(file) as Schema.Listing.File }
+                .map { file -> mock.resolved(file) as Schema.Content.File }
         }
     }
 
     private lateinit var provider: ContentProvider
     private lateinit var underTest: VfsProviderClient
     private val listingCallback = mock<VfsProviderClient.ListingCallback>()
-    private val parentsCallback = mock<VfsProviderClient.ParentsCallback>()
 
     private fun convert(arg: VfsDir) =
-        Schema.Listing.Dir(arg.uri, arg.name, arg.description, null, false)
+        Schema.Content.Dir(arg.uri, arg.name, arg.description, null, false)
 
-    private fun convert(arg: VfsFile) = Schema.Listing.File(
-        arg.uri, arg.name, arg.description, null, arg.size, Schema.Listing.File.Type.UNKNOWN
+    private fun convert(arg: VfsFile) = Schema.Content.File(
+        arg.uri, arg.name, arg.description, null, arg.size, Schema.Content.File.Type.UNKNOWN
     )
-
-    private fun convertParent(obj: VfsObject) = Schema.Parents.Object(obj.uri, obj.name, null)
 
     @Before
     fun setUp() {
         provider = ContentProviderController.of(Provider(resolver, schema)).create().get()
         underTest = VfsProviderClient(provider.context!!)
-        reset(listingCallback, parentsCallback)
+        reset(listingCallback)
     }
 
     @After
     fun tearDown() {
         provider.shutdown()
-        verifyNoMoreInteractions(listingCallback, parentsCallback)
+        verifyNoMoreInteractions(listingCallback)
     }
 
     @Test
@@ -200,6 +195,7 @@ class ClientProviderTest {
             // dump progress first
             verify(listingCallback, times(5)).onProgress(argThat { total == 50 })
             verify(listingCallback).onDir(convert(slowDir))
+            verify(listingCallback).onDir(convert(fastDir))
         }
     }
 
@@ -246,18 +242,12 @@ class ClientProviderTest {
 
     @Test
     fun `parents chain`() = runTest {
-        underTest.parents(deepUri, parentsCallback)
-        inOrder(parentsCallback) {
-            verify(parentsCallback).onObject(convertParent(fastDir))
-            verify(parentsCallback).onObject(convertParent(slowDir))
-            verify(parentsCallback).onObject(convertParent(deepDir))
+        underTest.resolve(deepUri, listingCallback)
+        inOrder(listingCallback) {
+            verify(listingCallback).onDir(convert(deepDir))
+            verify(listingCallback).onDir(convert(slowDir))
+            verify(listingCallback).onDir(convert(fastDir))
         }
-    }
-
-    @Test
-    fun `parents empty`() = runTest {
-        underTest.parents(fastUri, parentsCallback)
-        verify(parentsCallback).onObject(convertParent(fastDir))
     }
 
     @Test

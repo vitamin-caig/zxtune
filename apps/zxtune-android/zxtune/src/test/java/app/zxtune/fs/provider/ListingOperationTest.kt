@@ -188,12 +188,12 @@ class ListingOperationTest {
 
     companion object {
         private fun makeDirObject(dir: VfsDir) = with(dir) {
-            Schema.Listing.Dir(uri, name, description, null, false)
+            Schema.Content.Dir(uri, name, description, null, false)
         }
 
         private fun makeFileObject(file: VfsFile) = with(file) {
-            Schema.Listing.File(
-                uri, name, description, null, size, Schema.Listing.File.Type.UNKNOWN
+            Schema.Content.File(
+                uri, name, description, null, size, Schema.Content.File.Type.UNKNOWN
             )
         }
     }
