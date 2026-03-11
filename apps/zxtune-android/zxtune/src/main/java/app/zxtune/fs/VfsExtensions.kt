@@ -72,7 +72,7 @@ val VfsDir.searchEngine
 val VfsDir.comparator
     @Suppress("UNCHECKED_CAST") get() = getExtension(VfsExtensions.COMPARATOR) as? Comparator<VfsObject>
 
-val VfsDir.feed
+val VfsObject.feed
     @Suppress("UNCHECKED_CAST") get() = getExtension(VfsExtensions.FEED) as? Iterator<VfsFile>
 
 val VfsFile.file
