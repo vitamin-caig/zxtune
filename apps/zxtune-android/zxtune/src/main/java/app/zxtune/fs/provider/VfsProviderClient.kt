@@ -7,6 +7,7 @@ import android.net.Uri
 import app.zxtune.ui.utils.observeChanges
 import app.zxtune.ui.utils.query
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -39,6 +40,18 @@ class VfsProviderClient(ctx: Context) {
     suspend fun search(uri: Uri, query: String, cb: ListingCallback) = fetchListing(
         Query.searchUriFor(uri, query), cb
     )
+
+    fun feed(uri: Uri) = flow {
+        while (true) {
+            resolver.query(Query.feedUriFor(uri)) { cursor ->
+                cursor.takeIf { it.moveToNext() }?.let {
+                    Schema.Object.parse(it) as? Schema.Content.File
+                }
+            }?.let {
+                emit(it)
+            } ?: break
+        }
+    }
 
     private suspend fun fetchListing(resolverUri: Uri, cb: ListingCallback) = coroutineScope {
         // onChange called in separate thread while main is blocked in primary call

@@ -16,6 +16,7 @@ import app.zxtune.BuildConfig
  *
  * content://app.zxtune.vfs/resolve/${path} - get object properties by full path and all parents
  * content://app.zxtune.vfs/listing/${path} - get directory content by full path
+ * content://app.zxtune.vfs/feed/${path} - VfsExtensions.FEED values
  * content://app.zxtune.vfs/search/${path}?query=${query} - start search
  * content://app.zxtune.vfs/file/${path}?size=${size} - get information/content of track file
  * content://app.zxtune.vfs/notification/${path} - get path-related notification
@@ -25,6 +26,8 @@ internal object Query {
         RESOLVE("resolve", MIME_ITEMS_SET),
 
         LISTING("listing", MIME_ITEMS_SET),
+
+        FEED("feed", MIME_ITEMS_SET),
 
         SEARCH("search", MIME_ITEMS_SET),
 
@@ -53,7 +56,7 @@ internal object Query {
     fun getUriType(uri: Uri) = Type.entries.getOrNull(uriTemplate.match(uri))
 
     fun getPathFrom(uri: Uri): Uri = when (getUriType(uri)) {
-        Type.RESOLVE, Type.LISTING, Type.SEARCH, Type.FILE, Type.NOTIFICATION -> uri.pathSegments.getOrNull(
+        Type.RESOLVE, Type.LISTING, Type.FEED, Type.SEARCH, Type.FILE, Type.NOTIFICATION -> uri.pathSegments.getOrNull(
             1
         )?.toUri() ?: Uri.EMPTY
 
@@ -68,9 +71,11 @@ internal object Query {
         uri.takeIf { getUriType(uri) == Type.FILE }?.getQueryParameter(SIZE_PARAM)?.toLongOrNull()
             ?: throw IllegalArgumentException("Wrong file URI: $uri")
 
-    fun resolveUriFor(uri: Uri): Uri = makeUri(Type.RESOLVE, uri).build()
+    fun resolveUriFor(uri: Uri) = makeSimpleUri(Type.RESOLVE, uri)
 
-    fun listingUriFor(uri: Uri): Uri = makeUri(Type.LISTING, uri).build()
+    fun listingUriFor(uri: Uri) = makeSimpleUri(Type.LISTING, uri)
+
+    fun feedUriFor(uri: Uri) = makeSimpleUri(Type.FEED, uri)
 
     fun searchUriFor(uri: Uri, query: String): Uri =
         makeUri(Type.SEARCH, uri).appendQueryParameter(QUERY_PARAM, query).build()
@@ -78,9 +83,11 @@ internal object Query {
     fun fileUriFor(uri: Uri, size: Long): Uri =
         makeUri(Type.FILE, uri).appendQueryParameter(SIZE_PARAM, size.toString()).build()
 
-    fun notificationUriFor(uri: Uri): Uri = makeUri(Type.NOTIFICATION, uri).build()
+    fun notificationUriFor(uri: Uri) = makeSimpleUri(Type.NOTIFICATION, uri)
 
     private fun makeUri(type: Type, uri: Uri) =
         Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
             .encodedPath(type.path).appendPath(uri.toString())
+
+    private fun makeSimpleUri(type: Type, uri: Uri): Uri = makeUri(type, uri).build()
 }
