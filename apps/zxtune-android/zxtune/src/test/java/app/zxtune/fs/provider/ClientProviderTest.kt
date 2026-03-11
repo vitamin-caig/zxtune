@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.core.net.toUri
 import app.zxtune.Features
 import app.zxtune.TestUtils.flushEvents
 import app.zxtune.TestUtils.mockCollectorOf
@@ -45,6 +46,7 @@ import org.mockito.kotlin.reset
 import org.mockito.kotlin.stub
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.android.controller.ContentProviderController
@@ -389,6 +391,37 @@ class ClientProviderTest {
             underTest.list(hangingUri, listingCallback)
         }
         job.join()
+    }
+
+    @Test
+    fun `feed for unresolved`() = runTest {
+        val feed = mockCollectorOf(underTest.feed(unknownUri))
+        verifyNoInteractions(feed)
+    }
+
+    @Test
+    fun `feed for no feed`() = runTest {
+        val feed = mockCollectorOf(underTest.feed(fastUri))
+        verifyNoInteractions(feed)
+    }
+
+    @Test
+    fun `feed values`() = runTest {
+        val iterator = slowDirContent.iterator()
+        val uri = "schema://dir/with/feed".toUri()
+        val feedDir = mock<VfsDir> {
+            on { getExtension(VfsExtensions.FEED) } doReturn iterator
+        }
+        resolver.stub {
+            on { resolve(uri) } doReturn feedDir
+        }
+        val feed = mockCollectorOf(underTest.feed(uri))
+        inOrder(feed) {
+            slowDirContent.forEach {
+                verify(feed).invoke(convert(it))
+            }
+        }
+        verifyNoMoreInteractions(feed)
     }
 }
 

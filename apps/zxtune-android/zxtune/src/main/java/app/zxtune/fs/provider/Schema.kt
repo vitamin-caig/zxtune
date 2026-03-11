@@ -90,7 +90,7 @@ object Schema {
                 uri.toString(),
                 name,
                 description,
-                icon,
+                icon?.toString(),
                 if (hasFeed) "" else null,
             )
 
@@ -127,7 +127,7 @@ object Schema {
                 uri.toString(),
                 name,
                 description,
-                icon,
+                icon?.toString(),
                 details,
             )
 

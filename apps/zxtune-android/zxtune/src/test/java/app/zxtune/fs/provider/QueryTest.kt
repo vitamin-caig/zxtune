@@ -60,6 +60,24 @@ class QueryTest {
     }
 
     @Test
+    fun `test feed uri`() {
+        assertEquals(MIME_GROUP, Query.Type.FEED.mime)
+        Uri.parse("${AUTHORITY}/feed/${ENCODED_PATH}").let { uri ->
+            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
+            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
+            assertEquals(Query.Type.FEED, Query.getUriType(uri))
+            assertEquals(uri, Query.feedUriFor(Uri.parse(PATH)))
+        }
+        Uri.parse("${AUTHORITY}/feed").let { uri ->
+            assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
+            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
+            assertEquals(Query.Type.FEED, Query.getUriType(uri))
+        }
+    }
+
+    @Test
     fun `test search uri`() {
         assertEquals(MIME_GROUP, Query.Type.SEARCH.mime)
         Uri.parse("${AUTHORITY}/search/${ENCODED_PATH}?query=to%20search").let { uri ->

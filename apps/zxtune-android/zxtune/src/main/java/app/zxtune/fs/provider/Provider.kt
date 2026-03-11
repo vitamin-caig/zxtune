@@ -8,6 +8,7 @@ import android.os.ParcelFileDescriptor
 import androidx.annotation.VisibleForTesting
 import app.zxtune.Logger
 import app.zxtune.MainApplication
+import app.zxtune.fs.feed
 import app.zxtune.ui.utils.openOutputPipe
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -55,16 +56,29 @@ class Provider @VisibleForTesting internal constructor(
 
     private fun query(uri: Uri, projection: Array<String>?, signal: CancellationSignal?) =
         runCatching {
-            if (Query.Type.NOTIFICATION == Query.getUriType(uri)) {
-                queryNotification(uri)
-            } else {
-                val op = createOperation(uri, projection, makeCallback(uri, signal))
-                Operation(uri, op).run()
+            when (Query.getUriType(uri)) {
+                Query.Type.NOTIFICATION -> queryNotification(uri)
+                Query.Type.FEED -> queryFeed(uri)
+                else -> {
+                    val op = createOperation(uri, projection, makeCallback(uri, signal))
+                    Operation(uri, op).run()
+                }
             }
         }.recover(StatusBuilder::makeError).getOrNull()
 
     private fun queryNotification(uri: Uri) = resolver.resolve(Query.getPathFrom(uri))?.let {
         notifications.getFor(it)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun queryFeed(uri: Uri) = resolver.resolve(Query.getPathFrom(uri))?.feed?.let { feed ->
+        if (feed.hasNext()) {
+            ListingCursorBuilder().apply {
+                addFile(feed.next())
+            }.getResult(schema)
+        } else {
+            null
+        }
     }
 
     private fun makeCallback(uri: Uri, signal: CancellationSignal?): AsyncQueryOperation.Callback =
