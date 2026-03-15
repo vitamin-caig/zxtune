@@ -112,6 +112,30 @@ class VfsArchiveTest {
     }
 
     @Test
+    fun testArchivedTrack() = getFile(R.raw.archived_track, "archived_track").let { id ->
+        val file = assertResolvedAsFile(id, expectedSize = "1.7K")
+        val subUri = file.uri.withFragment("chiptunes/AY-3-8910/pt2/PITON.pt2")
+        assertThrows<IOException> {
+            VfsArchive.resolve(subUri)
+        }.let { e ->
+            assertEquals("No archive found", e.message)
+        }
+        assertEquals(file, VfsArchive.browse(file))
+        assertEquals(file, VfsArchive.browseCached(file))
+        assertEquals(file.uri, VfsArchive.resolve(id)?.uri)
+        assertResolvedAsFile(
+            subUri,
+            expectedName = "PITON.pt2",
+            expectedDescription = "\"JOKE\" OF J.S.BACH:BY SURGEON!",
+            expectedSize = "1:00"
+        ).run {
+            val root = parent?.parent?.parent?.parent
+            assertEquals(null, (root as? VfsDir))
+            assertEquals(file.uri, (root as VfsFile).uri)
+        }
+    }
+
+    @Test
     fun testMultitrack() = getFile(R.raw.multitrack, "multitrack").let { id ->
         val file = assertResolvedAsFile(id, expectedSize = "16.2K")
         val subUri = file.uri.withFragment("#2")
