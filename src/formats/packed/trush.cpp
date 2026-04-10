@@ -291,8 +291,8 @@ namespace Formats::Packed
   {
   public:
     TrushDecoder()
-      : DepackerBody(Binary::CreateFormat(Trush::DEPACKER_BODY, Trush::MIN_BODY_SIZE))
-      , Depacker(Binary::CreateCompositeFormat(Binary::CreateFormat(Trush::DEPACKER_HEAD), DepackerBody,
+      : DepackerBody(Binary::CreateScanningFormat(Trush::DEPACKER_BODY, Trush::MIN_BODY_SIZE))
+      , Depacker(Binary::CreateCompositeFormat(Binary::CreateScanningFormat(Trush::DEPACKER_HEAD), DepackerBody,
                                                Trush::HEAD_SIZE, Trush::MAX_HEAD_SIZE))
     {}
 
@@ -322,8 +322,8 @@ namespace Formats::Packed
     }
 
   private:
-    const Binary::Format::Ptr DepackerBody;
-    const Binary::Format::Ptr Depacker;
+    const Binary::ScanningFormat::Ptr DepackerBody;
+    const Binary::ScanningFormat::Ptr Depacker;
   };
 
   Decoder::Ptr CreateTRUSHDecoder()

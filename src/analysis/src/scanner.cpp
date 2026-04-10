@@ -225,7 +225,15 @@ namespace Analysis
       }
       else
       {
-        Schedule(decoder, decoder->GetFormat()->NextMatchOffset(Window));
+        const auto format = decoder->GetFormat();
+        if (const auto* scanning = dynamic_cast<const Binary::ScanningFormat*>(format.get()))
+        {
+          Schedule(decoder, scanning->NextMatchOffset(Window));
+        }
+        else
+        {
+          Schedule(decoder, Window.Size());
+        }
         return false;
       }
     }

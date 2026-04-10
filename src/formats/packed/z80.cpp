@@ -562,20 +562,20 @@ namespace Formats::Packed
 
   Decoder::Ptr CreateZ80V145Decoder()
   {
-    const Binary::Format::Ptr header = Binary::CreateFormat(Z80::Version1_45::HEADER, Z80::Version1_45::MIN_SIZE);
-    const Binary::Format::Ptr footer = Binary::CreateFormat(Z80::Version1_45::FOOTER);
-    const Binary::Format::Ptr format =
-        Binary::CreateCompositeFormat(header, footer, Z80::Version1_45::MIN_SIZE - 4, Z80::Version1_45::MAX_SIZE - 4);
-    return MakePtr<Z80Decoder<Z80::Version1_45> >(format);
+    auto header = Binary::CreateScanningFormat(Z80::Version1_45::HEADER, Z80::Version1_45::MIN_SIZE);
+    auto footer = Binary::CreateScanningFormat(Z80::Version1_45::FOOTER);
+    auto format = Binary::CreateCompositeFormat(std::move(header), std::move(footer), Z80::Version1_45::MIN_SIZE - 4,
+                                                Z80::Version1_45::MAX_SIZE - 4);
+    return MakePtr<Z80Decoder<Z80::Version1_45>>(std::move(format));
   }
 
   Decoder::Ptr CreateZ80V20Decoder()
   {
-    return MakePtr<Z80Decoder<Z80::Version2_0> >();
+    return MakePtr<Z80Decoder<Z80::Version2_0>>();
   }
 
   Decoder::Ptr CreateZ80V30Decoder()
   {
-    return MakePtr<Z80Decoder<Z80::Version3_0> >();
+    return MakePtr<Z80Decoder<Z80::Version3_0>>();
   }
 }  // namespace Formats::Packed

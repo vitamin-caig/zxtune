@@ -19,7 +19,6 @@
 #include "string_view.h"
 
 #include <array>
-#include <atomic>
 #include <limits>
 #include <vector>
 
@@ -231,158 +230,24 @@ namespace Binary
     const PatternMatrix Pattern;
   };
 
-  class DelayedScanningFuzzyFormat : public FormatDetails
-  {
-  public:
-    DelayedScanningFuzzyFormat(FormatDSL::StaticPattern pattern, std::size_t startOffset, std::size_t minSize)
-      : StartOffset(startOffset)
-      , MinSize(std::max(minSize, pattern.GetSize() + startOffset))
-      , Pattern(std::move(pattern))
-    {}
-
-    bool Match(View data) const override
-    {
-      if (data.Size() < MinSize)
-      {
-        return false;
-      }
-      const auto pat = Pattern.Use();
-      if (const Format* ref = DelegateRef)
-      {
-        return ref->Match(data);
-      }
-      else
-      {
-        return pat->Match(data.SubView(StartOffset).As<uint8_t>());
-      }
-    }
-
-    std::size_t NextMatchOffset(View data) const override
-    {
-      const std::size_t size = data.Size();
-      if (size < MinSize)
-      {
-        return size;
-      }
-      const auto pat = Pattern.Use();
-      if (const Format* ref = DelegateRef)
-      {
-        return ref->NextMatchOffset(data);
-      }
-      else
-      {
-        auto delegate = FuzzyFormat::Create(*pat, StartOffset, MinSize);
-        if (DelegateRef.compare_exchange_strong(ref, delegate.get()))
-        {
-          Delegate = std::move(delegate);
-          ref = Delegate.get();
-          Pattern.Release();
-        }
-        return ref->NextMatchOffset(data);
-      }
-    }
-
-    std::size_t GetMinSize() const override
-    {
-      return MinSize;
-    }
-
-  private:
-    class RefcountedPattern
-    {
-    public:
-      explicit RefcountedPattern(FormatDSL::StaticPattern&& rh)
-        : Object(std::move(rh))
-        , Refcount(1)
-      {}
-
-      void Release()
-      {
-        static uint_t UNUSED = 0;
-        constexpr const uint_t RELEASED = 0x80000000;
-        if (1 == Refcount.fetch_sub(1) && Refcount.compare_exchange_strong(UNUSED, RELEASED))
-        {
-          Object = FormatDSL::StaticPattern({});
-        }
-      }
-
-      class Ptr
-      {
-      public:
-        explicit Ptr(RefcountedPattern* ref)
-          : Ref(ref)
-        {
-          Ref->Acquire();
-        }
-
-        ~Ptr()
-        {
-          Ref->Release();
-        }
-
-        FormatDSL::StaticPattern* operator->() const
-        {
-          return &Ref->Object;
-        }
-
-        FormatDSL::StaticPattern& operator*() const
-        {
-          return Ref->Object;
-        }
-
-      private:
-        RefcountedPattern* const Ref;
-      };
-
-      Ptr Use()
-      {
-        return Ptr(this);
-      }
-
-    private:
-      friend class Ptr;
-
-      void Acquire()
-      {
-        ++Refcount;
-      }
-
-    private:
-      mutable FormatDSL::StaticPattern Object;
-      mutable std::atomic<uint_t> Refcount;
-    };
-
-  private:
-    const std::size_t StartOffset;
-    const std::size_t MinSize;
-    mutable RefcountedPattern Pattern;
-    mutable Format::Ptr Delegate;
-    mutable std::atomic<const Format*> DelegateRef{};
-  };
-
-  Format::Ptr CreateScanningFormatFromPredicates(const FormatDSL::Expression& expr, std::size_t minSize)
+  ScanningFormat::Ptr CreateScanningFormatFromPredicates(const FormatDSL::Expression& expr, std::size_t minSize)
   {
     FormatDSL::StaticPattern pattern(expr.Predicates());
     const std::size_t startOffset = expr.StartOffset();
-    if (Format::Ptr exact = ExactFormat::TryCreate(pattern, startOffset, minSize))
+    if (auto exact = ExactFormat::TryCreate(pattern, startOffset, minSize))
     {
       return exact;
     }
     else
     {
-      return MakePtr<DelayedScanningFuzzyFormat>(std::move(pattern), startOffset, minSize);
+      return FuzzyFormat::Create(pattern, startOffset, minSize);
     }
   }
 }  // namespace Binary
 
 namespace Binary
 {
-  Format::Ptr CreateFormat(StringView pattern)
-  {
-    return CreateFormat(pattern, 0);
-  }
-
-  Format::Ptr CreateFormat(StringView pattern, std::size_t minSize)
+  ScanningFormat::Ptr CreateScanningFormat(StringView pattern, std::size_t minSize)
   {
     const auto expr = FormatDSL::Expression::Parse(pattern);
     return CreateScanningFormatFromPredicates(*expr, minSize);

@@ -43,7 +43,7 @@ namespace Analysis
   {
   public:
     UnmatchedResult(Binary::Format::Ptr format, Binary::Container::Ptr data)
-      : Format(std::move(format))
+      : Format(std::dynamic_pointer_cast<const Binary::ScanningFormat>(std::move(format)))
       , RawData(std::move(data))
     {}
 
@@ -54,11 +54,11 @@ namespace Analysis
 
     std::size_t GetLookaheadOffset() const override
     {
-      return Format->NextMatchOffset(*RawData);
+      return Format ? Format->NextMatchOffset(*RawData) : RawData->Size();
     }
 
   private:
-    const Binary::Format::Ptr Format;
+    const Binary::ScanningFormat::Ptr Format;
     const Binary::Container::Ptr RawData;
   };
 }  // namespace Analysis

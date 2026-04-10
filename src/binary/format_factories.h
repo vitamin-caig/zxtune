@@ -51,10 +51,10 @@ namespace Binary
 
   // clang-format on
 
-  Format::Ptr CreateFormat(StringView pattern);
-  Format::Ptr CreateFormat(StringView pattern, std::size_t minSize);
-  Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset,
-                                    std::size_t maxFooterOffset);
-  Format::Ptr CreateMatchOnlyFormat(StringView pattern);
-  Format::Ptr CreateMatchOnlyFormat(StringView pattern, std::size_t minSize);
+  // Dispatching function
+  Format::Ptr CreateFormat(StringView pattern, std::size_t minSize = 0);
+  ScanningFormat::Ptr CreateScanningFormat(StringView pattern, std::size_t minSize = 0);
+  ScanningFormat::Ptr CreateCompositeFormat(ScanningFormat::Ptr header, ScanningFormat::Ptr footer,
+                                            std::size_t minFooterOffset, std::size_t maxFooterOffset);
+  Format::Ptr CreateMatchOnlyFormat(StringView pattern, std::size_t minSize = 0);
 }  // namespace Binary

@@ -27,6 +27,12 @@ namespace Binary
     //! @param data Data to be checked
     //! @return true if data comply format
     virtual bool Match(View data) const = 0;
+  };
+
+  class ScanningFormat : public Format
+  {
+  public:
+    using Ptr = std::shared_ptr<const ScanningFormat>;
     //! @brief Search for matched offset in input data
     //! @param data Data to be checked
     //! @return Offset of matched data or size if not found

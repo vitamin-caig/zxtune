@@ -108,13 +108,13 @@ namespace Formats::Chiptune
       const std::size_t SecondSize;
     };
 
-    class FooterFormat : public Binary::Format
+    class FooterFormat : public Binary::ScanningFormat
     {
     public:
       using Ptr = std::shared_ptr<const FooterFormat>;
 
       FooterFormat()
-        : Delegate(Binary::CreateFormat(FOOTER_FORMAT))
+        : Delegate(Binary::CreateScanningFormat(FOOTER_FORMAT))
       {}
 
       bool Match(Binary::View data) const override
@@ -135,7 +135,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      const Binary::Format::Ptr Delegate;
+      const Binary::ScanningFormat::Ptr Delegate;
     };
 
     class DecoderImpl : public Decoder

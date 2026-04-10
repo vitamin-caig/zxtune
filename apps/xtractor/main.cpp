@@ -484,7 +484,7 @@ namespace
   {
   public:
     MatchedDataFilter(StringView format, Analysis::NodeReceiver::Ptr target)
-      : Format(Binary::CreateFormat(format))
+      : Format(Binary::CreateScanningFormat(format))
       , Target(std::move(target))
     {}
 
@@ -504,7 +504,7 @@ namespace
     }
 
   private:
-    const Binary::Format::Ptr Format;
+    const Binary::ScanningFormat::Ptr Format;
     const Analysis::NodeReceiver::Ptr Target;
   };
 }  // namespace

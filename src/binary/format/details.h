@@ -14,7 +14,7 @@
 
 namespace Binary
 {
-  class FormatDetails : public Format
+  class FormatDetails : public ScanningFormat
   {
   public:
     virtual std::size_t GetMinSize() const = 0;

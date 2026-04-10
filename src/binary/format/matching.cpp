@@ -17,16 +17,7 @@
 
 namespace Binary
 {
-  class MatchOnlyFormatBase : public Format
-  {
-  public:
-    std::size_t NextMatchOffset(View data) const override
-    {
-      return data.Size();
-    }
-  };
-
-  class FuzzyMatchOnlyFormat : public MatchOnlyFormatBase
+  class FuzzyMatchOnlyFormat : public Format
   {
   public:
     FuzzyMatchOnlyFormat(FormatDSL::StaticPattern mtx, std::size_t offset, std::size_t minSize)
@@ -51,7 +42,7 @@ namespace Binary
     const FormatDSL::StaticPattern Pattern;
   };
 
-  class ExactMatchOnlyFormat : public MatchOnlyFormatBase
+  class ExactMatchOnlyFormat : public Format
   {
   public:
     using PatternMatrix = std::vector<uint8_t>;
@@ -116,11 +107,6 @@ namespace Binary
 
 namespace Binary
 {
-  Format::Ptr CreateMatchOnlyFormat(StringView pattern)
-  {
-    return CreateMatchOnlyFormat(pattern, 0);
-  }
-
   Format::Ptr CreateMatchOnlyFormat(StringView pattern, std::size_t minSize)
   {
     const auto expr = FormatDSL::Expression::Parse(pattern);

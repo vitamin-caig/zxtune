@@ -200,7 +200,7 @@ namespace
   {
     try
     {
-      const auto format = Binary::CreateFormat(notation);
+      const auto format = Binary::CreateScanningFormat(notation);
       const Binary::View sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return {format->Match(sample), format->NextMatchOffset(sample)};
     }
@@ -214,9 +214,9 @@ namespace
   {
     try
     {
-      const Binary::Format::Ptr format = Binary::CreateMatchOnlyFormat(notation);
+      const auto format = Binary::CreateMatchOnlyFormat(notation);
       const Binary::View sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
-      return {format->Match(sample), format->NextMatchOffset(sample)};
+      return {format->Match(sample), sample.Size()};
     }
     catch (const std::exception&)
     {
@@ -228,8 +228,8 @@ namespace
   {
     try
     {
-      auto hdr = Binary::CreateFormat(header, minSize);
-      auto foot = Binary::CreateFormat(footer);
+      auto hdr = Binary::CreateScanningFormat(header, minSize);
+      auto foot = Binary::CreateScanningFormat(footer);
       const auto format = Binary::CreateCompositeFormat(std::move(hdr), std::move(foot), minSize, maxSize);
       const Binary::View sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
       return {format->Match(sample), format->NextMatchOffset(sample)};
@@ -927,7 +927,7 @@ namespace
     Test("match (only)", resMatched.Matched, tst.MatchOnlyResult.Matched);
     Test("next match offset (only)", resMatched.NextMatch, tst.MatchOnlyResult.NextMatch);
   }
-  
+
   void ExecuteExpressionTest()
   {
     constexpr StringView HOLES[] = {""sv, "?"sv, "??"sv, "???"sv};
@@ -966,7 +966,9 @@ namespace
               // Use 2-char patterns for the sake of simplicity
               const auto size = begin.size() / 2 + hole.size() * (begin.size() * end.size() != 0) + end.size() / 2;
               const auto pattern = std::string(prefix) + begin + hole + end + suffix;
-              std::cout << Strings::Format("Testing for expression: ({})+({})+({})+({})+({})", prefix, begin, hole, end, suffix) << std::endl;
+              std::cout << Strings::Format("Testing for expression: ({})+({})+({})+({})+({})", prefix, begin, hole, end,
+                                           suffix)
+                        << std::endl;
               const auto exp = Binary::FormatDSL::Expression::Parse(pattern);
               Test("offset", exp->StartOffset(), offset);
               Test("size", exp->Predicates().size(), size);

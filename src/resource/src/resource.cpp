@@ -146,7 +146,7 @@ namespace
 
   ArchivesSet FindArchives(Binary::View data, const Formats::Archived::Decoder& decoder)
   {
-    const auto format = decoder.GetFormat();
+    const auto format = std::dynamic_pointer_cast<const Binary::ScanningFormat>(decoder.GetFormat());
     ArchivesSet result;
     for (std::size_t offset = 0, limit = data.Size(); offset < limit;)
     {

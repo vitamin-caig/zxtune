@@ -32,10 +32,11 @@ namespace Binary
     }
   }
 
-  class CompositeFormat : public Format
+  class CompositeFormat : public ScanningFormat
   {
   public:
-    CompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset)
+    CompositeFormat(ScanningFormat::Ptr header, ScanningFormat::Ptr footer, std::size_t minFooterOffset,
+                    std::size_t maxFooterOffset)
       : Header(std::move(header))
       , Footer(std::move(footer))
       , MinFooterOffset(std::max(minFooterOffset, GetSize(*Header)))
@@ -108,8 +109,8 @@ namespace Binary
     }
 
   private:
-    const Format::Ptr Header;
-    const Format::Ptr Footer;
+    const ScanningFormat::Ptr Header;
+    const ScanningFormat::Ptr Footer;
     const std::size_t MinFooterOffset;
     const std::size_t MaxFooterOffset;
     const std::size_t FooterSize;
@@ -118,8 +119,8 @@ namespace Binary
 
 namespace Binary
 {
-  Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset,
-                                    std::size_t maxFooterOffset)
+  ScanningFormat::Ptr CreateCompositeFormat(ScanningFormat::Ptr header, ScanningFormat::Ptr footer,
+                                            std::size_t minFooterOffset, std::size_t maxFooterOffset)
   {
     return MakePtr<CompositeFormat>(std::move(header), std::move(footer), minFooterOffset, maxFooterOffset);
   }
