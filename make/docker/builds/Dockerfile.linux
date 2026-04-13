@@ -121,6 +121,7 @@ RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" &
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
+    git remote set-url --add origin https://github.com/vitamin-caig/zxtune.git && \
     echo "platform=linux\npackaging=any\ntools.python=python3\nsystem.zlib=1\n" \
          "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n" \
          "ld_flags=-static-libstdc++\n" \

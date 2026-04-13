@@ -38,6 +38,7 @@ RUN mkdir -p ${androidsdk} && cd ${androidsdk} && \
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
+    git remote set-url --add origin https://github.com/vitamin-caig/zxtune.git && \
     echo "android.ndk=${androidsdk}/ndk/${ndk}\nprebuilt.dir=${prebuilt}\n"\
          "tools.python=python3\n" > variables.mak && \
     mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}\nndk.version=${ndk}" > apps/zxtune-android/local.properties && \

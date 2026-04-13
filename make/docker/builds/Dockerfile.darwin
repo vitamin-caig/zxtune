@@ -94,6 +94,7 @@ RUN git clone --depth=1 --branch=v${qt} https://github.com/qt/qt5.git && \
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
+    git remote set-url --add origin https://github.com/vitamin-caig/zxtune.git && \
     echo "platform=darwin\narch=${arch}\npackaging=dmg\ntools.python=python3\n"\
          "prebuilt.dir=${prebuilt}\ntoolchains.root=${toolchains}\n"\
          "boost.version=${boost}\nqt.version=${qt}\n"\

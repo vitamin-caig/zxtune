@@ -12,6 +12,7 @@ USER build
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
+    git remote set-url --add origin https://github.com/vitamin-caig/zxtune.git && \
     echo -e "platform=linux\narch=x86_64\npackaging=rpm\ndistro=fedora" > variables.mak && \
     echo -e "qt.includes=/usr/include/qt5\ncxx_flags=-fPIC" >> variables.mak && \
     echo -e "tools.moc=moc-qt5\ntools.uic=uic-qt5\ntools.rcc=rcc-qt5\ntools.python=python3" >> variables.mak
