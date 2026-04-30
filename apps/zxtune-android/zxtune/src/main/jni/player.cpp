@@ -356,16 +356,12 @@ EXPORTED jboolean JNICALL Java_app_zxtune_core_jni_JniPlayer_render(JNIEnv* env,
 {
   return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    const Jni::AutoShortArray buf(env, buffer);
-    Jni::CheckArgument(buf, "Empty render buffer");
-    if (const auto player = Player::Storage::Instance().Find(playerHandle))
+    const auto player = Player::Storage::Instance().Get(playerHandle);
+    if (const auto buf = Jni::AutoShortArray(env, buffer))
     {
       return player->Render(buf.Size(), buf.Data());
     }
-    else
-    {
-      return false;
-    }
+    throw Jni::IllegalArgumentException("Empty render buffer");
   });
 }
 
