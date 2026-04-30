@@ -14,25 +14,6 @@ interface PlaybackControl {
     }
 
     /**
-     * Track playback mode
-     */
-    enum class TrackMode {
-        /// Play track from start to end
-        REGULAR,  /// Loop track according to internal information
-        LOOPED
-    }
-
-    /**
-     * Tracks collection playback mode
-     */
-    enum class SequenceMode {
-        /// Play collection from start to end
-        ORDERED,  /// Loop collection (if possible)
-        LOOPED,  /// Random position
-        SHUFFLE
-    }
-
-    /**
      * Activate currently playing item
      */
     fun play()
@@ -53,12 +34,12 @@ interface PlaybackControl {
     fun prev()
 
     /**
-     * Track playback mode
+     * Track looped playback according to settings
      */
-    var trackMode: TrackMode
+    var trackLooped: Boolean
 
     /**
-     * Sequence playback mode
+     * Sequence shuffled playback
      */
-    var sequenceMode: SequenceMode
+    var shuffledOrder: Boolean
 }

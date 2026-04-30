@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.session.PlaybackStateCompat.RepeatMode
 import android.support.v4.media.session.PlaybackStateCompat.ShuffleMode
 import app.zxtune.Logger
@@ -79,15 +80,15 @@ internal class ControlCallback(
         ScanService.add(ctx, it)
     } ?: Unit
 
-    override fun onSetShuffleMode(@ShuffleMode mode: Int) = fromShuffleMode(mode)?.let {
-        ctrl.sequenceMode = it
+    override fun onSetShuffleMode(@ShuffleMode mode: Int) {
+        ctrl.shuffledOrder = mode == PlaybackStateCompat.SHUFFLE_MODE_ALL
         session.setShuffleMode(mode)
-    } ?: Unit
+    }
 
-    override fun onSetRepeatMode(@RepeatMode mode: Int) = fromRepeatMode(mode)?.let {
-        ctrl.trackMode = it
+    override fun onSetRepeatMode(@RepeatMode mode: Int) {
+        ctrl.trackLooped = mode == PlaybackStateCompat.REPEAT_MODE_ONE
         session.setRepeatMode(mode)
-    } ?: Unit
+    }
 
     override fun onPlayFromUri(uri: Uri, extras: Bundle?) = svc.setNowPlaying(uri)
 

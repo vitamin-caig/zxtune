@@ -34,9 +34,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 //! Events gate from local service to mediasession
 internal class StatusCallback private constructor(
-    private val ctx: Context,
-    svc: PlaybackService,
-    private val session: MediaSessionCompat
+    private val ctx: Context, svc: PlaybackService, private val session: MediaSessionCompat
 ) : Releaseable {
     private val builder = PlaybackStateCompat.Builder()
     private val scope = CoroutineScope(CoroutineName("SessionStatusCallback") + Dispatchers.IO)
@@ -51,8 +49,8 @@ internal class StatusCallback private constructor(
             PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or PlaybackStateCompat.ACTION_PLAY_PAUSE or PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_SKIP_TO_NEXT
         )
         svc.playbackControl.run {
-            session.setShuffleMode(sequenceMode.toShuffleMode())
-            session.setRepeatMode(trackMode.toRepeatMode())
+            session.setShuffleMode(if (shuffledOrder) PlaybackStateCompat.SHUFFLE_MODE_ALL else PlaybackStateCompat.SHUFFLE_MODE_NONE)
+            session.setRepeatMode(if (trackLooped) PlaybackStateCompat.REPEAT_MODE_ONE else PlaybackStateCompat.REPEAT_MODE_NONE)
         }
         svc.nowPlaying.filterNotNull().onEach { onItemChanged(it) }.launchIn(scope)
         svc.state.onEach { onStateChanged(it.first, it.second) }.launchIn(scope)

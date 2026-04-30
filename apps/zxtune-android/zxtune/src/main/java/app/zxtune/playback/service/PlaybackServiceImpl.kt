@@ -12,7 +12,6 @@ import app.zxtune.device.sound.SoundOutputSamplesTarget
 import app.zxtune.playback.Item
 import app.zxtune.playback.PlayableItem
 import app.zxtune.playback.PlaybackControl
-import app.zxtune.playback.PlaybackControl.TrackMode
 import app.zxtune.playback.PlaybackService
 import app.zxtune.playback.SeekControl
 import app.zxtune.playback.Visualizer
@@ -107,24 +106,9 @@ class PlaybackServiceImpl(context: Context, private val prefs: DataStore) : Play
     }
 
     override val playbackControl: PlaybackControl = object : PlaybackControl {
-        private var _shuffled
-            get() = queue.shuffled
-            set(value) {
-                if (value != queue.shuffled) {
-                    queue.shuffled = value
-                    prefs.isShuffled = value
-                }
-            }
-        private var _looped = prefs.isLooped
-            set(value) {
-                if (value != field) {
-                    field = value
-                    prefs.isLooped = value
-                }
-            }
 
         init {
-            _shuffled = prefs.isShuffled
+            queue.shuffled = prefs.isShuffled
         }
 
         override fun play() = player.startPlayback()
@@ -137,26 +121,31 @@ class PlaybackServiceImpl(context: Context, private val prefs: DataStore) : Play
             queue.prev()
         }
 
-        override var trackMode
-            get() = if (_looped) TrackMode.LOOPED else TrackMode.REGULAR
-            set(value) = when (value) {
-                TrackMode.LOOPED -> _looped = true
-                TrackMode.REGULAR -> _looped = false
+        override var trackLooped = prefs.isLooped
+            set(value) {
+                if (value != field) {
+                    field = value
+                    prefs.isLooped = value
+                }
             }
-        override var sequenceMode
-            get() = if (_shuffled) PlaybackControl.SequenceMode.SHUFFLE else PlaybackControl.SequenceMode.ORDERED
-            set(value) = when (value) {
-                PlaybackControl.SequenceMode.SHUFFLE -> _shuffled = true
-                PlaybackControl.SequenceMode.ORDERED -> _shuffled = false
-                else -> Unit
+
+        override var shuffledOrder
+            get() = queue.shuffled
+            set(value) {
+                if (value != queue.shuffled) {
+                    queue.shuffled = value
+                    prefs.isShuffled = value
+                }
             }
     }
+
     override val seekControl = object : SeekControl {
         override val duration
             get() = current?.duration ?: TimeStamp.EMPTY
         override var position by player::position
 
     }
+
     override val visualizer = object : Visualizer {
         override fun getSpectrum(levels: ByteArray) = current?.player?.analyze(levels) ?: 0
     }
