@@ -130,7 +130,7 @@ class SpectrumAnalyzerView @JvmOverloads constructor(
     suspend fun setIsUpdating(isUpdating: Boolean) {
         if (isUpdating == visibilityLock.holdsLock(this)) {
             if (isUpdating) {
-                visibilityLock.unlock()
+                visibilityLock.unlock(this)
             } else {
                 visibilityLock.lock(this)
             }

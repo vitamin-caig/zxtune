@@ -19,6 +19,7 @@ import app.zxtune.ui.utils.whenLifecycleStarted
 import app.zxtune.ui.views.SpectrumAnalyzerView
 import app.zxtune.utils.ifNotNulls
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onSuccess
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,9 +31,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@OptIn(ExperimentalAtomicApi::class)
 class VisualizerFragment : Fragment() {
     private lateinit var analyzer: SpectrumAnalyzerView
+    private val setVisibilityJob = AtomicReference<Job?>(null)
 
     private val scope
         get() = viewLifecycleOwner.lifecycleScope
@@ -102,11 +107,11 @@ class VisualizerFragment : Fragment() {
         }
 
     // Show/hide tab
-    fun setIsVisible(isVisible: Boolean) {
+    fun setIsVisible(isVisible: Boolean) = setVisibilityJob.exchange(
         scope.launch {
             analyzer.setIsUpdating(isVisible)
         }
-    }
+    )?.cancel() ?: Unit
 
     override fun onDestroy() {
         super.onDestroy()
