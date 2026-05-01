@@ -99,8 +99,9 @@ open class CoverartService @VisibleForTesting constructor(private val db: Databa
     // - null if id is known as having no albumart
     // - archive's bound image or nearest in archive if id is for archived
     // - bound image of id or any parent
-    fun albumArtUriOf(id: Identifier, dataObject: VfsObject) =
-        albumArtOf(id, dataObject)?.toPictureUrl()
+    fun albumArtUriOf(id: Identifier, dataObject: VfsObject) = runCatching {
+        albumArtOf(id, dataObject)
+    }.onFailure { LOG.w(it) { "Failed to get album art of $id" } }.getOrNull()?.toPictureUrl()
 
     @VisibleForTesting
     fun albumArtOf(id: Identifier, dataObject: VfsObject): Reference.Target? {
