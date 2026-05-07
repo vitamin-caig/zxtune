@@ -255,14 +255,14 @@ namespace
 
     void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder) override
     {
-      const Module::Information::Ptr info = holder->GetModuleInformation();
+      const auto info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
       const auto& path = Parameters::GetString(*props, Module::ATTR_FULLPATH);
       const auto& type = Parameters::GetString(*props, Module::ATTR_TYPE);
 
       try
       {
-        const auto total = info->Duration() * Iterations;
+        const auto total = info.Duration * Iterations;
         BenchmarkSoundReceiver receiver;
         const auto renderer = holder->CreateRenderer(Sounder.GetSamplerate(), props);
         const auto state = renderer->GetState();
@@ -648,8 +648,8 @@ namespace
       const Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
       const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
 
-      const Module::Information::Ptr info = holder->GetModuleInformation();
-      const auto seekStep = Time::Milliseconds(info->Duration().Get() * SeekStep / 100);
+      const auto info = holder->GetModuleInformation();
+      const auto seekStep = Time::Milliseconds(info.Duration.Get() * SeekStep / 100);
       control->Play();
 
       Display->SetModule(holder, backend);

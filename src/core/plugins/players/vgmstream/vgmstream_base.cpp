@@ -339,30 +339,12 @@ namespace Module::VGMStream
     int Channels;
   };
 
-  class Information : public Module::Information
+  Information MakeInformation(const VGMSTREAM& stream)
   {
-  public:
-    explicit Information(const VGMStreamPtr& stream)
-      : Total(stream->num_samples)
-      , LoopStart(stream->loop_start_sample)
-      , Samplerate(stream->sample_rate)
-    {}
-
-    Time::Milliseconds Duration() const override
-    {
-      return Time::Milliseconds::FromRatio(Total, Samplerate);
-    }
-
-    Time::Milliseconds LoopDuration() const override
-    {
-      return Time::Milliseconds::FromRatio(Total - LoopStart, Samplerate);
-    }
-
-  private:
-    const int Total;
-    const int LoopStart;
-    const int Samplerate;
-  };
+    return CreateTimedInfo(
+        Time::Milliseconds::FromRatio(stream.num_samples, stream.sample_rate),
+        Time::Milliseconds::FromRatio(stream.num_samples - stream.loop_start_sample, stream.sample_rate));
+  }
 
   class Holder : public Module::Holder
   {
@@ -370,13 +352,12 @@ namespace Module::VGMStream
     Holder(Vfs::Ptr model, VGMStreamPtr stream, Parameters::Accessor::Ptr props)
       : Model(std::move(model))
       , Stream(std::move(stream))
-      , Info(MakePtr<Information>(Stream))
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
-      return Info;
+      return MakeInformation(*Stream);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -409,7 +390,6 @@ namespace Module::VGMStream
   private:
     const Vfs::Ptr Model;
     mutable VGMStreamPtr Stream;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
 
@@ -467,7 +447,7 @@ namespace Module::VGMStream
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return GetDelegate().GetModuleInformation();
     }

@@ -384,11 +384,11 @@ namespace Module::TurboSound
       : Tune(std::move(chiptune))
     {}
 
-    Information::Ptr GetModuleInformation() const override
+    Information GetModuleInformation() const override
     {
       if (auto track = Tune->FindTrackModel())
       {
-        return CreateTrackInfoFixedChannels(Tune->GetFrameDuration(), std::move(track), TRACK_CHANNELS);
+        return CreateTrackInfoFixedChannels(Tune->GetFrameDuration(), *track, TRACK_CHANNELS);
       }
       else
       {

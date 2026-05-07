@@ -95,7 +95,7 @@ namespace
     {
       const auto info = module->GetModuleInformation();
       const auto props = module->GetModuleProperties();
-      TotalDuration = info->Duration();
+      TotalDuration = info.Duration;
       State = player->GetState();
       TrackState = dynamic_cast<const Module::TrackState*>(State.get());
       if (!Silent && ShowAnalyze)
@@ -112,7 +112,7 @@ namespace
         // May require encoding, so write via console
         Console::Self().Write(
             InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
-        StdOut << Strings::Format(ITEM_INFO_ADDON, Time::ToString(TotalDuration), Time::ToString(info->LoopDuration()));
+        StdOut << Strings::Format(ITEM_INFO_ADDON, Time::ToString(TotalDuration), Time::ToString(info.LoopDuration));
       }
       DynamicLines = 0;
     }

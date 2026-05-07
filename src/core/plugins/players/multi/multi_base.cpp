@@ -201,7 +201,7 @@ namespace Module
       , Delegates(std::move(delegates))
     {}
 
-    Information::Ptr GetModuleInformation() const override
+    Information GetModuleInformation() const override
     {
       return Delegates.front()->GetModuleInformation();
     }
@@ -219,7 +219,6 @@ namespace Module
   private:
     const Parameters::Accessor::Ptr Properties;
     const Multi::HoldersArray Delegates;
-    const Information::Ptr Info;
   };
 }  // namespace Module
 

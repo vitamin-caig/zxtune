@@ -89,11 +89,11 @@ namespace Module
       : Tune(std::move(chiptune))
     {}
 
-    Information::Ptr GetModuleInformation() const override
+    Information GetModuleInformation() const override
     {
       if (auto track = Tune->FindTrackModel())
       {
-        return CreateTrackInfo(Tune->GetFrameDuration(), std::move(track));
+        return CreateTrackInfo(Tune->GetFrameDuration(), *track);
       }
       else
       {

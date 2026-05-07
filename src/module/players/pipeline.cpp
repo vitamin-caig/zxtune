@@ -131,7 +131,7 @@ namespace Module
       : Delegate(holder.CreateRenderer(samplerate, params))
       , State(Delegate->GetState())
       , Params(std::move(params))
-      , Fading(FadeInfo::Create(holder.GetModuleInformation()->Duration(), *Params))
+      , Fading(FadeInfo::Create(holder.GetModuleInformation().Duration, *Params))
       , Gainer(Sound::CreateGainer())
       , Silence(SilenceDetector::Create(samplerate, *Params))
     {}

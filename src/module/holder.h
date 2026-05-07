@@ -26,7 +26,7 @@ namespace Module
     virtual ~Holder() = default;
 
     //! @brief Retrieving info about loaded module
-    virtual Information::Ptr GetModuleInformation() const = 0;
+    virtual Information GetModuleInformation() const = 0;
 
     //! @brief Retrieving properties of loaded module
     virtual Parameters::Accessor::Ptr GetModuleProperties() const = 0;

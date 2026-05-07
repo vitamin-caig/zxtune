@@ -133,9 +133,9 @@ namespace Module
       : Tune(std::move(chiptune))
     {}
 
-    Information::Ptr GetModuleInformation() const override
+    Information GetModuleInformation() const override
     {
-      return CreateTrackInfo(Tune->GetFrameDuration(), Tune->GetTrackModel());
+      return CreateTrackInfo(Tune->GetFrameDuration(), *Tune->GetTrackModel());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override

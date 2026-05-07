@@ -582,7 +582,7 @@ namespace
       const auto info = holder->GetModuleInformation();
       ModuleSource itemSource(Service, Source, DataId->WithSubpath(subPath));
       auto playitem = MakePtr<DataImpl>(Attributes, std::move(itemSource), holder->GetModuleProperties(),
-                                        Delegate.CreateInitialAdjustedParameters(), info->Duration(),
+                                        Delegate.CreateInitialAdjustedParameters(), info.Duration,
                                         decoder.Capabilities());
       Delegate.ProcessItem(std::move(playitem));
     }

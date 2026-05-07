@@ -310,68 +310,17 @@ namespace Module
     std::unique_ptr<const PlainTrackState> LoopState;
   };
 
-  class TrackInformationImpl : public TrackInformation
+  Information CreateTrackInfoFixedChannels(Time::Microseconds frameDuration, const TrackModel& model, uint_t channels)
   {
-  public:
-    TrackInformationImpl(Time::Microseconds frameDuration, TrackModel::Ptr model, uint_t channels)
-      : FrameDuration(frameDuration)
-      , Model(std::move(model))
-      , Channels(channels)
-    {}
-
-    Time::Milliseconds Duration() const override
-    {
-      Initialize();
-      return (FrameDuration * Frames).CastTo<Time::Millisecond>();
-    }
-
-    Time::Milliseconds LoopDuration() const override
-    {
-      Initialize();
-      return (FrameDuration * (Frames - LoopFrameNum)).CastTo<Time::Millisecond>();
-    }
-
-    uint_t PositionsCount() const override
-    {
-      return Model->GetOrder().GetSize();
-    }
-
-    uint_t LoopPosition() const override
-    {
-      return Model->GetOrder().GetLoopPosition();
-    }
-
-    uint_t ChannelsCount() const override
-    {
-      return Channels;
-    }
-
-  private:
-    void Initialize() const
-    {
-      if (Frames)
-      {
-        return;  // initialized
-      }
-      TrackStateCursor cursor({}, Model);
-      cursor.Seek(Model->GetOrder().GetLoopPosition());
-      LoopFrameNum = cursor.GetState().Frame;
-      cursor.Seek(Model->GetOrder().GetSize());
-      Frames = cursor.GetState().Frame;
-    }
-
-  private:
-    const Time::Microseconds FrameDuration;
-    const TrackModel::Ptr Model;
-    const uint_t Channels;
-    mutable uint_t Frames = 0;
-    mutable uint_t LoopFrameNum = 0;
-  };
-
-  TrackInformation::Ptr CreateTrackInfoFixedChannels(Time::Microseconds frameDuration, TrackModel::Ptr model,
-                                                     uint_t channels)
-  {
-    return MakePtr<TrackInformationImpl>(frameDuration, std::move(model), channels);
+    const auto& order = model.GetOrder();
+    TrackLayout track = {
+        .ChannelsCount = channels, .PositionsCount = order.GetSize(), .LoopPosition = order.GetLoopPosition()};
+    TrackStateCursor cursor(frameDuration, MakeSingletonPointer(model));
+    cursor.Seek(track.LoopPosition);
+    const auto loopAt = cursor.At();
+    cursor.Seek(track.PositionsCount);
+    const auto endAt = cursor.At();
+    return {.Duration = endAt - Time::AtMillisecond(), .LoopDuration = endAt - loopAt, .Track = std::move(track)};
   }
 
   TrackStateIterator::Ptr CreateTrackStateIterator(Time::Microseconds frameDuration, TrackModel::Ptr model)

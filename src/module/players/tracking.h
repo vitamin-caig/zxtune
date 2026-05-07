@@ -14,7 +14,7 @@
 #include "module/players/iterator.h"
 #include "module/players/track_model.h"
 
-#include "module/track_information.h"
+#include "module/information.h"
 #include "module/track_state.h"
 
 #include "make_ptr.h"
@@ -233,13 +233,12 @@ namespace Module
     SparsedObjectsStorage<MutablePattern::Ptr> Storage;
   };
 
-  TrackInformation::Ptr CreateTrackInfoFixedChannels(Time::Microseconds frameDuration, TrackModel::Ptr model,
-                                                     uint_t channels);
+  Information CreateTrackInfoFixedChannels(Time::Microseconds frameDuration, const TrackModel& model, uint_t channels);
 
-  inline TrackInformation::Ptr CreateTrackInfo(Time::Microseconds frameDuration, TrackModel::Ptr model)
+  inline Information CreateTrackInfo(Time::Microseconds frameDuration, const TrackModel& model)
   {
-    const auto channels = model->GetChannelsCount();
-    return CreateTrackInfoFixedChannels(frameDuration, std::move(model), channels);
+    const auto channels = model.GetChannelsCount();
+    return CreateTrackInfoFixedChannels(frameDuration, model, channels);
   }
 
   class TrackStateIterator : public Iterator

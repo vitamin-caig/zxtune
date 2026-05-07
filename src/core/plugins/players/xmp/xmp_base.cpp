@@ -16,7 +16,6 @@
 #include "binary/format_factories.h"
 #include "core/core_parameters.h"
 #include "core/plugin_attrs.h"
-#include "module/track_information.h"
 #include "module/track_state.h"
 #include "parameters/tracking_helper.h"
 #include "strings/sanitize.h"
@@ -112,45 +111,13 @@ namespace Module::Xmp
 
   using DurationType = Time::Milliseconds;
 
-  class Information : public Module::TrackInformation
+  Information MakeInformation(xmp_module info, DurationType duration)
   {
-  public:
-    using Ptr = std::shared_ptr<const Information>;
-
-    Information(xmp_module module, DurationType duration)
-      : Info(module)
-      , TotalDuration(duration)
-    {}
-
-    Time::Milliseconds Duration() const override
-    {
-      return TotalDuration.CastTo<Time::Millisecond>();
-    }
-
-    Time::Milliseconds LoopDuration() const override
-    {
-      return Duration();  // TODO
-    }
-
-    uint_t PositionsCount() const override
-    {
-      return Info.len;
-    }
-
-    uint_t LoopPosition() const override
-    {
-      return Info.rst;
-    }
-
-    uint_t ChannelsCount() const override
-    {
-      return Info.chn;
-    }
-
-  private:
-    const xmp_module Info;
-    const DurationType TotalDuration;
-  };
+    TrackLayout track{.ChannelsCount = static_cast<uint_t>(info.chn),
+                      .PositionsCount = static_cast<uint_t>(info.len),
+                      .LoopPosition = static_cast<uint_t>(info.rst)};
+    return {.Duration = duration, .LoopDuration = duration /*TODO*/, .Track = std::move(track)};
+  }
 
   using StatePtr = std::shared_ptr<xmp_frame_info>;
 
@@ -307,13 +274,13 @@ namespace Module::Xmp
   class Holder : public Module::Holder
   {
   public:
-    Holder(Context::Ptr ctx, Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(Context::Ptr ctx, Information info, Parameters::Accessor::Ptr props)
       : Ctx(std::move(ctx))
       , Info(std::move(info))
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return Info;
     }
@@ -325,12 +292,12 @@ namespace Module::Xmp
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(Info->ChannelsCount(), Ctx, samplerate, std::move(params));
+      return MakePtr<Renderer>(Info.Track->ChannelsCount, Ctx, samplerate, std::move(params));
     }
 
   private:
     const Context::Ptr Ctx;
-    const Information::Ptr Info;
+    const Information Info;
     const Parameters::Accessor::Ptr Properties;
   };
 
@@ -420,7 +387,7 @@ namespace Module::Xmp
           props.SetComment(Strings::SanitizeMultiline(comment));
         }
         ParseStrings(*modInfo.mod, props);
-        auto info = MakePtr<Information>(*modInfo.mod, DurationType(frmInfo.total_time));
+        auto info = MakeInformation(*modInfo.mod, DurationType(frmInfo.total_time));
         return MakePtr<Holder>(std::move(ctx), std::move(info), std::move(properties));
       }
       catch (const std::exception&)

@@ -29,7 +29,7 @@ namespace Module
       : Tune(std::move(chiptune))
     {}
 
-    Information::Ptr GetModuleInformation() const override
+    Information GetModuleInformation() const override
     {
       return Tune->GetInformation();
     }

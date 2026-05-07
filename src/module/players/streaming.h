@@ -18,11 +18,18 @@
 namespace Module
 {
   class StreamModel;
-  Information::Ptr CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel& model);
+  Information CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel& model);
   StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, const StreamModel& model);
 
-  Information::Ptr CreateTimedInfo(Time::Milliseconds duration);
-  Information::Ptr CreateTimedInfo(Time::Milliseconds duration, Time::Milliseconds loopDuration);
+  inline Information CreateTimedInfo(Time::Milliseconds duration, Time::Milliseconds loopDuration)
+  {
+    return {.Duration = duration, .LoopDuration = loopDuration};
+  }
+
+  inline Information CreateTimedInfo(Time::Milliseconds duration)
+  {
+    return CreateTimedInfo(duration, duration);
+  }
 
   class TimedState : public Module::State
   {
@@ -89,7 +96,10 @@ namespace Module
     uint_t Loops = 0;
   };
 
-  Information::Ptr CreateSampledInfo(uint_t samplerate, uint64_t totalSamples);
+  inline Information CreateSampledInfo(uint_t samplerate, uint64_t totalSamples)
+  {
+    return CreateTimedInfo(Time::Milliseconds::FromRatio(totalSamples, samplerate));
+  }
 
   class SampledState : public Module::State
   {

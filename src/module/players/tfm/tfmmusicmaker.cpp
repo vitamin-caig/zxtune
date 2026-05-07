@@ -1407,61 +1407,19 @@ namespace Module::TFMMusicMaker
     std::unique_ptr<const PlainTrackState> LoopState;
   };
 
-  class TrackInformation : public Module::TrackInformation
+  Module::Information MakeInformation(Time::Microseconds frameDuration, ModuleData::Ptr model)
   {
-  public:
-    TrackInformation(Time::Microseconds frameDuration, ModuleData::Ptr data)
-      : FrameDuration(frameDuration)
-      , Data(std::move(data))
-    {}
-
-    Time::Milliseconds Duration() const override
-    {
-      Initialize();
-      return (FrameDuration * Frames).CastTo<Time::Millisecond>();
-    }
-
-    Time::Milliseconds LoopDuration() const override
-    {
-      Initialize();
-      return (FrameDuration * (Frames - LoopFrame)).CastTo<Time::Millisecond>();
-    }
-
-    uint_t PositionsCount() const override
-    {
-      return Data->Order->GetSize();
-    }
-
-    uint_t LoopPosition() const override
-    {
-      return Data->Order->GetLoopPosition();
-    }
-
-    uint_t ChannelsCount() const override
-    {
-      return TFM::TRACK_CHANNELS;
-    }
-
-  private:
-    void Initialize() const
-    {
-      if (Frames)
-      {
-        return;  // initialized
-      }
-      TrackStateCursor cursor({}, Data);
-      cursor.Seek(Data->Order->GetLoopPosition());
-      LoopFrame = cursor.GetState().Frame;
-      cursor.Seek(Data->Order->GetSize());
-      Frames = cursor.GetState().Frame;
-    }
-
-  private:
-    const Time::Microseconds FrameDuration;
-    const ModuleData::Ptr Data;
-    mutable uint_t Frames = 0;
-    mutable uint_t LoopFrame = 0;
-  };
+    const auto& order = model->Order;
+    TrackLayout track = {.ChannelsCount = TFM::TRACK_CHANNELS,
+                         .PositionsCount = order->GetSize(),
+                         .LoopPosition = order->GetLoopPosition()};
+    TrackStateCursor cursor(frameDuration, std::move(model));
+    cursor.Seek(track.LoopPosition);
+    const auto loopAt = cursor.At();
+    cursor.Seek(track.PositionsCount);
+    const auto endAt = cursor.At();
+    return {.Duration = endAt - Time::AtMillisecond(), .LoopDuration = endAt - loopAt, .Track = std::move(track)};
+  }
 
   class Chiptune : public TFM::Chiptune
   {
@@ -1476,9 +1434,9 @@ namespace Module::TFMMusicMaker
       return TFM::BASE_FRAME_DURATION;
     }
 
-    Information::Ptr GetInformation() const override
+    Information GetInformation() const override
     {
-      return MakePtr<TrackInformation>(GetFrameDuration(), Data);
+      return MakeInformation(GetFrameDuration(), Data);
     }
 
     Parameters::Accessor::Ptr GetProperties() const override

@@ -239,7 +239,7 @@ namespace
   {
   public:
     PlayerControl(const Module::Holder& holder, uint_t samplerate, Parameters::Accessor::Ptr globalParams)
-      : Duration(holder.GetModuleInformation()->Duration())
+      : Duration(holder.GetModuleInformation().Duration)
       , Samplerate(samplerate)
       , LocalParameters(Parameters::Container::Create())
       , Renderer(Module::CreatePipelinedRenderer(

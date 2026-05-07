@@ -304,8 +304,8 @@ namespace Module::LibVGM
       }
       Require(0 == Delegate->LoadFile(Loader.Get()));
       Delegate->Start();
-      TotalTicks = ToTicks(info.Duration());
-      LoopTicks = ToTicks(info.LoopDuration());
+      TotalTicks = ToTicks(info.Duration);
+      LoopTicks = ToTicks(info.LoopDuration);
     }
 
     Time::AtMillisecond At() const override
@@ -463,15 +463,14 @@ namespace Module::LibVGM
   class Holder : public Module::Holder
   {
   public:
-    Holder(Model::Ptr tune, Module::Information::Ptr info, ChannelsLayout::Ptr channels,
-           Parameters::Accessor::Ptr props)
+    Holder(Model::Ptr tune, Module::Information info, ChannelsLayout::Ptr channels, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
       , Info(std::move(info))
       , Channels(std::move(channels))
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return Info;
     }
@@ -485,7 +484,7 @@ namespace Module::LibVGM
     {
       try
       {
-        return MakePtr<Renderer>(Tune, *Info, Channels, samplerate, std::move(params));
+        return MakePtr<Renderer>(Tune, Info, Channels, samplerate, std::move(params));
       }
       catch (const std::exception& e)
       {
@@ -495,7 +494,7 @@ namespace Module::LibVGM
 
   private:
     const Model::Ptr Tune;
-    const Module::Information::Ptr Info;
+    const Module::Information Info;
     const ChannelsLayout::Ptr Channels;
     const Parameters::Accessor::Ptr Properties;
   };
@@ -524,11 +523,11 @@ namespace Module::VideoGameMusic
       }
     }
 
-    Information::Ptr CaptureResult(const Parameters::Accessor& props)
+    Information CaptureResult(const Parameters::Accessor& props)
     {
       if (Info)
       {
-        return Information::Ptr(std::move(Info));
+        return std::move(*Info);
       }
       else
       {
@@ -540,7 +539,7 @@ namespace Module::VideoGameMusic
   private:
     PropertiesHelper& Properties;
     MetaProperties Meta;
-    Information::Ptr Info;
+    std::optional<Information> Info;
   };
 
   class Factory : public Module::Factory
@@ -596,7 +595,7 @@ namespace Module::Sound98
       Info = CreateTimedInfo(total, loop);
     }
 
-    Module::Information::Ptr CaptureResult() const
+    Module::Information CaptureResult() const
     {
       return Info;
     }
@@ -604,7 +603,7 @@ namespace Module::Sound98
   private:
     PropertiesHelper& Properties;
     MetaProperties Meta;
-    Module::Information::Ptr Info;
+    Module::Information Info;
   };
 
   class Factory : public Module::Factory

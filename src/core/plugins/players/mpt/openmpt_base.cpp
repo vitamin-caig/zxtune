@@ -18,7 +18,6 @@
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
 #include "math/numeric.h"
-#include "module/track_information.h"
 #include "module/track_state.h"
 #include "parameters/tracking_helper.h"
 #include "strings/format.h"
@@ -48,43 +47,14 @@ namespace Module::Mpt
   }
 
   // TODO: implement proper loop-related calculations after https://bugs.openmpt.org/view.php?id=1675 fix
-  class Information : public Module::TrackInformation
+  Information MakeInformation(const openmpt::module_ext& mod)
   {
-  public:
-    using Ptr = std::shared_ptr<const Information>;
-
-    Information(ModulePtr track)
-      : Track(std::move(track))
-    {}
-
-    Time::Milliseconds Duration() const override
-    {
-      return ToDuration(Track->get_duration_seconds());
-    }
-
-    Time::Milliseconds LoopDuration() const override
-    {
-      return Duration();  // TODO
-    }
-
-    uint_t PositionsCount() const override
-    {
-      return Track->get_num_orders();
-    }
-
-    uint_t LoopPosition() const override
-    {
-      return 0;  // TODO
-    }
-
-    uint_t ChannelsCount() const override
-    {
-      return Track->get_num_channels();
-    }
-
-  private:
-    const ModulePtr Track;
-  };
+    TrackLayout track = {.ChannelsCount = static_cast<uint_t>(mod.get_num_channels()),
+                         .PositionsCount = static_cast<uint_t>(mod.get_num_orders()),
+                         .LoopPosition = 0 /*TODO*/};
+    const auto duration = ToDuration(mod.get_duration_seconds());
+    return {.Duration = duration, .LoopDuration = duration /*TODO*/, .Track = std::move(track)};
+  }
 
   std::vector<double> GetPositionPoints(openmpt::module& track)
   {
@@ -298,13 +268,12 @@ namespace Module::Mpt
   public:
     Holder(ModulePtr track, Parameters::Accessor::Ptr props)
       : Track(std::move(track))
-      , Info(MakePtr<Information>(Track))
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
-      return Info;
+      return MakeInformation(*Track);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -320,7 +289,6 @@ namespace Module::Mpt
 
   private:
     ModulePtr Track;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
 

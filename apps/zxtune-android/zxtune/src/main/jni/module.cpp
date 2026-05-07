@@ -330,8 +330,7 @@ EXPORTED jint JNICALL Java_app_zxtune_core_jni_JniModule_getDurationMs(JNIEnv* e
     return Module::Storage::Instance()
         .Get(moduleHandle)
         ->GetModuleInformation()
-        ->Duration()
-        .CastTo<Player::TimeBase>()
+        .Duration.CastTo<Player::TimeBase>()
         .Get();
   });
 }

@@ -237,7 +237,7 @@ namespace Module::SDSF
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateTimedInfo(Tune->Meta->Duration);
     }
@@ -264,7 +264,6 @@ namespace Module::SDSF
 
   private:
     const ModuleData::Ptr Tune;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
 

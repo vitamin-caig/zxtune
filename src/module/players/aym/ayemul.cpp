@@ -718,7 +718,7 @@ namespace Module::AYEMUL
       , Properties(std::move(properties))
     {}
 
-    Information::Ptr GetModuleInformation() const override
+    Information GetModuleInformation() const override
     {
       return CreateTimedInfo((Data->FrameDuration * Data->Frames).CastTo<Time::Millisecond>());
     }

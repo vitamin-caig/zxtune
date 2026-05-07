@@ -101,27 +101,6 @@ namespace Module
     uint_t Loops = 0;
   };
 
-  class FramedStreamInfo : public Information
-  {
-  public:
-    FramedStreamInfo(FramedStream stream)
-      : Stream(stream)
-    {}
-
-    Time::Milliseconds Duration() const override
-    {
-      return (Stream.FrameDuration * Stream.TotalFrames).CastTo<Time::Millisecond>();
-    }
-
-    Time::Milliseconds LoopDuration() const override
-    {
-      return (Stream.FrameDuration * (Stream.TotalFrames - Stream.LoopFrame)).CastTo<Time::Millisecond>();
-    }
-
-  private:
-    const FramedStream Stream;
-  };
-
   class FramedStreamStateIterator : public StateIterator
   {
   public:
@@ -158,14 +137,16 @@ namespace Module
     const FramedStreamStateCursor::Ptr Cursor;
   };
 
-  Information::Ptr CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel& model)
+  Information CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel& model)
   {
     FramedStream stream;
     stream.FrameDuration = frameDuration;
     stream.TotalFrames = model.GetTotalFrames();
     stream.LoopFrame = model.GetLoopFrame();
     stream.Sanitize();
-    return MakePtr<FramedStreamInfo>(stream);
+    return CreateTimedInfo(
+        (stream.FrameDuration * stream.TotalFrames).CastTo<Time::Millisecond>(),
+        (stream.FrameDuration * (stream.TotalFrames - stream.LoopFrame)).CastTo<Time::Millisecond>());
   }
 
   StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, const StreamModel& model)
@@ -176,39 +157,6 @@ namespace Module
     stream.LoopFrame = model.GetLoopFrame();
     stream.Sanitize();
     return MakePtr<FramedStreamStateIterator>(stream);
-  }
-
-  class TimedInfo : public Module::Information
-  {
-  public:
-    TimedInfo(Time::Milliseconds duration, Time::Milliseconds loopDuration)
-      : DurationValue(duration)
-      , LoopDurationValue(loopDuration)
-    {}
-
-    Time::Milliseconds Duration() const override
-    {
-      return DurationValue;
-    }
-
-    Time::Milliseconds LoopDuration() const override
-    {
-      return LoopDurationValue;
-    }
-
-  private:
-    const Time::Milliseconds DurationValue;
-    const Time::Milliseconds LoopDurationValue;
-  };
-
-  Information::Ptr CreateTimedInfo(Time::Milliseconds duration)
-  {
-    return MakePtr<TimedInfo>(duration, duration);
-  }
-
-  Information::Ptr CreateTimedInfo(Time::Milliseconds duration, Time::Milliseconds loopDuration)
-  {
-    return MakePtr<TimedInfo>(duration, loopDuration);
   }
 
   template<class Unit>
@@ -230,11 +178,6 @@ namespace Module
   Time::Microseconds TimedState::ConsumeRest()
   {
     return ConsumeUpTo(Limit - Position);
-  }
-
-  Information::Ptr CreateSampledInfo(uint_t samplerate, uint64_t totalSamples)
-  {
-    return CreateTimedInfo(Time::Milliseconds::FromRatio(totalSamples, samplerate));
   }
 
   uint_t SampledState::Consume(uint_t samples)

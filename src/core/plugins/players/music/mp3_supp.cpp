@@ -291,7 +291,7 @@ namespace Module::Mp3
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateTimedInfo(Data->Duration.CastTo<Time::Millisecond>());
     }

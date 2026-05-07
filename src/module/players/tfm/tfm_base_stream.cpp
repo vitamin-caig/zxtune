@@ -67,7 +67,7 @@ namespace Module::TFM
       return FrameDuration;
     }
 
-    Information::Ptr GetInformation() const override
+    Information GetInformation() const override
     {
       return CreateStreamInfo(FrameDuration, *Data);
     }

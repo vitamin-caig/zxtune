@@ -277,7 +277,7 @@ namespace Module::ASAP
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateTimedInfo(Tune->GetDuration());
     }

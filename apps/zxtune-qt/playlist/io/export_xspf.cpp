@@ -273,7 +273,7 @@ namespace
   private:
     void SaveDuration(const Module::Information& info)
     {
-      const uint64_t msecDuration = info.Duration().CastTo<Time::Millisecond>().Get();
+      const uint64_t msecDuration = info.Duration.CastTo<Time::Millisecond>().Get();
       Dbg("  saving item attribute Duration={}", msecDuration);
       Element.Text(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
     }
@@ -398,9 +398,9 @@ namespace
     {
       if (const Module::Holder::Ptr holder = item.GetModule())
       {
-        const Module::Information::Ptr info = holder->GetModuleInformation();
+        const auto info = holder->GetModuleInformation();
         const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
-        saver.SaveModuleProperties(*info, *props);
+        saver.SaveModuleProperties(info, *props);
         const Parameters::Accessor::Ptr adjustedParams = item.GetAdjustedParameters();
         saver.SaveAdjustedParameters(*adjustedParams);
       }
