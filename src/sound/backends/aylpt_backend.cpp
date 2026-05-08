@@ -114,7 +114,7 @@ namespace Sound::AyLpt
     void FrameStart(const Module::State& state) override
     {
       WaitForNextFrame();
-      const auto frame = state.At().CastTo<Time::Microsecond>().Get() / FrameDuration.count();
+      const auto frame = state.At.CastTo<Time::Microsecond>().Get() / FrameDuration.count();
       const uint8_t* regs = static_cast<const uint8_t*>(Data->Start()) + frame * Devices::AYM::Registers::TOTAL;
       WriteRegisters(regs);
     }

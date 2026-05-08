@@ -12,6 +12,8 @@
 
 #include "module/state.h"
 
+#include <memory>
+
 namespace Module
 {
   class Iterator
@@ -23,6 +25,8 @@ namespace Module
 
     virtual void Reset() = 0;
     virtual void NextFrame() = 0;
+
+    virtual State GetState() const = 0;
   };
 
   class StateIterator : public Iterator
@@ -31,7 +35,5 @@ namespace Module
     using Ptr = std::unique_ptr<StateIterator>;
 
     virtual uint_t CurrentFrame() const = 0;
-
-    virtual State::Ptr GetStateObserver() const = 0;
   };
 }  // namespace Module

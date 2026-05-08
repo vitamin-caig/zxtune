@@ -18,7 +18,6 @@
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
 #include "math/numeric.h"
-#include "module/track_state.h"
 #include "parameters/tracking_helper.h"
 #include "strings/format.h"
 #include "strings/sanitize.h"
@@ -69,68 +68,43 @@ namespace Module::Mpt
     return result;
   }
 
-  class TrackState : public Module::TrackState
+  class TrackState
   {
   public:
-    using Ptr = std::shared_ptr<TrackState>;
-
-    explicit TrackState(ModulePtr track)
-      : Track(std::move(track))
-      , TotalDuration(Track->get_duration_seconds())
-      , Positions(GetPositionPoints(*Track))
+    explicit TrackState(openmpt::module_ext& track)
+      : Track(track)
+      , TotalDuration(Track.get_duration_seconds())
+      , Positions(GetPositionPoints(track))
     {
       Reset();
     }
 
-    Time::AtMillisecond At() const override
+    Time::AtMillisecond At() const
     {
       return Time::AtMillisecond() + ToDuration(std::min(TotalDuration, Current.Time - AllLoopsDuration));
     }
 
-    Time::Milliseconds Total() const override
+    Time::Milliseconds Total() const
     {
       return ToDuration(Current.Time);
     }
 
-    uint_t LoopCount() const override
+    Module::State Get() const
     {
-      return LoopsDone;
-    }
-
-    uint_t Position() const override
-    {
-      return Current.Position;
-    }
-
-    uint_t Pattern() const override
-    {
-      return Track->get_current_pattern();
-    }
-
-    uint_t Line() const override
-    {
-      return Track->get_current_row();
-    }
-
-    uint_t Tempo() const override
-    {
-      return Track->get_current_tempo();
-    }
-
-    uint_t Quirk() const override
-    {
-      return 0;
-    }
-
-    uint_t Channels() const override
-    {
-      return Track->get_current_playing_channels();
+      return {.At = At(),
+              .Total = Total(),
+              .LoopCount = LoopsDone,
+              .Track = {{.Position = Current.Position,
+                         .Pattern = static_cast<uint_t>(Track.get_current_pattern()),
+                         .Line = static_cast<uint_t>(Track.get_current_row()),
+                         .Tempo = static_cast<uint_t>(Track.get_current_tempo()),
+                         .Channels = static_cast<uint_t>(Track.get_current_playing_channels())}}};
     }
 
     void Update()
     {
-      Current.Position = static_cast<uint_t>(Track->get_current_order());
-      Current.Time = Track->get_position_seconds();
+      Current.Position = static_cast<uint_t>(Track.get_current_order());
+      Current.Time = Track.get_position_seconds();
       if (Current.Time - AllLoopsDuration > TotalDuration)
       {
         ++LoopsDone;
@@ -154,7 +128,7 @@ namespace Module::Mpt
     }
 
   private:
-    const ModulePtr Track;
+    const openmpt::module_ext& Track;
     const double TotalDuration;
     const std::vector<double> Positions;
     uint_t LoopsDone = 0;
@@ -174,14 +148,14 @@ namespace Module::Mpt
     Renderer(ModulePtr track, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Track(std::move(track))
       , InteractiveTrack(*static_cast<openmpt::ext::interactive*>(Track->get_interface(openmpt::ext::interactive_id)))
-      , State(MakePtr<TrackState>(Track))
+      , State(*Track)
       , Params(std::move(params))
       , SoundFreq(samplerate)
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
@@ -196,17 +170,17 @@ namespace Module::Mpt
       Sound::Chunk chunk(samples);
       for (;;)
       {
-        State->Update();
+        State.Update();
         if (const auto done = Track->read_interleaved_stereo(SoundFreq, samples, safe_ptr_cast<int16_t*>(chunk.data())))
         {
           chunk.resize(done);
           return chunk;
         }
-        else if (State->Total())
+        else if (State.Total())
         {
           // see XM.cheapchoon%20II%20%20%203-30.gz @ AMP
           Track->set_position_seconds(0);
-          State->ForcedLoop();
+          State.ForcedLoop();
         }
         else
         {
@@ -225,7 +199,7 @@ namespace Module::Mpt
     void SetPosition(Time::AtMillisecond request) override
     {
       Track->set_position_seconds(double(request.Get()) / request.PER_SECOND);
-      State->Reset();
+      State.Reset();
     }
 
   private:
@@ -257,7 +231,7 @@ namespace Module::Mpt
   private:
     const ModulePtr Track;
     openmpt::ext::interactive& InteractiveTrack;
-    const TrackState::Ptr State;
+    TrackState State;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
     const uint_t SoundFreq;
     uint_t MuteMask = 0;

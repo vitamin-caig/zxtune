@@ -389,9 +389,9 @@ namespace Module::SoundTracker
       EnvType = EnvTone = 0;
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         SwitchToNewLine(state);
       }
@@ -400,10 +400,9 @@ namespace Module::SoundTracker
     }
 
   private:
-    void SwitchToNewLine(const TrackModelState& state)
+    void SwitchToNewLine(const TrackState& state)
     {
-      assert(0 == state.Quirk());
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
         if (const auto* const chan = line->GetChannel(0))
         {
@@ -422,7 +421,7 @@ namespace Module::SoundTracker
 
     void SynthesizeChannelsData(const TrackState& state, AYM::TrackBuilder& track) const
     {
-      const int_t transposition = Data->Order->GetTransposition(state.Position());
+      const int_t transposition = Data->Order->GetTransposition(state.Position);
       {
         ChannelBuilder channel(transposition, track, 0);
         StateA.Synthesize(channel);

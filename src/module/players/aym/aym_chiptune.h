@@ -28,7 +28,7 @@ namespace Module::AYM
   public:
     using Ptr = std::unique_ptr<DataIterator>;
 
-    virtual State::Ptr GetStateObserver() const = 0;
+    virtual State GetState() const = 0;
 
     virtual Devices::AYM::Registers GetData() const = 0;
   };
@@ -42,7 +42,7 @@ namespace Module::AYM
     virtual Time::Microseconds GetFrameDuration() const = 0;
 
     // One of
-    virtual TrackModel::Ptr FindTrackModel() const = 0;
+    virtual Module::TrackModel::Ptr FindTrackModel() const = 0;
     virtual Module::StreamModel::Ptr FindStreamModel() const = 0;
 
     virtual Parameters::Accessor::Ptr GetProperties() const = 0;

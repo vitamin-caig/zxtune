@@ -335,13 +335,13 @@ namespace Module::FastTracker
       Transposition = 0;
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
-        if (0 == state.Line())
+        if (0 == state.Line)
         {
-          Transposition = Data->Order->GetTransposition(state.Position());
+          Transposition = Data->Order->GetTransposition(state.Position);
         }
         GetNewLineState(state, track);
       }
@@ -349,9 +349,9 @@ namespace Module::FastTracker
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {

@@ -159,9 +159,9 @@ namespace Module::GlobalTracker
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -169,9 +169,9 @@ namespace Module::GlobalTracker
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {

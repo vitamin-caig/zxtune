@@ -138,7 +138,7 @@ namespace Module
       , Target(Delegates.size())
     {}
 
-    State::Ptr GetState() const override
+    State GetState() const override
     {
       return Delegates.front()->GetState();
     }

@@ -543,20 +543,20 @@ namespace Module::AYEMUL
   {
   public:
     Renderer(const ModuleData& data, Computer::Ptr comp, DataChannel::Ptr device)
-      : State(MakePtr<TimedState>((data.FrameDuration * data.Frames).CastTo<Time::Millisecond>()))
+      : State((data.FrameDuration * data.Frames).CastTo<Time::Millisecond>())
       , Comp(std::move(comp))
       , Device(std::move(device))
       , FrameDuration(data.FrameDuration)
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
-      State->ConsumeUpTo(FrameDuration);
+      State.ConsumeUpTo(FrameDuration);
       DeviceTime += FrameDuration;
       Comp->ExecuteFrameTill(DeviceTime);
       return Device->RenderFrameTill(DeviceTime);
@@ -564,7 +564,7 @@ namespace Module::AYEMUL
 
     void Reset() override
     {
-      State->Reset();
+      State.Reset();
       Comp->Reset();
       Device->Reset();
       DeviceTime = {};
@@ -572,7 +572,7 @@ namespace Module::AYEMUL
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      auto current = State->At();
+      auto current = State.Get().At;
       if (request < current)
       {
         current = {};
@@ -580,17 +580,17 @@ namespace Module::AYEMUL
         Device->Reset();
         DeviceTime = {};
       }
-      const auto delta = State->Seek(request);
+      const auto delta = State.Seek(request);
       if (const auto frames = delta.Divide<uint_t>(FrameDuration))
       {
         // correct logical position
-        State->Seek(current + (FrameDuration * frames).CastTo<Time::Millisecond>());
+        State.Seek(current + (FrameDuration * frames).CastTo<Time::Millisecond>());
         Comp->SkipFrames(DeviceTime, frames, FrameDuration);
       }
     }
 
   private:
-    const TimedState::Ptr State;
+    TimedState State;
     const Computer::Ptr Comp;
     const DataChannel::Ptr Device;
     const Time::Microseconds FrameDuration;

@@ -369,11 +369,10 @@ namespace Module::ProTracker3
     class DataIterator : public TurboSound::DataIterator
     {
     public:
-      DataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator,
-                   AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second)
+      DataIterator(AYM::TrackParameters::Ptr trackParams, Iterator::Ptr iterator, AYM::DataRenderer::Ptr first,
+                   AYM::DataRenderer::Ptr second)
         : Params(std::move(trackParams))
         , Delegate(std::move(iterator))
-        , State(Delegate->GetStateObserver())
         , First(std::move(first))
         , Second(std::move(second))
       {}
@@ -391,22 +390,23 @@ namespace Module::ProTracker3
         Delegate->NextFrame();
       }
 
-      Module::State::Ptr GetStateObserver() const override
+      Module::State GetState() const override
       {
-        return State;
+        return Delegate->GetState();
       }
 
       Devices::TurboSound::Registers GetData() const override
       {
         SynchronizeParameters();
-        return {{RenderFrom(*First), RenderFrom(*Second)}};
+        const auto& state = Delegate->GetState();
+        return {{RenderFrom(*state.Track, *First), RenderFrom(*state.Track, *Second)}};
       }
 
     private:
-      Devices::AYM::Registers RenderFrom(AYM::DataRenderer& renderer) const
+      Devices::AYM::Registers RenderFrom(const TrackState& state, AYM::DataRenderer& renderer) const
       {
         AYM::TrackBuilder builder(Table);
-        renderer.SynthesizeData(*State, builder);
+        renderer.SynthesizeData(state, builder);
         return builder.GetResult();
       }
 
@@ -420,8 +420,7 @@ namespace Module::ProTracker3
 
     private:
       Parameters::TrackingHelper<AYM::TrackParameters> Params;
-      const TrackStateIterator::Ptr Delegate;
-      const TrackModelState::Ptr State;
+      const Iterator::Ptr Delegate;
       const AYM::DataRenderer::Ptr First;
       const AYM::DataRenderer::Ptr Second;
       mutable FrequencyTable Table;

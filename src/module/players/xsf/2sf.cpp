@@ -216,35 +216,35 @@ namespace Module::TwoSF
   public:
     Renderer(ModuleData::Ptr data, Sound::Converter::Ptr target)
       : Data(std::move(data))
-      , State(MakePtr<TimedState>(Data->Meta->Duration))
+      , State(Data->Meta->Duration)
       , Target(std::move(target))
       , Engine(MakePtr<DSEngine>(*Data))
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
-      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
+      const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       return Target->Apply(Engine->Render(GetSamples(avail)));
     }
 
     void Reset() override
     {
-      State->Reset();
+      State.Reset();
       Engine = MakePtr<DSEngine>(*Data);
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      if (request < State->At())
+      if (request < State.At())
       {
         Engine = MakePtr<DSEngine>(*Data);
       }
-      if (const auto toSkip = State->Seek(request))
+      if (const auto toSkip = State.Seek(request))
       {
         Engine->Skip(GetSamples(toSkip));
       }
@@ -252,7 +252,7 @@ namespace Module::TwoSF
 
   private:
     const ModuleData::Ptr Data;
-    const TimedState::Ptr State;
+    TimedState State;
     const Sound::Converter::Ptr Target;
     DSEngine::Ptr Engine;
   };

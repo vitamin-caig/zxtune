@@ -232,38 +232,11 @@ namespace Module::VGMStream
 
   using VGMStreamPtr = std::shared_ptr<VGMSTREAM>;
 
-  class State : public Module::State
-  {
-  public:
-    explicit State(VGMStreamPtr stream)
-      : Stream(std::move(stream))
-    {}
-
-    Time::AtMillisecond At() const override
-    {
-      return Time::AtMillisecond() + Time::Milliseconds::FromRatio(Stream->current_sample, Stream->sample_rate);
-    }
-
-    Time::Milliseconds Total() const override
-    {
-      return Time::Milliseconds::FromRatio(Stream->pstate.play_duration, Stream->sample_rate);
-    }
-
-    uint_t LoopCount() const override
-    {
-      return Stream->loop_count;
-    }
-
-  private:
-    const VGMStreamPtr Stream;
-  };
-
   class Renderer : public Module::Renderer
   {
   public:
     Renderer(VGMStreamPtr tune, uint_t samplerate)
       : Tune(std::move(tune))
-      , Status(MakePtr<State>(Tune))
       , SamplesPerFrame(FRAME_DURATION.Get() * Tune->sample_rate / FRAME_DURATION.PER_SECOND)
       , Target(Sound::CreateResampler(Tune->sample_rate, samplerate))
       , Channels(Tune->channels)
@@ -273,9 +246,11 @@ namespace Module::VGMStream
       Dbg("Rendering {}Hz/{}ch -> {}Hz/{}ch", Tune->sample_rate, Tune->channels, samplerate, Channels);
     }
 
-    State::Ptr GetState() const override
+    State GetState() const override
     {
-      return Status;
+      return {.At = Time::AtMillisecond() + Time::Milliseconds::FromRatio(Tune->current_sample, Tune->sample_rate),
+              .Total = Time::Milliseconds::FromRatio(Tune->pstate.play_duration, Tune->sample_rate),
+              .LoopCount = static_cast<uint_t>(Tune->loop_count)};
     }
 
     Sound::Chunk Render() override
@@ -333,7 +308,6 @@ namespace Module::VGMStream
 
   private:
     const VGMStreamPtr Tune;
-    const State::Ptr Status;
     const uint_t SamplesPerFrame;
     const Sound::Converter::Ptr Target;
     int Channels;

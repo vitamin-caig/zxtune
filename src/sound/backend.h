@@ -88,8 +88,11 @@ namespace Sound
     //! @note If parameter is out of range, playback will be stopped
     virtual void SetPosition(Time::AtMillisecond request) = 0;
 
+    //! @brief Current playback status
+    virtual Module::State GetModuleState() const = 0;
+
     //! @brief Current playback state
-    enum State
+    enum PlaybackState
     {
       //! Playback is stopped
       STOPPED,
@@ -100,7 +103,7 @@ namespace Sound
     };
     //! @brief Retrieving current playback state
     //! @return Current state
-    virtual State GetCurrentState() const = 0;
+    virtual PlaybackState GetPlaybackState() const = 0;
   };
 
   //! @brief %Sound backend interface
@@ -111,9 +114,6 @@ namespace Sound
     using Ptr = std::shared_ptr<const Backend>;
 
     virtual ~Backend() = default;
-
-    //! @brief Current playback status
-    virtual Module::State::Ptr GetState() const = 0;
 
     //! @brief Getting analyzer interface
     virtual Analyzer::Ptr GetAnalyzer() const = 0;

@@ -16,7 +16,6 @@
 #include "binary/format_factories.h"
 #include "core/core_parameters.h"
 #include "core/plugin_attrs.h"
-#include "module/track_state.h"
 #include "parameters/tracking_helper.h"
 #include "strings/sanitize.h"
 #include "time/duration.h"
@@ -119,85 +118,25 @@ namespace Module::Xmp
     return {.Duration = duration, .LoopDuration = duration /*TODO*/, .Track = std::move(track)};
   }
 
-  using StatePtr = std::shared_ptr<xmp_frame_info>;
-
-  class TrackState : public Module::TrackState
+  State MakeTrackState(const xmp_frame_info& info, Time::Microseconds total)
   {
-  public:
-    using Ptr = std::shared_ptr<TrackState>;
-
-    TrackState(StatePtr state)
-      : State(std::move(state))
-    {}
-
-    Time::AtMillisecond At() const override
-    {
-      return Time::AtMillisecond() + DurationType(State->time);
-    }
-
-    Time::Milliseconds Total() const override
-    {
-      return TotalDuration.CastTo<Time::Millisecond>();
-    }
-
-    uint_t LoopCount() const override
-    {
-      return State->loop_count;
-    }
-
-    uint_t Position() const override
-    {
-      return State->pos;
-    }
-
-    uint_t Pattern() const override
-    {
-      return State->pattern;
-    }
-
-    uint_t Line() const override
-    {
-      return State->row;
-    }
-
-    uint_t Tempo() const override
-    {
-      return State->speed;
-    }
-
-    uint_t Quirk() const override
-    {
-      return State->frame;  //???
-    }
-
-    uint_t Channels() const override
-    {
-      return State->virt_used;  //????
-    }
-
-    void Add(Time::Microseconds played)
-    {
-      TotalDuration += played;
-    }
-
-    void Reset()
-    {
-      TotalDuration = {};
-    }
-
-  private:
-    const StatePtr State;
-    Time::Microseconds TotalDuration;
-  };
+    return {.At = Time::AtMillisecond() + DurationType(info.time),
+            .Total = total.CastTo<Time::Millisecond>(),
+            .LoopCount = static_cast<uint_t>(info.loop_count),
+            .Track = {{.Position = static_cast<uint_t>(info.pos),
+                       .Pattern = static_cast<uint_t>(info.pattern),
+                       .Line = static_cast<uint_t>(info.row),
+                       .Tempo = static_cast<uint_t>(info.speed),
+                       .Quirk = static_cast<uint_t>(info.frame),
+                       .Channels = static_cast<uint_t>(info.virt_used)}}};
+  }
 
   class Renderer : public Module::Renderer
   {
   public:
     Renderer(uint_t /*channels*/, Context::Ptr ctx, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Ctx(std::move(ctx))
-      , State(new xmp_frame_info())
       , Params(std::move(params))
-      , Track(MakePtr<TrackState>(State))
       , SoundFreq(samplerate)
     {
       // Required in order to perform initial seeking
@@ -209,9 +148,9 @@ namespace Module::Xmp
       Ctx->Call(&::xmp_end_player);
     }
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return Track;
+      return MakeTrackState(State, TotalDuration);
     }
 
     Sound::Chunk Render() override
@@ -225,13 +164,13 @@ namespace Module::Xmp
       {
         ApplyParameters();
         Ctx->Call(&::xmp_play_frame);
-        Ctx->Call(&::xmp_get_frame_info, State.get());
-        if (const std::size_t bytes = State->buffer_size)
+        Ctx->Call(&::xmp_get_frame_info, &State);
+        if (const std::size_t bytes = State.buffer_size)
         {
           const std::size_t samples = bytes / sizeof(Sound::Sample);
-          Track->Add(Time::Microseconds::FromRatio(samples, SoundFreq));
+          TotalDuration += Time::Microseconds::FromRatio(samples, SoundFreq);
           Sound::Chunk chunk(samples);
-          std::memcpy(chunk.data(), State->buffer, samples * sizeof(Sound::Sample));
+          std::memcpy(chunk.data(), State.buffer, samples * sizeof(Sound::Sample));
           return chunk;
         }
       }
@@ -242,7 +181,7 @@ namespace Module::Xmp
     {
       Params.Reset();
       Ctx->Call(&::xmp_restart_module);
-      Track->Reset();
+      TotalDuration = {};
     }
 
     void SetPosition(Time::AtMillisecond request) override
@@ -265,9 +204,9 @@ namespace Module::Xmp
 
   private:
     const Context::Ptr Ctx;
-    const StatePtr State;
+    xmp_frame_info State;
+    Time::Microseconds TotalDuration;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
-    const TrackState::Ptr Track;
     const uint_t SoundFreq;
   };
 

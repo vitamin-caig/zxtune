@@ -277,7 +277,7 @@ namespace Module::LibVGM
 
   const Time::Milliseconds FRAME_DURATION(20);
 
-  class VGMEngine : public State
+  class VGMEngine
   {
   public:
     using RWPtr = std::shared_ptr<VGMEngine>;
@@ -308,21 +308,21 @@ namespace Module::LibVGM
       LoopTicks = ToTicks(info.LoopDuration);
     }
 
-    Time::AtMillisecond At() const override
+    Time::AtMillisecond At() const
     {
       // time position in file
       const auto curtime = Delegate->GetCurTime(PLAYTIME_LOOP_EXCL | PLAYTIME_TIME_FILE);
       return Time::AtMillisecond() + Time::Milliseconds(curtime * 1000);
     }
 
-    Time::Milliseconds Total() const override
+    Time::Milliseconds Total() const
     {
       // total played time
       const auto curtime = Delegate->GetCurTime(PLAYTIME_LOOP_INCL | PLAYTIME_TIME_PBK);
-      return Time::Seconds(curtime * 1000);
+      return Time::Milliseconds(curtime * 1000);
     }
 
-    uint_t LoopCount() const override
+    uint_t LoopCount() const
     {
       // Tracks can specify LoopTicks == 0 to indicate no loop.
       // In this case, we want to loop the whole song.
@@ -405,26 +405,26 @@ namespace Module::LibVGM
   public:
     Renderer(Model::Ptr tune, const Module::Information& info, ChannelsLayout::Ptr channels, uint_t samplerate,
              Parameters::Accessor::Ptr params)
-      : Engine(MakeRWPtr<VGMEngine>(std::move(tune), info, std::move(channels), samplerate))
+      : Engine(std::move(tune), info, std::move(channels), samplerate)
       , Params(std::move(params))
     {}
 
-    State::Ptr GetState() const override
+    State GetState() const override
     {
-      return Engine;
+      return {.At = Engine.At(), .Total = Engine.Total(), .LoopCount = Engine.LoopCount()};
     }
 
     Sound::Chunk Render() override
     {
       ApplyParameters();
-      return Engine->Render();
+      return Engine.Render();
     }
 
     void Reset() override
     {
       try
       {
-        Engine->Reset();
+        Engine.Reset();
       }
       catch (const std::exception& e)
       {
@@ -436,7 +436,7 @@ namespace Module::LibVGM
     {
       try
       {
-        Engine->Seek(request);
+        Engine.Seek(request);
       }
       catch (const std::exception& e)
       {
@@ -451,12 +451,12 @@ namespace Module::LibVGM
       {
         using namespace Parameters::ZXTune::Core;
         const auto mask = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
-        Engine->MuteChannels(mask);
+        Engine.MuteChannels(mask);
       }
     }
 
   private:
-    const VGMEngine::RWPtr Engine;
+    VGMEngine Engine;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
   };
 

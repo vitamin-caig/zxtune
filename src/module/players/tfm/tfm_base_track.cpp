@@ -34,9 +34,8 @@ namespace Module::TFM
   class TrackDataIterator : public DataIterator
   {
   public:
-    TrackDataIterator(TrackStateIterator::Ptr delegate, DataRenderer::Ptr renderer)
+    TrackDataIterator(Iterator::Ptr delegate, DataRenderer::Ptr renderer)
       : Delegate(std::move(delegate))
-      , State(Delegate->GetStateObserver())
       , Render(std::move(renderer))
     {
       FillCurrentData();
@@ -55,9 +54,9 @@ namespace Module::TFM
       FillCurrentData();
     }
 
-    Module::State::Ptr GetStateObserver() const override
+    Module::State GetState() const override
     {
-      return State;
+      return Delegate->GetState();
     }
 
     void GetData(Devices::TFM::Registers& res) const override
@@ -69,13 +68,12 @@ namespace Module::TFM
     void FillCurrentData()
     {
       TrackBuilder builder;
-      Render->SynthesizeData(*State, builder);
+      Render->SynthesizeData(*Delegate->GetState().Track, builder);
       builder.CaptureResult(CurrentData);
     }
 
   private:
-    const TrackStateIterator::Ptr Delegate;
-    const TrackModelState::Ptr State;
+    const Iterator::Ptr Delegate;
     const DataRenderer::Ptr Render;
     Devices::TFM::Registers CurrentData;
   };
@@ -205,7 +203,7 @@ namespace Module::TFM
     Registers.emplace_back(Chip, idx, val);
   }
 
-  DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer)
   {
     return MakePtr<TrackDataIterator>(std::move(iterator), std::move(renderer));
   }

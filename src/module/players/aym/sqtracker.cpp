@@ -547,13 +547,13 @@ namespace Module::SQTracker
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
-        if (0 == state.Line())
+        if (0 == state.Line)
         {
-          StartNewPattern(Data->Positions.GetLine(state.Position()));
+          StartNewPattern(Data->Positions.GetLine(state.Position));
         }
         GetNewLineState(state, track);
       }
@@ -570,9 +570,9 @@ namespace Module::SQTracker
       }
     }
 
-    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
         for (uint_t idx = 0; idx != PlayerState.size(); ++idx)
         {

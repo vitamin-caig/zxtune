@@ -58,7 +58,7 @@ namespace
     {
       try
       {
-        Callback.OnProgress(state.At().Get());
+        Callback.OnProgress(state.At.Get());
       }
       catch (const std::exception&)
       {

@@ -15,6 +15,8 @@
 #include "module/players/simple_orderlist.h"
 #include "module/players/tracking.h"
 
+#include "tools/xrange.h"
+
 #include "make_ptr.h"
 
 #include <utility>
@@ -123,20 +125,20 @@ namespace Module::DAC
 
     void Reset() override {}
 
-    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != Data->GetChannelsCount(); ++chan)
+        for (uint_t chan : xrange(Data->GetChannelsCount()))
         {
           if (const auto* const src = line->GetChannel(chan))
           {

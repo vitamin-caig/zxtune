@@ -73,9 +73,9 @@ namespace Module::TFM
 
     virtual ~DataRenderer() = default;
 
-    virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
+    virtual void SynthesizeData(const TrackState& state, TrackBuilder& track) = 0;
     virtual void Reset() = 0;
   };
 
-  DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer);
 }  // namespace Module::TFM

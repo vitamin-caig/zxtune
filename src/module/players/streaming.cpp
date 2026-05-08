@@ -34,31 +34,20 @@ namespace Module
     }
   };
 
-  class FramedStreamStateCursor : public State
+  class FramedStreamStateCursor
   {
   public:
-    using Ptr = std::shared_ptr<FramedStreamStateCursor>;
-
     explicit FramedStreamStateCursor(FramedStream stream)
       : Stream(stream)
     {
       Reset();
     }
 
-    // status functions
-    Time::AtMillisecond At() const override
+    State Get() const
     {
-      return Time::AtMillisecond() + (Stream.FrameDuration * CurFrame).CastTo<Time::Millisecond>();
-    }
-
-    Time::Milliseconds Total() const override
-    {
-      return TotalPlayed.CastTo<Time::Millisecond>();
-    }
-
-    uint_t LoopCount() const override
-    {
-      return Loops;
+      return {.At = Time::AtMillisecond() + (Stream.FrameDuration * CurFrame).CastTo<Time::Millisecond>(),
+              .Total = TotalPlayed.CastTo<Time::Millisecond>(),
+              .LoopCount = Loops};
     }
 
     uint_t Frame() const
@@ -105,36 +94,36 @@ namespace Module
   {
   public:
     explicit FramedStreamStateIterator(FramedStream stream)
-      : Cursor(MakePtr<FramedStreamStateCursor>(stream))
+      : Cursor(stream)
     {}
 
     // iterator functions
     void Reset() override
     {
-      Cursor->Reset();
+      Cursor.Reset();
     }
 
     void NextFrame() override
     {
-      Cursor->NextFrame();
-      if (!Cursor->IsValid())
+      Cursor.NextFrame();
+      if (!Cursor.IsValid())
       {
-        Cursor->ResetToLoop();
+        Cursor.ResetToLoop();
       }
     }
 
     uint_t CurrentFrame() const override
     {
-      return Cursor->Frame();
+      return Cursor.Frame();
     }
 
-    State::Ptr GetStateObserver() const override
+    State GetState() const override
     {
-      return Cursor;
+      return Cursor.Get();
     }
 
   private:
-    const FramedStreamStateCursor::Ptr Cursor;
+    FramedStreamStateCursor Cursor;
   };
 
   Information CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel& model)

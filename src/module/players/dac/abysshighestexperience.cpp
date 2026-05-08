@@ -17,7 +17,6 @@
 #include "binary/container_factories.h"
 #include "debug/log.h"
 #include "module/information.h"
-#include "module/track_state.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -73,68 +72,6 @@ namespace Module::AHX
             .Track = std::move(track)};
   }
 
-  class TrackState : public Module::TrackState
-  {
-  public:
-    TrackState(HvlPtr hvl)
-      : Hvl(std::move(hvl))
-    {}
-
-    Time::AtMillisecond At() const override
-    {
-      // TODO: investigate for Hvl->ht_SongEndReached
-      return Time::AtMillisecond() + Total();
-    }
-
-    Time::Milliseconds Total() const override
-    {
-      return (FRAME_DURATION * (Hvl->ht_PlayingTime / Hvl->ht_SpeedMultiplier)).CastTo<Time::Millisecond>();
-    }
-
-    uint_t LoopCount() const override
-    {
-      return Hvl->ht_SongEndReached;
-    }
-
-    uint_t Position() const override
-    {
-      return Hvl->ht_PosNr;
-    }
-
-    uint_t Pattern() const override
-    {
-      return Hvl->ht_PosNr;  // TODO
-    }
-
-    uint_t Line() const override
-    {
-      return Hvl->ht_NoteNr;
-    }
-
-    uint_t Tempo() const override
-    {
-      return Hvl->ht_Tempo;
-    }
-
-    uint_t Quirk() const override
-    {
-      return Hvl->ht_Tempo - Hvl->ht_StepWaitFrames;
-    }
-
-    uint_t Channels() const override
-    {
-      uint_t result = 0;
-      for (uint_t idx = 0, lim = Hvl->ht_Channels; idx != lim; ++idx)
-      {
-        result += Hvl->ht_Voices[idx].vc_TrackOn != 0;
-      }
-      return result;
-    }
-
-  private:
-    const HvlPtr Hvl;
-  };
-
   class HVL
   {
   public:
@@ -178,14 +115,23 @@ namespace Module::AHX
       }
     }
 
-    uint_t LoopCount() const
+    Module::State MakeTrackState() const
     {
-      return Hvl->ht_SongEndReached;
-    }
-
-    TrackState::Ptr MakeTrackState() const
-    {
-      return MakePtr<TrackState>(Hvl);
+      const auto total = (FRAME_DURATION * (Hvl->ht_PlayingTime / Hvl->ht_SpeedMultiplier)).CastTo<Time::Millisecond>();
+      uint_t channels = 0;
+      for (uint_t idx = 0, lim = Hvl->ht_Channels; idx != lim; ++idx)
+      {
+        channels += Hvl->ht_Voices[idx].vc_TrackOn != 0;
+      }
+      return {.At = Time::AtMillisecond() + total,
+              .Total = total,
+              .LoopCount = Hvl->ht_SongEndReached,
+              .Track = {{.Position = static_cast<uint_t>(Hvl->ht_PosNr),
+                         .Pattern = static_cast<uint_t>(Hvl->ht_PosNr) /*TODO*/,
+                         .Line = static_cast<uint_t>(Hvl->ht_NoteNr),
+                         .Tempo = static_cast<uint_t>(Hvl->ht_Tempo),
+                         .Quirk = static_cast<uint_t>(Hvl->ht_Tempo - Hvl->ht_StepWaitFrames),
+                         .Channels = channels}}};
     }
 
   private:
@@ -200,7 +146,7 @@ namespace Module::AHX
       : Tune(std::move(tune))
     {}
 
-    State::Ptr GetState() const override
+    State GetState() const override
     {
       return Tune->MakeTrackState();
     }

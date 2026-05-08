@@ -25,8 +25,6 @@ namespace Module::TFM
   public:
     using Ptr = std::unique_ptr<DataIterator>;
 
-    virtual State::Ptr GetStateObserver() const = 0;
-
     virtual void GetData(Devices::TFM::Registers& res) const = 0;
   };
 

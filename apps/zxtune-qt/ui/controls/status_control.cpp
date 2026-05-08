@@ -14,8 +14,6 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "status_control.ui.h"
 
-#include "module/track_state.h"
-
 #include "contract.h"
 
 #include <QtWidgets/QGridLayout>
@@ -56,20 +54,25 @@ namespace
   private:
     void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr)
     {
-      TrackState = std::dynamic_pointer_cast<const Module::TrackState>(player->GetState());
+      Control = player->GetPlaybackControl();
       CloseState();
     }
 
     void UpdateState()
     {
-      if (isVisible() && TrackState)
+      if (!isVisible())
       {
-        textPosition->setText(QString::number(TrackState->Position()));
-        textPattern->setText(QString::number(TrackState->Pattern()));
-        textLine->setText(QString::number(TrackState->Line()));
-        textFrame->setText(QString::number(TrackState->Quirk()));
-        textChannels->setText(QString::number(TrackState->Channels()));
-        textTempo->setText(QString::number(TrackState->Tempo()));
+        return;
+      }
+      if (const auto& state = Control->GetModuleState(); state.Track)
+      {
+        const auto& track = *state.Track;
+        textPosition->setText(QString::number(track.Position));
+        textPattern->setText(QString::number(track.Pattern));
+        textLine->setText(QString::number(track.Line));
+        textFrame->setText(QString::number(track.Quirk));
+        textChannels->setText(QString::number(track.Channels));
+        textTempo->setText(QString::number(track.Tempo));
       }
     }
 
@@ -84,7 +87,7 @@ namespace
     }
 
   private:
-    Module::TrackState::Ptr TrackState;
+    Sound::PlaybackControl::Ptr Control;
   };
 }  // namespace
 

@@ -171,10 +171,10 @@ namespace Module::ChipTracker
       std::fill(Gliss.begin(), Gliss.end(), GlissData());
     }
 
-    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
     {
       SynthesizeChannelsData(track);
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -194,10 +194,10 @@ namespace Module::ChipTracker
       }
     }
 
-    void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
       Gliss.fill(GlissData());
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
         for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
         {

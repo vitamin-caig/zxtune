@@ -42,10 +42,9 @@ public:
   }
 
   virtual void Message(StringView msg) = 0;
-  virtual void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player) = 0;
+  virtual void SetModule(const Module::Holder& module, const Sound::Backend& player) = 0;
 
-  // begin frame, returns current position
-  virtual Time::AtMillisecond BeginFrame(Sound::PlaybackControl::State state) = 0;
+  virtual void BeginFrame(Sound::PlaybackControl::PlaybackState playbackState, const Module::State& moduleState) = 0;
 
   static Ptr Create();
 };

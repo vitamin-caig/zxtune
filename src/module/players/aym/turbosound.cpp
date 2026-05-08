@@ -145,96 +145,20 @@ namespace Module::TurboSound
     const Parameters::Accessor::Ptr Second;
   };
 
-  template<class Base>
-  class MergedStateBase : public Base
+  State CreateState(State lh, State rh)
   {
-  public:
-    MergedStateBase(typename Base::Ptr first, typename Base::Ptr second)
-      : First(std::move(first))
-      , Second(std::move(second))
-    {}
-
-    Time::AtMillisecond At() const override
+    if (lh.Track && rh.Track)
     {
-      return First->At();
+      lh.Track->Channels += rh.Track->Channels;
     }
-
-    Time::Milliseconds Total() const override
-    {
-      return First->Total();
-    }
-
-    uint_t LoopCount() const override
-    {
-      return First->LoopCount();
-    }
-
-  protected:
-    const typename Base::Ptr First;
-    const typename Base::Ptr Second;
-  };
-
-  using MergedState = MergedStateBase<State>;
-
-  class MergedTrackState : public MergedStateBase<TrackState>
-  {
-  public:
-    // required for msvs...
-    MergedTrackState(Ptr lh, Ptr rh)
-      : MergedStateBase(std::move(lh), std::move(rh))
-    {}
-
-    uint_t Position() const override
-    {
-      return First->Position();
-    }
-
-    uint_t Pattern() const override
-    {
-      return First->Pattern();
-    }
-
-    uint_t Line() const override
-    {
-      return First->Line();
-    }
-
-    uint_t Tempo() const override
-    {
-      return First->Tempo();
-    }
-
-    uint_t Quirk() const override
-    {
-      return First->Quirk();
-    }
-
-    uint_t Channels() const override
-    {
-      return First->Channels() + Second->Channels();
-    }
-  };
-
-  State::Ptr CreateState(State::Ptr lh, State::Ptr rh)
-  {
-    auto lhTrack = std::dynamic_pointer_cast<const TrackState>(lh);
-    auto rhTrack = std::dynamic_pointer_cast<const TrackState>(rh);
-    if (lhTrack && rhTrack)
-    {
-      return MakePtr<MergedTrackState>(std::move(lhTrack), std::move(rhTrack));
-    }
-    else
-    {
-      return MakePtr<MergedState>(std::move(lh), std::move(rh));
-    }
+    return lh;
   }
 
   class MergedDataIterator : public DataIterator
   {
   public:
     MergedDataIterator(AYM::DataIterator::Ptr first, AYM::DataIterator::Ptr second)
-      : Observer(CreateState(first->GetStateObserver(), second->GetStateObserver()))
-      , First(std::move(first))
+      : First(std::move(first))
       , Second(std::move(second))
     {}
 
@@ -250,9 +174,9 @@ namespace Module::TurboSound
       Second->NextFrame();
     }
 
-    State::Ptr GetStateObserver() const override
+    State GetState() const override
     {
-      return Observer;
+      return CreateState(First->GetState(), Second->GetState());
     }
 
     Devices::TurboSound::Registers GetData() const override
@@ -261,7 +185,6 @@ namespace Module::TurboSound
     }
 
   private:
-    const State::Ptr Observer;
     const AYM::DataIterator::Ptr First;
     const AYM::DataIterator::Ptr Second;
   };
@@ -275,9 +198,9 @@ namespace Module::TurboSound
       , FrameDuration(frameDuration)
     {}
 
-    State::Ptr GetState() const override
+    State GetState() const override
     {
-      return Iterator->GetStateObserver();
+      return Iterator->GetState();
     }
 
     Sound::Chunk Render() override
@@ -297,14 +220,13 @@ namespace Module::TurboSound
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      const auto state = GetState();
-      if (request < state->At())
+      if (request < Iterator->GetState().At)
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = {};
       }
-      while (state->At() < request)
+      while (Iterator->GetState().At < request)
       {
         TransferChunk();
         Iterator->NextFrame();

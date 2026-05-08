@@ -22,10 +22,9 @@ namespace Module::AYM
   class TrackDataIterator : public DataIterator
   {
   public:
-    TrackDataIterator(TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, DataRenderer::Ptr renderer)
+    TrackDataIterator(TrackParameters::Ptr trackParams, Iterator::Ptr delegate, DataRenderer::Ptr renderer)
       : Params(std::move(trackParams))
       , Delegate(std::move(delegate))
-      , State(Delegate->GetStateObserver())
       , Render(std::move(renderer))
     {}
 
@@ -41,16 +40,16 @@ namespace Module::AYM
       Delegate->NextFrame();
     }
 
-    Module::State::Ptr GetStateObserver() const override
+    Module::State GetState() const override
     {
-      return State;
+      return Delegate->GetState();
     }
 
     Devices::AYM::Registers GetData() const override
     {
       SynchronizeParameters();
       TrackBuilder builder(Table);
-      Render->SynthesizeData(*State, builder);
+      Render->SynthesizeData(*Delegate->GetState().Track, builder);
       return builder.GetResult();
     }
 
@@ -65,8 +64,7 @@ namespace Module::AYM
 
   private:
     Parameters::TrackingHelper<AYM::TrackParameters> Params;
-    const TrackStateIterator::Ptr Delegate;
-    const TrackModelState::Ptr State;
+    const Iterator::Ptr Delegate;
     const AYM::DataRenderer::Ptr Render;
     mutable FrequencyTable Table;
   };
@@ -140,7 +138,7 @@ namespace Module::AYM
     return toneTo - toneFrom;
   }
 
-  DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator,
+  DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, Iterator::Ptr iterator,
                                        DataRenderer::Ptr renderer)
   {
     return MakePtr<TrackDataIterator>(std::move(trackParams), std::move(iterator), std::move(renderer));

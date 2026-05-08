@@ -602,9 +602,9 @@ namespace Module::DigitalMusicMaker
       std::fill(Chans.begin(), Chans.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
     {
-      const auto* const line = 0 == state.Quirk() ? state.LineObject() : nullptr;
+      const auto* const line = 0 == state.Quirk ? Data->GetLine(state) : nullptr;
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         DAC::ChannelDataBuilder builder = track.GetChannel(chan);

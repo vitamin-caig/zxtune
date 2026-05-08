@@ -12,7 +12,6 @@
 
 #include "apps/zxtune123/console.h"
 
-#include "module/track_state.h"
 #include "parameters/template.h"
 #include "platform/application.h"
 #include "strings/format.h"
@@ -91,16 +90,14 @@ namespace
       }
     }
 
-    void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player) override
+    void SetModule(const Module::Holder& module, const Sound::Backend& player) override
     {
-      const auto info = module->GetModuleInformation();
-      const auto props = module->GetModuleProperties();
+      const auto info = module.GetModuleInformation();
+      const auto props = module.GetModuleProperties();
       TotalDuration = info.Duration;
-      State = player->GetState();
-      TrackState = dynamic_cast<const Module::TrackState*>(State.get());
       if (!Silent && ShowAnalyze)
       {
-        Analyzer = player->GetAnalyzer();
+        Analyzer = player.GetAnalyzer();
       }
       else
       {
@@ -117,20 +114,19 @@ namespace
       DynamicLines = 0;
     }
 
-    Time::AtMillisecond BeginFrame(Sound::PlaybackControl::State state) override
+    void BeginFrame(Sound::PlaybackControl::PlaybackState playbackState, const Module::State& moduleState) override
     {
-      const auto curPos = State->At();
       if (Silent || Quiet)
       {
-        return curPos;
+        return;
       }
       ScrSize = Console::Self().GetSize();
       if (ScrSize.first <= 0 || ScrSize.second <= 0)
       {
         Silent = true;
-        return curPos;
+        return;
       }
-      const int_t trackingHeight = TrackState ? TRACKING_HEIGHT : 0;
+      const int_t trackingHeight = moduleState.Track ? TRACKING_HEIGHT : 0;
       const int_t spectrumHeight = ScrSize.second - INFORMATION_HEIGHT - trackingHeight - PLAYING_HEIGHT - 1;
       if (spectrumHeight < 4)  // minimal spectrum height
       {
@@ -143,11 +139,11 @@ namespace
       else
       {
         Vsync();
-        if (TrackState)
+        if (moduleState.Track)
         {
-          ShowTrackingStatus(*TrackState);
+          ShowTrackingStatus(*moduleState.Track);
         }
-        ShowPlaybackStatus(Time::Milliseconds(curPos.CastTo<Time::Millisecond>().Get()), state);
+        ShowPlaybackStatus(Time::Milliseconds(moduleState.At.CastTo<Time::Millisecond>().Get()), playbackState);
         if (Analyzer)
         {
           Sound::Analyzer::LevelType spectrum[ScrSize.first];
@@ -158,7 +154,6 @@ namespace
         }
         StdOut << std::flush;
       }
-      return curPos;
     }
 
   private:
@@ -183,12 +178,12 @@ namespace
 
     void ShowTrackingStatus(const Module::TrackState& state)
     {
-      StdOut << Strings::Format(TRACKING_FORMAT, state.Position(), state.Pattern(), state.Line(), state.Quirk(),
-                                state.Channels(), state.Tempo());
+      StdOut << Strings::Format(TRACKING_FORMAT, state.Position, state.Pattern, state.Line, state.Quirk, state.Channels,
+                                state.Tempo);
       DynamicLines += TRACKING_HEIGHT;
     }
 
-    void ShowPlaybackStatus(Time::Milliseconds played, Sound::PlaybackControl::State state)
+    void ShowPlaybackStatus(Time::Milliseconds played, Sound::PlaybackControl::PlaybackState state)
     {
       const auto MARKER = '\x1';
       String data = Strings::Format(PLAYBACK_STATUS, Time::ToString(played), MARKER);
@@ -203,7 +198,7 @@ namespace
       DynamicLines += PLAYING_HEIGHT;
     }
 
-    static char StateSymbol(Sound::PlaybackControl::State state)
+    static char StateSymbol(Sound::PlaybackControl::PlaybackState state)
     {
       switch (state)
       {
@@ -251,8 +246,6 @@ namespace
     std::size_t DynamicLines = 0;
     Console::SizeType ScrSize;
     Time::Milliseconds TotalDuration;
-    Module::State::Ptr State;
-    const Module::TrackState* TrackState;
     Sound::Analyzer::Ptr Analyzer;
     std::vector<int_t> AnalyzerData;
   };

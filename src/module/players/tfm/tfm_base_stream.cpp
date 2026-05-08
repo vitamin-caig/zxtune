@@ -23,7 +23,6 @@ namespace Module::TFM
   public:
     StreamDataIterator(StateIterator::Ptr delegate, StreamModel::Ptr data)
       : Delegate(std::move(delegate))
-      , State(Delegate->GetStateObserver())
       , Data(std::move(data))
     {}
 
@@ -37,9 +36,9 @@ namespace Module::TFM
       Delegate->NextFrame();
     }
 
-    Module::State::Ptr GetStateObserver() const override
+    Module::State GetState() const override
     {
-      return State;
+      return Delegate->GetState();
     }
 
     void GetData(Devices::TFM::Registers& res) const override
@@ -49,7 +48,6 @@ namespace Module::TFM
 
   private:
     const StateIterator::Ptr Delegate;
-    const Module::State::Ptr State;
     const StreamModel::Ptr Data;
   };
 

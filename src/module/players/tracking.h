@@ -15,7 +15,6 @@
 #include "module/players/track_model.h"
 
 #include "module/information.h"
-#include "module/track_state.h"
 
 #include "make_ptr.h"
 
@@ -241,15 +240,7 @@ namespace Module
     return CreateTrackInfoFixedChannels(frameDuration, model, channels);
   }
 
-  class TrackStateIterator : public Iterator
-  {
-  public:
-    using Ptr = std::shared_ptr<TrackStateIterator>;
-
-    virtual TrackModelState::Ptr GetStateObserver() const = 0;
-  };
-
-  TrackStateIterator::Ptr CreateTrackStateIterator(Time::Microseconds frameDuration, TrackModel::Ptr model);
+  Iterator::Ptr CreateTrackStateIterator(Time::Microseconds frameDuration, TrackModel::Ptr model);
 
   class PatternsBuilder : public Formats::Chiptune::PatternBuilder
   {

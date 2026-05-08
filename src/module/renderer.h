@@ -13,6 +13,8 @@
 #include "module/state.h"
 #include "sound/chunk.h"
 
+#include <memory>
+
 namespace Module
 {
   //! @brief %Module player interface
@@ -25,7 +27,7 @@ namespace Module
     virtual ~Renderer() = default;
 
     //! @brief Current tracking status
-    virtual State::Ptr GetState() const = 0;
+    virtual State GetState() const = 0;
 
     //! @brief Rendering single frame and modifying internal state
     //! @return empty chunk if there's no more data to render

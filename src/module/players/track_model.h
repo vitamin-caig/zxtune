@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "module/track_state.h"
 #include "tools/iterators.h"
 
 #include "types.h"
@@ -153,14 +152,14 @@ namespace Module
     virtual uint_t GetInitialTempo() const = 0;
     virtual const OrderList& GetOrder() const = 0;
     virtual const PatternsSet& GetPatterns() const = 0;
-  };
 
-  class TrackModelState : public TrackState
-  {
-  public:
-    using Ptr = std::shared_ptr<const TrackModelState>;
-
-    virtual const class Pattern* PatternObject() const = 0;
-    virtual const class Line* LineObject() const = 0;
+    const Line* GetLine(const TrackState& state) const
+    {
+      if (const auto* pat = GetPatterns().Get(state.Pattern))
+      {
+        return pat->GetLine(state.Line);
+      }
+      return nullptr;
+    }
   };
 }  // namespace Module

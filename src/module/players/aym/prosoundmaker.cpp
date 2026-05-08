@@ -239,9 +239,9 @@ namespace Module::ProSoundMaker
       }
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -249,12 +249,12 @@ namespace Module::ProSoundMaker
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        const auto transposition = Data->Order->GetTransposition(state.Position());
-        const auto newPattern = 0 == state.Line();
+        const auto transposition = Data->Order->GetTransposition(state.Position);
+        const auto newPattern = 0 == state.Line;
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
           if (const auto* const src = line->GetChannel(chan))

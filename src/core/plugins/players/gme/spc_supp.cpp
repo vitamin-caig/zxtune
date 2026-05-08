@@ -114,34 +114,34 @@ namespace Module::SPC
     Renderer(Model::Ptr tune, Sound::Converter::Ptr target)
       : Tune(std::move(tune))
       , Engine(MakePtr<SPC>(*Tune->Data))
-      , State(MakePtr<TimedState>(Tune->Duration))
+      , State(Tune->Duration)
       , Target(std::move(target))
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
-      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
+      const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       return Target->Apply(Engine->Render(GetSamples(avail)));
     }
 
     void Reset() override
     {
       Engine->Reset();
-      State->Reset();
+      State.Reset();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      if (request < State->At())
+      if (request < State.At())
       {
         Engine->Reset();
       }
-      if (const auto toSkip = State->Seek(request))
+      if (const auto toSkip = State.Seek(request))
       {
         Engine->Skip(GetSamples(toSkip));
       }
@@ -150,7 +150,7 @@ namespace Module::SPC
   private:
     const Model::Ptr Tune;
     const SPC::Ptr Engine;
-    const TimedState::Ptr State;
+    TimedState State;
     const Sound::Converter::Ptr Target;
   };
 

@@ -252,13 +252,13 @@ namespace Module::ETracker
       Transposition = 0;
     }
 
-    void SynthesizeData(const TrackModelState& state, SAA::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, SAA::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
-        if (0 == state.Line())
+        if (0 == state.Line)
         {
-          Transposition = Data->Order->GetTransposition(state.Position());
+          Transposition = Data->Order->GetTransposition(state.Position);
         }
         GetNewLineState(state, track);
       }
@@ -266,9 +266,9 @@ namespace Module::ETracker
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, SAA::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, SAA::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {

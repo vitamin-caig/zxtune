@@ -81,7 +81,7 @@ namespace Module::SAA
 
     virtual ~DataRenderer() = default;
 
-    virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
+    virtual void SynthesizeData(const TrackState& state, TrackBuilder& track) = 0;
     virtual void Reset() = 0;
   };
 
@@ -89,8 +89,6 @@ namespace Module::SAA
   {
   public:
     using Ptr = std::unique_ptr<DataIterator>;
-
-    virtual State::Ptr GetStateObserver() const = 0;
 
     virtual Devices::SAA::Registers GetData() const = 0;
   };
@@ -108,7 +106,7 @@ namespace Module::SAA
     virtual DataIterator::Ptr CreateDataIterator() const = 0;
   };
 
-  DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer);
 
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
 }  // namespace Module::SAA

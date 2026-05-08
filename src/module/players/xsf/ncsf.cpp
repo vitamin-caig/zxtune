@@ -174,34 +174,34 @@ namespace Module::NCSF
   public:
     Renderer(ModuleData::Ptr data, uint_t samplerate)
       : Data(std::move(data))
-      , State(MakePtr<TimedState>(Data->Meta->Duration))
+      , State(Data->Meta->Duration)
       , Engine(MakePtr<NCSFEngine>(*Data, samplerate))
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
-      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
+      const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       return Engine->Render(GetSamples(avail));
     }
 
     void Reset() override
     {
-      State->Reset();
+      State.Reset();
       Engine->Reset();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      if (request < State->At())
+      if (request < State.At())
       {
         Engine->Reset();
       }
-      if (const auto toSkip = State->Seek(request))
+      if (const auto toSkip = State.Seek(request))
       {
         Engine->Skip(GetSamples(toSkip));
       }
@@ -215,7 +215,7 @@ namespace Module::NCSF
 
   private:
     const ModuleData::Ptr Data;
-    const TimedState::Ptr State;
+    TimedState State;
     NCSFEngine::Ptr Engine;
   };
 
