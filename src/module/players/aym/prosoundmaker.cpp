@@ -53,7 +53,6 @@ namespace Module::ProSoundMaker
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetFrequencyTable(TABLE_PROSOUNDMAKER);
@@ -255,18 +254,14 @@ namespace Module::ProSoundMaker
       {
         const auto transposition = Data->Order->GetTransposition(state.Position);
         const auto newPattern = 0 == state.Line;
-        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
+        line->ForEachChannel([&](auto chan, const auto& src) {
+          auto& dst = PlayerState[chan];
+          if (newPattern)
           {
-            auto& dst = PlayerState[chan];
-            if (newPattern)
-            {
-              dst.Envelope.Reinit = false;
-            }
-            GetNewChannelState(transposition, *src, dst, track);
+            dst.Envelope.Reinit = false;
           }
-        }
+          GetNewChannelState(transposition, src, dst, track);
+        });
       }
     }
 
@@ -293,21 +288,21 @@ namespace Module::ProSoundMaker
       {
         dst.BaseVolumeDelta = *volume;
       }
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case ENVELOPE:
-          dst.Envelope.Type = it->Param1;
-          if (it->Param2 != -1)
+          dst.Envelope.Type = cmd.Param1;
+          if (cmd.Param2 != -1)
           {
-            track.SetEnvelopeType(it->Param1);
-            track.SetEnvelopeTone(it->Param2);
-            dst.Envelope.SetTone(it->Param2);
+            track.SetEnvelopeType(cmd.Param1);
+            track.SetEnvelopeTone(cmd.Param2);
+            dst.Envelope.SetTone(cmd.Param2);
           }
-          else if (it->Param3 != -1)
+          else if (cmd.Param3 != -1)
           {
-            dst.Envelope.SetNote(it->Param3);
+            dst.Envelope.SetNote(cmd.Param3);
           }
           break;
         case NOORNAMENT:
@@ -316,7 +311,7 @@ namespace Module::ProSoundMaker
           dst.Envelope.Disable();
           break;
         case ENVELOPE_REINIT:
-          dst.Envelope.Reinit = it->Param1 != 0;
+          dst.Envelope.Reinit = cmd.Param1 != 0;
           dst.Orn.Current = &STUB;
           break;
         default:

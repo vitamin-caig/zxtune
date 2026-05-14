@@ -52,7 +52,6 @@ namespace Module::ExtremeTracker1
     explicit DataBuilder(DAC::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
       , Data(MakeRWPtr<ModuleData>(CHANNELS_COUNT))
     {}
 
@@ -190,18 +189,12 @@ namespace Module::ExtremeTracker1
     {
       if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            DAC::ChannelDataBuilder builder = track.GetChannel(chan);
-            GetNewChannelState(*src, Gliss[chan], builder);
-          }
-        }
+        line->ForEachChannel(
+            [&](auto chan, const auto& src) { GetNewChannelState(src, Gliss[chan], track.GetChannel(chan)); });
       }
     }
 
-    static void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder builder)
     {
       if (src.HasData())
       {
@@ -231,12 +224,12 @@ namespace Module::ExtremeTracker1
         const uint_t level = *volume;
         builder.SetLevelInPercents(100 * level / 16);
       }
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case GLISS:
-          gliss.Glissade = it->Param1;
+          gliss.Glissade = cmd.Param1;
           break;
         default:
           assert(!"Invalid command");

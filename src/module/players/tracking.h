@@ -19,7 +19,6 @@
 #include "make_ptr.h"
 
 #include <algorithm>
-#include <array>
 
 namespace Module
 {
@@ -71,165 +70,40 @@ namespace Module
   class MutableLine : public Line
   {
   public:
-    using Ptr = std::unique_ptr<MutableLine>;
+    MutableLine() = default;
 
-    virtual void SetTempo(uint_t val) = 0;
-    virtual MutableCell& AddChannel(uint_t idx) = 0;
+    void SetTempo(uint_t val)
+    {
+      Tempo = val;
+    }
+
+    auto& AddChannel(uint_t idx)
+    {
+      return Channels.Add<MutableCell>(idx);
+    }
   };
 
   class MutablePattern : public Pattern
   {
   public:
-    using Ptr = std::unique_ptr<MutablePattern>;
+    auto& AddLine(uint_t row)
+    {
+      return Lines.Add<MutableLine>(row);
+    }
 
-    virtual MutableLine& AddLine(uint_t row) = 0;
-    virtual void SetSize(uint_t size) = 0;
+    void SetSize(uint_t newSize)
+    {
+      Lines.Resize(newSize);
+    }
   };
 
   class MutablePatternsSet : public PatternsSet
   {
   public:
-    using Ptr = std::unique_ptr<MutablePatternsSet>;
-
-    virtual MutablePattern& AddPattern(uint_t idx) = 0;
-  };
-
-  template<uint_t ChannelsCount>
-  class MultichannelMutableLine : public MutableLine
-  {
-  public:
-    MultichannelMutableLine() = default;
-
-    const Cell* GetChannel(uint_t idx) const override
+    auto& AddPattern(uint_t idx)
     {
-      return Channels[idx].HasData() ? &Channels[idx] : nullptr;
+      return Patterns.Add<MutablePattern>(idx);
     }
-
-    uint_t CountActiveChannels() const override
-    {
-      return static_cast<uint_t>(
-          std::count_if(Channels.begin(), Channels.end(), [](const MutableCell& cell) { return cell.HasData(); }));
-    }
-
-    uint_t GetTempo() const override
-    {
-      return Tempo;
-    }
-
-    void SetTempo(uint_t val) override
-    {
-      Tempo = val;
-    }
-
-    MutableCell& AddChannel(uint_t idx) override
-    {
-      return Channels[idx];
-    }
-
-  private:
-    uint_t Tempo = 0;
-    using ChannelsArray = std::array<MutableCell, ChannelsCount>;
-    ChannelsArray Channels;
-  };
-
-  template<class T>
-  class SparsedObjectsStorage
-  {
-  public:
-    const T& Get(uint_t idx) const
-    {
-      if (idx < Objects.size())
-      {
-        return Objects[idx];
-      }
-      else
-      {
-        static const T STUB;
-        return STUB;
-      }
-    }
-
-    uint_t Size() const
-    {
-      return Objects.size();
-    }
-
-    void Resize(uint_t newSize)
-    {
-      assert(newSize >= Objects.size());
-      Objects.resize(newSize);
-    }
-
-    const T& Add(uint_t idx, T obj)
-    {
-      if (idx >= Objects.size())
-      {
-        Objects.resize(idx + 1);
-      }
-      return Objects[idx] = std::move(obj);
-    }
-
-  private:
-    std::vector<T> Objects;
-  };
-
-  template<class MutableLineType>
-  class SparsedMutablePattern : public MutablePattern
-  {
-  public:
-    const Line* GetLine(uint_t row) const override
-    {
-      return Storage.Get(row).get();
-    }
-
-    uint_t GetSize() const override
-    {
-      return Storage.Size();
-    }
-
-    MutableLine& AddLine(uint_t row) override
-    {
-      return *Storage.Add(row, MakePtr<MutableLineType>());
-    }
-
-    void SetSize(uint_t newSize) override
-    {
-      Storage.Resize(newSize);
-    }
-
-  private:
-    SparsedObjectsStorage<MutableLine::Ptr> Storage;
-  };
-
-  template<class MutablePatternType>
-  class SparsedMutablePatternsSet : public MutablePatternsSet
-  {
-  public:
-    const class Pattern* Get(uint_t idx) const override
-    {
-      return Storage.Get(idx).get();
-    }
-
-    uint_t GetSize() const override
-    {
-      uint_t res = 0;
-      for (uint_t idx = 0; idx != Storage.Size(); ++idx)
-      {
-        if (auto* const pat = Storage.Get(idx).get())
-        {
-          res += pat->GetSize() != 0;
-        }
-      }
-      return res;
-    }
-
-    MutablePattern& AddPattern(uint_t idx) override
-    {
-      return *Storage.Add(idx, MakePtr<MutablePatternType>());
-    }
-
-  private:
-    SparsedObjectsStorage<MutablePattern::Ptr> Storage;
   };
 
   Information CreateTrackInfoFixedChannels(Time::Microseconds frameDuration, const TrackModel& model, uint_t channels);
@@ -245,10 +119,7 @@ namespace Module
   class PatternsBuilder : public Formats::Chiptune::PatternBuilder
   {
   public:
-    explicit PatternsBuilder(MutablePatternsSet::Ptr patterns)
-      : Patterns(std::move(patterns))
-    {}
-
+    PatternsBuilder() = default;
     PatternsBuilder(const PatternsBuilder&) = delete;
     PatternsBuilder& operator=(const PatternsBuilder&) = delete;
 
@@ -271,7 +142,7 @@ namespace Module
 
     void SetPattern(uint_t idx)
     {
-      CurPattern = &Patterns->AddPattern(idx);
+      CurPattern = &Patterns.AddPattern(idx);
       CurLine = nullptr;
       CurChannel = nullptr;
     }
@@ -304,22 +175,13 @@ namespace Module
       return *CurChannel;
     }
 
-    PatternsSet::Ptr CaptureResult()
+    PatternsSet CaptureResult()
     {
       return std::move(Patterns);
     }
 
-    template<uint_t ChannelsCount>
-    static PatternsBuilder Create()
-    {
-      using LineType = MultichannelMutableLine<ChannelsCount>;
-      using PatternType = SparsedMutablePattern<LineType>;
-      using PatternsSetType = SparsedMutablePatternsSet<PatternType>;
-      return PatternsBuilder(MakePtr<PatternsSetType>());
-    }
-
   private:
-    MutablePatternsSet::Ptr Patterns;
+    MutablePatternsSet Patterns;
     MutablePattern* CurPattern;
     MutableLine* CurLine = nullptr;
     MutableCell* CurChannel = nullptr;

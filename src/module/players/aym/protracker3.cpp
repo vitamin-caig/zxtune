@@ -34,8 +34,6 @@ namespace Module::ProTracker3
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , PatOffset(Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
-      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {}
 
@@ -57,7 +55,7 @@ namespace Module::ProTracker3
 
     void SetMode(uint_t mode) override
     {
-      PatOffset = mode;
+      Data->TurboPatternsOffset = mode;
     }
 
     void SetInitialTempo(uint_t tempo) override
@@ -171,11 +169,6 @@ namespace Module::ProTracker3
       Patterns.GetChannel().AddCommand(Vortex::NOISEBASE, val);
     }
 
-    uint_t GetPatOffset() const
-    {
-      return PatOffset;
-    }
-
     ModuleData::RWPtr CaptureResult()
     {
       Data->Patterns = Patterns.CaptureResult();
@@ -185,36 +178,8 @@ namespace Module::ProTracker3
   private:
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
-    uint_t PatOffset;
     PatternsBuilder Patterns;
     ModuleData::RWPtr Data;
-  };
-
-  class StubLine : public Line
-  {
-    StubLine() = default;
-
-  public:
-    const Cell* GetChannel(uint_t /*idx*/) const override
-    {
-      return nullptr;
-    }
-
-    uint_t CountActiveChannels() const override
-    {
-      return 0;
-    }
-
-    uint_t GetTempo() const override
-    {
-      return 0;
-    }
-
-    static const Line* Create()
-    {
-      static const StubLine instance;
-      return &instance;
-    }
   };
 
   class Chiptune : public AYM::Chiptune
@@ -248,7 +213,7 @@ namespace Module::ProTracker3
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
       auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
-      auto renderer = CreateDataRenderer(Data, 0);
+      auto renderer = CreateDataRenderer(Data);
       return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
 
@@ -259,119 +224,13 @@ namespace Module::ProTracker3
 
   namespace TS
   {
-    class Line : public Module::Line
-    {
-    public:
-      using Ptr = std::unique_ptr<Line>;
-
-      Line(const Module::Line* first, const Module::Line* second)
-        : First(first ? first : StubLine::Create())
-        , Second(second ? second : StubLine::Create())
-      {}
-
-      const Cell* GetChannel(uint_t idx) const override
-      {
-        return idx < AYM::TRACK_CHANNELS ? First->GetChannel(idx) : Second->GetChannel(idx - AYM::TRACK_CHANNELS);
-      }
-
-      uint_t CountActiveChannels() const override
-      {
-        return First->CountActiveChannels() + Second->CountActiveChannels();
-      }
-
-      uint_t GetTempo() const override
-      {
-        if (const uint_t tempo = Second->GetTempo())
-        {
-          return tempo;
-        }
-        return First->GetTempo();
-      }
-
-    private:
-      const Module::Line* const First;
-      const Module::Line* const Second;
-    };
-
-    class Pattern : public Module::Pattern
-    {
-    public:
-      using Ptr = std::unique_ptr<Pattern>;
-
-      Pattern(const Module::Pattern& first, const Module::Pattern& second)
-        : First(first)
-        , Second(second)
-      {}
-
-      const Line* GetLine(uint_t row) const override
-      {
-        if (auto* const cached = Lines.Get(row).get())
-        {
-          return cached;
-        }
-        else
-        {
-          const auto* const first = First.GetLine(row);
-          const auto* const second = Second.GetLine(row);
-          return Lines.Add(row, MakePtr<Line>(first, second)).get();
-        }
-      }
-
-      uint_t GetSize() const override
-      {
-        return std::min(First.GetSize(), Second.GetSize());
-      }
-
-    private:
-      const Module::Pattern& First;
-      const Module::Pattern& Second;
-      mutable SparsedObjectsStorage<Line::Ptr> Lines;
-    };
-
-    class PatternsSet : public Module::PatternsSet
-    {
-    public:
-      PatternsSet(uint_t base, Module::PatternsSet::Ptr delegate)
-        : Base(base)
-        , Delegate(std::move(delegate))
-      {}
-
-      const Pattern* Get(uint_t idx) const override
-      {
-        if (auto* const cached = Patterns.Get(idx).get())
-        {
-          return cached;
-        }
-        else
-        {
-          const auto* const first = Delegate->Get(idx);
-          const auto* const second = Delegate->Get(Base - 1 - idx);
-          return Patterns.Add(idx, MakePtr<Pattern>(*first, *second)).get();
-        }
-      }
-
-      uint_t GetSize() const override
-      {
-        return Delegate->GetSize();
-      }
-
-    private:
-      const uint_t Base;
-      const PatternsSet::Ptr Delegate;
-      mutable SparsedObjectsStorage<Pattern::Ptr> Patterns;
-    };
-
-    PatternsSet::Ptr CreatePatterns(uint_t patOffset, PatternsSet::Ptr pats)
-    {
-      return MakePtr<PatternsSet>(patOffset, std::move(pats));
-    }
-
     class DataIterator : public TurboSound::DataIterator
     {
     public:
-      DataIterator(AYM::TrackParameters::Ptr trackParams, Iterator::Ptr iterator, AYM::DataRenderer::Ptr first,
-                   AYM::DataRenderer::Ptr second)
-        : Params(std::move(trackParams))
+      DataIterator(uint_t base, AYM::TrackParameters::Ptr trackParams, Iterator::Ptr iterator,
+                   AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second)
+        : Base(base)
+        , Params(std::move(trackParams))
         , Delegate(std::move(iterator))
         , First(std::move(first))
         , Second(std::move(second))
@@ -398,8 +257,10 @@ namespace Module::ProTracker3
       Devices::TurboSound::Registers GetData() const override
       {
         SynchronizeParameters();
-        const auto& state = Delegate->GetState();
-        return {{RenderFrom(*state.Track, *First), RenderFrom(*state.Track, *Second)}};
+        auto state = Delegate->GetState();
+        auto firstReg = RenderFrom(*state.Track, *First);
+        state.Track->Pattern = Base - 1 - state.Track->Pattern;
+        return {{std::move(firstReg), RenderFrom(*state.Track, *Second)}};
       }
 
     private:
@@ -419,6 +280,7 @@ namespace Module::ProTracker3
       }
 
     private:
+      const uint_t Base;
       Parameters::TrackingHelper<AYM::TrackParameters> Params;
       const Iterator::Ptr Delegate;
       const AYM::DataRenderer::Ptr First;
@@ -458,8 +320,8 @@ namespace Module::ProTracker3
                                                        AYM::TrackParameters::Ptr /*second*/) const override
       {
         auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
-        return MakePtr<DataIterator>(std::move(first), std::move(iterator), Vortex::CreateDataRenderer(Data, 0),
-                                     Vortex::CreateDataRenderer(Data, AYM::TRACK_CHANNELS));
+        return MakePtr<DataIterator>(*Data->TurboPatternsOffset, std::move(first), std::move(iterator),
+                                     Vortex::CreateDataRenderer(Data), Vortex::CreateDataRenderer(Data));
       }
 
     private:
@@ -483,14 +345,12 @@ namespace Module::ProTracker3
       if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        const uint_t patOffset = dataBuilder.GetPatOffset();
         auto modData = dataBuilder.CaptureResult();
-        if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
+        if (modData->TurboPatternsOffset)
         {
           // TurboSound modules
           props.SetComment(TURBOSOUND_COMMENT);
           props.SetChannels(TurboSound::MakeChannelsNames());
-          modData->Patterns = TS::CreatePatterns(patOffset, std::move(modData->Patterns));
           auto chiptune = MakePtr<TS::Chiptune>(std::move(modData), std::move(properties));
           return TurboSound::CreateHolder(std::move(chiptune));
         }

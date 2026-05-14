@@ -112,12 +112,12 @@ namespace Module::AYM
 
     const PatternsSet& GetPatterns() const override
     {
-      return *Patterns;
+      return Patterns;
     }
 
     uint_t InitialTempo = 0;
     typename OrderListType::Ptr Order;
-    PatternsSet::Ptr Patterns;
+    PatternsSet Patterns;
     SparsedObjectsStorage<SampleType> Samples;
     SparsedObjectsStorage<OrnamentType> Ornaments;
   };

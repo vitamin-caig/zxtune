@@ -39,7 +39,6 @@ namespace Module::SoundTracker
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetFrequencyTable(TABLE_SOUNDTRACKER);
@@ -184,9 +183,9 @@ namespace Module::SoundTracker
 
     void SetNewState(const Cell& src)
     {
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        ApplyCommand(*it);
+        ApplyCommand(cmd);
       }
     }
 

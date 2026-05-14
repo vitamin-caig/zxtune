@@ -52,7 +52,6 @@ namespace Module::ProDigiTracker
     explicit DataBuilder(DAC::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<ProDigiTracker::CHANNELS_COUNT>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetSamplesFrequency(SAMPLES_FREQ);
@@ -187,18 +186,12 @@ namespace Module::ProDigiTracker
     {
       if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            DAC::ChannelDataBuilder builder = track.GetChannel(chan);
-            GetNewChannelState(*src, Ornaments[chan], builder);
-          }
-        }
+        line->ForEachChannel(
+            [&](auto chan, const auto& src) { GetNewChannelState(src, Ornaments[chan], track.GetChannel(chan)); });
       }
     }
 
-    void GetNewChannelState(const Cell& src, OrnamentState& ornamentState, DAC::ChannelDataBuilder& builder)
+    void GetNewChannelState(const Cell& src, OrnamentState& ornamentState, DAC::ChannelDataBuilder builder)
     {
       if (const bool* enabled = src.GetEnabled())
       {

@@ -22,13 +22,13 @@ namespace Formats::Chiptune::ProTracker3
   const std::size_t MAX_PATTERN_SIZE = 256;  // really no limit for PT3.58+
   const std::size_t MAX_SAMPLES_COUNT = 32;
   const std::size_t MAX_ORNAMENTS_COUNT = 16;
+  const uint_t SINGLE_AY_MODE = 0x20;
 
   class StatisticCollectingBuilder : public Builder
   {
   public:
     explicit StatisticCollectingBuilder(Builder& delegate)
       : Delegate(delegate)
-      , Mode(SINGLE_AY_MODE)
       , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
       , AvailablePatterns(0, MAX_PATTERNS_COUNT - 1)
       , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
@@ -58,7 +58,6 @@ namespace Formats::Chiptune::ProTracker3
     void SetMode(uint_t mode) override
     {
       Mode = mode;
-      return Delegate.SetMode(mode);
     }
 
     void SetInitialTempo(uint_t tempo) override
@@ -205,7 +204,7 @@ namespace Formats::Chiptune::ProTracker3
 
   private:
     Builder& Delegate;
-    uint_t Mode;
+    uint_t Mode = SINGLE_AY_MODE;
     Indices UsedPatterns;
     Indices AvailablePatterns;
     Indices UsedSamples;

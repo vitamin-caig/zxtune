@@ -17,28 +17,6 @@
 
 namespace Module
 {
-  class StubPattern : public Pattern
-  {
-    StubPattern() = default;
-
-  public:
-    const Line* GetLine(uint_t /*row*/) const override
-    {
-      return nullptr;
-    }
-
-    uint_t GetSize() const override
-    {
-      return 0;
-    }
-
-    static const Pattern* Create()
-    {
-      static const StubPattern instance;
-      return &instance;
-    }
-  };
-
   struct PlainTrackState
   {
     uint_t Frame = 0;
@@ -78,7 +56,7 @@ namespace Module
                          .Line = Plain.Line,
                          .Tempo = Plain.Tempo,
                          .Quirk = Plain.Quirk,
-                         .Channels = CurLineObject ? CurLineObject->CountActiveChannels() : 0}}};
+                         .Channels = Model.CountActiveChannels({.Pattern = Plain.Pattern, .Line = Plain.Line})}}};
     }
 
     // navigation
@@ -157,14 +135,12 @@ namespace Module
     void SetStubPattern()
     {
       Plain.Pattern = 0;
-      CurPatternObject = StubPattern::Create();
       SetLine(0);
     }
 
     void SetPattern(uint_t pat)
     {
       Plain.Pattern = pat;
-      CurPatternObject = Patterns.Get(Plain.Pattern);
       SetLine(0);
     }
 
@@ -172,13 +148,9 @@ namespace Module
     {
       Plain.Quirk = 0;
       Plain.Line = line;
-      CurLineObject = CurPatternObject->GetLine(Plain.Line);
-      if (CurLineObject)
+      if (const auto tempo = Model.GetLineTempo({.Pattern = Plain.Pattern, .Line = Plain.Line}))
       {
-        if (const auto tempo = CurLineObject->GetTempo())
-        {
-          Plain.Tempo = tempo;
-        }
+        Plain.Tempo = tempo;
       }
     }
 
@@ -191,7 +163,7 @@ namespace Module
     bool NextLine()
     {
       SetLine(Plain.Line + 1);
-      return Plain.Line < CurPatternObject->GetSize();
+      return Model.IsValidLine({.Pattern = Plain.Pattern, .Line = Plain.Line});
     }
 
     bool NextPosition()
@@ -213,8 +185,6 @@ namespace Module
     const PatternsSet& Patterns;
     // state
     PlainTrackState Plain;
-    const class Pattern* CurPatternObject;
-    const class Line* CurLineObject;
     Time::Microseconds TotalPlayed;
     uint_t Loops = 0;
   };

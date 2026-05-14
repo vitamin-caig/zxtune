@@ -43,7 +43,7 @@ namespace Module::DAC
 
     const PatternsSet& GetPatterns() const override
     {
-      return *Patterns;
+      return Patterns;
     }
 
     void SetupSamples(Devices::DAC::Chip& chip) const;
@@ -51,7 +51,7 @@ namespace Module::DAC
     const uint_t ChannelsCount;
     uint_t InitialTempo = 0;
     OrderList::Ptr Order;
-    PatternsSet::Ptr Patterns;
+    PatternsSet Patterns;
     SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
   };
 
@@ -62,14 +62,14 @@ namespace Module::DAC
 
     virtual SimpleModuleData::Ptr CaptureResult() = 0;
 
-    static Ptr Create(DAC::PropertiesHelper& props, PatternsBuilder builder,
+    static Ptr Create(DAC::PropertiesHelper& props,
                       uint_t channels);  // TODO: rework external dependency from builder
   };
 
   template<uint_t Channels>
   static SimpleDataBuilder::Ptr CreateSimpleDataBuilder(DAC::PropertiesHelper& props)
   {
-    return SimpleDataBuilder::Create(props, PatternsBuilder::Create<Channels>(), Channels);
+    return SimpleDataBuilder::Create(props, Channels);
   }
 
   DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties);
