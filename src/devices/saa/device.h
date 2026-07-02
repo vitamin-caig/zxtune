@@ -24,6 +24,40 @@ namespace Devices::SAA
     return val >> 4;
   }
 
+  enum class Voice
+  {
+    TONE_A,
+    TONE_B,
+    TONE_C,
+    NOISE,
+    ENVELOPE,
+
+    COUNT
+  };
+
+  class MuteMask
+  {
+  public:
+    void operator=(uint_t val)
+    {
+      Value = val & (Mask(Voice::COUNT) - 1);
+    }
+
+    bool operator[](Voice v) const
+    {
+      return Value & Mask(v);
+    }
+
+  private:
+    static constexpr uint_t Mask(Voice v)
+    {
+      return 1 << static_cast<uint_t>(v);
+    }
+
+  private:
+    uint_t Value = 0;
+  };
+
   class SAASubDevice
   {
   public:
@@ -68,6 +102,11 @@ namespace Devices::SAA
       Envelope.SetControl(value);
     }
 
+    void SetMuteMask(uint_t mask)
+    {
+      Muted = mask;
+    }
+
     void Reset()
     {
       for (std::size_t chan = 0; chan != 3; ++chan)
@@ -77,6 +116,7 @@ namespace Devices::SAA
       }
       Noise.Reset();
       Envelope.Reset();
+      Muted = 0;
     }
 
     void Tick(uint_t ticks)
@@ -90,20 +130,26 @@ namespace Devices::SAA
 
     FastSample GetLevels() const
     {
-      const uint_t noise = Noise.GetLevel();
+      const uint_t noise = Muted[Voice::NOISE] ? HIGH_LEVEL : Noise.GetLevel();
 
       FastSample out;
-      if (noise & Tones[0].GetLevel<1>())
+      if (!Muted[Voice::TONE_A] && (noise & Tones[0].GetLevel<1>()))
       {
         out.Add(Levels[0]);
       }
-      if (noise & Tones[1].GetLevel<2>())
+      if (!Muted[Voice::TONE_B] && (noise & Tones[1].GetLevel<2>()))
       {
         out.Add(Levels[1]);
       }
-      if (noise & Tones[2].GetLevel<4>())
+      const auto mutedTone = Muted[Voice::TONE_C];
+      const auto mutedEnv = Muted[Voice::ENVELOPE];
+      if (!mutedTone || !mutedEnv)
       {
-        out.Add(Envelope.GetLevel(Levels[2]));
+        if (mutedTone || (noise & Tones[2].GetLevel<4>()))
+        {
+          const auto input = Levels[2];
+          out.Add(mutedEnv ? input : Envelope.GetLevel(input));
+        }
       }
       return out;
     }
@@ -125,6 +171,7 @@ namespace Devices::SAA
     ToneGenerator Tones[3];
     NoiseGenerator Noise;
     EnvelopeGenerator Envelope;
+    MuteMask Muted;
     FastSample Levels[3];
   };
 
@@ -190,6 +237,12 @@ namespace Devices::SAA
     void SetEnvelope(uint_t generator, uint_t value)
     {
       Subdevices[generator].SetEnvelope(value);
+    }
+
+    void SetMuteMask(uint_t mask)
+    {
+      Subdevices[0].SetMuteMask(mask);
+      Subdevices[1].SetMuteMask(mask >> static_cast<uint_t>(Voice::COUNT));
     }
 
     void Reset()

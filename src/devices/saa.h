@@ -117,6 +117,7 @@ namespace Devices::SAA
     virtual uint64_t ClockFreq() const = 0;
     virtual uint_t SoundFreq() const = 0;
     virtual InterpolationType Interpolation() const = 0;
+    virtual uint_t MuteMask() const = 0;
   };
 
   /// Virtual constructors

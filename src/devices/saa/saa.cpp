@@ -97,6 +97,11 @@ namespace Devices::SAA
       }
     }
 
+    void SetMuteMask(uint_t mask)
+    {
+      Device.SetMuteMask(mask);
+    }
+
     void Tick(uint_t ticks)
     {
       Device.Tick(ticks);
@@ -270,6 +275,7 @@ namespace Devices::SAA
     {
       if (Params.IsChanged())
       {
+        PSG.SetMuteMask(Params->MuteMask());
         const uint64_t clock = Params->ClockFreq();
         const uint_t sndFreq = Params->SoundFreq();
         Renderers.SetFrequency(clock, sndFreq);
