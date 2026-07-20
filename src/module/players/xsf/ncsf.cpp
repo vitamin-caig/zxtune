@@ -18,8 +18,10 @@
 #include "module/players/xsf/xsf.h"
 
 #include "binary/compression/zlib_container.h"
+#include "core/plugins_parameters.h"
 #include "debug/log.h"
 #include "math/bitops.h"
+#include "parameters/tracking_helper.h"
 #include "sound/resampler.h"
 
 #include "contract.h"
@@ -87,6 +89,11 @@ namespace Module::NCSF
     {
       NCSFPlayer.Stop(true);  // stop the emulation and shut off the sound output
                               // (true = kill sound)
+    }
+
+    void SetChannelsMask(uint_t mask)
+    {
+      NCSFPlayer.mutes = std::bitset<16>(mask);
     }
 
     Sound::Chunk Render(uint_t samples)
@@ -172,8 +179,9 @@ namespace Module::NCSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, uint_t samplerate)
+    Renderer(ModuleData::Ptr data, Parameters::Accessor::Ptr params, uint_t samplerate)
       : Data(std::move(data))
+      , Params(std::move(params))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Engine(MakePtr<NCSFEngine>(*Data, samplerate))
     {}
@@ -185,21 +193,22 @@ namespace Module::NCSF
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       const auto avail = State->ConsumeUpTo(FRAME_DURATION);
       return Engine->Render(GetSamples(avail));
     }
 
     void Reset() override
     {
+      ResetEngine();
       State->Reset();
-      Engine->Reset();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
       if (request < State->At())
       {
-        Engine->Reset();
+        ResetEngine();
       }
       if (const auto toSkip = State->Seek(request))
       {
@@ -208,6 +217,22 @@ namespace Module::NCSF
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine->Reset();
+      Params.Reset();
+    }
+
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        Engine->SetChannelsMask(val);
+      }
+    }
+
     uint_t GetSamples(Time::Microseconds period) const
     {
       return period.Get() * Engine->GetSampleFrequency() / period.PER_SECOND;
@@ -215,6 +240,7 @@ namespace Module::NCSF
 
   private:
     const ModuleData::Ptr Data;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const TimedState::Ptr State;
     NCSFEngine::Ptr Engine;
   };
@@ -237,9 +263,9 @@ namespace Module::NCSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(Tune, samplerate);
+      return MakePtr<Renderer>(Tune, std::move(params), samplerate);
     }
 
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
@@ -250,6 +276,7 @@ namespace Module::NCSF
         tune->Meta->Dump(props);
       }
       props.SetPlatform(Platforms::NINTENDO_DS);
+      props.SetChannels("DSP"sv, 16);  // as in 2sf
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 
