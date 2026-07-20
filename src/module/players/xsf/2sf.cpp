@@ -18,8 +18,10 @@
 #include "module/players/xsf/xsf.h"
 
 #include "binary/compression/zlib_container.h"
+#include "core/plugins_parameters.h"
 #include "debug/log.h"
 #include "math/bitops.h"
+#include "parameters/tracking_helper.h"
 #include "sound/resampler.h"
 
 #include "contract.h"
@@ -84,6 +86,11 @@ namespace Module::TwoSF
     ~DSEngine()
     {
       ::state_deinit(&State);
+    }
+
+    void SetChannelsMask(uint_t mask)
+    {
+      State.dwChannelMute = mask;
     }
 
     Sound::Chunk Render(uint_t samples)
@@ -214,8 +221,9 @@ namespace Module::TwoSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, Sound::Converter::Ptr target)
+    Renderer(ModuleData::Ptr data, Parameters::Accessor::Ptr params, Sound::Converter::Ptr target)
       : Data(std::move(data))
+      , Params(std::move(params))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Target(std::move(target))
       , Engine(MakePtr<DSEngine>(*Data))
@@ -228,6 +236,7 @@ namespace Module::TwoSF
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       const auto avail = State->ConsumeUpTo(FRAME_DURATION);
       return Target->Apply(Engine->Render(GetSamples(avail)));
     }
@@ -235,14 +244,14 @@ namespace Module::TwoSF
     void Reset() override
     {
       State->Reset();
-      Engine = MakePtr<DSEngine>(*Data);
+      ResetEngine();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
       if (request < State->At())
       {
-        Engine = MakePtr<DSEngine>(*Data);
+        ResetEngine();
       }
       if (const auto toSkip = State->Seek(request))
       {
@@ -251,7 +260,25 @@ namespace Module::TwoSF
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine = MakePtr<DSEngine>(*Data);
+      Params.Reset();
+    }
+
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        Engine->SetChannelsMask(val);
+      }
+    }
+
+  private:
     const ModuleData::Ptr Data;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const TimedState::Ptr State;
     const Sound::Converter::Ptr Target;
     DSEngine::Ptr Engine;
@@ -275,9 +302,9 @@ namespace Module::TwoSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(Tune, Sound::CreateResampler(DSEngine::SAMPLERATE, samplerate));
+      return MakePtr<Renderer>(Tune, std::move(params), Sound::CreateResampler(DSEngine::SAMPLERATE, samplerate));
     }
 
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
@@ -288,6 +315,8 @@ namespace Module::TwoSF
         tune->Meta->Dump(props);
       }
       props.SetPlatform(Platforms::NINTENDO_DS);
+      // Mitsumi MM3205B
+      props.SetChannels("DSP"sv, 16);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 
