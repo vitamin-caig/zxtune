@@ -10,6 +10,7 @@
 
 #include "module/players/properties_helper.h"
 
+#include "formats/chiptune.h"
 #include "module/attributes.h"
 #include "sound/sound_parameters.h"
 #include "strings/join.h"
@@ -162,5 +163,18 @@ namespace Module
   {
     using namespace Parameters::ZXTune::Sound;
     Delegate.SetValue(FADEOUT, FADEOUT_PRECISION * fadeout.Get() / fadeout.PER_SECOND);
+  }
+
+  void PropertiesHelper::SetGain(float gain)
+  {
+    using namespace Parameters::ZXTune::Sound;
+    if (gain > 1.f / GAIN_PRECISION)
+    {
+      Delegate.SetValue(GAIN, GAIN_PRECISION * gain);
+    }
+    else
+    {
+      Delegate.SetValue(GAIN, 1);
+    }
   }
 }  // namespace Module

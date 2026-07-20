@@ -11,6 +11,7 @@
 #include "module/players/xsf/psf.h"
 
 #include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
 #include "module/players/xsf/psf_bios.h"
 #include "module/players/xsf/psf_exe.h"
@@ -19,7 +20,6 @@
 
 #include "binary/compression/zlib_container.h"
 #include "debug/log.h"
-#include "module/attributes.h"
 #include "sound/resampler.h"
 
 #include "contract.h"
@@ -360,11 +360,12 @@ namespace Module::PSF
 
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
+      PropertiesHelper props(*properties);
       if (tune->Meta)
       {
-        tune->Meta->Dump(*properties);
+        tune->Meta->Dump(props);
       }
-      properties->SetValue(ATTR_PLATFORM, tune->Version == 1 ? Platforms::PLAYSTATION : Platforms::PLAYSTATION_2);
+      props.SetPlatform(tune->Version == 1 ? Platforms::PLAYSTATION : Platforms::PLAYSTATION_2);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

@@ -12,6 +12,7 @@
 
 #include "formats/chiptune/emulation/nitrocomposersoundformat.h"
 #include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
 #include "module/players/xsf/memory_region.h"
 #include "module/players/xsf/xsf.h"
@@ -19,7 +20,6 @@
 #include "binary/compression/zlib_container.h"
 #include "debug/log.h"
 #include "math/bitops.h"
-#include "module/attributes.h"
 #include "sound/resampler.h"
 
 #include "contract.h"
@@ -244,11 +244,12 @@ namespace Module::NCSF
 
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
+      PropertiesHelper props(*properties);
       if (tune->Meta)
       {
-        tune->Meta->Dump(*properties);
+        tune->Meta->Dump(props);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_DS);
+      props.SetPlatform(Platforms::NINTENDO_DS);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

@@ -17,9 +17,9 @@
 #include <memory>
 #include <vector>
 
-namespace Parameters
+namespace Module
 {
-  class Modifier;
+  class PropertiesHelper;
 }
 
 namespace Module::XSF
@@ -48,6 +48,6 @@ namespace Module::XSF
 
     void Merge(const MetaInformation& rh);
 
-    void Dump(Parameters::Modifier& out) const;
+    void Dump(PropertiesHelper& out) const;
   };
 }  // namespace Module::XSF

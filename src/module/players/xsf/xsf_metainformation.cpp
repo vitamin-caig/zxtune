@@ -13,7 +13,6 @@
 #include "module/players/properties_helper.h"
 
 #include "parameters/modifier.h"
-#include "sound/sound_parameters.h"
 
 namespace Module::XSF
 {
@@ -45,9 +44,8 @@ namespace Module::XSF
     std::copy(rh.Tags.begin(), rh.Tags.end(), std::back_inserter(Tags));
   }
 
-  void MetaInformation::Dump(Parameters::Modifier& out) const
+  void MetaInformation::Dump(PropertiesHelper& props) const
   {
-    PropertiesHelper props(out);
     const auto* game = Game.empty() ? nullptr : &Game;
     if (!Title.empty())
     {
@@ -103,10 +101,9 @@ namespace Module::XSF
     }
 
     props.SetDate(Year);
-
-    if (Volume > 1.f / Parameters::ZXTune::Sound::GAIN_PRECISION)
+    if (Volume > 0.f)
     {
-      out.SetValue(Parameters::ZXTune::Sound::GAIN, Parameters::ZXTune::Sound::GAIN_PRECISION * Volume);
+      props.SetGain(Volume);
     }
 
     if (Fadeout)

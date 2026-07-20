@@ -11,12 +11,12 @@
 #include "module/players/xsf/sdsf.h"
 
 #include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
 #include "module/players/xsf/xsf.h"
 
 #include "binary/compression/zlib_container.h"
 #include "debug/log.h"
-#include "module/attributes.h"
 #include "sound/resampler.h"
 
 #include "byteorder.h"
@@ -254,11 +254,12 @@ namespace Module::SDSF
 
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
+      PropertiesHelper props(*properties);
       if (tune->Meta)
       {
-        tune->Meta->Dump(*properties);
+        tune->Meta->Dump(props);
       }
-      properties->SetValue(ATTR_PLATFORM, tune->Version == 0x11 ? Platforms::SEGA_SATURN : Platforms::DREAMCAST);
+      props.SetPlatform(tune->Version == 0x11 ? Platforms::SEGA_SATURN : Platforms::DREAMCAST);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

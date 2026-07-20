@@ -10,12 +10,16 @@
 
 #pragma once
 
-#include "formats/chiptune.h"
 #include "parameters/modifier.h"
 #include "strings/array.h"
 #include "time/duration.h"
 
 #include "string_view.h"
+
+namespace Formats::Chiptune
+{
+  class Container;
+}
 
 namespace Module
 {
@@ -54,6 +58,7 @@ namespace Module
     // Sound
     void SetFadein(Time::Milliseconds fadein);
     void SetFadeout(Time::Milliseconds fadeout);
+    void SetGain(float gain);
 
   protected:
     Parameters::Modifier& Delegate;

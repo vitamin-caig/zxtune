@@ -11,13 +11,13 @@
 #include "module/players/xsf/gsf.h"
 
 #include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
 #include "module/players/xsf/gsf_rom.h"
 #include "module/players/xsf/xsf.h"
 
 #include "binary/compression/zlib_container.h"
 #include "debug/log.h"
-#include "module/attributes.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -344,11 +344,12 @@ namespace Module::GSF
 
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
+      PropertiesHelper props(*properties);
       if (tune->Meta)
       {
-        tune->Meta->Dump(*properties);
+        tune->Meta->Dump(props);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::GAME_BOY_ADVANCE);
+      props.SetPlatform(Platforms::GAME_BOY_ADVANCE);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 
