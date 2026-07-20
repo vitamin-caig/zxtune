@@ -401,7 +401,7 @@ namespace Module::Mpt
       {
         if (names[i].empty())
         {
-          names[i] = Strings::Format("{}.{}"sv, type, i);
+          names[i] = Strings::Format("{} {}"sv, type, i + 1);
         }
       }
       props.SetChannels(names);

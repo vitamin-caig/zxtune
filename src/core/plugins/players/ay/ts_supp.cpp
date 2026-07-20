@@ -12,8 +12,8 @@
 #include "core/plugins/players/plugin.h"
 #include "formats/chiptune/aym/turbosound.h"
 #include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_properties_helper.h"
 #include "module/players/aym/turbosound.h"
-#include "module/players/properties_helper.h"
 #include "module/players/tracking.h"
 
 #include "core/plugin_attrs.h"
@@ -122,9 +122,9 @@ namespace Module::TS
       {
         if (dataBuilder.HasResult())
         {
-          PropertiesHelper props(*properties);
+          AYM::PropertiesHelper props(*properties);
           props.SetSource(*container);
-          props.SetChannels(TurboSound::MakeChannelsNames());
+          props.SetChipsCount(Devices::TurboSound::CHIPS);
           auto chiptune =
               TurboSound::CreateChiptune(std::move(properties), dataBuilder.GetFirst(), dataBuilder.GetSecond());
           return TurboSound::CreateHolder(std::move(chiptune));

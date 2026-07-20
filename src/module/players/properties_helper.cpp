@@ -104,12 +104,52 @@ namespace Module
     Delegate.SetValue(ATTR_PLATFORM, platform);
   }
 
-  void PropertiesHelper::SetChannels(const Strings::Array& names)
+  void PropertiesHelper::SetChannels(const Strings::Array& names, uint_t count)
   {
-    // TODO: Join(begin, end, delimiter)
-    const auto joined = Strings::Join(names, "\n"sv);
-    const auto trimmed = Strings::Trim(joined, '\n');
-    SetNonEmptyProperty(ATTR_CHANNELS_NAMES, trimmed);
+    if (count == 1)
+    {
+      const auto joined = Strings::Join(names, "\n"sv);
+      SetNonEmptyProperty(ATTR_CHANNELS_NAMES, joined);
+    }
+    else
+    {
+      constexpr uint_t OFFSET = 1;
+      String result;
+      for (uint_t idx = 0; idx != count; ++idx)
+      {
+        for (const auto& ch : names)
+        {
+          if (!result.empty())
+          {
+            result += '\n';
+          }
+          result += ch;
+          result += '/';
+          result += std::to_string(idx + OFFSET);
+        }
+      }
+      SetNonEmptyProperty(ATTR_CHANNELS_NAMES, result);
+    }
+  }
+
+  void PropertiesHelper::SetChannels(StringView prefix, uint_t count)
+  {
+    constexpr uint_t OFFSET = 1;
+    String result;
+    for (uint_t idx = 0; idx != count; ++idx)
+    {
+      if (!result.empty())
+      {
+        result += '\n';
+      }
+      result += prefix;
+      if (count > 1)
+      {
+        result += ' ';
+        result += std::to_string(idx + OFFSET);
+      }
+    }
+    SetNonEmptyProperty(ATTR_CHANNELS_NAMES, result);
   }
 
   void PropertiesHelper::SetFadein(Time::Milliseconds fadein)

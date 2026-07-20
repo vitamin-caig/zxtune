@@ -188,32 +188,29 @@ namespace Module::LibVGM
       result.reserve(TotalChannels);
       auto addDevice = [this, &result](const Device& dev) {
         String name = dev.Name();
-        if (Types[dev.Info.type] > 1)
-        {
-          name += ':';
-          name += std::to_string(int(dev.Info.instance));
-        }
+        // See PropertiesHelper::SetChannels for generic contract
+        const String suffix = Types[dev.Info.type] > 1 ? '/' + std::to_string(int(dev.Info.instance) + 1) : String{};
         if (const auto channels = dev.ChannelsCount(); channels > 1)
         {
-          name += '.';
+          name += ' ';
           if (const auto* names = dev.ChannelsNames())
           {
             for (uint_t ch : xrange(channels))
             {
-              result.emplace_back(name + names[ch]);
+              result.emplace_back(name + names[ch] + suffix);
             }
           }
           else
           {
             for (uint_t ch : xrange(channels))
             {
-              result.emplace_back(name + std::to_string(ch));
+              result.emplace_back(name + std::to_string(ch + 1) + suffix);
             }
           }
         }
         else
         {
-          result.emplace_back(std::move(name));
+          result.emplace_back(std::move(name) + suffix);
         }
       };
       for (const auto& dev : Devices)

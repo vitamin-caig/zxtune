@@ -484,13 +484,14 @@ namespace Module::ProTracker3
       if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
+
         const uint_t patOffset = dataBuilder.GetPatOffset();
         auto modData = dataBuilder.CaptureResult();
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
           // TurboSound modules
+          props.SetChipsCount(Devices::TurboSound::CHIPS);
           props.SetComment(TURBOSOUND_COMMENT);
-          props.SetChannels(TurboSound::MakeChannelsNames());
           modData->Patterns = TS::CreatePatterns(patOffset, std::move(modData->Patterns));
           auto chiptune = MakePtr<TS::Chiptune>(std::move(modData), std::move(properties));
           return TurboSound::CreateHolder(std::move(chiptune));

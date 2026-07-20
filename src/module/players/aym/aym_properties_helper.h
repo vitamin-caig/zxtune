@@ -21,6 +21,7 @@ namespace Module::AYM
   public:
     explicit PropertiesHelper(Parameters::Modifier& delegate);
 
+    void SetChipsCount(uint_t count);
     void SetFrequencyTable(StringView freqTable);
     void SetChipType(uint_t type);
     void SetChannelsLayout(uint_t layout);

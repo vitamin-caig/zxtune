@@ -46,7 +46,10 @@ namespace Module
     void SetVersion(StringView version);
     void SetDate(StringView date);
     void SetPlatform(StringView platform);
-    void SetChannels(const Strings::Array& names);
+    // Use "${name[*}}${idx + 1}" format
+    void SetChannels(const Strings::Array& names, uint_t count = 1);
+    // Use "${prefix} ${idx + 1}" format
+    void SetChannels(StringView prefix, uint_t count);
 
     // Sound
     void SetFadein(Time::Milliseconds fadein);
