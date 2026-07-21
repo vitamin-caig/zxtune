@@ -19,7 +19,9 @@
 #include "module/players/xsf/xsf.h"
 
 #include "binary/compression/zlib_container.h"
+#include "core/plugins_parameters.h"
 #include "debug/log.h"
+#include "parameters/tracking_helper.h"
 #include "sound/resampler.h"
 
 #include "contract.h"
@@ -183,8 +185,6 @@ namespace Module::PSF
   class PSXEngine
   {
   public:
-    using Ptr = std::shared_ptr<PSXEngine>;
-
     explicit PSXEngine(const ModuleData& data)
     {
       Initialize(data);
@@ -212,6 +212,13 @@ namespace Module::PSF
     uint_t GetSoundFrequency() const
     {
       return SoundFrequency;
+    }
+
+    void SetChannelsMask(uint64_t mask)
+    {
+      auto* const iop = ::psx_get_iop_state(Emu.get());
+      auto* const spu = ::iop_get_spu_state(iop);
+      ::spu_set_mute_mask(spu, mask);
     }
 
     Sound::Chunk Render(uint_t samples)
@@ -286,11 +293,12 @@ namespace Module::PSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, uint_t samplerate)
+    Renderer(ModuleData::Ptr data, Parameters::Accessor::Ptr params, uint_t samplerate)
       : Data(std::move(data))
+      , Params(std::move(params))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
-      , Engine(MakePtr<PSXEngine>(*Data))
-      , Target(Sound::CreateResampler(Engine->GetSoundFrequency(), samplerate))
+      , Engine(*Data)
+      , Target(Sound::CreateResampler(Engine.GetSoundFrequency(), samplerate))
     {}
 
     Module::State::Ptr GetState() const override
@@ -300,38 +308,56 @@ namespace Module::PSF
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       const auto avail = State->ConsumeUpTo(FRAME_DURATION);
-      return Target->Apply(Engine->Render(GetSamples(avail)));
+      return Target->Apply(Engine.Render(GetSamples(avail)));
     }
 
     void Reset() override
     {
       State->Reset();
-      Engine->Initialize(*Data);
+      ResetEngine();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
       if (request < State->At())
       {
-        Engine->Initialize(*Data);
+        ResetEngine();
       }
       if (const auto toSkip = State->Seek(request))
       {
-        Engine->Skip(GetSamples(toSkip));
+        Engine.Skip(GetSamples(toSkip));
       }
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine.Initialize(*Data);
+      Params.Reset();
+    }
+
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        Engine.SetChannelsMask(val);
+      }
+    }
+
     uint_t GetSamples(Time::Microseconds period) const
     {
-      return period.Get() * Engine->GetSoundFrequency() / period.PER_SECOND;
+      return period.Get() * Engine.GetSoundFrequency() / period.PER_SECOND;
     }
 
   private:
     const ModuleData::Ptr Data;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const TimedState::Ptr State;
-    const PSXEngine::Ptr Engine;
+    PSXEngine Engine;
     const Sound::Converter::Ptr Target;
   };
 
@@ -353,9 +379,9 @@ namespace Module::PSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(Tune, samplerate);
+      return MakePtr<Renderer>(Tune, std::move(params), samplerate);
     }
 
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
@@ -365,7 +391,18 @@ namespace Module::PSF
       {
         tune->Meta->Dump(props);
       }
-      props.SetPlatform(tune->Version == 1 ? Platforms::PLAYSTATION : Platforms::PLAYSTATION_2);
+      if (tune->Version == 1)
+      {
+        props.SetPlatform(Platforms::PLAYSTATION);
+        // CXD2922Q
+        props.SetChannels("SPU"sv, 24);
+      }
+      else
+      {
+        props.SetPlatform(Platforms::PLAYSTATION_2);
+        // CXD2922Q
+        props.SetChannels("SPU2"sv, 48);
+      }
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 
