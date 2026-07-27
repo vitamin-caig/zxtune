@@ -11,7 +11,7 @@ source_files += $(addprefix Core/,\
   c68k/c68kexec \
 )
 
-defines += EMU_COMPILE EMU_LITTLE_ENDIAN LSB_FIRST C68K_NO_JUMP_TABLE NO_DYNAREC
+defines += EMU_COMPILE EMU_LITTLE_ENDIAN LSB_FIRST C68K_NO_JUMP_TABLE NO_DYNAREC HAVE_STDINT_H
 
 source_files := $(addsuffix .c,$(source_files))
 
