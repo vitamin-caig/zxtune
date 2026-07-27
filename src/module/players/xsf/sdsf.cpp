@@ -16,7 +16,9 @@
 #include "module/players/xsf/xsf.h"
 
 #include "binary/compression/zlib_container.h"
+#include "core/plugins_parameters.h"
 #include "debug/log.h"
+#include "parameters/tracking_helper.h"
 #include "sound/resampler.h"
 
 #include "byteorder.h"
@@ -118,6 +120,11 @@ namespace Module::SDSF
       SetupSections(data.Sections);
     }
 
+    void SetChannelsMask(uint64_t mask)
+    {
+      ::sega_set_mute_mask(Emu.get(), mask);
+    }
+
     Sound::Chunk Render(uint_t samples)
     {
       Sound::Chunk result(samples);
@@ -185,8 +192,9 @@ namespace Module::SDSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, Sound::Converter::Ptr target)
+    Renderer(ModuleData::Ptr data, Parameters::Accessor::Ptr params, Sound::Converter::Ptr target)
       : Data(std::move(data))
+      , Params(std::move(params))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Target(std::move(target))
     {
@@ -200,6 +208,7 @@ namespace Module::SDSF
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       const auto avail = State->ConsumeUpTo(FRAME_DURATION);
       return Target->Apply(Engine.Render(GetSamples(avail)));
     }
@@ -207,14 +216,14 @@ namespace Module::SDSF
     void Reset() override
     {
       State->Reset();
-      Engine.Initialize(*Data);
+      ResetEngine();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
       if (request < State->At())
       {
-        Engine.Initialize(*Data);
+        ResetEngine();
       }
       if (const auto toSkip = State->Seek(request))
       {
@@ -223,7 +232,25 @@ namespace Module::SDSF
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine.Initialize(*Data);
+      Params.Reset();
+    }
+
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        Engine.SetChannelsMask(val);
+      }
+    }
+
+  private:
     const ModuleData::Ptr Data;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const TimedState::Ptr State;
     SegaEngine Engine;
     const Sound::Converter::Ptr Target;
@@ -247,9 +274,9 @@ namespace Module::SDSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(Tune, Sound::CreateResampler(SegaEngine::SAMPLERATE, samplerate));
+      return MakePtr<Renderer>(Tune, std::move(params), Sound::CreateResampler(SegaEngine::SAMPLERATE, samplerate));
     }
 
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
@@ -259,7 +286,18 @@ namespace Module::SDSF
       {
         tune->Meta->Dump(props);
       }
-      props.SetPlatform(tune->Version == 0x11 ? Platforms::SEGA_SATURN : Platforms::DREAMCAST);
+      if (tune->Version == 0x11)
+      {
+        props.SetPlatform(Platforms::SEGA_SATURN);
+        // As in vgm
+        props.SetChannels("SCSP"sv, 32);
+      }
+      else
+      {
+        props.SetPlatform(Platforms::DREAMCAST);
+        // 315-6119,315-6232
+        props.SetChannels("AICA"sv, 64);
+      }
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 
