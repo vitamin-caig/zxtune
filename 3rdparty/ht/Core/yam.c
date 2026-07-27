@@ -372,6 +372,7 @@ struct YAM_STATE {
   uint32 odometer;
   uint8 dry_out_enabled;
   uint8 dsp_emulation_enabled;
+  uint64 mute_mask;
 #ifdef ENABLE_DYNAREC
   uint8 dsp_dyna_enabled;
   uint8 dsp_dyna_valid;
@@ -604,6 +605,10 @@ void EMU_CALL yam_enable_dsp_dynarec(void *state, uint8 enable) {
   YAMSTATE->dsp_dyna_enabled = (enable != 0);
   if(enable == 0) { YAMSTATE->dsp_dyna_valid = 0; }
 #endif
+}
+
+void EMU_CALL yam_set_mute_mask(void *state, uint64 mask) {
+  YAMSTATE->mute_mask = mask;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -3010,12 +3015,15 @@ fclose(f);
   //
   for(i = 0; i < nchannels; i++) {
     struct YAM_CHAN *chan;
+    uint8 ch_muted;
     j = priority_list[i].channel_number;
     chan = state->chan + j;
+    ch_muted = (state->mute_mask >> j) & 1;
     state->bufptr = bufptr_base + j;
 // is 11
-    render_and_add_channel(state, chan, directout,
-      wantreverb ? (fxbus + chan->dspchan) : NULL,
+    render_and_add_channel(state, chan,
+      ch_muted ? NULL : directout,
+      (wantreverb && !ch_muted) ? (fxbus + chan->dspchan) : NULL,
       odometer, samples
     );
   }

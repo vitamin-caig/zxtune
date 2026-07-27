@@ -94,6 +94,7 @@ uint32 EMU_CALL sega_get_pc(void *state);
 void EMU_CALL sega_enable_dry(void *state, uint8 enable);
 void EMU_CALL sega_enable_dsp(void *state, uint8 enable);
 void EMU_CALL sega_enable_dsp_dynarec(void *state, uint8 enable);
+void EMU_CALL sega_set_mute_mask(void *state, uint64 mask);
 
 /////////////////////////////////////////////////////////////////////////////
 
