@@ -236,6 +236,7 @@ namespace Module::TFC
         {
           props.SetSource(*container);
           props.SetPlatform(Platforms::ZX_SPECTRUM);
+          props.SetChannels("FM"sv, Devices::TFM::VOICES);
           return TFM::CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data), std::move(properties));
         }
       }

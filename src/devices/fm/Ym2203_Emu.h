@@ -31,4 +31,6 @@ void YM2203UpdateOne(void *chip, int32_t *buffer, int length);
 
 void YM2203WriteRegs(void *chip, int reg, unsigned char val);
 
+void YM2203SetMuteMask(void *chip, uint_t mask);
+
 void YM2203GetState(void *chip, uint_t *attenuations, uint_t *periods);

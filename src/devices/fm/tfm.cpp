@@ -22,13 +22,14 @@ namespace Devices::TFM
   class ChipAdapter
   {
   public:
-    void SetParams(uint64_t clock, uint_t sndFreq)
+    void SetParams(uint64_t clock, uint_t sndFreq, uint_t muteMask)
     {
       if (Helper.SetNewParams(clock, sndFreq))
       {
         Chips[0] = Helper.CreateChip();
         Chips[1] = Helper.CreateChip();
       }
+      SetMuteMask(muteMask);
     }
 
     void Reset()
@@ -37,6 +38,15 @@ namespace Devices::TFM
       {
         ::YM2203ResetChip(Chips[0].get());
         ::YM2203ResetChip(Chips[1].get());
+      }
+    }
+
+    void SetMuteMask(uint_t mask)
+    {
+      if (Chips[0])
+      {
+        ::YM2203SetMuteMask(Chips[0].get(), mask & 0x7);
+        ::YM2203SetMuteMask(Chips[1].get(), (mask >> 3) & 0x7);
       }
     }
 

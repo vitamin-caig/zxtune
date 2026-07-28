@@ -140,7 +140,8 @@ namespace Devices::FM::Details
       {
         const uint64_t clockFreq = Params->ClockFreq();
         const uint_t sndFreq = Params->SoundFreq();
-        Adapter.SetParams(clockFreq, sndFreq);
+        const uint_t muteMask = Params->MuteMask();
+        Adapter.SetParams(clockFreq, sndFreq, muteMask);
         Clock.SetFrequency(sndFreq);
       }
     }
