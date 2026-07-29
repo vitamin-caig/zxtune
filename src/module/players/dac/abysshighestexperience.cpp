@@ -15,9 +15,11 @@
 #include "module/players/properties_meta.h"
 
 #include "binary/container_factories.h"
+#include "core/plugins_parameters.h"
 #include "debug/log.h"
 #include "module/track_information.h"
 #include "module/track_state.h"
+#include "parameters/tracking_helper.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -191,6 +193,11 @@ namespace Module::AHX
       hvl_InitSubsong(Hvl.get(), 0);
     }
 
+    void SetChannelsMask(uint_t mask)
+    {
+      hvl_SetChannelsMask(Hvl.get(), mask);
+    }
+
     Sound::Chunk RenderFrame()
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
@@ -235,8 +242,9 @@ namespace Module::AHX
   class Renderer : public Module::Renderer
   {
   public:
-    explicit Renderer(HVL::Ptr tune)
+    Renderer(HVL::Ptr tune, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
+      , Params(std::move(params))
     {}
 
     State::Ptr GetState() const override
@@ -246,21 +254,37 @@ namespace Module::AHX
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       return Tune->RenderFrame();
     }
 
     void Reset() override
     {
+      Params.Reset();
       Tune->Reset();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
+      // Tune->Seek() internally calls hvl_InitSubsong on backward seeks, which clears ht_ChannelsMask
+      Params.Reset();
       Tune->Seek(request);
     }
 
   private:
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        Tune->SetChannelsMask(val);
+      }
+    }
+
+  private:
     const HVL::Ptr Tune;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
   };
 
   class Holder : public Module::Holder
@@ -285,9 +309,9 @@ namespace Module::AHX
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(MakePtr<HVL>(*Tune, samplerate));
+      return MakePtr<Renderer>(MakePtr<HVL>(*Tune, samplerate), std::move(params));
     }
 
   private:
@@ -300,7 +324,8 @@ namespace Module::AHX
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
-      : Meta(props)
+      : Props(props)
+      , Meta(props)
     {}
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -308,7 +333,18 @@ namespace Module::AHX
       return Meta;
     }
 
+    void SetChannels(uint_t count) override
+    {
+      Strings::Array chans;
+      for (uint_t ch = 0; ch < count; ++ch)
+      {
+        chans.emplace_back(1, 'A' + ch);
+      }
+      Props.SetChannels(chans);
+    }
+
   private:
+    PropertiesHelper& Props;
     MetaProperties Meta;
   };
 

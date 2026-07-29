@@ -26,6 +26,7 @@ namespace Formats::Chiptune
       virtual ~Builder() = default;
 
       virtual MetaBuilder& GetMetaBuilder() = 0;
+      virtual void SetChannels(uint_t count) = 0;
     };
 
     Builder& GetStubBuilder();
