@@ -225,6 +225,7 @@ struct hvl_tune
   int32                  ht_defpanright;
   int32                  ht_mixgain;
   uint8                  ht_Version;
+  uint16                 ht_ChannelsMask;
 };
 
 void hvl_InitReplayer( void );
@@ -234,6 +235,7 @@ void hvl_FreeTune( struct hvl_tune *ht );
 BOOL hvl_InitSubsong( struct hvl_tune *ht, uint32 nr );
 void hvl_DecodeFrame( struct hvl_tune *ht, int8 *buf1, int8 *buf2, int32 bufmod );
 void hvl_NextFrame( struct hvl_tune *ht );
+void hvl_SetChannelsMask( struct hvl_tune *ht, uint32 mask );
 
 #ifdef __cplusplus
 }

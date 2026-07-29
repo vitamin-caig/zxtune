@@ -159,6 +159,7 @@ struct hvl_tune *hvl_load_ahx( const uint8 *buf, uint32 buflen, uint32 defstereo
   }
   
   ht->ht_Frequency       = freq;
+  ht->ht_ChannelsMask    = 0;
   
   ht->ht_Positions   = (struct hvl_position *)(&ht[1]);
   ht->ht_Instruments = (struct hvl_instrument *)(&ht->ht_Positions[posn]);
@@ -378,6 +379,7 @@ struct hvl_tune *hvl_load_hvl( const uint8 *buf, uint32 buflen, uint32 defstereo
   
   ht->ht_Version         = buf[3]; // 1.5
   ht->ht_Frequency       = freq;
+  ht->ht_ChannelsMask    = 0;
   
   ht->ht_Positions       = (struct hvl_position *)(&ht[1]);
   ht->ht_Instruments     = (struct hvl_instrument *)(&ht->ht_Positions[posn]);
@@ -1753,8 +1755,11 @@ void hvl_mixchunk( struct hvl_tune *ht, uint32 samples, int8 *buf1, int8 *buf2, 
         
 //        if( abs( j ) > vu[i] ) vu[i] = abs( j );
 
-        a += (j * panl[i]) >> 7;
-        b += (j * panr[i]) >> 7;
+        if( (ht->ht_ChannelsMask & (1 << i)) == 0 )
+        {
+          a += (j * panl[i]) >> 7;
+          b += (j * panr[i]) >> 7;
+        }
         pos[i] += delta[i];
       }
       
@@ -1812,4 +1817,9 @@ void hvl_NextFrame( struct hvl_tune *ht )
     hvl_play_irq( ht );
     loops--;
   } while( loops );
+}
+
+void hvl_SetChannelsMask( struct hvl_tune *ht, uint32 mask )
+{
+  ht->ht_ChannelsMask = mask;
 }
