@@ -265,14 +265,14 @@ namespace Module::Sid
     void Reset() override
     {
       State->Reset();
-      Engine->Load(*Tune);
+      ResetEngine();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
       if (request < State->At())
       {
-        Engine->Load(*Tune);
+        ResetEngine();
       }
       if (const auto toSkip = State->Seek(request))
       {
@@ -281,6 +281,12 @@ namespace Module::Sid
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine->Load(*Tune);
+      SidParams.Reset();
+    }
+
     uint_t GetSamples(Time::Microseconds period) const
     {
       return period.Get() * Engine->GetSoundFreq() / period.PER_SECOND;

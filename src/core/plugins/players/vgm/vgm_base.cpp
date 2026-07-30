@@ -424,7 +424,7 @@ namespace Module::LibVGM
     {
       try
       {
-        Engine->Reset();
+        ResetEngine();
       }
       catch (const std::exception& e)
       {
@@ -445,6 +445,12 @@ namespace Module::LibVGM
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine->Reset();
+      Params.Reset();
+    }
+
     void ApplyParameters()
     {
       if (Params.IsChanged())

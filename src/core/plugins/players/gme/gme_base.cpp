@@ -203,9 +203,8 @@ namespace Module::GME
     {
       try
       {
-        Params.Reset();
         State->Reset();
-        Engine.Reset();
+        ResetEngine();
       }
       catch (const std::exception& e)
       {
@@ -226,6 +225,12 @@ namespace Module::GME
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine.Reset();
+      Params.Reset();
+    }
+
     void ApplyParameters()
     {
       if (Params.IsChanged())
@@ -245,7 +250,7 @@ namespace Module::GME
     {
       if (request < State->At())
       {
-        Engine.Reset();
+        ResetEngine();
       }
       if (const auto toSkip = State->Seek(request))
       {
