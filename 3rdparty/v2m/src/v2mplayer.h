@@ -89,6 +89,9 @@ public:
   // returns if song is currently playing
     bool IsPlaying();
 
+    // sets channels muting mask
+    void SetChannelsMask(uint32_t mask);
+
     #ifdef V2MPLAYER_SYNC_FUNCTIONS
     // Retrieves an array of timer<->song position
     //
