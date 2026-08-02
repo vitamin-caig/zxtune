@@ -304,4 +304,9 @@ void EMU_CALL sega_enable_dsp_dynarec(void *state, uint8 enable) {
   if(yamstate) yam_enable_dsp_dynarec(yamstate, enable);
 }
 
+void EMU_CALL sega_set_mute_mask(void *state, uint64 mask) {
+  void *yamstate = getyamstate(SEGASTATE);
+  if(yamstate) yam_set_mute_mask(yamstate, mask);
+}
+
 /////////////////////////////////////////////////////////////////////////////

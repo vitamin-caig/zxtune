@@ -11,13 +11,15 @@
 #include "module/players/xsf/gsf.h"
 
 #include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
 #include "module/players/xsf/gsf_rom.h"
 #include "module/players/xsf/xsf.h"
 
 #include "binary/compression/zlib_container.h"
+#include "core/plugins_parameters.h"
 #include "debug/log.h"
-#include "module/attributes.h"
+#include "parameters/tracking_helper.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -28,6 +30,7 @@
 #include <mgba/core/blip_buf.h>
 #include <mgba/core/core.h>
 #include <mgba/gba/core.h>
+#include <mgba/internal/gba/gba.h>
 
 #include <algorithm>
 
@@ -213,6 +216,17 @@ namespace Module::GSF
       Core->reset(Core);
     }
 
+    void SetChannelsMask(uint_t mask)
+    {
+      auto& audio = static_cast<GBA*>(Core->board)->audio;
+      audio.psg.forceDisableCh[0] = mask & 0x01;
+      audio.psg.forceDisableCh[1] = mask & 0x02;
+      audio.psg.forceDisableCh[2] = mask & 0x04;
+      audio.psg.forceDisableCh[3] = mask & 0x08;
+      audio.forceDisableChA = mask & 0x10;
+      audio.forceDisableChB = mask & 0x20;
+    }
+
     void RunFrame()
     {
       Core->runFrame(Core);
@@ -239,6 +253,11 @@ namespace Module::GSF
     void Reset()
     {
       Core.Reset();
+    }
+
+    void SetChannelsMask(uint_t mask)
+    {
+      Core.SetChannelsMask(mask);
     }
 
     Sound::Chunk Render(uint_t samples)
@@ -270,8 +289,9 @@ namespace Module::GSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const ModuleData& data, uint_t samplerate)
+    Renderer(const ModuleData& data, Parameters::Accessor::Ptr params, uint_t samplerate)
       : Engine(MakePtr<GbaEngine>(data))
+      , Params(std::move(params))
       , State(data.Meta->Duration)
       , SoundFrequency(samplerate)
     {
@@ -285,6 +305,7 @@ namespace Module::GSF
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       return Engine->Render(GetSamples(avail));
     }
@@ -292,14 +313,14 @@ namespace Module::GSF
     void Reset() override
     {
       State.Reset();
-      Engine->Reset();
+      ResetEngine();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
       if (request < State.At())
       {
-        Engine->Reset();
+        ResetEngine();
       }
       if (const auto toSkip = State.Seek(request))
       {
@@ -308,13 +329,30 @@ namespace Module::GSF
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine->Reset();
+      Params.Reset();
+    }
+
     uint_t GetSamples(Time::Microseconds period) const
     {
       return period.Get() * SoundFrequency / period.PER_SECOND;
     }
 
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        Engine->SetChannelsMask(val);
+      }
+    }
+
   private:
     const GbaEngine::Ptr Engine;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     TimedState State;
     uint_t SoundFrequency = 0;
   };
@@ -337,18 +375,21 @@ namespace Module::GSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(*Tune, samplerate);
+      return MakePtr<Renderer>(*Tune, std::move(params), samplerate);
     }
 
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
+      PropertiesHelper props(*properties);
       if (tune->Meta)
       {
-        tune->Meta->Dump(*properties);
+        tune->Meta->Dump(props);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::GAME_BOY_ADVANCE);
+      props.SetPlatform(Platforms::GAME_BOY_ADVANCE);
+      // as in M4GTracker
+      props.SetChannels({"PU1"s, "PU2"s, "WAV"s, "NZE"s, "A"s, "B"s});
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

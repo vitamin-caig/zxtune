@@ -23,8 +23,13 @@ namespace Module::AYM
   PropertiesHelper::PropertiesHelper(Parameters::Modifier& delegate)
     : Module::PropertiesHelper(delegate)
   {
-    SetChannels({"A"s, "B"s, "C"s, "Noise"s, "Envelope"s});
     SetPlatform(Platforms::ZX_SPECTRUM);
+    SetChipsCount(1);
+  }
+
+  void PropertiesHelper::SetChipsCount(uint_t count)
+  {
+    SetChannels({"A"s, "B"s, "C"s, "N"s, "E"s}, count);
   }
 
   void PropertiesHelper::SetFrequencyTable(StringView freqTable)

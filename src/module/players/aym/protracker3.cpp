@@ -349,8 +349,8 @@ namespace Module::ProTracker3
         if (modData->TurboPatternsOffset)
         {
           // TurboSound modules
+          props.SetChipsCount(Devices::TurboSound::CHIPS);
           props.SetComment(TURBOSOUND_COMMENT);
-          props.SetChannels(TurboSound::MakeChannelsNames());
           auto chiptune = MakePtr<TS::Chiptune>(std::move(modData), std::move(properties));
           return TurboSound::CreateHolder(std::move(chiptune));
         }

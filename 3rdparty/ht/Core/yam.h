@@ -25,6 +25,7 @@ void   EMU_CALL yam_clear_state(void *state, uint8 version);
 void   EMU_CALL yam_enable_dry(void *state, uint8 enable);
 void   EMU_CALL yam_enable_dsp(void *state, uint8 enable);
 void   EMU_CALL yam_enable_dsp_dynarec(void *state, uint8 enable);
+void   EMU_CALL yam_set_mute_mask(void *state, uint64 mask);
 
 void   EMU_CALL yam_setram(void *state, uint32 *ram, uint32 size, uint8 mbx, uint8 mwx);
 void   EMU_CALL yam_beginbuffer(void *state, sint16 *buf);

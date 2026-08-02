@@ -11,11 +11,11 @@
 #include "module/players/xsf/usf.h"
 
 #include "module/players/platforms.h"
+#include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
 #include "module/players/xsf/xsf.h"
 
 #include "debug/log.h"
-#include "module/attributes.h"
 #include "sound/resampler.h"
 
 #include "contract.h"
@@ -251,11 +251,12 @@ namespace Module::USF
 
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
+      PropertiesHelper props(*properties);
       if (tune->Meta)
       {
-        tune->Meta->Dump(*properties);
+        tune->Meta->Dump(props);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_64);
+      props.SetPlatform(Platforms::NINTENDO_64);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

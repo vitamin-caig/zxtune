@@ -15,7 +15,9 @@
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
 
+#include "core/plugins_parameters.h"
 #include "debug/log.h"
+#include "parameters/tracking_helper.h"
 #include "sound/resampler.h"
 
 #include "contract.h"
@@ -87,6 +89,11 @@ namespace Module::V2M
       Require(Player.IsPlaying());
     }
 
+    void SetChannelsMask(uint_t mask)
+    {
+      Player.SetChannelsMask(mask);
+    }
+
     Sound::Chunk RenderFrame(uint_t samples)
     {
       RenderImpl(samples);
@@ -135,8 +142,9 @@ namespace Module::V2M
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(DataPtr tune, Time::Milliseconds duration, Sound::Converter::Ptr target)
+    Renderer(DataPtr tune, Parameters::Accessor::Ptr params, Time::Milliseconds duration, Sound::Converter::Ptr target)
       : Engine(std::move(tune))
+      , Params(std::move(params))
       , State(duration)
       , Target(std::move(target))
     {}
@@ -148,27 +156,28 @@ namespace Module::V2M
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       const auto loops = State.Get().LoopCount;
       const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       auto frame = Target->Apply(Engine.RenderFrame(GetSamples(avail)));
       if (State.Get().LoopCount != loops)
       {
-        Engine.Reset();
+        ResetEngine();
       }
       return frame;
     }
 
     void Reset() override
     {
-      Engine.Reset();
       State.Reset();
+      ResetEngine();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
       if (request < State.At())
       {
-        Engine.Reset();
+        ResetEngine();
       }
       const auto toSkip = State.Seek(request);
       for (auto samples = GetSamples(toSkip); samples != 0;)
@@ -180,7 +189,25 @@ namespace Module::V2M
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine.Reset();
+      Params.Reset();
+    }
+
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        Engine.SetChannelsMask(val);
+      }
+    }
+
+  private:
     V2mEngine Engine;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     TimedState State;
     const Sound::Converter::Ptr Target;
   };
@@ -204,9 +231,10 @@ namespace Module::V2M
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(Data, Duration, Sound::CreateResampler(V2mEngine::SAMPLERATE, samplerate));
+      return MakePtr<Renderer>(Data, std::move(params), Duration,
+                               Sound::CreateResampler(V2mEngine::SAMPLERATE, samplerate));
     }
 
   private:
@@ -255,6 +283,13 @@ namespace Module::V2M
         if (const auto container = Formats::Chiptune::V2m::Parse(rawData, dataBuilder))
         {
           props.SetSource(*container);
+          Strings::Array channels;
+          for (uint_t ch = 1; ch <= 15; ++ch)
+          {
+            channels.emplace_back("MIDI " + std::to_string(ch));
+          }
+          channels.emplace_back("Ronan");
+          props.SetChannels(channels);
           auto data = V2mEngine::Convert(*container);
           return MakePtr<Holder>(std::move(data), dataBuilder.GetDuration(), std::move(properties));
         }

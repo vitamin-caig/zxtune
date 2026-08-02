@@ -20,12 +20,6 @@ namespace Module::TurboSound
 {
   const uint_t TRACK_CHANNELS = AYM::TRACK_CHANNELS * Devices::TurboSound::CHIPS;
 
-  inline Strings::Array MakeChannelsNames()
-  {
-    static_assert(TRACK_CHANNELS == 6);
-    return {"A1"s, "B1"s, "C1"s, "N1"s, "E1"s, "A2"s, "B2"s, "C2"s, "N2"s, "E2"s};
-  }
-
   class DataIterator : public Iterator
   {
   public:

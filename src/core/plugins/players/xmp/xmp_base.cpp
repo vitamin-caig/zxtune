@@ -46,38 +46,16 @@ namespace Module::Xmp
     BaseContext(const BaseContext& rh) = delete;
     BaseContext& operator=(const BaseContext& rh) = delete;
 
-    void Call(void (*func)(xmp_context))
+    template<class... P>
+    void Call(void (*func)(xmp_context, P...), P... p)
     {
-      func(Data);
+      func(Data, p...);
     }
 
-    template<class P1>
-    void Call(void (*func)(xmp_context, P1), P1 p1)
+    template<class... P>
+    void Call(int (*func)(xmp_context, P...), P... p)
     {
-      func(Data, p1);
-    }
-
-    void Call(int (*func)(xmp_context))
-    {
-      CheckError(func(Data));
-    }
-
-    template<class P1>
-    void Call(int (*func)(xmp_context, P1), P1 p1)
-    {
-      CheckError(func(Data, p1));
-    }
-
-    template<class P1, class P2>
-    void Call(int (*func)(xmp_context, P1, P2), P1 p1, P2 p2)
-    {
-      CheckError(func(Data, p1, p2));
-    }
-
-    template<class P1, class P2, class P3>
-    void Call(int (*func)(xmp_context, P1, P2, P3), P1 p1, P2 p2, P3 p3)
-    {
-      CheckError(func(Data, p1, p2, p3));
+      CheckError(func(Data, p...));
     }
 
   private:
@@ -134,10 +112,11 @@ namespace Module::Xmp
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(uint_t /*channels*/, Context::Ptr ctx, uint_t samplerate, Parameters::Accessor::Ptr params)
+    Renderer(uint_t channels, Context::Ptr ctx, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Ctx(std::move(ctx))
       , Params(std::move(params))
       , SoundFreq(samplerate)
+      , ChannelsCount(channels)
     {
       // Required in order to perform initial seeking
       Ctx->Call(&::xmp_start_player, static_cast<int>(samplerate), 0);
@@ -195,10 +174,25 @@ namespace Module::Xmp
     {
       if (Params.IsChanged())
       {
-        using namespace Parameters::ZXTune::Core::DAC;
-        const auto val = Parameters::GetInteger(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
-        const int interpolation = val != INTERPOLATION_NO ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
-        Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), interpolation);
+        using namespace Parameters::ZXTune::Core;
+        ApplyInterpolation(Parameters::GetInteger(*Params, DAC::INTERPOLATION, DAC::INTERPOLATION_DEFAULT));
+        ApplyMuting(Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT));
+      }
+    }
+
+    void ApplyInterpolation(uint_t val)
+    {
+      const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? XMP_INTERP_SPLINE
+                                                                                       : XMP_INTERP_LINEAR;
+      Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), interpolation);
+    }
+
+    void ApplyMuting(uint_t mask)
+    {
+      for (uint_t chan = 0; chan != ChannelsCount; ++chan)
+      {
+        const int mute = (mask & (1 << chan)) ? 1 : 0;
+        Ctx->Call(&::xmp_channel_mute, static_cast<int>(chan), mute);
       }
     }
 
@@ -208,6 +202,7 @@ namespace Module::Xmp
     Time::Microseconds TotalDuration;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
     const uint_t SoundFreq;
+    const uint_t ChannelsCount;
   };
 
   class Holder : public Module::Holder
@@ -326,6 +321,7 @@ namespace Module::Xmp
           props.SetComment(Strings::SanitizeMultiline(comment));
         }
         ParseStrings(*modInfo.mod, props);
+        props.SetChannels(Desc.Id, modInfo.mod->chn);
         auto info = MakeInformation(*modInfo.mod, DurationType(frmInfo.total_time));
         return MakePtr<Holder>(std::move(ctx), std::move(info), std::move(properties));
       }

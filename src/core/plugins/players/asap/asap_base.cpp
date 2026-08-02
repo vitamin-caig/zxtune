@@ -229,6 +229,7 @@ namespace Module::ASAP
     {
       try
       {
+        Params.Reset();
         State.Reset();
         Tune->Reset();
       }

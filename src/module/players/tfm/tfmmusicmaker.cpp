@@ -1415,6 +1415,7 @@ namespace Module::TFMMusicMaker
       if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
+        props.SetChannels("FM"sv, Devices::TFM::VOICES);
         return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else

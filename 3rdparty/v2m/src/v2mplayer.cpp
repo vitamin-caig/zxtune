@@ -398,6 +398,11 @@ bool V2MPlayer::IsPlaying()
     return m_base.valid && m_state.state == PlayerState::PLAYING;
 }
 
+void V2MPlayer::SetChannelsMask(uint32_t mask)
+{
+    synthSetChannelsMask(m_synth, mask);
+}
+
 
 #ifdef V2MPLAYER_SYNC_FUNCTIONS
 

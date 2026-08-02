@@ -2627,6 +2627,7 @@ struct V2Synth
     uint32_t allocpos[POLY];
     int voicemap[CHANS]; // chan -> choice
     int tickd;           // number of finished samples left in mix buffer
+    uint32_t chanmask;   // channels muting mask
 
     V2ChanInfo chans[CHANS];
     syVV2 voicesv[POLY];
@@ -2678,6 +2679,9 @@ struct V2Synth
 
         // patch map
         this->patchmap = (const V2PatchMap*)patchmap;
+
+        // no channels muted by default
+        this->chanmask = 0;
 
         // init voices
         for (int i = 0; i < POLY; i++)
@@ -3213,6 +3217,8 @@ private:
 
                 voicesw[voice].render(instance.chanbuf, nsamples);
             }
+            if (chanmask & (1 << chan))
+                continue;
 
             // channel 15 -> Ronan
             if (chan == CHANS - 1)
@@ -3304,6 +3310,11 @@ void synthGetChannelVU(void *, int, float *, float *)
 
 void synthGetMainVU(void *, float *, float *)
 {
+}
+
+void synthSetChannelsMask(void *pthis, unsigned mask)
+{
+    ((V2Synth *)pthis)->chanmask = mask;
 }
 
 long synthGetFrameSize(void *pthis)

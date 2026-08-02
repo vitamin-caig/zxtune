@@ -174,6 +174,8 @@ namespace Formats::Chiptune
       {
         return GetStubMetaBuilder();
       }
+
+      void SetChannels(uint_t /*count*/) override {}
     };
 
     Builder& GetStubBuilder()
@@ -199,6 +201,7 @@ namespace Formats::Chiptune
         meta.SetTitle(Strings::Sanitize(Stream.ReadCString(Stream.GetRestSize())));
         ParseSampleNames(meta);
         ParseProgram(meta);
+        target.SetChannels(Source.ChannelsCount);
       }
 
       Formats::Chiptune::Container::Ptr GetContainer() const

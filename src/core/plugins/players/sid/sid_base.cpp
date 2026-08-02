@@ -25,9 +25,7 @@
 #include "debug/log.h"
 #include "module/attributes.h"
 #include "parameters/tracking_helper.h"
-#include "strings/format.h"
 #include "strings/sanitize.h"
-#include "tools/xrange.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -265,14 +263,14 @@ namespace Module::Sid
     void Reset() override
     {
       State.Reset();
-      Engine->Load(*Tune);
+      ResetEngine();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
       if (request < State.At())
       {
-        Engine->Load(*Tune);
+        ResetEngine();
       }
       if (const auto toSkip = State.Seek(request))
       {
@@ -281,6 +279,12 @@ namespace Module::Sid
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine->Load(*Tune);
+      SidParams.Reset();
+    }
+
     uint_t GetSamples(Time::Microseconds period) const
     {
       return period.Get() * Engine->GetSoundFreq() / period.PER_SECOND;
@@ -363,7 +367,7 @@ namespace Module::Sid
         }
 
         props.SetPlatform(Platforms::COMMODORE_64);
-        props.SetChannels(BuildChannelsNames(tuneInfo.sidChips()));
+        props.SetChannels({"Voice 1"s, "Voice 2"s, "Voice 3"s}, tuneInfo.sidChips());
 
         tune->FillDuration(params);
         return MakePtr<Holder>(std::move(tune), std::move(properties));
@@ -372,18 +376,6 @@ namespace Module::Sid
       {
         return {};
       }
-    }
-
-  private:
-    static Strings::Array BuildChannelsNames(int chipsCount)
-    {
-      const auto channels = chipsCount * VOICES;
-      Strings::Array result(channels);
-      for (int idx : xrange(channels))
-      {
-        result[idx] = Strings::Format("SID.{}"sv, idx);
-      }
-      return result;
     }
   };
 }  // namespace Module::Sid

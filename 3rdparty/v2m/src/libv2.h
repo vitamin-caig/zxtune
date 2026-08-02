@@ -96,6 +96,11 @@ extern "C"
   //        NOTE: The buffer MUST end with a 0xfd byte
   void synthProcessMIDI(void *pthis, const void *ptr);
 
+  // sets channels muting mask
+  // pthis: pointer to work mem
+  // mask: bitmask
+  void synthSetChannelsMask(void *pthis, unsigned mask);
+    
   // sets operation mode of VU meters
   // pthis: pointer to work mem
   // mode : 0 for peak meters, 1 for RMS meters

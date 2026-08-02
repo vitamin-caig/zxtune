@@ -23,6 +23,15 @@
 //#define KEYON_DEFER_SAMPLES (64)
 #define KEYON_DEFER_SAMPLES (64)
 
+/* This is a bit of a hack that fixes Dragon Ball - Final Bout: Title
+** Screen (Track 29), by ignoring any keyoffs that occur immediately
+** after a keyon. The developer who tested this determined a delay of
+** 384 cycles, but we only operate in whole sample granularity, which
+** is 768 cycles at a time. So we'll just hack around a delay of one
+** sample. */
+
+#define KEYON_KEYOFF_BLOCK_SAMPLES (1)
+
 //
 // Render max samples 
 //
@@ -317,6 +326,7 @@ struct SPUCORE_CHAN {
   struct SPUCORE_SAMPLE   sample;
   struct SPUCORE_ENVELOPE env;
   int samples_until_pending_keyon;
+  int samples_until_keyoff_responds;
 };
 
 /*
@@ -391,6 +401,7 @@ struct SPUCORE_STATE {
   uint32 noise;
   uint32 vmix[2];
   uint32 vmixe[2];
+  uint32 vmute;
   uint32 irq_address;
   uint32 noiseclock;
   uint32 noisecounter;
@@ -957,6 +968,7 @@ static void EMU_CALL voice_on(struct SPUCORE_CHAN *c) {
   /*
   ** Defer if already on
   */
+  c->samples_until_keyoff_responds = KEYON_KEYOFF_BLOCK_SAMPLES;
   if(c->env.state != ENVELOPE_STATE_OFF) {
     //EMUTRACE0("alreadyon:");
     if(!(c->samples_until_pending_keyon)) {
@@ -975,7 +987,9 @@ static void EMU_CALL voice_on(struct SPUCORE_CHAN *c) {
 
 static void EMU_CALL voice_off(struct SPUCORE_CHAN *c) {
   //EMUTRACE0("release");
-  envelope_release(&(c->env));
+  if (!(c->samples_until_keyoff_responds)) {
+    envelope_release(&(c->env));
+  }
   //EMUTRACE0("\n");
 }
 
@@ -1120,6 +1134,10 @@ static int EMU_CALL render_channel_mono(
   sint32 r, r2;
   sint32 defer_remaining;
   struct SPUCORE_IRQ_STATE spare_state;
+
+  n = c->samples_until_keyoff_responds;
+  if (n > samples) { n = samples; }
+  c->samples_until_keyoff_responds -= n;
 
 //top:
   n = c->samples_until_pending_keyon;
@@ -1718,9 +1736,34 @@ static void EMU_CALL render(struct SPUCORE_STATE *state, uint16 *ram, sint16 *bu
     if(state->flags & SPUREG_FLAG_MSNDEL) maskverb_l = state->vmixe[0] & 0xFFFFFF;
     if(state->flags & SPUREG_FLAG_MSNDER) maskverb_r = state->vmixe[1] & 0xFFFFFF;
   }
+  maskfm = state->fm & 0xFFFFFE;
+  if (state->vmute) {
+    uint32 vmask = state->vmute;
+	/*
+	** Either mute both channels of an FM pair, or unmute them both
+	*/
+	for (ch = 0, chanbit = 1; ch < 24; ch++, chanbit <<= 1) {
+	  if ((maskfm >> 1) & chanbit) {
+		if (vmask & chanbit) {
+		  vmask |= chanbit << 1;
+		  ch++;
+		  chanbit <<= 1;
+		}
+	  }
+	  else if (maskfm & chanbit) {
+		if (!(vmask & chanbit)) {
+		  vmask &= ~(chanbit >> 1);
+		}
+	  }
+	}
+    vmask = ~vmask;
+    maskmain_l &= vmask;
+    maskmain_r &= vmask;
+    maskverb_l &= vmask;
+    maskverb_r &= vmask;
+  }
   masknoise = state->noise;
   render_noise(state, masknoise ? ibufn : NULL, samples);
-  maskfm = state->fm & 0xFFFFFE;
 
   if(!mainout) { maskmain_l = 0; maskmain_r = 0; }
 
@@ -2121,6 +2164,15 @@ uint32 EMU_CALL spucore_cycles_until_interrupt(void *state, uint16 *ram, uint32 
   r = (SPUCORESTATE->irq_triggered_cycle == 0xFFFFFFFF) ? 0xFFFFFFFF : SPUCORESTATE->irq_triggered_cycle + r;
   free(backup);
   return r;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/*
+** Mute control
+*/
+void EMU_CALL spucore_set_mute_mask(void *state, uint32 mask) {
+  SPUCORESTATE->vmute = mask;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -21,6 +21,7 @@
 #include "core/plugins_parameters.h"
 #include "debug/log.h"
 #include "math/numeric.h"
+#include "parameters/tracking_helper.h"
 #include "sound/resampler.h"
 
 #include "contract.h"
@@ -49,9 +50,6 @@ namespace Module::SPC
 
   class SPC
   {
-    static const uint_t SPC_DIVIDER = 1 << 12;
-    static const uint_t C_7_FREQ = 2093;
-
   public:
     using Ptr = std::unique_ptr<SPC>;
 
@@ -70,6 +68,11 @@ namespace Module::SPC
       Spc.disable_surround(true);
       Filter.clear();
       Filter.set_gain(static_cast<int>(::SPC_Filter::gain_unit * 1.4));  // as in GME
+    }
+
+    void SetChannelsMask(int mask)
+    {
+      Spc.mute_voices(mask);
     }
 
     Sound::Chunk Render(uint_t samples)
@@ -111,8 +114,9 @@ namespace Module::SPC
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr tune, Sound::Converter::Ptr target)
+    Renderer(Model::Ptr tune, Parameters::Accessor::Ptr params, Sound::Converter::Ptr target)
       : Tune(std::move(tune))
+      , Params(std::move(params))
       , Engine(MakePtr<SPC>(*Tune->Data))
       , State(Tune->Duration)
       , Target(std::move(target))
@@ -125,21 +129,22 @@ namespace Module::SPC
 
     Sound::Chunk Render() override
     {
+      ApplyParameters();
       const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       return Target->Apply(Engine->Render(GetSamples(avail)));
     }
 
     void Reset() override
     {
-      Engine->Reset();
       State.Reset();
+      ResetEngine();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
       if (request < State.At())
       {
-        Engine->Reset();
+        ResetEngine();
       }
       if (const auto toSkip = State.Seek(request))
       {
@@ -148,7 +153,25 @@ namespace Module::SPC
     }
 
   private:
+    void ResetEngine()
+    {
+      Engine->Reset();
+      Params.Reset();
+    }
+
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        Engine->SetChannelsMask(val);
+      }
+    }
+
+  private:
     const Model::Ptr Tune;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const SPC::Ptr Engine;
     TimedState State;
     const Sound::Converter::Ptr Target;
@@ -172,9 +195,9 @@ namespace Module::SPC
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(Tune, Sound::CreateResampler(::SNES_SPC::sample_rate, samplerate));
+      return MakePtr<Renderer>(Tune, std::move(params), Sound::CreateResampler(::SNES_SPC::sample_rate, samplerate));
     }
 
   private:
@@ -266,6 +289,8 @@ namespace Module::SPC
         {
           props.SetSource(*container);
           props.SetPlatform(Platforms::SUPER_NINTENDO_ENTERTAINMENT_SYSTEM);
+          // As in GME
+          props.SetChannels("DSP", ::SNES_SPC::voice_count);
 
           auto duration = dataBuilder.GetDuration();
           if (!duration.Get())

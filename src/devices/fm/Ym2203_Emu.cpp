@@ -1216,6 +1216,7 @@ using YM2203 = struct
   FM_STATE State;
   FM_OPN OPN;  /* OPN state         */
   FM_CH CH[3]; /* channel state     */
+  uint_t MuteMask; /* channel mute mask */
 };
 
 /* Generate samples for one of the YM2203s */
@@ -1267,6 +1268,11 @@ void YM2203UpdateOne(void *chip, int32_t *buffer, int length)
 		chan_calc(state, cch[1] );
 		chan_calc(state, cch[2] );
 
+		/* apply mute mask */
+		if (F2203->MuteMask & 1) state->out_fm[0] = 0;
+		if (F2203->MuteMask & 2) state->out_fm[1] = 0;
+		if (F2203->MuteMask & 4) state->out_fm[2] = 0;
+
 		*buf += state->out_fm[0] + state->out_fm[1] + state->out_fm[2];
 	}
 }
@@ -1290,6 +1296,7 @@ void YM2203ResetChip(void *chip)
 	/* reset OPerator paramater */
 	for(i = 0xb2 ; i >= 0x30 ; i-- ) OPNWriteReg(state, OPN,i,0);
 	for(i = 0x26 ; i >= 0x20 ; i-- ) OPNWriteReg(state, OPN,i,0);
+	F2203->MuteMask = 0;
 }
 
 
@@ -1316,6 +1323,7 @@ void * YM2203Init(uint64_t clock, int rate)
 	F2203->OPN.P_CH = F2203->CH;
 	F2203->OPN.ST.clock = clock;
 	F2203->OPN.ST.rate = rate;
+	F2203->MuteMask = 0;
 
 	YM2203ResetChip(F2203);
 
@@ -1350,6 +1358,11 @@ void YM2203WriteRegs(void *chip, int reg, unsigned char val)
 	}
 }
 
+void YM2203SetMuteMask(void *chip, uint_t mask)
+{
+  auto* F2203 = (YM2203*)chip;
+  F2203->MuteMask = mask;
+}
 
 uint_t GetPeriod(uint8_t regHi, uint8_t regLo, unsigned scale)
 {
