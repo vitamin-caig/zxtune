@@ -25,8 +25,6 @@ namespace Module::DAC
   public:
     using Ptr = std::unique_ptr<DataIterator>;
 
-    virtual State::Ptr GetStateObserver() const = 0;
-
     virtual void GetData(Devices::DAC::Channels& data) const = 0;
   };
 

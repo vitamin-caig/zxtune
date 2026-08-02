@@ -86,14 +86,13 @@ namespace Sound::BackendBase
     RendererWrapper(Module::Renderer::Ptr delegate, BackendCallback::Ptr callback)
       : Delegate(std::move(delegate))
       , Callback(std::move(callback))
-      , State(Delegate->GetState())
       , SeekRequest(NO_SEEK)
       , Analyzer(FFTAnalyzer::Create())
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return CurrentState;
     }
 
     Sound::Analyzer::Ptr GetFftAnalyzer() const
@@ -108,7 +107,8 @@ namespace Sound::BackendBase
       {
         Delegate->SetPosition(Time::AtMillisecond(request));
       }
-      Callback->OnFrame(*State);
+      CurrentState = Delegate->GetState();
+      Callback->OnFrame(CurrentState);
       auto result = Delegate->Render();
       Analyzer->FeedSound(result.data(), result.size());
       return result;
@@ -118,6 +118,7 @@ namespace Sound::BackendBase
     {
       SeekRequest = NO_SEEK;
       Delegate->Reset();
+      CurrentState = {};
     }
 
     void SetPosition(Time::AtMillisecond request) override
@@ -129,9 +130,9 @@ namespace Sound::BackendBase
     static const uint_t NO_SEEK = ~uint_t(0);
     const Module::Renderer::Ptr Delegate;
     const BackendCallback::Ptr Callback;
-    const Module::State::Ptr State;
     std::atomic<uint_t> SeekRequest;
     const FFTAnalyzer::Ptr Analyzer;
+    Module::State CurrentState;
   };
 
   class AsyncWrapper : public Async::Worker
@@ -327,7 +328,12 @@ namespace Sound::BackendBase
       }
     }
 
-    State GetCurrentState() const override
+    Module::State GetModuleState() const override
+    {
+      return Renderer->GetState();
+    }
+
+    PlaybackState GetPlaybackState() const override
     {
       return Job->IsActive() ? (Job->IsPaused() ? PAUSED : STARTED) : STOPPED;
     }
@@ -345,11 +351,6 @@ namespace Sound::BackendBase
       , Renderer(std::move(renderer))
       , Control(MakePtr<ControlInternal>(std::move(job), Renderer))
     {}
-
-    Module::State::Ptr GetState() const override
-    {
-      return Renderer->GetState();
-    }
 
     Analyzer::Ptr GetAnalyzer() const override
     {

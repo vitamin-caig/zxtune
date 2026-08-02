@@ -18,34 +18,39 @@
 namespace Module
 {
   class StreamModel;
-  Information::Ptr CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel& model);
+  Information CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel& model);
   StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, const StreamModel& model);
 
-  Information::Ptr CreateTimedInfo(Time::Milliseconds duration);
-  Information::Ptr CreateTimedInfo(Time::Milliseconds duration, Time::Milliseconds loopDuration);
+  inline Information CreateTimedInfo(Time::Milliseconds duration, Time::Milliseconds loopDuration)
+  {
+    return {.Duration = duration, .LoopDuration = loopDuration};
+  }
 
-  class TimedState : public Module::State
+  inline Information CreateTimedInfo(Time::Milliseconds duration)
+  {
+    return CreateTimedInfo(duration, duration);
+  }
+
+  class TimedState
   {
   public:
-    using Ptr = std::shared_ptr<TimedState>;
-
     explicit TimedState(Time::Microseconds duration)
       : Limit(Time::AtMicrosecond() + duration)
     {}
 
-    Time::AtMillisecond At() const override
+    Time::AtMillisecond At() const
     {
       return Position.CastTo<Time::Millisecond>();
     }
 
-    Time::Milliseconds Total() const override
-    {
-      return TotalPlayback.CastTo<Time::Millisecond>();
-    }
-
-    uint_t LoopCount() const override
+    uint_t LoopCount() const
     {
       return Loops;
+    }
+
+    State Get() const
+    {
+      return {.At = At(), .Total = TotalPlayback.CastTo<Time::Millisecond>(), .LoopCount = LoopCount()};
     }
 
     void Reset()
@@ -89,31 +94,27 @@ namespace Module
     uint_t Loops = 0;
   };
 
-  Information::Ptr CreateSampledInfo(uint_t samplerate, uint64_t totalSamples);
+  inline Information CreateSampledInfo(uint_t samplerate, uint64_t totalSamples)
+  {
+    return CreateTimedInfo(Time::Milliseconds::FromRatio(totalSamples, samplerate));
+  }
 
-  class SampledState : public Module::State
+  class SampledState
   {
   public:
-    using Ptr = std::shared_ptr<SampledState>;
-
     SampledState(uint64_t totalSamples, uint_t samplerate)
       : TotalSamples(totalSamples)
       , Samplerate(samplerate)
     {}
 
-    Time::AtMillisecond At() const override
+    Time::AtMillisecond At() const
     {
       return Time::AtMillisecond() + Time::Milliseconds::FromRatio(DoneSamples, Samplerate);
     }
 
-    Time::Milliseconds Total() const override
+    State Get() const
     {
-      return Time::Milliseconds::FromRatio(DoneSamplesTotal, Samplerate);
-    }
-
-    uint_t LoopCount() const override
-    {
-      return Loops;
+      return {.At = At(), .Total = Time::Milliseconds::FromRatio(DoneSamplesTotal, Samplerate), .LoopCount = Loops};
     }
 
     void Reset()

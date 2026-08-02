@@ -25,9 +25,9 @@ namespace Module
       , FrameDuration(frameDuration)
     {}
 
-    State::Ptr GetState() const override
+    State GetState() const override
     {
-      return Iterator->GetStateObserver();
+      return Iterator->GetState();
     }
 
     Sound::Chunk Render() override
@@ -47,14 +47,13 @@ namespace Module
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      const auto state = GetState();
-      if (request < state->At())
+      if (request < Iterator->GetState().At)
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = {};
       }
-      while (state->At() < request)
+      while (Iterator->GetState().At < request)
       {
         TransferChunk();
         Iterator->NextFrame();

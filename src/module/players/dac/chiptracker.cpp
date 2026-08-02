@@ -58,7 +58,6 @@ namespace Module::ChipTracker
     explicit DataBuilder(DAC::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
       , Data(MakeRWPtr<ModuleData>(CHANNELS_COUNT))
     {
       Properties.SetSamplesFrequency(SAMPLES_FREQ);
@@ -171,10 +170,10 @@ namespace Module::ChipTracker
       std::fill(Gliss.begin(), Gliss.end(), GlissData());
     }
 
-    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
     {
       SynthesizeChannelsData(track);
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -194,23 +193,17 @@ namespace Module::ChipTracker
       }
     }
 
-    void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
       Gliss.fill(GlissData());
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
-        {
-          DAC::ChannelDataBuilder builder = track.GetChannel(chan);
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            GetNewChannelState(*src, Gliss[chan], builder);
-          }
-        }
+        line->ForEachChannel(
+            [&](auto chan, const auto& src) { GetNewChannelState(src, Gliss[chan], track.GetChannel(chan)); });
       }
     };
 
-    static void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder builder)
     {
       if (const bool* enabled = src.GetEnabled())
       {
@@ -232,15 +225,15 @@ namespace Module::ChipTracker
       }
       builder.SetFreqSlideHz(0);
       gliss.Reset();
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case SAMPLE_OFFSET:
-          builder.SetPosInSample(it->Param1);
+          builder.SetPosInSample(cmd.Param1);
           break;
         case SLIDE:
-          gliss.Glissade = it->Param1;
+          gliss.Glissade = cmd.Param1;
           break;
         default:
           assert(!"Invalid command");

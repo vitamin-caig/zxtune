@@ -322,7 +322,7 @@ namespace Module::MTC
     private:
       static bool CompareByDuration(const Module::Holder::Ptr& lh, const Module::Holder::Ptr& rh)
       {
-        return lh->GetModuleInformation()->Duration() < rh->GetModuleInformation()->Duration();
+        return lh->GetModuleInformation().Duration < rh->GetModuleInformation().Duration;
       }
 
     private:

@@ -19,9 +19,8 @@ namespace Module
   class DACDataIterator : public DAC::DataIterator
   {
   public:
-    DACDataIterator(TrackStateIterator::Ptr delegate, DAC::DataRenderer::Ptr renderer)
+    DACDataIterator(Iterator::Ptr delegate, DAC::DataRenderer::Ptr renderer)
       : Delegate(std::move(delegate))
-      , State(Delegate->GetStateObserver())
       , Render(std::move(renderer))
     {
       FillCurrentData();
@@ -40,9 +39,9 @@ namespace Module
       FillCurrentData();
     }
 
-    Module::State::Ptr GetStateObserver() const override
+    Module::State GetState() const override
     {
-      return State;
+      return Delegate->GetState();
     }
 
     void GetData(Devices::DAC::Channels& res) const override
@@ -54,13 +53,12 @@ namespace Module
     void FillCurrentData()
     {
       DAC::TrackBuilder builder;
-      Render->SynthesizeData(*State, builder);
+      Render->SynthesizeData(*Delegate->GetState().Track, builder);
       builder.GetResult(CurrentData);
     }
 
   private:
-    const TrackStateIterator::Ptr Delegate;
-    const TrackModelState::Ptr State;
+    const Iterator::Ptr Delegate;
     const DAC::DataRenderer::Ptr Render;
     Devices::DAC::Channels CurrentData;
   };
@@ -74,9 +72,9 @@ namespace Module
       , FrameDuration(frameDuration)
     {}
 
-    State::Ptr GetState() const override
+    State GetState() const override
     {
-      return Iterator->GetStateObserver();
+      return Iterator->GetState();
     }
 
     Sound::Chunk Render() override
@@ -96,8 +94,7 @@ namespace Module
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      const auto state = GetState();
-      if (request < state->At())
+      if (request < Iterator->GetState().At)
       {
         Iterator->Reset();
         Device->Reset();
@@ -108,7 +105,7 @@ namespace Module
         Iterator->GetData(LastChunk.Data);
         Device->UpdateState(LastChunk);
       }
-      while (state->At() < request)
+      while (Iterator->GetState().At < request)
       {
         Iterator->NextFrame();
         LastChunk.TimeStamp += FrameDuration;
@@ -156,7 +153,7 @@ namespace Module::DAC
     result.assign(Data.begin(), last);
   }
 
-  DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer)
   {
     return MakePtr<DACDataIterator>(std::move(iterator), std::move(renderer));
   }

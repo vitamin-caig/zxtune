@@ -208,20 +208,20 @@ namespace Module::ASAP
   public:
     Renderer(AsapTune::Ptr tune, Sound::Converter::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
-      , State(MakePtr<TimedState>(Tune->GetDuration()))
+      , State(Tune->GetDuration())
       , Target(std::move(target))
       , Params(std::move(params))
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
       ApplyParameters();
-      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
+      const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       return Target->Apply(Tune->Render(GetSamples(avail)));
     }
 
@@ -229,7 +229,7 @@ namespace Module::ASAP
     {
       try
       {
-        State->Reset();
+        State.Reset();
         Tune->Reset();
       }
       catch (const std::exception& e)
@@ -240,10 +240,10 @@ namespace Module::ASAP
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      State->Seek(request);
+      State.Seek(request);
       try
       {
-        Tune->Seek(State->At());
+        Tune->Seek(State.At());
       }
       catch (const std::exception& e)
       {
@@ -264,7 +264,7 @@ namespace Module::ASAP
 
   private:
     const AsapTune::Ptr Tune;
-    const TimedState::Ptr State;
+    TimedState State;
     const Sound::Converter::Ptr Target;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
   };
@@ -277,7 +277,7 @@ namespace Module::ASAP
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateTimedInfo(Tune->GetDuration());
     }

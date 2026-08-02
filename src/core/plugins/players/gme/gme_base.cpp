@@ -182,20 +182,20 @@ namespace Module::GME
   public:
     Renderer(GMETune::Ptr tune, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
-      , State(MakePtr<TimedState>(Tune->Duration))
+      , State(Tune->Duration)
       , Params(std::move(params))
       , Engine(*Tune, samplerate)
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
       ApplyParameters();
-      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
+      const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       return Engine.Render(GetSamples(avail));
     }
 
@@ -204,7 +204,7 @@ namespace Module::GME
       try
       {
         Params.Reset();
-        State->Reset();
+        State.Reset();
         Engine.Reset();
       }
       catch (const std::exception& e)
@@ -243,11 +243,11 @@ namespace Module::GME
 
     void SeekTune(Time::AtMillisecond request)
     {
-      if (request < State->At())
+      if (request < State.At())
       {
         Engine.Reset();
       }
-      if (const auto toSkip = State->Seek(request))
+      if (const auto toSkip = State.Seek(request))
       {
         Engine.Skip(GetSamples(toSkip));
       }
@@ -255,7 +255,7 @@ namespace Module::GME
 
   private:
     const GMETune::Ptr Tune;
-    const TimedState::Ptr State;
+    TimedState State;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
     GME Engine;
   };
@@ -268,7 +268,7 @@ namespace Module::GME
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateTimedInfo(Tune->Duration);
     }

@@ -234,13 +234,13 @@ namespace Module::Mp3
   public:
     Renderer(const Model::Ptr& data, uint_t samplerate)
       : Tune(data)
-      , State(MakePtr<TimedState>(data->Duration))
+      , State(data->Duration)
       , Target(samplerate)
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
@@ -250,14 +250,14 @@ namespace Module::Mp3
       if (frame.Data.empty())
       {
         // premature end, force end/loop
-        const auto avail = State->ConsumeRest();
+        const auto avail = State.ConsumeRest();
         Tune.Reset();
         return Target.MakeStub(avail);
       }
       const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
-      const auto loops = State->LoopCount();
-      State->ConsumeUpTo(rendered);
-      if (loops != State->LoopCount())
+      const auto loops = State.LoopCount();
+      State.ConsumeUpTo(rendered);
+      if (loops != State.LoopCount())
       {
         Tune.Reset();
       }
@@ -267,19 +267,19 @@ namespace Module::Mp3
     void Reset() override
     {
       Tune.Reset();
-      State->Reset();
+      State.Reset();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      State->Seek(request);
-      const auto realPos = Tune.Seek(State->At());
-      State->Seek(realPos);
+      State.Seek(request);
+      const auto realPos = Tune.Seek(State.At());
+      State.Seek(realPos);
     }
 
   private:
     Mp3Tune Tune;
-    const TimedState::Ptr State;
+    TimedState State;
     MultiFreqResampler Target;
   };
 
@@ -291,7 +291,7 @@ namespace Module::Mp3
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateTimedInfo(Data->Duration.CastTo<Time::Millisecond>());
     }

@@ -11,7 +11,6 @@
 #include "binary/container_factories.h"
 #include "core/service.h"
 #include "io/api.h"
-#include "module/track_information.h"
 #include "parameters/container.h"
 #include "parameters/template.h"
 #include "time/serialize.h"
@@ -34,13 +33,13 @@ namespace
 
   void ShowModuleInfo(const Module::Information& info)
   {
-    if (const auto* const trackInfo = dynamic_cast<const Module::TrackInformation*>(&info))
+    if (info.Track)
     {
-      std::cout << "Positions: " << trackInfo->PositionsCount() << " (" << trackInfo->LoopPosition() << ')'
-                << std::endl;
+      std::cout << "Channels: " << info.Track->ChannelsCount << "\nPositions: " << info.Track->PositionsCount << " ("
+                << info.Track->LoopPosition << ')' << std::endl;
     }
-    std::cout << "Duration: " << Time::ToString(info.Duration()) << " (loop " << Time::ToString(info.LoopDuration())
-              << ')' << std::endl;
+    std::cout << "Duration: " << Time::ToString(info.Duration) << " (loop " << Time::ToString(info.LoopDuration) << ')'
+              << std::endl;
   }
 
   class PrintValuesVisitor : public Parameters::Visitor
@@ -77,7 +76,7 @@ namespace
   void ShowModuleProperties(const Module::Holder& module)
   {
     ShowProperties(*module.GetModuleProperties());
-    ShowModuleInfo(*module.GetModuleInformation());
+    ShowModuleInfo(module.GetModuleInformation());
   }
 }  // namespace
 

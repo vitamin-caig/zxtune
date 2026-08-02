@@ -32,9 +32,9 @@ namespace
   class ScaledTime
   {
   public:
-    ScaledTime(const Playlist::Item::Data& data, Module::State::Ptr state)
+    ScaledTime(const Playlist::Item::Data& data, Sound::PlaybackControl::Ptr control)
       : Duration(data.GetDuration())
-      , State(std::move(state))
+      , Control(std::move(control))
     {}
 
     int GetSliderRange() const
@@ -59,12 +59,12 @@ namespace
 
     Time::Milliseconds GetPlayed() const
     {
-      return Time::Milliseconds{State->At().CastTo<Time::Millisecond>().Get()};
+      return Time::Milliseconds{Control->GetModuleState().At.CastTo<Time::Millisecond>().Get()};
     }
 
   private:
     const Time::Milliseconds Duration;
-    const Module::State::Ptr State;
+    const Sound::PlaybackControl::Ptr Control;
   };
 
   class SeekControlsImpl
@@ -100,7 +100,7 @@ namespace
   private:
     void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item)
     {
-      Scaler = std::make_unique<ScaledTime>(*item, player->GetState());
+      Scaler = std::make_unique<ScaledTime>(*item, player->GetPlaybackControl());
       timePosition->setRange(0, Scaler->GetSliderRange());
     }
 

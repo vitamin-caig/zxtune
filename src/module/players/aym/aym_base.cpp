@@ -32,9 +32,9 @@ namespace Module
       , FrameDuration(frameDuration)
     {}
 
-    State::Ptr GetState() const override
+    State GetState() const override
     {
-      return Iterator->GetStateObserver();
+      return Iterator->GetState();
     }
 
     Sound::Chunk Render() override
@@ -54,14 +54,13 @@ namespace Module
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      const auto state = GetState();
-      if (request < state->At())
+      if (request < Iterator->GetState().At)
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = {};
       }
-      while (state->At() < request)
+      while (Iterator->GetState().At < request)
       {
         TransferChunk();
         Iterator->NextFrame();
@@ -89,11 +88,11 @@ namespace Module
       : Tune(std::move(chiptune))
     {}
 
-    Information::Ptr GetModuleInformation() const override
+    Information GetModuleInformation() const override
     {
       if (auto track = Tune->FindTrackModel())
       {
-        return CreateTrackInfo(Tune->GetFrameDuration(), std::move(track));
+        return CreateTrackInfo(Tune->GetFrameDuration(), *track);
       }
       else
       {
@@ -124,9 +123,8 @@ namespace Module
     {
       auto trackParams = AYM::TrackParameters::Create(Tune->GetProperties());
       const auto iterator = Tune->CreateDataIterator(std::move(trackParams));
-      const auto state = iterator->GetStateObserver();
       Devices::AYM::DataChunk chunk;
-      for (const auto frameDuration = Tune->GetFrameDuration(); !state->LoopCount();
+      for (const auto frameDuration = Tune->GetFrameDuration(); !iterator->GetState().LoopCount;
            chunk.TimeStamp += frameDuration, iterator->NextFrame())
       {
         chunk.Data = iterator->GetData();

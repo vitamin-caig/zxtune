@@ -39,7 +39,12 @@ namespace
 
     void SetPosition(Time::AtMillisecond /*request*/) override {}
 
-    State GetCurrentState() const override
+    Module::State GetModuleState() const override
+    {
+      return {};
+    }
+
+    PlaybackState GetPlaybackState() const override
     {
       return STOPPED;
     }
@@ -131,14 +136,16 @@ namespace
     {
       try
       {
-        const Sound::PlaybackControl::State curState = Control->GetCurrentState();
-        if (Sound::PlaybackControl::STARTED == curState)
+        switch (Control->GetPlaybackState())
         {
+        case Sound::PlaybackControl::STARTED:
           Control->Pause();
-        }
-        else if (Sound::PlaybackControl::PAUSED == curState)
-        {
+          break;
+        case Sound::PlaybackControl::PAUSED:
           Control->Play();
+          break;
+        default:
+          break;
         }
       }
       catch (const Error& e)

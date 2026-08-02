@@ -181,34 +181,34 @@ namespace Module::USF
   public:
     Renderer(const ModuleData& data, uint_t samplerate)
       : Engine(data)
-      , State(MakePtr<TimedState>(data.Meta->Duration))
+      , State(data.Meta->Duration)
       , Target(Sound::CreateResampler(Engine.GetSoundFrequency(), samplerate))
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
-      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
+      const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       return Target->Apply(Engine.Render(GetSamples(avail)));
     }
 
     void Reset() override
     {
-      State->Reset();
+      State.Reset();
       Engine.Reset();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      if (request < State->At())
+      if (request < State.At())
       {
         Engine.Reset();
       }
-      if (const auto toSkip = State->Seek(request))
+      if (const auto toSkip = State.Seek(request))
       {
         Engine.Skip(GetSamples(toSkip));
       }
@@ -222,7 +222,7 @@ namespace Module::USF
 
   private:
     USFEngine Engine;
-    const TimedState::Ptr State;
+    TimedState State;
     const Sound::Converter::Ptr Target;
   };
 
@@ -234,7 +234,7 @@ namespace Module::USF
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateTimedInfo(Tune->Meta->Duration);
     }
@@ -261,7 +261,6 @@ namespace Module::USF
 
   private:
     const ModuleData::Ptr Tune;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
 

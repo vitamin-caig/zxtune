@@ -967,9 +967,9 @@ namespace Formats::Chiptune
         format.ParsePositions(statistic);
         Indices usedPatterns = statistic.GetUsedPatterns();
         const uint_t mode = statistic.GetMode();
-        if (mode != SINGLE_AY_MODE && !AddTSPatterns(mode, usedPatterns))
+        if (mode != SINGLE_AY_MODE && AddTSPatterns(mode, usedPatterns))
         {
-          target.SetMode(SINGLE_AY_MODE);
+          target.SetMode(mode);
         }
         format.ParsePatterns(usedPatterns, statistic);
         const Indices& usedSamples = statistic.GetUsedSamples();

@@ -18,7 +18,6 @@
 #include "io/providers_parameters.h"
 #include "io/template.h"
 #include "module/attributes.h"
-#include "module/track_state.h"
 #include "parameters/convert.h"
 #include "parameters/template.h"
 #include "sound/backends_parameters.h"
@@ -47,15 +46,15 @@ namespace Sound::File
     {
       if (fieldName == Module::ATTR_CURRENT_POSITION)
       {
-        return Parameters::ConvertToString(State.Position());
+        return Parameters::ConvertToString(State.Position);
       }
       else if (fieldName == Module::ATTR_CURRENT_PATTERN)
       {
-        return Parameters::ConvertToString(State.Pattern());
+        return Parameters::ConvertToString(State.Pattern);
       }
       else if (fieldName == Module::ATTR_CURRENT_LINE)
       {
-        return Parameters::ConvertToString(State.Line());
+        return Parameters::ConvertToString(State.Line);
       }
       return Strings::SkipFieldsSource::GetFieldValue(fieldName);
     }
@@ -77,12 +76,13 @@ namespace Sound::File
 
     String Instantiate(const Module::State& state) const
     {
-      if (const auto* const track = dynamic_cast<const Module::TrackState*>(&state))
+      if (state.Track)
       {
-        if (CurPosition.Update(track->Position()) || CurPattern.Update(track->Pattern())
-            || CurLine.Update(track->Line()))
+        const auto& track = *state.Track;
+        if (CurPosition.Update(track.Position) || CurPattern.Update(track.Pattern)
+            || CurLine.Update(track.Line))
         {
-          const StateFieldsSource source(*track);
+          const StateFieldsSource source(track);
           Result = Template->Instantiate(source);
         }
       }

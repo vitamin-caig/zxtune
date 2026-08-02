@@ -12,25 +12,29 @@
 
 #include "time/duration.h"
 
-#include "types.h"
-
-#include <memory>
+#include <optional>
 
 namespace Module
 {
-  //! @brief Common module information
-  class Information
+  //! @brief Track module specific information
+  struct TrackLayout
   {
-  public:
-    //! Pointer type
-    using Ptr = std::shared_ptr<const Information>;
+    //! Channels count
+    uint_t ChannelsCount = 0;
+    //! Total positions
+    uint_t PositionsCount = 0;
+    //! Loop position index
+    uint_t LoopPosition = 0;
+  };
 
-    virtual ~Information() = default;
-
+  //! @brief Common module information
+  struct Information
+  {
     //! Total module duration
-    virtual Time::Milliseconds Duration() const = 0;
-
+    Time::Milliseconds Duration;
     //! Loop duration
-    virtual Time::Milliseconds LoopDuration() const = 0;
+    Time::Milliseconds LoopDuration;
+    //! Layout for track-structured modules
+    std::optional<TrackLayout> Track = {};
   };
 }  // namespace Module

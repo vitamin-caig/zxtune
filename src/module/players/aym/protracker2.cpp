@@ -53,7 +53,6 @@ namespace Module::ProTracker2
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetFrequencyTable(TABLE_PROTRACKER2);
@@ -212,9 +211,9 @@ namespace Module::ProTracker2
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -222,17 +221,11 @@ namespace Module::ProTracker2
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            GetNewChannelState(*src, PlayerState[chan], track);
-          }
-        }
+        line->ForEachChannel([&](auto chan, const auto& src) { GetNewChannelState(src, PlayerState[chan], track); });
       }
     }
 
@@ -269,28 +262,28 @@ namespace Module::ProTracker2
       {
         dst.Volume = *volume;
       }
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case ENVELOPE:
-          track.SetEnvelopeType(it->Param1);
-          track.SetEnvelopeTone(it->Param2);
+          track.SetEnvelopeType(cmd.Param1);
+          track.SetEnvelopeTone(cmd.Param2);
           dst.Envelope = true;
           break;
         case NOENVELOPE:
           dst.Envelope = false;
           break;
         case NOISE_ADD:
-          dst.NoiseAdd = it->Param1;
+          dst.NoiseAdd = cmd.Param1;
           break;
         case GLISS_NOTE:
           dst.Sliding = 0;
-          dst.Glissade = it->Param1;
-          dst.SlidingTargetNote = it->Param2;
+          dst.Glissade = cmd.Param1;
+          dst.SlidingTargetNote = cmd.Param2;
           break;
         case GLISS:
-          dst.Glissade = it->Param1;
+          dst.Glissade = cmd.Param1;
           dst.SlidingTargetNote = LIMITER;
           break;
         case NOGLISS:

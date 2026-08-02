@@ -129,26 +129,26 @@ namespace Module
   public:
     PipelinedRenderer(const Holder& holder, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Delegate(holder.CreateRenderer(samplerate, params))
-      , State(Delegate->GetState())
       , Params(std::move(params))
-      , Fading(FadeInfo::Create(holder.GetModuleInformation()->Duration(), *Params))
+      , Fading(FadeInfo::Create(holder.GetModuleInformation().Duration, *Params))
       , Gainer(Sound::CreateGainer())
       , Silence(SilenceDetector::Create(samplerate, *Params))
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return Delegate->GetState();
     }
 
     Sound::Chunk Render() override
     {
       UpdateParameters();
-      if (!Loop(State->LoopCount()))
+      const auto& state = Delegate->GetState();
+      if (!Loop(state.LoopCount))
       {
         return {};
       }
-      const auto posBefore = State->At();
+      const auto posBefore = state.At;
       auto data = Delegate->Render();
       if (Silence.Detected(data))
       {
@@ -192,8 +192,9 @@ namespace Module
       }
       // Invariants:
       // if doneLoops == 0 then always posAfter > posBefore
-      const auto posAfter = State->At();
-      const auto doneLoops = State->LoopCount();
+      const auto& state = Delegate->GetState();
+      const auto posAfter = state.At;
+      const auto doneLoops = state.LoopCount;
       const auto lastIteration = !Loop(doneLoops + 1);
 
       // If looped, do not allow fadein
@@ -204,7 +205,6 @@ namespace Module
 
   private:
     const Renderer::Ptr Delegate;
-    const Module::State::Ptr State;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
     const FadeInfo Fading;
     const Sound::Gainer::Ptr Gainer;

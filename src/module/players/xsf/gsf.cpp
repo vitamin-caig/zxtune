@@ -272,36 +272,36 @@ namespace Module::GSF
   public:
     Renderer(const ModuleData& data, uint_t samplerate)
       : Engine(MakePtr<GbaEngine>(data))
-      , State(MakePtr<TimedState>(data.Meta->Duration))
+      , State(data.Meta->Duration)
       , SoundFrequency(samplerate)
     {
       Engine->SetFrequency(samplerate);
     }
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
-      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
+      const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       return Engine->Render(GetSamples(avail));
     }
 
     void Reset() override
     {
-      State->Reset();
+      State.Reset();
       Engine->Reset();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      if (request < State->At())
+      if (request < State.At())
       {
         Engine->Reset();
       }
-      if (const auto toSkip = State->Seek(request))
+      if (const auto toSkip = State.Seek(request))
       {
         Engine->Skip(GetSamples(toSkip));
       }
@@ -315,7 +315,7 @@ namespace Module::GSF
 
   private:
     const GbaEngine::Ptr Engine;
-    const TimedState::Ptr State;
+    TimedState State;
     uint_t SoundFrequency = 0;
   };
 
@@ -327,7 +327,7 @@ namespace Module::GSF
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateTimedInfo(Tune->Meta->Duration);
     }

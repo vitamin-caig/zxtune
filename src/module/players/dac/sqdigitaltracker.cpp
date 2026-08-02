@@ -48,7 +48,6 @@ namespace Module::SQDigitalTracker
     explicit DataBuilder(DAC::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
       , Data(MakeRWPtr<ModuleData>(CHANNELS_COUNT))
     {
       Properties.SetSamplesFrequency(SAMPLES_FREQ);
@@ -172,10 +171,10 @@ namespace Module::SQDigitalTracker
       std::fill(Volumes.begin(), Volumes.end(), VolumeState());
     }
 
-    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
     {
       SynthesizeChannelsData(track);
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -195,22 +194,16 @@ namespace Module::SQDigitalTracker
       }
     }
 
-    void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            DAC::ChannelDataBuilder builder = track.GetChannel(chan);
-            GetNewChannelState(*src, Volumes[chan], builder);
-          }
-        }
+        line->ForEachChannel(
+            [&](auto chan, const auto& src) { GetNewChannelState(src, Volumes[chan], track.GetChannel(chan)); });
       }
     }
 
-    static void GetNewChannelState(const Cell& src, VolumeState& vol, DAC::ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, VolumeState& vol, DAC::ChannelDataBuilder builder)
     {
       if (const bool* enabled = src.GetEnabled())
       {
@@ -235,15 +228,15 @@ namespace Module::SQDigitalTracker
         vol.Value = *volume;
         builder.SetLevelInPercents(100 * vol.Value / 16);
       }
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case VOLUME_SLIDE_PERIOD:
-          vol.SlideCounter = vol.SlidePeriod = it->Param1;
+          vol.SlideCounter = vol.SlidePeriod = cmd.Param1;
           break;
         case VOLUME_SLIDE:
-          vol.SlideDirection = it->Param1;
+          vol.SlideDirection = cmd.Param1;
           break;
         default:
           assert(!"Invalid command");

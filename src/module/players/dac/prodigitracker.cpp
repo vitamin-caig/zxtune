@@ -52,7 +52,6 @@ namespace Module::ProDigiTracker
     explicit DataBuilder(DAC::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<ProDigiTracker::CHANNELS_COUNT>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetSamplesFrequency(SAMPLES_FREQ);
@@ -162,10 +161,10 @@ namespace Module::ProDigiTracker
       std::fill(Ornaments.begin(), Ornaments.end(), OrnamentState());
     }
 
-    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
     {
       SynthesizeChannelsData(track);
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -183,22 +182,16 @@ namespace Module::ProDigiTracker
       }
     }
 
-    void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            DAC::ChannelDataBuilder builder = track.GetChannel(chan);
-            GetNewChannelState(*src, Ornaments[chan], builder);
-          }
-        }
+        line->ForEachChannel(
+            [&](auto chan, const auto& src) { GetNewChannelState(src, Ornaments[chan], track.GetChannel(chan)); });
       }
     }
 
-    void GetNewChannelState(const Cell& src, OrnamentState& ornamentState, DAC::ChannelDataBuilder& builder)
+    void GetNewChannelState(const Cell& src, OrnamentState& ornamentState, DAC::ChannelDataBuilder builder)
     {
       if (const bool* enabled = src.GetEnabled())
       {

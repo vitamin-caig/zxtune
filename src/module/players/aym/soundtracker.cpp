@@ -39,7 +39,6 @@ namespace Module::SoundTracker
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetFrequencyTable(TABLE_SOUNDTRACKER);
@@ -184,9 +183,9 @@ namespace Module::SoundTracker
 
     void SetNewState(const Cell& src)
     {
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        ApplyCommand(*it);
+        ApplyCommand(cmd);
       }
     }
 
@@ -389,9 +388,9 @@ namespace Module::SoundTracker
       EnvType = EnvTone = 0;
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         SwitchToNewLine(state);
       }
@@ -400,10 +399,9 @@ namespace Module::SoundTracker
     }
 
   private:
-    void SwitchToNewLine(const TrackModelState& state)
+    void SwitchToNewLine(const TrackState& state)
     {
-      assert(0 == state.Quirk());
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
         if (const auto* const chan = line->GetChannel(0))
         {
@@ -422,7 +420,7 @@ namespace Module::SoundTracker
 
     void SynthesizeChannelsData(const TrackState& state, AYM::TrackBuilder& track) const
     {
-      const int_t transposition = Data->Order->GetTransposition(state.Position());
+      const int_t transposition = Data->Order->GetTransposition(state.Position);
       {
         ChannelBuilder channel(transposition, track, 0);
         StateA.Synthesize(channel);

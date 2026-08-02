@@ -203,7 +203,6 @@ namespace Module::DigitalMusicMaker
     explicit DataBuilder(DAC::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetSamplesFrequency(SAMPLES_FREQ);
@@ -281,101 +280,100 @@ namespace Module::DigitalMusicMaker
       // if has new sample, start from it, else use previous sample
       const uint_t oldPos = src.GetSample() ? 0 : builder.GetState().PosInSample;
       ParseNote(src, builder);
-      CommandsIterator it = src.GetCommands();
-      if (!it)
+      if (src.GetCommands().empty())
       {
         return;
       }
       OldData = src;
-      for (; it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case EMPTY_CMD:
           DisableEffect();
           break;
         case FREQ_FLOAT:
-          if (it->Param1)
+          if (cmd.Param1)
           {
             Effect = &ChannelState::FreqFloat;
-            FreqSlideStep = it->Param1;
+            FreqSlideStep = cmd.Param1;
           }
           else
           {
-            FreqSlideStep *= it->Param2;
+            FreqSlideStep *= cmd.Param2;
           }
           break;
         case VIBRATO:
-          if (it->Param1)
+          if (cmd.Param1)
           {
             Effect = &ChannelState::Vibrato;
           }
           else
           {
-            VibratoStep = it->Param2;
-            VibratoPeriod = it->Param3;
+            VibratoStep = cmd.Param2;
+            VibratoPeriod = cmd.Param3;
           }
           break;
         case ARPEGGIO:
-          if (it->Param1)
+          if (cmd.Param1)
           {
             Effect = &ChannelState::Arpeggio;
           }
           else
           {
-            ArpeggioStep = it->Param2;
-            ArpeggioPeriod = it->Param3;
+            ArpeggioStep = cmd.Param2;
+            ArpeggioPeriod = cmd.Param3;
           }
           break;
         case TONE_SLIDE:
-          if (it->Param1)
+          if (cmd.Param1)
           {
             Effect = &ChannelState::NoteFloat;
-            NoteSlideStep = it->Param1;
+            NoteSlideStep = cmd.Param1;
           }
           else
           {
-            NoteSlideStep *= it->Param2;
-            NoteSlidePeriod = it->Param3;
+            NoteSlideStep *= cmd.Param2;
+            NoteSlidePeriod = cmd.Param3;
           }
           break;
         case DOUBLE_NOTE:
-          if (it->Param1)
+          if (cmd.Param1)
           {
             Effect = &ChannelState::DoubleNote;
           }
           else
           {
-            NoteDoublePeriod = it->Param2;
+            NoteDoublePeriod = cmd.Param2;
           }
           break;
         case VOL_ATTACK:
-          if (it->Param1)
+          if (cmd.Param1)
           {
             Effect = &ChannelState::Attack;
           }
           else
           {
-            AttackLimit = it->Param2;
-            AttackPeriod = it->Param3;
+            AttackLimit = cmd.Param2;
+            AttackPeriod = cmd.Param3;
           }
           break;
         case VOL_DECAY:
-          if (it->Param1)
+          if (cmd.Param1)
           {
             Effect = &ChannelState::Decay;
           }
           else
           {
-            DecayLimit = it->Param2;
-            DecayPeriod = it->Param3;
+            DecayLimit = cmd.Param2;
+            DecayPeriod = cmd.Param3;
           }
           break;
         case MIX_SAMPLE:
         {
           DacState = builder.GetState();
           DacState.PosInSample = oldPos;
-          const ModuleData::MixedChannel& mix = data.Mixes[it->Param1];
+          const ModuleData::MixedChannel& mix = data.Mixes[cmd.Param1];
           ParseNote(mix.Mixin, builder);
           MixPeriod = mix.Period;
           Effect = &ChannelState::Mix;
@@ -602,9 +600,9 @@ namespace Module::DigitalMusicMaker
       std::fill(Chans.begin(), Chans.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
     {
-      const auto* const line = 0 == state.Quirk() ? state.LineObject() : nullptr;
+      const auto* const line = 0 == state.Quirk ? Data->GetLine(state) : nullptr;
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         DAC::ChannelDataBuilder builder = track.GetChannel(chan);

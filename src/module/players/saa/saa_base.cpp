@@ -21,9 +21,8 @@ namespace Module
   class SAADataIterator : public SAA::DataIterator
   {
   public:
-    SAADataIterator(TrackStateIterator::Ptr delegate, SAA::DataRenderer::Ptr renderer)
+    SAADataIterator(Iterator::Ptr delegate, SAA::DataRenderer::Ptr renderer)
       : Delegate(std::move(delegate))
-      , State(Delegate->GetStateObserver())
       , Render(std::move(renderer))
     {
       FillCurrentData();
@@ -42,9 +41,9 @@ namespace Module
       FillCurrentData();
     }
 
-    Module::State::Ptr GetStateObserver() const override
+    Module::State GetState() const override
     {
-      return State;
+      return Delegate->GetState();
     }
 
     Devices::SAA::Registers GetData() const override
@@ -56,13 +55,12 @@ namespace Module
     void FillCurrentData()
     {
       SAA::TrackBuilder builder;
-      Render->SynthesizeData(*State, builder);
+      Render->SynthesizeData(*Delegate->GetState().Track, builder);
       builder.GetResult(CurrentData);
     }
 
   private:
-    const TrackStateIterator::Ptr Delegate;
-    const TrackModelState::Ptr State;
+    const Iterator::Ptr Delegate;
     const SAA::DataRenderer::Ptr Render;
     Devices::SAA::Registers CurrentData;
   };
@@ -76,9 +74,9 @@ namespace Module
       , FrameDuration(frameDuration)
     {}
 
-    State::Ptr GetState() const override
+    State GetState() const override
     {
-      return Iterator->GetStateObserver();
+      return Iterator->GetState();
     }
 
     Sound::Chunk Render() override
@@ -98,14 +96,13 @@ namespace Module
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      const auto state = GetState();
-      if (request < state->At())
+      if (request < Iterator->GetState().At)
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = {};
       }
-      while (state->At() < request)
+      while (Iterator->GetState().At < request)
       {
         TransferChunk();
         Iterator->NextFrame();
@@ -133,9 +130,9 @@ namespace Module
       : Tune(std::move(chiptune))
     {}
 
-    Information::Ptr GetModuleInformation() const override
+    Information GetModuleInformation() const override
     {
-      return CreateTrackInfo(Tune->GetFrameDuration(), Tune->GetTrackModel());
+      return CreateTrackInfo(Tune->GetFrameDuration(), *Tune->GetTrackModel());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -206,7 +203,7 @@ namespace Module::SAA
     AddRegister(Devices::SAA::Registers::NOISEMIXER, 1 << Channel);
   }
 
-  DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer)
   {
     return MakePtr<SAADataIterator>(std::move(iterator), std::move(renderer));
   }

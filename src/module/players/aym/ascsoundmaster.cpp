@@ -65,7 +65,6 @@ namespace Module::ASCSoundMaster
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetFrequencyTable(TABLE_ASM);
@@ -278,9 +277,9 @@ namespace Module::ASCSoundMaster
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -288,24 +287,18 @@ namespace Module::ASCSoundMaster
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (0 == state.Line())
+      if (0 == state.Line)
       {
         for (auto& state : PlayerState)
         {
           state.ResetBaseNoise();
         }
       }
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            GetNewChannelState(*src, PlayerState[chan], track);
-          }
-        }
+        line->ForEachChannel([&](auto chan, const auto& src) { GetNewChannelState(src, PlayerState[chan], track); });
       }
     }
 
@@ -320,18 +313,18 @@ namespace Module::ASCSoundMaster
       bool contSample = false;
       bool contOrnament = false;
       bool reloadNote = false;
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case ENVELOPE:
-          if (-1 != it->Param1)
+          if (-1 != cmd.Param1)
           {
-            track.SetEnvelopeType(it->Param1);
+            track.SetEnvelopeType(cmd.Param1);
           }
-          if (-1 != it->Param2)
+          if (-1 != cmd.Param2)
           {
-            EnvelopeTone = it->Param2;
+            EnvelopeTone = cmd.Param2;
             track.SetEnvelopeTone(EnvelopeTone);
           }
           break;
@@ -342,7 +335,7 @@ namespace Module::ASCSoundMaster
           dst.Envelope = false;
           break;
         case NOISE:
-          dst.BaseNoise = it->Param1;
+          dst.BaseNoise = cmd.Param1;
           break;
         case CONT_SAMPLE:
           contSample = true;
@@ -351,12 +344,12 @@ namespace Module::ASCSoundMaster
           contOrnament = true;
           break;
         case GLISS:
-          dst.Glissade = it->Param1;
+          dst.Glissade = cmd.Param1;
           dst.SlidingSteps = -1;  // infinite sliding
           break;
         case SLIDE:
         {
-          dst.SlidingSteps = it->Param1;
+          dst.SlidingSteps = cmd.Param1;
           const int_t newSliding = (dst.Sliding | 0xf) ^ 0xf;
           dst.Glissade = -newSliding / (dst.SlidingSteps ? dst.SlidingSteps : 1);
           dst.Sliding = dst.Glissade * dst.SlidingSteps;
@@ -364,9 +357,9 @@ namespace Module::ASCSoundMaster
         }
         case SLIDE_NOTE:
         {
-          dst.SlidingSteps = it->Param1;
-          dst.SlidingTargetNote = it->Param2;
-          const bool useToneSliding = it->Param3 != 0;
+          dst.SlidingSteps = cmd.Param1;
+          dst.SlidingTargetNote = cmd.Param2;
+          const bool useToneSliding = cmd.Param3 != 0;
           const int_t absoluteSliding = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
           const int_t newSliding = absoluteSliding - (useToneSliding ? dst.Sliding / 16 : 0);
           dst.Glissade = 16 * newSliding / (dst.SlidingSteps ? dst.SlidingSteps : 1);
@@ -374,8 +367,8 @@ namespace Module::ASCSoundMaster
           break;
         }
         case AMPLITUDE_SLIDE:
-          dst.VolSlideCounter = dst.VolSlideDelay = it->Param1;
-          dst.VolSlideAddon = it->Param2;
+          dst.VolSlideCounter = dst.VolSlideDelay = cmd.Param1;
+          dst.VolSlideAddon = cmd.Param2;
           break;
         case BREAK_SAMPLE:
           dst.BreakSample = true;

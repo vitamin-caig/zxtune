@@ -277,7 +277,7 @@ namespace Module::LibVGM
 
   const Time::Milliseconds FRAME_DURATION(20);
 
-  class VGMEngine : public State
+  class VGMEngine
   {
   public:
     using RWPtr = std::shared_ptr<VGMEngine>;
@@ -304,25 +304,25 @@ namespace Module::LibVGM
       }
       Require(0 == Delegate->LoadFile(Loader.Get()));
       Delegate->Start();
-      TotalTicks = ToTicks(info.Duration());
-      LoopTicks = ToTicks(info.LoopDuration());
+      TotalTicks = ToTicks(info.Duration);
+      LoopTicks = ToTicks(info.LoopDuration);
     }
 
-    Time::AtMillisecond At() const override
+    Time::AtMillisecond At() const
     {
       // time position in file
       const auto curtime = Delegate->GetCurTime(PLAYTIME_LOOP_EXCL | PLAYTIME_TIME_FILE);
       return Time::AtMillisecond() + Time::Milliseconds(curtime * 1000);
     }
 
-    Time::Milliseconds Total() const override
+    Time::Milliseconds Total() const
     {
       // total played time
       const auto curtime = Delegate->GetCurTime(PLAYTIME_LOOP_INCL | PLAYTIME_TIME_PBK);
-      return Time::Seconds(curtime * 1000);
+      return Time::Milliseconds(curtime * 1000);
     }
 
-    uint_t LoopCount() const override
+    uint_t LoopCount() const
     {
       // Tracks can specify LoopTicks == 0 to indicate no loop.
       // In this case, we want to loop the whole song.
@@ -405,26 +405,26 @@ namespace Module::LibVGM
   public:
     Renderer(Model::Ptr tune, const Module::Information& info, ChannelsLayout::Ptr channels, uint_t samplerate,
              Parameters::Accessor::Ptr params)
-      : Engine(MakeRWPtr<VGMEngine>(std::move(tune), info, std::move(channels), samplerate))
+      : Engine(std::move(tune), info, std::move(channels), samplerate)
       , Params(std::move(params))
     {}
 
-    State::Ptr GetState() const override
+    State GetState() const override
     {
-      return Engine;
+      return {.At = Engine.At(), .Total = Engine.Total(), .LoopCount = Engine.LoopCount()};
     }
 
     Sound::Chunk Render() override
     {
       ApplyParameters();
-      return Engine->Render();
+      return Engine.Render();
     }
 
     void Reset() override
     {
       try
       {
-        Engine->Reset();
+        Engine.Reset();
       }
       catch (const std::exception& e)
       {
@@ -436,7 +436,7 @@ namespace Module::LibVGM
     {
       try
       {
-        Engine->Seek(request);
+        Engine.Seek(request);
       }
       catch (const std::exception& e)
       {
@@ -451,27 +451,26 @@ namespace Module::LibVGM
       {
         using namespace Parameters::ZXTune::Core;
         const auto mask = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
-        Engine->MuteChannels(mask);
+        Engine.MuteChannels(mask);
       }
     }
 
   private:
-    const VGMEngine::RWPtr Engine;
+    VGMEngine Engine;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
   };
 
   class Holder : public Module::Holder
   {
   public:
-    Holder(Model::Ptr tune, Module::Information::Ptr info, ChannelsLayout::Ptr channels,
-           Parameters::Accessor::Ptr props)
+    Holder(Model::Ptr tune, Module::Information info, ChannelsLayout::Ptr channels, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
       , Info(std::move(info))
       , Channels(std::move(channels))
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return Info;
     }
@@ -485,7 +484,7 @@ namespace Module::LibVGM
     {
       try
       {
-        return MakePtr<Renderer>(Tune, *Info, Channels, samplerate, std::move(params));
+        return MakePtr<Renderer>(Tune, Info, Channels, samplerate, std::move(params));
       }
       catch (const std::exception& e)
       {
@@ -495,7 +494,7 @@ namespace Module::LibVGM
 
   private:
     const Model::Ptr Tune;
-    const Module::Information::Ptr Info;
+    const Module::Information Info;
     const ChannelsLayout::Ptr Channels;
     const Parameters::Accessor::Ptr Properties;
   };
@@ -524,11 +523,11 @@ namespace Module::VideoGameMusic
       }
     }
 
-    Information::Ptr CaptureResult(const Parameters::Accessor& props)
+    Information CaptureResult(const Parameters::Accessor& props)
     {
       if (Info)
       {
-        return Information::Ptr(std::move(Info));
+        return std::move(*Info);
       }
       else
       {
@@ -540,7 +539,7 @@ namespace Module::VideoGameMusic
   private:
     PropertiesHelper& Properties;
     MetaProperties Meta;
-    Information::Ptr Info;
+    std::optional<Information> Info;
   };
 
   class Factory : public Module::Factory
@@ -596,7 +595,7 @@ namespace Module::Sound98
       Info = CreateTimedInfo(total, loop);
     }
 
-    Module::Information::Ptr CaptureResult() const
+    Module::Information CaptureResult() const
     {
       return Info;
     }
@@ -604,7 +603,7 @@ namespace Module::Sound98
   private:
     PropertiesHelper& Properties;
     MetaProperties Meta;
-    Module::Information::Ptr Info;
+    Module::Information Info;
   };
 
   class Factory : public Module::Factory

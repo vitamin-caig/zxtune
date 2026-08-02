@@ -79,11 +79,11 @@ namespace Module::AYM
 
     virtual ~DataRenderer() = default;
 
-    virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
+    virtual void SynthesizeData(const TrackState& state, TrackBuilder& track) = 0;
     virtual void Reset() = 0;
   };
 
-  DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator,
+  DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, Iterator::Ptr iterator,
                                        DataRenderer::Ptr renderer);
 
   template<class OrderListType, class SampleType, class OrnamentType>
@@ -112,12 +112,12 @@ namespace Module::AYM
 
     const PatternsSet& GetPatterns() const override
     {
-      return *Patterns;
+      return Patterns;
     }
 
     uint_t InitialTempo = 0;
     typename OrderListType::Ptr Order;
-    PatternsSet::Ptr Patterns;
+    PatternsSet Patterns;
     SparsedObjectsStorage<SampleType> Samples;
     SparsedObjectsStorage<OrnamentType> Ornaments;
   };

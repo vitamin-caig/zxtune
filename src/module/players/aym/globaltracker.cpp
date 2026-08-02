@@ -43,7 +43,6 @@ namespace Module::GlobalTracker
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetFrequencyTable(TABLE_PROTRACKER3_ST);
@@ -159,9 +158,9 @@ namespace Module::GlobalTracker
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -169,17 +168,11 @@ namespace Module::GlobalTracker
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            GetNewChannelState(*src, PlayerState[chan], track);
-          }
-        }
+        line->ForEachChannel([&](auto chan, const auto& src) { GetNewChannelState(src, PlayerState[chan], track); });
       }
     }
 
@@ -208,13 +201,13 @@ namespace Module::GlobalTracker
       {
         dst.Volume = *volume;
       }
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case ENVELOPE:
-          track.SetEnvelopeType(it->Param1);
-          track.SetEnvelopeTone(it->Param2);
+          track.SetEnvelopeType(cmd.Param1);
+          track.SetEnvelopeTone(cmd.Param2);
           dst.Envelope = true;
           break;
         case NOENVELOPE:

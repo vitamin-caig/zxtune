@@ -239,12 +239,11 @@ namespace
   {
   public:
     PlayerControl(const Module::Holder& holder, uint_t samplerate, Parameters::Accessor::Ptr globalParams)
-      : Duration(holder.GetModuleInformation()->Duration())
+      : Duration(holder.GetModuleInformation().Duration)
       , Samplerate(samplerate)
       , LocalParameters(Parameters::Container::Create())
       , Renderer(Module::CreatePipelinedRenderer(
             holder, samplerate, Parameters::CreateMergedAccessor(LocalParameters, std::move(globalParams))))
-      , State(Renderer->GetState())
     {
       Require(Duration.Get() != 0);
     }
@@ -256,7 +255,7 @@ namespace
 
     uint_t GetPosition() const override
     {
-      return State->At().CastTo<Player::TimeBase>().Get();
+      return Renderer->GetState().At.CastTo<Player::TimeBase>().Get();
     }
 
     uint_t Analyze(uint_t maxEntries, uint8_t* levels) const override
@@ -323,7 +322,6 @@ namespace
     const uint_t Samplerate;
     const Parameters::Container::Ptr LocalParameters;
     const Module::Renderer::Ptr Renderer;
-    const Module::State::Ptr State;
     BufferTarget Buffer;
     RenderingPerformanceAccountant RenderingPerformance;
     AnalyzerControl Analyzer;

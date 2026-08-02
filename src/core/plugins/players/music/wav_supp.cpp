@@ -35,19 +35,19 @@ namespace Module::Wav
   public:
     Renderer(Model::Ptr data, Sound::Converter::Ptr target)
       : Tune(std::move(data))
-      , State(MakePtr<SampledState>(Tune->GetTotalSamples(), Tune->GetSamplerate()))
+      , State(Tune->GetTotalSamples(), Tune->GetSamplerate())
       , Target(std::move(target))
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
       auto frame = Tune->RenderNextFrame();
-      if (0 != State->Consume(frame.size()))
+      if (0 != State.Consume(frame.size()))
       {
         Tune->Seek(0);
       }
@@ -56,20 +56,20 @@ namespace Module::Wav
 
     void Reset() override
     {
-      State->Reset();
+      State.Reset();
       Tune->Seek(0);
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      State->Seek(request);
-      const auto aligned = Tune->Seek(State->AtSample());
-      State->SeekAtSample(aligned);
+      State.Seek(request);
+      const auto aligned = Tune->Seek(State.AtSample());
+      State.SeekAtSample(aligned);
     }
 
   private:
     const Model::Ptr Tune;
-    const SampledState::Ptr State;
+    SampledState State;
     const Sound::Converter::Ptr Target;
   };
 
@@ -81,7 +81,7 @@ namespace Module::Wav
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateSampledInfo(Data->GetSamplerate(), Data->GetTotalSamples());
     }

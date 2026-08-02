@@ -58,7 +58,7 @@ namespace
     {
       try
       {
-        Callback.OnProgress(state.At().Get());
+        Callback.OnProgress(state.At.Get());
       }
       catch (const std::exception&)
       {
@@ -124,7 +124,7 @@ namespace
       {
         Log::NestedProgressCallback curItemProgress(TotalItems, DoneItems, Callback);
         const auto info = item->GetModuleInformation();
-        Log::PercentProgressCallback framesProgress(info->Duration().Get(), curItemProgress);
+        Log::PercentProgressCallback framesProgress(info.Duration.Get(), curItemProgress);
         ConvertCallback cb(framesProgress);
         const auto backend =
             Service->CreateBackend(Sound::BackendId::FromString(Type), std::move(item),

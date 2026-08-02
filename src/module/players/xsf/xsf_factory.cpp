@@ -39,7 +39,7 @@ namespace Module::XSF
       LoadDependenciesFrom(Head);
     }
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return GetDelegate().GetModuleInformation();
     }

@@ -51,8 +51,6 @@ namespace Formats::Chiptune
       NATURAL
     };
 
-    const uint_t SINGLE_AY_MODE = 0x20;
-
     class Builder
     {
     public:

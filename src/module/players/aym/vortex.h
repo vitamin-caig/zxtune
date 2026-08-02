@@ -63,8 +63,16 @@ namespace Module::Vortex
 
     ModuleData() = default;
 
+    bool IsValidLine(const LinePosition& pos) const override;
+    uint_t GetLineTempo(const LinePosition& pos) const override;
+    uint_t CountActiveChannels(const LinePosition& pos) const override;
+
     uint_t Version = 6;
+    std::optional<uint_t> TurboPatternsOffset;
+
+  private:
+    const Pattern* FindMirroredPattern(uint_t pattern) const;
   };
 
-  AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data, uint_t trackChannelStart);
+  AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data);
 }  // namespace Module::Vortex

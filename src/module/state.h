@@ -15,26 +15,37 @@
 
 #include "types.h"
 
-#include <memory>
+#include <optional>
 
 namespace Module
 {
-  //! @brief Runtime module status
-  class State
+  //! @brief Runtime module track status
+  struct TrackState
   {
-  public:
-    //! Pointer type
-    using Ptr = std::shared_ptr<const State>;
+    //! Current position (up to TrackInformation::PositionsCount)
+    uint_t Position = 0;
+    //! Current pattern
+    uint_t Pattern = 0;
+    //! Current line in pattern
+    uint_t Line = 0;
+    //! Current tempo
+    uint_t Tempo = 0;
+    //! Current quirk in line
+    uint_t Quirk = 0;
+    //! Current active channels count (up to Information::Channels)
+    uint_t Channels = 0;
+  };
 
-    virtual ~State() = default;
-
+  //! @brief Runtime module status
+  struct State
+  {
     //! Current playback position till Information::Duration
-    virtual Time::AtMillisecond At() const = 0;
-
+    Time::AtMillisecond At;
     //! Total played time ignoring seeks
-    virtual Time::Milliseconds Total() const = 0;
-
+    Time::Milliseconds Total;
     //! Count of restarts due to looping
-    virtual uint_t LoopCount() const = 0;
+    uint_t LoopCount = 0;
+    //! Optional track state
+    std::optional<TrackState> Track = {};
   };
 }  // namespace Module

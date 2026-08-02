@@ -99,11 +99,11 @@ namespace Module::DAC
 
     virtual ~DataRenderer() = default;
 
-    virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
+    virtual void SynthesizeData(const TrackState& state, TrackBuilder& track) = 0;
     virtual void Reset() = 0;
   };
 
-  DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer);
 
   Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
                                Devices::DAC::Chip::Ptr device);

@@ -35,10 +35,9 @@ namespace Module::DAC
   class SimpleDataBuilderImpl : public SimpleDataBuilder
   {
   public:
-    SimpleDataBuilderImpl(DAC::PropertiesHelper& props, PatternsBuilder builder, uint_t channels)
+    SimpleDataBuilderImpl(DAC::PropertiesHelper& props, uint_t channels)
       : Properties(props)
       , Meta(props)
-      , Patterns(std::move(builder))
       , Data(MakeRWPtr<SimpleModuleData>(channels))
     {}
 
@@ -108,10 +107,9 @@ namespace Module::DAC
     SimpleModuleData::RWPtr Data;
   };
 
-  SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, PatternsBuilder builder,
-                                                   uint_t channels)
+  SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, uint_t channels)
   {
-    return MakePtr<SimpleDataBuilderImpl>(props, std::move(builder), channels);
+    return MakePtr<SimpleDataBuilderImpl>(props, channels);
   }
 
   class SimpleDataRenderer : public DAC::DataRenderer
@@ -123,31 +121,24 @@ namespace Module::DAC
 
     void Reset() override {}
 
-    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != Data->GetChannelsCount(); ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            ChannelDataBuilder builder = track.GetChannel(chan);
-            GetNewChannelState(*src, builder);
-          }
-        }
+        line->ForEachChannel([&](auto chan, const auto& src) { GetNewChannelState(src, track.GetChannel(chan)); });
       }
     }
 
-    static void GetNewChannelState(const Cell& src, ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, ChannelDataBuilder builder)
     {
       if (const bool* enabled = src.GetEnabled())
       {

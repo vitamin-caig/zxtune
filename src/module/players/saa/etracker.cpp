@@ -65,12 +65,12 @@ namespace Module::ETracker
 
     const PatternsSet& GetPatterns() const override
     {
-      return *Patterns;
+      return Patterns;
     }
 
     uint_t InitialTempo = 0;
     OrderListWithTransposition::Ptr Order;
-    PatternsSet::Ptr Patterns;
+    PatternsSet Patterns;
     SparsedObjectsStorage<Sample> Samples;
     SparsedObjectsStorage<Ornament> Ornaments;
   };
@@ -80,7 +80,6 @@ namespace Module::ETracker
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Meta(props)
-      , Patterns(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {}
 
@@ -252,13 +251,13 @@ namespace Module::ETracker
       Transposition = 0;
     }
 
-    void SynthesizeData(const TrackModelState& state, SAA::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, SAA::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
-        if (0 == state.Line())
+        if (0 == state.Line)
         {
-          Transposition = Data->Order->GetTransposition(state.Position());
+          Transposition = Data->Order->GetTransposition(state.Position);
         }
         GetNewLineState(state, track);
       }
@@ -266,25 +265,20 @@ namespace Module::ETracker
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, SAA::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, SAA::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            SAA::ChannelBuilder channel = track.GetChannel(chan);
-            GetNewChannelState(chan, *src, PlayerState[chan], channel);
-          }
-        }
+        line->ForEachChannel(
+            [&](auto chan, const auto& src) { GetNewChannelState(chan, src, PlayerState[chan], track); });
       }
     }
 
-    void GetNewChannelState(uint_t idx, const Cell& src, ChannelState& dst, SAA::ChannelBuilder& channel)
+    void GetNewChannelState(uint_t idx, const Cell& src, ChannelState& dst, SAA::TrackBuilder& track)
     {
       static const uint_t ENVELOPE_TABLE[] = {0x00, 0x96, 0x9e, 0x9a, 0x086, 0x8e, 0x8a,
                                               0x97, 0x9f, 0x9b, 0x87, 0x8f,  0x8b};
+      auto channel = track.GetChannel(idx);
       if (const bool* enabled = src.GetEnabled())
       {
         if (!*enabled)
@@ -312,18 +306,18 @@ namespace Module::ETracker
       {
         dst.Attenuation = 15 - *volume;
       }
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case ENVELOPE:
-          channel.SetEnvelope(ENVELOPE_TABLE[it->Param1]);
+          channel.SetEnvelope(ENVELOPE_TABLE[cmd.Param1]);
           break;
         case SWAPCHANNELS:
-          dst.SwapSampleChannels = it->Param1 != 0;
+          dst.SwapSampleChannels = cmd.Param1 != 0;
           break;
         case NOISE:
-          Noise[idx >= 3] = it->Param1;
+          Noise[idx >= 3] = cmd.Param1;
           break;
         default:
           assert(!"Invalid command");

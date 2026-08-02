@@ -10,11 +10,9 @@
 
 #pragma once
 
-#include "module/track_state.h"
-#include "tools/iterators.h"
-
 #include "types.h"
 
+#include <algorithm>
 #include <vector>
 
 namespace Module
@@ -40,9 +38,6 @@ namespace Module
     int_t Param2 = 0;
     int_t Param3 = 0;
   };
-
-  using CommandsArray = std::vector<Command>;
-  using CommandsIterator = RangeIterator<CommandsArray::const_iterator>;
 
   class Cell
   {
@@ -79,9 +74,9 @@ namespace Module
       return 0 != (Mask & VOLUME) ? &Volume : nullptr;
     }
 
-    CommandsIterator GetCommands() const
+    const auto& GetCommands() const
     {
-      return {Commands.begin(), Commands.end()};
+      return Commands;
     }
 
   protected:
@@ -100,36 +95,164 @@ namespace Module
     uint_t SampleNum = 0;
     uint_t OrnamentNum = 0;
     uint_t Volume = 0;
-    CommandsArray Commands;
+    std::vector<Command> Commands;
+  };
+
+  template<class T>
+  class SparsedObjectsStorage
+  {
+  public:
+    SparsedObjectsStorage() = default;
+    SparsedObjectsStorage(SparsedObjectsStorage&&) = default;
+    SparsedObjectsStorage(const SparsedObjectsStorage&) = delete;
+    SparsedObjectsStorage& operator=(SparsedObjectsStorage&&) = default;
+
+    const T& Get(uint_t idx) const
+    {
+      if (idx < Objects.size())
+      {
+        return Objects[idx];
+      }
+      else
+      {
+        static const T STUB;
+        return STUB;
+      }
+    }
+
+    const T* Find(uint_t idx) const
+    {
+      if (idx < Objects.size() && Objects[idx].HasData())
+      {
+        return &Objects[idx];
+      }
+      return nullptr;
+    }
+
+    uint_t Size() const
+    {
+      return Objects.size();
+    }
+
+    void Resize(uint_t newSize)
+    {
+      assert(newSize >= Objects.size());
+      Objects.resize(newSize);
+    }
+
+    template<class P>
+    P& Add(uint_t idx)
+    {
+      static_assert(sizeof(P) == sizeof(T), "Invalid layout");
+      if (idx >= Objects.size())
+      {
+        Objects.resize(idx + 1);
+      }
+      return static_cast<P&>(Objects[idx]);
+    }
+
+    void Add(uint_t idx, T obj)
+    {
+      if (idx >= Objects.size())
+      {
+        Objects.resize(idx + 1);
+      }
+      Objects[idx] = std::move(obj);
+    }
+
+    uint_t Count() const
+    {
+      return static_cast<uint_t>(
+          std::count_if(Objects.begin(), Objects.end(), [](const auto& o) { return o.HasData(); }));
+    }
+
+    template<class F>
+    void ForEach(F func) const
+    {
+      for (uint_t idx = 0, lim = Objects.size(); idx < lim; ++idx)
+      {
+        if (const auto& o = Objects[idx]; o.HasData())
+        {
+          func(idx, o);
+        }
+      }
+    }
+
+  private:
+    std::vector<T> Objects;
   };
 
   class Line
   {
   public:
-    virtual ~Line() = default;
+    bool HasData() const
+    {
+      return Channels.Size() != 0 || Tempo != 0;
+    }
 
-    virtual const Cell* GetChannel(uint_t idx) const = 0;
-    virtual uint_t CountActiveChannels() const = 0;
-    virtual uint_t GetTempo() const = 0;
+    const Cell* GetChannel(uint_t idx) const
+    {
+      return Channels.Find(idx);
+    }
+
+    template<class F>
+    void ForEachChannel(F func) const
+    {
+      Channels.ForEach(std::move(func));
+    }
+
+    uint_t CountActiveChannels() const
+    {
+      return Channels.Count();
+    }
+
+    uint_t GetTempo() const
+    {
+      return Tempo;
+    }
+
+  protected:
+    uint_t Tempo = 0;
+    SparsedObjectsStorage<Cell> Channels;
   };
 
   class Pattern
   {
   public:
-    virtual ~Pattern() = default;
+    bool HasData() const
+    {
+      return Lines.Size() != 0;
+    }
 
-    virtual const class Line* GetLine(uint_t row) const = 0;
-    virtual uint_t GetSize() const = 0;
+    const Line* GetLine(uint_t row) const
+    {
+      return Lines.Find(row);
+    }
+
+    uint_t GetSize() const
+    {
+      return Lines.Size();
+    }
+
+  protected:
+    SparsedObjectsStorage<Line> Lines;
   };
 
   class PatternsSet
   {
   public:
-    using Ptr = std::unique_ptr<const PatternsSet>;
-    virtual ~PatternsSet() = default;
+    const Pattern* Get(uint_t idx) const
+    {
+      return Patterns.Find(idx);
+    }
 
-    virtual const class Pattern* Get(uint_t idx) const = 0;
-    virtual uint_t GetSize() const = 0;
+    uint_t GetSize() const
+    {
+      return Patterns.Size();
+    }
+
+  protected:
+    SparsedObjectsStorage<Pattern> Patterns;
   };
 
   class OrderList
@@ -143,6 +266,12 @@ namespace Module
     virtual uint_t GetLoopPosition() const = 0;
   };
 
+  struct LinePosition
+  {
+    uint_t Pattern = 0;
+    uint_t Line = 0;
+  };
+
   class TrackModel
   {
   public:
@@ -153,14 +282,53 @@ namespace Module
     virtual uint_t GetInitialTempo() const = 0;
     virtual const OrderList& GetOrder() const = 0;
     virtual const PatternsSet& GetPatterns() const = 0;
-  };
 
-  class TrackModelState : public TrackState
-  {
-  public:
-    using Ptr = std::shared_ptr<const TrackModelState>;
+    // Virtual to allow result subst
+    virtual bool IsValidLine(const LinePosition& pos) const
+    {
+      if (const auto* pat = FindPattern(pos.Pattern))
+      {
+        return pos.Line < pat->GetSize();
+      }
+      return false;
+    }
 
-    virtual const class Pattern* PatternObject() const = 0;
-    virtual const class Line* LineObject() const = 0;
+    virtual uint_t GetLineTempo(const LinePosition& pos) const
+    {
+      if (const auto* line = FindLine(pos))
+      {
+        return line->GetTempo();
+      }
+      return 0;
+    }
+
+    virtual uint_t CountActiveChannels(const LinePosition& pos) const
+    {
+      if (const auto* line = FindLine(pos))
+      {
+        return line->CountActiveChannels();
+      }
+      return 0;
+    }
+
+    const Line* GetLine(const TrackState& state) const
+    {
+      return FindLine({.Pattern = state.Pattern, .Line = state.Line});
+    }
+
+  protected:
+    const Pattern* FindPattern(uint_t pattern) const
+    {
+      return GetPatterns().Get(pattern);
+    }
+
+    const Line* FindLine(const LinePosition& pos) const
+    {
+      if (const auto* pat = FindPattern(pos.Pattern))
+      {
+        return pat->GetLine(pos.Line);
+      }
+      return nullptr;
+    }
   };
 }  // namespace Module

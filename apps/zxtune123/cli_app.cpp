@@ -255,22 +255,21 @@ namespace
 
     void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder) override
     {
-      const Module::Information::Ptr info = holder->GetModuleInformation();
+      const auto info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
       const auto& path = Parameters::GetString(*props, Module::ATTR_FULLPATH);
       const auto& type = Parameters::GetString(*props, Module::ATTR_TYPE);
 
       try
       {
-        const auto total = info->Duration() * Iterations;
+        const auto total = info.Duration * Iterations;
         BenchmarkSoundReceiver receiver;
         const auto renderer = holder->CreateRenderer(Sounder.GetSamplerate(), props);
-        const auto state = renderer->GetState();
         const Time::Timer timer;
         for (unsigned i = 0; i != Iterations; ++i)
         {
           renderer->SetPosition({});
-          while (0 == state->LoopCount())
+          while (0 == renderer->GetState().LoopCount)
           {
             auto data = renderer->Render();
             if (data.empty())
@@ -645,14 +644,14 @@ namespace
 
     void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder) override
     {
-      const Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
-      const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
+      const auto backend = Sounder->CreateBackend(holder);
+      const auto control = backend->GetPlaybackControl();
 
-      const Module::Information::Ptr info = holder->GetModuleInformation();
-      const auto seekStep = Time::Milliseconds(info->Duration().Get() * SeekStep / 100);
+      const auto info = holder->GetModuleInformation();
+      const auto seekStep = Time::Milliseconds(info.Duration.Get() * SeekStep / 100);
       control->Play();
 
-      Display->SetModule(holder, backend);
+      Display->SetModule(*holder, *backend);
 
       const Sound::Gain::Type minVol(0);
       const Sound::Gain::Type maxVol(1);
@@ -667,9 +666,11 @@ namespace
 
       for (;;)
       {
-        Sound::PlaybackControl::State state = control->GetCurrentState();
+        auto playbackState = control->GetPlaybackState();
+        const auto moduleState = control->GetModuleState();
 
-        const auto pos = Display->BeginFrame(state);
+        Display->BeginFrame(playbackState, moduleState);
+        const auto pos = moduleState.At;
 
         const auto START = Time::AtMillisecond();
         if (const uint_t key = Console::Self().GetPressedKey())
@@ -704,7 +705,7 @@ namespace
             }
             break;
           case Console::INPUT_KEY_ENTER:
-            if (Sound::PlaybackControl::STARTED == state)
+            if (Sound::PlaybackControl::STARTED == playbackState)
             {
               control->Pause();
               Console::Self().WaitForKeyRelease();
@@ -717,13 +718,13 @@ namespace
             break;
           case ' ':
             control->Stop();
-            state = Sound::PlaybackControl::STOPPED;
+            playbackState = Sound::PlaybackControl::STOPPED;
             Console::Self().WaitForKeyRelease();
             break;
           }
         }
 
-        if (Sound::PlaybackControl::STOPPED == state)
+        if (Sound::PlaybackControl::STOPPED == playbackState)
         {
           break;
         }

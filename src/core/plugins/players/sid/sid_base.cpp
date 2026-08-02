@@ -241,7 +241,7 @@ namespace Module::Sid
   public:
     Renderer(Model::Ptr tune, uint_t samplerate, const Parameters::Accessor::Ptr& params)
       : Tune(std::move(tune))
-      , State(MakePtr<TimedState>(Tune->GetDuration()))
+      , State(Tune->GetDuration())
       , Engine(MakePtr<SidEngine>())
       , SidParams(MakePtr<SidParameters>(params))
     {
@@ -250,31 +250,31 @@ namespace Module::Sid
       Reset();
     }
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
       ApplyParameters();
-      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
+      const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       return Engine->Render(GetSamples(avail));
     }
 
     void Reset() override
     {
-      State->Reset();
+      State.Reset();
       Engine->Load(*Tune);
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      if (request < State->At())
+      if (request < State.At())
       {
         Engine->Load(*Tune);
       }
-      if (const auto toSkip = State->Seek(request))
+      if (const auto toSkip = State.Seek(request))
       {
         Engine->Skip(GetSamples(toSkip));
       }
@@ -296,7 +296,7 @@ namespace Module::Sid
 
   private:
     const Model::Ptr Tune;
-    const TimedState::Ptr State;
+    TimedState State;
     const SidEngine::Ptr Engine;
     const StateIterator::Ptr Iterator;
     Parameters::TrackingHelper<SidParameters> SidParams;
@@ -310,7 +310,7 @@ namespace Module::Sid
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateTimedInfo(Tune->GetDuration());
     }

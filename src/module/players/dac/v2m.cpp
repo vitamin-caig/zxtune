@@ -137,21 +137,21 @@ namespace Module::V2M
   public:
     Renderer(DataPtr tune, Time::Milliseconds duration, Sound::Converter::Ptr target)
       : Engine(std::move(tune))
-      , State(MakePtr<TimedState>(duration))
+      , State(duration)
       , Target(std::move(target))
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
-      const auto loops = State->LoopCount();
-      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
+      const auto loops = State.Get().LoopCount;
+      const auto avail = State.ConsumeUpTo(FRAME_DURATION);
       auto frame = Target->Apply(Engine.RenderFrame(GetSamples(avail)));
-      if (State->LoopCount() != loops)
+      if (State.Get().LoopCount != loops)
       {
         Engine.Reset();
       }
@@ -161,16 +161,16 @@ namespace Module::V2M
     void Reset() override
     {
       Engine.Reset();
-      State->Reset();
+      State.Reset();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      if (request < State->At())
+      if (request < State.At())
       {
         Engine.Reset();
       }
-      const auto toSkip = State->Seek(request);
+      const auto toSkip = State.Seek(request);
       for (auto samples = GetSamples(toSkip); samples != 0;)
       {
         const auto toSkip = std::min(samples, GetSamples(FRAME_DURATION));
@@ -181,7 +181,7 @@ namespace Module::V2M
 
   private:
     V2mEngine Engine;
-    const TimedState::Ptr State;
+    TimedState State;
     const Sound::Converter::Ptr Target;
   };
 
@@ -194,7 +194,7 @@ namespace Module::V2M
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateTimedInfo(Duration);
     }

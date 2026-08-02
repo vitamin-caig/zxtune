@@ -224,19 +224,19 @@ namespace Module::Ogg
   public:
     Renderer(const Model::Ptr& data, Sound::Converter::Ptr target)
       : Tune(data)
-      , State(MakePtr<SampledState>(data->TotalSamples, data->Frequency))
+      , State(data->TotalSamples, data->Frequency)
       , Target(std::move(target))
     {}
 
-    Module::State::Ptr GetState() const override
+    Module::State GetState() const override
     {
-      return State;
+      return State.Get();
     }
 
     Sound::Chunk Render() override
     {
       auto frame = Tune.RenderFrame();
-      if (0 != State->Consume(frame.size()))
+      if (0 != State.Consume(frame.size()))
       {
         Tune.Seek(0);
       }
@@ -246,18 +246,18 @@ namespace Module::Ogg
     void Reset() override
     {
       Tune.Reset();
-      State->Reset();
+      State.Reset();
     }
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      State->Seek(request);
-      Tune.Seek(State->AtSample());
+      State.Seek(request);
+      Tune.Seek(State.AtSample());
     }
 
   private:
     OggTune Tune;
-    const SampledState::Ptr State;
+    SampledState State;
     const Sound::Converter::Ptr Target;
   };
 
@@ -269,7 +269,7 @@ namespace Module::Ogg
       , Properties(std::move(props))
     {}
 
-    Module::Information::Ptr GetModuleInformation() const override
+    Module::Information GetModuleInformation() const override
     {
       return CreateSampledInfo(Data->Frequency, Data->TotalSamples);
     }

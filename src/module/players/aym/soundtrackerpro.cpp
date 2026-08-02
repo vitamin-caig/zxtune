@@ -43,7 +43,6 @@ namespace Module::SoundTrackerPro
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetFrequencyTable(TABLE_SOUNDTRACKER_PRO);
@@ -169,9 +168,9 @@ namespace Module::SoundTrackerPro
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -179,17 +178,11 @@ namespace Module::SoundTrackerPro
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            GetNewChannelState(*src, PlayerState[chan], track);
-          }
-        }
+        line->ForEachChannel([&](auto chan, const auto& src) { GetNewChannelState(src, PlayerState[chan], track); });
       }
     }
 
@@ -222,15 +215,15 @@ namespace Module::SoundTrackerPro
       {
         dst.Volume = *volume;
       }
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case ENVELOPE:
-          if (it->Param1)
+          if (cmd.Param1)
           {
-            track.SetEnvelopeType(it->Param1);
-            track.SetEnvelopeTone(it->Param2);
+            track.SetEnvelopeType(cmd.Param1);
+            track.SetEnvelopeTone(cmd.Param2);
           }
           dst.Envelope = true;
           break;
@@ -238,7 +231,7 @@ namespace Module::SoundTrackerPro
           dst.Envelope = false;
           break;
         case GLISS:
-          dst.Glissade = it->Param1;
+          dst.Glissade = cmd.Param1;
           break;
         default:
           assert(!"Invalid command");
@@ -281,7 +274,7 @@ namespace Module::SoundTrackerPro
         channel.EnableEnvelope();
       }
       // apply tone
-      const int_t halftones = int_t(dst.Note) + Data->Order->GetTransposition(state.Position())
+      const int_t halftones = int_t(dst.Note) + Data->Order->GetTransposition(state.Position)
                               + (dst.Envelope ? 0 : curOrnament.GetLine(dst.PosInOrnament));
       channel.SetTone(halftones, dst.TonSlide + curSampleLine.Vibrato);
       if (curSampleLine.ToneMask)

@@ -219,7 +219,6 @@ namespace Module::ProSoundCreator
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
     {
       Properties.SetFrequencyTable(TABLE_ASM);
@@ -394,9 +393,9 @@ namespace Module::ProSoundCreator
       NoiseBase = 0;
     }
 
-    void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
     {
-      if (0 == state.Quirk())
+      if (0 == state.Quirk)
       {
         GetNewLineState(state, track);
       }
@@ -404,17 +403,11 @@ namespace Module::ProSoundCreator
     }
 
   private:
-    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = state.LineObject())
+      if (const auto* const line = Data->GetLine(state))
       {
-        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
-        {
-          if (const auto* const src = line->GetChannel(chan))
-          {
-            GetNewChannelState(*src, PlayerState[chan], track);
-          }
-        }
+        line->ForEachChannel([&](auto chan, const auto& src) { GetNewChannelState(src, PlayerState[chan], track); });
       }
       for (auto& chan : PlayerState)
       {
@@ -464,9 +457,9 @@ namespace Module::ProSoundCreator
         dst.Volume = *volume;
         dst.Attenuation = 0;
       }
-      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      for (const auto& cmd : src.GetCommands())
       {
-        switch (it->Type)
+        switch (cmd.Type)
         {
         case BREAK_SAMPLE:
           dst.SampleIterator.SetBreakLoop(true);
@@ -478,10 +471,10 @@ namespace Module::ProSoundCreator
           dst.OrnamentIterator.Disable();
           break;
         case ENVELOPE:
-          if (it->Param1 || it->Param2)
+          if (cmd.Param1 || cmd.Param2)
           {
-            track.SetEnvelopeType(it->Param1);
-            track.SetEnvelopeTone(EnvelopeTone = it->Param2);
+            track.SetEnvelopeType(cmd.Param1);
+            track.SetEnvelopeTone(EnvelopeTone = cmd.Param2);
           }
           else
           {
@@ -492,24 +485,24 @@ namespace Module::ProSoundCreator
           dst.EnvelopeEnabled = false;
           break;
         case NOISE_BASE:
-          NoiseBase = it->Param1;
+          NoiseBase = cmd.Param1;
           break;
         case GLISS:
         {
           const int_t sliding = oldTone - track.GetFrequency(dst.Note);
-          const int_t newGliss = sliding >= 0 ? -it->Param1 : it->Param1;
-          const int_t steps = 0 != it->Param1 ? (1 + Math::Absolute(sliding) / it->Param1) : 0;
+          const int_t newGliss = sliding >= 0 ? -cmd.Param1 : cmd.Param1;
+          const int_t steps = 0 != cmd.Param1 ? (1 + Math::Absolute(sliding) / cmd.Param1) : 0;
           dst.ToneSlide.SetSliding(sliding);
           dst.ToneSlide.SetGlissade(newGliss);
           dst.ToneSlide.SetSlidingSteps(steps);
         }
         break;
         case SLIDE:
-          dst.ToneSlide.SetGlissade(it->Param1);
+          dst.ToneSlide.SetGlissade(cmd.Param1);
           dst.ToneSlide.SetSlidingSteps(0);
           break;
         case VOLUME_SLIDE:
-          dst.VolumeSlide.SetParams(it->Param1, it->Param2);
+          dst.VolumeSlide.SetParams(cmd.Param1, cmd.Param2);
           break;
         default:
           assert(!"Invalid command");

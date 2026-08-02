@@ -23,7 +23,6 @@ namespace Module::AYM
   public:
     StreamDataIterator(StateIterator::Ptr delegate, StreamModel::Ptr data)
       : Delegate(std::move(delegate))
-      , State(Delegate->GetStateObserver())
       , Data(std::move(data))
     {}
 
@@ -37,9 +36,9 @@ namespace Module::AYM
       Delegate->NextFrame();
     }
 
-    Module::State::Ptr GetStateObserver() const override
+    Module::State GetState() const override
     {
-      return State;
+      return Delegate->GetState();
     }
 
     Devices::AYM::Registers GetData() const override
@@ -49,7 +48,6 @@ namespace Module::AYM
 
   private:
     const StateIterator::Ptr Delegate;
-    const Module::State::Ptr State;
     const StreamModel::Ptr Data;
   };
 
