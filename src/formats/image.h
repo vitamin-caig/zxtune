@@ -35,7 +35,7 @@ namespace Formats::Image
   class Decoder
   {
   public:
-    using Ptr = std::shared_ptr<const Decoder>;
+    using Ptr = std::unique_ptr<const Decoder>;
     virtual ~Decoder() = default;
 
     //! @brief Get short decoder description
