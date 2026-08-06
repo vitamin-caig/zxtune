@@ -15,5 +15,5 @@
 
 namespace Module::TFMMusicMaker
 {
-  TFM::Factory::Ptr CreateFactory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder);
+  TFM::Factory::Ptr CreateFactory(Formats::Chiptune::TFMMusicMaker::Parser parse);
 }  // namespace Module::TFMMusicMaker

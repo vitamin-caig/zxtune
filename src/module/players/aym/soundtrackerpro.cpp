@@ -318,8 +318,8 @@ namespace Module::SoundTrackerPro
   class Factory : public AYM::Factory
   {
   public:
-    explicit Factory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder)
-      : Decoder(std::move(decoder))
+    explicit Factory(Formats::Chiptune::SoundTrackerPro::Parser parse)
+      : Parse(std::move(parse))
     {}
 
     AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
@@ -327,7 +327,7 @@ namespace Module::SoundTrackerPro
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const auto container = Decoder->Parse(rawData, dataBuilder))
+      if (const auto container = Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
         return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
@@ -340,11 +340,11 @@ namespace Module::SoundTrackerPro
     }
 
   private:
-    const Formats::Chiptune::SoundTrackerPro::Decoder::Ptr Decoder;
+    const Formats::Chiptune::SoundTrackerPro::Parser Parse;
   };
 
-  Factory::Ptr CreateFactory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder)
+  Factory::Ptr CreateFactory(Formats::Chiptune::SoundTrackerPro::Parser parse)
   {
-    return MakePtr<Factory>(std::move(decoder));
+    return MakePtr<Factory>(std::move(parse));
   }
 }  // namespace Module::SoundTrackerPro

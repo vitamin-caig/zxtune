@@ -150,8 +150,8 @@ namespace Module::YMVTX
   class Factory : public AYM::Factory
   {
   public:
-    explicit Factory(Formats::Chiptune::YM::Decoder::Ptr decoder)
-      : Decoder(std::move(decoder))
+    explicit Factory(Formats::Chiptune::YM::Parser parse)
+      : Parse(std::move(parse))
     {}
 
     AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
@@ -159,7 +159,7 @@ namespace Module::YMVTX
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const auto container = Decoder->Parse(rawData, dataBuilder))
+      if (const auto container = Parse(rawData, dataBuilder))
       {
         if (auto data = dataBuilder.CaptureResult())
         {
@@ -172,11 +172,11 @@ namespace Module::YMVTX
     }
 
   private:
-    const Formats::Chiptune::YM::Decoder::Ptr Decoder;
+    const Formats::Chiptune::YM::Parser Parse;
   };
 
-  Factory::Ptr CreateFactory(Formats::Chiptune::YM::Decoder::Ptr decoder)
+  Factory::Ptr CreateFactory(Formats::Chiptune::YM::Parser parse)
   {
-    return MakePtr<Factory>(std::move(decoder));
+    return MakePtr<Factory>(std::move(parse));
   }
 }  // namespace Module::YMVTX

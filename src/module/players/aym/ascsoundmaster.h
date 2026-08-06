@@ -15,5 +15,5 @@
 
 namespace Module::ASCSoundMaster
 {
-  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder);
+  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::ASCSoundMaster::Parser parse);
 }  // namespace Module::ASCSoundMaster

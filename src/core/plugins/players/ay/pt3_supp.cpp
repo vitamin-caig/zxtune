@@ -23,8 +23,9 @@ namespace ZXTune
                         | Capabilities::Module::Device::TURBOSOUND | Module::AYM::GetSupportedFormatConvertors()
                         | Module::Vortex::GetSupportedFormatConvertors();
 
-    auto decoder = Formats::Chiptune::ProTracker3::CreateDecoder();
-    auto factory = Module::ProTracker3::CreateFactory(decoder);
+    using namespace Formats::Chiptune::ProTracker3;
+    auto decoder = CreateDecoder();
+    auto factory = Module::ProTracker3::CreateFactory(Parse);
     auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
     registrator.RegisterPlugin(std::move(plugin));
   }
@@ -36,8 +37,9 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::AY38910
                         | Module::AYM::GetSupportedFormatConvertors() | Module::Vortex::GetSupportedFormatConvertors();
 
-    auto decoder = Formats::Chiptune::ProTracker3::VortexTracker2::CreateDecoder();
-    auto factory = Module::ProTracker3::CreateFactory(decoder);
+    using namespace Formats::Chiptune::ProTracker3::VortexTracker2;
+    auto decoder = CreateDecoder();
+    auto factory = Module::ProTracker3::CreateFactory(Parse);
     auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
     registrator.RegisterPlugin(std::move(plugin));
   }

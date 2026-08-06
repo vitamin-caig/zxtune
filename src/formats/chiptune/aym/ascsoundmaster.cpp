@@ -1265,11 +1265,6 @@ namespace Formats::Chiptune
         return ASCSoundMaster::Parse(Version, rawData, stub);
       }
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        return ASCSoundMaster::Parse(Version, data, target);
-      }
-
     private:
       const VersionTraits& Version;
       const Binary::Format::Ptr Header;

@@ -110,15 +110,15 @@ namespace Module::TS
   class Factory : public Module::Factory
   {
   public:
-    explicit Factory(Formats::Chiptune::TurboSound::Decoder::Ptr decoder)
-      : Decoder(std::move(decoder))
+    explicit Factory(Formats::Chiptune::TurboSound::Parser parse)
+      : Parse(std::move(parse))
     {}
 
     Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data,
                                      Parameters::Container::Ptr properties) const override
     {
       DataBuilder dataBuilder(params, data);
-      if (const auto container = Decoder->Parse(data, dataBuilder))
+      if (const auto container = Parse(data, dataBuilder))
       {
         if (dataBuilder.HasResult())
         {
@@ -134,7 +134,7 @@ namespace Module::TS
     }
 
   private:
-    const Formats::Chiptune::TurboSound::Decoder::Ptr Decoder;
+    const Formats::Chiptune::TurboSound::Parser Parse;
   };
 }  // namespace Module::TS
 
@@ -146,8 +146,9 @@ namespace ZXTune
     const auto ID = "TS"_id;
     const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::TURBOSOUND;
 
-    auto decoder = Formats::Chiptune::TurboSound::CreateDecoder();
-    auto factory = MakePtr<Module::TS::Factory>(decoder);
+    using namespace Formats::Chiptune::TurboSound;
+    auto decoder = CreateDecoder();
+    auto factory = MakePtr<Module::TS::Factory>(Parse);
     auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
     registrator.RegisterPlugin(std::move(plugin));
   }

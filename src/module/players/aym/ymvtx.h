@@ -15,5 +15,5 @@
 
 namespace Module::YMVTX
 {
-  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::YM::Decoder::Ptr decoder);
+  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::YM::Parser parse);
 }  // namespace Module::YMVTX

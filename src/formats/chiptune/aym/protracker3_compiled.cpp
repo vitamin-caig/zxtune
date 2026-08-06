@@ -940,11 +940,6 @@ namespace Formats::Chiptune
         return Formats::Chiptune::ProTracker3::Parse(rawData, stub);
       }
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        return Formats::Chiptune::ProTracker3::Parse(data, target);
-      }
-
     private:
       const Binary::Format::Ptr Format;
     };

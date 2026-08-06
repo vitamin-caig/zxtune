@@ -17,14 +17,16 @@ namespace ZXTune
   void RegisterTFESupport(PlayerPluginsRegistrator& registrator)
   {
     {
-      auto decoder = Formats::Chiptune::TFMMusicMaker::Ver05::CreateDecoder();
-      auto factory = Module::TFMMusicMaker::CreateFactory(decoder);
+      using namespace Formats::Chiptune::TFMMusicMaker::Ver05;
+      auto decoder = CreateDecoder();
+      auto factory = Module::TFMMusicMaker::CreateFactory(Parse);
       auto plugin = CreateTrackPlayerPlugin("TF0"_id, std::move(decoder), std::move(factory));
       registrator.RegisterPlugin(std::move(plugin));
     }
     {
-      auto decoder = Formats::Chiptune::TFMMusicMaker::Ver13::CreateDecoder();
-      auto factory = Module::TFMMusicMaker::CreateFactory(decoder);
+      using namespace Formats::Chiptune::TFMMusicMaker::Ver13;
+      auto decoder = CreateDecoder();
+      auto factory = Module::TFMMusicMaker::CreateFactory(Parse);
       auto plugin = CreateTrackPlayerPlugin("TFE"_id, std::move(decoder), std::move(factory));
       registrator.RegisterPlugin(std::move(plugin));
     }

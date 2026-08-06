@@ -538,8 +538,8 @@ namespace Module::ASCSoundMaster
   class Factory : public AYM::Factory
   {
   public:
-    explicit Factory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder)
-      : Decoder(std::move(decoder))
+    explicit Factory(Formats::Chiptune::ASCSoundMaster::Parser parse)
+      : Parse(std::move(parse))
     {}
 
     AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
@@ -547,7 +547,7 @@ namespace Module::ASCSoundMaster
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const auto container = Decoder->Parse(rawData, dataBuilder))
+      if (const auto container = Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
         return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
@@ -560,11 +560,11 @@ namespace Module::ASCSoundMaster
     }
 
   private:
-    const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr Decoder;
+    const Formats::Chiptune::ASCSoundMaster::Parser Parse;
   };
 
-  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder)
+  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::ASCSoundMaster::Parser parse)
   {
-    return MakePtr<Factory>(std::move(decoder));
+    return MakePtr<Factory>(std::move(parse));
   }
 }  // namespace Module::ASCSoundMaster

@@ -15,5 +15,5 @@
 
 namespace Module::SoundTracker
 {
-  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder);
+  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::SoundTracker::Parser parse);
 }  // namespace Module::SoundTracker

@@ -17,8 +17,9 @@ namespace ZXTune
 {
   void RegisterST3Support(PlayerPluginsRegistrator& registrator)
   {
-    auto decoder = Formats::Chiptune::SoundTracker::Ver3::CreateDecoder();
-    auto factory = Module::SoundTracker::CreateFactory(decoder);
+    using namespace Formats::Chiptune::SoundTracker::Ver3;
+    auto decoder = CreateDecoder();
+    auto factory = Module::SoundTracker::CreateFactory(Parse);
     auto plugin = CreateTrackPlayerPlugin("ST3"_id, std::move(decoder), std::move(factory));
     registrator.RegisterPlugin(std::move(plugin));
   }

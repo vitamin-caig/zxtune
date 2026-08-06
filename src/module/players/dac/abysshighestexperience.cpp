@@ -253,8 +253,8 @@ namespace Module::AHX
   class Factory : public Module::Factory
   {
   public:
-    explicit Factory(Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr decoder)
-      : Decoder(std::move(decoder))
+    explicit Factory(Formats::Chiptune::AbyssHighestExperience::Parser parse)
+      : Parse(std::move(parse))
     {}
 
     Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
@@ -264,7 +264,7 @@ namespace Module::AHX
       {
         PropertiesHelper props(*properties);
         DataBuilder dataBuilder(props);
-        if (const auto container = Decoder->Parse(rawData, dataBuilder))
+        if (const auto container = Parse(rawData, dataBuilder))
         {
           props.SetSource(*container);
           props.SetPlatform(Platforms::AMIGA);
@@ -281,11 +281,11 @@ namespace Module::AHX
     }
 
   private:
-    const Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr Decoder;
+    const Formats::Chiptune::AbyssHighestExperience::Parser Parse;
   };
 
-  Factory::Ptr CreateFactory(Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr decoder)
+  Factory::Ptr CreateFactory(Formats::Chiptune::AbyssHighestExperience::Parser parse)
   {
-    return MakePtr<Factory>(std::move(decoder));
+    return MakePtr<Factory>(std::move(parse));
   }
 }  // namespace Module::AHX

@@ -50,17 +50,16 @@ namespace Formats::Chiptune
 
     Builder& GetStubBuilder();
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      using Ptr = std::shared_ptr<const Decoder>;
-
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-    };
+    // TODO: cleanup namings
+    Formats::Chiptune::Container::Ptr ParsePacked(const Binary::Container& rawData, Builder& target);
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target);
+    Formats::Chiptune::Container::Ptr ParseVTX(const Binary::Container& rawData, Builder& target);
 
     Decoder::Ptr CreatePackedYMDecoder();
     Decoder::Ptr CreateYMDecoder();
     Decoder::Ptr CreateVTXDecoder();
+
+    using Parser = decltype(&ParsePacked);
   }  // namespace YM
 
   Decoder::Ptr CreatePackedYMDecoder();

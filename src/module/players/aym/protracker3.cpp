@@ -333,8 +333,8 @@ namespace Module::ProTracker3
   class Factory : public Module::Factory
   {
   public:
-    explicit Factory(Formats::Chiptune::ProTracker3::Decoder::Ptr decoder)
-      : Decoder(std::move(decoder))
+    explicit Factory(Formats::Chiptune::ProTracker3::Parser parse)
+      : Parse(std::move(parse))
     {}
 
     Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
@@ -342,7 +342,7 @@ namespace Module::ProTracker3
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const auto container = Decoder->Parse(rawData, dataBuilder))
+      if (const auto container = Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
         auto modData = dataBuilder.CaptureResult();
@@ -364,11 +364,11 @@ namespace Module::ProTracker3
     }
 
   private:
-    const Formats::Chiptune::ProTracker3::Decoder::Ptr Decoder;
+    const Formats::Chiptune::ProTracker3::Parser Parse;
   };
 
-  Factory::Ptr CreateFactory(Formats::Chiptune::ProTracker3::Decoder::Ptr decoder)
+  Factory::Ptr CreateFactory(Formats::Chiptune::ProTracker3::Parser parse)
   {
-    return MakePtr<Factory>(std::move(decoder));
+    return MakePtr<Factory>(std::move(parse));
   }
 }  // namespace Module::ProTracker3

@@ -23,8 +23,9 @@ namespace ZXTune
       const auto ID = "AHX"_id;
       const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
 
-      auto decoder = Formats::Chiptune::AbyssHighestExperience::CreateDecoder();
-      auto factory = Module::AHX::CreateFactory(decoder);
+      using namespace Formats::Chiptune::AbyssHighestExperience;
+      auto decoder = CreateDecoder();
+      auto factory = Module::AHX::CreateFactory(Parse);
       auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
       registrator.RegisterPlugin(std::move(plugin));
     }
@@ -33,8 +34,9 @@ namespace ZXTune
       const auto ID = "HVL"_id;
       const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
 
-      auto decoder = Formats::Chiptune::AbyssHighestExperience::HivelyTracker::CreateDecoder();
-      auto factory = Module::AHX::CreateFactory(decoder);
+      using namespace Formats::Chiptune::AbyssHighestExperience::HivelyTracker;
+      auto decoder = CreateDecoder();
+      auto factory = Module::AHX::CreateFactory(Parse);
       auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
       registrator.RegisterPlugin(std::move(plugin));
     }

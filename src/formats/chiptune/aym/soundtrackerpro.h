@@ -77,18 +77,12 @@ namespace Formats::Chiptune
 
     Builder& GetStubBuilder();
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      using Ptr = std::shared_ptr<const Decoder>;
-
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-    };
-
     Decoder::Ptr CreateCompiledModulesDecoder();
 
     Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
     Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info);
+
+    using Parser = decltype(&ParseCompiled);
   }  // namespace SoundTrackerPro
 
   Decoder::Ptr CreateSoundTrackerProCompiledDecoder();

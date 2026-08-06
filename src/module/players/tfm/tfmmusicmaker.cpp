@@ -1410,8 +1410,8 @@ namespace Module::TFMMusicMaker
   class Factory : public TFM::Factory
   {
   public:
-    explicit Factory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder)
-      : Decoder(std::move(decoder))
+    explicit Factory(Formats::Chiptune::TFMMusicMaker::Parser parse)
+      : Parse(std::move(parse))
     {}
 
     TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
@@ -1419,7 +1419,7 @@ namespace Module::TFMMusicMaker
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const auto container = Decoder->Parse(rawData, dataBuilder))
+      if (const auto container = Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
         props.SetChannels("FM"sv, Devices::TFM::VOICES);
@@ -1432,11 +1432,11 @@ namespace Module::TFMMusicMaker
     }
 
   private:
-    const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr Decoder;
+    const Formats::Chiptune::TFMMusicMaker::Parser Parse;
   };
 
-  TFM::Factory::Ptr CreateFactory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder)
+  TFM::Factory::Ptr CreateFactory(Formats::Chiptune::TFMMusicMaker::Parser parse)
   {
-    return MakePtr<Factory>(std::move(decoder));
+    return MakePtr<Factory>(std::move(parse));
   }
 }  // namespace Module::TFMMusicMaker
