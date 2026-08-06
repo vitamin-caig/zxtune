@@ -1,11 +1,10 @@
 package app.zxtune.fs.provider
 
 import android.database.MatrixCursor
-import android.net.Uri
 import app.zxtune.fs.VfsObject
 
 internal class ResolveOperation(
-    private val uri: Uri,
+    private val query: Query,
     private val resolver: Resolver,
     private val schema: SchemaSource,
     private val callback: AsyncQueryOperation.Callback,
@@ -26,7 +25,7 @@ internal class ResolveOperation(
         }
     }
 
-    private fun maybeResolve() = resolver.resolve(uri) { done: Int, total: Int ->
+    private fun maybeResolve() = resolver.resolve(query.path) { done: Int, total: Int ->
         callback.checkForCancel()
         this.done = done
         this.total = total

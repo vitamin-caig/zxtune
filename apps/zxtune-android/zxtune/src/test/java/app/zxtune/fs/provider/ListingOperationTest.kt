@@ -1,13 +1,27 @@
 package app.zxtune.fs.provider
 
 import android.net.Uri
-import app.zxtune.fs.*
+import app.zxtune.fs.TestDir
+import app.zxtune.fs.TestFile
+import app.zxtune.fs.TestObject
+import app.zxtune.fs.VfsDir
+import app.zxtune.fs.VfsExtensions
+import app.zxtune.fs.VfsFile
+import app.zxtune.fs.VfsObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.clearInvocations
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
@@ -36,8 +50,11 @@ class ListingOperationTest {
     @After
     fun tearDown() = verifyNoMoreInteractions(resolver, schema, callback)
 
+    private val underTest
+        get() = ListingOperation(Query.forListing(uri), resolver, schema, callback)
+
     @Test
-    fun `not resolved`() = with(ListingOperation(uri, resolver, schema, callback)) {
+    fun `not resolved`() = with(underTest) {
         assertEquals(null, call())
         status().run {
             assertEquals(1, count)
@@ -54,7 +71,7 @@ class ListingOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn mock<VfsFile>()
         }
-        with(ListingOperation(uri, resolver, schema, callback)) {
+        with(underTest) {
             assertEquals(null, call())
             status().run {
                 assertEquals(1, count)
@@ -73,7 +90,7 @@ class ListingOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn dir
         }
-        with(ListingOperation(uri, resolver, schema, callback)) {
+        with(underTest) {
             call()!!.run {
                 assertEquals(0, count)
             }
@@ -109,7 +126,7 @@ class ListingOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn dir
         }
-        with(ListingOperation(uri, resolver, schema, callback)) {
+        with(underTest) {
             call()!!.run {
                 assertEquals(4, count)
                 moveToNext()
@@ -158,7 +175,7 @@ class ListingOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn dir
         }
-        with(ListingOperation(uri, resolver, schema, callback)) {
+        with(underTest) {
             call()!!.run {
                 assertEquals(4, count)
                 moveToNext()

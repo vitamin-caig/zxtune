@@ -94,6 +94,6 @@ internal class NotificationsSource @VisibleForTesting constructor(
     }
 
     companion object {
-        private val ROOT_NOTIFICATION_URI = Query.notificationUriFor(Uri.EMPTY)
+        private val ROOT_NOTIFICATION_URI = Query.forNotification(Uri.EMPTY).providerUri
     }
 }

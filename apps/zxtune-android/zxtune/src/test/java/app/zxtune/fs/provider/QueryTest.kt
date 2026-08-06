@@ -1,6 +1,7 @@
 package app.zxtune.fs.provider
 
 import android.net.Uri
+import androidx.core.net.toUri
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Test
@@ -26,120 +27,120 @@ class QueryTest {
     @Test
     fun `test resolve uri`() {
         assertEquals(MIME_GROUP, Query.Type.RESOLVE.mime)
-        Uri.parse("${AUTHORITY}/resolve/${ENCODED_PATH}").let { uri ->
-            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.RESOLVE, Query.getUriType(uri))
-            assertEquals(uri, Query.resolveUriFor(Uri.parse(PATH)))
+        with(Query.parse("${AUTHORITY}/resolve/${ENCODED_PATH}")) {
+            assertEquals(Uri.parse(PATH), path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.RESOLVE, type)
+            assertEquals(this, Query.forResolve(PATH.toUri()))
         }
-        Uri.parse("${AUTHORITY}/resolve").let { uri ->
-            assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.RESOLVE, Query.getUriType(uri))
+        with(Query.parse("${AUTHORITY}/resolve")) {
+            assertEquals(Uri.EMPTY, path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.RESOLVE, type)
         }
     }
 
     @Test
     fun `test listing uri`() {
         assertEquals(MIME_GROUP, Query.Type.LISTING.mime)
-        Uri.parse("${AUTHORITY}/listing/${ENCODED_PATH}").let { uri ->
-            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.LISTING, Query.getUriType(uri))
-            assertEquals(uri, Query.listingUriFor(Uri.parse(PATH)))
+        with(Query.parse("${AUTHORITY}/listing/${ENCODED_PATH}")) {
+            assertEquals(Uri.parse(PATH), path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.LISTING, type)
+            assertEquals(this, Query.forListing(Uri.parse(PATH)))
         }
-        Uri.parse("${AUTHORITY}/listing").let { uri ->
-            assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.LISTING, Query.getUriType(uri))
+        with(Query.parse("${AUTHORITY}/listing")) {
+            assertEquals(Uri.EMPTY, path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.LISTING, type)
         }
     }
 
     @Test
     fun `test feed uri`() {
         assertEquals(MIME_GROUP, Query.Type.FEED.mime)
-        Uri.parse("${AUTHORITY}/feed/${ENCODED_PATH}").let { uri ->
-            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.FEED, Query.getUriType(uri))
-            assertEquals(uri, Query.feedUriFor(Uri.parse(PATH)))
+        with(Query.parse("${AUTHORITY}/feed/${ENCODED_PATH}")) {
+            assertEquals(Uri.parse(PATH), path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.FEED, type)
+            assertEquals(this, Query.forFeed(Uri.parse(PATH)))
         }
-        Uri.parse("${AUTHORITY}/feed").let { uri ->
-            assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.FEED, Query.getUriType(uri))
+        with(Query.parse("${AUTHORITY}/feed")) {
+            assertEquals(Uri.EMPTY, path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.FEED, type)
         }
     }
 
     @Test
     fun `test search uri`() {
         assertEquals(MIME_GROUP, Query.Type.SEARCH.mime)
-        Uri.parse("${AUTHORITY}/search/${ENCODED_PATH}?query=to%20search").let { uri ->
-            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
-            assertEquals(SEARCH_QUERY, Query.getQueryFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.SEARCH, Query.getUriType(uri))
-            assertEquals(uri, Query.searchUriFor(Uri.parse(PATH), SEARCH_QUERY))
+        with(Query.parse("${AUTHORITY}/search/${ENCODED_PATH}?query=to%20search")) {
+            assertEquals(Uri.parse(PATH), path)
+            assertEquals(SEARCH_QUERY, searchQuery)
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.SEARCH, type)
+            assertEquals(this, Query.forSearch(Uri.parse(PATH), SEARCH_QUERY))
         }
-        Uri.parse("${AUTHORITY}/search/${ENCODED_PATH}").let { uri ->
-            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.SEARCH, Query.getUriType(uri))
+        with(Query.parse("${AUTHORITY}/search/${ENCODED_PATH}")) {
+            assertEquals(Uri.parse(PATH), path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.SEARCH, type)
         }
-        Uri.parse("${AUTHORITY}/search").let { uri ->
-            assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.SEARCH, Query.getUriType(uri))
+        with(Query.parse("${AUTHORITY}/search")) {
+            assertEquals(Uri.EMPTY, path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.SEARCH, type)
         }
     }
 
     @Test
     fun `test file uri`() {
         assertEquals(MIME_ITEM, Query.Type.FILE.mime)
-        Uri.parse("${AUTHORITY}/file").let { uri ->
-            assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.FILE, Query.getUriType(uri))
+        with(Query.parse("${AUTHORITY}/file")) {
+            assertEquals(Uri.EMPTY, path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.FILE, type)
         }
-        Uri.parse("${AUTHORITY}/file/${ENCODED_PATH}").let { uri ->
-            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.FILE, Query.getUriType(uri))
+        with(Query.parse("${AUTHORITY}/file/${ENCODED_PATH}")) {
+            assertEquals(Uri.parse(PATH), path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.FILE, type)
         }
-        Uri.parse("${AUTHORITY}/file/${ENCODED_PATH}?size=${FILE_SIZE}").let { uri ->
-            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertEquals(FILE_SIZE, Query.getSizeFrom(uri))
-            assertEquals(Query.Type.FILE, Query.getUriType(uri))
-            assertEquals(uri, Query.fileUriFor(Uri.parse(PATH), FILE_SIZE))
+        with(Query.parse("${AUTHORITY}/file/${ENCODED_PATH}?size=${FILE_SIZE}")) {
+            assertEquals(Uri.parse(PATH), path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertEquals(FILE_SIZE, fileSize)
+            assertEquals(Query.Type.FILE, type)
+            assertEquals(this, Query.forFile(Uri.parse(PATH), FILE_SIZE))
         }
     }
 
     @Test
     fun `test notification uri`() {
         assertEquals(MIME_NOTIFICATION, Query.Type.NOTIFICATION.mime)
-        Uri.parse("${AUTHORITY}/notification/${ENCODED_PATH}").let { uri ->
-            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.NOTIFICATION, Query.getUriType(uri))
-            assertEquals(uri, Query.notificationUriFor(Uri.parse(PATH)))
+        with(Query.parse("${AUTHORITY}/notification/${ENCODED_PATH}")) {
+            assertEquals(Uri.parse(PATH), path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.NOTIFICATION, type)
+            assertEquals(this, Query.forNotification(Uri.parse(PATH)))
         }
-        Uri.parse("${AUTHORITY}/notification").let { uri ->
-            assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
-            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertThrowsIllegalArgumentException { Query.getSizeFrom(uri) }
-            assertEquals(Query.Type.NOTIFICATION, Query.getUriType(uri))
+        with(Query.parse("${AUTHORITY}/notification")) {
+            assertEquals(Uri.EMPTY, path)
+            assertThrowsIllegalArgumentException { searchQuery }
+            assertThrowsIllegalArgumentException { fileSize }
+            assertEquals(Query.Type.NOTIFICATION, type)
         }
     }
 }

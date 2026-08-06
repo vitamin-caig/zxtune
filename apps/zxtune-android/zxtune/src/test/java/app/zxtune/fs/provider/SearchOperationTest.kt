@@ -31,8 +31,11 @@ class SearchOperationTest {
     @After
     fun tearDown() = verifyNoMoreInteractions(resolver, schema, callback)
 
+    private val underTest
+        get() = SearchOperation(Query.forSearch(uri, query), resolver, schema, callback)
+
     @Test
-    fun `no resolved dir`() = with(SearchOperation(uri, resolver, schema, callback, query)) {
+    fun `no resolved dir`() = with(underTest) {
         assertEquals(null, status())
         call().run {
             assertEquals(0, count)
@@ -70,7 +73,7 @@ class SearchOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn rootDir
         }
-        with(SearchOperation(uri, resolver, schema, callback, query)) {
+        with(underTest) {
             assertEquals(null, status())
             call().run {
                 assertEquals(2, count)
@@ -110,7 +113,7 @@ class SearchOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn root
         }
-        with(SearchOperation(uri, resolver, schema, callback, query)) {
+        with(underTest) {
             assertEquals(null, status())
             searchEngine.stub {
                 on { find(any(), any()) } doAnswer {

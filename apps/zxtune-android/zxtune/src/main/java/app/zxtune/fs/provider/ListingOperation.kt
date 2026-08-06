@@ -6,7 +6,7 @@ import app.zxtune.fs.VfsFile
 import app.zxtune.fs.comparator
 
 internal class ListingOperation(
-    private val uri: Uri,
+    private val query: Query,
     private val resolver: Resolver,
     private val schema: SchemaSource,
     private val callback: AsyncQueryOperation.Callback,
@@ -29,7 +29,7 @@ internal class ListingOperation(
         builder.sort(dir.comparator).getResult(schema)
     }
 
-    private fun maybeResolve() = resolver.resolve(uri) as? VfsDir
+    private fun maybeResolve() = resolver.resolve(query.path) as? VfsDir
 
     override fun status() = builder.status
 }
