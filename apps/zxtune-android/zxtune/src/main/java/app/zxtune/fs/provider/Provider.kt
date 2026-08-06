@@ -48,26 +48,26 @@ class Provider @VisibleForTesting internal constructor(
         selectionArgs: Array<String>?,
         sortOrder: String?,
         signal: CancellationSignal?
-    ) = operations[uri]?.status() ?: query(uri, projection, signal)
+    ) = operations[uri]?.status() ?: query(Query.parse(uri), projection, signal)
 
-    private fun query(uri: Uri, projection: Array<String>?, signal: CancellationSignal?) =
+    private fun query(query: Query, projection: Array<String>?, signal: CancellationSignal?) =
         runCatching {
-            when (Query.getUriType(uri)) {
-                Query.Type.NOTIFICATION -> queryNotification(uri)
-                Query.Type.FEED -> queryFeed(uri)
+            when (query.type) {
+                Query.Type.NOTIFICATION -> queryNotification(query)
+                Query.Type.FEED -> queryFeed(query)
                 else -> {
-                    val op = createOperation(uri, projection, makeCallback(uri, signal))
-                    Operation(uri, op).run()
+                    val op = createOperation(query, projection, makeCallback(query.providerUri, signal))
+                    Operation(query.providerUri, op).run()
                 }
             }
         }.recover(StatusBuilder::makeError).getOrNull()
 
-    private fun queryNotification(uri: Uri) = resolver.resolve(Query.getPathFrom(uri))?.let {
+    private fun queryNotification(query: Query) = resolver.resolve(query.path)?.let {
         notifications.getFor(it)
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun queryFeed(uri: Uri) = resolver.resolve(Query.getPathFrom(uri))?.feed?.let { feed ->
+    private fun queryFeed(query: Query) = resolver.resolve(query.path)?.feed?.let { feed ->
         if (feed.hasNext()) {
             ListingCursorBuilder().apply {
                 addFile(feed.next())
@@ -111,22 +111,19 @@ class Provider @VisibleForTesting internal constructor(
     }
 
     private fun createOperation(
-        uri: Uri, projection: Array<String>?, callback: AsyncQueryOperation.Callback
+        query: Query, projection: Array<String>?, callback: AsyncQueryOperation.Callback
     ): AsyncQueryOperation {
-        val path = Query.getPathFrom(uri)
-        return when (Query.getUriType(uri)) {
-            Query.Type.RESOLVE -> ResolveOperation(path, resolver, schema, callback)
-            Query.Type.LISTING -> ListingOperation(path, resolver, schema, callback)
-            Query.Type.SEARCH -> SearchOperation(
-                path, resolver, schema, callback, Query.getQueryFrom(uri)
-            )
+        return when (query.type) {
+            Query.Type.RESOLVE -> ResolveOperation(query, resolver, schema, callback)
+            Query.Type.LISTING -> ListingOperation(query, resolver, schema, callback)
+            Query.Type.SEARCH -> SearchOperation(query, resolver, schema, callback)
 
-            Query.Type.FILE -> FileOperation(path, Query.getSizeFrom(uri), resolver, projection)
-            else -> throw UnsupportedOperationException("Unsupported uri $uri")
+            Query.Type.FILE -> FileOperation(query, resolver, projection)
+            else -> throw UnsupportedOperationException("Unsupported uri ${query.providerUri}")
         }
     }
 
-    override fun getType(uri: Uri) = Query.getUriType(uri)?.mime
+    override fun getType(uri: Uri) = Query.parse(uri).type?.mime
 
     override fun insert(uri: Uri, values: ContentValues?): Uri? = null
 
@@ -137,16 +134,15 @@ class Provider @VisibleForTesting internal constructor(
     ): Int = 0
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
-        require(Query.getUriType(uri) == Query.Type.FILE)
+        val query = Query.parse(uri)
+        require(query.type == Query.Type.FILE)
         require("r" == mode) { "Invalid mode: $mode" }
-        val path = Query.getPathFrom(uri)
-        val size = Query.getSizeFrom(uri)
         return openPipeHelper(
-            path, "application/octet", null, null
+            uri, "application/octet", null, null
         ) { out, _, _, _, _ ->
             runCatching {
                 FileOutputStream(out.fileDescriptor).use {
-                    FileOperation(path, size, resolver, null).consumeContent(it.channel)
+                    FileOperation(query, resolver, null).consumeContent(it.channel)
                 }
             }.onFailure {
                 LOG.w(it) { "Failed to open file for $uri" }

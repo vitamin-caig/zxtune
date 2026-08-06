@@ -13,21 +13,21 @@ import app.zxtune.fs.VfsFile
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.WritableByteChannel
+import java.nio.file.Files.size
 
 internal class FileOperation @VisibleForTesting constructor(
-    uri: Uri,
-    private val size: Long,
+    private val query: Query,
     private val resolver: Resolver,
     projection: Array<String>?,
     private val readData: (VfsFile) -> ByteBuffer,
     private val api: Api,
 ) : AsyncQueryOperation {
 
-    private val id = Identifier(uri)
+    private val id = Identifier(query.path)
     private val columns = projection ?: COLUMNS
 
-    constructor(uri: Uri, size: Long, resolver: Resolver, projection: Array<String>?) : this(
-        uri, size, resolver, projection, Vfs::read, Api.instance()
+    constructor(query: Query, resolver: Resolver, projection: Array<String>?) : this(
+        query, resolver, projection, Vfs::read, Api.instance()
     )
 
     override fun call() = maybeResolve()?.let {
@@ -41,13 +41,14 @@ internal class FileOperation @VisibleForTesting constructor(
     fun consumeContent(out: WritableByteChannel) {
         val file = maybeResolve() ?: throw IOException("Failed to resolve $id")
         val rawData = readData(file)
+        val size = query.fileSize.toInt()
         if (id.subPath.isEmpty()) {
             LOG.d { "Streaming ${size}/${rawData.limit()} bytes from $id" }
-            out.write(rawData.asReadOnlyBuffer().limit(size.toInt()) as ByteBuffer)
+            out.write(rawData.asReadOnlyBuffer().limit(size) as ByteBuffer)
         } else {
             api.loadModuleData(rawData, id.subPath) { moduleData ->
                 LOG.d { "Streaming ${size}/${moduleData.capacity()} unpacked bytes from $id" }
-                out.write(moduleData.asReadOnlyBuffer().limit(size.toInt()) as ByteBuffer)
+                out.write(moduleData.asReadOnlyBuffer().limit(size) as ByteBuffer)
             }
         }
     }
@@ -63,7 +64,7 @@ internal class FileOperation @VisibleForTesting constructor(
                 ++i
             } else if (OpenableColumns.SIZE == col) {
                 cols[i] = OpenableColumns.SIZE
-                values[i] = size
+                values[i] = query.fileSize
                 ++i
             }
         }

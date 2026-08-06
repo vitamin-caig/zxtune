@@ -1,6 +1,7 @@
 package app.zxtune.fs.provider
 
 import android.net.Uri
+import androidx.core.net.toUri
 import app.zxtune.fs.TestDir
 import app.zxtune.fs.TestFile
 import app.zxtune.utils.ProgressCallback
@@ -25,7 +26,7 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class ResolveOperationTest {
 
-    private val URI1 = mock<Uri>()
+    private val URI1 = "schema://host/path".toUri()
     private val resolver = mock<Resolver>()
     private val schema = mock<SchemaSource>()
     private val callback = mock<AsyncQueryOperation.Callback>()
@@ -42,9 +43,11 @@ class ResolveOperationTest {
     @After
     fun tearDown() = verifyNoMoreInteractions(resolver, schema, callback)
 
+    private fun underTest(uri: Uri) = ResolveOperation(Query.forResolve(uri), resolver, schema, callback)
+
     @Test
     fun `not resolved`() {
-        with(ResolveOperation(URI1, resolver, schema, callback)) {
+        with(underTest(URI1)) {
             assertEquals(null, call())
             status().run {
                 assertEquals(1, count)
@@ -71,7 +74,7 @@ class ResolveOperationTest {
         schema.stub {
             on { resolved(any()) } doReturnConsecutively listOf(fileObject, parentObject)
         }
-        with(ResolveOperation(file.uri, resolver, schema, callback)) {
+        with(underTest(file.uri)) {
             requireNotNull(call()).run {
                 assertEquals(2, count)
                 moveToFirst()
@@ -115,7 +118,7 @@ class ResolveOperationTest {
                 dirObject, dirParentObject, dirParentParentObject
             )
         }
-        with(ResolveOperation(dir.uri, resolver, schema, callback)) {
+        with(underTest(dir.uri)) {
             requireNotNull(call()).run {
                 assertEquals(3, count)
                 moveToFirst()

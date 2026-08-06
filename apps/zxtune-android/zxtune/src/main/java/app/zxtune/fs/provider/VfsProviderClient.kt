@@ -33,17 +33,17 @@ class VfsProviderClient(ctx: Context) {
 
     private val resolver = ctx.contentResolver
 
-    suspend fun resolve(uri: Uri, cb: ListingCallback) = fetchListing(Query.resolveUriFor(uri), cb)
+    suspend fun resolve(uri: Uri, cb: ListingCallback) = fetchListing(Query.forResolve(uri), cb)
 
-    suspend fun list(uri: Uri, cb: ListingCallback) = fetchListing(Query.listingUriFor(uri), cb)
+    suspend fun list(uri: Uri, cb: ListingCallback) = fetchListing(Query.forListing(uri), cb)
 
     suspend fun search(uri: Uri, query: String, cb: ListingCallback) = fetchListing(
-        Query.searchUriFor(uri, query), cb
+        Query.forSearch(uri, query), cb
     )
 
     fun feed(uri: Uri) = flow {
         while (true) {
-            resolver.query(Query.feedUriFor(uri)) { cursor ->
+            resolver.query(Query.forFeed(uri).providerUri) { cursor ->
                 cursor.takeIf { it.moveToNext() }?.let {
                     Schema.Object.parse(it) as? Schema.Content.File
                 }
@@ -53,7 +53,8 @@ class VfsProviderClient(ctx: Context) {
         }
     }
 
-    private suspend fun fetchListing(resolverUri: Uri, cb: ListingCallback) = coroutineScope {
+    private suspend fun fetchListing(query : Query, cb: ListingCallback) = coroutineScope {
+        val resolverUri = query.providerUri
         // onChange called in separate thread while main is blocked in primary call
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) = runBlocking {
@@ -77,17 +78,17 @@ class VfsProviderClient(ctx: Context) {
 
     fun observeNotifications(uri: Uri) =
         // For some reason, notifyChange for root uri is not propagated to descendant subscribers
-        resolver.observeChanges(Query.notificationUriFor(Uri.EMPTY)).map {
+        resolver.observeChanges(Query.forNotification(Uri.EMPTY).providerUri).map {
             getNotification(uri)
         }
 
-    suspend fun getNotification(uri: Uri) = resolver.query(Query.notificationUriFor(uri)) {
+    suspend fun getNotification(uri: Uri) = resolver.query(Query.forNotification(uri).providerUri) {
         getNotification(it)
     }
 
     companion object {
         @JvmStatic
-        fun getFileUriFor(uri: Uri, size: Long) = Query.fileUriFor(uri, size)
+        fun getFileUriFor(uri: Uri, size: Long) = Query.forFile(uri, size).providerUri
 
         private fun getListing(cursor: Cursor, cb: ListingCallback) {
             while (cursor.moveToNext()) {

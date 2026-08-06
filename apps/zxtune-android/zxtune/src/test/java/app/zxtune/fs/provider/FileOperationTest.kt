@@ -49,7 +49,13 @@ class FileOperationTest {
     fun tearDown() = verifyNoMoreInteractions(resolver, file, reader, api, result)
 
     private fun underTest(uri: Uri = fullUri, projection: Array<String>? = null) =
-        FileOperation(uri, size, resolver, projection, reader, api)
+        FileOperation(
+            Query.forFile(uri, size),
+            resolver,
+            projection,
+            reader,
+            api
+        )
 
     @Test
     fun `not resolved`() {

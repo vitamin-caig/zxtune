@@ -21,7 +21,7 @@ import app.zxtune.BuildConfig
  * content://app.zxtune.vfs/file/${path}?size=${size} - get information/content of track file
  * content://app.zxtune.vfs/notification/${path} - get path-related notification
  */
-internal object Query {
+internal class Query private constructor(val providerUri: Uri, val type: Type?) {
     enum class Type(val path: String, val mime: String) {
         RESOLVE("resolve", MIME_ITEMS_SET),
 
@@ -36,58 +36,65 @@ internal object Query {
         NOTIFICATION("notification", MIME_NOTIFICATION),
     }
 
-    private const val AUTHORITY = "${BuildConfig.APPLICATION_ID}.vfs"
-    private const val QUERY_PARAM = "query"
-    private const val SIZE_PARAM = "size"
-    private const val ITEM_SUBTYPE = "vnd.$AUTHORITY.item"
-    private const val NOTIFICATION_SUBTYPE = "vnd.$AUTHORITY.notification"
-    private const val MIME_ITEM = "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$ITEM_SUBTYPE"
-    private const val MIME_ITEMS_SET = "${ContentResolver.CURSOR_DIR_BASE_TYPE}/$ITEM_SUBTYPE"
-    private const val MIME_NOTIFICATION =
-        "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$NOTIFICATION_SUBTYPE"
-    private val uriTemplate = UriMatcher(UriMatcher.NO_MATCH).apply {
-        Type.entries.forEach {
-            // Empty path for empty root url
-            addURI(AUTHORITY, it.path, it.ordinal)
-            addURI(AUTHORITY, "${it.path}/*", it.ordinal)
+    companion object {
+        private const val AUTHORITY = "${BuildConfig.APPLICATION_ID}.vfs"
+        private const val QUERY_PARAM = "query"
+        private const val SIZE_PARAM = "size"
+        private const val ITEM_SUBTYPE = "vnd.$AUTHORITY.item"
+        private const val NOTIFICATION_SUBTYPE = "vnd.$AUTHORITY.notification"
+        private const val MIME_ITEM = "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$ITEM_SUBTYPE"
+        private const val MIME_ITEMS_SET = "${ContentResolver.CURSOR_DIR_BASE_TYPE}/$ITEM_SUBTYPE"
+        private const val MIME_NOTIFICATION =
+            "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$NOTIFICATION_SUBTYPE"
+        private val uriTemplate = UriMatcher(UriMatcher.NO_MATCH).apply {
+            Type.entries.forEach {
+                // Empty path for empty root url
+                addURI(AUTHORITY, it.path, it.ordinal)
+                addURI(AUTHORITY, "${it.path}/*", it.ordinal)
+            }
         }
+
+        fun parse(uri: Uri) = Query(uri, Type.entries.getOrNull(uriTemplate.match(uri)))
+        fun parse(uri: String) = parse(uri.toUri())
+
+        fun forResolve(uri: Uri) = makeSimple(Type.RESOLVE, uri)
+
+        fun forListing(uri: Uri) = makeSimple(Type.LISTING, uri)
+
+        fun forFeed(uri: Uri) = makeSimple(Type.FEED, uri)
+
+        fun forSearch(uri: Uri, query: String) =
+            makeComplex(Type.SEARCH, uri) { appendQueryParameter(QUERY_PARAM, query) }
+
+        fun forFile(uri: Uri, size: Long) =
+            makeComplex(Type.FILE, uri) { appendQueryParameter(SIZE_PARAM, size.toString()) }
+
+        fun forNotification(uri: Uri) = makeSimple(Type.NOTIFICATION, uri)
+
+        private fun makeUri(type: Type, uri: Uri) =
+            Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
+                .encodedPath(type.path).appendPath(uri.toString())
+
+        private fun makeSimple(type: Type, uri: Uri) = Query(makeUri(type, uri).build(), type)
+
+        private fun makeComplex(type: Type, uri: Uri, patch: Uri.Builder.() -> Unit) =
+            Query(makeUri(type, uri).apply(patch).build(), type)
     }
 
-    fun getUriType(uri: Uri) = Type.entries.getOrNull(uriTemplate.match(uri))
+    val path: Uri
+        get() = when (type) {
+            Type.RESOLVE, Type.LISTING, Type.FEED, Type.SEARCH, Type.FILE, Type.NOTIFICATION -> providerUri.pathSegments.getOrNull(
+                1
+            )?.toUri() ?: Uri.EMPTY
 
-    fun getPathFrom(uri: Uri): Uri = when (getUriType(uri)) {
-        Type.RESOLVE, Type.LISTING, Type.FEED, Type.SEARCH, Type.FILE, Type.NOTIFICATION -> uri.pathSegments.getOrNull(
-            1
-        )?.toUri() ?: Uri.EMPTY
+            else -> throw IllegalArgumentException("Wrong URI: $providerUri")
+        }
 
-        else -> throw IllegalArgumentException("Wrong URI: $uri")
-    }
+    val searchQuery
+        get() = providerUri.takeIf { type == Type.SEARCH }?.getQueryParameter(QUERY_PARAM)
+            ?: throw IllegalArgumentException("Wrong search URI: $providerUri")
 
-    fun getQueryFrom(uri: Uri) =
-        uri.takeIf { getUriType(uri) == Type.SEARCH }?.getQueryParameter(QUERY_PARAM)
-            ?: throw IllegalArgumentException("Wrong search URI: $uri")
-
-    fun getSizeFrom(uri: Uri) =
-        uri.takeIf { getUriType(uri) == Type.FILE }?.getQueryParameter(SIZE_PARAM)?.toLongOrNull()
-            ?: throw IllegalArgumentException("Wrong file URI: $uri")
-
-    fun resolveUriFor(uri: Uri) = makeSimpleUri(Type.RESOLVE, uri)
-
-    fun listingUriFor(uri: Uri) = makeSimpleUri(Type.LISTING, uri)
-
-    fun feedUriFor(uri: Uri) = makeSimpleUri(Type.FEED, uri)
-
-    fun searchUriFor(uri: Uri, query: String): Uri =
-        makeUri(Type.SEARCH, uri).appendQueryParameter(QUERY_PARAM, query).build()
-
-    fun fileUriFor(uri: Uri, size: Long): Uri =
-        makeUri(Type.FILE, uri).appendQueryParameter(SIZE_PARAM, size.toString()).build()
-
-    fun notificationUriFor(uri: Uri) = makeSimpleUri(Type.NOTIFICATION, uri)
-
-    private fun makeUri(type: Type, uri: Uri) =
-        Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
-            .encodedPath(type.path).appendPath(uri.toString())
-
-    private fun makeSimpleUri(type: Type, uri: Uri): Uri = makeUri(type, uri).build()
+    val fileSize
+        get() = providerUri.takeIf { type == Type.FILE }?.getQueryParameter(SIZE_PARAM)
+            ?.toLongOrNull() ?: throw IllegalArgumentException("Wrong file URI: $providerUri")
 }
