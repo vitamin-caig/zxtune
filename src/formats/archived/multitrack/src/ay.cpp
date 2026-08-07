@@ -66,8 +66,8 @@ namespace Formats::Archived
       {
         for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
         {
-          const auto builder = Formats::Chiptune::AY::CreateFileBuilder();
-          if (const auto parsed = Formats::Chiptune::AY::Parse(*Delegate, idx, *builder))
+          const auto builder = Chiptune::AY::CreateFileBuilder();
+          if (const auto parsed = Chiptune::AY::Parse(*Delegate, idx, *builder))
           {
             const auto& subPath = MultitrackArchives::CreateFilename(idx);
             auto subData = builder->Result();
@@ -86,14 +86,14 @@ namespace Formats::Archived
           return {};
         }
         const uint_t index = rawName.IsValid() ? rawName.GetIndex() : *ayIndex;
-        const uint_t subModules = Formats::Chiptune::AY::GetModulesCount(*Delegate);
+        const uint_t subModules = Chiptune::AY::GetModulesCount(*Delegate);
         if (subModules < index)
         {
           return {};
         }
-        const auto builder = rawName.IsValid() ? Formats::Chiptune::AY::CreateMemoryDumpBuilder()
-                                               : Formats::Chiptune::AY::CreateFileBuilder();
-        if (!Formats::Chiptune::AY::Parse(*Delegate, index, *builder))
+        const auto builder = rawName.IsValid() ? Chiptune::AY::CreateMemoryDumpBuilder()
+                                               : Chiptune::AY::CreateFileBuilder();
+        if (!Chiptune::AY::Parse(*Delegate, index, *builder))
         {
           return {};
         }
@@ -103,7 +103,7 @@ namespace Formats::Archived
 
       uint_t CountFiles() const override
       {
-        return Formats::Chiptune::AY::GetModulesCount(*Delegate);
+        return Chiptune::AY::GetModulesCount(*Delegate);
       }
     };
 
@@ -112,58 +112,54 @@ namespace Formats::Archived
         "'Z'X'A'Y"  // uint8_t Signature[4];
         "'E'M'U'L"  // only one type is supported now
         ""sv;
-  }  // namespace MultiAY
 
-  class MultiAYDecoder : public Decoder
-  {
-  public:
-    MultiAYDecoder()
-      : Format(Binary::CreateFormat(MultiAY::HEADER_FORMAT))
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Archived::Decoder
     {
-      return MultiAY::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Format;
-    }
-
-    Container::Ptr Decode(const Binary::Container& rawData) const override
-    {
-      const uint_t subModules = Formats::Chiptune::AY::GetModulesCount(rawData);
-      if (subModules < 2)
+    public:
+      StringView GetDescription() const override
       {
-        return {};
+        return DESCRIPTION;
       }
-      auto& stub = Formats::Chiptune::AY::GetStubBuilder();
-      std::size_t maxSize = 0;
-      for (uint_t idx = subModules; idx; --idx)
+
+      Binary::Format::Ptr GetFormat() const override
       {
-        if (auto ayData = Formats::Chiptune::AY::Parse(rawData, idx - 1, stub))
+        return Format;
+      }
+
+      Container::Ptr Decode(const Binary::Container& rawData) const override
+      {
+        const uint_t subModules = Chiptune::AY::GetModulesCount(rawData);
+        if (subModules < 2)
         {
-          maxSize = std::max(maxSize, ayData->Size());
+          return {};
+        }
+        auto& stub = Chiptune::AY::GetStubBuilder();
+        std::size_t maxSize = 0;
+        for (uint_t idx = subModules; idx; --idx)
+        {
+          if (auto ayData = Chiptune::AY::Parse(rawData, idx - 1, stub))
+          {
+            maxSize = std::max(maxSize, ayData->Size());
+          }
+        }
+        if (maxSize)
+        {
+          auto ayData = rawData.GetSubcontainer(0, maxSize);
+          return MakePtr<Container>(std::move(ayData));
+        }
+        else
+        {
+          return {};
         }
       }
-      if (maxSize)
-      {
-        auto ayData = rawData.GetSubcontainer(0, maxSize);
-        return MakePtr<MultiAY::Container>(std::move(ayData));
-      }
-      else
-      {
-        return {};
-      }
-    }
 
-  private:
-    const Binary::Format::Ptr Format;
-  };
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(HEADER_FORMAT);
+    };
+  }  // namespace MultiAY
 
   Decoder::Ptr CreateAYDecoder()
   {
-    return MakePtr<MultiAYDecoder>();
+    return MakePtr<MultiAY::Decoder>();
   }
 }  // namespace Formats::Archived

@@ -1,6 +1,6 @@
 library_name := formats_archived_multitrack
 dirs.root := ../../../..
-source_dirs = .
+source_dirs = src
 
 include $(dirs.root)/make/default.mak
 
