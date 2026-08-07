@@ -12,7 +12,7 @@
 
 #include "string_type.h"
 
-namespace TRDos
+namespace Formats::Archived::TRDos
 {
   String GetEntryName(const char (&name)[8], const char (&type)[3]);
 }

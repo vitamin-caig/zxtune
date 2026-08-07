@@ -8,11 +8,12 @@
  *
  **/
 
-#include "formats/archived/trdos_catalogue.h"
-#include "formats/archived/trdos_utils.h"
+#include "formats/archived/trdos/catalogue.h"
+#include "formats/archived/trdos/utils.h"
 
 #include "binary/format_factories.h"
 #include "debug/log.h"
+#include "formats/archived/decoder.h"
 
 #include "byteorder.h"
 #include "make_ptr.h"
@@ -133,37 +134,33 @@ namespace Formats::Archived
       builder->SetRawData(rawData.GetSubcontainer(0, offset));
       return builder->GetResult();
     }
+
+    class Decoder : public Archived::Decoder
+    {
+    public:
+      StringView GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
+
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return Format;
+      }
+
+      Container::Ptr Decode(const Binary::Container& data) const override
+      {
+        // implies FastCheck
+        return ParseArchive(data);
+      }
+
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(FORMAT, MIN_SIZE);
+    };
   }  // namespace SCL
-
-  class SCLDecoder : public Decoder
-  {
-  public:
-    SCLDecoder()
-      : Format(Binary::CreateFormat(SCL::FORMAT, SCL::MIN_SIZE))
-    {}
-
-    StringView GetDescription() const override
-    {
-      return SCL::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Format;
-    }
-
-    Container::Ptr Decode(const Binary::Container& data) const override
-    {
-      // implies SCL::FastCheck
-      return SCL::ParseArchive(data);
-    }
-
-  private:
-    const Binary::Format::Ptr Format;
-  };
 
   Decoder::Ptr CreateSCLDecoder()
   {
-    return MakePtr<SCLDecoder>();
+    return MakePtr<SCL::Decoder>();
   }
 }  // namespace Formats::Archived

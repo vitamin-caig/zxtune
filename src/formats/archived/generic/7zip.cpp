@@ -12,7 +12,7 @@
 #include "binary/container_factories.h"
 #include "binary/format_factories.h"
 #include "debug/log.h"
-#include "formats/archived.h"
+#include "formats/archived/decoder.h"
 #include "strings/encoding.h"
 #include "strings/map.h"
 
@@ -330,64 +330,60 @@ namespace Formats::Archived
       std::vector<File::Ptr> Files;
       Strings::ValueMap<File::Ptr> Lookup;
     };
-  }  // namespace SevenZip
 
-  class SevenZipDecoder : public Decoder
-  {
-  public:
-    SevenZipDecoder()
-      : Format(Binary::CreateFormat(SevenZip::FORMAT, SevenZip::MIN_SIZE))
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Archived::Decoder
     {
-      return SevenZip::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Format;
-    }
-
-    Container::Ptr Decode(const Binary::Container& rawData) const override
-    {
-      const Binary::View data(rawData);
-      if (!Format->Match(data))
+    public:
+      StringView GetDescription() const override
       {
-        return {};
+        return DESCRIPTION;
       }
-      const auto& hdr = *data.As<SevenZip::Header>();
-      const std::size_t totalSize = sizeof(hdr) + hdr.NextHeaderOffset + hdr.NextHeaderSize;
-      auto archiveData = rawData.GetSubcontainer(0, totalSize);
 
-      try
+      Binary::Format::Ptr GetFormat() const override
       {
-        const SevenZip::Archive::Ptr archive = MakePtr<SevenZip::Archive>(archiveData);
-        const auto totalFiles = archive->GetFilesCount();
-        std::vector<File::Ptr> files;
-        files.reserve(totalFiles);
-        for (uint_t idx = 0; idx < totalFiles; ++idx)
+        return Format;
+      }
+
+      Container::Ptr Decode(const Binary::Container& rawData) const override
+      {
+        const Binary::View data(rawData);
+        if (!Format->Match(data))
         {
-          if (archive->IsDir(idx) || 0 == archive->GetFileSize(idx))
-          {
-            continue;
-          }
-          files.emplace_back(MakePtr<SevenZip::File>(archive, idx));
+          return {};
         }
-        return MakePtr<SevenZip::Container>(std::move(archiveData), std::move(files));
-      }
-      catch (const std::exception&)
-      {
-        return {};
-      }
-    }
+        const auto& hdr = *data.As<SevenZip::Header>();
+        const std::size_t totalSize = sizeof(hdr) + hdr.NextHeaderOffset + hdr.NextHeaderSize;
+        auto archiveData = rawData.GetSubcontainer(0, totalSize);
 
-  private:
-    const Binary::Format::Ptr Format;
-  };
+        try
+        {
+          const auto archive = MakePtr<Archive>(archiveData);
+          const auto totalFiles = archive->GetFilesCount();
+          std::vector<File::Ptr> files;
+          files.reserve(totalFiles);
+          for (uint_t idx = 0; idx < totalFiles; ++idx)
+          {
+            if (archive->IsDir(idx) || 0 == archive->GetFileSize(idx))
+            {
+              continue;
+            }
+            files.emplace_back(MakePtr<File>(archive, idx));
+          }
+          return MakePtr<Container>(std::move(archiveData), std::move(files));
+        }
+        catch (const std::exception&)
+        {
+          return {};
+        }
+      }
+
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(FORMAT, MIN_SIZE);
+    };
+  }  // namespace SevenZip
 
   Decoder::Ptr Create7zipDecoder()
   {
-    return MakePtr<SevenZipDecoder>();
+    return MakePtr<SevenZip::Decoder>();
   }
 }  // namespace Formats::Archived

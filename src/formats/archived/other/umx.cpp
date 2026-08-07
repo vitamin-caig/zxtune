@@ -9,12 +9,11 @@
  *
  **/
 
-#include "formats/archived/decoders.h"
-
 #include "binary/container_base.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
+#include "formats/archived/decoder.h"
 #include "strings/casing.h"
 #include "strings/map.h"
 
@@ -270,10 +269,10 @@ namespace Formats::Archived
       std::size_t MaxUsedSize = 0;
     };
 
-    class Format
+    class Parser
     {
     public:
-      explicit Format(const Binary::Container& data)
+      explicit Parser(const Binary::Container& data)
         : Data(data)
         , Header(*safe_ptr_cast<const RawHeader*>(data.Start()))
         , UsedSize(sizeof(Header))
@@ -518,56 +517,52 @@ namespace Formats::Archived
     private:
       NamedDataMap Files;
     };
-  }  // namespace UMX
 
-  class UMXDecoder : public Decoder
-  {
-  public:
-    UMXDecoder()
-      : Format(Binary::CreateFormat(UMX::FORMAT))
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Archived::Decoder
     {
-      return UMX::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Format;
-    }
-
-    Container::Ptr Decode(const Binary::Container& data) const override
-    {
-      if (!Format->Match(data))
+    public:
+      StringView GetDescription() const override
       {
+        return DESCRIPTION;
+      }
+
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return Format;
+      }
+
+      Container::Ptr Decode(const Binary::Container& data) const override
+      {
+        if (!Format->Match(data))
+        {
+          return {};
+        }
+        const Parser format(data);
+        NamedDataMap datas;
+        for (uint_t idx = 0, lim = format.GetEntriesCount(); idx != lim; ++idx)
+        {
+          if (auto data = format.GetEntryData(idx))
+          {
+            const auto& name = format.GetEntryName(idx);
+            datas.emplace(name, std::move(data));
+          }
+        }
+        if (!datas.empty())
+        {
+          auto archive = data.GetSubcontainer(0, format.GetUsedSize());
+          return MakePtr<Container>(std::move(archive), std::move(datas));
+        }
+        UMX::Dbg("No files found");
         return {};
       }
-      const UMX::Format format(data);
-      UMX::NamedDataMap datas;
-      for (uint_t idx = 0, lim = format.GetEntriesCount(); idx != lim; ++idx)
-      {
-        if (auto data = format.GetEntryData(idx))
-        {
-          const auto& name = format.GetEntryName(idx);
-          datas.emplace(name, std::move(data));
-        }
-      }
-      if (!datas.empty())
-      {
-        auto archive = data.GetSubcontainer(0, format.GetUsedSize());
-        return MakePtr<UMX::Container>(std::move(archive), std::move(datas));
-      }
-      UMX::Dbg("No files found");
-      return {};
-    }
 
-  private:
-    const Binary::Format::Ptr Format;
-  };
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(FORMAT);
+    };
+  }  // namespace UMX
 
   Decoder::Ptr CreateUMXDecoder()
   {
-    return MakePtr<UMXDecoder>();
+    return MakePtr<UMX::Decoder>();
   }
 }  // namespace Formats::Archived

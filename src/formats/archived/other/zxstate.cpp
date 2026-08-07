@@ -8,7 +8,7 @@
  *
  **/
 
-#include "formats/archived/zxstate_supp.h"
+#include "formats/archived/other/zxstate.h"
 
 #include "binary/compression/zlib.h"
 #include "binary/container_base.h"
@@ -17,7 +17,7 @@
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
-#include "formats/archived.h"
+#include "formats/archived/decoder.h"
 #include "strings/format.h"
 #include "strings/map.h"
 
@@ -705,52 +705,47 @@ namespace Formats::Archived
     private:
       const NamedBlocksMap Blocks;
     };
-  }  // namespace ZXState
 
-  class ZXStateDecoder : public Decoder
-  {
-  public:
-    ZXStateDecoder()
-      : Format(Binary::CreateFormat(ZXState::FORMAT))
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Archived::Decoder
     {
-      return ZXState::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Format;
-    }
-
-    Container::Ptr Decode(const Binary::Container& data) const override
-    {
-      using namespace ZXState;
-      if (!Format->Match(data))
+    public:
+      StringView GetDescription() const override
       {
+        return DESCRIPTION;
+      }
+
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return Format;
+      }
+
+      Container::Ptr Decode(const Binary::Container& data) const override
+      {
+        if (!Format->Match(data))
+        {
+          return {};
+        }
+        const ChunksSet chunks(data);
+        FilledBlocks blocks;
+        if (const std::size_t size = chunks.Parse(blocks))
+        {
+          if (!blocks.empty())
+          {
+            auto archive = data.GetSubcontainer(0, size);
+            return MakePtr<Container>(std::move(archive), blocks);
+          }
+          Dbg("No files found");
+        }
         return {};
       }
-      const ChunksSet chunks(data);
-      FilledBlocks blocks;
-      if (const std::size_t size = chunks.Parse(blocks))
-      {
-        if (!blocks.empty())
-        {
-          auto archive = data.GetSubcontainer(0, size);
-          return MakePtr<ZXState::Container>(std::move(archive), blocks);
-        }
-        Dbg("No files found");
-      }
-      return {};
-    }
 
-  private:
-    const Binary::Format::Ptr Format;
-  };
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(FORMAT);
+    };
+  }  // namespace ZXState
 
   Decoder::Ptr CreateZXStateDecoder()
   {
-    return MakePtr<ZXStateDecoder>();
+    return MakePtr<ZXState::Decoder>();
   }
 }  // namespace Formats::Archived

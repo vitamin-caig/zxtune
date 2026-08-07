@@ -8,7 +8,7 @@
  *
  **/
 
-#include "formats/archived/trdos_catalogue.h"
+#include "formats/archived/trdos/catalogue.h"
 
 #include "binary/container_base.h"
 #include "binary/container_factories.h"
@@ -24,7 +24,7 @@
 #include <numeric>
 #include <utility>
 
-namespace TRDos
+namespace Formats::Archived::TRDos
 {
   bool AreFilesMergeable(const File& lh, const File& rh)
   {
@@ -144,7 +144,7 @@ namespace TRDos
     unsigned Idx = 1;
   };
 
-  class CommonCatalogue : public Binary::BaseContainer<Formats::Archived::Container>
+  class CommonCatalogue : public Binary::BaseContainer<Container>
   {
   public:
     template<class T>
@@ -153,7 +153,7 @@ namespace TRDos
       , Files(from, to)
     {}
 
-    void ExploreFiles(const Formats::Archived::Container::Walker& walker) const override
+    void ExploreFiles(const Container::Walker& walker) const override
     {
       for (const auto& file : Files)
       {
@@ -161,7 +161,7 @@ namespace TRDos
       }
     }
 
-    Formats::Archived::File::Ptr FindFile(StringView name) const override
+    Archived::File::Ptr FindFile(StringView name) const override
     {
       for (const auto& file : Files)
       {
@@ -204,7 +204,7 @@ namespace TRDos
       }
     }
 
-    Formats::Archived::Container::Ptr GetResult() const override
+    Container::Ptr GetResult() const override
     {
       if (Data && !Files.empty())
       {
@@ -484,4 +484,4 @@ namespace TRDos
   {
     return MakePtr<FlatCatalogueBuilder>();
   }
-}  // namespace TRDos
+}  // namespace Formats::Archived::TRDos

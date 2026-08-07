@@ -8,14 +8,14 @@
  *
  **/
 
-#include "formats/archived/rar.h"
+#include "formats/archived/generic/rar.h"
 
 #include "binary/container_base.h"
 #include "binary/data_builder.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
-#include "formats/archived.h"
+#include "formats/archived/decoder.h"
 #include "math/numeric.h"
 #include "strings/encoding.h"
 #include "tools/xrange.h"
@@ -421,44 +421,40 @@ namespace Formats::Archived
         "73"           // uint8_t Type;
         "%0xxxxxxx ?"  // uint16_t Flags; - no encrypted headers
         ""sv;
-  }  // namespace Rar
 
-  class RarDecoder : public Decoder
-  {
-  public:
-    RarDecoder()
-      : Format(Binary::CreateFormat(Rar::FORMAT))
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Archived::Decoder
     {
-      return Rar::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Format;
-    }
-
-    Container::Ptr Decode(const Binary::Container& data) const override
-    {
-      if (!Format->Match(data))
+    public:
+      StringView GetDescription() const override
       {
-        return {};
+        return DESCRIPTION;
       }
 
-      Binary::InputStream input(data);
-      std::vector<Rar::FileReference> files;
-      Rar::ParseFiles(input, [&files](const auto& hdr, auto payload) { files.emplace_back(hdr, payload); });
-      return MakePtr<Rar::Container>(input.GetReadContainer(), std::move(files));
-    }
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return Format;
+      }
 
-  private:
-    const Binary::Format::Ptr Format;
-  };
+      Container::Ptr Decode(const Binary::Container& data) const override
+      {
+        if (!Format->Match(data))
+        {
+          return {};
+        }
+
+        Binary::InputStream input(data);
+        std::vector<FileReference> files;
+        ParseFiles(input, [&files](const auto& hdr, auto payload) { files.emplace_back(hdr, payload); });
+        return MakePtr<Container>(input.GetReadContainer(), std::move(files));
+      }
+
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(FORMAT);
+    };
+  }  // namespace Rar
 
   Decoder::Ptr CreateRarDecoder()
   {
-    return MakePtr<RarDecoder>();
+    return MakePtr<Rar::Decoder>();
   }
 }  // namespace Formats::Archived

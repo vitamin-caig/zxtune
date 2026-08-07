@@ -10,11 +10,11 @@
 
 #include "formats/chiptune/emulation/ay.h"
 
-#include "formats/archived/decoders.h"
 #include "formats/archived/multitrack/filename.h"
 
 #include "binary/container_base.h"
 #include "binary/format_factories.h"
+#include "formats/archived/decoders.h"
 #include "strings/prefixed_index.h"
 
 #include "make_ptr.h"

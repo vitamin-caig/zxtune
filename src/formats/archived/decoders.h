@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "formats/archived.h"
+#include "formats/archived/decoder.h"
 
 namespace Formats::Archived
 {

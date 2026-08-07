@@ -14,7 +14,7 @@
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
-#include "formats/archived.h"
+#include "formats/archived/decoder.h"
 #include "strings/encoding.h"
 #include "strings/map.h"
 
@@ -226,58 +226,53 @@ namespace Formats::Archived
     private:
       Strings::ValueMap<File::Ptr> Files;
     };
-  }  // namespace Lha
 
-  class LhaDecoder : public Decoder
-  {
-  public:
-    LhaDecoder()
-      : Format(Binary::CreateFormat(Lha::FORMAT))
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Archived::Decoder
     {
-      return Lha::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Format;
-    }
-
-    Container::Ptr Decode(const Binary::Container& data) const override
-    {
-      if (!Format->Match(data))
+    public:
+      StringView GetDescription() const override
       {
-        return {};
+        return DESCRIPTION;
       }
-      Lha::FilesIterator iter(data);
-      std::list<File::Ptr> files;
-      for (; iter.IsValid(); iter.Next())
+
+      Binary::Format::Ptr GetFormat() const override
       {
-        if (!iter.IsDir() && !iter.IsEmpty())
+        return Format;
+      }
+
+      Container::Ptr Decode(const Binary::Container& data) const override
+      {
+        if (!Format->Match(data))
         {
-          const File::Ptr file = iter.GetFile();
-          files.push_back(file);
+          return {};
+        }
+        FilesIterator iter(data);
+        std::list<File::Ptr> files;
+        for (; iter.IsValid(); iter.Next())
+        {
+          if (!iter.IsDir() && !iter.IsEmpty())
+          {
+            files.emplace_back(iter.GetFile());
+          }
+        }
+        if (const std::size_t totalSize = iter.GetOffset())
+        {
+          auto archive = data.GetSubcontainer(0, totalSize);
+          return MakePtr<Container>(std::move(archive), files.begin(), files.end());
+        }
+        else
+        {
+          return {};
         }
       }
-      if (const std::size_t totalSize = iter.GetOffset())
-      {
-        auto archive = data.GetSubcontainer(0, totalSize);
-        return MakePtr<Lha::Container>(std::move(archive), files.begin(), files.end());
-      }
-      else
-      {
-        return {};
-      }
-    }
 
-  private:
-    const Binary::Format::Ptr Format;
-  };
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(FORMAT);
+    };
+  }  // namespace Lha
 
   Decoder::Ptr CreateLhaDecoder()
   {
-    return MakePtr<LhaDecoder>();
+    return MakePtr<Lha::Decoder>();
   }
 }  // namespace Formats::Archived

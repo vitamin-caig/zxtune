@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "formats/archived.h"
+#include "formats/archived/container.h"
 
 #include "string_view.h"
 #include "types.h"
 
-namespace TRDos
+namespace Formats::Archived::TRDos
 {
-  class File : public Formats::Archived::File
+  class File : public Archived::File
   {
   public:
     using Ptr = std::shared_ptr<const File>;
@@ -37,9 +37,9 @@ namespace TRDos
     virtual void SetRawData(Binary::Container::Ptr data) = 0;
     virtual void AddFile(File::Ptr file) = 0;
 
-    virtual Formats::Archived::Container::Ptr GetResult() const = 0;
+    virtual Container::Ptr GetResult() const = 0;
 
     static Ptr CreateGeneric();
     static Ptr CreateFlat();
   };
-}  // namespace TRDos
+}  // namespace Formats::Archived::TRDos

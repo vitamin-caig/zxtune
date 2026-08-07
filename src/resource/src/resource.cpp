@@ -8,11 +8,11 @@
  *
  **/
 
-#include "formats/archived/decoders.h"
 #include "io/providers/file_provider.h"
 
 #include "binary/container_factories.h"
 #include "debug/log.h"
+#include "formats/archived/decoders.h"
 #include "l10n/api.h"
 #include "platform/tools.h"
 #include "resource/api.h"

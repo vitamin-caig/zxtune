@@ -8,7 +8,7 @@
  *
  **/
 
-#include "formats/archived/trdos_utils.h"
+#include "formats/archived/trdos/utils.h"
 
 #include "strings/encoding.h"
 #include "strings/optimize.h"
@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-namespace TRDos
+namespace Formats::Archived::TRDos
 {
   String GetEntryName(const char (&name)[8], const char (&type)[3])
   {
@@ -35,4 +35,4 @@ namespace TRDos
     }
     return Strings::ToAutoUtf8(fname);
   }
-}  // namespace TRDos
+}  // namespace Formats::Archived::TRDos

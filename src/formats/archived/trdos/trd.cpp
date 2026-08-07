@@ -8,11 +8,12 @@
  *
  **/
 
-#include "formats/archived/trdos_catalogue.h"
-#include "formats/archived/trdos_utils.h"
+#include "formats/archived/trdos/catalogue.h"
+#include "formats/archived/trdos/utils.h"
 
 #include "binary/format_factories.h"
 #include "debug/log.h"
+#include "formats/archived/decoder.h"
 #include "tools/range_checker.h"
 
 #include "byteorder.h"
@@ -224,48 +225,44 @@ namespace Formats::Archived
     private:
       TRDos::CatalogueBuilder& Builder;
     };
-  }  // namespace TRD
 
-  class TRDDecoder : public Decoder
-  {
-  public:
-    TRDDecoder()
-      : Format(Binary::CreateFormat(TRD::FORMAT, TRD::MIN_SIZE))
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Archived::Decoder
     {
-      return TRD::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Format;
-    }
-
-    Container::Ptr Decode(const Binary::Container& rawData) const override
-    {
-      const Binary::View data(rawData);
-      if (!Format->Match(data))
+    public:
+      StringView GetDescription() const override
       {
+        return DESCRIPTION;
+      }
+
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return Format;
+      }
+
+      Container::Ptr Decode(const Binary::Container& rawData) const override
+      {
+        const Binary::View data(rawData);
+        if (!Format->Match(data))
+        {
+          return {};
+        }
+        const auto builder = TRDos::CatalogueBuilder::CreateFlat();
+        BuildVisitorAdapter visitor(*builder);
+        if (const std::size_t size = Parse(data, visitor))
+        {
+          builder->SetRawData(rawData.GetSubcontainer(0, size));
+          return builder->GetResult();
+        }
         return {};
       }
-      const auto builder = TRDos::CatalogueBuilder::CreateFlat();
-      TRD::BuildVisitorAdapter visitor(*builder);
-      if (const std::size_t size = TRD::Parse(data, visitor))
-      {
-        builder->SetRawData(rawData.GetSubcontainer(0, size));
-        return builder->GetResult();
-      }
-      return {};
-    }
 
-  private:
-    const Binary::Format::Ptr Format;
-  };
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(FORMAT, MIN_SIZE);
+    };
+  }  // namespace TRD
 
   Decoder::Ptr CreateTRDDecoder()
   {
-    return MakePtr<TRDDecoder>();
+    return MakePtr<TRD::Decoder>();
   }
 }  // namespace Formats::Archived

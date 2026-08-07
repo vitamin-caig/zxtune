@@ -8,11 +8,12 @@
  *
  **/
 
-#include "formats/archived/trdos_catalogue.h"
-#include "formats/archived/trdos_utils.h"
+#include "formats/archived/trdos/catalogue.h"
+#include "formats/archived/trdos/utils.h"
 #include "formats/packed/decoders.h"
 
 #include "binary/format_factories.h"
+#include "formats/archived/decoder.h"
 
 #include "byteorder.h"
 #include "make_ptr.h"
@@ -147,19 +148,19 @@ namespace Formats::Archived
       {
         return {};
       }
-      const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
-      const Formats::Packed::Decoder::Ptr decoder = Packed::CreateHrust23Decoder();
+      const auto builder = TRDos::CatalogueBuilder::CreateGeneric();
+      const auto decoder = Packed::CreateHrust23Decoder();
       for (std::size_t rawOffset = sizeof(Header), flatOffset = 0, fileNum = 0; fileNum < files; ++fileNum)
       {
         const std::size_t sourceSize = std::min(MAX_MODULE_SIZE, availSize - rawOffset);
-        const Binary::Container::Ptr source = data.GetSubcontainer(rawOffset, sourceSize);
-        if (const Formats::Packed::Container::Ptr target = decoder->Decode(*source))
+        const auto source = data.GetSubcontainer(rawOffset, sourceSize);
+        if (const auto target = decoder->Decode(*source))
         {
           const String fileName = ExtractFileName(source->Start());
           const std::size_t fileSize = target->Size();
           const std::size_t usedSize = target->PackedSize();
-          const TRDos::File::Ptr file = TRDos::File::Create(target, fileName, flatOffset, fileSize);
-          builder->AddFile(file);
+          auto file = TRDos::File::Create(target, fileName, flatOffset, fileSize);
+          builder->AddFile(std::move(file));
           rawOffset += usedSize;
           flatOffset += fileSize;
         }
@@ -172,37 +173,33 @@ namespace Formats::Archived
       builder->SetRawData(data.GetSubcontainer(0, std::min(archiveSize, availSize)));
       return builder->GetResult();
     }
+
+    class Decoder : public Archived::Decoder
+    {
+    public:
+      StringView GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
+
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return Format;
+      }
+
+      Container::Ptr Decode(const Binary::Container& data) const override
+      {
+        // implies FastCheck
+        return ParseArchive(data);
+      }
+
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(FORMAT);
+    };
   }  // namespace Hrip
-
-  class HripDecoder : public Decoder
-  {
-  public:
-    HripDecoder()
-      : Format(Binary::CreateFormat(Hrip::FORMAT))
-    {}
-
-    StringView GetDescription() const override
-    {
-      return Hrip::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Format;
-    }
-
-    Container::Ptr Decode(const Binary::Container& data) const override
-    {
-      // implies FastCheck
-      return Hrip::ParseArchive(data);
-    }
-
-  private:
-    const Binary::Format::Ptr Format;
-  };
 
   Decoder::Ptr CreateHripDecoder()
   {
-    return MakePtr<HripDecoder>();
+    return MakePtr<Hrip::Decoder>();
   }
 }  // namespace Formats::Archived

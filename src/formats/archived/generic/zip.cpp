@@ -8,14 +8,14 @@
  *
  **/
 
-#include "formats/archived/zip.h"
+#include "formats/archived/generic/zip.h"
 
 #include "binary/compression/zlib.h"
 #include "binary/container_base.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
-#include "formats/archived.h"
+#include "formats/archived/decoder.h"
 #include "strings/encoding.h"
 #include "strings/map.h"
 
@@ -326,45 +326,40 @@ namespace Formats::Archived
         "%0000xxx0 %0000x000"  // uint16_t Flags;
         "%0000x00x 00"         // uint16_t CompressionMethod;
         ""sv;
-  }  // namespace Zip
 
-  class ZipDecoder : public Decoder
-  {
-  public:
-    ZipDecoder()
-      : Format(Binary::CreateFormat(Zip::FORMAT))
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Archived::Decoder
     {
-      return Zip::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Format;
-    }
-
-    Container::Ptr Decode(const Binary::Container& data) const override
-    {
-      if (!Format->Match(data))
+    public:
+      StringView GetDescription() const override
       {
-        return {};
+        return DESCRIPTION;
       }
-      std::vector<Zip::FileReference> files;
-      const auto totalSize = Zip::ParseFiles(data, [&files](const auto& hdr, auto payload, auto unpackedSize) {
-        files.emplace_back(hdr, payload, unpackedSize);
-      });
-      return totalSize ? MakePtr<Zip::Container>(data.GetSubcontainer(0, totalSize), std::move(files))
-                       : Container::Ptr();
-    }
 
-  private:
-    const Binary::Format::Ptr Format;
-  };
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return Format;
+      }
+
+      Container::Ptr Decode(const Binary::Container& data) const override
+      {
+        if (!Format->Match(data))
+        {
+          return {};
+        }
+        std::vector<FileReference> files;
+        const auto totalSize = ParseFiles(data, [&files](const auto& hdr, auto payload, auto unpackedSize) {
+          files.emplace_back(hdr, payload, unpackedSize);
+        });
+        return totalSize ? MakePtr<Container>(data.GetSubcontainer(0, totalSize), std::move(files)) : Container::Ptr();
+      }
+
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(FORMAT);
+    };
+  }  // namespace Zip
 
   Decoder::Ptr CreateZipDecoder()
   {
-    return MakePtr<ZipDecoder>();
+    return MakePtr<Zip::Decoder>();
   }
 }  // namespace Formats::Archived

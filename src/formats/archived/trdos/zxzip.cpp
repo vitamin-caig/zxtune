@@ -8,9 +8,11 @@
  *
  **/
 
-#include "formats/archived/trdos_catalogue.h"
-#include "formats/archived/trdos_utils.h"
+#include "formats/archived/trdos/catalogue.h"
+#include "formats/archived/trdos/utils.h"
 #include "formats/packed/decoders.h"
+
+#include "formats/archived/decoder.h"
 
 #include "make_ptr.h"
 
@@ -36,13 +38,13 @@ namespace Formats::Archived
 
     Container::Ptr ParseArchive(const Packed::Decoder& decoder, const Binary::Container& data)
     {
-      const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
+      const auto builder = TRDos::CatalogueBuilder::CreateGeneric();
       const std::size_t archSize = data.Size();
       std::size_t rawOffset = 0;
       for (std::size_t flatOffset = 0; rawOffset < archSize;)
       {
-        const Binary::Container::Ptr rawData = data.GetSubcontainer(rawOffset, archSize - rawOffset);
-        const Formats::Packed::Container::Ptr fileData = decoder.Decode(*rawData);
+        const auto rawData = data.GetSubcontainer(rawOffset, archSize - rawOffset);
+        const auto fileData = decoder.Decode(*rawData);
         if (!fileData)
         {
           break;
@@ -50,8 +52,8 @@ namespace Formats::Archived
         const String fileName = ExtractFileName(rawData->Start());
         const std::size_t fileSize = fileData->Size();
         const std::size_t usedSize = fileData->PackedSize();
-        const TRDos::File::Ptr file = TRDos::File::Create(fileData, fileName, flatOffset, fileSize);
-        builder->AddFile(file);
+        auto file = TRDos::File::Create(fileData, fileName, flatOffset, fileSize);
+        builder->AddFile(std::move(file));
         rawOffset += usedSize;
         flatOffset += fileSize;
       }
@@ -65,42 +67,38 @@ namespace Formats::Archived
         return {};
       }
     }
-  }  // namespace ZXZip
 
-  class ZXZipDecoder : public Decoder
-  {
-  public:
-    ZXZipDecoder()
-      : FileDecoder(Formats::Packed::CreateZXZipDecoder())
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Archived::Decoder
     {
-      return FileDecoder->GetDescription();
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return FileDecoder->GetFormat();
-    }
-
-    Container::Ptr Decode(const Binary::Container& data) const override
-    {
-      if (!FileDecoder->GetFormat()->Match(data))
+    public:
+      StringView GetDescription() const override
       {
-        return {};
+        return FileDecoder->GetDescription();
       }
 
-      const Container::Ptr files = ZXZip::ParseArchive(*FileDecoder, data);
-      return files && files->CountFiles() ? files : Container::Ptr();
-    }
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return FileDecoder->GetFormat();
+      }
 
-  private:
-    const Formats::Packed::Decoder::Ptr FileDecoder;
-  };
+      Container::Ptr Decode(const Binary::Container& data) const override
+      {
+        if (!FileDecoder->GetFormat()->Match(data))
+        {
+          return {};
+        }
+
+        const auto files = ParseArchive(*FileDecoder, data);
+        return files && files->CountFiles() ? files : Container::Ptr();
+      }
+
+    private:
+      const Packed::Decoder::Ptr FileDecoder = Packed::CreateZXZipDecoder();
+    };
+  }  // namespace ZXZip
 
   Decoder::Ptr CreateZXZipDecoder()
   {
-    return MakePtr<ZXZipDecoder>();
+    return MakePtr<ZXZip::Decoder>();
   }
 }  // namespace Formats::Archived

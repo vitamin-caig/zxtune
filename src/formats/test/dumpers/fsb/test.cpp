@@ -8,7 +8,7 @@
  *
  **/
 
-#include "formats/archived/fmod.h"
+#include "formats/archived/other/fmod.h"
 #include "formats/test/utils.h"
 
 #include "strings/format.h"
