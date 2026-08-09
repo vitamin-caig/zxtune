@@ -10,27 +10,15 @@
 
 #pragma once
 
-#include "formats/chiptune.h"
+#include "binary/format.h"
+#include "formats/multitrack/container.h"
 
-#include "string_type.h"
-#include "types.h"
+#include "string_view.h"
 
 #include <memory>
 
 namespace Formats::Multitrack
 {
-  class Container : public Chiptune::Container
-  {
-  public:
-    using Ptr = std::shared_ptr<const Container>;
-
-    //! @return total tracks count
-    virtual uint_t TracksCount() const = 0;
-
-    //! @return 0-based index of first track
-    virtual uint_t StartTrackIndex() const = 0;
-  };
-
   class Decoder
   {
   public:

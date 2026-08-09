@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "formats/multitrack.h"
+#include "formats/multitrack/decoder.h"
 
 namespace Formats::Multitrack
 {

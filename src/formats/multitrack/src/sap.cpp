@@ -13,7 +13,7 @@
 #include "binary/data_builder.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
-#include "formats/multitrack.h"
+#include "formats/multitrack/decoder.h"
 #include "strings/array.h"
 #include "strings/conversion.h"
 
@@ -161,14 +161,9 @@ namespace Formats::Multitrack
       const uint_t StartTrack;
     };
 
-    class Decoder : public Formats::Multitrack::Decoder
+    class Decoder : public Multitrack::Decoder
     {
     public:
-      // Use match only due to lack of end detection
-      Decoder()
-        : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
-      {}
-
       StringView GetDescription() const override
       {
         return DESCRIPTION;
@@ -184,7 +179,7 @@ namespace Formats::Multitrack
         return Format->Match(rawData);
       }
 
-      Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
+      Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
@@ -261,7 +256,8 @@ namespace Formats::Multitrack
       }
 
     private:
-      const Binary::Format::Ptr Format;
+      // Use match only due to lack of end detection
+      const Binary::Format::Ptr Format = Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE);
     };
   }  // namespace SAP
 

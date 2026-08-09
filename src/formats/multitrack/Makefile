@@ -1,6 +1,6 @@
 library_name := formats_multitrack
 dirs.root := ../../..
-source_dirs := .
+source_dirs := src
 
 jumbo.name := $(library_name)
 

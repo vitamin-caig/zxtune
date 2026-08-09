@@ -14,7 +14,8 @@
 #include "core/plugins/player_plugin.h"
 #include "module/players/factory.h"
 
-#include "formats/multitrack.h"
+#include "formats/multitrack/container.h"
+#include "formats/multitrack/decoder.h"
 
 namespace Module
 {

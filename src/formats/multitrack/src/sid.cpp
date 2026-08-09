@@ -12,7 +12,7 @@
 
 #include "binary/container_base.h"
 #include "binary/format_factories.h"
-#include "formats/multitrack.h"
+#include "formats/multitrack/decoder.h"
 #include "math/numeric.h"
 
 #include "byteorder.h"
@@ -114,13 +114,9 @@ namespace Formats::Multitrack
       return hdr;
     }
 
-    class Decoder : public Formats::Multitrack::Decoder
+    class Decoder : public Multitrack::Decoder
     {
     public:
-      Decoder()
-        : Format(Binary::CreateMatchOnlyFormat(FORMAT))
-      {}
-
       StringView GetDescription() const override
       {
         return DESCRIPTION;
@@ -149,7 +145,7 @@ namespace Formats::Multitrack
       }
 
     private:
-      const Binary::Format::Ptr Format;
+      const Binary::Format::Ptr Format = Binary::CreateMatchOnlyFormat(FORMAT);
     };
   }  // namespace SID
 

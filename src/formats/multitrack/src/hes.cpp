@@ -12,7 +12,7 @@
 
 #include "binary/container_base.h"
 #include "binary/format_factories.h"
-#include "formats/multitrack.h"
+#include "formats/multitrack/decoder.h"
 #include "math/numeric.h"
 
 #include "byteorder.h"
@@ -112,14 +112,9 @@ namespace Formats::Multitrack
       const RawHeader* const Hdr;
     };
 
-    class Decoder : public Formats::Multitrack::Decoder
+    class Decoder : public Multitrack::Decoder
     {
     public:
-      // Use match only due to lack of end detection
-      Decoder()
-        : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
-      {}
-
       StringView GetDescription() const override
       {
         return DESCRIPTION;
@@ -135,7 +130,7 @@ namespace Formats::Multitrack
         return Format->Match(rawData);
       }
 
-      Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
+      Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (const auto* hdr = GetHeader(rawData))
         {
@@ -152,7 +147,8 @@ namespace Formats::Multitrack
       }
 
     private:
-      const Binary::Format::Ptr Format;
+      // Use match only due to lack of end detection
+      const Binary::Format::Ptr Format = Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE);
     };
   }  // namespace HES
 
