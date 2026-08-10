@@ -10,7 +10,6 @@
 
 #include "formats/chiptune/decoders.h"
 #include "formats/image/decoders.h"
-#include "formats/packed/decoders.h"
 #include "io/impl/filesystem_path.h"
 
 #include "analysis/path.h"
@@ -20,6 +19,7 @@
 #include "binary/format_factories.h"
 #include "debug/log.h"
 #include "formats/archived/decoders.h"
+#include "formats/packed/decoders.h"
 #include "io/api.h"
 #include "io/providers_parameters.h"
 #include "parameters/container.h"

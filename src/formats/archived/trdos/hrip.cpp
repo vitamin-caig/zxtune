@@ -10,10 +10,10 @@
 
 #include "formats/archived/trdos/catalogue.h"
 #include "formats/archived/trdos/utils.h"
-#include "formats/packed/decoders.h"
 
 #include "binary/format_factories.h"
 #include "formats/archived/decoder.h"
+#include "formats/packed/decoders.h"
 
 #include "byteorder.h"
 #include "make_ptr.h"

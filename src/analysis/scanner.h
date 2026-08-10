@@ -14,7 +14,7 @@
 #include "formats/archived/decoder.h"
 #include "formats/chiptune.h"
 #include "formats/image.h"
-#include "formats/packed.h"
+#include "formats/packed/decoder.h"
 
 namespace Analysis
 {

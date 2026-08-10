@@ -10,9 +10,9 @@
 
 #include "formats/archived/trdos/catalogue.h"
 #include "formats/archived/trdos/utils.h"
-#include "formats/packed/decoders.h"
 
 #include "formats/archived/decoder.h"
+#include "formats/packed/decoders.h"
 
 #include "make_ptr.h"
 
