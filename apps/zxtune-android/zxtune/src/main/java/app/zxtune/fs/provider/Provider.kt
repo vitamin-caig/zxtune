@@ -9,13 +9,16 @@ import androidx.annotation.VisibleForTesting
 import app.zxtune.Logger
 import app.zxtune.MainApplication
 import app.zxtune.fs.feed
-import java.io.FileOutputStream
+import app.zxtune.utils.ContentUri
+import app.zxtune.utils.notifyChange
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import java.util.concurrent.ConcurrentHashMap
 
 class Provider @VisibleForTesting internal constructor(
     private val resolver: Resolver, private val schema: SchemaSource
 ) : ContentProvider() {
-    private val operations = ConcurrentHashMap<Uri, Operation>()
+    private val operations = ConcurrentHashMap<ContentUri, Operation>()
 
     // should be initialized in main thread
     private lateinit var notifications: NotificationsSource
@@ -48,7 +51,9 @@ class Provider @VisibleForTesting internal constructor(
         selectionArgs: Array<String>?,
         sortOrder: String?,
         signal: CancellationSignal?
-    ) = operations[uri]?.status() ?: query(Query.parse(uri), projection, signal)
+    ) = Query.parse(uri).let {
+        operations[it.providerUri]?.status() ?: query(it, projection, signal)
+    }
 
     private fun query(query: Query, projection: Array<String>?, signal: CancellationSignal?) =
         runCatching {
@@ -77,7 +82,7 @@ class Provider @VisibleForTesting internal constructor(
         }
     }
 
-    private fun makeCallback(uri: Uri, signal: CancellationSignal?): AsyncQueryOperation.Callback =
+    private fun makeCallback(uri: ContentUri, signal: CancellationSignal?): AsyncQueryOperation.Callback =
         object : AsyncQueryOperation.Callback {
             init {
                 signal?.setOnCancelListener {
@@ -95,7 +100,7 @@ class Provider @VisibleForTesting internal constructor(
             }
         }
 
-    private inner class Operation(val uri: Uri, val op: AsyncQueryOperation) {
+    private inner class Operation(val uri: ContentUri, val op: AsyncQueryOperation) {
         private val thread = Thread.currentThread()
 
         fun run() = try {

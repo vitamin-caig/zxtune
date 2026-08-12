@@ -11,7 +11,9 @@ import androidx.core.content.edit
 import app.zxtune.BuildConfig
 import app.zxtune.Logger
 import app.zxtune.MainApplication
+import app.zxtune.utils.ContentUri
 import app.zxtune.utils.getUntyped
+import app.zxtune.utils.notifyChange
 
 private val LOG = Logger(Provider::class.java.name)
 
@@ -24,12 +26,11 @@ class Provider : ContentProvider() {
     }
 
     // should be strong reference
-    private val changeListener =
-        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            key?.let {
-                resolver.notifyChange(notificationUri(it), null)
-            }
+    private val changeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        key?.let {
+            resolver.notifyChange(notificationUri(it), null)
         }
+    }
     private val resolver
         get() = requireNotNull(context).contentResolver
 
@@ -57,10 +58,7 @@ class Provider : ContentProvider() {
     }
 
     override fun update(
-        uri: Uri,
-        values: ContentValues?,
-        selection: String?,
-        selectionArgs: Array<String>?
+        uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?
     ) = 0
 
     @Synchronized
@@ -71,6 +69,7 @@ class Provider : ContentProvider() {
             put(it)
             null
         }
+
         else -> null
     }
 
@@ -114,12 +113,11 @@ class Provider : ContentProvider() {
     }
 
     companion object {
-        val URI: Uri = builder().build()
+        val URI = ContentUri.from(builder().build())
 
-        fun notificationUri(key: String): Uri = builder().appendPath(key).build()
+        fun notificationUri(key: String) = ContentUri.from(builder().appendPath(key).build())
 
-        private fun builder() = Uri.Builder()
-            .scheme(ContentResolver.SCHEME_CONTENT)
+        private fun builder() = Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
             .authority("${BuildConfig.APPLICATION_ID}.preferences")
 
         const val METHOD_GET = "get"

@@ -9,8 +9,11 @@ import app.zxtune.TimeStamp
 import app.zxtune.analytics.Analytics
 import app.zxtune.core.Identifier
 import app.zxtune.ui.playlist.Entry
-import app.zxtune.ui.utils.observeChanges
-import app.zxtune.ui.utils.query
+import app.zxtune.utils.delete
+import app.zxtune.utils.insert
+import app.zxtune.utils.notifyChange
+import app.zxtune.utils.observeChanges
+import app.zxtune.utils.query
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -67,7 +70,7 @@ class ProviderClient @VisibleForTesting constructor(
     }
 
     private suspend fun deleteItems(selection: String?) = withContext(dispatcher) {
-        resolver.delete(PlaylistQuery.ALL, selection, null)
+        resolver.delete(PlaylistQuery.ALL, selection)
         notifyChanges()
     }
 

@@ -3,7 +3,8 @@ package app.zxtune.preferences
 import android.content.ContentResolver
 import android.content.Context
 import android.os.Bundle
-import app.zxtune.ui.utils.observeChanges
+import app.zxtune.utils.call
+import app.zxtune.utils.observeChanges
 import kotlinx.coroutines.flow.transform
 
 class ProviderClient(ctx: Context) {
@@ -47,8 +48,8 @@ class ProviderClient(ctx: Context) {
 }
 
 private fun ContentResolver.list(prefix: String? = null) =
-    call(Provider.URI, Provider.METHOD_LIST, prefix, null)
+    call(Provider.URI, Provider.METHOD_LIST, prefix)
 
-private fun ContentResolver.get(key: String) = call(Provider.URI, Provider.METHOD_GET, key, null)
+private fun ContentResolver.get(key: String) = call(Provider.URI, Provider.METHOD_GET, key)
 
 private fun ContentResolver.put(data: Bundle) = call(Provider.URI, Provider.METHOD_PUT, null, data)

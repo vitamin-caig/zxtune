@@ -17,6 +17,7 @@ import java.util.Arrays;
 
 import app.zxtune.BuildConfig;
 import app.zxtune.playlist.Database.Tables;
+import app.zxtune.utils.ContentUri;
 
 /*
  * content://app.zxtune.playlist/items - all items
@@ -56,9 +57,9 @@ public class PlaylistQuery {
 
   private static final UriMatcher uriTemplate;
 
-  public static final Uri ALL;
-  public static final Uri STATISTICS;
-  public static final Uri SAVED;
+  public static final ContentUri ALL;
+  public static final ContentUri STATISTICS;
+  public static final ContentUri SAVED;
 
   static {
     TYPE_ALL_ITEMS = Type.dir(ITEMS_PATH);
@@ -71,9 +72,9 @@ public class PlaylistQuery {
     uriTemplate.addURI(AUTHORITY, STATISTICS_PATH, TYPE_STATISTICS.id);
     uriTemplate.addURI(AUTHORITY, SAVED_PATH, TYPE_SAVED.id);
 
-    ALL = uriFor(null);
-    STATISTICS = uriForPath(STATISTICS_PATH).build();
-    SAVED = uriForPath(SAVED_PATH).build();
+    ALL = new ContentUri(uriFor(null));
+    STATISTICS = new ContentUri(uriForPath(STATISTICS_PATH).build());
+    SAVED = new ContentUri(uriForPath(SAVED_PATH).build());
   }
 
   private static Uri.Builder uriForPath(String path) {
