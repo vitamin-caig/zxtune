@@ -104,6 +104,11 @@ namespace Formats::Packed
       {
         return 0 != (Flags & NO_ID);
       }
+
+      bool IsLast() const
+      {
+        return Number == 0x65;
+      }
     };
 
     struct RawData
@@ -149,31 +154,11 @@ namespace Formats::Packed
     public:
       virtual ~ImageVisitor() = default;
 
-      virtual void OnSector(const Formats::CHS& loc, Binary::View data, SectorDataType type,
+      virtual void OnSector(const Formats::CHS& loc, Binary::Data::Ptr data, SectorDataType type,
                             std::size_t targetSize) = 0;
     };
 
-    class StubImageVisitor : public ImageVisitor
-    {
-    public:
-      void OnSector(const Formats::CHS& /*loc*/, Binary::View data, SectorDataType type,
-                    std::size_t targetSize) override
-      {
-        switch (type)
-        {
-        case RAW_SECTOR:
-          Require(data.Size() == targetSize);
-          break;
-        case R2P_SECTOR:
-          Require(data.Size() % sizeof(R2PEntry) == 0);
-          break;
-        default:
-          break;
-        }
-      }
-    };
-
-    Binary::Container::Ptr DecodeR2P(Binary::View data)
+    auto DecodeR2P(Binary::View data)
     {
       Require(data.Size() % sizeof(R2PEntry) == 0);
       Binary::DataBuilder tmp(MAX_SECTOR_SIZE);
@@ -188,7 +173,7 @@ namespace Formats::Packed
       return tmp.CaptureResult();
     }
 
-    Binary::Container::Ptr DecodeRLE(Binary::View data)
+    auto DecodeRLE(Binary::View data)
     {
       Binary::DataBuilder tmp(MAX_SECTOR_SIZE);
       ByteStream stream(data.As<uint8_t>(), data.Size());
@@ -217,69 +202,53 @@ namespace Formats::Packed
     class ImageVisitorAdapter : public ImageVisitor
     {
     public:
-      explicit ImageVisitorAdapter(Formats::ImageBuilder::Ptr builder)
-        : Builder(std::move(builder))
+      explicit ImageVisitorAdapter(Formats::ImageBuilder& builder)
+        : Builder(builder)
       {}
 
-      void OnSector(const Formats::CHS& loc, Binary::View data, SectorDataType type, std::size_t targetSize) override
+      void OnSector(const Formats::CHS& loc, Binary::Data::Ptr data, SectorDataType type, std::size_t targetSize) override
       {
         switch (type)
         {
         case RAW_SECTOR:
-          Require(targetSize == data.Size());
-          Builder->SetSector(loc, data);
+          Sectors.emplace_back(std::move(data));
           break;
         case R2P_SECTOR:
-          Sectors.push_back(DecodeR2P(data));
-          Require(targetSize == Sectors.back()->Size());
-          Builder->SetSector(loc, *Sectors.back());
+          Sectors.emplace_back(DecodeR2P(*data));
           break;
         case RLE_SECTOR:
-          Sectors.push_back(DecodeRLE(data));
-          Require(targetSize == Sectors.back()->Size());
-          Builder->SetSector(loc, *Sectors.back());
+          Sectors.emplace_back(DecodeRLE(*data));
           break;
+        }
+        Builder.SetSector(loc, *Sectors.back());
+        Require(targetSize == Sectors.back()->Size());
+      }
+
+    private:
+      Formats::ImageBuilder& Builder;
+      std::vector<Binary::Data::Ptr> Sectors;
+    };
+
+    void ParseSectors(Binary::InputStream& stream, bool hasComment, ImageVisitor& visitor)
+    {
+      if (hasComment)
+      {
+        const auto& comment = stream.Read<RawComment>();
+        Dbg("Created at: {}-{}-{} {}:{}:{}", 1900 + comment.Year, comment.Month, comment.Day, comment.Hour,
+            comment.Minute, comment.Second);
+        if (const std::size_t size = comment.Size)
+        {
+          Binary::DataInputStream strings(stream.ReadData(size));
+          while (const auto rest = strings.GetRestSize())
+          {
+            Dbg("> {}", strings.ReadCString(rest));
+          }
         }
       }
 
-    private:
-      const Formats::ImageBuilder::Ptr Builder;
-      std::vector<Binary::Container::Ptr> Sectors;
-    };
-
-    class SourceStream
-    {
-    public:
-      explicit SourceStream(Binary::View rawData)
-        : Stream(rawData)
-      {}
-
-      template<class T>
-      const T& Get()
-      {
-        return Stream.Read<T>();
-      }
-
-      const uint8_t* GetData(std::size_t size)
-      {
-        Require(size != 0);
-        return Stream.ReadData(size).As<uint8_t>();
-      }
-
-      std::size_t GetOffset() const
-      {
-        return Stream.GetPosition();
-      }
-
-    private:
-      Binary::DataInputStream Stream;
-    };
-
-    void ParseSectors(SourceStream& stream, ImageVisitor& visitor)
-    {
       for (;;)
       {
-        const auto& track = stream.Get<RawTrack>();
+        const auto& track = stream.Read<RawTrack>();
         if (track.IsLast())
         {
           break;
@@ -287,22 +256,30 @@ namespace Formats::Packed
         Require(Math::InRange<uint_t>(track.Cylinder, 0, MAX_CYLINDERS_COUNT));
         for (uint_t sect = 0; sect != track.Sectors; ++sect)
         {
-          const auto& sector = stream.Get<RawSector>();
+          const auto& sector = stream.Read<RawSector>();
           if (sector.NoData())
           {
             continue;
           }
+          else if (sector.IsLast())
+          {
+            break;
+          }
           Require(Math::InRange<uint_t>(sector.Size, 0, 6));
           const std::size_t sectorSize = std::size_t(128) << sector.Size;
-          const auto& srcDataDesc = stream.Get<RawData>();
+          const auto& srcDataDesc = stream.Read<RawData>();
           Require(Math::InRange<uint_t>(srcDataDesc.Method, RAW_SECTOR, RLE_SECTOR));
-          const std::size_t dataSize = srcDataDesc.Size - 1;
-          const uint8_t* const rawData = stream.GetData(dataSize);
+          Require(srcDataDesc.Size > 1);
+          auto sectorData = stream.ReadContainer(srcDataDesc.Size - 1);
+          const Formats::CHS loc(sector.Cylinder, track.Head, sector.Number);
           // use track parameters for layout
-          if (!sector.NoId())
+          if (sector.NoId() || sector.Number > track.Sectors)
           {
-            const Formats::CHS loc(sector.Cylinder, track.Head, sector.Number);
-            visitor.OnSector(loc, {rawData, dataSize}, static_cast<SectorDataType>(srcDataDesc.Method), sectorSize);
+            Dbg("Skip sector {}:{}:{}", loc.Cylinder, loc.Head, loc.Sector);
+          }
+          else
+          {
+            visitor.OnSector(loc, std::move(sectorData), static_cast<SectorDataType>(srcDataDesc.Method), sectorSize);
           }
         }
       }
@@ -310,22 +287,14 @@ namespace Formats::Packed
 
     std::size_t Parse(const Binary::Container& rawData, ImageVisitor& visitor)
     {
-      SourceStream stream(rawData);
+      Binary::InputStream stream(rawData);
       try
       {
-        const auto& header = stream.Get<RawHeader>();
+        const auto& header = stream.Read<RawHeader>();
         const uint_t id = header.ID;
         Require(id == ID_OLD || id == ID_NEW);
         Require(header.Sequence == 0);
         Require(Math::InRange<uint_t>(header.Sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT));
-        if (header.HasComment())
-        {
-          const auto& comment = stream.Get<RawComment>();
-          if (const std::size_t size = comment.Size)
-          {
-            stream.GetData(size);
-          }
-        }
         const bool compressedData = id == ID_NEW;
         const bool newCompression = header.Version > 20;
         if (compressedData)
@@ -335,19 +304,19 @@ namespace Formats::Packed
             Dbg("Old compression is not supported.");
             return 0;
           }
-          const std::size_t packedSize = rawData.Size() - sizeof(header);
-          const auto packed = rawData.GetSubcontainer(sizeof(header), packedSize);
+          const auto packed = stream.ReadRestContainer();
           if (const auto fullDecoded =
-                  Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, MAX_IMAGE_SIZE))
+                  Formats::Packed::Lha::DecodeRawData(*packed, COMPRESSION_ALGORITHM, MAX_IMAGE_SIZE))
           {
-            SourceStream subStream(*fullDecoded);
-            ParseSectors(subStream, visitor);
-            const std::size_t usedInPacked = subStream.GetOffset();
-            Dbg("Used {} bytes in packed stream", usedInPacked);
+            Binary::InputStream subStream(*fullDecoded);
+            ParseSectors(subStream, header.HasComment(), visitor);
+            const std::size_t usedInPacked = subStream.GetPosition();
+            Dbg("Used {}/{} bytes in packed stream", usedInPacked, fullDecoded->Size());
             if (const auto decoded =
-                    Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, usedInPacked))
+                    Formats::Packed::Lha::DecodeRawData(*packed, COMPRESSION_ALGORITHM, usedInPacked))
             {
               const std::size_t usedSize = decoded->PackedSize();
+              Dbg("Used {}/{} bytes in source stream", usedSize, packed->Size());
               return sizeof(header) + usedSize;
             }
           }
@@ -356,12 +325,13 @@ namespace Formats::Packed
         }
         else
         {
-          ParseSectors(stream, visitor);
+          ParseSectors(stream, header.HasComment(), visitor);
         }
-        return stream.GetOffset();
+        return stream.GetPosition();
       }
       catch (const std::exception&)
       {
+        Dbg("Failed to parse");
         return 0;
       }
     }
@@ -406,8 +376,8 @@ namespace Formats::Packed
       {
         return {};
       }
-      const Formats::ImageBuilder::Ptr builder = CreateSparsedImageBuilder();
-      TeleDiskImage::ImageVisitorAdapter visitor(builder);
+      const auto builder = CreateSparsedImageBuilder();
+      TeleDiskImage::ImageVisitorAdapter visitor(*builder);
       if (const std::size_t usedSize = TeleDiskImage::Parse(rawData, visitor))
       {
         return CreateContainer(builder->GetResult(), usedSize);
