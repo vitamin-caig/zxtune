@@ -13,6 +13,7 @@ import app.zxtune.fs.VfsObject
 import app.zxtune.fs.permissionQueryIntent
 import app.zxtune.net.NetworkManager
 import app.zxtune.ui.utils.flowValueOf
+import app.zxtune.utils.notifyChange
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

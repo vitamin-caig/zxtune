@@ -18,6 +18,8 @@ import app.zxtune.Log
 import app.zxtune.MainApplication
 import app.zxtune.playlist.Database.Tables.Playlist
 import app.zxtune.playlist.xspf.XspfStorage
+import app.zxtune.utils.call
+import app.zxtune.utils.setNotificationUri
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 
@@ -41,8 +43,8 @@ class Provider : ContentProvider() {
         selectionArgs: Array<String>?,
         sortOrder: String?
     ): Cursor = when (uri) {
-        PlaylistQuery.STATISTICS -> db.queryStatistics(selection)
-        PlaylistQuery.SAVED -> querySavedPlaylists(selection)
+        PlaylistQuery.STATISTICS.raw -> db.queryStatistics(selection)
+        PlaylistQuery.SAVED.raw -> querySavedPlaylists(selection)
         else -> {
             val select =
                 PlaylistQuery.idOf(uri)?.let { PlaylistQuery.selectionFor(it) } ?: selection
@@ -187,11 +189,10 @@ class Provider : ContentProvider() {
         private const val METHOD_SAVE = "save"
 
         fun sort(resolver: ContentResolver, by: String, order: String) = resolver.call(
-            PlaylistQuery.ALL, METHOD_SORT, "$by $order", null
-        )
+            PlaylistQuery.ALL, METHOD_SORT, "$by $order")
 
         fun move(resolver: ContentResolver, id: Long, delta: Int) = resolver.call(
-            PlaylistQuery.ALL, METHOD_MOVE, "$id $delta", null
+            PlaylistQuery.ALL, METHOD_MOVE, "$id $delta"
         )
 
         fun save(resolver: ContentResolver, id: String?, ids: LongArray?) =

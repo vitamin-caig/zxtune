@@ -4,8 +4,10 @@ import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
-import app.zxtune.ui.utils.observeChanges
-import app.zxtune.ui.utils.query
+import app.zxtune.utils.ContentUri
+import app.zxtune.utils.observeChanges
+import app.zxtune.utils.query
+import app.zxtune.utils.registerContentObserver
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -71,7 +73,7 @@ class VfsProviderClient(ctx: Context) {
         }.join()
     }
 
-    private suspend fun fetchListingPortion(resolverUri: Uri, cb: ListingCallback) =
+    private suspend fun fetchListingPortion(resolverUri: ContentUri, cb: ListingCallback) =
         resolver.query(resolverUri) {
             getListing(it, cb)
         }

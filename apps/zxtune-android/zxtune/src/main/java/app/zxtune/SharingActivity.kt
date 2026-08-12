@@ -40,7 +40,7 @@ class SharingActivity : ComponentActivity() {
 
         @JvmStatic
         fun maybeCreateSendIntent(ctx: Context, metadata: MediaMetadataCompat) =
-            metadata.contentUrl?.let { contentUrl ->
+            metadata.contentUrl?.raw?.let { contentUrl ->
                 makeSendIntent("application/octet", metadata.description).apply {
                     val label = ctx.getString(R.string.send_text, metadata.shareUrl ?: "")
                     putExtra(

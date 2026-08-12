@@ -101,7 +101,7 @@ class NotificationsSourceTest {
 
         inOrder(resolver) {
             verify(resolver, times(3)).notifyChange(
-                Query.forNotification(Uri.EMPTY).providerUri, null
+                Query.forNotification(Uri.EMPTY).providerUri.raw, null
             )
         }
     }
@@ -167,6 +167,6 @@ class NotificationsSourceTest {
         assertEquals(null, underTest.getNotification(dir))
 
         // value, null
-        verify(resolver, times(2)).notifyChange(Query.forNotification(Uri.EMPTY).providerUri, null)
+        verify(resolver, times(2)).notifyChange(Query.forNotification(Uri.EMPTY).providerUri.raw, null)
     }
 }

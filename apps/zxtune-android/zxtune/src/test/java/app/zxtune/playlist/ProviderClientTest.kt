@@ -67,9 +67,9 @@ class ProviderClientTest {
         }.join()
 
         inOrder(resolver) {
-            verify(resolver).registerContentObserver(PlaylistQuery.ALL, true, observer)
+            verify(resolver).registerContentObserver(PlaylistQuery.ALL.raw, true, observer)
             verify(resolver, times(10)).query(
-                eq(PlaylistQuery.ALL), eq(null), eq(null), eq(null), eq(null), any()
+                eq(PlaylistQuery.ALL.raw), eq(null), eq(null), eq(null), eq(null), any()
             )
             verify(resolver).unregisterContentObserver(observer)
         }
@@ -109,7 +109,7 @@ class ProviderClientTest {
                 assertEquals(TimeStamp.fromMilliseconds(123456), duration)
             }
         }
-        verify(resolver).query(PlaylistQuery.ALL, null, null, null, null, signal)
+        verify(resolver).query(PlaylistQuery.ALL.raw, null, null, null, null, signal)
     }
 
     //TODO: add another tests
