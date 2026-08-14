@@ -10,8 +10,8 @@
 
 #include "formats/chiptune/aym/ym.h"
 #include "formats/chiptune/container.h"
-#include "formats/packed/lha_supp.h"
 
+#include "binary/compression/lha.h"
 #include "binary/dump.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
@@ -386,7 +386,7 @@ namespace Formats::Chiptune
       const auto packed = rawData.GetSubcontainer(packedOffset, packedSize);
       const std::size_t unpackedSize = hdr.OriginalSize;
       const String method(hdr.Method.data(), hdr.Method.size());
-      if (const auto unpacked = Formats::Packed::Lha::DecodeRawData(*packed, method, unpackedSize))
+      if (const auto unpacked = Binary::Compression::Lha::DecodeRawData(*packed, method, unpackedSize))
       {
         if (ParseUnpacked(*unpacked, target))
         {
@@ -617,15 +617,14 @@ namespace Formats::Chiptune
 
         const std::size_t packedOffset = stream.GetPosition();
         Dbg("Packed data at {}", packedOffset);
-        const auto packed = stream.ReadRestContainer();
-        if (const auto unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
+        if (const auto unpacked = Binary::Compression::Lha::DecodeRawData(stream, "-lh5-", unpackedSize))
         {
           const std::size_t doneSize = unpacked->Size();
           const std::size_t columns = sizeof(RegistersDump);
           Require(0 == (unpackedSize % columns));
           const std::size_t lines = doneSize / columns;
           ParseTransponedMatrix(*unpacked, lines, columns, target);
-          const std::size_t packedSize = unpacked->PackedSize();
+          const std::size_t packedSize = stream.GetPosition() - packedOffset;
           auto subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
           return CreateCalculatingCrcContainer(std::move(subData), packedOffset, packedSize);
         }

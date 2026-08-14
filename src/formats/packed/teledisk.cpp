@@ -10,9 +10,9 @@
 
 #include "formats/packed/container.h"
 #include "formats/packed/image_utils.h"
-#include "formats/packed/lha_supp.h"
 #include "formats/packed/pack_utils.h"
 
+#include "binary/compression/lha.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
@@ -206,7 +206,8 @@ namespace Formats::Packed
         : Builder(builder)
       {}
 
-      void OnSector(const Formats::CHS& loc, Binary::Data::Ptr data, SectorDataType type, std::size_t targetSize) override
+      void OnSector(const Formats::CHS& loc, Binary::Data::Ptr data, SectorDataType type,
+                    std::size_t targetSize) override
       {
         switch (type)
         {
@@ -304,19 +305,20 @@ namespace Formats::Packed
             Dbg("Old compression is not supported.");
             return 0;
           }
-          const auto packed = stream.ReadRestContainer();
+          const auto packedPosition = stream.GetPosition();
           if (const auto fullDecoded =
-                  Formats::Packed::Lha::DecodeRawData(*packed, COMPRESSION_ALGORITHM, MAX_IMAGE_SIZE))
+                  Binary::Compression::Lha::DecodeRawData(stream, COMPRESSION_ALGORITHM, MAX_IMAGE_SIZE))
           {
             Binary::InputStream subStream(*fullDecoded);
             ParseSectors(subStream, header.HasComment(), visitor);
             const std::size_t usedInPacked = subStream.GetPosition();
             Dbg("Used {}/{} bytes in packed stream", usedInPacked, fullDecoded->Size());
+            stream.Seek(packedPosition);
             if (const auto decoded =
-                    Formats::Packed::Lha::DecodeRawData(*packed, COMPRESSION_ALGORITHM, usedInPacked))
+                    Binary::Compression::Lha::DecodeRawData(stream, COMPRESSION_ALGORITHM, usedInPacked))
             {
-              const std::size_t usedSize = decoded->PackedSize();
-              Dbg("Used {}/{} bytes in source stream", usedSize, packed->Size());
+              const std::size_t usedSize = stream.GetPosition() - packedPosition;
+              Dbg("Used {}/{} bytes in source stream", usedSize, usedSize + stream.GetRestSize());
               return sizeof(header) + usedSize;
             }
           }

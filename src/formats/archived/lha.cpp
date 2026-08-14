@@ -8,8 +8,7 @@
  *
  **/
 
-#include "formats/packed/lha_supp.h"
-#include "formats/packed/pack_utils.h"
+#include "binary/compression/lha.h"
 
 #include "binary/container_base.h"
 #include "binary/format_factories.h"
@@ -128,7 +127,7 @@ namespace Formats::Archived
       Binary::Container::Ptr GetData() const override
       {
         Dbg("Decompressing '{}'", Name);
-        return Packed::Lha::DecodeRawData(*Data, Method, Size);
+        return Binary::Compression::Lha::DecodeRawData(*Data, Method, Size);
       }
 
     private:

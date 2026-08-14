@@ -11,7 +11,6 @@ libraries.windows += advapi32
 include $(dirs.root)/make/default.mak
 
 ifdef jumbo.enabled
-libraries.common += formats_packed_lha
 libraries.3rdparty += lhasa unrar
 endif
 
