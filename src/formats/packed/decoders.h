@@ -31,7 +31,6 @@ namespace Formats::Packed
   Decoder::Ptr CreateTRUSHDecoder();
   Decoder::Ptr CreateZXZipDecoder();
   Decoder::Ptr CreateZipDecoder();
-  Decoder::Ptr CreateRarDecoder();
   Decoder::Ptr CreateGamePackerDecoder();
   Decoder::Ptr CreateGamePackerPlusDecoder();
   Decoder::Ptr CreateTurboLZDecoder();

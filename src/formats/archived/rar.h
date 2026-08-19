@@ -11,9 +11,9 @@
 #pragma once
 
 #include "byteorder.h"
-#include "string_type.h"
+#include "string_view.h"
 
-namespace Formats::Packed::Rar
+namespace Formats::Archived::Rar
 {
   struct BlockHeader
   {
@@ -40,26 +40,6 @@ namespace Formats::Packed::Rar
   {
     BlockHeader Block;
     le_uint32_t AdditionalSize;
-  };
-
-  // ArchiveBlockHeader is always BlockHeader
-  struct ArchiveBlockHeader
-  {
-    static const uint8_t TYPE = 0x73;
-
-    BlockHeader Block;
-    // CRC from Type till Reserved2
-    le_uint16_t Reserved1;
-    le_uint32_t Reserved2;
-
-    enum
-    {
-      FLAG_VOLUME = 1,
-      FLAG_HAS_COMMENT = 2,
-      FLAG_BLOCKED = 4,
-      FLAG_SOLID = 8,
-      FLAG_SIGNATURE = 0x20,
-    };
   };
 
   // File header is always ExtendedBlockHeader
@@ -107,12 +87,6 @@ namespace Formats::Packed::Rar
     {
       return Method == 0x30;
     }
-
-    bool IsValid() const;
-
-    bool IsSupported() const;
-
-    String GetName() const;
   };
 
   struct BigFileBlockHeader
@@ -124,7 +98,6 @@ namespace Formats::Packed::Rar
 
   static_assert(sizeof(BlockHeader) * alignof(BlockHeader) == 7, "Wrong layout");
   static_assert(sizeof(ExtendedBlockHeader) * alignof(ExtendedBlockHeader) == 11, "Wrong layout");
-  static_assert(sizeof(ArchiveBlockHeader) * alignof(ArchiveBlockHeader) == 13, "Wrong layout");
   static_assert(sizeof(FileBlockHeader) * alignof(FileBlockHeader) == 32, "Wrong layout");
   static_assert(sizeof(BigFileBlockHeader) * alignof(BigFileBlockHeader) == 40, "Wrong layout");
-}  // namespace Formats::Packed::Rar
+}  // namespace Formats::Archived::Rar
