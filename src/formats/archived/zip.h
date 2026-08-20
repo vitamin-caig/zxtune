@@ -14,16 +14,8 @@
 
 #include <cstddef>
 
-namespace Formats::Packed::Zip
+namespace Formats::Archived::Zip
 {
-  struct GenericHeader
-  {
-    static const uint16_t SIGNATURE = 0x4b50;
-
-    //+0
-    le_uint16_t Signature;
-  };
-
   struct FileAttributes
   {
     le_uint32_t CRC;
@@ -68,19 +60,14 @@ namespace Formats::Packed::Zip
     //+1e
     char Name[1];
 
-    bool IsValid() const
-    {
-      return Signature == SIGNATURE;
-    }
-
     std::size_t GetSize() const
     {
       return offsetof(LocalFileHeader, Name) + NameSize + ExtraSize;
     }
 
-    bool IsSupported() const
+    bool NeedFooter() const
     {
-      return 0 == (Flags & FILE_CRYPTED);
+      return Flags & FILE_ATTRIBUTES_IN_FOOTER;
     }
   };
 
@@ -200,18 +187,6 @@ namespace Formats::Packed::Zip
     }
   };
 
-  class CompressedFile
-  {
-  public:
-    virtual ~CompressedFile() = default;
-
-    virtual std::size_t GetPackedSize() const = 0;
-    virtual std::size_t GetUnpackedSize() const = 0;
-
-    static std::unique_ptr<const CompressedFile> Create(const LocalFileHeader& hdr, std::size_t availSize);
-  };
-
-  static_assert(sizeof(GenericHeader) * alignof(GenericHeader) == 2, "Wrong layout");
   static_assert(sizeof(FileAttributes) * alignof(FileAttributes) == 12, "Wrong layout");
   static_assert(sizeof(LocalFileHeader) * alignof(LocalFileHeader) == 0x1f, "Wrong layout");
   static_assert(sizeof(LocalFileFooter) * alignof(LocalFileFooter) == 16, "Wrong layout");
@@ -219,4 +194,4 @@ namespace Formats::Packed::Zip
   static_assert(sizeof(CentralDirectoryFileHeader) * alignof(CentralDirectoryFileHeader) == 0x2f, "Wrong layout");
   static_assert(sizeof(CentralDirectoryEnd) * alignof(CentralDirectoryEnd) == 0x16, "Wrong layout");
   static_assert(sizeof(DigitalSignature) * alignof(DigitalSignature) == 7, "Wrong layout");
-}  // namespace Formats::Packed::Zip
+}  // namespace Formats::Archived::Zip

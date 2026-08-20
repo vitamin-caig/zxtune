@@ -26,20 +26,6 @@ namespace
     // 0x105a2
     // 0x1265a
     // 0x1470b
-    const auto packed = Formats::Packed::CreateZipDecoder();
-    std::map<std::string, Binary::Container::Ptr> tests;
-    tests["-p0"] = zip->GetSubcontainer(0, 0x4035);
-    tests["-p1"] = zip->GetSubcontainer(0x4035, 0x6160 - 0x4035);
-    tests["-p2"] = zip->GetSubcontainer(0x6160, 0x826e - 0x6160);
-    tests["-p3"] = zip->GetSubcontainer(0x826e, 0xa36e - 0x826e);
-    tests["-p4"] = zip->GetSubcontainer(0xa36e, 0xc433 - 0xa36e);
-    tests["-p5"] = zip->GetSubcontainer(0xc433, 0xe4e9 - 0xc433);
-    tests["-p6"] = zip->GetSubcontainer(0xe4e9, 0x105a2 - 0xe4e9);
-    tests["-p7"] = zip->GetSubcontainer(0x105a2, 0x1265a - 0x105a2);
-    tests["-p8"] = zip->GetSubcontainer(0x1265a, 0x1470b - 0x1265a);
-    tests["-p9"] = zip->GetSubcontainer(0x1470b, 0x167bc - 0x1470b);
-    Test::TestPacked(*packed, etalon, tests);
-
     const auto archived = Formats::Archived::CreateZipDecoder();
     std::vector<std::string> files;
     files.emplace_back("p0.bin");

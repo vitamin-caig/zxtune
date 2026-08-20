@@ -3,7 +3,7 @@ dirs.root := ../../..
 source_dirs := .
 embedded_files := resource.zip test.cpp
 
-libraries.common = binary binary_compression binary_format debug formats_archived formats_chiptune formats_packed l10n_stub platform resource strings tools
+libraries.common = binary binary_compression binary_format debug formats_archived formats_chiptune formats_packed io l10n_stub platform resource strings tools
 libraries.3rdparty = lhasa lzma unrar zlib
 
 include $(dirs.root)/makefile.mak

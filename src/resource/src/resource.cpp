@@ -9,8 +9,9 @@
  **/
 
 #include "formats/archived/decoders.h"
+#include "io/providers/file_provider.h"
 
-#include "binary/data_builder.h"
+#include "binary/container_factories.h"
 #include "debug/log.h"
 #include "l10n/api.h"
 #include "platform/tools.h"
@@ -21,8 +22,6 @@
 #include "pointers.h"
 #include "string_view.h"
 
-#include <fstream>
-
 namespace
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("resource");
@@ -31,32 +30,6 @@ namespace
 
 namespace
 {
-  class LightweightBinaryContainer : public Binary::Container
-  {
-  public:
-    explicit LightweightBinaryContainer(Binary::View data)
-      : Data(data)
-    {}
-
-    const void* Start() const override
-    {
-      return Data.Start();
-    }
-
-    std::size_t Size() const override
-    {
-      return Data.Size();
-    }
-
-    Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-    {
-      return Binary::CreateContainer(Data.SubView(offset, size));
-    }
-
-  private:
-    const Binary::View Data;
-  };
-
   using ArchivesSet = std::vector<Formats::Archived::Container::Ptr>;
 
   class CompositeArchive : public Formats::Archived::Container
@@ -123,51 +96,45 @@ namespace
     return Platform::GetCurrentImageFilename();
   }
 
-  Binary::Data::Ptr ReadFile(const String& filename)
-  {
-    std::ifstream file(filename.c_str(), std::ios::binary);
-    if (!file)
-    {
-      throw MakeFormattedError(THIS_LINE, translate("Failed to load resource archive '{}'."), filename);
-    }
-    file.seekg(0, std::ios_base::end);
-    const auto size = static_cast<std::size_t>(file.tellg());
-    file.seekg(0);
-    Binary::DataBuilder res(size);
-    file.read(static_cast<char*>(res.Allocate(size)), size);
-    return res.CaptureResult();
-  }
-
-  Binary::Data::Ptr LoadArchiveContainer()
+  Binary::Container::Ptr LoadArchiveContainer()
   {
     const auto filename = GetArchiveContainerName();
-    return ReadFile(filename);
+    try
+    {
+      return Binary::CreateContainer(IO::OpenLocalFile(filename, 0));
+    }
+    catch (const Error& err)
+    {
+      throw MakeFormattedError(THIS_LINE, translate("Failed to load resource archive '{}'."), filename)
+          .AddSuberror(err);
+    }
   }
 
-  ArchivesSet FindArchives(Binary::View data, const Formats::Archived::Decoder& decoder)
+  ArchivesSet FindArchives(const Binary::Container& data, const Formats::Archived::Decoder& decoder)
   {
     const auto format = std::dynamic_pointer_cast<const Binary::ScanningFormat>(decoder.GetFormat());
     ArchivesSet result;
     for (std::size_t offset = 0, limit = data.Size(); offset < limit;)
     {
-      const LightweightBinaryContainer archData(data.SubView(offset));
-      if (format->Match(archData))
+      const auto archData = data.GetSubcontainer(offset, limit - offset);
+      if (format->Match(*archData))
       {
-        if (auto arch = decoder.Decode(archData))
+        if (auto arch = decoder.Decode(*archData))
         {
           const auto size = arch->Size();
           Dbg("Found resource archive at {}, size {}", offset, size);
-          result.push_back(std::move(arch));
+          result.emplace_back(std::move(arch));
           offset += size;
           continue;
         }
       }
-      offset += format->NextMatchOffset(archData);
+      offset += format->NextMatchOffset(*archData);
     }
     return result;
   }
 
-  Formats::Archived::Container::Ptr FindArchive(Binary::View data, const Formats::Archived::Decoder& decoder)
+  Formats::Archived::Container::Ptr FindArchive(const Binary::Container& data,
+                                                const Formats::Archived::Decoder& decoder)
   {
     auto archives = FindArchives(data, decoder);
     switch (archives.size())
