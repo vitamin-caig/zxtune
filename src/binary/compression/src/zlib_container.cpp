@@ -11,10 +11,8 @@
 #include "binary/compression/zlib_container.h"
 
 #include "binary/compression/zlib.h"
-#include "binary/compression/zlib_stream.h"
 #include "binary/container_factories.h"
 
-#include "contract.h"
 #include "make_ptr.h"
 
 namespace Binary::Compression::Zlib
@@ -22,15 +20,15 @@ namespace Binary::Compression::Zlib
   class DeferredDecompressContainer : public Container
   {
   public:
-    DeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint)
+    DeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSize)
       : Packed(std::move(packed))
-      , UnpackedSize(unpackedSizeHint)
+      , UnpackedSize(unpackedSize)
     {}
 
     const void* Start() const override
     {
       Unpack();
-      return Unpacked->data();
+      return Unpacked->Start();
     }
 
     std::size_t Size() const override
@@ -42,14 +40,14 @@ namespace Binary::Compression::Zlib
       else
       {
         Unpack();
-        return Unpacked->size();
+        return Unpacked->Size();
       }
     }
 
     Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
     {
       Unpack();
-      return CreateContainer(Unpacked, offset, size);
+      return Unpacked->GetSubcontainer(offset, size);
     }
 
   private:
@@ -57,34 +55,19 @@ namespace Binary::Compression::Zlib
     {
       if (!Unpacked)
       {
-        Binary::DataInputStream in(*Packed);
-        Binary::DataBuilder out(UnpackedSize);
-        Binary::Compression::Zlib::Decompress(in, out, UnpackedSize);
-        Require(!UnpackedSize || UnpackedSize == out.Size());
-        Unpacked.reset(new Dump());
-        out.CaptureResult(*Unpacked);  // TODO: Unpacked = out.CaptureResult();
-        UnpackedSize = Unpacked->size();
+        Unpacked = Decompress(*Packed, UnpackedSize);
         Packed.reset();
       }
     }
 
   private:
     mutable Data::Ptr Packed;
-    mutable std::shared_ptr<Dump> Unpacked;
+    mutable Ptr Unpacked;
     mutable std::size_t UnpackedSize;
   };
 
-  Container::Ptr CreateDeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSizeHint)
+  Container::Ptr CreateDeferredDecompressContainer(Data::Ptr packed, std::size_t unpackedSize)
   {
-    return MakePtr<DeferredDecompressContainer>(std::move(packed), unpackedSizeHint);
-  }
-
-  Container::Ptr Decompress(View packed, std::size_t unpackedSizeHint)
-  {
-    Binary::DataInputStream in(packed);
-    Binary::DataBuilder out(unpackedSizeHint);
-    Binary::Compression::Zlib::Decompress(in, out, unpackedSizeHint);
-    Require(!unpackedSizeHint || unpackedSizeHint == out.Size());
-    return out.CaptureResult();
+    return MakePtr<DeferredDecompressContainer>(std::move(packed), unpackedSize);
   }
 }  // namespace Binary::Compression::Zlib

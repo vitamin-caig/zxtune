@@ -20,8 +20,10 @@
 #include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
 
-#include "binary/compression/zlib_stream.h"
+#include "binary/compression/zlib.h"
+#include "binary/data_builder.h"
 #include "binary/format_factories.h"
+#include "binary/input_stream.h"
 #include "core/core_parameters.h"
 #include "core/plugin_attrs.h"
 #include "debug/log.h"
@@ -301,9 +303,9 @@ namespace Module::GME
   };
 
   // TODO: rework, extract GYM parsing code to Formats library
-  Binary::Data::Ptr DefaultDataCreator(Binary::View data)
+  Binary::Data::Ptr DefaultDataCreator(const Binary::Container& data)
   {
-    return Binary::CreateContainer(data);
+    return data.GetSubcontainer(0, data.Size());
   }
 
   using PlatformDetector = StringView (*)(Binary::View);
@@ -319,23 +321,28 @@ namespace Module::GME
 
   namespace GYM
   {
-    Binary::Data::Ptr CreateData(Binary::View data)
+    Binary::Data::Ptr CreateData(const Binary::Container& data)
     {
       Binary::DataInputStream input(data);
-      Binary::DataBuilder output(data.Size());
-      const std::size_t packedSizeOffset = 424;
-      output.Add(input.ReadData(packedSizeOffset));
-      if (const auto packedSize = input.Read<le_uint32_t>())
+      const std::size_t unpackedSizeOffset = 424;
+      const auto header = input.ReadData(unpackedSizeOffset);
+      if (const auto unpackedSize = input.Read<le_uint32_t>())
       {
+        Binary::DataBuilder output;
+        output.Add(header);
         output.Add<le_uint32_t>(0);
-        Binary::Compression::Zlib::Decompress(input, output);
+        Binary::Compression::Zlib::Decompress(input.ReadRestData(), output);
+        const auto realUnpackedSize = output.Size() - header.Size() - sizeof(unpackedSize);
+        if (unpackedSize != realUnpackedSize)
+        {
+          Dbg("GYM unpacked size mismatch: {} -> {}", unpackedSize, realUnpackedSize);
+        }
+        return output.CaptureResult();
       }
       else
       {
-        output.Add<le_uint32_t>(0);
-        output.Add(input.ReadRestData());
+        return DefaultDataCreator(data);
       }
-      return output.CaptureResult();
     }
   }  // namespace GYM
 

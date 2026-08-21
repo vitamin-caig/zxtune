@@ -10,15 +10,30 @@
 
 #pragma once
 
+#include "binary/container.h"
 #include "binary/view.h"
+
+namespace Binary
+{
+  class DataBuilder;
+  class DataInputStream;
+}  // namespace Binary
 
 namespace Binary::Compression::Zlib
 {
   //! @throws Error
-  //! @return real output size
-  std::size_t DecompressRaw(View input, void* output, std::size_t maxOutputSize);
+  Container::Ptr Decompress(View packed, std::size_t unpackedSize = 0 /*unknown*/);
 
   //! @throws Error
-  //! @return real output size
-  std::size_t Decompress(View input, void* output, std::size_t maxOutputSize);
+  void Decompress(View packed, DataBuilder& output);
+
+  //! @throws Error
+  Container::Ptr DecompressRaw(View packed, std::size_t unpackedSize);
+
+  //! @throws Error
+  Container::Ptr DecompressRaw(DataInputStream& packed);
+
+  //! @throws Error
+  Container::Ptr Compress(View input);
+
 }  // namespace Binary::Compression::Zlib

@@ -15,7 +15,7 @@
 #include "formats/chiptune/emulation/portablesoundformat.h"
 #include "formats/chiptune/emulation/ultra64soundformat.h"
 
-#include "binary/compression/zlib_container.h"
+#include "binary/compression/zlib.h"
 #include "binary/data_builder.h"
 #include "strings/format.h"
 #include "time/serialize.h"
@@ -406,9 +406,10 @@ namespace
     void SetPackedProgramSection(Binary::Container::Ptr blob) override
     {
       const auto packedSize = blob->Size();
-      const auto unpacked = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(blob));
-      Write(1, "Program area: {} bytes ({} packed, {}% ratio)", unpacked->Size(), packedSize,
-            100.0f * packedSize / unpacked->Size());
+      const auto unpacked = Binary::Compression::Zlib::Decompress(*blob);
+      const auto unpackedSize = unpacked->Size();
+      Write(1, "Program area: {} bytes ({} packed, {}% ratio)", unpackedSize, packedSize,
+            100.0f * packedSize / unpackedSize);
       Dumper->DumpProgram(*unpacked);
     }
 

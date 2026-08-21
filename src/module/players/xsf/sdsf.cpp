@@ -15,7 +15,7 @@
 #include "module/players/streaming.h"
 #include "module/players/xsf/xsf.h"
 
-#include "binary/compression/zlib_container.h"
+#include "binary/compression/zlib.h"
 #include "core/plugins_parameters.h"
 #include "debug/log.h"
 #include "parameters/tracking_helper.h"

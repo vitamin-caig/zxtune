@@ -10,8 +10,7 @@
 
 #include "formats/packed/container.h"
 
-#include "binary/compression/zlib_stream.h"
-#include "binary/data_builder.h"
+#include "binary/compression/zlib.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "formats/packed.h"
@@ -145,14 +144,12 @@ namespace Formats::Packed
         {
           input.Skip(sizeof(uint16_t));
         }
-        Binary::DataBuilder output;
-        Binary::Compression::Zlib::DecompressRaw(input, output);
-        if (auto result = output.CaptureResult())
+        if (auto unpacked = Binary::Compression::Zlib::DecompressRaw(input))
         {
           const auto& footer = input.Read<Gzip::Footer>();
-          Require(result->Size() == footer.OriginalSize);
+          Require(unpacked->Size() == footer.OriginalSize);
           // TODO: check CRC
-          return CreateContainer(std::move(result), input.GetPosition());
+          return CreateContainer(std::move(unpacked), input.GetPosition());
         }
       }
       catch (const Error&)

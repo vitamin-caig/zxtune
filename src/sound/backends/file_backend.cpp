@@ -79,8 +79,7 @@ namespace Sound::File
       if (state.Track)
       {
         const auto& track = *state.Track;
-        if (CurPosition.Update(track.Position) || CurPattern.Update(track.Pattern)
-            || CurLine.Update(track.Line))
+        if (CurPosition.Update(track.Position) || CurPattern.Update(track.Pattern) || CurLine.Update(track.Line))
         {
           const StateFieldsSource source(track);
           Result = Template->Instantiate(source);

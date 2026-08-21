@@ -10,7 +10,7 @@
 
 #include "devices/aym/dumper/dump_builder.h"
 
-#include "binary/compression/zlib_stream.h"
+#include "binary/compression/zlib.h"
 #include "binary/data_builder.h"
 
 #include "byteorder.h"
@@ -47,13 +47,8 @@ namespace Devices::AYM
 
     Binary::Data::Ptr GetResult() override
     {
-      Binary::DataBuilder output;
-      {
-        const auto unpacked = GetUnpackedResult();
-        Binary::DataInputStream input(*unpacked);
-        Binary::Compression::Zlib::Compress(input, output);
-      }
-      return output.CaptureResult();
+      const auto unpacked = GetUnpackedResult();
+      return Binary::Compression::Zlib::Compress(*unpacked);
     }
 
     void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) override

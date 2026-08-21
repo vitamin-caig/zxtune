@@ -10,7 +10,7 @@
 
 #include "formats/packed/container.h"
 
-#include "binary/compression/zlib_container.h"
+#include "binary/compression/zlib.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"

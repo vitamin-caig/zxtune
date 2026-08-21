@@ -10,9 +10,8 @@
 
 #include "formats/archived/zip.h"
 
-#include "binary/compression/zlib_stream.h"
+#include "binary/compression/zlib.h"
 #include "binary/container_base.h"
-#include "binary/data_builder.h"
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
@@ -234,15 +233,7 @@ namespace Formats::Archived
     private:
       Binary::Container::Ptr Decompress() const
       {
-        Binary::DataInputStream input(Payload);
-        Binary::DataBuilder output(UnpackedSize);
-        Binary::Compression::Zlib::DecompressRaw(input, output, UnpackedSize);
-        if (UnpackedSize != output.Size())
-        {
-          Dbg("Unpacked size mismatch: {} actually", output.Size());
-          return {};
-        }
-        return output.CaptureResult();
+        return Binary::Compression::Zlib::DecompressRaw(Payload, UnpackedSize);
       }
 
       Binary::Container::Ptr Destore(const Binary::Container& data) const

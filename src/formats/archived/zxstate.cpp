@@ -10,7 +10,7 @@
 
 #include "formats/archived/zxstate_supp.h"
 
-#include "binary/compression/zlib_container.h"
+#include "binary/compression/zlib.h"
 #include "binary/container_base.h"
 #include "binary/container_factories.h"
 #include "binary/data_builder.h"

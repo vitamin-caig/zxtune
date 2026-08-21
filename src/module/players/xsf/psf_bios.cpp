@@ -10,7 +10,7 @@
 
 #include "module/players/xsf/psf_bios.h"
 
-#include "binary/compression/zlib_container.h"
+#include "binary/compression/zlib.h"
 
 namespace Module::PSF
 {

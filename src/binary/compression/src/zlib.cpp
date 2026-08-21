@@ -10,7 +10,8 @@
 
 #include "binary/compression/zlib.h"
 
-#include "binary/compression/zlib_stream.h"
+#include "binary/data_builder.h"
+#include "binary/input_stream.h"
 #include "math/numeric.h"
 
 #include "error.h"
@@ -19,74 +20,37 @@
 
 namespace Binary::Compression::Zlib
 {
-  class Stream
+  void CheckError(int code, Error::LocationRef line)
   {
-  public:
-    Stream()
-      : Delegate()
-    {}
-
-    Stream(View input, void* output, std::size_t maxOutputSize)
-      : Delegate()
+    if (code != Z_OK)
     {
-      SetInput(input);
-      SetOutput(output, maxOutputSize);
+      throw Error(line, "Zlib: "s + zError(code));
     }
+  }
 
-  protected:
-    void SetInput(View input)
+  class Inflate
+  {
+    enum Mode : int
+    {
+      ZLIB = 15,
+      RAW = -15
+    };
+
+    Inflate(Binary::View input, Mode mode)
     {
       Delegate.next_in = const_cast<Bytef*>(static_cast<const Bytef*>(input.Start()));
       Delegate.avail_in = static_cast<uInt>(input.Size());
+      CheckError(::inflateInit2(&Delegate, mode), THIS_LINE);
     }
 
-    void SetOutput(void* dst, std::size_t dstSize)
-    {
-      Delegate.next_out = static_cast<Bytef*>(dst);
-      Delegate.avail_out = dstSize;
-    }
-
-    static void CheckError(int code, Error::LocationRef line)
-    {
-      if (code != Z_OK)
-      {
-        throw Error(line, zError(code));
-      }
-    }
-
-  protected:
-    z_stream Delegate;
-  };
-
-  class DecompressStream : public Stream
-  {
   public:
-    DecompressStream() = default;
-
-    DecompressStream(View input, void* output, std::size_t maxOutputSize)
-      : Stream(input, output, maxOutputSize)
-    {}
-
-    ~DecompressStream()
+    ~Inflate()
     {
       ::inflateEnd(&Delegate);
     }
 
-    void InitRaw()
+    std::size_t To(DataBuilder& output, std::size_t outputSizeHint = 0)
     {
-      CheckError(::inflateInit2(&Delegate, -15), THIS_LINE);
-    }
-
-    void Init()
-    {
-      CheckError(::inflateInit(&Delegate), THIS_LINE);
-    }
-
-    void Decompress(DataInputStream& input, DataBuilder& output, std::size_t outputSizeHint)
-    {
-      const auto prevOutSize = output.Size();
-
-      SetInput(View(input.PeekRawData(0), input.GetRestSize()));
       if (outputSizeHint != 0)
       {
         SetOutput(output.Allocate(outputSizeHint), outputSizeHint);
@@ -108,91 +72,78 @@ namespace Binary::Compression::Zlib
         }
         CheckError(res, THIS_LINE);
       }
-      input.Skip(Delegate.total_in);
-      output.Resize(prevOutSize + Delegate.total_out);
+      output.Resize(output.Size() - Delegate.avail_out);
+      if (outputSizeHint != 0 && Delegate.total_out != outputSizeHint)
+      {
+        throw Error(THIS_LINE, "Zlib: decompressed size mismatch");
+      }
+      return Delegate.total_in;
     }
 
-    std::size_t Decompress()
+    static std::size_t Zlib(Binary::View input, DataBuilder& output, std::size_t outputSizeHint = 0)
     {
-      const auto res = ::inflate(&Delegate, Z_FINISH);
-      if (res != Z_OK && res != Z_STREAM_END)
-      {
-        CheckError(res, THIS_LINE);
-      }
-      return Delegate.total_out;
+      return Inflate(input, Mode::ZLIB).To(output, outputSizeHint);
     }
+
+    static std::size_t Raw(Binary::View input, DataBuilder& output, std::size_t outputSizeHint = 0)
+    {
+      return Inflate(input, Mode::RAW).To(output, outputSizeHint);
+    }
+
+  private:
+    void SetOutput(void* dst, std::size_t dstSize)
+    {
+      Delegate.next_out = static_cast<Bytef*>(dst);
+      Delegate.avail_out = dstSize;
+    }
+
+  private:
+    z_stream Delegate = {};
   };
 
-  void DecompressRaw(DataInputStream& input, DataBuilder& output, std::size_t outputSizeHint)
+  std::size_t Compress(View input, DataBuilder& output)
   {
-    DecompressStream stream;
-    stream.InitRaw();
-    stream.Decompress(input, output, outputSizeHint);
+    const auto prevOutSize = output.Size();
+    const auto inSize = static_cast<uLong>(input.Size());
+    auto outSize = ::compressBound(inSize);
+    CheckError(::compress2(static_cast<Byte*>(output.Allocate(outSize)), &outSize, input.As<Byte>(), inSize,
+                           Z_BEST_COMPRESSION),
+               THIS_LINE);
+    output.Resize(prevOutSize + outSize);
+    return outSize;
   }
 
-  std::size_t DecompressRaw(View input, void* output, std::size_t maxOutputSize)
+  Container::Ptr Decompress(View packed, std::size_t unpackedSize)
   {
-    DecompressStream stream(input, output, maxOutputSize);
-    stream.InitRaw();
-    return stream.Decompress();
+    DataBuilder out(unpackedSize);
+    Inflate::Zlib(packed, out, unpackedSize);
+    return out.CaptureResult();
   }
 
-  void Decompress(DataInputStream& input, DataBuilder& output, std::size_t outputSizeHint)
+  void Decompress(View input, DataBuilder& output)
   {
-    DecompressStream stream;
-    stream.Init();
-    stream.Decompress(input, output, outputSizeHint);
+    Inflate::Zlib(input, output);
   }
 
-  std::size_t Decompress(View input, void* output, std::size_t maxOutputSize)
+  Container::Ptr DecompressRaw(View packed, std::size_t unpackedSize)
   {
-    DecompressStream stream(input, output, maxOutputSize);
-    stream.Init();
-    return stream.Decompress();
+    DataBuilder out(unpackedSize);
+    Inflate::Raw(packed, out, unpackedSize);
+    return out.CaptureResult();
   }
 
-  class CompressStream : public Stream
+  Container::Ptr DecompressRaw(DataInputStream& input)
   {
-  public:
-    using Stream::Stream;
+    DataBuilder out;
+    const auto consumed = Inflate::Raw({input.PeekRawData(0), input.GetRestSize()}, out);
+    input.Skip(consumed);
+    return out.CaptureResult();
+  }
 
-    ~CompressStream()
-    {
-      ::deflateEnd(&Delegate);
-    }
-
-    void Init()
-    {
-      CheckError(::deflateInit(&Delegate, Z_BEST_COMPRESSION), THIS_LINE);
-    }
-
-    std::size_t Compress()
-    {
-      const auto res = ::deflate(&Delegate, Z_FINISH);
-      if (res != Z_STREAM_END)
-      {
-        CheckError(res == Z_OK ? Z_BUF_ERROR : res, THIS_LINE);
-      }
-      return Delegate.total_out;
-    }
-
-    void Compress(DataInputStream& input, DataBuilder& output)
-    {
-      const auto inData = input.ReadRestData();
-      const auto prevOutSize = output.Size();
-
-      SetInput(inData);
-      const auto approxOutSize = ::compressBound(static_cast<uLong>(inData.Size()));
-      SetOutput(output.Allocate(approxOutSize), approxOutSize);
-      const auto outSize = Compress();
-      output.Resize(prevOutSize + outSize);
-    }
-  };
-
-  void Compress(DataInputStream& input, DataBuilder& output)
+  Container::Ptr Compress(View input)
   {
-    CompressStream stream;
-    stream.Init();
-    stream.Compress(input, output);
+    DataBuilder out;
+    Compress(input, out);
+    return out.CaptureResult();
   }
 }  // namespace Binary::Compression::Zlib

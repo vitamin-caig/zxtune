@@ -12,8 +12,7 @@
 #include "core/src/location.h"
 
 #include "binary/base64.h"
-#include "binary/compression/zlib_container.h"
-#include "binary/compression/zlib_stream.h"
+#include "binary/compression/zlib.h"
 #include "binary/crc.h"
 #include "binary/data_builder.h"
 #include "core/plugin_attrs.h"
@@ -99,36 +98,25 @@ namespace ZXTune::Zdata
     const le_uint32_t Value;
   };
 
-  struct Header
+  RawHeader ParseHeader(const TxtHeader& in)
   {
-    Header(uint32_t crc, std::size_t origSize, std::size_t packedSize)
-      : Crc(crc)
-      , Original(origSize)
-      , Packed(packedSize)
-    {}
+    RawHeader out;
+    const auto* const inData = in.data();
+    auto* const outData = out.Signature.data();
+    Binary::Base64::Decode(inData, inData + in.size(), outData, outData + sizeof(out));
+    Require(out.Signature == SIGNATURE);
+    return out;
+  }
 
-    static Header Decode(const TxtHeader& in)
-    {
-      RawHeader out;
-      const auto* const inData = in.data();
-      auto* const outData = out.Signature.data();
-      Binary::Base64::Decode(inData, inData + in.size(), outData, outData + sizeof(out));
-      Require(out.Signature == SIGNATURE);
-      return {out.Crc, out.OriginalSize, out.PackedSize};
-    }
-
-    void ToRaw(RawHeader& res) const
-    {
-      res.Signature = SIGNATURE;
-      res.Crc = Crc;
-      res.OriginalSize = Original;
-      res.PackedSize = Packed;
-    }
-
-    const uint32_t Crc;
-    const std::size_t Original;
-    const std::size_t Packed;
-  };
+  RawHeader MakeHeader(Binary::View input, std::size_t packedSize)
+  {
+    RawHeader hdr;
+    hdr.Signature = SIGNATURE;
+    hdr.Crc = Binary::Crc32(input);
+    hdr.OriginalSize = input.Size();
+    hdr.PackedSize = packedSize;
+    return hdr;
+  }
 
   // clang-format off
 
@@ -185,13 +173,12 @@ namespace ZXTune::Zdata
   {
     try
     {
-      const Layout layout = FindLayout(raw, marker);
-      const Header hdr = Header::Decode(layout.GetHeader());
+      const auto layout = FindLayout(raw, marker);
+      const auto hdr = ParseHeader(layout.GetHeader());
       Dbg("Found container id={}", hdr.Crc);
-      const auto decoded = Binary::Base64::Decode(layout.GetBody(hdr.Packed));
-      Dbg("Unpack {} => {}", hdr.Packed, hdr.Original);
-      auto unpacked = Binary::Compression::Zlib::Decompress(decoded, hdr.Original);
-      Require(hdr.Original == unpacked->Size());
+      const auto decoded = Binary::Base64::Decode(layout.GetBody(hdr.PackedSize));
+      Dbg("Unpack {} => {}", hdr.PackedSize, hdr.OriginalSize);
+      auto unpacked = Binary::Compression::Zlib::Decompress(decoded, hdr.OriginalSize);
       Require(hdr.Crc == Binary::Crc32(*unpacked));
       return unpacked;
     }
@@ -207,26 +194,12 @@ namespace ZXTune::Zdata
     }
   }
 
-  Header Compress(Binary::View input, Binary::DataBuilder& output)
-  {
-    const auto inSize = input.Size();
-    const std::size_t prevOutputSize = output.Size();
-    {
-      Binary::DataInputStream inputStream(input);
-      Binary::Compression::Zlib::Compress(inputStream, output);
-    }
-    const auto packedSize = output.Size() - prevOutputSize;
-    return {Binary::Crc32(input), inSize, packedSize};
-  }
-
-  Binary::Container::Ptr Convert(Binary::View input)
+  void Encode(Binary::View input, Binary::DataBuilder& output)
   {
     const auto outSize = Binary::Base64::CalculateConvertedSize(input.Size());
-    Binary::DataBuilder builder(outSize);
     const auto* in = input.As<uint8_t>();
-    auto* out = static_cast<char*>(builder.Allocate(outSize));
+    auto* out = static_cast<char*>(output.Allocate(outSize));
     Binary::Base64::Encode(in, in + input.Size(), out, out + outSize);
-    return builder.CaptureResult();
   }
 }  // namespace ZXTune::Zdata
 
@@ -241,13 +214,13 @@ namespace ZXTune
 {
   DataLocation::Ptr BuildZdataContainer(Binary::View input)
   {
-    Binary::DataBuilder builder(input.Size());
-    builder.Add<Zdata::RawHeader>();
-    const Zdata::Header hdr = Zdata::Compress(input, builder);
-    hdr.ToRaw(builder.Get<Zdata::RawHeader>(0));
-    auto data = Zdata::Convert(builder.GetView());
-    return CreateLocation(std::move(data), String{Zdata::ID},
-                          Strings::PrefixedIndex::Create(Zdata::PLUGIN_PREFIX, hdr.Crc).ToString());
+    const auto packed = Binary::Compression::Zlib::Compress(input);
+    const auto header = Zdata::MakeHeader(input, packed->Size());
+    Binary::DataBuilder builder;
+    Zdata::Encode(Binary::View(header), builder);
+    Zdata::Encode(*packed, builder);
+    return CreateLocation(builder.CaptureResult(), String{Zdata::ID},
+                          Strings::PrefixedIndex::Create(Zdata::PLUGIN_PREFIX, header.Crc).ToString());
   }
 }  // namespace ZXTune
 
