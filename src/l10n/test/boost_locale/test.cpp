@@ -35,8 +35,8 @@ namespace
     stream.seekg(0, std::ios_base::end);
     const std::size_t size = stream.tellg();
     stream.seekg(0);
-    auto tmp = std::make_unique<Binary::Dump>(size);
-    stream.read(safe_ptr_cast<char*>(tmp->data()), tmp->size());
+    auto tmp = Binary::Dump(size);
+    stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
     return Binary::CreateContainer(std::move(tmp));
   }
 

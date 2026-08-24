@@ -11,6 +11,7 @@
 #include "formats/image/container.h"
 
 #include "binary/format_factories.h"
+#include "binary/input_stream.h"
 #include "formats/image.h"
 
 #include "contract.h"
@@ -57,32 +58,6 @@ namespace Formats::Image
     const std::size_t PIXELS_SIZE = 6144;
     const std::size_t ATTRS_SIZE = 768;
 
-    class ByteStream
-    {
-    public:
-      ByteStream(const uint8_t* data, std::size_t size, std::size_t offset)
-        : Start(data)
-        , Cursor(Start + offset)
-        , End(Start + size)
-      {}
-
-      uint8_t GetByte()
-      {
-        Require(Cursor != End);
-        return *Cursor++;
-      }
-
-      std::size_t GetProcessedBytes() const
-      {
-        return Cursor - Start;
-      }
-
-    private:
-      const uint8_t* const Start;
-      const uint8_t* Cursor;
-      const uint8_t* const End;
-    };
-
     class AddrTranslator
     {
     public:
@@ -118,83 +93,55 @@ namespace Formats::Image
       const std::size_t ScrLimit;
     };
 
-    class DataDecoder
+    Binary::Dump Decode(Binary::DataInputStream& stream)
     {
-    public:
-      explicit DataDecoder(Binary::View data)
-        : Stream(data.As<uint8_t>(), data.Size(), DEPACKER_SIZE)
+      try
       {
-        IsValid = DecodeData();
-      }
+        Binary::Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
+        std::fill_n(&decoded[PIXELS_SIZE], ATTRS_SIZE, 7);
 
-      std::unique_ptr<Binary::Dump> GetResult()
-      {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
-      }
+        const AddrTranslator translate(0);
 
-      std::size_t GetUsedSize() const
-      {
-        return Stream.GetProcessedBytes();
-      }
-
-    private:
-      bool DecodeData()
-      {
-        try
+        std::size_t target = 0;
+        for (;;)
         {
-          Binary::Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
-          std::fill_n(&decoded[PIXELS_SIZE], ATTRS_SIZE, 7);
-
-          const AddrTranslator translate(0);
-
-          std::size_t target = 0;
-          for (;;)
+          const uint8_t val = stream.ReadByte();
+          if (val == 0x80)
           {
-            const uint8_t val = Stream.GetByte();
-            if (val == 0x80)
+            break;
+          }
+          switch (val & 0xc0)
+          {
+          case 0x80:
+            for (uint8_t len = val & 0x3f; len != 0; --len)
             {
-              break;
+              decoded.at(translate(target++)) = stream.ReadByte();
             }
-            switch (val & 0xc0)
+            break;
+          case 0xc0:
+            for (uint8_t len = (val & 0x3f) + 3, fill = stream.ReadByte(); len != 0; --len)
             {
-            case 0x80:
-              for (uint8_t len = val & 0x3f; len != 0; --len)
-              {
-                decoded.at(translate(target++)) = Stream.GetByte();
-              }
-              break;
-            case 0xc0:
-              for (uint8_t len = (val & 0x3f) + 3, fill = Stream.GetByte(); len != 0; --len)
-              {
-                decoded.at(translate(target++)) = fill;
-              }
-              break;
-            default:
-            {
-              uint16_t source = target - (256 * (val & 0x07) + Stream.GetByte());
-              for (uint8_t len = ((val & 0xf8) >> 3) + 3; len != 0; --len)
-              {
-                decoded.at(translate(target++)) = decoded.at(translate(source++));
-              }
+              decoded.at(translate(target++)) = fill;
             }
+            break;
+          default:
+          {
+            uint16_t source = target - (256 * (val & 0x07) + stream.ReadByte());
+            for (uint8_t len = ((val & 0xf8) >> 3) + 3; len != 0; --len)
+            {
+              decoded.at(translate(target++)) = decoded.at(translate(source++));
             }
           }
-          Require(target == decoded.size());
-          Result = std::make_unique<Binary::Dump>();
-          Result->swap(decoded);
-          return true;
+          }
         }
-        catch (const std::exception&)
-        {
-          return false;
-        }
+        Require(target == decoded.size());
+        return decoded;
       }
-
-    private:
-      bool IsValid;
-      ByteStream Stream;
-      std::unique_ptr<Binary::Dump> Result;
-    };
+      catch (const std::exception&)
+      {
+        return {};
+      }
+    }
   }  // namespace ASCScreenCrusher
 
   class ASCScreenCrusherDecoder : public Decoder
@@ -216,12 +163,15 @@ namespace Formats::Image
 
     Container::Ptr Decode(const Binary::Container& rawData) const override
     {
-      if (!Depacker->Match(rawData))
+      const Binary::View data(rawData);
+      if (!Depacker->Match(data))
       {
         return {};
       }
-      ASCScreenCrusher::DataDecoder decoder(rawData);
-      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
+      Binary::DataInputStream stream(data);
+      stream.Skip(ASCScreenCrusher::DEPACKER_SIZE);
+      auto result = ASCScreenCrusher::Decode(stream);
+      return CreateContainer(std::move(result), stream.GetPosition());
     }
 
   private:

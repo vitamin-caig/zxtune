@@ -96,14 +96,9 @@ namespace Binary
       Content.resize(size);
     }
 
-    void CaptureResult(Dump& res)
-    {
-      res = std::move(Content);
-    }
-
     Container::Ptr CaptureResult()
     {
-      return CreateContainer(std::make_unique<Dump>(std::move(Content)));
+      return CreateContainer(std::move(Content));
     }
 
   private:

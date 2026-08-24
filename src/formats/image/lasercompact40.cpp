@@ -57,40 +57,16 @@ namespace Formats::Image
     const std::size_t PIXELS_SIZE = 6144;
     const std::size_t ATTRS_SIZE = 768;
 
-    class Container
-    {
-    public:
-      explicit Container(Binary::View data)
-        : Data(data.SubView(DEPACKER_SIZE))
-      {}
-
-      bool FastCheck() const
-      {
-        if (!Data)
-        {
-          return false;
-        }
-        const uint_t sizeCode = *Data.As<uint8_t>();
-        return sizeCode == 0 || sizeCode == 1 || sizeCode == 2 || sizeCode == 8 || sizeCode == 9 || sizeCode == 16;
-      }
-
-      Binary::DataInputStream GetStream() const
-      {
-        return Binary::DataInputStream(Data);
-      }
-
-    private:
-      const Binary::View Data;
-    };
-
     class AddrTranslator
     {
     public:
-      AddrTranslator(uint_t sizeCode)
+      explicit AddrTranslator(uint_t sizeCode)
         : AttrBase(256 * sizeCode)
         , ScrStart((AttrBase & 0x0300) << 3)
         , ScrLimit((AttrBase ^ 0x1800) & 0xfc00)
-      {}
+      {
+        Require(sizeCode == 0 || sizeCode == 1 || sizeCode == 2 || sizeCode == 8 || sizeCode == 9 || sizeCode == 16);
+      }
 
       std::size_t GetStart() const
       {
@@ -118,112 +94,80 @@ namespace Formats::Image
       const std::size_t ScrLimit;
     };
 
-    class DataDecoder
+    Binary::Dump Decode(Binary::DataInputStream& stream)
     {
-    public:
-      explicit DataDecoder(const Container& container)
-        : IsValid(container.FastCheck())
-        , Stream(container.GetStream())
+      try
       {
-        if (IsValid)
+        Binary::Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
+        std::fill_n(&decoded[PIXELS_SIZE], ATTRS_SIZE, 7);
+
+        const AddrTranslator translate(stream.ReadByte());
+
+        std::size_t target = translate.GetStart();
+        for (;;)
         {
-          IsValid = DecodeData();
-        }
-      }
-
-      std::unique_ptr<Binary::Dump> GetResult()
-      {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
-      }
-
-      std::size_t GetUsedSize() const
-      {
-        return Stream.GetPosition();
-      }
-
-    private:
-      bool DecodeData()
-      {
-        try
-        {
-          Binary::Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
-          std::fill_n(&decoded[PIXELS_SIZE], ATTRS_SIZE, 7);
-
-          const AddrTranslator translate(Stream.ReadByte());
-
-          std::size_t target = translate.GetStart();
-          for (;;)
+          const uint8_t val = stream.ReadByte();
+          if (val == 0xc0)
           {
-            const uint8_t val = Stream.ReadByte();
-            if (val == 0xc0)
+            break;
+          }
+          if ((val & 0xc1) == 0xc1)
+          {
+            uint8_t len = (val & 0x3c) >> 2;
+            if (0 == len)
             {
-              break;
+              len = stream.ReadByte();
             }
-            if ((val & 0xc1) == 0xc1)
+            else if ((val & 0x02) == 0x00)
             {
-              uint8_t len = (val & 0x3c) >> 2;
-              if (0 == len)
-              {
-                len = Stream.ReadByte();
-              }
-              else if ((val & 0x02) == 0x00)
-              {
-                ++len;
-              }
-              const uint8_t fill = (val & 0x02) == 0x00 ? Stream.ReadByte() : 0;
-              do
-              {
-                decoded.at(translate(target++)) = fill;
-              } while (--len);
-            }
-            else if ((val & 0xc1) == 0xc0)
-            {
-              uint8_t len = (val & 0x3e) >> 1;
-              do
-              {
-                decoded.at(translate(target++)) = Stream.ReadByte();
-              } while (--len);
-            }
-            else
-            {
-              uint8_t len = (val & 0x78) >> 3;
-              uint8_t hi = (val & 0x07) | 0xf8;
-
-              if (0 == len)
-              {
-                const uint8_t next = Stream.ReadByte();
-                hi = (hi << 1) | (next & 1);
-                len = next >> 1;
-              }
               ++len;
-              uint16_t source = target + (uint_t(hi << 8) | Stream.ReadByte());
-              const int_t step = (val & 0x80) ? -1 : +1;
-              do
-              {
-                decoded.at(translate(target++)) = decoded.at(translate(source));
-                source += step;
-              } while (--len);
             }
+            const uint8_t fill = (val & 0x02) == 0x00 ? stream.ReadByte() : 0;
+            do
+            {
+              decoded.at(translate(target++)) = fill;
+            } while (--len);
           }
-          Result = std::make_unique<Binary::Dump>();
-          if (target <= PIXELS_SIZE)
+          else if ((val & 0xc1) == 0xc0)
           {
-            decoded.resize(PIXELS_SIZE);
+            uint8_t len = (val & 0x3e) >> 1;
+            do
+            {
+              decoded.at(translate(target++)) = stream.ReadByte();
+            } while (--len);
           }
-          Result->swap(decoded);
-          return true;
-        }
-        catch (const std::exception&)
-        {
-          return false;
-        }
-      }
+          else
+          {
+            uint8_t len = (val & 0x78) >> 3;
+            uint8_t hi = (val & 0x07) | 0xf8;
 
-    private:
-      bool IsValid;
-      Binary::DataInputStream Stream;
-      std::unique_ptr<Binary::Dump> Result;
-    };
+            if (0 == len)
+            {
+              const uint8_t next = stream.ReadByte();
+              hi = (hi << 1) | (next & 1);
+              len = next >> 1;
+            }
+            ++len;
+            uint16_t source = target + (uint_t(hi << 8) | stream.ReadByte());
+            const int_t step = (val & 0x80) ? -1 : +1;
+            do
+            {
+              decoded.at(translate(target++)) = decoded.at(translate(source));
+              source += step;
+            } while (--len);
+          }
+        }
+        if (target <= PIXELS_SIZE)
+        {
+          decoded.resize(PIXELS_SIZE);
+        }
+        return decoded;
+      }
+      catch (const std::exception&)
+      {
+        return {};
+      }
+    }
   }  // namespace LaserCompact40
 
   class LaserCompact40Decoder : public Decoder
@@ -245,17 +189,15 @@ namespace Formats::Image
 
     Container::Ptr Decode(const Binary::Container& rawData) const override
     {
-      if (!Depacker->Match(rawData))
+      const Binary::View data(rawData);
+      if (!Depacker->Match(data))
       {
         return {};
       }
-      const LaserCompact40::Container container(rawData);
-      if (!container.FastCheck())
-      {
-        return {};
-      }
-      LaserCompact40::DataDecoder decoder(container);
-      return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
+      Binary::DataInputStream stream(data);
+      stream.Skip(LaserCompact40::DEPACKER_SIZE);
+      auto result = LaserCompact40::Decode(stream);
+      return CreateContainer(std::move(result), stream.GetPosition());
     }
 
   private:

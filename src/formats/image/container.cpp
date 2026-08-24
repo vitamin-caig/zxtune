@@ -48,7 +48,7 @@ namespace Formats::Image
     }
   }
 
-  Container::Ptr CreateContainer(std::unique_ptr<Binary::Dump> data, std::size_t origSize)
+  Container::Ptr CreateContainer(Binary::Dump data, std::size_t origSize)
   {
     auto container = Binary::CreateContainer(std::move(data));
     return CreateContainer(std::move(container), origSize);

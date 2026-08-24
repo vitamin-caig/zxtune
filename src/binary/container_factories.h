@@ -22,7 +22,7 @@ namespace Binary
   //! @invariant Source data is copied
   Container::Ptr CreateContainer(View data);
   //! @brief Taking ownership of source data
-  Container::Ptr CreateContainer(std::unique_ptr<Dump> data);
+  Container::Ptr CreateContainer(Dump data);
   //! @brief Sharing ownership of source data
   Container::Ptr CreateContainer(std::shared_ptr<const Dump> data, std::size_t offset, std::size_t size);
   //! @brief Sharing ownership

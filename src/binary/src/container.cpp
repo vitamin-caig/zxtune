@@ -63,7 +63,7 @@ namespace Binary
       if (size && offset < Length)
       {
         size = std::min(size, Length - offset);
-        return MakePtr<SharedContainer<Value> >(Buffer, Offset + offset, size);
+        return MakePtr<SharedContainer<Value>>(Buffer, Offset + offset, size);
       }
       else
       {
@@ -85,7 +85,7 @@ namespace Binary
   Container::Ptr CreateContainer(View data)
   {
     const auto size = data.Size();
-    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data.Start()) : nullptr)
+    if (const auto* byteData = data.As<uint8_t>())
     {
       std::shared_ptr<const Dump> buffer(new Dump(byteData, byteData + size));
       return CreateContainer(std::move(buffer), 0, size);
@@ -96,9 +96,9 @@ namespace Binary
     }
   }
 
-  Container::Ptr CreateContainer(std::unique_ptr<Dump> data)
+  Container::Ptr CreateContainer(Dump data)
   {
-    std::shared_ptr<const Dump> buffer(data.release());
+    std::shared_ptr<const Dump> buffer(new Dump(std::move(data)));
     const std::size_t size = buffer ? buffer->size() : 0;
     return CreateContainer(std::move(buffer), 0, size);
   }
@@ -112,7 +112,7 @@ namespace Binary
     }
     else if (const auto size = data->Size())
     {
-      return MakePtr<SharedContainer<Data::Ptr> >(std::move(data), 0, size);
+      return MakePtr<SharedContainer<Data::Ptr>>(std::move(data), 0, size);
     }
     else
     {
@@ -125,7 +125,7 @@ namespace Binary
     if (size && data && offset < data->size())
     {
       size = std::min(size, data->size() - offset);
-      return MakePtr<SharedContainer<std::shared_ptr<const Dump> > >(std::move(data), offset, size);
+      return MakePtr<SharedContainer<std::shared_ptr<const Dump>>>(std::move(data), offset, size);
     }
     else
     {
