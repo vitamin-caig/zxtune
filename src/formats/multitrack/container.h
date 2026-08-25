@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/container.h"
 
 #include "types.h"
 

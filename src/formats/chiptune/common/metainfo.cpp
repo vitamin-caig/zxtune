@@ -8,7 +8,7 @@
  *
  **/
 
-#include "formats/chiptune/metainfo.h"
+#include "formats/chiptune/common/metainfo.h"
 
 #include "binary/data_builder.h"
 #include "binary/input_stream.h"

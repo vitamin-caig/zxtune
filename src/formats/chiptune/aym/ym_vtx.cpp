@@ -9,7 +9,7 @@
  **/
 
 #include "formats/chiptune/aym/ym.h"
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/compression/lha.h"
 #include "binary/dump.h"

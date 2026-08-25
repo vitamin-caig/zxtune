@@ -12,7 +12,7 @@
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/multitrack_plugin.h"
 #include "core/plugins/players/plugin.h"
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 #include "module/players/duration.h"
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"

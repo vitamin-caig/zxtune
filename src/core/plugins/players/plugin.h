@@ -13,7 +13,7 @@
 #include "core/plugins/player_plugin.h"
 #include "module/players/factory.h"
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 
 namespace Module
 {

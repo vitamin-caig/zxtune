@@ -9,7 +9,7 @@
  **/
 
 #include "formats/chiptune/aym/protracker3_detail.h"
-#include "formats/chiptune/metainfo.h"
+#include "formats/chiptune/common/metainfo.h"
 #include "formats/packed/common/container.h"
 
 #include "binary/format_factories.h"

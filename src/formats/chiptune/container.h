@@ -2,19 +2,32 @@
  *
  * @file
  *
- * @brief  Chiptune container helper
+ * @brief  Chiptune container interface
  *
  * @author vitamin.caig@gmail.com
  *
  **/
+
 #pragma once
 
-#include "formats/chiptune.h"
+#include "binary/container.h"
+
+#include "types.h"
+
+#include <memory>
 
 namespace Formats::Chiptune
 {
-  Container::Ptr CreateKnownCrcContainer(Binary::Container::Ptr data, uint_t crc);
-  Container::Ptr CreateCalculatingCrcContainer(Binary::Container::Ptr data, std::size_t offset, std::size_t size);
-  Container::Ptr CreateCalculatingCrcContainer(const Binary::Container& data,
-                                               std::size_t crcCalculatingLimit = 10485760);
+  //! @brief Chiptune raw data presentation
+  class Container : public Binary::Container
+  {
+  public:
+    using Ptr = std::shared_ptr<const Container>;
+
+    virtual uint_t Checksum() const = 0;
+
+    //! @brief Internal structures simple fingerprint
+    //! @return Some integer value at least 32-bit
+    virtual uint_t FixedChecksum() const = 0;
+  };
 }  // namespace Formats::Chiptune

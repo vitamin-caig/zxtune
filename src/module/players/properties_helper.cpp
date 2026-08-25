@@ -10,7 +10,7 @@
 
 #include "module/players/properties_helper.h"
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/container.h"
 #include "module/attributes.h"
 #include "sound/sound_parameters.h"
 #include "strings/join.h"

@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/music/wav.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/data_builder.h"
 #include "binary/format_factories.h"

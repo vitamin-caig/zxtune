@@ -89,7 +89,7 @@ IncludeCategories:
   - Regex: '"(api_dynamic|byteorder|contract|error|error_tools|lazy|make_ptr|pointers|source_location|static_string|string_type|string_view|types)\.h"'
     Priority: 4
   # public libraries
-  - Regex: '"(analysis|async|binary(/compression)?|core|debug|devices|formats(/(archived|multitrack|packed|image))?|io|l10n|math|module|parameters|platform(/(application|version))?|resource|sound|strings|time|tools)/[^/]+\.h"'
+  - Regex: '"(analysis|async|binary(/compression)?|core|debug|devices|formats/(archived|multitrack|packed|image|chiptune)|io|l10n|math|module|parameters|platform(/(application|version))?|resource|sound|strings|time|tools)/[^/]+\.h"'
     Priority: 3
   # private libraries/impl includes
   - Regex: '"(analysis|async|binary|core|debug|devices|formats|io|l10n|math|module|parameters|platform|resource|sound|strings|time|tools)/[^.]+\.h|zxtune.h"'

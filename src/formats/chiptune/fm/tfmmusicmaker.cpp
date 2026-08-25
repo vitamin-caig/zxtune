@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/fm/tfmmusicmaker.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/crc.h"
 #include "binary/data_builder.h"

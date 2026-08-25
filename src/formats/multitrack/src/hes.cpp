@@ -8,7 +8,7 @@
  *
  **/
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/container_base.h"
 #include "binary/format_factories.h"

@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/music/mp3.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 #include "formats/chiptune/music/tags_id3.h"
 
 #include "binary/format_factories.h"

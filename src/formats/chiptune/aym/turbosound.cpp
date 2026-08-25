@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/aym/turbosound.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/format_factories.h"
 #include "math/numeric.h"

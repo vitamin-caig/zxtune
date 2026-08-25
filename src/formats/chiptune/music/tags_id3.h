@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
+#include "formats/chiptune/common/builder_meta.h"
 
 #include "binary/input_stream.h"
 

@@ -10,7 +10,7 @@
 
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 #include "module/players/properties_helper.h"
 
 #include "binary/format_factories.h"

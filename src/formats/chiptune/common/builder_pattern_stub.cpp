@@ -8,7 +8,7 @@
  *
  **/
 
-#include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/common/builder_pattern.h"
 
 namespace Formats::Chiptune
 {

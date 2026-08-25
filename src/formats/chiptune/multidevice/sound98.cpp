@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/multidevice/sound98.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"

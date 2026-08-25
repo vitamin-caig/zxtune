@@ -9,7 +9,7 @@
  **/
 
 #include "formats/chiptune/aym/soundtracker_detail.h"
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/format_factories.h"
 #include "debug/log.h"
