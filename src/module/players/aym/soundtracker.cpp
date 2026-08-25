@@ -41,7 +41,7 @@ namespace Module::SoundTracker
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_SOUNDTRACKER);
+      Properties.SetFrequencyTable(AYM::TABLE_SOUNDTRACKER);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override

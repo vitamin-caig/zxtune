@@ -285,7 +285,7 @@ namespace Module::ProTracker3
       const Iterator::Ptr Delegate;
       const AYM::DataRenderer::Ptr First;
       const AYM::DataRenderer::Ptr Second;
-      mutable FrequencyTable Table;
+      mutable AYM::FrequencyTable Table;
     };
 
     class Chiptune : public TurboSound::Chiptune

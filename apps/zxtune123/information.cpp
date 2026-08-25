@@ -12,8 +12,9 @@
 
 #include "apps/zxtune123/sound.h"
 
+#include "module/players/aym/freq_tables.h"
+
 #include "core/core_parameters.h"
-#include "core/freq_tables.h"
 #include "core/plugin.h"
 #include "core/plugin_attrs.h"
 #include "core/plugins_parameters.h"
@@ -475,13 +476,8 @@ namespace
 
   void ShowFreqtables()
   {
-    static const StringView FREQTABLES[] = {
-        Module::TABLE_SOUNDTRACKER,       Module::TABLE_PROTRACKER2,        Module::TABLE_PROTRACKER3_3,
-        Module::TABLE_PROTRACKER3_4,      Module::TABLE_PROTRACKER3_3_ASM,  Module::TABLE_PROTRACKER3_4_ASM,
-        Module::TABLE_PROTRACKER3_3_REAL, Module::TABLE_PROTRACKER3_4_REAL, Module::TABLE_ASM,
-        Module::TABLE_SOUNDTRACKER_PRO,   Module::TABLE_NATURAL_SCALED};
     StdOut << "Supported frequency tables:";
-    for (const auto& table : FREQTABLES)
+    for (const auto& table : Module::AYM::GetAvailableFreqTables())
     {
       StdOut << ' ' << table;
     }

@@ -11,8 +11,8 @@
 #pragma once
 
 #include "devices/aym/chip.h"
+#include "module/players/aym/freq_tables.h"
 
-#include "core/freq_tables.h"
 #include "parameters/accessor.h"
 
 namespace Module::AYM

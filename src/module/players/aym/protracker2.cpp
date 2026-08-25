@@ -55,7 +55,7 @@ namespace Module::ProTracker2
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_PROTRACKER2);
+      Properties.SetFrequencyTable(AYM::TABLE_PROTRACKER2);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override

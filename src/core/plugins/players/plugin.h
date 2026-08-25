@@ -15,11 +15,6 @@
 
 #include "formats/chiptune/decoder.h"
 
-namespace Module
-{
-  using ExternalParsingFactory = BaseFactory<Formats::Chiptune::Container>;
-}
-
 namespace ZXTune
 {
   PlayerPlugin::Ptr CreatePlayerPlugin(PluginId id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,

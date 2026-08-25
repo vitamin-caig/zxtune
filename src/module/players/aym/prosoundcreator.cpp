@@ -221,7 +221,7 @@ namespace Module::ProSoundCreator
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_ASM);
+      Properties.SetFrequencyTable(AYM::TABLE_ASM);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override

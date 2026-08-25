@@ -398,7 +398,7 @@ namespace Module::SQTracker
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_SQTRACKER);
+      Properties.SetFrequencyTable(AYM::TABLE_SQTRACKER);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override

@@ -14,6 +14,16 @@
 #include "module/holder.h"
 #include "parameters/container.h"
 
+namespace Formats::Chiptune
+{
+  class Container;
+}
+
+namespace Formats::Multitrack
+{
+  class Container;
+}
+
 namespace Module
 {
   template<class ContainerType>
@@ -28,4 +38,11 @@ namespace Module
   };
 
   using Factory = BaseFactory<Binary::Container>;
+  using ExternalParsingFactory = BaseFactory<Formats::Chiptune::Container>;
+
+  class MultitrackFactory : public BaseFactory<Formats::Multitrack::Container>
+  {
+  public:
+    using Ptr = std::shared_ptr<const MultitrackFactory>;
+  };
 }  // namespace Module

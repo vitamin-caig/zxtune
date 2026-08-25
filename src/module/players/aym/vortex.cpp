@@ -378,18 +378,18 @@ namespace Module::Vortex
     switch (table)
     {
     case PROTRACKER:
-      return version <= 3 ? TABLE_PROTRACKER3_3 : TABLE_PROTRACKER3_4;
+      return version <= 3 ? AYM::TABLE_PROTRACKER3_3 : AYM::TABLE_PROTRACKER3_4;
     case SOUNDTRACKER:
-      return TABLE_PROTRACKER3_ST;
+      return AYM::TABLE_PROTRACKER3_ST;
     case ASM:
-      return version <= 3 ? TABLE_PROTRACKER3_3_ASM : TABLE_PROTRACKER3_4_ASM;
+      return version <= 3 ? AYM::TABLE_PROTRACKER3_3_ASM : AYM::TABLE_PROTRACKER3_4_ASM;
     case REAL:
-      return version <= 3 ? TABLE_PROTRACKER3_3_REAL : TABLE_PROTRACKER3_4_REAL;
+      return version <= 3 ? AYM::TABLE_PROTRACKER3_3_REAL : AYM::TABLE_PROTRACKER3_4_REAL;
     case NATURAL:
-      return TABLE_NATURAL_SCALED;
+      return AYM::TABLE_NATURAL_SCALED;
     default:
       // assert(!"Unknown frequency table for Vortex-based modules");
-      return TABLE_PROTRACKER3_3;
+      return AYM::TABLE_PROTRACKER3_3;
     }
   }
 

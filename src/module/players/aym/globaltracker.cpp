@@ -45,7 +45,7 @@ namespace Module::GlobalTracker
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_PROTRACKER3_ST);
+      Properties.SetFrequencyTable(AYM::TABLE_PROTRACKER3_ST);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override

@@ -9,9 +9,10 @@
  **/
 
 #include "core/plugins/player_plugins_registrator.h"
-#include "core/plugins/players/ay/aym_conversion.h"
 #include "core/plugins/players/plugin.h"
 #include "module/players/aym/protracker3.h"
+
+#include "core/plugin_attrs.h"
 
 namespace ZXTune
 {
@@ -20,8 +21,7 @@ namespace ZXTune
     // plugin attributes
     const auto ID = "PT3"_id;
     const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::AY38910
-                        | Capabilities::Module::Device::TURBOSOUND | Module::AYM::GetSupportedFormatConvertors()
-                        | Module::Vortex::GetSupportedFormatConvertors();
+                        | Capabilities::Module::Device::TURBOSOUND;
 
     using namespace Formats::Chiptune::ProTracker3;
     auto decoder = CreateDecoder();
@@ -34,8 +34,7 @@ namespace ZXTune
   {
     // plugin attributes
     const auto ID = "TXT"_id;
-    const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::AY38910
-                        | Module::AYM::GetSupportedFormatConvertors() | Module::Vortex::GetSupportedFormatConvertors();
+    const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::AY38910;
 
     using namespace Formats::Chiptune::ProTracker3::VortexTracker2;
     auto decoder = CreateDecoder();

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "module/players/factory.h"
 #include "module/players/tfm/tfm_chiptune.h"
 
 #include "binary/container.h"
@@ -26,4 +27,6 @@ namespace Module::TFM
     virtual Chiptune::Ptr CreateChiptune(const Binary::Container& data,
                                          Parameters::Container::Ptr properties) const = 0;
   };
+
+  Module::Factory::Ptr CreateModuleFactory(Factory::Ptr delegate);
 }  // namespace Module::TFM

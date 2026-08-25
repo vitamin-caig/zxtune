@@ -10,6 +10,9 @@
 
 #include "module/players/dac/dac_base.h"
 
+#include "module/players/dac/dac_parameters.h"
+
+#include "sound/mixer_factory.h"
 #include "sound/multichannel_sample.h"
 
 #include "make_ptr.h"
@@ -127,6 +130,36 @@ namespace Module
     const Time::Duration<Devices::DAC::TimeUnit> FrameDuration;
     Devices::DAC::DataChunk LastChunk;
   };
+
+  class DACHolder : public Holder
+  {
+  public:
+    explicit DACHolder(DAC::Chiptune::Ptr chiptune)
+      : Tune(std::move(chiptune))
+    {}
+
+    Information GetModuleInformation() const override
+    {
+      return CreateTrackInfo(Tune->GetFrameDuration(), *Tune->GetTrackModel());
+    }
+
+    Parameters::Accessor::Ptr GetModuleProperties() const override
+    {
+      return Tune->GetProperties();
+    }
+
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
+    {
+      auto iterator = Tune->CreateDataIterator();
+      auto chip = DAC::CreateChip(Tune->GetTrackModel()->GetChannelsCount(), samplerate, std::move(params));
+      Tune->GetSamples(*chip);
+      return DAC::CreateRenderer(Tune->GetFrameDuration() /*TODO: speed variation*/, std::move(iterator),
+                                 std::move(chip));
+    }
+
+  private:
+    const DAC::Chiptune::Ptr Tune;
+  };
 }  // namespace Module
 
 namespace Module::DAC
@@ -162,5 +195,33 @@ namespace Module::DAC
                                Devices::DAC::Chip::Ptr device)
   {
     return MakePtr<DACRenderer>(frameDuration, std::move(iterator), std::move(device));
+  }
+
+  template<unsigned Channels>
+  Devices::DAC::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params)
+  {
+    using MixerType = Sound::FixedChannelsMatrixMixer<Channels>;
+    auto mixer = MixerType::Create();
+    auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
+    auto chipParams = CreateChipParameters(samplerate, std::move(pollParams));
+    return Devices::DAC::CreateChip(std::move(chipParams), std::move(mixer));
+  }
+
+  Devices::DAC::Chip::Ptr CreateChip(uint_t channels, uint_t samplerate, Parameters::Accessor::Ptr params)
+  {
+    switch (channels)
+    {
+    case 3:
+      return CreateChip<3>(samplerate, std::move(params));
+    case 4:
+      return CreateChip<4>(samplerate, std::move(params));
+    default:
+      return {};
+    };
+  }
+
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+  {
+    return MakePtr<DACHolder>(std::move(chiptune));
   }
 }  // namespace Module::DAC

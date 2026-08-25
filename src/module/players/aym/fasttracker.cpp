@@ -67,13 +67,13 @@ namespace Module::FastTracker
       switch (table)
       {
       case Formats::Chiptune::FastTracker::NoteTable::SOUNDTRACKER:
-        Properties.SetFrequencyTable(TABLE_SOUNDTRACKER);
+        Properties.SetFrequencyTable(AYM::TABLE_SOUNDTRACKER);
         break;
       case Formats::Chiptune::FastTracker::NoteTable::FASTTRACKER:
-        Properties.SetFrequencyTable(TABLE_FASTTRACKER);
+        Properties.SetFrequencyTable(AYM::TABLE_FASTTRACKER);
         break;
       default:
-        Properties.SetFrequencyTable(TABLE_PROTRACKER2);
+        Properties.SetFrequencyTable(AYM::TABLE_PROTRACKER2);
         break;
       }
     }

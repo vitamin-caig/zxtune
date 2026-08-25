@@ -55,7 +55,7 @@ namespace Module::ProSoundMaker
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_PROSOUNDMAKER);
+      Properties.SetFrequencyTable(AYM::TABLE_PROSOUNDMAKER);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
