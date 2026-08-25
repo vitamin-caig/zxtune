@@ -1,6 +1,6 @@
 library_name := formats_image
 dirs.root := ../../..
-source_dirs := .
+source_dirs := common zx
 
 include $(dirs.root)/make/default.mak
 

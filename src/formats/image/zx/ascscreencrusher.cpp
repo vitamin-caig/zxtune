@@ -8,11 +8,11 @@
  *
  **/
 
-#include "formats/image/container.h"
+#include "formats/image/common/container.h"
 
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
-#include "formats/image.h"
+#include "formats/image/decoder.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -93,7 +93,7 @@ namespace Formats::Image
       const std::size_t ScrLimit;
     };
 
-    Binary::Dump Decode(Binary::DataInputStream& stream)
+    Binary::Dump Decompress(Binary::DataInputStream& stream)
     {
       try
       {
@@ -142,44 +142,40 @@ namespace Formats::Image
         return {};
       }
     }
-  }  // namespace ASCScreenCrusher
 
-  class ASCScreenCrusherDecoder : public Decoder
-  {
-  public:
-    ASCScreenCrusherDecoder()
-      : Depacker(Binary::CreateFormat(ASCScreenCrusher::DEPACKER_PATTERN, ASCScreenCrusher::MIN_SIZE))
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Image::Decoder
     {
-      return ASCScreenCrusher::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Depacker;
-    }
-
-    Container::Ptr Decode(const Binary::Container& rawData) const override
-    {
-      const Binary::View data(rawData);
-      if (!Depacker->Match(data))
+    public:
+      StringView GetDescription() const override
       {
-        return {};
+        return DESCRIPTION;
       }
-      Binary::DataInputStream stream(data);
-      stream.Skip(ASCScreenCrusher::DEPACKER_SIZE);
-      auto result = ASCScreenCrusher::Decode(stream);
-      return CreateContainer(std::move(result), stream.GetPosition());
-    }
 
-  private:
-    const Binary::Format::Ptr Depacker;
-  };
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return Depacker;
+      }
+
+      Container::Ptr Decode(const Binary::Container& rawData) const override
+      {
+        const Binary::View data(rawData);
+        if (!Depacker->Match(data))
+        {
+          return {};
+        }
+        Binary::DataInputStream stream(data);
+        stream.Skip(DEPACKER_SIZE);
+        auto result = Decompress(stream);
+        return CreateContainer(std::move(result), stream.GetPosition());
+      }
+
+    private:
+      const Binary::Format::Ptr Depacker = Binary::CreateFormat(DEPACKER_PATTERN, MIN_SIZE);
+    };
+  }  // namespace ASCScreenCrusher
 
   Decoder::Ptr CreateASCScreenCrusherDecoder()
   {
-    return MakePtr<ASCScreenCrusherDecoder>();
+    return MakePtr<ASCScreenCrusher::Decoder>();
   }
 }  // namespace Formats::Image

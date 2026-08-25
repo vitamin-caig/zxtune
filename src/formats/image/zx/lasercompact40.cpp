@@ -8,11 +8,11 @@
  *
  **/
 
-#include "formats/image/container.h"
+#include "formats/image/common/container.h"
 
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
-#include "formats/image.h"
+#include "formats/image/decoder.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -94,7 +94,7 @@ namespace Formats::Image
       const std::size_t ScrLimit;
     };
 
-    Binary::Dump Decode(Binary::DataInputStream& stream)
+    Binary::Dump Decompress(Binary::DataInputStream& stream)
     {
       try
       {
@@ -168,44 +168,40 @@ namespace Formats::Image
         return {};
       }
     }
-  }  // namespace LaserCompact40
 
-  class LaserCompact40Decoder : public Decoder
-  {
-  public:
-    LaserCompact40Decoder()
-      : Depacker(Binary::CreateFormat(LaserCompact40::DEPACKER_PATTERN, LaserCompact40::MIN_SIZE))
-    {}
-
-    StringView GetDescription() const override
+    class Decoder : public Image::Decoder
     {
-      return LaserCompact40::DESCRIPTION;
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Depacker;
-    }
-
-    Container::Ptr Decode(const Binary::Container& rawData) const override
-    {
-      const Binary::View data(rawData);
-      if (!Depacker->Match(data))
+    public:
+      StringView GetDescription() const override
       {
-        return {};
+        return DESCRIPTION;
       }
-      Binary::DataInputStream stream(data);
-      stream.Skip(LaserCompact40::DEPACKER_SIZE);
-      auto result = LaserCompact40::Decode(stream);
-      return CreateContainer(std::move(result), stream.GetPosition());
-    }
 
-  private:
-    const Binary::Format::Ptr Depacker;
-  };
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return Depacker;
+      }
+
+      Container::Ptr Decode(const Binary::Container& rawData) const override
+      {
+        const Binary::View data(rawData);
+        if (!Depacker->Match(data))
+        {
+          return {};
+        }
+        Binary::DataInputStream stream(data);
+        stream.Skip(DEPACKER_SIZE);
+        auto result = Decompress(stream);
+        return CreateContainer(std::move(result), stream.GetPosition());
+      }
+
+    private:
+      const Binary::Format::Ptr Depacker = Binary::CreateFormat(DEPACKER_PATTERN, MIN_SIZE);
+    };
+  }  // namespace LaserCompact40
 
   Decoder::Ptr CreateLaserCompact40Decoder()
   {
-    return MakePtr<LaserCompact40Decoder>();
+    return MakePtr<LaserCompact40::Decoder>();
   }
 }  // namespace Formats::Image

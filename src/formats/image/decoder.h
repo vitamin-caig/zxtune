@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "binary/container.h"
 #include "binary/format.h"
+#include "formats/image/container.h"
 
 #include "string_view.h"
 
@@ -19,18 +19,6 @@
 
 namespace Formats::Image
 {
-  //! @brief Image raw data presentation
-  class Container : public Binary::Container
-  {
-  public:
-    using Ptr = std::shared_ptr<const Container>;
-
-    //! @brief Getting size of source data this container was extracted from
-    //! @return Size in bytes
-    //! @invariant Result is always > 0
-    virtual std::size_t OriginalSize() const = 0;
-  };
-
   //! @brief Decoding functionality provider
   class Decoder
   {

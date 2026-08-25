@@ -13,7 +13,7 @@
 #include "binary/container.h"
 #include "formats/archived/decoder.h"
 #include "formats/chiptune.h"
-#include "formats/image.h"
+#include "formats/image/decoder.h"
 #include "formats/packed/decoder.h"
 
 namespace Analysis

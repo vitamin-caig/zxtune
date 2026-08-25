@@ -8,7 +8,7 @@
  *
  **/
 
-#include "formats/image/container.h"
+#include "formats/image/common/container.h"
 
 #include "binary/container_base.h"
 #include "binary/container_factories.h"
