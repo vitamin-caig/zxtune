@@ -28,7 +28,7 @@
 
 namespace Module::AYM
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module_players");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module");
 
   // duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const char letter)

@@ -22,7 +22,7 @@ libraries.common = analysis async \
                   devices_aym devices_aym_dumper devices_beeper devices_dac devices_fm devices_saa devices_z80 \
                   formats_archived formats_archived_multitrack formats_chiptune formats_packed formats_multitrack \
                   io \
-                  module_conversion module_players module_properties \
+                  module module_conversion module_properties \
                   parameters platform platform_application platform_version \
                   resource \
                   sound sound_backends strings \
