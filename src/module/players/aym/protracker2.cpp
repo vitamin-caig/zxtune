@@ -8,14 +8,17 @@
  *
  **/
 
-#include "module/players/aym/protracker2.h"
-
 #include "formats/chiptune/aym/protracker2.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
+
+#include "binary/container.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -369,30 +372,19 @@ namespace Module::ProTracker2
     const ModuleData::Ptr Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
-
-  class Factory : public AYM::Factory
-  {
-  public:
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      AYM::PropertiesHelper props(*properties);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Formats::Chiptune::ProTracker2::Parse(rawData, dataBuilder))
-      {
-        props.SetSource(*container);
-        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
-                                                                        std::move(properties));
-      }
-      else
-      {
-        return {};
-      }
-    }
-  };
-
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::ProTracker2
+
+namespace Module::AYM
+{
+  Chiptune::Ptr CreateProTracker2Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PropertiesHelper props(*properties);
+    ProTracker2::DataBuilder dataBuilder(props);
+    if (const auto container = Formats::Chiptune::ProTracker2::Parse(rawData, dataBuilder))
+    {
+      props.SetSource(*container);
+      return CreateTrackingChiptune<ProTracker2::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+    }
+    return {};
+  }
+}  // namespace Module::AYM

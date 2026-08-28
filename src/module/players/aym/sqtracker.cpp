@@ -8,16 +8,18 @@
  *
  **/
 
-#include "module/players/aym/sqtracker.h"
-
 #include "formats/chiptune/aym/sqtracker.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
+#include "binary/container.h"
 #include "debug/log.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -725,30 +727,19 @@ namespace Module::SQTracker
     const ModuleData::Ptr Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
-
-  class Factory : public AYM::Factory
-  {
-  public:
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      AYM::PropertiesHelper props(*properties);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
-      {
-        props.SetSource(*container);
-        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
-                                                                        std::move(properties));
-      }
-      else
-      {
-        return {};
-      }
-    }
-  };
-
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::SQTracker
+
+namespace Module::AYM
+{
+  Chiptune::Ptr CreateSQTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PropertiesHelper props(*properties);
+    SQTracker::DataBuilder dataBuilder(props);
+    if (const auto container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
+    {
+      props.SetSource(*container);
+      return CreateTrackingChiptune<SQTracker::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+    }
+    return {};
+  }
+}  // namespace Module::AYM

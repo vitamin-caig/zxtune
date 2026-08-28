@@ -8,11 +8,10 @@
  *
  **/
 
-#include "module/players/xsf/sdsf.h"
-
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
+#include "module/players/xsf/all.h"
 #include "module/players/xsf/xsf.h"
 
 #include "binary/compression/zlib.h"
@@ -320,16 +319,21 @@ namespace Module::SDSF
     const Parameters::Accessor::Ptr Properties;
   };
 
-  class ModuleDataBuilder
+  class ModuleDataBuilder : public XSF::MergeTarget
   {
   public:
-    void AddSection(Binary::Data::Ptr data)
+    void AddProgramSection(Binary::Container::Ptr program) override
     {
-      Require(!!data);
-      Sections.emplace_back(std::move(data));
+      Require(!!program);
+      Sections.emplace_back(std::move(program));
     }
 
-    void AddMeta(const XSF::MetaInformation& meta)
+    void AddReservedSection(Binary::Container::Ptr /*reserved*/) override
+    {
+      // the reserved section is not a part of the SSF/DSF format
+    }
+
+    void AddMeta(const XSF::MetaInformation& meta) override
     {
       if (!Meta)
       {
@@ -354,90 +358,15 @@ namespace Module::SDSF
     std::list<Binary::Data::Ptr> Sections;
     XSF::MetaInformation::RWPtr Meta;
   };
-
-  class Factory : public XSF::Factory
-  {
-  public:
-    Holder::Ptr CreateSinglefileModule(const XSF::File& file, Parameters::Container::Ptr properties) const override
-    {
-      ModuleDataBuilder builder;
-      Require(!!file.PackedProgramSection);
-      Require(!file.ReservedSection);
-      builder.AddSection(file.PackedProgramSection);
-      if (file.Meta)
-      {
-        builder.AddMeta(*file.Meta);
-      }
-      return Holder::Create(builder.CaptureResult(file.Version), std::move(properties));
-    }
-
-    Holder::Ptr CreateMultifileModule(const XSF::File& file, const XSF::FilesMap& additionalFiles,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      ModuleDataBuilder builder;
-      MergeSections(file, additionalFiles, builder);
-      MergeMeta(file, additionalFiles, builder);
-      return Holder::Create(builder.CaptureResult(file.Version), std::move(properties));
-    }
-
-  private:
-    /* https://bitbucket.org/zxtune/zxtune/wiki/MiniPSF
-
-    The proper way to load a minipsf is as follows:
-    - Load the executable data from the minipsf - this becomes the current executable.
-    - Check for the presence of a "_lib" tag. If present:
-      - RECURSIVELY load the executable data from the given library file. (Make sure to limit recursion to avoid
-    crashing - I usually limit it to 10 levels)
-      - Make the _lib executable the current one.
-      - If applicable, we will use the initial program counter/stack pointer from the _lib executable.
-      - Superimpose the originally loaded minipsf executable on top of the current executable. If applicable, use the
-    start address and size to determine where to .
-    - Check for the presence of "_libN" tags for N=2 and up (use "_lib%d")
-      - RECURSIVELY load and superimpose all these EXEs on top of the current EXE. Do not modify the current program
-    counter or stack pointer.
-      - Start at N=2. Stop at the first tag name that doesn't exist.
-    - (done)
-    */
-    static const uint_t MAX_LEVEL = 10;
-
-    static void MergeSections(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                              uint_t level = 1)
-    {
-      auto it = data.Dependencies.begin();
-      const auto lim = data.Dependencies.end();
-      if (it != lim && level < MAX_LEVEL)
-      {
-        MergeSections(additionalFiles.at(*it), additionalFiles, dst, level + 1);
-      }
-      dst.AddSection(data.PackedProgramSection);
-      if (it != lim && level < MAX_LEVEL)
-      {
-        for (++it; it != lim; ++it)
-        {
-          MergeSections(additionalFiles.at(*it), additionalFiles, dst, level + 1);
-        }
-      }
-    }
-
-    static void MergeMeta(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                          uint_t level = 1)
-    {
-      if (level < MAX_LEVEL)
-      {
-        for (const auto& dep : data.Dependencies)
-        {
-          MergeMeta(additionalFiles.at(dep), additionalFiles, dst, level + 1);
-        }
-      }
-      if (data.Meta)
-      {
-        dst.AddMeta(*data.Meta);
-      }
-    }
-  };
-
-  XSF::Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::SDSF
+
+namespace Module::XSF
+{
+  Holder::Ptr CreateSDSFModule(const File& file, const FilesMap& additionalFiles, Parameters::Container::Ptr properties)
+  {
+    SDSF::ModuleDataBuilder builder;
+    MergeProgramSectionsMultiLibrary(file, additionalFiles, builder);
+    MergeMeta(file, additionalFiles, builder);
+    return SDSF::Holder::Create(builder.CaptureResult(file.Version), std::move(properties));
+  }
+}  // namespace Module::XSF

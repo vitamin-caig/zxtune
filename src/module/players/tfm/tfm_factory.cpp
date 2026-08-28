@@ -21,29 +21,26 @@ namespace Module::TFM
   class GenericFactory : public Module::Factory
   {
   public:
-    explicit GenericFactory(Factory::Ptr delegate)
-      : Delegate(std::move(delegate))
+    explicit GenericFactory(Factory create)
+      : Create(create)
     {}
 
     Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data,
                              Parameters::Container::Ptr properties) const override
     {
-      if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
+      if (auto chiptune = Create(data, std::move(properties)))
       {
         return CreateHolder(std::move(chiptune));
       }
-      else
-      {
-        return {};
-      }
+      return {};
     }
 
   private:
-    const Factory::Ptr Delegate;
+    const Factory Create;
   };
 
-  Module::Factory::Ptr CreateModuleFactory(Factory::Ptr delegate)
+  Module::Factory::Ptr CreateModuleFactory(Factory create)
   {
-    return MakePtr<GenericFactory>(std::move(delegate));
+    return MakePtr<GenericFactory>(create);
   }
 }  // namespace Module::TFM

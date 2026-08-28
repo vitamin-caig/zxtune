@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "module/state.h"
+
 #include "types.h"
 
 #include <algorithm>

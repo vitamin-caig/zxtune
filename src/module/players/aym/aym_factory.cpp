@@ -21,14 +21,14 @@ namespace Module::AYM
   class GenericFactory : public Module::Factory
   {
   public:
-    explicit GenericFactory(Factory::Ptr delegate)
-      : Delegate(std::move(delegate))
+    explicit GenericFactory(ChiptuneCreator create)
+      : Create(create)
     {}
 
     Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data,
                                      Parameters::Container::Ptr properties) const override
     {
-      if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
+      if (auto chiptune = Create(data, std::move(properties)))
       {
         return CreateHolder(std::move(chiptune));
       }
@@ -39,11 +39,11 @@ namespace Module::AYM
     }
 
   private:
-    const Factory::Ptr Delegate;
+    const ChiptuneCreator Create;
   };
 
-  Module::Factory::Ptr CreateModuleFactory(Factory::Ptr delegate)
+  Module::Factory::Ptr CreateModuleFactory(ChiptuneCreator create)
   {
-    return MakePtr<GenericFactory>(std::move(delegate));
+    return MakePtr<GenericFactory>(create);
   }
 }  // namespace Module::AYM

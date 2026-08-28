@@ -8,14 +8,16 @@
  *
  **/
 
-#include "module/players/aym/ymvtx.h"
-
+#include "formats/chiptune/aym/ym.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/properties_meta.h"
 
+#include "binary/container.h"
 #include "core/core_parameters.h"
+#include "parameters/container.h"
 #include "strings/conversion.h"
 
 #include "make_ptr.h"
@@ -146,37 +148,39 @@ namespace Module::YMVTX
     AYM::MutableStreamModel::Ptr Data;
     Time::Microseconds FrameDuration = AYM::BASE_FRAME_DURATION;
   };
-
-  class Factory : public AYM::Factory
-  {
-  public:
-    explicit Factory(Formats::Chiptune::YM::Parser parse)
-      : Parse(std::move(parse))
-    {}
-
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      AYM::PropertiesHelper props(*properties);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Parse(rawData, dataBuilder))
-      {
-        if (auto data = dataBuilder.CaptureResult())
-        {
-          // TODO: detect platform by intfreq and clockrate
-          props.SetSource(*container);
-          return AYM::CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data), std::move(properties));
-        }
-      }
-      return {};
-    }
-
-  private:
-    const Formats::Chiptune::YM::Parser Parse;
-  };
-
-  Factory::Ptr CreateFactory(Formats::Chiptune::YM::Parser parse)
-  {
-    return MakePtr<Factory>(std::move(parse));
-  }
 }  // namespace Module::YMVTX
+
+namespace Module::AYM
+{
+  Chiptune::Ptr CreateModule(const Binary::Container& rawData, Parameters::Container::Ptr properties,
+                             Formats::Chiptune::YM::Parser parse)
+  {
+    PropertiesHelper props(*properties);
+    YMVTX::DataBuilder dataBuilder(props);
+    if (const auto container = parse(rawData, dataBuilder))
+    {
+      if (auto data = dataBuilder.CaptureResult())
+      {
+        // TODO: detect platform by intfreq and clockrate
+        props.SetSource(*container);
+        return CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data), std::move(properties));
+      }
+    }
+    return {};
+  }
+
+  Chiptune::Ptr CreateYMChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    return CreateModule(rawData, std::move(properties), Formats::Chiptune::YM::Parse);
+  }
+
+  Chiptune::Ptr CreateYMPackedChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    return CreateModule(rawData, std::move(properties), Formats::Chiptune::YM::ParsePacked);
+  }
+
+  Chiptune::Ptr CreateVTXChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    return CreateModule(rawData, std::move(properties), Formats::Chiptune::YM::ParseVTX);
+  }
+}  // namespace Module::AYM

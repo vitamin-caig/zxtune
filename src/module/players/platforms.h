@@ -9,7 +9,7 @@
  **/
 #pragma once
 
-#include "types.h"
+#include "string_view.h"
 
 // use ascii letters
 // as in wikipedia articles

@@ -8,12 +8,15 @@
  *
  **/
 
-#include "module/players/aym/psg.h"
-
 #include "formats/chiptune/aym/psg.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
+
+#include "binary/container.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -50,29 +53,22 @@ namespace Module::PSG
   private:
     AYM::MutableStreamModel::Ptr Data;
   };
-
-  class Factory : public AYM::Factory
-  {
-  public:
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      DataBuilder dataBuilder;
-      if (const auto container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
-      {
-        if (auto data = dataBuilder.CaptureResult())
-        {
-          AYM::PropertiesHelper props(*properties);
-          props.SetSource(*container);
-          return AYM::CreateStreamedChiptune(AYM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
-        }
-      }
-      return {};
-    }
-  };
-
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::PSG
+
+namespace Module::AYM
+{
+  Chiptune::Ptr CreatePSGChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PSG::DataBuilder dataBuilder;
+    if (const auto container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
+    {
+      if (auto data = dataBuilder.CaptureResult())
+      {
+        PropertiesHelper props(*properties);
+        props.SetSource(*container);
+        return CreateStreamedChiptune(BASE_FRAME_DURATION, std::move(data), std::move(properties));
+      }
+    }
+    return {};
+  }
+}  // namespace Module::AYM

@@ -8,14 +8,16 @@
  *
  **/
 
-#include "module/players/tfm/tfd.h"
-
 #include "formats/chiptune/fm/tfd.h"
+
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
 #include "module/players/tfm/tfm_base_stream.h"
+
+#include "binary/container.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -119,31 +121,25 @@ namespace Module::TFD
     uint_t Chip = 0;
   };
 
-  class Factory : public TFM::Factory
-  {
-  public:
-    TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      PropertiesHelper props(*properties);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Formats::Chiptune::TFD::Parse(rawData, dataBuilder))
-      {
-        auto data = dataBuilder.CaptureResult();
-        if (data->GetTotalFrames())
-        {
-          props.SetSource(*container);
-          props.SetPlatform(Platforms::ZX_SPECTRUM);
-          props.SetChannels("FM"sv, Devices::TFM::VOICES);
-          return TFM::CreateStreamedChiptune(TFM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
-        }
-      }
-      return {};
-    }
-  };
-
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::TFD
+
+namespace Module::TFM
+{
+  Chiptune::Ptr CreateTFDChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PropertiesHelper props(*properties);
+    TFD::DataBuilder dataBuilder(props);
+    if (const auto container = Formats::Chiptune::TFD::Parse(rawData, dataBuilder))
+    {
+      auto data = dataBuilder.CaptureResult();
+      if (data->GetTotalFrames())
+      {
+        props.SetSource(*container);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        props.SetChannels("FM"sv, Devices::TFM::VOICES);
+        return CreateStreamedChiptune(BASE_FRAME_DURATION, std::move(data), std::move(properties));
+      }
+    }
+    return {};
+  }
+}  // namespace Module::TFM

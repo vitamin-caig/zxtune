@@ -122,11 +122,11 @@ namespace Module::AYM
     SparsedObjectsStorage<OrnamentType> Ornaments;
   };
 
-  template<class ModuleData, class DataRenderer>
+  template<class DataPtr, class DataRenderer>
   class TrackingChiptune : public Chiptune
   {
   public:
-    TrackingChiptune(typename ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+    TrackingChiptune(DataPtr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
     {}
@@ -159,7 +159,13 @@ namespace Module::AYM
     }
 
   private:
-    const typename ModuleData::Ptr Data;
+    const DataPtr Data;
     const Parameters::Accessor::Ptr Properties;
   };
+
+  template<class DataRenderer, class DataPtr>
+  Chiptune::Ptr CreateTrackingChiptune(DataPtr data, Parameters::Accessor::Ptr properties)
+  {
+    return MakePtr<TrackingChiptune<DataPtr, DataRenderer>>(std::move(data), std::move(properties));
+  }
 }  // namespace Module::AYM

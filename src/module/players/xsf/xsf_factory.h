@@ -19,17 +19,8 @@ namespace Module::XSF
 {
   using FilesMap = Strings::ValueMap<File>;
 
-  class Factory
-  {
-  public:
-    // May be used across multiple plugins
-    using Ptr = std::shared_ptr<const Factory>;
-    virtual ~Factory() = default;
+  using Factory = Holder::Ptr (*)(const File& file, const FilesMap& additionalFiles,
+                                  Parameters::Container::Ptr properties);
 
-    virtual Holder::Ptr CreateSinglefileModule(const File& file, Parameters::Container::Ptr properties) const = 0;
-    virtual Holder::Ptr CreateMultifileModule(const File& file, const FilesMap& additionalFiles,
-                                              Parameters::Container::Ptr properties) const = 0;
-  };
-
-  Module::Factory::Ptr CreateModuleFactory(XSF::Factory::Ptr delegate);
+  Module::Factory::Ptr CreateModuleFactory(Factory create);
 }  // namespace Module::XSF
