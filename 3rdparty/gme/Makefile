@@ -28,7 +28,7 @@ source_files += $(addprefix gme/,Gym_Emu.cpp \
 
 #kss
 source_files += $(addprefix gme/,Kss_Emu.cpp Kss_Core.cpp Kss_Cpu.cpp Kss_Scc_Apu.cpp \
-                  Z80_Cpu.cpp Opl_Apu.cpp fmopl.cpp \
+                  Z80_Cpu.cpp Opl_Apu.cpp fmopl.cpp ymdeltat.cpp \
                   Ay_Apu.cpp \
                  )
 

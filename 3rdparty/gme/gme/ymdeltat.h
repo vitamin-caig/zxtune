@@ -10,9 +10,12 @@
 #define YM_DELTAT_EMULATION_MODE_NORMAL	0
 #define YM_DELTAT_EMULATION_MODE_YM2610	1
 
+/* YM_DELTAT is .cpp now with mangling to avoid conflicts with GME's implementation
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+*/
 
 
 typedef void (*STATUS_CHANGE_HANDLER)(void *chip, UINT8 status_bits);
@@ -87,8 +90,9 @@ void YM_DELTAT_ADPCM_CALC(YM_DELTAT *DELTAT);
 /*void YM_DELTAT_postload(YM_DELTAT *DELTAT,UINT8 *regs);
 void YM_DELTAT_savestate(const device_config *device,YM_DELTAT *DELTAT);*/
 
-#ifdef __cplusplus
+/* closing block for the (disabled) extern "C" above */
+/*#ifdef __cplusplus
 }
-#endif
+#endif*/
 
 #endif /* __YMDELTAT_H__ */
