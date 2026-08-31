@@ -29,6 +29,7 @@
 #include "string_view.h"
 
 #include <array>
+#include <optional>
 
 namespace Formats::Chiptune
 {
@@ -82,11 +83,11 @@ namespace Formats::Chiptune
       return true;
     }
 
-    inline uint_t ToInt(StringView str)
+    inline std::optional<uint_t> ToInt(StringView str)
     {
       if (str.empty())
       {
-        return 0;
+        return {};
       }
       else if (IsValidDigitsString(str))
       {
@@ -94,7 +95,7 @@ namespace Formats::Chiptune
       }
       else
       {
-        return ~uint_t(0);
+        return {};
       }
     }
 
@@ -148,18 +149,24 @@ namespace Formats::Chiptune
         return String{GetTrimmed(DumpDate)};
       }
 
-      Time::Seconds GetFadeTime() const
+      std::optional<Time::Seconds> GetFadeTime() const
       {
         const auto str = GetTrimmed(FadeTimeSec);
-        const auto val = ToInt(str);
-        return Time::Seconds{val};
+        if (const auto val = ToInt(str))
+        {
+          return Time::Seconds{*val};
+        }
+        return {};
       }
 
-      Time::Milliseconds GetFadeDuration() const
+      std::optional<Time::Milliseconds> GetFadeDuration() const
       {
         const auto str = GetTrimmed(FadeDurationMs);
-        const auto val = ToInt(str);
-        return Time::Milliseconds{val};
+        if (const auto val = ToInt(str))
+        {
+          return Time::Milliseconds{*val};
+        }
+        return {};
       }
     };
 
@@ -449,8 +456,8 @@ namespace Formats::Chiptune
       StringView Dumper;
       StringView Comments;
       String DumpDate;
-      Time::Seconds FadeTime;
-      Time::Milliseconds FadeDuration;
+      std::optional<Time::Seconds> FadeTime;
+      std::optional<Time::Milliseconds> FadeDuration;
       StringView Artist;
 
       template<class T>
@@ -467,7 +474,7 @@ namespace Formats::Chiptune
 
       uint_t GetScore() const
       {
-        return Artist.size() + 100 * (FadeTime < MAX_FADE_TIME) + 100 * (FadeDuration < MAX_FADE_DURATION);
+        return Artist.size() + 100 * (FadeTime && *FadeTime < MAX_FADE_TIME) + 100 * (FadeDuration && *FadeDuration < MAX_FADE_DURATION);
       }
     };
 
@@ -547,8 +554,14 @@ namespace Formats::Chiptune
         target.SetDumper(Strings::Sanitize(tag.Dumper));
         meta.SetComment(Strings::SanitizeMultiline(tag.Comments));
         target.SetDumpDate(Strings::Sanitize(tag.DumpDate));
-        target.SetLoop(tag.FadeTime);
-        target.SetFade(tag.FadeDuration);
+        if (const auto& fadeAt = tag.FadeTime)
+        {
+          target.SetLoop(*fadeAt);
+        }
+        if (const auto& fade = tag.FadeDuration)
+        {
+          target.SetFade(*fade);
+        }
         meta.SetAuthor(Strings::Sanitize(tag.Artist));
       }
 
