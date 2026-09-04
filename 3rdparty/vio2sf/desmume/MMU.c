@@ -161,7 +161,7 @@ static void MMU_Init_Arm9(MMU_struct *mmu) {
     for (; i < 0x70; ++i)
     {
         core->MemMap[i] = mmu->ARM9Mem->ARM9_LCD;
-        core->MemMask[i] = 0x000FFFFF;
+        core->MemMask[i] = 0x0009FFFF;
     }
     
     for (; i < 0x80; ++i)
