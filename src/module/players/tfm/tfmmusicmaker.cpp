@@ -1197,7 +1197,14 @@ namespace Module::TFMMusicMaker
     {
       Plain.Pattern = pat;
       CurPatternObject = Patterns.Get(Plain.Pattern);
-      SetLine(0);
+      if (CurPatternObject)
+      {
+        SetLine(0);
+      }
+      else
+      {
+        SetStubPattern();
+      }
     }
 
     void SetLine(uint_t line)
