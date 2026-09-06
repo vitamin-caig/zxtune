@@ -58,6 +58,8 @@ struct SATSOUND_STATE {
 // bytes to either side of RAM to prevent branch overflow problems
 #define RAMSLOP (0x9000)
 
+static uint8 satsound_fetch_dummy[1 << C68K_FETCH_SFT];
+
 #define SATSOUNDSTATE ((struct SATSOUND_STATE*)(state))
 #define MAPS        ((void*)(((char*)(SATSOUNDSTATE))+(SATSOUNDSTATE->offset_to_maps)))
 #ifdef USE_STARSCREAM
@@ -99,11 +101,14 @@ static void recompute_and_set_memory_maps(struct SATSOUND_STATE *state);
 // Check to see if this structure has moved, and if so, recompute
 //
 static void location_check(struct SATSOUND_STATE *state) {
+  uint32 i;
   if(state->myself != state) {
 #if defined(USE_STARSCREAM) || defined(USE_M68K)
     recompute_and_set_memory_maps(SATSOUNDSTATE);
 #else
     C68k_Set_Fetch(SCPUSTATE, 0x00000, 0x7FFFF, (pointer)(RAMBYTEPTR));
+    for (i = 0x80000; i < (1 << C68K_ADR_BITS); i += (1 << C68K_FETCH_SFT))
+      C68k_Set_Fetch(SCPUSTATE, i, i + (1 << C68K_FETCH_SFT) - 1, (pointer)(satsound_fetch_dummy));
 #endif
     yam_setram(YAMSTATE, (uint32*)(RAMBYTEPTR), 0x80000, EMU_ENDIAN_XOR(1) ^ 1, 0);
     state->myself = state;
@@ -195,7 +200,7 @@ void FASTCALL satsound_cb_writew(void *state, const u32 address, u32 data)
 // Clear state
 //
 void EMU_CALL satsound_clear_state(void *state) {
-  uint32 offset;
+  uint32 offset, i;
 
   // Clear local struct
   memset(state, 0, sizeof(struct SATSOUND_STATE));
@@ -231,6 +236,9 @@ void EMU_CALL satsound_clear_state(void *state) {
 
   C68k_Set_Callback_Param(SCPUSTATE, state);
   C68k_Set_Fetch(SCPUSTATE, 0x00000, 0x7FFFF, (pointer)(RAMBYTEPTR));
+  memset(satsound_fetch_dummy, 0xFF, sizeof(satsound_fetch_dummy));
+  for (i = 0x80000; i < (1 << C68K_ADR_BITS); i += (1 << C68K_FETCH_SFT))
+    C68k_Set_Fetch(SCPUSTATE, i, i + (1 << C68K_FETCH_SFT) - 1, (pointer)(satsound_fetch_dummy));
   C68k_Set_ReadB(SCPUSTATE, satsound_cb_readb);
   C68k_Set_ReadW(SCPUSTATE, satsound_cb_readw);
   C68k_Set_WriteB(SCPUSTATE, satsound_cb_writeb);
