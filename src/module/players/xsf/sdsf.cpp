@@ -23,6 +23,7 @@
 
 #include "byteorder.h"
 #include "contract.h"
+#include "error_tools.h"
 #include "make_ptr.h"
 
 #include "3rdparty/ht/Core/sega.h"
@@ -63,7 +64,7 @@ namespace Module::SDSF
   private:
     HTLibrary()
     {
-      Require(0 == ::sega_init());
+      ::sega_init();
     }
 
   public:
@@ -130,12 +131,7 @@ namespace Module::SDSF
       Sound::Chunk result(samples);
       for (uint32_t doneSamples = 0; doneSamples < samples;)
       {
-        uint32_t toRender = samples - doneSamples;
-        const auto res =
-            ::sega_execute(Emu.get(), 0x7fffffff, safe_ptr_cast<short int*>(&result[doneSamples]), &toRender);
-        Require(res >= 0);
-        Require(toRender != 0);
-        doneSamples += toRender;
+        doneSamples += Execute(samples - doneSamples, safe_ptr_cast<short int*>(&result[doneSamples]));
       }
       return result;
     }
@@ -144,27 +140,45 @@ namespace Module::SDSF
     {
       for (uint32_t skippedSamples = 0; skippedSamples < samples;)
       {
-        uint32_t toSkip = samples - skippedSamples;
-        const auto res = ::sega_execute(Emu.get(), 0x7fffffff, nullptr, &toSkip);
-        Require(res >= 0);
-        Require(toSkip != 0);
-        skippedSamples += toSkip;
+        skippedSamples += Execute(samples - skippedSamples, nullptr);
       }
     }
 
   private:
+    uint32_t Execute(uint32_t samples, short int* output) const
+    {
+      uint32_t produced = samples;
+      const auto res = ::sega_execute(Emu.get(), 0x7fffffff, output, &produced);
+      const auto* action = output ? "render" : "skip";
+      if (res < 0)
+      {
+        throw MakeFormattedError(THIS_LINE, "SSF: failed to {}: {}", action, res);
+      }
+      else if (0 == produced)
+      {
+        throw MakeFormattedError(THIS_LINE, "SSF: failed to {}: no samples produced", action);
+      }
+      return produced;
+    }
+
     void SetupSections(const std::list<Binary::Data::Ptr>& sections)
     {
       for (const auto& packed : sections)
       {
         const auto unpackedSection = Binary::Compression::Zlib::Decompress(*packed);
         const auto rawSize = unpackedSection->Size();
-        Require(rawSize > sizeof(le_uint32_t));
+        if (rawSize <= sizeof(le_uint32_t))
+        {
+          throw MakeFormattedError(THIS_LINE, "SSF: invalid section size: {}", rawSize);
+        }
         auto* const rawStart = static_cast<le_uint32_t*>(const_cast<void*>(unpackedSection->Start()));
         const auto toCopy = FixupSection(rawStart, rawSize);
         // TODO: make input const
         Dbg("Section {} -> {}  @ 0x{:08x}", packed->Size(), toCopy, *rawStart);
-        Require(0 == ::sega_upload_program(Emu.get(), rawStart, toCopy));
+        if (const auto res = ::sega_upload_program(Emu.get(), rawStart, toCopy))
+        {
+          throw MakeFormattedError(THIS_LINE, "SSF: failed to upload program section: {}", res);
+        }
       }
     }
 
