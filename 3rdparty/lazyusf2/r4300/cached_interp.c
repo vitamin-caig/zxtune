@@ -191,7 +191,8 @@ static void osal_fastcall NOTCOMPILED(usf_state_t * state)
    if (mem != NULL)
       recompile_block(state, (int *)mem, state->blocks[state->PC->addr >> 12], state->PC->addr);
    else
-      DebugMessage(state, M64MSG_ERROR, "not compiled exception");
+      // Cannot map: never compilable; return (void) instead of recursing via ops()
+      return DebugMessage(state, M64MSG_ERROR, "not compiled exception");
 
 /*#ifdef DBG
             if (g_DebuggerActive) update_debugger(PC->addr);
