@@ -835,6 +835,10 @@ static layered_layout_data* build_layered_eaaudiocore(STREAMFILE* sf_data, eaac_
                 if (!temp_sf) goto fail;
 
                 stream_size = get_streamfile_size(temp_sf);
+                /* if no valid XMA blocks were found, an empty stream would be
+                 * silently accepted as a module, shadowing the real format */
+                if (stream_size == 0)
+                    goto fail;
                 block_size = 0x10000;
 
                 /* EA adopted XMA2 when it appeared around 2006, but detection isn't so easy
@@ -868,6 +872,8 @@ static layered_layout_data* build_layered_eaaudiocore(STREAMFILE* sf_data, eaac_
 
                 skip = ea_opus_get_encoder_delay(0x00, temp_sf);
                 data_size = get_streamfile_size(temp_sf);
+                if (data_size == 0)
+                    goto fail; /* no valid blocks found (garbage data) */
 
                 data->layers[i]->codec_data = init_ffmpeg_ea_opus(temp_sf, 0x00,data_size, layer_channels, skip, eaac->sample_rate);
                 if (!data->layers[i]->codec_data) goto fail;

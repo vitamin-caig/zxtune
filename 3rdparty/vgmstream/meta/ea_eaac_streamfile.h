@@ -80,6 +80,10 @@ static size_t eaac_io_read(STREAMFILE* sf, uint8_t *dest, off_t offset, size_t l
                     data->data_size = read_32bitBE(data->physical_offset+data->skip_size, sf) / 4; /* why size*4...? */
                     data->skip_size += 0x04; /* skip mini header */
                     data->data_size -= 0x04; /* remove mini header */
+                    /* a block can't contain more payload than its own size,
+                     * otherwise garbage data is miscounted as an absurdly big stream */
+                    if (data->skip_size + data->data_size > data->block_size)
+                        return total_read;
                     if (data->data_size % XMA_FRAME_SIZE)
                         data->extra_size = XMA_FRAME_SIZE - (data->data_size % XMA_FRAME_SIZE);
                     break;
@@ -203,6 +207,10 @@ static size_t eaac_io_size(STREAMFILE *streamfile, eaac_io_data* data) {
                 data_size = read_32bitBE(physical_offset + skip_size, streamfile) / 4;
                 skip_size += 0x04; /* skip mini header */
                 data_size -= 0x04; /* remove mini header */
+                /* a block can't contain more payload than its own size,
+                 * otherwise garbage data is miscounted as an absurdly big stream */
+                if (skip_size + data_size > block_size)
+                    return 0;
                 if (data_size % XMA_FRAME_SIZE)
                     data_size += XMA_FRAME_SIZE - (data_size % XMA_FRAME_SIZE); /* extra padding */
                 break;
