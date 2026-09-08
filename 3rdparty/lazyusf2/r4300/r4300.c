@@ -278,6 +278,11 @@ void r4300_begin(usf_state_t * state)
 
 void r4300_execute(usf_state_t * state)
 {
+    /* malformed modules may loop forever; bound a single render by an
+       instruction budget re-armed on every call */
+    remove_event(state, WATCHDOG_INT);
+    add_interupt_event(state, WATCHDOG_INT, 50000000U * state->count_per_op);
+
     if (state->r4300emu == CORE_PURE_INTERPRETER)
     {
         pure_interpreter(state);

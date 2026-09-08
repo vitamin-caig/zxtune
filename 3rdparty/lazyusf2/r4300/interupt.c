@@ -582,6 +582,11 @@ void osal_fastcall gen_interupt(usf_state_t * state)
             nmi_int_handler(state);
             break;
 
+        case WATCHDOG_INT:
+            DebugMessage(state, M64MSG_ERROR, "Execution budget exceeded (possible hang).");
+            remove_interupt_event(state);
+            break;
+
         default:
             DebugMessage(state, M64MSG_ERROR, "Unknown interrupt queue event type %.8X.", state->q.first->data.type);
             remove_interupt_event(state);
