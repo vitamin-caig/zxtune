@@ -83,10 +83,10 @@ DECLARE_INSTRUCTION(MTC0)
       update_count(state);
       remove_event(state, COMPARE_INT);
       /* Add count_per_op to avoid wrong event order in case CP0_COUNT_REG == CP0_COMPARE_REG */
-      state->g_cp0_regs[CP0_COUNT_REG] += state->count_per_op;
-      state->cycle_count += state->count_per_op;
+      state->g_cp0_regs[CP0_COUNT_REG] += COUNT_PER_OP_DEFAULT;
+      state->cycle_count += COUNT_PER_OP_DEFAULT;
       add_interupt_event_count(state, COMPARE_INT, rrt);
-      state->g_cp0_regs[CP0_COUNT_REG] -= state->count_per_op;
+      state->g_cp0_regs[CP0_COUNT_REG] -= COUNT_PER_OP_DEFAULT;
 
       /* Update next interrupt in case first event is COMPARE_INT */
       state->cycle_count = state->g_cp0_regs[CP0_COUNT_REG] - state->q.first->data.count;

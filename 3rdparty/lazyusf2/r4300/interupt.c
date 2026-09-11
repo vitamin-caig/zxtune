@@ -283,10 +283,10 @@ void translate_event_queue(usf_state_t * state, unsigned int base)
     add_interupt_event_count(state, SPECIAL_INT, ((state->g_cp0_regs[CP0_COUNT_REG] & UINT32_C(0x80000000)) ^ UINT32_C(0x80000000)));
 
     /* Add count_per_op to avoid wrong event order in case CP0_COUNT_REG == CP0_COMPARE_REG */
-    state->g_cp0_regs[CP0_COUNT_REG] += state->count_per_op;
-    state->cycle_count += state->count_per_op;
+    state->g_cp0_regs[CP0_COUNT_REG] += COUNT_PER_OP_DEFAULT;
+    state->cycle_count += COUNT_PER_OP_DEFAULT;
     add_interupt_event_count(state, COMPARE_INT, state->g_cp0_regs[CP0_COMPARE_REG]);
-    state->g_cp0_regs[CP0_COUNT_REG] -= state->count_per_op;
+    state->g_cp0_regs[CP0_COUNT_REG] -= COUNT_PER_OP_DEFAULT;
 
     /* Update next interrupt in case first event is COMPARE_INT */
     state->cycle_count = state->g_cp0_regs[CP0_COUNT_REG] - state->q.first->data.count;
@@ -431,10 +431,10 @@ static void special_int_handler(usf_state_t * state)
 static void compare_int_handler(usf_state_t * state)
 {
     remove_interupt_event(state);
-    state->g_cp0_regs[CP0_COUNT_REG]+=state->count_per_op;
-    state->cycle_count += state->count_per_op;
+    state->g_cp0_regs[CP0_COUNT_REG]+=COUNT_PER_OP_DEFAULT;
+    state->cycle_count += COUNT_PER_OP_DEFAULT;
     add_interupt_event_count(state, COMPARE_INT, state->g_cp0_regs[CP0_COMPARE_REG]);
-    state->g_cp0_regs[CP0_COUNT_REG]-=state->count_per_op;
+    state->g_cp0_regs[CP0_COUNT_REG]-=COUNT_PER_OP_DEFAULT;
 
     /* Update next interrupt in case first event is COMPARE_INT */
     state->cycle_count = state->g_cp0_regs[CP0_COUNT_REG] - state->q.first->data.count;
@@ -484,7 +484,9 @@ static void nmi_int_handler(usf_state_t * state)
         state->g_cp0_regs[CP0_ERROREPC_REG]-=4;
     }
     state->delay_slot = 0;
+#ifdef DYNAREC
     state->dyna_interp = 0;
+#endif
     // set next instruction address to reset vector
     state->last_addr = 0xa4000040;
     generic_jump_to(state, 0xa4000040);

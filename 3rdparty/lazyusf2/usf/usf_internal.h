@@ -194,14 +194,12 @@ struct usf_state
     // Locate most frequently used members in first 4096 (arm64) or 256*2*n (arm32) bytes
     // r4300/r4300.c
     unsigned int r4300emu/* = 0*/;
-    unsigned int count_per_op/* = COUNT_PER_OP_DEFAULT*/;
-    int llbit, rompause;
+    int llbit;
     int stop;
     long long int reg[32], hi, lo;
     unsigned int next_interupt;
     precomp_instr *PC;
-    long long int local_rs;
-    unsigned int delay_slot, skip_jump/* = 0*/, dyna_interp/* = 0*/, last_addr;
+    unsigned int delay_slot, skip_jump/* = 0*/, last_addr;
     // r4300/recomp.c
     int cycle_count;
     // r4300/cached_interp.c
@@ -411,6 +409,11 @@ struct usf_state
     unsigned char **inst_pointer; // output buffer for recompiled code
     int fast_memory;
     int no_compiled_jump /* = 0*/; /* use cached interpreter instead of recompiler for jumps */
+
+    // r4300/r4300.c
+    long long int local_rs;
+    unsigned int dyna_interp/* = 0*/;
+    unsigned int count_per_op/* = COUNT_PER_OP_DEFAULT*/;
 
     void (*recomp_func)(usf_state_t *); // pointer to the dynarec's generator
     // function for the latest decoded opcode

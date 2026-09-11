@@ -56,7 +56,7 @@ void update_count(usf_state_t * state)
     if (r4300emu != CORE_DYNAREC)
     {
 #endif
-        uint32_t count = ((state->PC->addr - state->last_addr) >> 2) * state->count_per_op;
+        uint32_t count = ((state->PC->addr - state->last_addr) >> 2) * COUNT_PER_OP_DEFAULT;
         state->g_cp0_regs[CP0_COUNT_REG] += count;
         state->cycle_count += count;
         state->last_addr = state->PC->addr;

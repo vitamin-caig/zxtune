@@ -112,7 +112,9 @@ void TLB_refill_exception(usf_state_t * state, unsigned int address, int w)
    if (state->r4300emu != CORE_DYNAREC || state->dyna_interp)
 #endif
      {
+#ifdef DYNAREC
     state->dyna_interp = 0;
+#endif
     if (state->delay_slot)
       {
          state->skip_jump = state->PC->addr;
@@ -151,7 +153,9 @@ void osal_fastcall exception_general(usf_state_t * state)
    if (state->r4300emu != CORE_DYNAREC || state->dyna_interp)
 #endif
      {
+#ifdef DYNAREC
     state->dyna_interp = 0;
+#endif
     if (state->delay_slot)
       {
          state->skip_jump = state->PC->addr;
