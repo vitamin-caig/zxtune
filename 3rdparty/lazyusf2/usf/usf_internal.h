@@ -189,6 +189,17 @@ typedef struct _precomp_block
 } precomp_block;
 #endif
 
+// Element counts of the large buffers that used to be inline usf_state
+// members. usf_clear lays them out after the structure and caches the base
+// pointers in the hot region (see the pointer members below), so the counts
+// below combined with sizeof of the pointed-to types drive both the
+// allocation and the layout.
+#define USF_EMPTY_SPACE_ELEMENTS  (0x10000u / 4u)
+#define USF_MEMORY_TABLE_ELEMENTS 0x10000u
+#define USF_TLB_LUT_ELEMENTS      0x100000u
+#define USF_INVALID_CODE_ELEMENTS 0x100000u
+#define USF_BLOCKS_ELEMENTS       0x100000u
+
 struct usf_state
 {
     // Locate most frequently used members in first 4096 (arm64) or 256*2*n (arm32) bytes
@@ -214,6 +225,27 @@ struct usf_state
     
     // r4300/cp0.c
     unsigned int g_cp0_regs[CP0_REGS_COUNT];
+
+    // memory/memory.c, r4300/tlb.c, r4300/cached_interp.c
+    // Replaced the inline arrays (EmptySpace, readmem/writemem tables, TLB
+    // lookups, invalid_code, blocks) with pointers kept within the first 4096
+    // bytes. The arrays themselves are laid out by usf_clear right after the
+    // structure inside the caller-provided state buffer, and the pointers are
+    // filled in there as well.
+    uint32_t *EmptySpace;
+    void (osal_fastcall **readmem)(usf_state_t *);
+    void (osal_fastcall **readmemb)(usf_state_t *);
+    void (osal_fastcall **readmemh)(usf_state_t *);
+    void (osal_fastcall **readmemd)(usf_state_t *);
+    void (osal_fastcall **writemem)(usf_state_t *);
+    void (osal_fastcall **writememb)(usf_state_t *);
+    void (osal_fastcall **writememh)(usf_state_t *);
+    void (osal_fastcall **writememd)(usf_state_t *);
+    unsigned int *tlb_LUT_r;
+    unsigned int *tlb_LUT_w;
+    // r4300/cached_interp.c
+    char *invalid_code;
+    precomp_block **blocks;
 
     // main/main.c
     struct rdram g_rdram;
@@ -334,18 +366,6 @@ struct usf_state
     
     int g_gs_vi_counter/* = 0*/;
     
-    // memory/memory.c
-    uint32_t EmptySpace[0x10000/4];
-    
-    void (osal_fastcall *readmem[0x10000])(usf_state_t *);
-	void (osal_fastcall *readmemb[0x10000])(usf_state_t *);
-	void (osal_fastcall *readmemh[0x10000])(usf_state_t *);
-	void (osal_fastcall *readmemd[0x10000])(usf_state_t *);
-	void (osal_fastcall *writemem[0x10000])(usf_state_t *);
-	void (osal_fastcall *writememb[0x10000])(usf_state_t *);
-	void (osal_fastcall *writememh[0x10000])(usf_state_t *);
-	void (osal_fastcall *writememd[0x10000])(usf_state_t *);
-
     // main/rom.c
     unsigned char* g_rom/* = NULL*/;
     int g_rom_size/* = 0*/;
@@ -381,17 +401,11 @@ struct usf_state
     
     // r4300/tlb.c
     tlb tlb_e[32];
-    unsigned int tlb_LUT_r[0x100000];
-    unsigned int tlb_LUT_w[0x100000];
     
     // r4300/instr_counters.c
 #ifdef COUNT_INSTR
     unsigned int instr_count[132];
 #endif
-    
-    // r4300/cached_interp.c
-    char invalid_code[0x100000];
-    precomp_block *blocks[0x100000];
     
     // r4300/recomp.c
     precomp_instr *dst; // destination structure for the recompiled instruction

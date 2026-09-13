@@ -18,9 +18,20 @@
 
 #include "barray.h"
 
+// Storage for the arrays that used to be inline members of usf_state.
+// usf_clear lays them out right after the structure inside the buffer it is
+// given, so the total allocation stays the same as with the inline layout.
+#define USF_EMPTY_SPACE_BYTES  (USF_EMPTY_SPACE_ELEMENTS * sizeof(uint32_t))
+#define USF_MEMORY_TABLE_BYTES (USF_MEMORY_TABLE_ELEMENTS * sizeof(void (osal_fastcall *)(usf_state_t *)))
+#define USF_TLB_LUT_BYTES      (USF_TLB_LUT_ELEMENTS * sizeof(unsigned int))
+#define USF_INVALID_CODE_BYTES (USF_INVALID_CODE_ELEMENTS * sizeof(char))
+#define USF_BLOCKS_BYTES       (USF_BLOCKS_ELEMENTS * sizeof(precomp_block *))
+#define USF_ARRAYS_SPACE \
+    (USF_EMPTY_SPACE_BYTES + 8u * USF_MEMORY_TABLE_BYTES + 2u * USF_TLB_LUT_BYTES + USF_INVALID_CODE_BYTES + USF_BLOCKS_BYTES)
+
 size_t usf_get_state_size()
 {
-    return sizeof(usf_state_t) + 8192;
+    return sizeof(usf_state_t) + USF_ARRAYS_SPACE + 8192;
 }
 
 void usf_clear(void * state)
@@ -29,6 +40,28 @@ void usf_clear(void * state)
     memset(state, 0, usf_get_state_size());
     offset = 4096 - (((uintptr_t)state) & 4095);
     USF_STATE_HELPER->offset_to_structure = offset;
+
+    // The arrays that used to be inline members of usf_state live right after
+    // the structure inside the same buffer; pointer members were kept within
+    // the first 4096 bytes so every dispatch/LUT access compiles into a single
+    // ldr instead of a two-instruction address constant.
+    {
+        uint8_t * arrays = (uint8_t *)USF_STATE + ((sizeof(usf_state_t) + 15) & ~(size_t)15);
+
+        USF_STATE->EmptySpace = (uint32_t *)arrays; arrays += USF_EMPTY_SPACE_BYTES;
+        USF_STATE->readmem   = (void (osal_fastcall **)(usf_state_t *))arrays; arrays += USF_MEMORY_TABLE_BYTES;
+        USF_STATE->readmemb  = (void (osal_fastcall **)(usf_state_t *))arrays; arrays += USF_MEMORY_TABLE_BYTES;
+        USF_STATE->readmemh  = (void (osal_fastcall **)(usf_state_t *))arrays; arrays += USF_MEMORY_TABLE_BYTES;
+        USF_STATE->readmemd  = (void (osal_fastcall **)(usf_state_t *))arrays; arrays += USF_MEMORY_TABLE_BYTES;
+        USF_STATE->writemem  = (void (osal_fastcall **)(usf_state_t *))arrays; arrays += USF_MEMORY_TABLE_BYTES;
+        USF_STATE->writememb = (void (osal_fastcall **)(usf_state_t *))arrays; arrays += USF_MEMORY_TABLE_BYTES;
+        USF_STATE->writememh = (void (osal_fastcall **)(usf_state_t *))arrays; arrays += USF_MEMORY_TABLE_BYTES;
+        USF_STATE->writememd = (void (osal_fastcall **)(usf_state_t *))arrays; arrays += USF_MEMORY_TABLE_BYTES;
+        USF_STATE->tlb_LUT_r = (unsigned int *)arrays; arrays += USF_TLB_LUT_BYTES;
+        USF_STATE->tlb_LUT_w = (unsigned int *)arrays; arrays += USF_TLB_LUT_BYTES;
+        USF_STATE->invalid_code = (char *)arrays; arrays += USF_INVALID_CODE_BYTES;
+        USF_STATE->blocks = (precomp_block **)arrays; arrays += USF_BLOCKS_BYTES;
+    }
 
     //USF_STATE->enablecompare = 0;
     //USF_STATE->enableFIFOfull = 0;
@@ -50,9 +83,9 @@ void usf_clear(void * state)
     USF_STATE->save_state = calloc( 1, 0x80275c );
     USF_STATE->save_state_size = 0x80275c;
 
-    for (offset = 0; offset < 0x10000; offset += 4)
+    for (offset = 0; offset < USF_EMPTY_SPACE_ELEMENTS; ++offset)
     {
-        USF_STATE->EmptySpace[offset / 4] = (uint32_t)((offset << 16) | offset);
+        USF_STATE->EmptySpace[offset] = (uint32_t)((offset * sizeof(uint32_t) << 16) | offset * sizeof(uint32_t));
     }
 
     USF_STATE->resampler = resampler_create();
