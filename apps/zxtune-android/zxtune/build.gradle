@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 apply plugin: 'com.google.devtools.ksp'
 
 android {
@@ -9,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "app.zxtune"
-        targetSdkVersion 36
+        targetSdk = 36
         //supported languages
         resourceConfigurations += ['en', 'de', 'ru', 'es', 'cs', 'zh', 'ja', 'pt']
         //supported densities for vector drawables rasterization
@@ -45,8 +44,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
+    }
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
     }
 }
 
