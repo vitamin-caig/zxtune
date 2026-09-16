@@ -16,7 +16,9 @@ import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.AsyncDifferInMainThreadRule
+import app.zxtune.ui.MainDispatcherRule
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -34,6 +36,11 @@ class PlaylistFragmentTest {
 
     @get:Rule
     val mainThreadDiffer = AsyncDifferInMainThreadRule()
+
+    private val dispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcher = MainDispatcherRule(dispatcher)
 
     private fun startScenario() = FragmentScenario.launchInContainer(
         fragmentClass = PlaylistFragment::class.java,
