@@ -11,8 +11,8 @@ import app.zxtune.MainApplication
 import app.zxtune.fs.feed
 import app.zxtune.utils.ContentUri
 import app.zxtune.utils.notifyChange
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
+import app.zxtune.utils.openOutputPipe
+import kotlinx.coroutines.Dispatchers
 import java.util.concurrent.ConcurrentHashMap
 
 class Provider @VisibleForTesting internal constructor(
@@ -61,7 +61,8 @@ class Provider @VisibleForTesting internal constructor(
                 Query.Type.NOTIFICATION -> queryNotification(query)
                 Query.Type.FEED -> queryFeed(query)
                 else -> {
-                    val op = createOperation(query, projection, makeCallback(query.providerUri, signal))
+                    val op =
+                        createOperation(query, projection, makeCallback(query.providerUri, signal))
                     Operation(query.providerUri, op).run()
                 }
             }
@@ -82,7 +83,10 @@ class Provider @VisibleForTesting internal constructor(
         }
     }
 
-    private fun makeCallback(uri: ContentUri, signal: CancellationSignal?): AsyncQueryOperation.Callback =
+    private fun makeCallback(
+        uri: ContentUri,
+        signal: CancellationSignal?
+    ): AsyncQueryOperation.Callback =
         object : AsyncQueryOperation.Callback {
             init {
                 signal?.setOnCancelListener {
@@ -142,16 +146,8 @@ class Provider @VisibleForTesting internal constructor(
         val query = Query.parse(uri)
         require(query.type == Query.Type.FILE)
         require("r" == mode) { "Invalid mode: $mode" }
-        return openPipeHelper(
-            uri, "application/octet", null, null
-        ) { out, _, _, _, _ ->
-            runCatching {
-                FileOutputStream(out.fileDescriptor).use {
-                    FileOperation(query, resolver, null).consumeContent(it.channel)
-                }
-            }.onFailure {
-                LOG.w(it) { "Failed to open file for $uri" }
-            }
+        return openOutputPipe(Dispatchers.IO) {
+            FileOperation(query, resolver, null).consumeContent(it)
         }
     }
 
