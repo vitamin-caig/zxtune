@@ -1,15 +1,15 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        kotlin_version = '2.2.20'
+        // KSP version paired with AGP bundled Kotlin 2.2.10
+        ksp_version = '2.2.10-2.0.2'
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.android.tools.build:gradle:9.4.0'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -17,7 +17,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.google.devtools.ksp' version "${kotlin_version}-2.0.3" apply false
+    id 'com.google.devtools.ksp' version "${ksp_version}" apply false
 }
 
 allprojects {
@@ -30,12 +30,12 @@ ext {
     appcompat_version = '1.6.1'  // minsdk=21 since 1.7.0
     lifecycle_version = '2.6.2'  // minsdk=19 since 2.7.0
     media_version = '1.6.0'  // minsdk=19 since 1.7.0
-    room_version = '2.5.2'  // minsdk=19 since 2.6.0
+    room_version = '2.6.1'  // minsdk=21 since 2.7.0
 
     junit_version = '4.13.2'
     fragment_version = '1.6.2'  // minsdk=19 since 1.7.0
-    mockito_version = '5.4.0'
-    coroutines_version = '1.7.1'
+    mockito_version = '6.3.0'
+    coroutines_version = '1.11.0'
 }
 
 ext.path_step = "../.."
