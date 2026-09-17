@@ -1,0 +1,47 @@
+# Committed source of truth for Kotlin/Java style in this app.
+# Consumed by Android Studio/IDEA (built-in editorconfig support) and by the
+# automated formatters wired into Gradle (see zxtune/build.gradle).
+# Keeps formatting identical to the tools (ktlint / google-java-format) even
+# when embedded IDE styles change between releases.
+
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 100
+
+[*.{kt,kts}]
+# Style for automated tools
+ktlint_code_style = android_studio
+ktlint_indent_size = 4
+ktlint_max_line_length = 100
+
+# IDE pins matching ktlint 'android_studio' style (continuation indent 4, no alignment)
+ij_kotlin_continuation_indent_size = 4
+ij_kotlin_align_multiline_parameters = false
+
+# Rules disabled for conventions the codebase already follows; keeping them
+# enabled would block spotlessApply on any touched file containing these
+# legitimate patterns (wildcard imports in 41 files, informal KDoc, etc.)
+ktlint_standard_no-wildcard-imports = disabled
+ktlint_standard_max-line-length = disabled
+ktlint_standard_kdoc = disabled
+ktlint_standard_enum-entry-name-case = disabled
+ktlint_standard_comment-wrapping = disabled
+ktlint_standard_backing-property-naming = disabled
+ktlint_standard_property-naming = disabled
+ktlint_standard_wrapping = disabled
+ktlint_standard_filename = disabled
+ktlint_standard_mixed-condition-operators = disabled
+
+[*.java]
+# IDE pins matching google-java-format AOSP output (continuation indent 8, no alignment, K&R)
+ij_java_brace_placement = end_of_line
+ij_java_continuation_indent_size = 8
+ij_java_align_multiline_parameters = false
+ij_java_align_multiline_parameters_in_calls = false

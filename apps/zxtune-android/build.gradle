@@ -18,6 +18,7 @@ buildscript {
 
 plugins {
     id 'com.google.devtools.ksp' version "${ksp_version}" apply false
+    id 'com.diffplug.spotless' version '8.10.2' apply false
 }
 
 allprojects {

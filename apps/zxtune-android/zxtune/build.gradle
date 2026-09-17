@@ -1,5 +1,36 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.devtools.ksp'
+apply plugin: 'com.diffplug.spotless'
+
+spotless {
+    // Format only files changed relative to HEAD, never touching the untouched
+    // legacy sources until a full migration is intended
+    ratchetFrom 'HEAD'
+    kotlin {
+        target 'src/**/*.kt'
+        // Default editorConfigPath is the module dir, which has no .editorconfig;
+        // the app-level one is the source of truth
+        ktlint('1.8.0').setEditorConfigPath("${rootProject.projectDir}/.editorconfig")
+        // Spotless' ktlint adapter does not propagate per-rule 'disabled' from
+        // .editorconfig to rule execution, so suppress the non-autofixable rules
+        // (same list as in .editorconfig; keep in sync) that the codebase does
+        // not follow instead of failing apply/check on legitimate patterns
+        ['no-wildcard-imports', 'max-line-length', 'kdoc', 'enum-entry-name-case',
+         'comment-wrapping', 'backing-property-naming', 'property-naming',
+         'wrapping', 'filename', 'mixed-condition-operators'].each { rule ->
+            suppressLintsFor {
+                step = 'ktlint'
+                shortCode = "standard:${rule}"
+            }
+        }
+    }
+    java {
+        target 'src/**/*.java'
+        // 1.28.0 is the newest release running on the project's Java 17 toolchain
+        // (1.30.0 and newer require JDK 21 internals)
+        googleJavaFormat('1.28.0').aosp()
+    }
+}
 
 android {
     compileSdk = 36
