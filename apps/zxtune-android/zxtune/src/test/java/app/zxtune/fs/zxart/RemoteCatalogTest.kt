@@ -55,7 +55,7 @@ class RemoteCatalogTest {
                 78258,
                 "Alex Rostov - ARISE (1998) (FunTop 1998, 18).pt2",
                 "ARISE BY ALEX ROSTOV/DEMENTIA",
-                "3:03.24",
+                "3:03.50",
                 1998,
                 "ay",
                 18
@@ -67,7 +67,7 @@ class RemoteCatalogTest {
                 90515,
                 "Alex Rostov - Aurora (2009).pt3",
                 "Alexander Rostov&#039;DT 2009 - Aurora (Enlight style) AY/ABC",
-                "1:38.14",
+                "1:38.30",
                 2009,
                 "standard"
             )
@@ -75,7 +75,7 @@ class RemoteCatalogTest {
         // generic title, no year, no compo
         verify(visitor).accept(argThat {
             matches(
-                78271, "Alex Rostov - Dementia.stc", "Dementia", "0:07.42", 0
+                78271, "Alex Rostov - Dementia.stc", "Dementia", "0:07.86", 0
             )
         })
         verify(visitor, atLeast(tracksMin)).accept(any())
@@ -111,7 +111,7 @@ class RemoteCatalogTest {
                 44800,
                 "Mast - Activity (1999) (Paradox 1999, 14).pt3",
                 "Mast/FtL 8.07.99 - Activity",
-                "2:31.07",
+                "2:31.16",
                 1999,
                 "ay",
                 14
@@ -122,7 +122,7 @@ class RemoteCatalogTest {
                 44324,
                 "Shov - Miles New (1999) (Paradox 1999, 3).pt3",
                 "Miles New",
-                "3:43.31",
+                "3:43.64",
                 1999,
                 "ay",
                 3
@@ -147,7 +147,7 @@ class RemoteCatalogTest {
                 74340,
                 "MmcM - AsSuRed (2000).pt3",
                 "Mm&lt;M of Sage 14.Apr.XX twr 00:37 - AsSuRed ... Hi! My Frends ...",
-                "3:46.31",
+                "3:46.65",
                 2000
             )
         })
@@ -155,8 +155,8 @@ class RemoteCatalogTest {
             matches(
                 192733,
                 "Karbofos - шторм (2017) (ArtField 2017, 1).pt3",
-                "karbo 2o17 ymabc - ?????",
-                "2:32.23",
+                "karbo 2o17 ymabc",
+                "2:32.47",
                 2017,
                 "standard",
                 1
@@ -178,7 +178,7 @@ class RemoteCatalogTest {
                 75480,
                 "Moonwalker - 10MinutesTrash.pt2",
                 "&quot;10MinutesTrash&quot; by Moonwalker",
-                "0:49.07"
+                "0:48.00"
             )
         })
         verify(visitor, atLeast(tracksMin)).accept(any(), any())

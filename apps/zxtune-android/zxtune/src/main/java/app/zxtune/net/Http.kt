@@ -18,6 +18,11 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.TrustManagerFactory
 
+// Some remote hosts (e.g. the joshw.info mirror) accept the connection
+// but stall the response body; without timeouts the transfer hangs forever
+private const val CONNECT_TIMEOUT_MS = 30_000
+private const val READ_TIMEOUT_MS = 60_000
+
 object Http {
     private val USER_AGENT = String.format(
         Locale.US,
@@ -38,6 +43,8 @@ object Http {
 
     @Throws(IOException::class)
     fun createConnection(uri: String?) = (URL(uri).openConnection() as HttpURLConnection).apply {
+        setConnectTimeout(CONNECT_TIMEOUT_MS)
+        setReadTimeout(READ_TIMEOUT_MS)
         setRequestProperty("User-Agent", USER_AGENT)
     }
 }
@@ -49,7 +56,9 @@ private object CompatSSLContext {
         }
         SSLContext.getInstance("TLS").apply {
             init(
-                null, tmf.trustManagers, null
+                null,
+                tmf.trustManagers,
+                null
             )
         }
     }

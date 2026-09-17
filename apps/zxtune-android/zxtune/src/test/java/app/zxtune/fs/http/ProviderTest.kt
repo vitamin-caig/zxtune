@@ -62,8 +62,7 @@ class ProviderTest {
             assertNull(contentLength)
             assertNull(lastModified)
             testStream(
-                input, 0x3a,
-                byteArrayOf(0x7b, 0x22, 0x69, 0x70, 0x22, 0x3a, 0x22),
+                input, contentLength, byteArrayOf(0x7b, 0x22, 0x69, 0x70, 0x22, 0x3a, 0x22),
                 byteArrayOf(0x22, 0x7d, 0x0a)
             )
         }
@@ -112,19 +111,25 @@ private fun byteArrayOf(vararg data: Int) = ByteArray(data.size) { idx ->
     data[idx].toByte()
 }
 
-private fun testStream(input: InputStream, size: Long, head: ByteArray, tail: ByteArray) =
+private fun testStream(input: InputStream, size: Long?, head: ByteArray, tail: ByteArray) =
     input.use { stream ->
         with(ByteArray(head.size)) {
             assertEquals(head.size, stream.read(this))
             assertArrayEquals(head, this)
         }
-        var toSkip = size - head.size - tail.size
-        while (toSkip != 0L) {
-            toSkip -= stream.skip(toSkip)
+        if (size != null) {
+            var toSkip = size - head.size - tail.size
+            while (toSkip != 0L) {
+                toSkip -= stream.skip(toSkip)
+            }
+            val rest = stream.readBytes()
+            assertEquals(tail.size, rest.size)
+            assertArrayEquals(tail, rest)
+        } else {
+            val rest = stream.readBytes()
+            assertTrue(rest.size >= tail.size)
+            val offset = rest.size - tail.size
+            assertArrayEquals(tail, rest.copyOfRange(offset, rest.size))
         }
-        with(ByteArray(tail.size)) {
-            assertEquals(tail.size, stream.read(this))
-            assertArrayEquals(tail, this)
-            assertEquals(-1, stream.read())
-        }
+        assertEquals(-1, stream.read())
     }

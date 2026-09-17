@@ -167,12 +167,13 @@ class RemoteCatalogTest {
             org("58/sierra", "Sierra"),
             FilePath("images/games/win/3/3-d-ultra-pinball-creep-night-win-title-77991.jpg"),
         )
+        /* The Binding of Isaac has an organization now, find another no-organization sample
         verify(gamesVisitor).accept(
             game("714/binding-of-isaac-win", "The Binding of Isaac"),
             sys,
             null, // no organization!
             FilePath("images/games/win/4/binding-of-isaac-win-title-71480.jpg"),
-        )
+        ) */
         //page2
         verify(progress).onProgressUpdate(eq(50), geq(gamesMin))
         verify(gamesVisitor).accept(

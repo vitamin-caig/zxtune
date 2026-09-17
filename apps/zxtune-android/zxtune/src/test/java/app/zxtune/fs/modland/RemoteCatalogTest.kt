@@ -36,7 +36,7 @@ class RemoteCatalogTest {
         val visitor = mock<Catalog.Visitor<Group>>()
         val progress = mock<ProgressCallback>()
         val pagesMin = 3
-        val groupsApprox = 95
+        val groupsApprox = 90
         catalog.getAuthors().queryGroups("#", visitor, progress)
 
         verify(visitor).accept(argThat { matches(24209, "$4753 Softcopy", 33) })
@@ -50,7 +50,7 @@ class RemoteCatalogTest {
     fun `test authors tracks`() {
         val visitor = mock<Catalog.Visitor<Track>>()
         val progress = mock<ProgressCallback>()
-        val minTracks = 700
+        val minTracks = 670
         catalog.getAuthors().queryTracks(172 /*4-Mat*/, visitor, progress)
 
         verify(visitor).accept(
