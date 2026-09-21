@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/digital/digitalstudio.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 #include "formats/chiptune/digital/digital_detail.h"
 
 #include "binary/dump.h"

@@ -10,14 +10,14 @@
 
 #include "formats/chiptune/emulation/ay.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/container_factories.h"
 #include "binary/crc.h"
 #include "binary/data_builder.h"
 #include "binary/format_factories.h"
 #include "debug/log.h"
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 #include "math/numeric.h"
 #include "strings/optimize.h"
 #include "tools/range_checker.h"

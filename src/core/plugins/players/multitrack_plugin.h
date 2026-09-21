@@ -14,16 +14,7 @@
 #include "core/plugins/player_plugin.h"
 #include "module/players/factory.h"
 
-#include "formats/multitrack.h"
-
-namespace Module
-{
-  class MultitrackFactory : public BaseFactory<Formats::Multitrack::Container>
-  {
-  public:
-    using Ptr = std::shared_ptr<const MultitrackFactory>;
-  };
-}  // namespace Module
+#include "formats/multitrack/decoder.h"
 
 namespace ZXTune
 {

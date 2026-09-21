@@ -12,7 +12,7 @@
 
 #include "core/plugins/archive_plugin.h"
 
-#include "formats/archived.h"
+#include "formats/archived/decoder.h"
 
 #include "string_view.h"
 

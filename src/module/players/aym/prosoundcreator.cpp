@@ -8,16 +8,18 @@
  *
  **/
 
-#include "module/players/aym/prosoundcreator.h"
-
 #include "formats/chiptune/aym/prosoundcreator.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
+#include "binary/container.h"
 #include "math/numeric.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -221,7 +223,7 @@ namespace Module::ProSoundCreator
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_ASM);
+      Properties.SetFrequencyTable(AYM::TABLE_ASM);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -594,30 +596,19 @@ namespace Module::ProSoundCreator
     uint_t EnvelopeTone = 0;
     uint_t NoiseBase = 0;
   };
-
-  class Factory : public AYM::Factory
-  {
-  public:
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      AYM::PropertiesHelper props(*properties);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Formats::Chiptune::ProSoundCreator::Parse(rawData, dataBuilder))
-      {
-        props.SetSource(*container);
-        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
-                                                                        std::move(properties));
-      }
-      else
-      {
-        return {};
-      }
-    }
-  };
-
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::ProSoundCreator
+
+namespace Module::AYM
+{
+  Chiptune::Ptr CreateProSoundCreatorChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PropertiesHelper props(*properties);
+    ProSoundCreator::DataBuilder dataBuilder(props);
+    if (const auto container = Formats::Chiptune::ProSoundCreator::Parse(rawData, dataBuilder))
+    {
+      props.SetSource(*container);
+      return CreateTrackingChiptune<ProSoundCreator::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+    }
+    return {};
+  }
+}  // namespace Module::AYM

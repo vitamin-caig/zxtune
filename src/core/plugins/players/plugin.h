@@ -13,12 +13,7 @@
 #include "core/plugins/player_plugin.h"
 #include "module/players/factory.h"
 
-#include "formats/chiptune.h"
-
-namespace Module
-{
-  using ExternalParsingFactory = BaseFactory<Formats::Chiptune::Container>;
-}
+#include "formats/chiptune/decoder.h"
 
 namespace ZXTune
 {

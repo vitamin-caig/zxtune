@@ -13,6 +13,7 @@
 #include "module/players/dac/dac_chiptune.h"
 #include "module/players/tracking.h"
 
+#include "module/holder.h"
 #include "module/renderer.h"
 
 namespace Module::DAC
@@ -107,4 +108,8 @@ namespace Module::DAC
 
   Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
                                Devices::DAC::Chip::Ptr device);
+
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
+
+  Devices::DAC::Chip::Ptr CreateChip(uint_t channels, uint_t samplerate, Parameters::Accessor::Ptr params);
 }  // namespace Module::DAC

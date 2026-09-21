@@ -11,19 +11,14 @@
 #pragma once
 
 #include "module/players/dac/dac_chiptune.h"
+#include "module/players/factory.h"
 
 #include "binary/container.h"
 #include "parameters/container.h"
 
 namespace Module::DAC
 {
-  class Factory
-  {
-  public:
-    using Ptr = std::unique_ptr<const Factory>;
-    virtual ~Factory() = default;
+  using Factory = Chiptune::Ptr (*)(const Binary::Container& rawData, Parameters::Container::Ptr properties);
 
-    virtual Chiptune::Ptr CreateChiptune(const Binary::Container& data,
-                                         Parameters::Container::Ptr properties) const = 0;
-  };
+  Module::Factory::Ptr CreateModuleFactory(Factory create);
 }  // namespace Module::DAC

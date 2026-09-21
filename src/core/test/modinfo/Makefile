@@ -9,7 +9,7 @@ libraries.common = analysis \
                    formats_archived_multitrack formats_chiptune formats_multitrack \
                    io \
                    l10n_stub \
-                   module_players \
+                   module \
                    parameters platform \
                    sound strings \
                    tools

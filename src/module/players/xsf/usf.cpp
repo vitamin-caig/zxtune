@@ -8,11 +8,12 @@
  *
  **/
 
-#include "module/players/xsf/usf.h"
+#include "3rdparty/lazyusf2/usf/usf.h"
 
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
+#include "module/players/xsf/all.h"
 #include "module/players/xsf/xsf.h"
 
 #include "debug/log.h"
@@ -21,8 +22,6 @@
 #include "contract.h"
 #include "error_tools.h"
 #include "make_ptr.h"
-
-#include "3rdparty/lazyusf2/usf/usf.h"
 
 #include <list>
 
@@ -265,16 +264,21 @@ namespace Module::USF
     const Parameters::Accessor::Ptr Properties;
   };
 
-  class ModuleDataBuilder
+  class ModuleDataBuilder : public XSF::MergeTarget
   {
   public:
-    void AddSection(Binary::Data::Ptr data)
+    void AddProgramSection(Binary::Container::Ptr /*program*/) override
     {
-      Require(!!data);
-      Sections.emplace_back(std::move(data));
+      // the program section is not a part of the USF format
     }
 
-    void AddMeta(const XSF::MetaInformation& meta)
+    void AddReservedSection(Binary::Container::Ptr reserved) override
+    {
+      Require(!!reserved);
+      Sections.emplace_back(std::move(reserved));
+    }
+
+    void AddMeta(const XSF::MetaInformation& meta) override
     {
       if (!Meta)
       {
@@ -298,77 +302,15 @@ namespace Module::USF
     std::list<Binary::Data::Ptr> Sections;
     XSF::MetaInformation::RWPtr Meta;
   };
-
-  class Factory : public XSF::Factory
-  {
-  public:
-    Holder::Ptr CreateSinglefileModule(const XSF::File& file, Parameters::Container::Ptr properties) const override
-    {
-      ModuleDataBuilder builder;
-      Require(!file.PackedProgramSection);
-      Require(!!file.ReservedSection);
-      builder.AddSection(file.ReservedSection);
-      if (file.Meta)
-      {
-        builder.AddMeta(*file.Meta);
-      }
-      return Holder::Create(builder.CaptureResult(), std::move(properties));
-    }
-
-    Holder::Ptr CreateMultifileModule(const XSF::File& file, const XSF::FilesMap& additionalFiles,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      ModuleDataBuilder builder;
-      MergeSections(file, additionalFiles, builder);
-      MergeMeta(file, additionalFiles, builder);
-      return Holder::Create(builder.CaptureResult(), std::move(properties));
-    }
-
-  private:
-    /* https://bitbucket.org/zxtune/zxtune/wiki/USFFormat
-
-    Loading a USF or USFlib/miniUSF
-
-    1. initialize the ROM and save state to zero.
-    2. if the USF contains a _lib tag (_libn not supported as of this version)
-       recursively load the specified file starting from step 2
-    3. load the ROM and save state, replacing any data with the same addresses that
-       may have already been loaded
-
-    By convention a file that includes a _lib tag is named with a .miniusf extension
-    and a file that is included via a _lib tag is name with a .usflib extension.
-    */
-    static const uint_t MAX_LEVEL = 10;
-
-    static void MergeSections(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                              uint_t level = 1)
-    {
-      if (!data.Dependencies.empty() && level < MAX_LEVEL)
-      {
-        MergeSections(additionalFiles.at(data.Dependencies.front()), additionalFiles, dst, level + 1);
-      }
-      dst.AddSection(data.ReservedSection);
-    }
-
-    void MergeMeta(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                   uint_t level = 1) const
-    {
-      if (level < MAX_LEVEL)
-      {
-        for (const auto& dep : data.Dependencies)
-        {
-          MergeMeta(additionalFiles.at(dep), additionalFiles, dst, level + 1);
-        }
-      }
-      if (data.Meta)
-      {
-        dst.AddMeta(*data.Meta);
-      }
-    }
-  };
-
-  XSF::Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::USF
+
+namespace Module::XSF
+{
+  Holder::Ptr CreateUSFModule(const File& file, const FilesMap& additionalFiles, Parameters::Container::Ptr properties)
+  {
+    USF::ModuleDataBuilder builder;
+    MergeSectionsSingleLibrary(file, additionalFiles, builder);
+    MergeMeta(file, additionalFiles, builder);
+    return USF::Holder::Create(builder.CaptureResult(), std::move(properties));
+  }
+}  // namespace Module::XSF

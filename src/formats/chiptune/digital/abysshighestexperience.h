@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-#include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/common/builder_meta.h"
+#include "formats/chiptune/common/builder_pattern.h"
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 
 namespace Formats::Chiptune
 {
@@ -31,20 +31,18 @@ namespace Formats::Chiptune
 
     Builder& GetStubBuilder();
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      using Ptr = std::shared_ptr<const Decoder>;
-
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-    };
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
 
     Decoder::Ptr CreateDecoder();
 
     namespace HivelyTracker
     {
       Decoder::Ptr CreateDecoder();
-    }
+
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+    }  // namespace HivelyTracker
+
+    using Parser = decltype(&Parse);
   }  // namespace AbyssHighestExperience
 
   Decoder::Ptr CreateAbyssHighestExperienceDecoder();

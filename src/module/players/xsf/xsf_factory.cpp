@@ -31,8 +31,8 @@ namespace Module::XSF
     , public Module::AdditionalFiles
   {
   public:
-    MultiFileHolder(XSF::Factory::Ptr factory, File head, Parameters::Container::Ptr properties)
-      : HolderFactory(std::move(factory))
+    MultiFileHolder(Factory create, File head, Parameters::Container::Ptr properties)
+      : Create(create)
       , Properties(std::move(properties))
       , Head(std::move(head))
     {
@@ -102,7 +102,7 @@ namespace Module::XSF
       {
         Require(!Files.empty());
         FillStrings();
-        Delegate = HolderFactory->CreateMultifileModule(Head, Files, std::move(Properties));
+        Delegate = Create(Head, Files, std::move(Properties));
         Head = File();
       }
       return *Delegate;
@@ -128,7 +128,7 @@ namespace Module::XSF
     }
 
   private:
-    const XSF::Factory::Ptr HolderFactory;
+    const Factory Create;
     mutable Parameters::Container::Ptr Properties;
     mutable File Head;
     mutable FilesMap Files;
@@ -155,8 +155,8 @@ namespace Module::XSF
   class GenericFactory : public Module::Factory
   {
   public:
-    explicit GenericFactory(XSF::Factory::Ptr delegate)
-      : Delegate(std::move(delegate))
+    explicit GenericFactory(Factory create)
+      : Create(create)
     {}
 
     Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData,
@@ -175,12 +175,12 @@ namespace Module::XSF
           if (file.Dependencies.empty())
           {
             Dbg("Singlefile");
-            return Delegate->CreateSinglefileModule(file, std::move(properties));
+            return Create(file, {}, std::move(properties));
           }
           else
           {
             Dbg("Multifile");
-            return MakePtr<MultiFileHolder>(Delegate, std::move(file), std::move(properties));
+            return MakePtr<MultiFileHolder>(Create, std::move(file), std::move(properties));
           }
         }
       }
@@ -192,12 +192,11 @@ namespace Module::XSF
     }
 
   private:
-    const XSF::Factory::Ptr Delegate;
+    const Factory Create;
   };
 
-  Module::Factory::Ptr CreateModuleFactory(XSF::Factory::Ptr delegate)
+  Module::Factory::Ptr CreateModuleFactory(Factory create)
   {
-    Require(delegate != nullptr);
-    return MakePtr<GenericFactory>(std::move(delegate));
+    return MakePtr<GenericFactory>(create);
   }
 }  // namespace Module::XSF

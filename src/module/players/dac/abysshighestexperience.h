@@ -15,5 +15,5 @@
 
 namespace Module::AHX
 {
-  Factory::Ptr CreateFactory(Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr decoder);
+  Factory::Ptr CreateFactory(Formats::Chiptune::AbyssHighestExperience::Parser parse);
 }  // namespace Module::AHX

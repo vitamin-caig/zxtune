@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/common/builder_pattern.h"
 #include "module/players/iterator.h"
 #include "module/players/track_model.h"
 

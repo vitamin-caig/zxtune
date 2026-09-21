@@ -8,10 +8,12 @@
  *
  **/
 
-#include "module/players/dac/sampletracker.h"
-
 #include "formats/chiptune/digital/sampletracker.h"
+
 #include "module/players/dac/dac_simple.h"
+
+#include "binary/container.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -31,28 +33,19 @@ namespace Module::SampleTracker
     0x02c5 0x02ef 0x031c 0x034b 0x0373 0x03b3 0x03eb 0x0427 0x0466 0x04a9 0x04f0 0x053b
   */
 
-  class Factory : public DAC::Factory
-  {
-  public:
-    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      DAC::PropertiesHelper props(*properties, CHANNELS_COUNT);
-      DataBuilder::Ptr dataBuilder = DAC::CreateSimpleDataBuilder<CHANNELS_COUNT>(props);
-      if (const auto container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
-      {
-        props.SetSource(*container);
-        return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), std::move(properties));
-      }
-      else
-      {
-        return {};
-      }
-    }
-  };
-
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::SampleTracker
+
+namespace Module::DAC
+{
+  Chiptune::Ptr CreateSampleTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PropertiesHelper props(*properties, SampleTracker::CHANNELS_COUNT);
+    SampleTracker::DataBuilder::Ptr dataBuilder = CreateSimpleDataBuilder<SampleTracker::CHANNELS_COUNT>(props);
+    if (const auto container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
+    {
+      props.SetSource(*container);
+      return CreateSimpleChiptune(dataBuilder->CaptureResult(), std::move(properties));
+    }
+    return {};
+  }
+}  // namespace Module::DAC

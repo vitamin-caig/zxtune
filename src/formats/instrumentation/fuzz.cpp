@@ -1,7 +1,6 @@
+#include "binary/container_factories.h"
 #include "formats/chiptune/decoders.h"
 #include "formats/packed/decoders.h"
-
-#include "binary/container_factories.h"
 
 #include <stdexcept>
 

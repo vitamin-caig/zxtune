@@ -10,8 +10,8 @@
 
 #include "formats/chiptune/aym/ascsoundmaster.h"
 
-#include "formats/chiptune/container.h"
-#include "formats/chiptune/metainfo.h"
+#include "formats/chiptune/common/container.h"
+#include "formats/chiptune/common/metainfo.h"
 
 #include "binary/format_factories.h"
 #include "debug/log.h"
@@ -1263,11 +1263,6 @@ namespace Formats::Chiptune
       {
         Builder& stub = GetStubBuilder();
         return ASCSoundMaster::Parse(Version, rawData, stub);
-      }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        return ASCSoundMaster::Parse(Version, data, target);
       }
 
     private:

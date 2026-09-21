@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/music/oggvorbis.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 #include "formats/chiptune/music/tags_vorbis.h"
 
 #include "binary/data_builder.h"

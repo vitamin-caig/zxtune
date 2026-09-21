@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
+#include "formats/chiptune/common/builder_meta.h"
 
 #include "binary/view.h"
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 #include "time/duration.h"
 
 #include "string_view.h"

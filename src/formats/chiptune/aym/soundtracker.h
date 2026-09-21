@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-#include "formats/chiptune/builder_pattern.h"
-#include "formats/chiptune/objects.h"
+#include "formats/chiptune/common/builder_meta.h"
+#include "formats/chiptune/common/builder_pattern.h"
+#include "formats/chiptune/common/objects.h"
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 
 namespace Formats::Chiptune
 {
@@ -71,17 +71,12 @@ namespace Formats::Chiptune
 
     Builder& GetStubBuilder();
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      using Ptr = std::shared_ptr<const Decoder>;
-
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-    };
-
     namespace Ver1
     {
-      Decoder::Ptr CreateUncompiledDecoder();
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+      Decoder::Ptr CreateDecoder();
+
+      Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
       Decoder::Ptr CreateCompiledDecoder();
     }  // namespace Ver1
 
@@ -92,7 +87,9 @@ namespace Formats::Chiptune
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, Binary::View info);
     }  // namespace Ver3
-  }    // namespace SoundTracker
+
+    using Parser = decltype(&Ver1::Parse);
+  }  // namespace SoundTracker
 
   Decoder::Ptr CreateSoundTrackerDecoder();
   Decoder::Ptr CreateSoundTrackerCompiledDecoder();

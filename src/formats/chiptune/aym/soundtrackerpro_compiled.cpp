@@ -9,8 +9,8 @@
  **/
 
 #include "formats/chiptune/aym/soundtrackerpro_detail.h"
-#include "formats/chiptune/container.h"
-#include "formats/chiptune/metainfo.h"
+#include "formats/chiptune/common/container.h"
+#include "formats/chiptune/common/metainfo.h"
 
 #include "binary/format_factories.h"
 #include "debug/log.h"
@@ -861,7 +861,7 @@ namespace Formats::Chiptune
         "?00-27"  // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
         ""sv;
 
-    class Decoder : public Formats::Chiptune::SoundTrackerPro::Decoder
+    class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
@@ -887,11 +887,6 @@ namespace Formats::Chiptune
       {
         Builder& stub = GetStubBuilder();
         return ParseCompiled(rawData, stub);
-      }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const override
-      {
-        return ParseCompiled(rawData, target);
       }
 
     private:

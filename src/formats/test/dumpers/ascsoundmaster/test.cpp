@@ -9,8 +9,8 @@
  **/
 
 #include "formats/chiptune/aym/ascsoundmaster.h"
-#include "formats/chiptune/builder_meta.h"
-#include "formats/chiptune/builder_pattern.h"
+#include "formats/chiptune/common/builder_meta.h"
+#include "formats/chiptune/common/builder_pattern.h"
 #include "formats/test/utils.h"
 
 #include "string_view.h"
@@ -255,11 +255,11 @@ int main(int argc, char* argv[])
     ASCDumpBuilder builder;
     if (type == "as0")
     {
-      Formats::Chiptune::ASCSoundMaster::Ver0::CreateDecoder()->Parse(*data, builder);
+      Formats::Chiptune::ASCSoundMaster::Ver0::Parse(*data, builder);
     }
     else if (type == "asc")
     {
-      Formats::Chiptune::ASCSoundMaster::Ver1::CreateDecoder()->Parse(*data, builder);
+      Formats::Chiptune::ASCSoundMaster::Ver1::Parse(*data, builder);
     }
   }
   catch (const std::exception& e)

@@ -8,11 +8,10 @@
  *
  **/
 
-#include "module/players/xsf/gsf.h"
-
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
+#include "module/players/xsf/all.h"
 #include "module/players/xsf/gsf_rom.h"
 #include "module/players/xsf/xsf.h"
 
@@ -398,21 +397,26 @@ namespace Module::GSF
     const Parameters::Accessor::Ptr Properties;
   };
 
-  class ModuleDataBuilder
+  class ModuleDataBuilder : public XSF::MergeTarget
   {
   public:
-    void AddRom(Binary::View packedSection)
+    void AddProgramSection(Binary::Container::Ptr program) override
     {
-      Require(!!packedSection);
+      Require(program && Binary::View(*program));
       if (!Rom)
       {
         Rom = MakeRWPtr<GbaRom>();
       }
-      const auto unpackedSection = Binary::Compression::Zlib::Decompress(packedSection);
+      const auto unpackedSection = Binary::Compression::Zlib::Decompress(*program);
       GbaRom::Parse(*unpackedSection, *Rom);
     }
 
-    void AddMeta(const XSF::MetaInformation& meta)
+    void AddReservedSection(Binary::Container::Ptr /*reserved*/) override
+    {
+      // don't know anything about reserved section state
+    }
+
+    void AddMeta(const XSF::MetaInformation& meta) override
     {
       if (!Meta)
       {
@@ -436,78 +440,15 @@ namespace Module::GSF
     GbaRom::RWPtr Rom;
     XSF::MetaInformation::RWPtr Meta;
   };
-
-  class Factory : public XSF::Factory
-  {
-  public:
-    Holder::Ptr CreateSinglefileModule(const XSF::File& file, Parameters::Container::Ptr properties) const override
-    {
-      ModuleDataBuilder builder;
-      if (file.Meta)
-      {
-        builder.AddMeta(*file.Meta);
-      }
-      builder.AddRom(*file.PackedProgramSection);
-      // don't know anything about reserved section state
-      return Holder::Create(builder.CaptureResult(), std::move(properties));
-    }
-
-    Holder::Ptr CreateMultifileModule(const XSF::File& file, const XSF::FilesMap& additionalFiles,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      ModuleDataBuilder builder;
-      MergeRom(file, additionalFiles, builder);
-      MergeMeta(file, additionalFiles, builder);
-      return Holder::Create(builder.CaptureResult(), std::move(properties));
-    }
-
-  private:
-    /* https://bitbucket.org/zxtune/zxtune/wiki/GSFFormat
-
-    Look at the official psf specs for lib loading order.  Multiple libs are
-    now supported.
-
-    */
-    static const uint_t MAX_LEVEL = 10;
-
-    static void MergeRom(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                         uint_t level = 1)
-    {
-      auto it = data.Dependencies.begin();
-      const auto lim = data.Dependencies.end();
-      if (it != lim && level < MAX_LEVEL)
-      {
-        MergeRom(additionalFiles.at(*it), additionalFiles, dst, level + 1);
-      }
-      dst.AddRom(*data.PackedProgramSection);
-      if (it != lim && level < MAX_LEVEL)
-      {
-        for (++it; it != lim; ++it)
-        {
-          MergeRom(additionalFiles.at(*it), additionalFiles, dst, level + 1);
-        }
-      }
-    }
-
-    static void MergeMeta(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                          uint_t level = 1)
-    {
-      if (level < MAX_LEVEL)
-      {
-        for (const auto& dep : data.Dependencies)
-        {
-          MergeMeta(additionalFiles.at(dep), additionalFiles, dst, level + 1);
-        }
-      }
-      if (data.Meta)
-      {
-        dst.AddMeta(*data.Meta);
-      }
-    }
-  };
-
-  XSF::Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::GSF
+
+namespace Module::XSF
+{
+  Holder::Ptr CreateGSFModule(const File& file, const FilesMap& additionalFiles, Parameters::Container::Ptr properties)
+  {
+    GSF::ModuleDataBuilder builder;
+    MergeProgramSectionsMultiLibrary(file, additionalFiles, builder);
+    MergeMeta(file, additionalFiles, builder);
+    return GSF::Holder::Create(builder.CaptureResult(), std::move(properties));
+  }
+}  // namespace Module::XSF

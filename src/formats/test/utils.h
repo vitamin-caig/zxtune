@@ -10,10 +10,9 @@
 
 #pragma once
 
+#include "binary/data_builder.h"
 #include "formats/archived/decoders.h"
 #include "formats/packed/decoders.h"
-
-#include "binary/data_builder.h"
 #include "strings/conversion.h"
 #include "strings/split.h"
 

@@ -10,8 +10,8 @@
 
 #include "module/players/aym/aym_parameters.h"
 
-#include "core/plugins/players/ay/freq_tables_internal.h"
 #include "devices/aym/chip.h"
+#include "module/players/aym/freq_tables.h"
 
 #include "core/core_parameters.h"
 #include "l10n/api.h"
@@ -28,7 +28,7 @@
 
 namespace Module::AYM
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module_players");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module");
 
   // duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const char letter)
@@ -203,7 +203,7 @@ namespace Module::AYM
       using namespace Parameters::ZXTune::Core::AYM;
       if (const auto newName = Params->FindString(TABLE))
       {
-        GetFreqTable(*newName, table);
+        table = GetFreqTable(*newName);
       }
       else
       {
@@ -243,7 +243,7 @@ namespace Module::AYM
       if (const auto newName = Params->FindString(Parameters::ZXTune::Core::AYM::TABLE))
       {
         const auto& subName = ExtractMergedValue(*newName);
-        GetFreqTable(subName, table);
+        table = GetFreqTable(subName);
       }
     }
 

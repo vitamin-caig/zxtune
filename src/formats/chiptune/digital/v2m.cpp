@@ -10,10 +10,11 @@
 
 #include "formats/chiptune/digital/v2m.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
+#include "formats/chiptune/decoder.h"
 #include "math/numeric.h"
 
 #include "byteorder.h"

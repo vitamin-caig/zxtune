@@ -25,13 +25,13 @@ namespace Analysis
 
   using namespace Formats;
 
-  template<class DecoderPtrType>
+  template<class DecoderType>
   class DecodersQueue
   {
   public:
-    void Add(std::size_t offset, DecoderPtrType decoder)
+    void Add(std::size_t offset, const DecoderType& decoder)
     {
-      Storage.push_back(PositionAndDecoder(offset, decoder));
+      Storage.emplace_back(offset, decoder);
       Storage.sort();
     }
 
@@ -45,9 +45,9 @@ namespace Analysis
       return Storage.front().Position;
     }
 
-    DecoderPtrType FetchDecoder()
+    const auto& FetchDecoder()
     {
-      auto result = Storage.front().Decoder;
+      const auto& result = Storage.front().Decoder;
       Storage.pop_front();
       return result;
     }
@@ -57,7 +57,7 @@ namespace Analysis
       StorageType other;
       for (const auto& entry : Storage)
       {
-        other.push_back(PositionAndDecoder(0, entry.Decoder));
+        other.emplace_back(0, entry.Decoder);
       }
       Storage.swap(other);
     }
@@ -66,11 +66,11 @@ namespace Analysis
     struct PositionAndDecoder
     {
       const std::size_t Position;
-      const DecoderPtrType Decoder;
+      const DecoderType& Decoder;
 
-      PositionAndDecoder(std::size_t pos, DecoderPtrType decoder)
+      PositionAndDecoder(std::size_t pos, const DecoderType& decoder)
         : Position(pos)
-        , Decoder(std::move(decoder))
+        , Decoder(decoder)
       {}
 
       bool operator<(const PositionAndDecoder& rh) const
@@ -176,9 +176,9 @@ namespace Analysis
     {
       while (!IsFinished() && Unprocessed)
       {
-        const typename Traits::Decoder::Ptr decoder = *Unprocessed;
+        const auto& decoder = *Unprocessed;
         ++Unprocessed;
-        if (ProcessDecoder(decoder, target))
+        if (ProcessDecoder(*decoder, target))
         {
           break;
         }
@@ -189,8 +189,8 @@ namespace Analysis
     {
       while (Unprocessed)
       {
-        const typename Traits::Decoder::Ptr decoder = *Unprocessed;
-        Reschedule(decoder);
+        const auto& decoder = *Unprocessed;
+        Reschedule(*decoder);
         ++Unprocessed;
       }
     }
@@ -210,14 +210,14 @@ namespace Analysis
       }
     }
 
-    bool ProcessDecoder(typename Traits::Decoder::Ptr decoder, Scanner::Target& target)
+    bool ProcessDecoder(const typename Traits::Decoder& decoder, Scanner::Target& target)
     {
-      if (const typename Traits::Container::Ptr result = decoder->Decode(Window))
+      if (const auto result = decoder.Decode(Window))
       {
         const std::size_t used = Traits::GetUsedSize(*result);
-        Dbg("Found {} at {}+{} in {} bytes", decoder->GetDescription(), Base, Window.GetOffset(), used);
+        Dbg("Found {} at {}+{} in {} bytes", decoder.GetDescription(), Base, Window.GetOffset(), used);
         FlushUnrecognized(target);
-        target.Apply(*decoder, Base + Window.GetOffset(), result);
+        target.Apply(decoder, Base + Window.GetOffset(), result);
         Schedule(decoder, used);
         Window.Advance(used);
         Unrecognized.SetOffset(Window.GetOffset());
@@ -225,7 +225,7 @@ namespace Analysis
       }
       else
       {
-        const auto format = decoder->GetFormat();
+        const auto format = decoder.GetFormat();
         if (const auto* scanning = dynamic_cast<const Binary::ScanningFormat*>(format.get()))
         {
           Schedule(decoder, scanning->NextMatchOffset(Window));
@@ -249,9 +249,9 @@ namespace Analysis
       }
     }
 
-    void Schedule(typename Traits::Decoder::Ptr decoder, std::size_t delta)
+    void Schedule(const typename Traits::Decoder& decoder, std::size_t delta)
     {
-      const auto id = decoder->GetDescription();
+      const auto id = decoder.GetDescription();
       if (delta != Window.Size())
       {
         const std::size_t nextPos = Window.GetOffset() + delta;
@@ -272,15 +272,15 @@ namespace Analysis
       }
     }
 
-    void Reschedule(typename Traits::Decoder::Ptr decoder)
+    void Reschedule(const typename Traits::Decoder& decoder)
     {
-      Dbg("Schedule to check {} at {}", decoder->GetDescription(), Window.GetOffset());
+      Dbg("Schedule to check {} at {}", decoder.GetDescription(), Window.GetOffset());
       Scheduled.Add(Window.GetOffset(), decoder);
     }
 
   private:
     RangeIterator<typename Traits::DecodersList::const_iterator> Unprocessed;
-    DecodersQueue<typename Traits::Decoder::Ptr> Scheduled;
+    DecodersQueue<typename Traits::Decoder> Scheduled;
     const std::size_t Base;
     ScanningContainer Window;
     ScanningContainer Unrecognized;
@@ -395,22 +395,22 @@ namespace Analysis
   public:
     void AddDecoder(Archived::Decoder::Ptr decoder) override
     {
-      Decoders.Archived.push_back(decoder);
+      Decoders.Archived.emplace_back(std::move(decoder));
     }
 
     void AddDecoder(Packed::Decoder::Ptr decoder) override
     {
-      Decoders.Packed.push_back(decoder);
+      Decoders.Packed.emplace_back(std::move(decoder));
     }
 
     void AddDecoder(Image::Decoder::Ptr decoder) override
     {
-      Decoders.Image.push_back(decoder);
+      Decoders.Image.emplace_back(std::move(decoder));
     }
 
     void AddDecoder(Chiptune::Decoder::Ptr decoder) override
     {
-      Decoders.Chiptune.push_back(decoder);
+      Decoders.Chiptune.emplace_back(std::move(decoder));
     }
 
     void Scan(Binary::Container::Ptr data, Target& target) const override

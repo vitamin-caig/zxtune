@@ -159,19 +159,19 @@ namespace
     char* ChanPtr;
   };
 
-  Formats::Chiptune::SoundTracker::Decoder::Ptr CreateDecoder(const std::string& type)
+  Formats::Chiptune::SoundTracker::Parser CreateParser(const std::string& type)
   {
     if (type == "st1")
     {
-      return Formats::Chiptune::SoundTracker::Ver1::CreateUncompiledDecoder();
+      return Formats::Chiptune::SoundTracker::Ver1::Parse;
     }
     else if (type == "stc")
     {
-      return Formats::Chiptune::SoundTracker::Ver1::CreateCompiledDecoder();
+      return Formats::Chiptune::SoundTracker::Ver1::ParseCompiled;
     }
     else if (type == "st3")
     {
-      return Formats::Chiptune::SoundTracker::Ver3::CreateDecoder();
+      return Formats::Chiptune::SoundTracker::Ver3::Parse;
     }
     else
     {
@@ -191,8 +191,8 @@ int main(int argc, char* argv[])
     const auto data = Test::OpenFile(argv[2]);
     const std::string type(argv[1]);
     STDumpBuilder builder;
-    const auto decoder = CreateDecoder(type);
-    decoder->Parse(*data, builder);
+    const auto parse = CreateParser(type);
+    parse(*data, builder);
   }
   catch (const std::exception& e)
   {

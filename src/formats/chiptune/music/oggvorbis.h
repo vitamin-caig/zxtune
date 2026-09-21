@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
+#include "formats/chiptune/common/builder_meta.h"
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 
 namespace Formats::Chiptune
 {

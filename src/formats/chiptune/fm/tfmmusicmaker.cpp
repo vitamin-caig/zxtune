@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/fm/tfmmusicmaker.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/crc.h"
 #include "binary/data_builder.h"
@@ -1034,6 +1034,38 @@ namespace Formats::Chiptune
     }
 
     template<class Version>
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    {
+      try
+      {
+        const Decompressor decompressor(data, Version::SIGNATURE_SIZE, sizeof(typename Version::RawHeader));
+        const auto decoded = decompressor.GetResult();
+
+        const VersionedFormat<Version> format(*decoded.As<typename Version::RawHeader>());
+        format.ParseCommonProperties(target);
+
+        StatisticCollectingBuilder statistic(target);
+        format.ParsePositions(statistic);
+        const Indices& usedPatterns = statistic.GetUsedPatterns();
+        format.ParsePatterns(usedPatterns, statistic);
+        const Indices& usedInstruments = statistic.GetUsedInstruments();
+        format.ParseInstruments(usedInstruments, target);
+
+        auto subData = data.GetSubcontainer(0, decompressor.GetUsedSize());
+        const std::size_t fixStart = offsetof(typename Version::RawHeader, Patterns)
+                                     + sizeof(typename Version::RawPattern) * usedPatterns.Minimum();
+        const std::size_t fixEnd = offsetof(typename Version::RawHeader, Patterns)
+                                   + sizeof(typename Version::RawPattern) * (1 + usedPatterns.Maximum());
+        const uint_t crc = Binary::Crc32(decoded.SubView(fixStart, fixEnd - fixStart));
+        return CreateKnownCrcContainer(std::move(subData), crc);
+      }
+      catch (const std::exception&)
+      {
+        return {};
+      }
+    }
+
+    template<class Version>
     class VersionedDecoder : public Decoder
     {
     public:
@@ -1063,38 +1095,7 @@ namespace Formats::Chiptune
           return {};
         }
         Builder& stub = GetStubBuilder();
-        return Parse(rawData, stub);
-      }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        try
-        {
-          const Decompressor decompressor(data, Version::SIGNATURE_SIZE, sizeof(typename Version::RawHeader));
-          const auto decoded = decompressor.GetResult();
-
-          const VersionedFormat<Version> format(*decoded.As<typename Version::RawHeader>());
-          format.ParseCommonProperties(target);
-
-          StatisticCollectingBuilder statistic(target);
-          format.ParsePositions(statistic);
-          const Indices& usedPatterns = statistic.GetUsedPatterns();
-          format.ParsePatterns(usedPatterns, statistic);
-          const Indices& usedInstruments = statistic.GetUsedInstruments();
-          format.ParseInstruments(usedInstruments, target);
-
-          auto subData = data.GetSubcontainer(0, decompressor.GetUsedSize());
-          const std::size_t fixStart = offsetof(typename Version::RawHeader, Patterns)
-                                       + sizeof(typename Version::RawPattern) * usedPatterns.Minimum();
-          const std::size_t fixEnd = offsetof(typename Version::RawHeader, Patterns)
-                                     + sizeof(typename Version::RawPattern) * (1 + usedPatterns.Maximum());
-          const uint_t crc = Binary::Crc32(decoded.SubView(fixStart, fixEnd - fixStart));
-          return CreateKnownCrcContainer(std::move(subData), crc);
-        }
-        catch (const std::exception&)
-        {
-          return {};
-        }
+        return Parse<Version>(rawData, stub);
       }
 
     private:
@@ -1103,6 +1104,11 @@ namespace Formats::Chiptune
 
     namespace Ver05
     {
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+      {
+        return Parse<Version05>(data, target);
+      }
+
       Decoder::Ptr CreateDecoder()
       {
         return MakePtr<VersionedDecoder<Version05> >();
@@ -1111,6 +1117,11 @@ namespace Formats::Chiptune
 
     namespace Ver13
     {
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+      {
+        return Parse<Version13>(data, target);
+      }
+
       Decoder::Ptr CreateDecoder()
       {
         return MakePtr<VersionedDecoder<Version13> >();

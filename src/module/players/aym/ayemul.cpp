@@ -710,12 +710,12 @@ namespace Module::AYEMUL
     return Devices::Beeper::CreateChip(std::move(beeperParams));
   }
 
-  class Holder : public AYM::Holder
+  class Holder : public Module::Holder
   {
   public:
-    Holder(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+    Holder(ModuleData::Ptr data, Parameters::Accessor::Ptr params)
       : Data(std::move(data))
-      , Properties(std::move(properties))
+      , Properties(std::move(params))
     {}
 
     Information GetModuleInformation() const override
@@ -733,16 +733,6 @@ namespace Module::AYEMUL
       auto aym = AYM::CreateChip(samplerate, params);
       auto beeper = CreateBeeper(samplerate, params);
       return CreateRenderer(std::move(params), std::move(aym), std::move(beeper));
-    }
-
-    AYM::Chiptune::Ptr GetChiptune() const override
-    {
-      return {};
-    }
-
-    void Dump(Devices::AYM::Device&) const override
-    {
-      Require(!"Not implemented");
     }
 
   private:

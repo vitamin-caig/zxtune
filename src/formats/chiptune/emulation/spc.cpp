@@ -10,12 +10,12 @@
 
 #include "formats/chiptune/emulation/spc.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
 #include "debug/log.h"
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 #include "math/numeric.h"
 #include "strings/conversion.h"
 #include "strings/format.h"

@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/music/flac.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 #include "formats/chiptune/music/tags_id3.h"
 #include "formats/chiptune/music/tags_vorbis.h"
 

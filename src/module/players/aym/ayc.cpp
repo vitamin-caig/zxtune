@@ -8,14 +8,17 @@
  *
  **/
 
-#include "module/players/aym/ayc.h"
-
 #include "formats/chiptune/aym/ayc.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
+
+#include "binary/container.h"
+#include "parameters/container.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -69,31 +72,24 @@ namespace Module::AYC
     uint_t Frame = 0;
     AYM::MutableStreamModel::Ptr Data;
   };
-
-  class Factory : public AYM::Factory
-  {
-  public:
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      DataBuilder dataBuilder;
-      if (const auto container = Formats::Chiptune::AYC::Parse(rawData, dataBuilder))
-      {
-        if (auto data = dataBuilder.CaptureResult())
-        {
-          AYM::PropertiesHelper props(*properties);
-          props.SetSource(*container);
-          props.SetPlatform(Platforms::AMSTRAD_CPC);
-          props.SetChipFrequency(1000000);
-          return AYM::CreateStreamedChiptune(AYM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
-        }
-      }
-      return {};
-    }
-  };
-
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::AYC
+
+namespace Module::AYM
+{
+  Chiptune::Ptr CreateAYCChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    AYC::DataBuilder dataBuilder;
+    if (const auto container = Formats::Chiptune::AYC::Parse(rawData, dataBuilder))
+    {
+      if (auto data = dataBuilder.CaptureResult())
+      {
+        PropertiesHelper props(*properties);
+        props.SetSource(*container);
+        props.SetPlatform(Platforms::AMSTRAD_CPC);
+        props.SetChipFrequency(1000000);
+        return CreateStreamedChiptune(BASE_FRAME_DURATION, std::move(data), std::move(properties));
+      }
+    }
+    return {};
+  }
+}  // namespace Module::AYM

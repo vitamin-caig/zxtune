@@ -2,7 +2,7 @@
  *
  * @file
  *
- * @brief  Packed data container helper
+ * @brief  Packed data support interface
  *
  * @author vitamin.caig@gmail.com
  *
@@ -10,11 +10,21 @@
 
 #pragma once
 
-#include "formats/packed.h"
+#include "binary/container.h"
 
-#include "types.h"
+#include <memory>
 
 namespace Formats::Packed
 {
-  Container::Ptr CreateContainer(Binary::Container::Ptr data, std::size_t origSize);
+  //! @brief Unpacked data
+  class Container : public Binary::Container
+  {
+  public:
+    using Ptr = std::shared_ptr<const Container>;
+
+    //! @brief Getting size of source data this container was unpacked from
+    //! @return Size in bytes
+    //! @invariant Result is always > 0
+    virtual std::size_t PackedSize() const = 0;
+  };
 }  // namespace Formats::Packed

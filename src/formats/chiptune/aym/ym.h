@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
+#include "formats/chiptune/common/builder_meta.h"
 
 #include "binary/view.h"
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 
 #include "string_view.h"
 #include "types.h"
@@ -50,17 +50,16 @@ namespace Formats::Chiptune
 
     Builder& GetStubBuilder();
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      using Ptr = std::shared_ptr<const Decoder>;
-
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-    };
+    // TODO: cleanup namings
+    Formats::Chiptune::Container::Ptr ParsePacked(const Binary::Container& rawData, Builder& target);
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target);
+    Formats::Chiptune::Container::Ptr ParseVTX(const Binary::Container& rawData, Builder& target);
 
     Decoder::Ptr CreatePackedYMDecoder();
     Decoder::Ptr CreateYMDecoder();
     Decoder::Ptr CreateVTXDecoder();
+
+    using Parser = decltype(&ParsePacked);
   }  // namespace YM
 
   Decoder::Ptr CreatePackedYMDecoder();

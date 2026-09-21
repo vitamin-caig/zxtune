@@ -8,12 +8,16 @@
  *
  **/
 
-#include "module/players/aym/soundtrackerpro.h"
+#include "formats/chiptune/aym/soundtrackerpro.h"
 
 #include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
+
+#include "binary/container.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -45,7 +49,7 @@ namespace Module::SoundTrackerPro
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_SOUNDTRACKER_PRO);
+      Properties.SetFrequencyTable(AYM::TABLE_SOUNDTRACKER_PRO);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -314,37 +318,19 @@ namespace Module::SoundTrackerPro
     const ModuleData::Ptr Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
-
-  class Factory : public AYM::Factory
-  {
-  public:
-    explicit Factory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder)
-      : Decoder(std::move(decoder))
-    {}
-
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      AYM::PropertiesHelper props(*properties);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Decoder->Parse(rawData, dataBuilder))
-      {
-        props.SetSource(*container);
-        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
-                                                                        std::move(properties));
-      }
-      else
-      {
-        return {};
-      }
-    }
-
-  private:
-    const Formats::Chiptune::SoundTrackerPro::Decoder::Ptr Decoder;
-  };
-
-  Factory::Ptr CreateFactory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder)
-  {
-    return MakePtr<Factory>(std::move(decoder));
-  }
 }  // namespace Module::SoundTrackerPro
+
+namespace Module::AYM
+{
+  Chiptune::Ptr CreateSoundTrackerProChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PropertiesHelper props(*properties);
+    SoundTrackerPro::DataBuilder dataBuilder(props);
+    if (const auto container = Formats::Chiptune::SoundTrackerPro::ParseCompiled(rawData, dataBuilder))
+    {
+      props.SetSource(*container);
+      return CreateTrackingChiptune<SoundTrackerPro::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+    }
+    return {};
+  }
+}  // namespace Module::AYM

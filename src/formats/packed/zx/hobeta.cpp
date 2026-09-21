@@ -1,0 +1,114 @@
+/**
+ *
+ * @file
+ *
+ * @brief  Hobeta image support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
+
+#include "formats/packed/common/container.h"
+
+#include "binary/format_factories.h"
+#include "formats/packed/decoder.h"
+#include "math/numeric.h"
+
+#include "byteorder.h"
+#include "make_ptr.h"
+#include "pointers.h"
+
+#include <array>
+#include <numeric>
+
+namespace Formats::Packed
+{
+  namespace Hobeta
+  {
+    struct Header
+    {
+      std::array<uint8_t, 9> Filename;
+      le_uint16_t Start;
+      le_uint16_t Length;
+      le_uint16_t FullLength;
+      le_uint16_t CRC;
+    };
+
+    static_assert(sizeof(Header) * alignof(Header) == 17, "Invalid layout");
+    const std::size_t MIN_SIZE = 0x100;
+    const std::size_t MAX_SIZE = 0xff00;
+
+    bool Check(Binary::View rawData)
+    {
+      const auto* header = rawData.As<Header>();
+      if (!header)
+      {
+        return false;
+      }
+      const auto* data = rawData.As<uint8_t>();
+      const std::size_t dataSize = header->Length;
+      const std::size_t fullSize = header->FullLength;
+      if (!Math::InRange(dataSize, MIN_SIZE, MAX_SIZE) || dataSize + sizeof(*header) > rawData.Size()
+          || fullSize != Math::Align<std::size_t>(dataSize, 256) ||
+          // check for valid name
+          std::any_of(header->Filename.begin(), header->Filename.end(), [](auto b) { return b < ' '; }))
+      {
+        return false;
+      }
+      // check for crc
+      return header->CRC == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff);
+    }
+
+    const auto DESCRIPTION = "Hobeta"sv;
+    const auto FORMAT =
+        // Filename
+        "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
+        // Start
+        "??"
+        // Length
+        "?01-ff"
+        // FullLength
+        "0001-ff"
+        ""sv;
+
+    class Decoder : public Packed::Decoder
+    {
+    public:
+      StringView GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
+
+      Binary::Format::Ptr GetFormat() const override
+      {
+        return Format;
+      }
+
+      Container::Ptr Decode(const Binary::Container& rawData) const override
+      {
+        const Binary::View data(rawData);
+        if (!Format->Match(data))
+        {
+          return {};
+        }
+        if (!Check(data))
+        {
+          return {};
+        }
+        const auto* header = data.As<Header>();
+        const std::size_t dataSize = header->Length;
+        const std::size_t fullSize = header->FullLength;
+        auto subdata = rawData.GetSubcontainer(sizeof(*header), dataSize);
+        return CreateContainer(std::move(subdata), fullSize + sizeof(*header));
+      }
+
+    private:
+      const Binary::Format::Ptr Format = Binary::CreateFormat(FORMAT, MIN_SIZE);
+    };
+  }  // namespace Hobeta
+
+  Decoder::Ptr CreateHobetaDecoder()
+  {
+    return MakePtr<Hobeta::Decoder>();
+  }
+}  // namespace Formats::Packed

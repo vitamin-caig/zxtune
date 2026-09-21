@@ -15,5 +15,5 @@
 
 namespace Module::ProTracker3
 {
-  Factory::Ptr CreateFactory(Formats::Chiptune::ProTracker3::Decoder::Ptr decoder);
+  Factory::Ptr CreateFactory(Formats::Chiptune::ProTracker3::Parser parse);
 }  // namespace Module::ProTracker3

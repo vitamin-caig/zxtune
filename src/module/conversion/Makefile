@@ -1,6 +1,6 @@
 library_name := module_conversion
 dirs.root := ../../..
-source_dirs := .
+source_dirs := src
 
 po_files := module_conversion
 

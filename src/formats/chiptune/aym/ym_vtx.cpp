@@ -9,7 +9,7 @@
  **/
 
 #include "formats/chiptune/aym/ym.h"
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/compression/lha.h"
 #include "binary/dump.h"
@@ -292,7 +292,7 @@ namespace Formats::Chiptune
       }
     }
 
-    Formats::Chiptune::Container::Ptr ParseUnpacked(const Binary::Container& rawData, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
       const void* const data = rawData.Start();
       const std::size_t size = rawData.Size();
@@ -388,7 +388,7 @@ namespace Formats::Chiptune
       const String method(hdr.Method.data(), hdr.Method.size());
       if (const auto unpacked = Binary::Compression::Lha::DecodeRawData(*packed, method, unpackedSize))
       {
-        if (ParseUnpacked(*unpacked, target))
+        if (Parse(*unpacked, target))
         {
           auto subData = rawData.GetSubcontainer(0, packedOffset + packedSize + Compressed::FOOTER_SIZE);
           return CreateCalculatingCrcContainer(std::move(subData), packedOffset, packedSize);
@@ -409,7 +409,7 @@ namespace Formats::Chiptune
         "00"          // level
         ""sv;
 
-    class YMDecoder : public Formats::Chiptune::YM::Decoder
+    class YMDecoder : public Decoder
     {
     public:
       YMDecoder()
@@ -439,19 +439,14 @@ namespace Formats::Chiptune
           return {};
         }
         Builder& stub = GetStubBuilder();
-        return ParseUnpacked(rawData, stub);
-      }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        return ParseUnpacked(data, target);
+        return Parse(rawData, stub);
       }
 
     private:
       const Binary::Format::Ptr Format;
     };
 
-    class PackedDecoder : public Formats::Chiptune::YM::Decoder
+    class PackedDecoder : public Decoder
     {
     public:
       PackedDecoder()
@@ -481,11 +476,6 @@ namespace Formats::Chiptune
         }
         Builder& stub = GetStubBuilder();
         return ParsePacked(rawData, stub);
-      }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        return ParsePacked(data, target);
       }
 
     private:
@@ -581,7 +571,7 @@ namespace Formats::Chiptune
       return false;
     }
 
-    Formats::Chiptune::Container::Ptr ParseVTX(const Binary::Container& rawData, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
       const Binary::View data(rawData);
       if (!FastCheck(data))
@@ -646,7 +636,7 @@ namespace Formats::Chiptune
         "19-64"                       // intfreq, 25..100Hz
         ""sv;
 
-    class Decoder : public Formats::Chiptune::YM::Decoder
+    class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
@@ -674,11 +664,6 @@ namespace Formats::Chiptune
         return ParseVTX(rawData, stub);
       }
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        return ParseVTX(data, target);
-      }
-
     private:
       const Binary::Format::Ptr Format;
     };
@@ -690,6 +675,11 @@ namespace Formats::Chiptune
     {
       static StubBuilder stub;
       return stub;
+    }
+
+    Formats::Chiptune::Container::Ptr ParseVTX(const Binary::Container& rawData, Builder& target)
+    {
+      return VTX::Parse(rawData, target);
     }
 
     Decoder::Ptr CreatePackedYMDecoder()

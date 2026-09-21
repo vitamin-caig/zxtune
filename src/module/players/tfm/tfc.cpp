@@ -8,15 +8,16 @@
  *
  **/
 
-#include "module/players/tfm/tfc.h"
-
 #include "formats/chiptune/fm/tfc.h"
+
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
 #include "module/players/tfm/tfm_base_stream.h"
 
+#include "binary/container.h"
+#include "parameters/container.h"
 #include "tools/iterators.h"
 
 #include "make_ptr.h"
@@ -221,31 +222,25 @@ namespace Module::TFC
     Time::Microseconds FrameDuration = TFM::BASE_FRAME_DURATION;
   };
 
-  class Factory : public TFM::Factory
-  {
-  public:
-    TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      PropertiesHelper props(*properties);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Formats::Chiptune::TFC::Parse(rawData, dataBuilder))
-      {
-        auto data = dataBuilder.CaptureResult();
-        if (data->GetTotalFrames())
-        {
-          props.SetSource(*container);
-          props.SetPlatform(Platforms::ZX_SPECTRUM);
-          props.SetChannels("FM"sv, Devices::TFM::VOICES);
-          return TFM::CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data), std::move(properties));
-        }
-      }
-      return {};
-    }
-  };
-
-  TFM::Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::TFC
+
+namespace Module::TFM
+{
+  Chiptune::Ptr CreateTFCChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PropertiesHelper props(*properties);
+    TFC::DataBuilder dataBuilder(props);
+    if (const auto container = Formats::Chiptune::TFC::Parse(rawData, dataBuilder))
+    {
+      auto data = dataBuilder.CaptureResult();
+      if (data->GetTotalFrames())
+      {
+        props.SetSource(*container);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        props.SetChannels("FM"sv, Devices::TFM::VOICES);
+        return CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data), std::move(properties));
+      }
+    }
+    return {};
+  }
+}  // namespace Module::TFM

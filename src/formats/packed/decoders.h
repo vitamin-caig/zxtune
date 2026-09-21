@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "formats/packed.h"
+#include "formats/packed/decoder.h"
 
 namespace Formats::Packed
 {

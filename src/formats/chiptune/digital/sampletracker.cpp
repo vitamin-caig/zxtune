@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/digital/sampletracker.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 #include "formats/chiptune/digital/digital_detail.h"
 
 #include "binary/format_factories.h"

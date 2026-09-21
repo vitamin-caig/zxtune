@@ -14,6 +14,8 @@
 #include "module/players/dac/dac_base.h"
 #include "module/players/dac/dac_properties_helper.h"
 
+#include "make_ptr.h"
+
 namespace Module::DAC
 {
   class SimpleModuleData : public TrackModel
@@ -73,4 +75,46 @@ namespace Module::DAC
   }
 
   DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties);
+
+  template<class DataPtr, class DataRenderer>
+  class TrackingChiptune : public Chiptune
+  {
+  public:
+    TrackingChiptune(DataPtr data, Parameters::Accessor::Ptr properties)
+      : Data(std::move(data))
+      , Properties(std::move(properties))
+    {}
+
+    TrackModel::Ptr GetTrackModel() const override
+    {
+      return Data;
+    }
+
+    Parameters::Accessor::Ptr GetProperties() const override
+    {
+      return Properties;
+    }
+
+    DataIterator::Ptr CreateDataIterator() const override
+    {
+      auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
+    }
+
+    void GetSamples(Devices::DAC::Chip& chip) const override
+    {
+      Data->SetupSamples(chip);
+    }
+
+  private:
+    const DataPtr Data;
+    const Parameters::Accessor::Ptr Properties;
+  };
+
+  template<class DataRenderer, class DataPtr>
+  Chiptune::Ptr CreateTrackingChiptune(DataPtr data, Parameters::Accessor::Ptr properties)
+  {
+    return MakePtr<TrackingChiptune<DataPtr, DataRenderer>>(std::move(data), std::move(properties));
+  }
 }  // namespace Module::DAC

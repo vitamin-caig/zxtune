@@ -8,16 +8,18 @@
  *
  **/
 
-#include "module/players/aym/globaltracker.h"
-
 #include "formats/chiptune/aym/globaltracker.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
+#include "binary/container.h"
 #include "math/numeric.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -45,7 +47,7 @@ namespace Module::GlobalTracker
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_PROTRACKER3_ST);
+      Properties.SetFrequencyTable(AYM::TABLE_PROTRACKER3_ST);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -282,30 +284,19 @@ namespace Module::GlobalTracker
     const ModuleData::Ptr Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
-
-  class Factory : public AYM::Factory
-  {
-  public:
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      AYM::PropertiesHelper props(*properties);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Formats::Chiptune::GlobalTracker::Parse(rawData, dataBuilder))
-      {
-        props.SetSource(*container);
-        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
-                                                                        std::move(properties));
-      }
-      else
-      {
-        return {};
-      }
-    }
-  };
-
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::GlobalTracker
+
+namespace Module::AYM
+{
+  Chiptune::Ptr CreateGlobalTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PropertiesHelper props(*properties);
+    GlobalTracker::DataBuilder dataBuilder(props);
+    if (const auto container = Formats::Chiptune::GlobalTracker::Parse(rawData, dataBuilder))
+    {
+      props.SetSource(*container);
+      return CreateTrackingChiptune<GlobalTracker::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+    }
+    return {};
+  }
+}  // namespace Module::AYM

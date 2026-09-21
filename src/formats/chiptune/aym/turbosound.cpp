@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/aym/turbosound.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/format_factories.h"
 #include "math/numeric.h"
@@ -108,6 +108,7 @@ namespace Formats::Chiptune
       const std::size_t SecondSize;
     };
 
+    // TODO: rework avoiding Binary::Format creation here
     class FooterFormat : public Binary::ScanningFormat
     {
     public:
@@ -138,6 +139,24 @@ namespace Formats::Chiptune
       const Binary::ScanningFormat::Ptr Delegate;
     };
 
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
+    {
+      const ModuleTraits& traits = FooterFormat().GetTraits(rawData);
+
+      if (!traits.Matched())
+      {
+        return {};
+      }
+
+      target.SetFirstSubmoduleLocation(0, traits.GetFirstModuleSize());
+      target.SetSecondSubmoduleLocation(traits.GetFirstModuleSize(), traits.GetSecondModuleSize());
+
+      const std::size_t usedSize = traits.GetTotalSize();
+      auto subData = rawData.GetSubcontainer(0, usedSize);
+      // use whole container as a fixed data
+      return CreateCalculatingCrcContainer(std::move(subData), 0, usedSize);
+    }
+
     class DecoderImpl : public Decoder
     {
     public:
@@ -164,24 +183,6 @@ namespace Formats::Chiptune
       {
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
-      }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const override
-      {
-        const ModuleTraits& traits = Format->GetTraits(rawData);
-
-        if (!traits.Matched())
-        {
-          return {};
-        }
-
-        target.SetFirstSubmoduleLocation(0, traits.GetFirstModuleSize());
-        target.SetSecondSubmoduleLocation(traits.GetFirstModuleSize(), traits.GetSecondModuleSize());
-
-        const std::size_t usedSize = traits.GetTotalSize();
-        auto subData = rawData.GetSubcontainer(0, usedSize);
-        // use whole container as a fixed data
-        return CreateCalculatingCrcContainer(std::move(subData), 0, usedSize);
       }
 
     private:

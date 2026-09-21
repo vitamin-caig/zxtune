@@ -9,7 +9,7 @@
  **/
 
 #include "formats/chiptune/aym/soundtracker_detail.h"
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/format_factories.h"
 #include "debug/log.h"
@@ -692,7 +692,7 @@ namespace Formats::Chiptune
         "00-0f"   // first sample index
         ""sv;
 
-    Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& rawData, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
       const auto data = MakeContainer(rawData);
       if (!FastCheck(data))
@@ -730,7 +730,7 @@ namespace Formats::Chiptune
       }
     }
 
-    class Decoder : public Formats::Chiptune::SoundTracker::Decoder
+    class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
@@ -759,12 +759,7 @@ namespace Formats::Chiptune
           return {};
         }
         Builder& stub = GetStubBuilder();
-        return ParseCompiled(rawData, stub);
-      }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        return ParseCompiled(data, target);
+        return Parse(rawData, stub);
       }
 
     private:
@@ -774,6 +769,11 @@ namespace Formats::Chiptune
 
   namespace SoundTracker::Ver1
   {
+    Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& rawData, Builder& target)
+    {
+      return SoundTrackerCompiled::Parse(rawData, target);
+    }
+
     Decoder::Ptr CreateCompiledDecoder()
     {
       return MakePtr<SoundTrackerCompiled::Decoder>();

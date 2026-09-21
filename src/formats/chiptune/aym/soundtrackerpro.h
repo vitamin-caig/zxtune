@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-#include "formats/chiptune/builder_pattern.h"
-#include "formats/chiptune/objects.h"
+#include "formats/chiptune/common/builder_meta.h"
+#include "formats/chiptune/common/builder_pattern.h"
+#include "formats/chiptune/common/objects.h"
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 
 namespace Formats::Chiptune
 {
@@ -77,18 +77,12 @@ namespace Formats::Chiptune
 
     Builder& GetStubBuilder();
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      using Ptr = std::shared_ptr<const Decoder>;
-
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-    };
-
     Decoder::Ptr CreateCompiledModulesDecoder();
 
     Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
     Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info);
+
+    using Parser = decltype(&ParseCompiled);
   }  // namespace SoundTrackerPro
 
   Decoder::Ptr CreateSoundTrackerProCompiledDecoder();

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-#include "formats/chiptune/builder_pattern.h"
-#include "formats/chiptune/objects.h"
+#include "formats/chiptune/common/builder_meta.h"
+#include "formats/chiptune/common/builder_pattern.h"
+#include "formats/chiptune/common/objects.h"
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 
 namespace Formats::Chiptune
 {
@@ -90,30 +90,29 @@ namespace Formats::Chiptune
 
     Builder& GetStubBuilder();
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      using Ptr = std::shared_ptr<const Decoder>;
-
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-    };
-
     class ChiptuneBuilder : public Builder
     {
     public:
-      using Ptr = std::shared_ptr<ChiptuneBuilder>;
+      using Ptr = std::unique_ptr<ChiptuneBuilder>;
+
       virtual Binary::Data::Ptr GetResult() const = 0;
     };
 
-    Decoder::Ptr CreateDecoder();
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+
+    Decoder::Ptr CreateDecoder();
 
     namespace VortexTracker2
     {
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+
       Decoder::Ptr CreateDecoder();
+
       ChiptuneBuilder::Ptr CreateBuilder();
     }  // namespace VortexTracker2
-  }    // namespace ProTracker3
+
+    using Parser = decltype(&Parse);
+  }  // namespace ProTracker3
 
   Decoder::Ptr CreateProTracker3Decoder();
   Decoder::Ptr CreateVortexTracker2Decoder();

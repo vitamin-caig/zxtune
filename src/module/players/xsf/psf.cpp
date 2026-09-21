@@ -8,11 +8,10 @@
  *
  **/
 
-#include "module/players/xsf/psf.h"
-
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
+#include "module/players/xsf/all.h"
 #include "module/players/xsf/psf_bios.h"
 #include "module/players/xsf/psf_exe.h"
 #include "module/players/xsf/psf_vfs.h"
@@ -411,31 +410,26 @@ namespace Module::PSF
     const Parameters::Accessor::Ptr Properties;
   };
 
-  class ModuleDataBuilder
+  class ModuleDataBuilder : public XSF::MergeTarget
   {
   public:
-    void AddExe(Binary::View packedSection)
+    void AddProgramSection(Binary::Container::Ptr program) override
     {
-      Require(!Vfs);
-      if (!Exe)
+      if (program)
       {
-        Exe = MakeRWPtr<PsxExe>();
+        AddExe(*program);
       }
-      const auto unpackedSection = Binary::Compression::Zlib::Decompress(packedSection);
-      PsxExe::Parse(*unpackedSection, *Exe);
     }
 
-    void AddVfs(const Binary::Container& reservedSection)
+    void AddReservedSection(Binary::Container::Ptr reserved) override
     {
-      Require(!Exe);
-      if (!Vfs)
+      if (reserved)
       {
-        Vfs = MakeRWPtr<PsxVfs>();
+        AddVfs(*reserved);
       }
-      PsxVfs::Parse(reservedSection, *Vfs);
     }
 
-    void AddMeta(const XSF::MetaInformation& meta)
+    void AddMeta(const XSF::MetaInformation& meta) override
     {
       if (!Meta)
       {
@@ -458,131 +452,43 @@ namespace Module::PSF
     }
 
   private:
+    void AddExe(Binary::View packedSection)
+    {
+      Require(!Vfs);
+      if (!Exe)
+      {
+        Exe = MakeRWPtr<PsxExe>();
+      }
+      const auto unpackedSection = Binary::Compression::Zlib::Decompress(packedSection);
+      PsxExe::Parse(*unpackedSection, *Exe);
+    }
+
+    void AddVfs(const Binary::Container& reservedSection)
+    {
+      Require(!Exe);
+      if (!Vfs)
+      {
+        Vfs = MakeRWPtr<PsxVfs>();
+      }
+      PsxVfs::Parse(reservedSection, *Vfs);
+    }
+
+  private:
     PsxExe::RWPtr Exe;
     PsxVfs::RWPtr Vfs;
     XSF::MetaInformation::RWPtr Meta;
   };
-
-  class Factory : public XSF::Factory
-  {
-  public:
-    Holder::Ptr CreateSinglefileModule(const XSF::File& file, Parameters::Container::Ptr properties) const override
-    {
-      ModuleDataBuilder builder;
-      if (file.PackedProgramSection)
-      {
-        builder.AddExe(*file.PackedProgramSection);
-      }
-      if (file.ReservedSection)
-      {
-        builder.AddVfs(*file.ReservedSection);
-      }
-      if (file.Meta)
-      {
-        builder.AddMeta(*file.Meta);
-      }
-      return Holder::Create(builder.CaptureResult(file.Version), std::move(properties));
-    }
-
-    Holder::Ptr CreateMultifileModule(const XSF::File& file, const XSF::FilesMap& additionalFiles,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      ModuleDataBuilder builder;
-      if (file.PackedProgramSection)
-      {
-        MergeExe(file, additionalFiles, builder);
-      }
-      if (file.ReservedSection)
-      {
-        MergeVfs(file, additionalFiles, builder);
-      }
-      MergeMeta(file, additionalFiles, builder);
-      return Holder::Create(builder.CaptureResult(file.Version), std::move(properties));
-    }
-
-  private:
-    /* https://bitbucket.org/zxtune/zxtune/wiki/MiniPSF
-
-    The proper way to load a minipsf is as follows:
-    - Load the executable data from the minipsf - this becomes the current executable.
-    - Check for the presence of a "_lib" tag. If present:
-      - RECURSIVELY load the executable data from the given library file. (Make sure to limit recursion to avoid
-    crashing - I usually limit it to 10 levels)
-      - Make the _lib executable the current one.
-      - If applicable, we will use the initial program counter/stack pointer from the _lib executable.
-      - Superimpose the originally loaded minipsf executable on top of the current executable. If applicable, use the
-    start address and size to determine where to .
-    - Check for the presence of "_libN" tags for N=2 and up (use "_lib%d")
-      - RECURSIVELY load and superimpose all these EXEs on top of the current EXE. Do not modify the current program
-    counter or stack pointer.
-      - Start at N=2. Stop at the first tag name that doesn't exist.
-    - (done)
-    */
-    static const uint_t MAX_LEVEL = 10;
-
-    static void MergeExe(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                         uint_t level = 1)
-    {
-      auto it = data.Dependencies.begin();
-      const auto lim = data.Dependencies.end();
-      if (it != lim && level < MAX_LEVEL)
-      {
-        MergeExe(additionalFiles.at(*it), additionalFiles, dst, level + 1);
-      }
-      dst.AddExe(*data.PackedProgramSection);
-      if (it != lim && level < MAX_LEVEL)
-      {
-        for (++it; it != lim; ++it)
-        {
-          MergeExe(additionalFiles.at(*it), additionalFiles, dst, level + 1);
-        }
-      }
-    }
-
-    /* https://bitbucket.org/zxtune/zxtune/wiki/MiniPSF2
-
-    The proper way to load a MiniPSF2 is as follows:
-    - First, recursively load the virtual filesystems from each PSF2 file named by a library tag.
-      - The first tag is "_lib"
-      - The remaining tags are "_libN" for N>=2 (use "_lib%d")
-      - Stop at the first tag name that doesn't exist.
-    - Then, load the virtual filesystem from the current PSF2 file.
-
-    If there are conflicting or redundant filenames, they should be overwritten in memory in the order in which the
-    filesystem data was parsed. Later takes priority.
-    */
-    static void MergeVfs(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                         uint_t level = 1)
-    {
-      if (level < MAX_LEVEL)
-      {
-        for (const auto& dep : data.Dependencies)
-        {
-          MergeVfs(additionalFiles.at(dep), additionalFiles, dst, level + 1);
-        }
-      }
-      dst.AddVfs(*data.ReservedSection);
-    }
-
-    static void MergeMeta(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                          uint_t level = 1)
-    {
-      if (level < MAX_LEVEL)
-      {
-        for (const auto& dep : data.Dependencies)
-        {
-          MergeMeta(additionalFiles.at(dep), additionalFiles, dst, level + 1);
-        }
-      }
-      if (data.Meta)
-      {
-        dst.AddMeta(*data.Meta);
-      }
-    }
-  };
-
-  XSF::Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::PSF
+
+namespace Module::XSF
+{
+  Holder::Ptr CreatePSFModule(const File& file, const FilesMap& additionalFiles, Parameters::Container::Ptr properties)
+  {
+    PSF::ModuleDataBuilder builder;
+    // The EXE and the VFS of a PSF file are loaded with different dependency orders
+    MergeProgramSectionsMultiLibrary(file, additionalFiles, builder);
+    MergeReservedSectionsDepsFirst(file, additionalFiles, builder);
+    MergeMeta(file, additionalFiles, builder);
+    return PSF::Holder::Create(builder.CaptureResult(file.Version), std::move(properties));
+  }
+}  // namespace Module::XSF

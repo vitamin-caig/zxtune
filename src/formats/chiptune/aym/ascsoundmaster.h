@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-#include "formats/chiptune/builder_pattern.h"
-#include "formats/chiptune/objects.h"
+#include "formats/chiptune/common/builder_meta.h"
+#include "formats/chiptune/common/builder_pattern.h"
+#include "formats/chiptune/common/objects.h"
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 
 namespace Formats::Chiptune
 {
@@ -83,21 +83,13 @@ namespace Formats::Chiptune
 
     Builder& GetStubBuilder();
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      using Ptr = std::shared_ptr<const Decoder>;
-
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-    };
-
     namespace Ver0
     {
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info);
 
       Decoder::Ptr CreateDecoder();
-    };  // namespace Ver0
+    }  // namespace Ver0
 
     namespace Ver1
     {
@@ -105,8 +97,10 @@ namespace Formats::Chiptune
       Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info);
 
       Decoder::Ptr CreateDecoder();
-    };  // namespace Ver1
-  }     // namespace ASCSoundMaster
+    }  // namespace Ver1
+
+    using Parser = decltype(&Ver0::Parse);
+  }  // namespace ASCSoundMaster
 
   Decoder::Ptr CreateASCSoundMaster0xDecoder();
   Decoder::Ptr CreateASCSoundMaster1xDecoder();

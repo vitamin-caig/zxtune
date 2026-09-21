@@ -9,7 +9,7 @@
  **/
 
 #include "formats/chiptune/aym/protracker3_detail.h"
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/container_factories.h"
 #include "binary/format_factories.h"
@@ -1219,7 +1219,7 @@ namespace Formats::Chiptune
       }
     }
 
-    Formats::Chiptune::Container::Ptr ParseText(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
     {
       try
       {
@@ -1272,12 +1272,7 @@ namespace Formats::Chiptune
           return {};
         }
         Builder& stub = GetStubBuilder();
-        return ParseText(rawData, stub);
-      }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        return ParseText(data, target);
+        return VortexTracker2::Parse(rawData, stub);
       }
 
     private:

@@ -8,16 +8,18 @@
  *
  **/
 
-#include "module/players/aym/ascsoundmaster.h"
-
 #include "formats/chiptune/aym/ascsoundmaster.h"
+
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
+#include "binary/container.h"
 #include "math/numeric.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -67,7 +69,7 @@ namespace Module::ASCSoundMaster
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
     {
-      Properties.SetFrequencyTable(TABLE_ASM);
+      Properties.SetFrequencyTable(AYM::TABLE_ASM);
     }
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -534,37 +536,30 @@ namespace Module::ASCSoundMaster
     uint_t EnvelopeTone = 0;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
-
-  class Factory : public AYM::Factory
-  {
-  public:
-    explicit Factory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder)
-      : Decoder(std::move(decoder))
-    {}
-
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      AYM::PropertiesHelper props(*properties);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Decoder->Parse(rawData, dataBuilder))
-      {
-        props.SetSource(*container);
-        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
-                                                                        std::move(properties));
-      }
-      else
-      {
-        return {};
-      }
-    }
-
-  private:
-    const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr Decoder;
-  };
-
-  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder)
-  {
-    return MakePtr<Factory>(std::move(decoder));
-  }
 }  // namespace Module::ASCSoundMaster
+
+namespace Module::AYM
+{
+  AYM::Chiptune::Ptr CreateModule(const Binary::Container& rawData, Parameters::Container::Ptr properties,
+                                  Formats::Chiptune::ASCSoundMaster::Parser parse)
+  {
+    PropertiesHelper props(*properties);
+    ASCSoundMaster::DataBuilder dataBuilder(props);
+    if (const auto container = parse(rawData, dataBuilder))
+    {
+      props.SetSource(*container);
+      return CreateTrackingChiptune<ASCSoundMaster::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+    }
+    return {};
+  }
+
+  Chiptune::Ptr CreateASCSoundMasterChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    return CreateModule(rawData, std::move(properties), Formats::Chiptune::ASCSoundMaster::Ver1::Parse);
+  }
+
+  Chiptune::Ptr CreateASCSoundMaster0Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    return CreateModule(rawData, std::move(properties), Formats::Chiptune::ASCSoundMaster::Ver0::Parse);
+  }
+}  // namespace Module::AYM

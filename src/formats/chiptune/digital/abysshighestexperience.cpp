@@ -10,7 +10,7 @@
 
 #include "formats/chiptune/digital/abysshighestexperience.h"
 
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/format_factories.h"
 #include "binary/input_stream.h"
@@ -192,11 +192,15 @@ namespace Formats::Chiptune
         , Source(Stream)
       {}
 
+      bool Check() const
+      {
+        return (Source.IsAHX() || Source.IsHVL()) && Source.NamesOffset > Source.GetTracksOffset()
+               && Stream.GetPosition() <= Source.NamesOffset;
+      }
+
       void Parse(Builder& target)
       {
-        // TODO: add and use Stream.Seek
-        Require(Stream.GetPosition() <= Source.NamesOffset);
-        Stream.Skip(Source.NamesOffset - Stream.GetPosition());
+        Stream.Seek(Source.NamesOffset);
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(Strings::Sanitize(Stream.ReadCString(Stream.GetRestSize())));
         ParseSampleNames(meta);
@@ -254,19 +258,6 @@ namespace Formats::Chiptune
       const Header Source;
     };
 
-    bool FastCheck(Binary::View& rawData)
-    {
-      const auto size = rawData.Size();
-      if (size < MIN_SIZE)
-      {
-        return false;
-      }
-      Binary::DataInputStream stream(rawData);
-      const Header hdr(stream);
-      const auto tracksOffset = hdr.GetTracksOffset();
-      return hdr.NamesOffset > tracksOffset && size > hdr.NamesOffset;
-    }
-
     struct FormatTraits
     {
       const StringView Format;
@@ -319,7 +310,7 @@ namespace Formats::Chiptune
 
       bool Check(Binary::View rawData) const override
       {
-        return Header->Match(rawData) && FastCheck(rawData);
+        return Header->Match(rawData);
       }
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
@@ -328,29 +319,29 @@ namespace Formats::Chiptune
         return Parse(rawData, stub);
       }
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        if (!Check(data))
-        {
-          return {};
-        }
-
-        try
-        {
-          Format format(data);
-          format.Parse(target);
-          return format.GetContainer();
-        }
-        catch (const std::exception&)
-        {
-          return {};
-        }
-      }
-
     private:
       const FormatTraits Traits;
       const Binary::Format::Ptr Header;
     };
+
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    {
+      if (data.Size() < MIN_SIZE)
+      {
+        return {};
+      }
+
+      try
+      {
+        Format format(data);
+        format.Parse(target);
+        return format.GetContainer();
+      }
+      catch (const std::exception&)
+      {
+        return {};
+      }
+    }
 
     Decoder::Ptr CreateDecoder()
     {
@@ -359,6 +350,12 @@ namespace Formats::Chiptune
 
     namespace HivelyTracker
     {
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+      {
+        // TODO: distinguish?
+        return AbyssHighestExperience::Parse(data, target);
+      }
+
       Decoder::Ptr CreateDecoder()
       {
         return MakePtr<VersionedDecoder>(HVLTraits);

@@ -8,12 +8,11 @@
  *
  **/
 
-#include "module/players/xsf/ncsf.h"
-
 #include "formats/chiptune/emulation/nitrocomposersoundformat.h"
 #include "module/players/platforms.h"
 #include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
+#include "module/players/xsf/all.h"
 #include "module/players/xsf/memory_region.h"
 #include "module/players/xsf/xsf.h"
 
@@ -285,26 +284,30 @@ namespace Module::NCSF
     const Parameters::Accessor::Ptr Properties;
   };
 
-  class ModuleDataBuilder
+  class ModuleDataBuilder : public XSF::MergeTarget
   {
   public:
     ModuleDataBuilder()
       : Result(MakeRWPtr<ModuleData>())
     {}
 
-    void AddProgramSection(Binary::Container::Ptr packedSection)
+    void AddProgramSection(Binary::Container::Ptr program) override
     {
-      Require(!!packedSection);
-      Result->PackedProgramSections.push_back(std::move(packedSection));
+      if (program)
+      {
+        Result->PackedProgramSections.emplace_back(std::move(program));
+      }
     }
 
-    void AddReservedSection(Binary::Container::Ptr reservedSection)
+    void AddReservedSection(Binary::Container::Ptr reserved) override
     {
-      Require(!!reservedSection);
-      Result->ReservedSections.push_back(std::move(reservedSection));
+      if (reserved)
+      {
+        Result->ReservedSections.emplace_back(std::move(reserved));
+      }
     }
 
-    void AddMeta(const XSF::MetaInformation& meta)
+    void AddMeta(const XSF::MetaInformation& meta) override
     {
       if (!Meta)
       {
@@ -325,76 +328,15 @@ namespace Module::NCSF
     const ModuleData::RWPtr Result;
     XSF::MetaInformation::RWPtr Meta;
   };
-
-  class Factory : public XSF::Factory
-  {
-  public:
-    Holder::Ptr CreateSinglefileModule(const XSF::File& file, Parameters::Container::Ptr properties) const override
-    {
-      ModuleDataBuilder builder;
-      if (file.PackedProgramSection)
-      {
-        builder.AddProgramSection(file.PackedProgramSection);
-      }
-      if (file.ReservedSection)
-      {
-        builder.AddReservedSection(file.ReservedSection);
-      }
-      if (file.Meta)
-      {
-        builder.AddMeta(*file.Meta);
-      }
-      return Holder::Create(builder.CaptureResult(), std::move(properties));
-    }
-
-    Holder::Ptr CreateMultifileModule(const XSF::File& file, const XSF::FilesMap& additionalFiles,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      ModuleDataBuilder builder;
-      MergeSections(file, additionalFiles, builder);
-      MergeMeta(file, additionalFiles, builder);
-      return Holder::Create(builder.CaptureResult(), std::move(properties));
-    }
-
-  private:
-    static const uint_t MAX_LEVEL = 10;
-
-    static void MergeSections(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                              uint_t level = 1)
-    {
-      if (!data.Dependencies.empty() && level < MAX_LEVEL)
-      {
-        MergeSections(additionalFiles.at(data.Dependencies.front()), additionalFiles, dst, level + 1);
-      }
-      if (data.PackedProgramSection)
-      {
-        dst.AddProgramSection(data.PackedProgramSection);
-      }
-      if (data.ReservedSection)
-      {
-        dst.AddReservedSection(data.ReservedSection);
-      }
-    }
-
-    static void MergeMeta(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
-                          uint_t level = 1)
-    {
-      if (level < MAX_LEVEL)
-      {
-        for (const auto& dep : data.Dependencies)
-        {
-          MergeMeta(additionalFiles.at(dep), additionalFiles, dst, level + 1);
-        }
-      }
-      if (data.Meta)
-      {
-        dst.AddMeta(*data.Meta);
-      }
-    }
-  };
-
-  XSF::Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::NCSF
+
+namespace Module::XSF
+{
+  Holder::Ptr CreateNCSFModule(const File& file, const FilesMap& additionalFiles, Parameters::Container::Ptr properties)
+  {
+    NCSF::ModuleDataBuilder builder;
+    MergeSectionsSingleLibrary(file, additionalFiles, builder);
+    MergeMeta(file, additionalFiles, builder);
+    return NCSF::Holder::Create(builder.CaptureResult(), std::move(properties));
+  }
+}  // namespace Module::XSF

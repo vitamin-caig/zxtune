@@ -2,7 +2,7 @@
  *
  * @file
  *
- * @brief  Image container helper
+ * @brief  Images support interfaces
  *
  * @author vitamin.caig@gmail.com
  *
@@ -10,13 +10,21 @@
 
 #pragma once
 
-#include "binary/dump.h"
-#include "formats/image.h"
+#include "binary/container.h"
 
-#include "types.h"
+#include <memory>
 
 namespace Formats::Image
 {
-  Container::Ptr CreateContainer(Binary::Container::Ptr data, std::size_t origSize);
-  Container::Ptr CreateContainer(Binary::Dump data, std::size_t origSize);
+  //! @brief Image raw data presentation
+  class Container : public Binary::Container
+  {
+  public:
+    using Ptr = std::shared_ptr<const Container>;
+
+    //! @brief Getting size of source data this container was extracted from
+    //! @return Size in bytes
+    //! @invariant Result is always > 0
+    virtual std::size_t OriginalSize() const = 0;
+  };
 }  // namespace Formats::Image

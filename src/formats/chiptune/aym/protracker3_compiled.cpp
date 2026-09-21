@@ -9,7 +9,7 @@
  **/
 
 #include "formats/chiptune/aym/protracker3_detail.h"
-#include "formats/chiptune/container.h"
+#include "formats/chiptune/common/container.h"
 
 #include "binary/format_factories.h"
 #include "debug/log.h"
@@ -938,11 +938,6 @@ namespace Formats::Chiptune
         }
         Builder& stub = GetStubBuilder();
         return Formats::Chiptune::ProTracker3::Parse(rawData, stub);
-      }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const override
-      {
-        return Formats::Chiptune::ProTracker3::Parse(data, target);
       }
 
     private:

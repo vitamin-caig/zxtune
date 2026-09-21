@@ -8,15 +8,17 @@
  *
  **/
 
-#include "module/players/dac/chiptracker.h"
+#include "formats/chiptune/digital/chiptracker.h"
 
 #include "devices/dac/sample_factories.h"
-#include "formats/chiptune/digital/chiptracker.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 #include "module/players/tracking.h"
+
+#include "binary/container.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -246,60 +248,19 @@ namespace Module::ChipTracker
     std::array<GlissData, CHANNELS_COUNT> Gliss;
   };
 
-  class Chiptune : public DAC::Chiptune
-  {
-  public:
-    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(std::move(data))
-      , Properties(std::move(properties))
-    {}
-
-    TrackModel::Ptr GetTrackModel() const override
-    {
-      return Data;
-    }
-
-    Parameters::Accessor::Ptr GetProperties() const override
-    {
-      return Properties;
-    }
-
-    DAC::DataIterator::Ptr CreateDataIterator() const override
-    {
-      auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
-      auto renderer = MakePtr<DataRenderer>(Data);
-      return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
-    }
-
-    void GetSamples(Devices::DAC::Chip& chip) const override
-    {
-      Data->SetupSamples(chip);
-    }
-
-  private:
-    const ModuleData::Ptr Data;
-    const Parameters::Accessor::Ptr Properties;
-  };
-
-  class Factory : public DAC::Factory
-  {
-  public:
-    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      DAC::PropertiesHelper props(*properties, CHANNELS_COUNT);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Formats::Chiptune::ChipTracker::Parse(rawData, dataBuilder))
-      {
-        props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
-      }
-      return {};
-    }
-  };
-
-  Factory::Ptr CreateFactory()
-  {
-    return MakePtr<Factory>();
-  }
 }  // namespace Module::ChipTracker
+
+namespace Module::DAC
+{
+  Chiptune::Ptr CreateChipTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PropertiesHelper props(*properties, ChipTracker::CHANNELS_COUNT);
+    ChipTracker::DataBuilder dataBuilder(props);
+    if (const auto container = Formats::Chiptune::ChipTracker::Parse(rawData, dataBuilder))
+    {
+      props.SetSource(*container);
+      return CreateTrackingChiptune<ChipTracker::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+    }
+    return {};
+  }
+}  // namespace Module::DAC

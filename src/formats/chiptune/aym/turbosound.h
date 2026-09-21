@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 
 #include "types.h"
 
@@ -30,15 +30,11 @@ namespace Formats::Chiptune
 
     Builder& GetStubBuilder();
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      using Ptr = std::shared_ptr<const Decoder>;
-
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-    };
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
 
     Decoder::Ptr CreateDecoder();
+
+    using Parser = decltype(&Parse);
   }  // namespace TurboSound
 
   Decoder::Ptr CreateTurboSoundDecoder();

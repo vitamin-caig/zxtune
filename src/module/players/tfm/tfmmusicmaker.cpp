@@ -8,15 +8,18 @@
  *
  **/
 
-#include "module/players/tfm/tfmmusicmaker.h"
+#include "formats/chiptune/fm/tfmmusicmaker.h"
 
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
+#include "module/players/streaming.h"
 #include "module/players/tfm/tfm_base.h"
 #include "module/players/tfm/tfm_base_track.h"
 
+#include "binary/container.h"
 #include "math/fixedpoint.h"
+#include "parameters/container.h"
 
 #include "make_ptr.h"
 
@@ -1407,36 +1410,31 @@ namespace Module::TFMMusicMaker
     const Parameters::Accessor::Ptr Properties;
   };
 
-  class Factory : public TFM::Factory
-  {
-  public:
-    explicit Factory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder)
-      : Decoder(std::move(decoder))
-    {}
-
-    TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
-                                      Parameters::Container::Ptr properties) const override
-    {
-      PropertiesHelper props(*properties);
-      DataBuilder dataBuilder(props);
-      if (const auto container = Decoder->Parse(rawData, dataBuilder))
-      {
-        props.SetSource(*container);
-        props.SetChannels("FM"sv, Devices::TFM::VOICES);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
-      }
-      else
-      {
-        return {};
-      }
-    }
-
-  private:
-    const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr Decoder;
-  };
-
-  TFM::Factory::Ptr CreateFactory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder)
-  {
-    return MakePtr<Factory>(std::move(decoder));
-  }
 }  // namespace Module::TFMMusicMaker
+
+namespace Module::TFM
+{
+  Chiptune::Ptr CreateTFMMusicMakerChiptune(Formats::Chiptune::TFMMusicMaker::Parser parse,
+                                            const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    PropertiesHelper props(*properties);
+    TFMMusicMaker::DataBuilder dataBuilder(props);
+    if (const auto container = parse(rawData, dataBuilder))
+    {
+      props.SetSource(*container);
+      props.SetChannels("FM"sv, Devices::TFM::VOICES);
+      return MakePtr<TFMMusicMaker::Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
+    }
+    return {};
+  }
+
+  Chiptune::Ptr CreateTFMMusicMaker05Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    return CreateTFMMusicMakerChiptune(Formats::Chiptune::TFMMusicMaker::Ver05::Parse, rawData, std::move(properties));
+  }
+
+  Chiptune::Ptr CreateTFMMusicMaker13Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  {
+    return CreateTFMMusicMakerChiptune(Formats::Chiptune::TFMMusicMaker::Ver13::Parse, rawData, std::move(properties));
+  }
+}  // namespace Module::TFM

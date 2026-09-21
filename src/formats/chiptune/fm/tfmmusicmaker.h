@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "formats/chiptune/builder_meta.h"
-#include "formats/chiptune/builder_pattern.h"
-#include "formats/chiptune/objects.h"
+#include "formats/chiptune/common/builder_meta.h"
+#include "formats/chiptune/common/builder_pattern.h"
+#include "formats/chiptune/common/objects.h"
 
-#include "formats/chiptune.h"
+#include "formats/chiptune/decoder.h"
 
 #include <array>
 
@@ -103,23 +103,21 @@ namespace Formats::Chiptune
 
     Builder& GetStubBuilder();
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      using Ptr = std::shared_ptr<const Decoder>;
-
-      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
-    };
-
     namespace Ver05
     {
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+
       Decoder::Ptr CreateDecoder();
-    }
+    }  // namespace Ver05
 
     namespace Ver13
     {
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+
       Decoder::Ptr CreateDecoder();
-    }
+    }  // namespace Ver13
+
+    using Parser = decltype(&Ver05::Parse);
   }  // namespace TFMMusicMaker
 
   Decoder::Ptr CreateTFMMusicMaker05Decoder();
