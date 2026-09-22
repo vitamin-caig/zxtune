@@ -1,0 +1,13 @@
+﻿Build 5110:
+
+* supported channels muting for PSF,2SF,GSF,NCSF,SSF/DSF,SPC,AHX/HVL,V2M,SAA,TFM,DTT,EMOD,FNK,LIQ,MED,STIM and STX formats
+* supported 667,CBA,ETX,FC,FTM,GMC,KRIS,NRU and PUMA formats playback
+* fixed playback, hanging and crashes for GSF,2SF,USF and SSF/DSF files
+* fixed scanning stop on corrupted ASAP and GYM files
+* fixed duration of corrupted SPC tracks
+* improved support of ZIP archives and TeleDisk images
+* reduced size of builds
+* sped up opening and scanning of large files
+* improved support of Android 15 and 16
+* fixed analyzer toggling after switching to another panel
+* fixed found and reported crashes

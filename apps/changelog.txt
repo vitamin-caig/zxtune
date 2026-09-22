@@ -5,6 +5,22 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev5110 from 22.09.2026
+
+[+] Supported channels muting for PSF,2SF,GSF,NCSF,SSF/DSF,SPC,AHX/HVL,V2M,SAA,TFM,DTT,EMOD,FNK,LIQ,MED,STIM and STX formats
+[+] Supported 667,CBA,ETX,FC,FTM,GMC,KRIS,NRU and PUMA formats playback
+[*] Fixed playback, hanging and crashes for GSF,2SF,USF and SSF/DSF files
+[*] Fixed scanning stop on corrupted ASAP and GYM files
+[*] Fixed duration of corrupted SPC tracks
+[*] Improved support of ZIP archives and TeleDisk images
+[*] Reduced size of builds
+[*] Sped up opening and scanning of large files
+[*] zxtune-qt: fixed app icon for linux DEs
+[+] zxtune123: added indexation mode
+[*] zxtune-android: improved support of Android 15 and 16
+[*] zxtune-android: fixed analyzer toggling after switching to another panel
+[*] zxtune-android: fixed found and reported crashes
+
 --- Rev5100 from 30.05.2025
 
 [*] Fixed ID3 tags processing
