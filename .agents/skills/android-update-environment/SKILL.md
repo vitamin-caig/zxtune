@@ -163,9 +163,8 @@ of re-researching.
   resource processing - AGP majors sometimes restrict such schemes.
 - `android.newDsl`, `android.disallowKotlinSourceSets`,
   `android.onlyEnableUnitTestForTheTestedBuildType` are AGP-sensitive flags
-  in BOTH `apps/zxtune-android/gradle.properties` and the Dockerfile's
-  generated `gradle.properties` - verify they still exist/mean the same on
-  an AGP bump.
+  in `apps/zxtune-android/gradle.properties` (committed) - verify they still
+  exist/mean the same on an AGP bump.
 
 ### Update the Gradle wrapper
 
@@ -295,8 +294,9 @@ Robolectric tests.
   minSdk=16") to serve the lowest min-SDK flavor - the repo's local
   `local.properties` may use a newer one; don't assume they match. Raise it
   only when the floor rises; record the floor in the version table.
-- The container generates `local.properties`/`gradle.properties` from these
-  pins; keep them consistent with the repo's own files.
+- The container generates `local.properties` from these pins; keep it
+  consistent with the repo's own file. `gradle.properties` is committed and
+  comes from the pulled sources.
 
 Distinguish changes tied to the targetSdk value from those applying to ALL
 apps; spell out whether each behavior activates only after the bump.

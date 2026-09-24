@@ -41,10 +41,7 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git remote set-url --add origin https://github.com/vitamin-caig/zxtune.git && \
     echo "android.ndk=${androidsdk}/ndk/${ndk}\nprebuilt.dir=${prebuilt}\n"\
          "tools.python=python3\n" > variables.mak && \
-    mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}\nndk.version=${ndk}" > apps/zxtune-android/local.properties && \
-    echo "org.gradle.jvmargs=-Xmx8g\nandroid.useAndroidX=true\n"\
-         "android.newDsl=false\nandroid.disallowKotlinSourceSets=false\n"\
-         "android.onlyEnableUnitTestForTheTestedBuildType=false" > apps/zxtune-android/gradle.properties
+    mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}\nndk.version=${ndk}" > apps/zxtune-android/local.properties
 
 # To allow volume binding with proper access rights
 RUN  mkdir /build/.gradle && chown build:users /build/.gradle

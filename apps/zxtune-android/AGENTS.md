@@ -14,18 +14,17 @@ Android frontend for ZXTune. Native playback engine is built from the C++ source
 - Shared Gradle logic lives at repo root: `make/android/{project,android,nativelibs}.gradle` - read before changing build config.
 - `Makefile` at this directory just proxies every target to `./gradlew` (`make foo` == `./gradlew foo`).
 
-## Build prerequisites (missing in repo, required for ANY invocation)
+## Build prerequisites (required for ANY invocation)
 
-Two local, never-committed files are required before Gradle can even configure:
+`gradle.properties` is committed and carries the required `android.useAndroidX=true` plus the AGP 9 compatibility opt-outs; keep local overrides there only if needed. The one local, never-committed file that must exist before Gradle can even configure:
 
-1. `gradle.properties` - MUST contain `android.useAndroidX=true` or configuration fails with an "AndroidX dependencies ... property is not enabled" error.
-2. `local.properties` - loaded at configuration time; absence makes every task fail with `...(No such file or directory)`. Keys:
-   - `sdk.dir`, `ndk.version` (requires a matching NDK installed)
-   - `api.root`, `cdn.root`, `proxy.root` - emitted as `BuildConfig` strings and referenced unconditionally by `zxtune/src/main/java/app/zxtune/fs/api/{Api,Cdn,Proxy}.kt`; compilation FAILS without them. Any URL works for compiling/tests; the real values point at the deployed backend.
-   - signing passwords for `develop`/`release`/store variants: `key.store.password`, `key.release.password` (fallback `key.alias.password`), `key.upload_google.password`, `key.upload_rustore.password`, `key.fdroid.password` (keystore file `make/android/keystore` IS committed)
-   - ABI filters per packaging flavor: `flavors.fat.abifilters`, `flavors.thin.abifilters` (AAB/google+rustore), `flavors.splitted.abifilters`; a flavor with empty filters is silently disabled
-   - optional: `key.modarchive`, `build.jni.max_linkers`, `cdn.root`/`proxy.root`/`api.root` overrides
-   - the machine's `variables.mak` at the repo root defines `android.ndk` (the NDK root used by the C++ make build).
+- `local.properties` - loaded at configuration time; absence makes every task fail with `...(No such file or directory)`. Keys:
+  - `sdk.dir`, `ndk.version` (requires a matching NDK installed)
+  - `api.root`, `cdn.root`, `proxy.root` - emitted as `BuildConfig` strings and referenced unconditionally by `zxtune/src/main/java/app/zxtune/fs/api/{Api,Cdn,Proxy}.kt`; compilation FAILS without them. Any URL works for compiling/tests; the real values point at the deployed backend.
+  - signing passwords for `develop`/`release`/store variants: `key.store.password`, `key.release.password` (fallback `key.alias.password`), `key.upload_google.password`, `key.upload_rustore.password`, `key.fdroid.password` (keystore file `make/android/keystore` IS committed)
+  - ABI filters per packaging flavor: `flavors.fat.abifilters`, `flavors.thin.abifilters` (AAB/google+rustore), `flavors.splitted.abifilters`; a flavor with empty filters is silently disabled
+  - optional: `key.modarchive`, `build.jni.max_linkers`, `cdn.root`/`proxy.root`/`api.root` overrides
+  - the machine's `variables.mak` at the repo root defines `android.ndk` (the NDK root used by the C++ make build).
 
 ## Variants and flavors
 
