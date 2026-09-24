@@ -36,6 +36,10 @@ ktlint_standard_comment-wrapping = disabled
 ktlint_standard_backing-property-naming = disabled
 ktlint_standard_property-naming = disabled
 ktlint_standard_wrapping = disabled
+# ktlint 1.8.0 runs these only after 'wrapping' (RunAfterRule); with wrapping
+# disabled they must be disabled too, else the engine aborts linting
+ktlint_standard_trailing-comma-on-call-site = disabled
+ktlint_standard_trailing-comma-on-declaration-site = disabled
 ktlint_standard_filename = disabled
 ktlint_standard_mixed-condition-operators = disabled
 

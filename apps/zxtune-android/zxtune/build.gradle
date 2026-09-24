@@ -17,7 +17,9 @@ spotless {
         // not follow instead of failing apply/check on legitimate patterns
         ['no-wildcard-imports', 'max-line-length', 'kdoc', 'enum-entry-name-case',
          'comment-wrapping', 'backing-property-naming', 'property-naming',
-         'wrapping', 'filename', 'mixed-condition-operators'].each { rule ->
+         'wrapping', 'trailing-comma-on-call-site',
+         'trailing-comma-on-declaration-site', 'filename',
+         'mixed-condition-operators'].each { rule ->
             suppressLintsFor {
                 step = 'ktlint'
                 shortCode = "standard:${rule}"
