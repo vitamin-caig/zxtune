@@ -1,6 +1,6 @@
 ---
 name: android-update-environment
-description: Use when updating the Android build environment for apps/zxtune-android — AGP, Gradle, JDK, Kotlin/KSP, compileSdk/targetSdk, or AndroidX/dependency versions, either individually or together. Trigger keywords: targetSdk, compileSdk, AGP, Gradle, Kotlin, KSP, minSdk, dependency update, AndroidX, buildToolsVersion, library bump, upgrade dependencies, environment update, toolchain bump.
+description: Use when updating the Android build environment for apps/zxtune-android - AGP, Gradle, JDK, Kotlin/KSP, compileSdk/targetSdk, or AndroidX/dependency versions, either individually or together. Trigger keywords: targetSdk, compileSdk, AGP, Gradle, Kotlin, KSP, minSdk, dependency update, AndroidX, buildToolsVersion, library bump, upgrade dependencies, environment update, toolchain bump.
 ---
 
 # Updating the Android build environment
@@ -8,34 +8,38 @@ description: Use when updating the Android build environment for apps/zxtune-and
 ## Ground facts
 
 - SDK levels live ONLY in `apps/zxtune-android/zxtune/build.gradle`:
-  `compileSdk`, `targetSdkVersion`, `buildToolsVersion`. Shared scripts under
+  `compileSdk`, `targetSdk`, `buildToolsVersion`. Shared scripts under
   `make/android/` do not set them.
 - AGP is pinned via the `com.android.tools.build:gradle` classpath entry in
   `apps/zxtune-android/build.gradle`.
 - Gradle wrapper version: `apps/zxtune-android/gradle/wrapper/gradle-wrapper.properties`
-  (`distributionUrl`) — it is what actually runs the build.
-- Kotlin is `kotlin_version` in the `ext` block of
-  `apps/zxtune-android/build.gradle`; KSP is declared as a pair tied to it
-  (`"${kotlin_version}-<ksp-version>"`) and must move together with it.
+  (`distributionUrl`) - it is what actually runs the build. Its
+  `distributionSha256Sum` must match that URL (see "Update the Gradle wrapper").
+- Kotlin is NOT separately pinned: AGP 9.4+ bundles its own Kotlin compiler
+  (the module applies no `kotlin-android` plugin). Its version is whatever the
+  AGP release notes state as bundled. KSP is `ksp_version` in the `ext` block
+  of `apps/zxtune-android/build.gradle`, written as a pair
+  `<bundled-kotlin>-<ksp-version>` (e.g. `2.2.10-2.0.2`); the prefix must
+  match the Kotlin AGP bundles, so KSP moves together with AGP.
 - Dependency versions: `apps/zxtune-android/build.gradle` (`ext` block) and
   the module's `dependencies` block. Pinned libs carry
   `//noinspection GradleDependency minsdk=<N>` comments documenting the floor
-  that forced the pin — preserve them, update the number if the analysis
+  that forced the pin - preserve them, update the number if the analysis
   changes.
 - The app builds several min-SDK flavors (configured via `minSdks` in
-  `make/android/nativelibs.gradle`). Fetch the actual values and the
+  `make/android/android.gradle`). Fetch the actual values and the
   flavor -> artifact-type mapping from the build scripts; do not hardcode
   them. The lowest configured minSdk is a hard constraint: any dependency
   bump must keep the app runnable there. Raising it is a product decision
   made only when required.
 - `make/docker/builds/Dockerfile.android` pins the containerized toolchain
-  and MUST be kept in sync: `platform`/`build_tools` mirror
-  `compileSdk`/`buildToolsVersion`, its `ndk` env pins an OLDER NDK ("last
-  supporting minSdk=16") and generates the container's
-  `local.properties`/`gradle.properties` (see "Docker build sync").
-- No `jvmTarget`/`javaVersion`/`compileOptions` are pinned — the bytecode
-  target follows the toolchain/JDK defaults; a Kotlin/AGP/JDK change can move
-  it silently.
+  and MUST be kept in sync with the app's SDK levels and NDK pinning
+  (see "Docker build sync" for the details).
+- Java/Kotlin bytecode targets ARE pinned to Java 11:
+  `compileOptions` (`sourceCompatibility`/`targetCompatibility`) and
+  `kotlin { compilerOptions { jvmTarget } }` in
+  `apps/zxtune-android/zxtune/build.gradle`; they do not follow the
+  toolchain/JDK defaults.
 
 ## Startup: current state + pages to fetch
 
@@ -43,12 +47,14 @@ Before any decision, read the current values from the build files (never from
 memory) and fill the "current" column of the environment version table:
 
 - `apps/zxtune-android/zxtune/build.gradle`:
-  `compileSdk`, `targetSdkVersion`, `buildToolsVersion`
-- `apps/zxtune-android/build.gradle`: AGP classpath, `kotlin_version` (ext),
-  KSP pair, dependency versions and their pin comments
+  `compileSdk`, `targetSdk`, `buildToolsVersion`, and the pinned
+  bytecode targets (`compileOptions`, `kotlin { compilerOptions { jvmTarget } }`)
+- `apps/zxtune-android/build.gradle`: AGP classpath, `ksp_version` (ext),
+  dependency versions and their pin comments
 - `apps/zxtune-android/gradle/wrapper/gradle-wrapper.properties`:
-  `distributionUrl`
-- `make/android/nativelibs.gradle`: `minSdks` values per flavor
+  `distributionUrl`, `distributionSha256Sum` (must be present; see
+  "Update the Gradle wrapper")
+- `make/android/android.gradle`: `minSdks` values per flavor
 - `make/docker/builds/Dockerfile.android`: `platform`, `build_tools`, `ndk`
   env pins
 - `apps/zxtune-android/local.properties`: the local NDK version
@@ -58,20 +64,19 @@ Fetch the reference pages (via `fetch_url.sh`) as the stages need them:
 | stage | page |
 |-------|------|
 | driver | `https://developer.android.com/google/play/requirements/target-sdk` (Play deadline/enforcement) |
-| behavior audit | `https://developer.android.com/about/versions/<N>/behavior-changes-<N>` and `.../behavior-changes-all` (`<N>` = the targetSdk read above) |
-| AGP | `https://developer.android.com/build/releases/gradle-plugin` (release notes; AGP↔Gradle/JDK + max compileSdk) |
+| behavior audit | `https://developer.android.com/about/versions/<N>/behavior-changes-<N>` and `https://developer.android.com/about/versions/<N>/behavior-changes-all` (`<N>` = the targetSdk read above) |
+| AGP | `https://developer.android.com/build/releases/gradle-plugin` (release notes; AGP↔Gradle/JDK + max compileSdk + the Kotlin version AGP bundles) |
 | Gradle | `https://docs.gradle.org/<wrapper>/release-notes.html` (`<wrapper>` = the `distributionUrl` version) |
-| Kotlin | `https://kotlinlang.org/docs/releases.html` |
-| KSP | `https://github.com/google/ksp/releases` |
+| KSP | `https://github.com/google/ksp/releases` (pick the `<bundled-kotlin>-<ksp-version>` line matching AGP's bundled Kotlin) |
 | libraries | the `maven-metadata.xml` templates in "Libraries and minSdk" |
 
 ## Update modes
 
 Choose one mode per run; it sets how far every stage moves:
 
-| mode | targetSdk/compileSdk | toolchain (AGP/Gradle/JDK, Kotlin/KSP) | libraries (AndroidX & co) |
+| mode | targetSdk/compileSdk | toolchain (AGP/Gradle/JDK + KSP pair; Kotlin is bundled) | libraries (AndroidX & co) |
 |------|----------------------|----------------------------------------|---------------------------|
-| conservative | only what is forced — check the Google Play targetSdk compliance deadline (page in "Startup: current state + pages to fetch") | lowest versions that satisfy the requirement | minimal patch/minor; no majors |
+| conservative | only what is forced - check the Google Play targetSdk compliance deadline (page in "Startup: current state + pages to fetch") | lowest versions that satisfy the requirement | minimal patch/minor; no majors |
 | realistic | migrate to the latest targetSdk on purpose | latest stable, mutually compatible | latest stable incl. bugfixes; avoid majors unless needed |
 | optimistic | latest targetSdk, optionally raising the minSdk floor to unlock majors | newest stable across major lines | newest affordable; majors allowed if compatible |
 
@@ -80,21 +85,29 @@ the environment allows" → optimistic.
 
 ## Decide the mode first
 
-Before changing anything, estimate each mode — concrete changes (versions,
+Before changing anything, estimate each mode - concrete changes (versions,
 SDK levels, audits) and risks (breaks, new floors, device loss, verification
-cost) — present the three-mode comparison and ASK which to apply (question
+cost) - present the three-mode comparison and ASK which to apply (question
 tool). Feed Google Play compliance pressure and build time into the
 recommendation, but do not decide for the user.
 
-## Retrieving Google developer pages
+## Fetching pages (tool policy)
 
-- Always use `.agents/skills/fetch_url.sh` (never bare `curl`/`webfetch`);
-  it uses Firecrawl and returns markdown — parse the result directly:
+The rules in this section apply to EVERY external lookup in this skill - the
+developer.android.com pages above AND the `maven-metadata.xml` endpoints in
+"Libraries and minSdk" - not just "Google developer pages".
+
+- Always use `.agents/skills/fetch_url.sh` for any URL this skill needs
+  (never bare `curl`/`webfetch`/`websearch`); it uses Firecrawl and returns
+  markdown - parse the result directly:
   `.agents/skills/fetch_url.sh "<url>"`.
+- For raw, un-converted content (e.g. `maven-metadata.xml`) instead pass
+  `--mode raw` and parse the JSON `rawHtml` field as-is:
+  `.agents/skills/fetch_url.sh --mode raw "<url>"`.
 - On failure, retry once; if it still fails, mark the item **unresolved** in
-  the report — never substitute a guess or a `websearch`.
+  the report - never substitute a guess or a `websearch`.
 - If the Play requirements page is unreachable, the deadline is unresolved:
-  pause — the deadline drives the "driver first" stage.
+  pause - the deadline drives the "driver first" stage.
 
 ## Decision flow (mode-aware)
 
@@ -102,12 +115,13 @@ Walk the stages in order; each caps the ones after it. How far each moves is
 set by the mode; by default (conservative) nothing moves unless forced, and
 then as little as possible.
 
-1. **The driver first**: what pushes the update — for conservative an
+1. **The driver first**: what pushes the update - for conservative an
    enforced targetSdk, a critical bugfix, or a planned minSdk floor bump (a
-   product decision via `minSdks` in `make/android/nativelibs.gradle`);
+   product decision via `minSdks` in `make/android/android.gradle`);
    realistic/optimistic just pick the targetSdk per the mode table.
-2. **Toolchain**: AGP + Gradle + JDK + Kotlin/KSP pair per the mode, as the
-   lowest consistent set unless the mode says otherwise
+2. **Toolchain**: AGP + Gradle + JDK per the mode (Kotlin rides along, bundled
+   with AGP), plus the KSP pair, as the lowest consistent set unless the mode
+   says otherwise
    (see "AGP / Gradle / JDK", "Kotlin / KSP").
 3. **SDK levels**: apply compileSdk/targetSdk and run the behavioral audit
    across every level in between (see "SDK levels and behavioral changes").
@@ -115,7 +129,8 @@ then as little as possible.
    (see "Libraries and minSdk").
 
 At each step record the constraints handed downward (e.g. "chosen AGP needs
-compileSdk X", "chosen Kotlin needs AGP Y") so later steps reuse them instead
+compileSdk X", "chosen KSP needs its prefix to equal the AGP-bundled Kotlin")
+so later steps reuse them instead
 of re-researching.
 
 ---
@@ -135,25 +150,47 @@ of re-researching.
 ### Assess breaking changes
 
 - Major AGP versions remove/rename DSL blocks and change defaults (namespace
-  handling, `buildConfig`, R-class generation, manifest-merge rules) — review
+  handling, `buildConfig`, R-class generation, manifest-merge rules) - review
   the release notes + DSL reference between current and candidate, not just
   latest.
 - Check toolchain bits the release pulls in: NDK/CMake version requirements,
-  `buildToolsVersion`, Kotlin/KSP minimums.
+  `buildToolsVersion`, the Kotlin version AGP bundles and the minimum KSP
+  prefix it accepts.
 - Treat a major line as a point to avoid unless no older line supports the
   required compileSdk/JDK set; otherwise stay on the current line's highest
   patch.
 - Re-check release notes for anything touching shrinking/proguard and
-  resource processing — AGP majors sometimes restrict such schemes.
+  resource processing - AGP majors sometimes restrict such schemes.
 - `android.newDsl`, `android.disallowKotlinSourceSets`,
   `android.onlyEnableUnitTestForTheTestedBuildType` are AGP-sensitive flags
   in BOTH `apps/zxtune-android/gradle.properties` and the Dockerfile's
-  generated `gradle.properties` — verify they still exist/mean the same on
+  generated `gradle.properties` - verify they still exist/mean the same on
   an AGP bump.
+
+### Update the Gradle wrapper
+
+Once the target version is determined, run the `wrapper` task from
+`apps/zxtune-android/` instead of hand-editing `gradle-wrapper.properties`:
+
+    ./gradlew wrapper --gradle-version <version> --gradle-distribution-sha256-sum <sha256>
+
+- Take `<sha256>` for the `-bin` distribution type (what the `wrapper` task
+  pins by default), not `-all`. Fetch the official per-distribution endpoint:
+  `.agents/skills/fetch_url.sh --mode raw
+  "https://services.gradle.org/distributions/gradle-<version>-bin.zip.sha256"`
+  (`--mode raw` needed: the endpoint serves a bare hash that a markdown
+  conversion could mangle; the `-bin` type is the default the `wrapper` task
+  pins, while Gradle also publishes `-all`). Cross-check against the matching
+  entry in `https://services.gradle.org/versions/all` (JSON; also `--mode
+  raw`) if in doubt.
+- After the run, verify `apps/zxtune-android/gradle/wrapper/gradle-wrapper.properties`:
+  - `distributionUrl` points at `gradle-<version>-bin.zip`
+  - `distributionSha256Sum` is present and equals the `<sha256>` passed above.
+  A lost/mismatched checksum makes the wrapper download silently unwrapped.
 
 ### Hard floors to record
 
-AGP/Gradle/JDK compatibility is a hard floor — record the triple + bounds in
+AGP/Gradle/JDK compatibility is a hard floor - record the triple + bounds in
 the environment version table; a later stage needing more bumps it upward
 (see "Conflict resolution"). The wrapper is the real entry point; a classpath
 version needs the wrapper version it requires.
@@ -162,34 +199,41 @@ version needs the wrapper version it requires.
 
 ## Kotlin / KSP
 
-### Pick the candidate version
+### Pick the KSP pair
 
-- Pick per the mode table: conservative = LOWEST Kotlin/KSP pair supported by
-  the AGP/Gradle in use and the required compileSdk; realistic = latest
-  stable; optimistic = newest stable coordinated with newest compatible
-  AGP/Gradle.
-- Confirm the wrapper/AGP support the candidate; if they need a bump first,
-  do it in stage 2 above.
-- Check AndroidX/coroutines compatibility for the candidate pair so the
+The Kotlin compiler is bundled with the chosen AGP (see "Ground facts"), so
+this stage really picks the KSP pair:
+`<bundled-kotlin>-<ksp-version>`. There is no independent Kotlin bump to
+decide; Kotlin changes only when AGP does.
+
+- Find the Kotlin version AGP bundles from the AGP release notes (page in
+  "Startup: current state + pages to fetch").
+- Pick the KSP line whose prefix matches that bundled Kotlin; within it choose
+  the newest `<ksp-version>` that works with the chosen AGP/Gradle
+  (per the KSP release page). Conservative = the pair already shipped with
+  the current AGP if the AGP line did not change.
+- Check AndroidX/coroutines compatibility for the chosen pair so the
   dependency side is queued for stage 4.
 
 ### Assess language and compatibility changes
 
-- Review the language changelog: new language/api default levels,
-  deprecations promoted to warnings/errors, newly experimental/stabilized
-  features, `@OptIn` changes.
+- Review the language changelog only if the bundled Kotlin version actually
+  moved: new language/api default levels, deprecations promoted to
+  warnings/errors, newly experimental/stabilized features, `@OptIn` changes.
 - Look for compiler/runtime behavior changes (integer/string ops, JVM
   interop, reflection, default methods) and stdlib additions colliding with
   existing declarations.
-- Nothing pins the language/api level — an upgrade silently flips to the new
-  default; decide whether to pin `languageVersion`/`apiVersion` or accept it.
+- `jvmTarget` is pinned to Java 11 (see "Ground facts") - if the bundled
+  Kotlin moves, confirm the pinned target is still a supported `jvmTarget` of
+  the new compiler before relying on it.
 
 ### Hard floors to record
 
-Kotlin↔AGP/Gradle and KSP↔Kotlin pairings are hard floors — record them in
-the environment version table. Kotlin and its KSP always move together (a
-mismatch fails late, at the KSP task). In conservative mode stay at the
-lowest pair; avoid language/api level changes that force source changes.
+KSP↔Kotlin and Kotlin↔AGP pairings are hard floors - record them in the
+environment version table. KSP always moves with AGP (its prefix is the
+bundled Kotlin); a mismatch fails late, at the KSP task. In conservative mode
+stay at the pair already in use; avoid language/api level changes that force
+source changes.
 
 ---
 
@@ -198,12 +242,12 @@ lowest pair; avoid language/api level changes that force source changes.
 ### Research behavioral changes for the new SDK version
 
 Fetch both official pages for the target SDK `<N>` (apps targeting `<N>`;
-all apps) — the URLs are listed once in "Startup: current state + pages to
+all apps) - the URLs are listed once in "Startup: current state + pages to
 fetch". If the `-all` page 404s, retry once, then mark it **unresolved** in
 the report instead of substituting anything.
 
 Classify each change as MUST address / verify only / no impact and map it to
-code locations. Audit the recurring categories below — each bump adds,
+code locations. Audit the recurring categories below - each bump adds,
 splits, or tightens some, so record which actually changed:
 
 - Runtime permissions: a release may add a permission or split an existing
@@ -248,7 +292,7 @@ Robolectric tests.
   into the Dockerfile's `platform`/`build_tools` env vars and rebuild the
   image to verify the SDK components install.
 - The Dockerfile pins its own OLDER NDK (`ndk=`, "last supporting
-  minSdk=16") to serve the lowest min-SDK flavor — the repo's local
+  minSdk=16") to serve the lowest min-SDK flavor - the repo's local
   `local.properties` may use a newer one; don't assume they match. Raise it
   only when the floor rises; record the floor in the version table.
 - The container generates `local.properties`/`gradle.properties` from these
@@ -263,25 +307,41 @@ apps; spell out whether each behavior activates only after the bump.
 
 ### Find the latest available versions
 
-- Google-hosted (AndroidX, AGP, flexbox): fetch
-  `https://dl.google.com/dl/android/maven2/<group>/<artifact>/maven-metadata.xml`
-- Everything else (jsoup, coroutines, robolectric, mockito, kotlin-gradle-plugin,
-  KSP): `https://repo1.maven.org/maven2/<group>/<artifact>/maven-metadata.xml`
-
-Filter stable releases (drop alpha/beta/rc/dev). Selection follows the mode:
+Fetch every `maven-metadata.xml` below with `.agents/skills/fetch_url.sh`
+(see "Fetching pages (tool policy)"); filter
+stable releases (drop alpha/beta/rc/dev). Selection follows the mode:
 conservative picks the LOWEST satisfying version (newest is informational);
 realistic/optimistic take latest stable / newest affordable.
 
+XML-specific note: default `markdown` mode strips XML tags/whitespace and
+returns the file as one concatenated blob - `<latest>`/`<release>` stay
+readable as the first tokens after `groupId`+`artifactId`, but the `<versions>`
+list loses its boundaries and must NOT be re-split from the blob (`1.10.3` and
+`1.10`/`3` are indistinguishable). When the full list is needed (e.g.
+conservative's lowest-satisfying), fetch with `--mode raw` and parse the
+`rawHtml` field as real XML. If a candidate's shipped minSdk must be read,
+download the `.aar` and inspect its manifest as described in "Check the min-SDK
+requirement the candidate actually ships" below (an artifact download, not a
+page fetch).
+
+- Google-hosted (AndroidX, AGP, flexbox): fetch
+  `https://dl.google.com/dl/android/maven2/<group>/<artifact>/maven-metadata.xml`
+- Everything else (jsoup, coroutines, mockito, mockito-kotlin, robolectric,
+  KSP, spotless): `https://repo1.maven.org/maven2/<group>/<artifact>/maven-metadata.xml`
+
 ### Check the min-SDK requirement the candidate actually ships
 
-- AARs embed it: download the candidate `.aar`, `unzip`, then read
-  `AndroidManifest.xml` via
-  `strings ... | grep -oP '(?<=minSdkVersion=")[0-9]+'`.
+- AARs embed it as a binary AXML attribute. Download the candidate `.aar`,
+  unzip `AndroidManifest.xml`, then read it with `aapt2 dump xmltree`
+  (from the Android SDK's `build-tools/<buildToolsVersion>/`):
+  `aapt2 dump xmltree <unzipped-dir>/AndroidManifest.xml` and look for the
+  `android:minSdkVersion` integer. `strings` won't show it - the value is a
+  binary int, not a `minSdkVersion="N"` literal in the string pool.
 - Plain JARs (annotation-style libs, coroutines, html parsers, JVM test
-  utils) have no embedded minSdk — consult release notes (Java/API floors are
+  utils) have no embedded minSdk - consult release notes (Java/API floors are
   usually documented), then verify via build + unit tests on the lowest
   minSdk flavor variant.
-- A safe AAR may drag in a transitive whose minSdk exceeds the floor —
+- A safe AAR may drag in a transitive whose minSdk exceeds the floor -
   confirm via lint + the test task after the switch.
 - Test-only deps are a special case: local JVM (`testImplementation`) and
   on-device (`androidTestImplementation`) deps never install below the
@@ -295,12 +355,12 @@ realistic/optimistic take latest stable / newest affordable.
 - Within the mode policy, prefer the smallest bump that satisfies it.
 - Otherwise keep the pin + suppression comment, noting which version lifted
   the floor (so the threshold is obvious next bump).
-- Staying put is a valid outcome — state it explicitly.
+- Staying put is a valid outcome - state it explicitly.
 - The floor wins over the mode ambition on a clash; record it and re-check
   after the toolchain/SDK decisions (see "Conflict resolution").
 - Transitive upgrades via a safe direct bump still count as changes.
 - Avoid majors (new floors, behavior changes); bump only when forced.
-- The floor can differ between flavors — check every flavor used for the
+- The floor can differ between flavors - check every flavor used for the
   artifact type.
 
 ---
@@ -314,12 +374,12 @@ Prefer fast, native-free tasks:
   (scoped with `--tests <FqTestClass>`; resolve names via `./gradlew tasks`).
 - Lint: `./gradlew lint<PackagingFlavor><MinSdkFlavor>Develop`.
 - Config sanity: `./gradlew help` / `zxtune:tasks` / `zxtune:properties`.
-- KSP failures surface at execution — run a KSP-consuming task (unit tests
+- KSP failures surface at execution - run a KSP-consuming task (unit tests
   compile with KSP).
 - If JDK/wrapper changed, check the bytecode target did not move quietly
   (`javap -v` on a compiled class).
 - A wrapper/AGP major change may need one full `assemble*` run (catches
-  variant/manifest-merging, packaging) — it triggers the repo-wide C++
+  variant/manifest-merging, packaging) - it triggers the repo-wide C++
   `make platform=android` build for every ABI.
 
 ---
@@ -330,30 +390,30 @@ Each stage records its decision + the hard floors it relied on into the
 environment version table; conflicts are resolved here, once:
 
 - Hard floors beat mode ambitions in every mode: the min-SDK floor (from the
-  build scripts), AGP↔Gradle/JDK, AGP↔compileSdk, Kotlin↔AGP/Gradle,
+  build scripts), AGP↔Gradle/JDK, AGP↔compileSdk, Kotlin↔AGP (bundled),
   KSP↔Kotlin, and each library's own minSdk.
 - On a later-stage clash with an earlier choice, the later requirement wins
   and the earlier stage is re-evaluated on the tightened constraint set
-  (same mode policy), repeated until stable — it converges because modes only
+  (same mode policy), repeated until stable - it converges because modes only
   relax ambitions, never floors.
 - "Latest" is chosen only among versions satisfying every recorded floor; no
   floor is relaxed to fit a newer version.
 - If no candidate satisfies the union of floors, it is a product decision
-  (raise the floor, tolerate an older AGP, split flavors) — escalate, don't
+  (raise the floor, tolerate an older AGP, split flavors) - escalate, don't
   pick silently.
 
 ## Coordination rules
 
-- Pins forced to move together change in ONE change set — never a partial,
+- Pins forced to move together change in ONE change set - never a partial,
   inconsistent set (Kotlin without its KSP, wrapper incompatible with AGP).
 - Movement follows the mode: conservative takes the smallest bump satisfying
   the requirement; realistic/optimistic take latest per the mode table.
 - Fetch each compat table/release note once; share results across stages.
-- Preserve dependency pin comments and KSP's pair syntax — they are the
+- Preserve dependency pin comments and KSP's pair syntax - they are the
   environment's constraint memory.
 - The lowest min-SDK flavor always bounds the dependency stage; eliminating
   it via a toolchain choice is a product decision to surface, not imply.
-- A combined bump ships only when every stage is consistent — stop and
+- A combined bump ships only when every stage is consistent - stop and
   report if a level forces an unplanned change (higher JDK, new AGP major).
 
 ---
@@ -373,16 +433,14 @@ Deliver together:
 
 ## Reminders
 
-- Raising the minSdk floor sheds users on old devices — the highest-impact
+- Raising the minSdk floor sheds users on old devices - the highest-impact
   decision in an update; a requirement-driven bump starts from the floor
   change and moves the toolchain only as far as needed.
 - Order: runtime/toolchain caps everything; dependencies come last.
 - Sources of truth, not memory: developer.android.com for behavioral changes,
   dependency release notes for min-SDK floors, compat tables + build scripts
   for current/candidate versions.
-- No websearch — the pages in "Startup: current state + pages to fetch" are
-  the only sources.
 - Surface behavior that activates only after the bump (edge-to-edge,
-  predictive back, orientation/large-screen) — shipping it unaddressed is a
+  predictive back, orientation/large-screen) - shipping it unaddressed is a
   decision, not an oversight.
 - Re-audit every SDK level in between when jumping more than one version.
