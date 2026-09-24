@@ -25,6 +25,7 @@ import app.zxtune.coverart.ResourceSource
 import app.zxtune.playback.Visualizer
 import app.zxtune.rpc.ParcelableBinder
 import app.zxtune.rpc.VisualizerProxy
+import app.zxtune.utils.getParcelableCompat
 import app.zxtune.utils.ifNotNulls
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -174,7 +175,7 @@ class MediaModel(app: Application) : AndroidViewModel(app) {
         } else {
             //required for proper deserialization
             extras.classLoader = ParcelableBinder::class.java.classLoader
-            ParcelableBinder.deserialize(extras.getParcelable(key))
+            ParcelableBinder.deserialize(extras.getParcelableCompat<ParcelableBinder>(key))
         }
     }
 

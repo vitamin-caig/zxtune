@@ -23,6 +23,7 @@ import app.zxtune.playback.Item
 import app.zxtune.playback.PlayableItem
 import app.zxtune.playback.PlaybackControl
 import app.zxtune.playback.PlaybackService
+import app.zxtune.utils.getParcelableCompat
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicReference
@@ -108,7 +109,7 @@ internal class StatusCallback private constructor(
                     MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI,
                     MediaMetadataCompat.METADATA_KEY_ART_URI
                 )) {
-                    uris.getParcelable<Uri>(key)?.let {
+                    uris.getParcelableCompat<Uri>(key)?.let {
                         preferableResult = it
                         putString(key, it.toString())
                     }

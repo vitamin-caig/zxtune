@@ -7,6 +7,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import app.zxtune.utils.getParcelableCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty
@@ -47,15 +48,21 @@ object FragmentLongArrayProperty {
     }
 }
 
-class FragmentParcelableProperty<T : Parcelable> {
+internal class FragmentParcelableProperty<T : Parcelable> internal constructor(
+    private val type: Class<T>,
+) {
     operator fun getValue(owner: Fragment, property: KProperty<*>) =
-        requireNotNull(owner.requireArguments().getParcelable<T>(property.name))
+        requireNotNull(owner.requireArguments().getParcelableCompat(property.name, type))
 
     operator fun setValue(owner: Fragment, property: KProperty<*>, value: T) {
         val args = owner.arguments ?: Bundle()
         owner.arguments = args.apply {
             putParcelable(property.name, value)
         }
+    }
+
+    internal companion object {
+        internal inline fun <reified T : Parcelable> of() = FragmentParcelableProperty(T::class.java)
     }
 }
 

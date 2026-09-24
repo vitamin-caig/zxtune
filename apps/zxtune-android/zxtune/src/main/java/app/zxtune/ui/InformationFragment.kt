@@ -24,7 +24,7 @@ class InformationFragment : DialogFragment(R.layout.information) {
             }.show(activity.supportFragmentManager, "information")
     }
 
-    private var metadata by FragmentParcelableProperty<MediaMetadataCompat>()
+    private var metadata by FragmentParcelableProperty.of<MediaMetadataCompat>()
 
     private val content by lazy {
         buildContent()

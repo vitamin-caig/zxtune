@@ -14,6 +14,7 @@ import app.zxtune.analytics.Analytics
 import app.zxtune.core.ModuleAttributes
 import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.provider.VfsProviderClient
+import app.zxtune.utils.getParcelableCompat
 import app.zxtune.utils.ifNotNulls
 
 /*
@@ -94,7 +95,7 @@ class SharingActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        intent?.extras?.getParcelable<Intent>(Intent.EXTRA_INTENT)?.let {
+        intent?.extras?.getParcelableCompat<Intent>(Intent.EXTRA_INTENT)?.let {
             request.launch(it)
         }
     }
@@ -125,7 +126,7 @@ private val MediaMetadataCompat.contentUrl
     )
 
 private fun guessSocialAction(extra: Bundle) = when {
-    extra.getParcelable<Uri>(Intent.EXTRA_STREAM) != null -> Analytics.SocialAction.SEND
+    extra.getParcelableCompat<Uri>(Intent.EXTRA_STREAM) != null -> Analytics.SocialAction.SEND
     extra.getString(Intent.EXTRA_TEXT) != null -> Analytics.SocialAction.SHARE
     else -> null
 }

@@ -11,6 +11,7 @@ import androidx.core.content.edit
 import app.zxtune.BuildConfig
 import app.zxtune.Logger
 import app.zxtune.MainApplication
+import app.zxtune.utils.getUntyped
 
 private val LOG = Logger(Provider::class.java.name)
 
@@ -89,7 +90,7 @@ class Provider : ContentProvider() {
 
     private fun put(data: Bundle) = prefs.edit(commit = false) {
         for (key in data.keySet()) {
-            data[key]?.let { value ->
+            data.getUntyped(key)?.let { value ->
                 setPref(key, value, this)
             }
         }

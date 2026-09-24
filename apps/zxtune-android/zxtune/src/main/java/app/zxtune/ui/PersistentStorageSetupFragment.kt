@@ -9,7 +9,7 @@ import app.zxtune.R
 import app.zxtune.ui.utils.FragmentParcelableProperty
 
 class PersistentStorageSetupFragment : DialogFragment() {
-    private var action by FragmentParcelableProperty<Intent>()
+    private var action by FragmentParcelableProperty.of<Intent>()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
         AlertDialog.Builder(requireContext())

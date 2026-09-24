@@ -24,7 +24,7 @@ class RingtoneFragment : DialogFragment(R.layout.ringtone) {
         }.show(activity.supportFragmentManager, null)
     }
 
-    private var uri by FragmentParcelableProperty<Uri>()
+    private var uri by FragmentParcelableProperty.of<Uri>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

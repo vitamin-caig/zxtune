@@ -16,6 +16,8 @@ import app.zxtune.core.PropertiesModifier
 import app.zxtune.playback.service.PlaybackServiceLocal
 import app.zxtune.playback.stubs.PlayableItemStub
 import app.zxtune.preferences.RawPropertiesAdapter
+import app.zxtune.utils.getParcelableArrayCompat
+import app.zxtune.utils.getUntyped
 import app.zxtune.utils.ifNotNulls
 
 internal class ControlCallback(
@@ -48,7 +50,7 @@ internal class ControlCallback(
 
     override fun onCustomAction(action: String, extra: Bundle?) = when (action) {
         MainService.CUSTOM_ACTION_ADD_CURRENT -> addCurrent()
-        MainService.CUSTOM_ACTION_ADD -> extra?.getParcelableArray("uris")?.let {
+        MainService.CUSTOM_ACTION_ADD -> extra?.getParcelableArrayCompat<Uri>("uris")?.let {
             ScanService.add(ctx, Array(it.size) { idx -> it[idx] as Uri })
         } ?: Unit
 
@@ -96,7 +98,7 @@ internal class ControlCallback(
         private fun setProperties(src: Bundle, props: PropertiesModifier) =
             with(RawPropertiesAdapter(props)) {
                 src.keySet().forEach { key ->
-                    src[key]?.let {
+                    src.getUntyped(key)?.let {
                         LOG.d { "set prop[$key]=$it" }
                         setProperty(key, it)
                     }
@@ -109,7 +111,7 @@ internal class ControlCallback(
             }
 
         private fun copyProperty(src: PropertiesAccessor, key: String, data: Bundle) =
-            when (val obj = data[key]) {
+            when (val obj = data.getUntyped(key)) {
                 is String -> src.getProperty(key, obj).let {
                     LOG.d { "get prop[$key, $obj]=$it" }
                     data.putString(key, it)

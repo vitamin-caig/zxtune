@@ -18,6 +18,7 @@ import app.zxtune.Log
 import app.zxtune.MainApplication
 import app.zxtune.playlist.Database.Tables.Playlist
 import app.zxtune.playlist.xspf.XspfStorage
+import app.zxtune.utils.getSerializableCompat
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 
@@ -196,7 +197,7 @@ class Provider : ContentProvider() {
 
         fun save(resolver: ContentResolver, id: String?, ids: LongArray?) =
             resolver.call(PlaylistQuery.ALL, METHOD_SAVE, id, bundleOf("ids" to ids))?.run {
-                throw getSerializable("error") as Throwable
+                throw requireNotNull(getSerializableCompat<Throwable>("error"))
             }
     }
 }

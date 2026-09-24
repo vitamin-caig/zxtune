@@ -25,6 +25,7 @@ import app.zxtune.fs.Vfs
 import app.zxtune.fs.VfsFile
 import app.zxtune.fs.VfsObject
 import app.zxtune.fs.icon
+import app.zxtune.utils.getParcelableCompat
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -184,7 +185,7 @@ class Provider @VisibleForTesting internal constructor(
         internal const val METHOD_GET_MEDIA_URIS = "get_media_uris"
 
         private fun sizeFrom(opts: Bundle?) = if (Build.VERSION.SDK_INT >= 21) {
-            opts?.getParcelable<Point>(ContentResolver.EXTRA_SIZE)
+            opts?.getParcelableCompat<Point>(ContentResolver.EXTRA_SIZE)
         } else {
             null
         }

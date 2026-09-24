@@ -27,6 +27,7 @@ import app.zxtune.playback.FileIterator
 import app.zxtune.playback.PlayableItem
 import app.zxtune.sound.SamplesSource
 import app.zxtune.sound.WaveWriteSamplesTarget
+import app.zxtune.utils.getParcelableExtraCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,7 +45,7 @@ class RingtoneService : LifecycleService() {
 
     private suspend fun onHandleIntent(intent: Intent?) {
         if (ACTION_MAKERINGTONE == intent?.action) {
-            val module = requireNotNull(intent.getParcelableExtra<Uri>(EXTRA_MODULE))
+            val module = requireNotNull(intent.getParcelableExtraCompat<Uri>(EXTRA_MODULE))
             val seconds = intent.getLongExtra(EXTRA_DURATION_SECONDS, DEFAULT_DURATION_SECONDS)
             createRingtone(module, seconds.toInt())
         }

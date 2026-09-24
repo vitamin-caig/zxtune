@@ -14,6 +14,7 @@ import app.zxtune.analytics.Analytics
 import app.zxtune.device.Permission
 import app.zxtune.device.PersistentStorage
 import app.zxtune.device.PowerManagement
+import app.zxtune.utils.getParcelableArrayCompat
 
 class ResultActivity : ComponentActivity() {
 
@@ -104,7 +105,7 @@ class ResultActivity : ComponentActivity() {
         }
     private val notificationPermissionRequest by lazy {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            intent.takeIf { isGranted }?.getParcelableArrayExtra(ScanService.EXTRA_PATHS)
+            intent.takeIf { isGranted }?.extras?.getParcelableArrayCompat<Uri>(ScanService.EXTRA_PATHS)
                 ?.let { uris ->
                     ScanService.add(
                         applicationContext,

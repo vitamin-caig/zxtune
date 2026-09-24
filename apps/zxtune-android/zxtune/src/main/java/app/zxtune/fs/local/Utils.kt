@@ -6,6 +6,7 @@ import android.os.Environment
 import android.os.storage.StorageVolume
 import android.provider.DocumentsContract
 import androidx.annotation.RequiresApi
+import app.zxtune.utils.getParcelableExtraCompat
 import java.io.File
 
 object Utils {
@@ -33,7 +34,7 @@ object Utils {
     @RequiresApi(29)
     fun StorageVolume.documentUri() = requireNotNull(
         createOpenDocumentTreeIntent()
-            .getParcelableExtra<Uri>(DocumentsContract.EXTRA_INITIAL_URI)
+            .getParcelableExtraCompat<Uri>(DocumentsContract.EXTRA_INITIAL_URI)
     )
 
     @JvmStatic // for shadowing
