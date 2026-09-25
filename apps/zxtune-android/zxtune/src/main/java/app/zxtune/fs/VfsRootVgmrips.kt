@@ -86,9 +86,10 @@ class VfsRootVgmrips(
     private abstract inner class GroupingDir(
         val category: String,
         val grouping: Catalog.Grouping,
-        @StringRes private val nameRes: Int,
-        @DrawableRes private val iconRes: Int
-    ) : StubObject(), ParentDir {
+        @field:StringRes private val nameRes: Int,
+        @field:DrawableRes private val iconRes: Int
+    ) : StubObject(),
+        ParentDir {
         override val uri: Uri
             get() = makeUri().build()
         override val name

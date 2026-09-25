@@ -205,23 +205,25 @@ class VfsRootZxart(
         }
     }
 
-    enum class LocalizedCompoName(@StringRes val titleRes: Int) {
-        UNKNOWN(R.string.vfs_zxart_compo_unknown), STANDARD(R.string.vfs_zxart_compo_standard), AY(R.string.vfs_zxart_compo_ay), BEEPER(
-            R.string.vfs_zxart_compo_beeper
-        ),
-        COPYAY(R.string.vfs_zxart_compo_copyay), NOCOPYAY(R.string.vfs_zxart_compo_nocopyay), REALTIME(
-            R.string.vfs_zxart_compo_realtime
-        ),
-        REALTIMEAY(R.string.vfs_zxart_compo_realtimeay), REALTIMEBEEPER(R.string.vfs_zxart_compo_realtimebeeper), OUT(
-            R.string.vfs_zxart_compo_out
-        ),
-        WILD(R.string.vfs_zxart_compo_wild), EXPERIMENTAL(R.string.vfs_zxart_compo_experimental), OLDSCHOOL(
-            R.string.vfs_zxart_compo_oldschool
-        ),
-        MAINSTREAM(R.string.vfs_zxart_compo_mainstream), PROGRESSIVE(R.string.vfs_zxart_compo_progressive), TS(
-            R.string.vfs_zxart_compo_ts
-        ),
-        TSFM(R.string.vfs_zxart_compo_tsfm), RELATED(R.string.vfs_zxart_compo_related);
+    enum class LocalizedCompoName(@field:StringRes val titleRes: Int) {
+        UNKNOWN(R.string.vfs_zxart_compo_unknown),
+        STANDARD(R.string.vfs_zxart_compo_standard),
+        AY(R.string.vfs_zxart_compo_ay),
+        BEEPER(R.string.vfs_zxart_compo_beeper),
+        COPYAY(R.string.vfs_zxart_compo_copyay),
+        NOCOPYAY(R.string.vfs_zxart_compo_nocopyay),
+        REALTIME(R.string.vfs_zxart_compo_realtime),
+        REALTIMEAY(R.string.vfs_zxart_compo_realtimeay),
+        REALTIMEBEEPER(R.string.vfs_zxart_compo_realtimebeeper),
+        OUT(R.string.vfs_zxart_compo_out),
+        WILD(R.string.vfs_zxart_compo_wild),
+        EXPERIMENTAL(R.string.vfs_zxart_compo_experimental),
+        OLDSCHOOL(R.string.vfs_zxart_compo_oldschool),
+        MAINSTREAM(R.string.vfs_zxart_compo_mainstream),
+        PROGRESSIVE(R.string.vfs_zxart_compo_progressive),
+        TS(R.string.vfs_zxart_compo_ts),
+        TSFM(R.string.vfs_zxart_compo_tsfm),
+        RELATED(R.string.vfs_zxart_compo_related);
 
         companion object {
             fun get(id: String, ctx: Context) = id.uppercase().let { name ->

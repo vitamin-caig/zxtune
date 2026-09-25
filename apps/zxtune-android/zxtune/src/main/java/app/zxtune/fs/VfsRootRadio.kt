@@ -59,9 +59,10 @@ internal class VfsRootRadio(private val ctx: Context) : StubObject(), VfsRoot {
 
     private inner class BaseEntry(
         private val delegate: VfsDir,
-        @StringRes private val descr: Int,
-        @DrawableRes private val icon: Int
-    ) : StubObject(), VfsDir by delegate {
+        @field:StringRes private val descr: Int,
+        @field:DrawableRes private val icon: Int
+    ) : StubObject(),
+        VfsDir by delegate {
 
         constructor(
             uri: String, @StringRes descr: Int, @DrawableRes icon: Int

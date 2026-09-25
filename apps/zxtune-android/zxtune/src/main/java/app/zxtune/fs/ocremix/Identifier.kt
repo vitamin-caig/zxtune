@@ -55,7 +55,7 @@ import app.zxtune.R
 object Identifier {
     private const val SCHEME = "ocremix"
 
-    enum class AggregateType(@StringRes val localized: Int) {
+    enum class AggregateType(@field:StringRes val localized: Int) {
         Systems(R.string.vfs_ocremix_systems_name), //
         Organizations(R.string.vfs_ocremix_organizations_name), //
         Remixes(R.string.vfs_ocremix_remixes_name), //

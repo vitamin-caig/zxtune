@@ -81,7 +81,7 @@ internal class CachingCatalog(private val remote: RemoteCatalog, private val db:
         }
 
     private inner class CachedGrouping(
-        @Database.Type private val type: Int,
+        @field:Database.Type private val type: Int,
         private val scope: String,
         private val remote: Catalog.Grouping
     ) : Catalog.Grouping {

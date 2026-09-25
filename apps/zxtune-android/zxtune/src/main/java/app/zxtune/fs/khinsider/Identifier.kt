@@ -20,7 +20,7 @@ data class Identifier(
     val track: Track? = null,
     val location: FilePath? = null,
 ) {
-    enum class Category(@StringRes val localized: Int = 0) {
+    enum class Category(@field:StringRes val localized: Int = 0) {
         Random(R.string.vfs_khinsider_random_name), //
         Top(R.string.vfs_khinsider_top_name), //
         Series(R.string.vfs_khinsider_series_name), //

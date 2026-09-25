@@ -99,6 +99,6 @@ class BitmapSource(val src: Bitmap) : ImageSource {
     override fun applyTo(img: ImageView) = img.setImageBitmap(src)
 }
 
-class ResourceSource(@DrawableRes val src: Int) : ImageSource {
+class ResourceSource(@field:DrawableRes val src: Int) : ImageSource {
     override fun applyTo(img: ImageView) = img.setImageResource(src)
 }

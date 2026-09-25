@@ -11,7 +11,7 @@ data class ListingEntry(
     val description: String,
     val details: String?,
     val icon: Icon?,
-    @DrawableRes val additionalIcon: Int?,
+    @field:DrawableRes val additionalIcon: Int?,
 ) {
     private val isFolder
         get() = details == null
@@ -19,7 +19,7 @@ data class ListingEntry(
     sealed interface Icon
 
     @JvmInline
-    value class DrawableIcon(@DrawableRes val id: Int) : Icon
+    value class DrawableIcon(@param:DrawableRes val id: Int) : Icon
 
     @JvmInline
     value class LoadableIcon(val uri: Uri) : Icon

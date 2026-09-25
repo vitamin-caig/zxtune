@@ -87,7 +87,8 @@ internal open class Database @VisibleForTesting constructor(private val db: Data
 // Groups are queried by type, so type is the first element of key
 @Entity(primaryKeys = ["type", "id"], tableName = "groups")
 class GroupEntity internal constructor(
-    @Database.Type val type: Int, @Embedded val group: Group
+    @field:Database.Type val type: Int,
+    @Embedded val group: Group
 )
 
 // Cross-reference entity
