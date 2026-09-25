@@ -89,7 +89,8 @@ android {
             minifyEnabled true
             debuggable true
             signingConfig = signingConfigs.release
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules-develop.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    file("${treeRoot}/make/android/proguard-rules-develop.pro")
         }
     }
 
