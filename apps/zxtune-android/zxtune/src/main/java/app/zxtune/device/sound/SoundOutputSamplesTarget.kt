@@ -8,12 +8,15 @@
  */
 package app.zxtune.device.sound
 
+import android.annotation.TargetApi
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.audiofx.AudioEffect
+import android.os.Build
 import app.zxtune.Logger
 import app.zxtune.sound.SamplesSource
 import app.zxtune.sound.SamplesSource.Sample
@@ -44,7 +47,9 @@ class SoundOutputSamplesTarget private constructor(
                 toWrite -= written
             } else {
                 when {
-                    target.playState == AudioTrack.PLAYSTATE_STOPPED -> break //drain
+                    target.playState == AudioTrack.PLAYSTATE_STOPPED -> break
+
+                    // drain
                     written < 0 -> throw Exception("Failed to write samples: $written")
                 }
             }
@@ -69,7 +74,7 @@ class SoundOutputSamplesTarget private constructor(
 
         @JvmStatic
         fun create(ctx: Context): SamplesTarget {
-            //xmp plugin limits max frequency
+            // xmp plugin limits max frequency
             val freqRate = AudioTrack.getNativeOutputSampleRate(STREAM).coerceAtMost(48000)
             val minBufSize = AudioTrack.getMinBufferSize(freqRate, CHANNEL_OUT, ENCODING)
             val prefBufSize =
@@ -78,11 +83,33 @@ class SoundOutputSamplesTarget private constructor(
             LOG.d {
                 "Preparing playback. Freq=$freqRate MinBuffer=$minBufSize PrefBuffer=$prefBufSize BufferSize=$bufSize"
             }
-            val target =
-                AudioTrack(STREAM, freqRate, CHANNEL_OUT, ENCODING, bufSize, AudioTrack.MODE_STREAM)
+            val target = createTrack(freqRate, bufSize)
             val effectControl = AudioEffectControl(ctx, target.audioSessionId)
             return SoundOutputSamplesTarget(bufSize, target, effectControl)
         }
+
+        private fun createTrack(freqRate: Int, bufSize: Int): AudioTrack = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            createAudioTrackBuilder(freqRate, bufSize)
+        } else {
+            @Suppress("DEPRECATION")
+            AudioTrack(STREAM, freqRate, CHANNEL_OUT, ENCODING, bufSize, AudioTrack.MODE_STREAM)
+        }
+
+        @TargetApi(Build.VERSION_CODES.M)
+        private fun createAudioTrackBuilder(freqRate: Int, bufSize: Int): AudioTrack = AudioTrack.Builder()
+            .setAudioAttributes(
+                AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).build()
+            )
+            .setAudioFormat(
+                AudioFormat.Builder()
+                    .setSampleRate(freqRate)
+                    .setChannelMask(CHANNEL_OUT)
+                    .setEncoding(ENCODING)
+                    .build()
+            )
+            .setBufferSizeInBytes(bufSize)
+            .setTransferMode(AudioTrack.MODE_STREAM)
+            .build()
     }
 }
 
