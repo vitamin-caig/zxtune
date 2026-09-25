@@ -5,10 +5,12 @@ import android.media.AudioManager
 import android.media.AudioManager.OnAudioFocusChangeListener
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.getSystemService
+import androidx.media.AudioAttributesCompat
+import androidx.media.AudioFocusRequestCompat
+import androidx.media.AudioManagerCompat
 import app.zxtune.Logger
 import app.zxtune.Releaseable
 import app.zxtune.TimeStamp
-import app.zxtune.device.sound.SoundOutputSamplesTarget
 import app.zxtune.playback.PlaybackControl
 import app.zxtune.playback.PlaybackService
 import app.zxtune.playback.stubs.CallbackStub
@@ -34,12 +36,20 @@ class AudioFocusConnection @VisibleForTesting constructor(
                 LOG.d { "Focus lost" }
                 onFocusLost()
             }
+
             AudioManager.AUDIOFOCUS_GAIN -> {
                 LOG.d { "Focus restored" }
                 onFocusRestore()
             }
         }
     }
+
+    private val focusRequest = AudioFocusRequestCompat.Builder(AudioManager.AUDIOFOCUS_GAIN)
+        .setAudioAttributes(
+            AudioAttributesCompat.Builder().setUsage(AudioAttributesCompat.USAGE_MEDIA).build()
+        )
+        .setOnAudioFocusChangeListener(focusListener)
+        .build()
     private var focusConnection: Releaseable? = null
     private var lostFocus = false
 
@@ -48,17 +58,13 @@ class AudioFocusConnection @VisibleForTesting constructor(
         stateConnection.release()
     }
 
-    private fun gainFocus() =
-        if (AudioManager.AUDIOFOCUS_REQUEST_FAILED != manager.requestAudioFocus(
-                focusListener, SoundOutputSamplesTarget.STREAM, AudioManager.AUDIOFOCUS_GAIN
-            )
-        ) {
-            focusConnection = Releaseable { manager.abandonAudioFocus(focusListener) }
-            lostFocus = false
-            true
-        } else {
-            false
-        }
+    private fun gainFocus() = if (AudioManager.AUDIOFOCUS_REQUEST_FAILED != AudioManagerCompat.requestAudioFocus(manager, focusRequest)) {
+        focusConnection = Releaseable { AudioManagerCompat.abandonAudioFocusRequest(manager, focusRequest) }
+        lostFocus = false
+        true
+    } else {
+        false
+    }
 
     private fun releaseFocus() {
         focusConnection?.release()
@@ -93,7 +99,6 @@ class AudioFocusConnection @VisibleForTesting constructor(
 
     companion object {
         @JvmStatic
-        fun create(ctx: Context, svc: PlaybackService): Releaseable =
-            AudioFocusConnection(requireNotNull(ctx.getSystemService()), svc)
+        fun create(ctx: Context, svc: PlaybackService): Releaseable = AudioFocusConnection(requireNotNull(ctx.getSystemService()), svc)
     }
 }
