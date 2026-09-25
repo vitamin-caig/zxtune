@@ -82,7 +82,7 @@ class BrowserFragmentTest {
         val playbackEventsFlow = mock<Flow<Uri>>()
         val path = Uri.parse("")
         persistentState.stub {
-            onBlocking { getCurrentPath() } doReturn path
+            on { getCurrentPath() } doReturn path
         }
         construct<Model> {
             on { state } doReturn stateFlow
@@ -126,8 +126,8 @@ class BrowserFragmentTest {
     fun `with content and state`() = runTest {
         val listingState = makeState(3, 2, 3)
         persistentState.stub {
-            onBlocking { getCurrentPath() } doReturn listingState.uri
-            onBlocking { updateCurrentPath(any()) } doReturn 0
+            on { getCurrentPath() } doReturn listingState.uri
+            on { updateCurrentPath(any()) } doReturn 0
         }
         construct<Model> {
             on { state } doReturn MutableStateFlow(listingState)
@@ -196,7 +196,7 @@ class BrowserFragmentTest {
     fun `progress state`() = runTest {
         val operationProgress = MutableStateFlow<Int?>(null)
         persistentState.stub {
-            onBlocking { getCurrentPath() } doReturn Uri.EMPTY
+            on { getCurrentPath() } doReturn Uri.EMPTY
         }
         construct<Model> {
             on { state } doReturn mock()
@@ -239,8 +239,8 @@ class BrowserFragmentTest {
     fun `search filtering`() = runTest {
         val listingState = MutableStateFlow(makeState(5, 3, 4))
         persistentState.stub {
-            onBlocking { getCurrentPath() } doReturn listingState.value.uri
-            onBlocking { updateCurrentPath(any()) } doReturn 0
+            on { getCurrentPath() } doReturn listingState.value.uri
+            on { updateCurrentPath(any()) } doReturn 0
         }
         construct<Model> {
             on { state } doReturn listingState

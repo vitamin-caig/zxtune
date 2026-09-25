@@ -180,7 +180,7 @@ class ModelTest {
     @Test
     fun `browse file`() {
         vfsClient.stub {
-            onBlocking { resolve(any(), any()) } doAnswer {
+            on { resolve(any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onProgress(Schema.Status.Progress(1, 2))
                     onProgress(Schema.Status.Progress(2, 2))
@@ -215,7 +215,7 @@ class ModelTest {
     @Test
     fun `browse dir with feed`() {
         vfsClient.stub {
-            onBlocking { resolve(any(), any()) } doAnswer {
+            on { resolve(any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onProgress(Schema.Status.Progress(1, 200))
                     onProgress(Schema.Status.Progress(100, 200))
@@ -239,18 +239,18 @@ class ModelTest {
     @Test
     fun `browse dir`() {
         vfsClient.stub {
-            onBlocking { resolve(any(), any()) } doAnswer {
+            on { resolve(any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onProgress(Schema.Status.Progress(5, 10))
                     onDir(Schema.Listing.Dir(it.getArgument(0), "unused", "unused", null, false))
                 }
             }
-            onBlocking { parents(any(), any()) } doAnswer {
+            on { parents(any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ParentsCallback>(1)) {
                     testParents.forEach(this::feed)
                 }
             }
-            onBlocking { list(any(), any()) } doAnswer {
+            on { list(any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onProgress(Schema.Status.Progress(2, 10))
                     testContent.forEach(this::feed)
@@ -277,7 +277,7 @@ class ModelTest {
     fun `browse failed`() {
         val err = IllegalArgumentException("Fail")
         vfsClient.stub {
-            onBlocking { resolve(any(), any()) } doThrow err
+            on { resolve(any(), any()) } doThrow err
         }
         execute {
             browse(testUri)
@@ -313,7 +313,7 @@ class ModelTest {
     fun `browseParent with good state`() {
         setContent(testParents, listOf())
         vfsClient.stub {
-            onBlocking { resolve(any(), any()) } doAnswer {
+            on { resolve(any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onDir(Schema.Listing.Dir(it.getArgument(0), "unused", "unused", null, false))
                 }
@@ -386,7 +386,7 @@ class ModelTest {
     fun `browseParent failed to resolve`() {
         val err = IllegalArgumentException("Fail")
         vfsClient.stub {
-            onBlocking { resolve(any(), any()) } doThrow err
+            on { resolve(any(), any()) } doThrow err
         }
         `browseParent with unresolvable state`()
     }
@@ -397,7 +397,7 @@ class ModelTest {
         val noResultQuery = "Unused"
         val matchedContent = listOf(testContent[1], testContent[2])
         vfsClient.stub {
-            onBlocking { search(any(), eq(testQuery), any()) } doAnswer {
+            on { search(any(), eq(testQuery), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(2)) {
                     CoroutineScope(dispatcher).launch {
                         matchedContent.forEach { entry ->
@@ -444,7 +444,7 @@ class ModelTest {
     fun `search failed`() {
         val err = IllegalArgumentException("Fail")
         vfsClient.stub {
-            onBlocking { search(any(), any(), any()) } doThrow err
+            on { search(any(), any(), any()) } doThrow err
         }
         setContent(testParents, testContent)
         execute {
@@ -475,7 +475,7 @@ class ModelTest {
         val slowUri = Uri.parse("slow://")
         val chan = Channel<Unit>()
         vfsClient.stub {
-            onBlocking { resolve(eq(slowUri), any()) } doAnswer {
+            on { resolve(eq(slowUri), any()) } doAnswer {
                 chan.trySend(Unit)
                 with(it.getArgument<CancellationSignal>(2)) {
                     while (true) {
@@ -484,7 +484,7 @@ class ModelTest {
                     }
                 }
             }
-            onBlocking { resolve(eq(testUri), any()) } doAnswer {
+            on { resolve(eq(testUri), any()) } doAnswer {
                 chan.trySend(Unit)
                 Unit
             }

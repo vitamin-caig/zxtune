@@ -20,7 +20,6 @@ import app.zxtune.ui.MainDispatcherRule
 import app.zxtune.utils.ProgressCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -381,7 +380,7 @@ class ClientProviderTest {
                 job.cancel()
             }
         }
-        job = launch(SupervisorJob()) {
+        job = launch {
             underTest.list(slowUri, listingCallback)
         }
         job.join()
@@ -395,7 +394,7 @@ class ClientProviderTest {
             delay(1000)
             job.cancel()
         }
-        job = launch(SupervisorJob()) {
+        job = launch {
             underTest.list(hangingUri, listingCallback)
         }
         job.join()

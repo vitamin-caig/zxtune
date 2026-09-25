@@ -6,7 +6,6 @@ import android.database.MatrixCursor
 import android.os.CancellationSignal
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.launch
@@ -56,7 +55,7 @@ class ProviderClientTest {
                 )
             } doReturn mock()
         }
-        launch(SupervisorJob()) {
+        launch {
             ProviderClient(resolver, dispatcher).observeContent().collectIndexed { index, _ ->
                 if (index == 9) {
                     cancel()

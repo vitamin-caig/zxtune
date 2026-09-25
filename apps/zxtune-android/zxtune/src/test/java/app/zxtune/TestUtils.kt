@@ -11,7 +11,7 @@ import org.mockito.Mockito
 import org.mockito.kotlin.KStubbing
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
-import org.robolectric.Robolectric
+import org.robolectric.shadows.ShadowLooper
 
 object TestUtils {
     inline fun <reified T : Any> construct(crossinline stubbing: KStubbing<T>.(T) -> Unit): MockedConstruction<T> =
@@ -29,7 +29,7 @@ object TestUtils {
     @OptIn(ExperimentalCoroutinesApi::class)
     fun TestScope.flushEvents() {
         advanceUntilIdle()
-        Robolectric.flushForegroundThreadScheduler()
+        ShadowLooper.shadowMainLooper().idle()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
