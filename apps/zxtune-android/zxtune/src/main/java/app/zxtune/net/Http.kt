@@ -24,13 +24,20 @@ private const val CONNECT_TIMEOUT_MS = 30_000
 private const val READ_TIMEOUT_MS = 60_000
 
 object Http {
+    private val ABI = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        Build.SUPPORTED_ABIS[0]
+    } else {
+        @Suppress("DEPRECATION")
+        Build.CPU_ABI
+    }
+
     private val USER_AGENT = String.format(
         Locale.US,
         "%s/%d (%s; %s; %s; %s)",
         BuildConfig.APPLICATION_ID,
         BuildConfig.VERSION,
         BuildConfig.BUILD_TYPE,
-        Build.CPU_ABI,
+        ABI,
         BuildConfig.FLAVOR_packaging,
         BuildConfig.FLAVOR_api
     )

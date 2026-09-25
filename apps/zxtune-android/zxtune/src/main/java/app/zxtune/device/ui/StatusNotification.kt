@@ -16,6 +16,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v4.media.session.PlaybackStateCompat.MediaKeyAction
 import androidx.annotation.DrawableRes
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.media.app.NotificationCompat.MediaStyle
 import androidx.media.session.MediaButtonReceiver
@@ -113,7 +114,10 @@ class StatusNotification private constructor(
 
     private fun stopForeground(removeNotification: Boolean = false) {
         notification.show()
-        service.stopForeground(removeNotification)
+        ServiceCompat.stopForeground(
+            service,
+            if (removeNotification) ServiceCompat.STOP_FOREGROUND_REMOVE else ServiceCompat.STOP_FOREGROUND_DETACH
+        )
         isForeground = false
     }
 

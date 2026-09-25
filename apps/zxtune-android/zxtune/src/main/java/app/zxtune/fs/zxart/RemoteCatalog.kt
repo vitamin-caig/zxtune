@@ -8,7 +8,7 @@ package app.zxtune.fs.zxart
 import android.net.Uri
 import android.sax.Element
 import android.sax.RootElement
-import android.text.Html
+import androidx.core.text.HtmlCompat
 import app.zxtune.Logger
 import app.zxtune.Util
 import app.zxtune.fs.HtmlUtils.tryGetInteger
@@ -189,7 +189,8 @@ private class ModuleBuilder {
     }
 
     fun setFilename(value: String?) {
-        filename = value?.trim()?.takeIf { it.isNotEmpty() }?.let { Html.fromHtml(it).toString() }
+        filename = value?.trim()?.takeIf { it.isNotEmpty() }
+            ?.let { HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString() }
             ?: "unknown"
     }
 

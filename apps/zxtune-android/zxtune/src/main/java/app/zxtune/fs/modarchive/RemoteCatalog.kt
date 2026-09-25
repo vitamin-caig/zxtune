@@ -8,7 +8,7 @@ package app.zxtune.fs.modarchive
 import android.net.Uri
 import android.sax.Element
 import android.sax.RootElement
-import android.text.Html
+import androidx.core.text.HtmlCompat
 import app.zxtune.Logger
 import app.zxtune.fs.HtmlUtils.tryGetInteger
 import app.zxtune.fs.api.Cdn
@@ -232,7 +232,8 @@ private class TrackBuilder {
 
     // CDATA
     fun setTitle(value: String?) {
-        title = value?.let { Html.fromHtml(it).toString() }
+        title = value
+            ?.let { HtmlCompat.fromHtml(it, HtmlCompat.FROM_HTML_MODE_LEGACY).toString() }
     }
 
     fun setSize(value: String?) {
