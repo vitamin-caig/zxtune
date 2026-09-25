@@ -23,7 +23,7 @@ Android frontend for ZXTune. Native playback engine is built from the C++ source
   - `api.root`, `cdn.root`, `proxy.root` - emitted as `BuildConfig` strings and referenced unconditionally by `zxtune/src/main/java/app/zxtune/fs/api/{Api,Cdn,Proxy}.kt`; compilation FAILS without them. Any URL works for compiling/tests; the real values point at the deployed backend.
   - signing passwords for `develop`/`release`/store variants: `key.store.password`, `key.release.password` (fallback `key.alias.password`), `key.upload_google.password`, `key.upload_rustore.password`, `key.fdroid.password` (keystore file `make/android/keystore` IS committed)
   - ABI filters per packaging flavor: `flavors.fat.abifilters`, `flavors.thin.abifilters` (AAB/google+rustore), `flavors.splitted.abifilters`; a flavor with empty filters is silently disabled
-  - optional: `key.modarchive`, `build.jni.max_linkers`, `cdn.root`/`proxy.root`/`api.root` overrides
+  - optional: `key.modarchive`, `build.jni.max_linkers`, `build.jni.output` (`all`/`error`/`none`, default `all`), `cdn.root`/`proxy.root`/`api.root` overrides
   - the machine's `variables.mak` at the repo root defines `android.ndk` (the NDK root used by the C++ make build).
 
 ## Variants and flavors

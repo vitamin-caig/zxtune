@@ -175,6 +175,9 @@ abstract class NativeLibsTask extends DefaultTask {
     @Internal
     int maxLinkers = cpuCount / 2
 
+    @Internal
+    String outputMode = 'all'
+
     @Input
     Set<String> abis = new HashSet<String>()
 
@@ -192,14 +195,16 @@ abstract class NativeLibsTask extends DefaultTask {
       def binDir = outputs.files.first()
       def flags = "arch=${abis.join(':')} android.minsdk=${minsdks.join(':')}"
       inputs.files.each { jniDir ->
-        callMake("${flags} bins_dir=${binDir}/minsdk\$(android.minsdk)/\$(arch) -C ${jniDir} -j ${jobs}")
+        callMake("${flags} bins_dir=${binDir}/minsdk\$(android.minsdk)/\$(arch) -C ${jniDir} -j ${jobs}", outputMode)
       }
     }
 
-    void callMake(cmdline) {
+    void callMake(cmdline, outputMode) {
       def fullCmd = "make platform=android ${cmdline}"
       def proc = fullCmd.execute()
-      proc.consumeProcessOutput(System.out, System.out)
+      def stdout = outputMode == 'all' ? System.out : OutputStream.nullOutputStream()
+      def stderr = outputMode == 'none' ? OutputStream.nullOutputStream() : System.out
+      proc.consumeProcessOutput(stdout, stderr)
       assert 0 == proc.waitFor()
     }
 }
@@ -212,6 +217,11 @@ android {
         if (linkers != null && !linkers.isEmpty()) {
             maxLinkers = linkers.toInteger()
         }
+        def output = localProperties.getProperty('build.jni.output', 'all')
+        if (!(output in ['all', 'error', 'none'])) {
+          throw new GradleException("Invalid build.jni.output '${output}'. Expected all, error, or none")
+        }
+        outputMode = output
         inputs.files sourceSets.main.jni.srcDirs
         outputs.dir jniDir
     }
