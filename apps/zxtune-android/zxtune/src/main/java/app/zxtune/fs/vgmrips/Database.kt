@@ -30,9 +30,12 @@ import app.zxtune.fs.dbhelpers.Utils
 const val NAME = "vgmrips"
 const val VERSION = 4
 
-internal open class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) {
+internal open class Database @VisibleForTesting constructor(private val db: VgmripsDatabaseDelegate) {
     @IntDef(
-        TYPE_COMPANY, TYPE_COMPOSER, TYPE_CHIP, TYPE_SYSTEM
+        TYPE_COMPANY,
+        TYPE_COMPOSER,
+        TYPE_CHIP,
+        TYPE_SYSTEM
     )
     internal annotation class Type
     companion object {
@@ -43,7 +46,7 @@ internal open class Database @VisibleForTesting constructor(private val db: Data
     }
 
     constructor(ctx: Context) : this(
-        Room.databaseBuilder(ctx, DatabaseDelegate::class.java, NAME)
+        Room.databaseBuilder(ctx, VgmripsDatabaseDelegate::class.java, NAME)
             .fallbackToDestructiveMigration().build()
     ) {
         DBStatistics.send(db.openHelper)
@@ -57,14 +60,11 @@ internal open class Database @VisibleForTesting constructor(private val db: Data
 
     open fun getLifetime(id: String, ttl: TimeStamp) = db.timestamps().getLifetime(id, ttl)
 
-    open fun queryGroups(@Type type: Int, visitor: Catalog.Visitor<Group>) =
-        db.catalog().queryGroups(type).onEach(visitor::accept).isNotEmpty()
+    open fun queryGroups(@Type type: Int, visitor: Catalog.Visitor<Group>) = db.catalog().queryGroups(type).onEach(visitor::accept).isNotEmpty()
 
-    open fun addGroup(@Type type: Int, obj: Group) =
-        db.catalog().insertGroup(GroupEntity(type, obj))
+    open fun addGroup(@Type type: Int, obj: Group) = db.catalog().insertGroup(GroupEntity(type, obj))
 
-    open fun queryGroupPacks(id: Group.Id, visitor: Catalog.Visitor<Pack>) =
-        db.catalog().queryGroupPacks(id).onEach(visitor::accept).isNotEmpty()
+    open fun queryGroupPacks(id: Group.Id, visitor: Catalog.Visitor<Pack>) = db.catalog().queryGroupPacks(id).onEach(visitor::accept).isNotEmpty()
 
     open fun addGroupPack(id: Group.Id, obj: Pack) = with(db.catalog()) {
         insertPack(obj)
@@ -77,11 +77,9 @@ internal open class Database @VisibleForTesting constructor(private val db: Data
 
     open fun queryRandomPack() = db.catalog().queryRandomPack()
 
-    open fun queryPackTracks(id: Pack.Id, visitor: Catalog.Visitor<FilePath>) =
-        db.catalog().queryPackTracks(id).onEach(visitor::accept).isNotEmpty()
+    open fun queryPackTracks(id: Pack.Id, visitor: Catalog.Visitor<FilePath>) = db.catalog().queryPackTracks(id).onEach(visitor::accept).isNotEmpty()
 
-    open fun addPackTrack(id: Pack.Id, obj: FilePath) =
-        db.catalog().insertTrack(TrackEntity(id, obj))
+    open fun addPackTrack(id: Pack.Id, obj: FilePath) = db.catalog().insertTrack(TrackEntity(id, obj))
 }
 
 // Groups are queried by type, so type is the first element of key
@@ -94,7 +92,8 @@ class GroupEntity internal constructor(
 // Cross-reference entity
 @Entity(primaryKeys = ["id", "pack"], tableName = "group_packs")
 class GroupPacksRef internal constructor(
-    @ColumnInfo(name = "id") val id: Group.Id, @ColumnInfo(name = "pack") val packId: Pack.Id
+    @ColumnInfo(name = "id") val id: Group.Id,
+    @ColumnInfo(name = "pack") val packId: Pack.Id
 )
 
 @Entity(primaryKeys = ["id"], tableName = "packs")
@@ -104,7 +103,8 @@ class PackEntity internal constructor(
 
 @Entity(primaryKeys = ["pack_id", "track"], tableName = "tracks")
 class TrackEntity internal constructor(
-    @ColumnInfo(name = "pack_id") val packId: Pack.Id, val track: FilePath
+    @ColumnInfo(name = "pack_id") val packId: Pack.Id,
+    val track: FilePath
 )
 
 object Converters {
@@ -172,7 +172,7 @@ abstract class CatalogDao {
     version = VERSION
 )
 @TypeConverters(Converters::class)
-abstract class DatabaseDelegate : RoomDatabase() {
+abstract class VgmripsDatabaseDelegate : RoomDatabase() {
     abstract fun catalog(): CatalogDao
     abstract fun timestamps(): Timestamps.DAO
 }

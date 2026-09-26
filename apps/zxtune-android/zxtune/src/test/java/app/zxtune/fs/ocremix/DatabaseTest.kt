@@ -3,6 +3,7 @@ package app.zxtune.fs.ocremix
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import app.zxtune.assertThrows
+import java.io.IOException
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertArrayEquals
@@ -16,7 +17,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
-import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 class DatabaseTest {
@@ -26,7 +26,8 @@ class DatabaseTest {
     fun setUp() {
         underTest = Database(
             Room.inMemoryDatabaseBuilder(
-                ApplicationProvider.getApplicationContext(), DatabaseDelegate::class.java
+                ApplicationProvider.getApplicationContext(),
+                OcremixDatabaseDelegate::class.java
             ).allowMainThreadQueries().build()
         )
     }
@@ -249,7 +250,13 @@ class DatabaseTest {
             assertFalse(queryAlbums(organizations[1].asScope, this))
         }
         verifyNoMoreInteractions(
-            allAlbums, game0Albums, game1Albums, sys0Albums, sys1Albums, org0Albums, org1Albums
+            allAlbums,
+            game0Albums,
+            game1Albums,
+            sys0Albums,
+            sys1Albums,
+            org0Albums,
+            org1Albums
         )
     }
 
@@ -267,7 +274,8 @@ class DatabaseTest {
                 QueriedMusic(musics[0], 0),
                 QueriedMusic(musics[1], 1),
                 QueriedMusic(musics[2], null)
-            ), queryMusicFiles("id1")
+            ),
+            queryMusicFiles("id1")
         )
         assertArrayEquals(arrayOf(QueriedMusic(musics[2], 3)), queryMusicFiles("id2"))
         assertArrayEquals(arrayOf(), queryMusicFiles("id3"))
@@ -308,10 +316,10 @@ class DatabaseTest {
             Album(Album.Id("album/$id"), "Album $id")
         }
         private val images = Array(4) { id ->
-            FilePath("image/${id}.jpg")
+            FilePath("image/$id.jpg")
         }
         private val musics = Array(4) { id ->
-            FilePath("music/${id}.mp3")
+            FilePath("music/$id.mp3")
         }
 
         private val System.asScope

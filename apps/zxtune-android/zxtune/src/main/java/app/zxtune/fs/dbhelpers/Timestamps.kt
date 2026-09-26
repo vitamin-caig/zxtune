@@ -16,7 +16,8 @@ import app.zxtune.TimeStamp
 import app.zxtune.fs.dbhelpers.Timestamps.Lifetime
 
 class Timestamps @VisibleForTesting internal constructor(
-    readable: SQLiteDatabase, writable: SQLiteDatabase
+    readable: SQLiteDatabase,
+    writable: SQLiteDatabase
 ) {
     private object Table {
         const val CREATE_QUERY =
@@ -56,7 +57,8 @@ class Timestamps @VisibleForTesting internal constructor(
     }
 
     private inner class DbLifetime(
-        private val objId: String, private val TTL: TimeStamp
+        private val objId: String,
+        private val TTL: TimeStamp
     ) : Lifetime {
         override val isExpired
             get() = try {
@@ -69,6 +71,8 @@ class Timestamps @VisibleForTesting internal constructor(
     }
 
     // TODO: make the only implementation
+    // Room generates a separate implementation per database for a shared DAO; distinct
+    // database class names keep those generated symbols stable across builds.
     @Dao
     abstract class DAO {
         @Query("SELECT strftime('%s') - stamp FROM timestamps WHERE id = :id")
@@ -77,8 +81,7 @@ class Timestamps @VisibleForTesting internal constructor(
         @Query("REPLACE INTO timestamps VALUES (:id, strftime('%s'))")
         protected abstract fun touch(id: String)
 
-        private inner class LifetimeImpl(private val objId: String, private val ttl: TimeStamp) :
-            Lifetime {
+        private inner class LifetimeImpl(private val objId: String, private val ttl: TimeStamp) : Lifetime {
             override val isExpired
                 get() = queryAge(objId)?.let { TimeStamp.fromSeconds(it) > ttl } ?: true
 

@@ -5,6 +5,7 @@ import androidx.core.util.Consumer
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import app.zxtune.assertThrows
+import java.io.IOException
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -18,7 +19,6 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.robolectric.RobolectricTestRunner
-import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 class DatabaseTest {
@@ -28,7 +28,8 @@ class DatabaseTest {
     fun setUp() {
         underTest = Database(
             Room.inMemoryDatabaseBuilder(
-                ApplicationProvider.getApplicationContext(), DatabaseDelegate::class.java
+                ApplicationProvider.getApplicationContext(),
+                KhinsiderDatabaseDelegate::class.java
             ).allowMainThreadQueries().build()
         )
     }
@@ -231,8 +232,7 @@ class DatabaseTest {
 
         private fun makeAlbum(id: Int) = Album(Album.Id("album/$id"), "Album $id")
         private fun makeTrack(id: Int) = Track(Track.Id("track_$id.mp3"), "Track $id")
-        private fun makeTrackDetails(album: Album, id: Int) =
-            TrackAndDetails(album, makeTrack(id), id, "$id:00", "$id KB")
+        private fun makeTrackDetails(album: Album, id: Int) = TrackAndDetails(album, makeTrack(id), id, "$id:00", "$id KB")
 
         private inline fun <reified T : Any> withMock(block: T.() -> Unit) = mock<T>().run {
             block()

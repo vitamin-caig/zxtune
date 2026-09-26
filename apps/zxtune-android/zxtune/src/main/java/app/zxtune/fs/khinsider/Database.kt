@@ -23,9 +23,9 @@ import app.zxtune.fs.dbhelpers.Utils
 const val NAME = "khinsider"
 const val VERSION = 1
 
-class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) {
+class Database @VisibleForTesting constructor(private val db: KhinsiderDatabaseDelegate) {
     constructor(ctx: Context) : this(
-        Room.databaseBuilder(ctx, DatabaseDelegate::class.java, NAME)
+        Room.databaseBuilder(ctx, KhinsiderDatabaseDelegate::class.java, NAME)
             .fallbackToDestructiveMigration().build()
     ) {
         DBStatistics.send(db.openHelper)
@@ -37,8 +37,7 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
     fun getLifetime(id: String, ttl: TimeStamp) = db.timestamps().getLifetime(id, ttl)
 
     fun addScope(type: Catalog.ScopeType, scope: Scope) = db.catalog().add(ScopeRecord(type, scope))
-    fun queryScopes(type: Catalog.ScopeType, visitor: Consumer<Scope>) =
-        db.catalog().queryScopes(type).onEach(visitor::accept).isNotEmpty()
+    fun queryScopes(type: Catalog.ScopeType, visitor: Consumer<Scope>) = db.catalog().queryScopes(type).onEach(visitor::accept).isNotEmpty()
 
     fun cleanupScope(scope: Scope.Id) = db.catalog().cleanup(scope)
     fun addAlbum(scope: Scope.Id, album: AlbumAndDetails) = with(db.catalog()) {
@@ -76,18 +75,17 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         )
     }
 
-    fun queryTracks(album: Album, visitor: Consumer<TrackAndDetails>) =
-        db.catalog().queryTracks(album.id).onEach {
-            visitor.accept(
-                TrackAndDetails(
-                    album = album,
-                    track = it.track,
-                    index = it.index,
-                    duration = it.duration,
-                    size = it.size
-                )
+    fun queryTracks(album: Album, visitor: Consumer<TrackAndDetails>) = db.catalog().queryTracks(album.id).onEach {
+        visitor.accept(
+            TrackAndDetails(
+                album = album,
+                track = it.track,
+                index = it.index,
+                duration = it.duration,
+                size = it.size
             )
-        }.isNotEmpty()
+        )
+    }.isNotEmpty()
 }
 
 @Entity(tableName = "scopes", primaryKeys = ["type", "id"])
@@ -104,7 +102,10 @@ class AlbumRecord(
     val image: FilePath?,
 ) {
     constructor(album: AlbumAndDetails) : this(
-        album.album.id, album.album.title, album.details, album.image
+        album.album.id,
+        album.album.title,
+        album.details,
+        album.image
     )
 
     constructor(album: Album.Id, real: Album.Id) : this(album, real.value, null, null)
@@ -205,7 +206,7 @@ object Converters {
     version = VERSION,
 )
 @TypeConverters(Converters::class)
-abstract class DatabaseDelegate : RoomDatabase() {
+abstract class KhinsiderDatabaseDelegate : RoomDatabase() {
     abstract fun catalog(): CatalogDao
     abstract fun timestamps(): Timestamps.DAO
 }

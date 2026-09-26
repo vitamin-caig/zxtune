@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import app.zxtune.fs.DatabaseTestUtils.testCheckObjectGrouping
 import app.zxtune.fs.DatabaseTestUtils.testVisitor
+import java.io.IOException
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -16,7 +17,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.inOrder
 import org.robolectric.RobolectricTestRunner
-import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 class DatabaseTest {
@@ -27,7 +27,8 @@ class DatabaseTest {
     fun setUp() {
         underTest = Database(
             Room.inMemoryDatabaseBuilder(
-                ApplicationProvider.getApplicationContext(), DatabaseDelegate::class.java
+                ApplicationProvider.getApplicationContext(),
+                VgmripsDatabaseDelegate::class.java
             ).allowMainThreadQueries().build()
         )
     }
@@ -74,10 +75,10 @@ class DatabaseTest {
             .onEachIndexed { idx, group -> underTest.addGroup(idx % 4, group) }
         testVisitor<Catalog.Visitor<Group>> { visitor ->
             arrayOf(
-                Database.TYPE_CHIP, //2
-                Database.TYPE_COMPANY,//0
-                Database.TYPE_COMPOSER,//1
-                Database.TYPE_SYSTEM//3
+                Database.TYPE_CHIP, // 2
+                Database.TYPE_COMPANY, // 0
+                Database.TYPE_COMPOSER, // 1
+                Database.TYPE_SYSTEM // 3
             ).forEach { type ->
                 assertTrue(underTest.queryGroups(type, visitor))
             }
@@ -107,7 +108,8 @@ class DatabaseTest {
         addGroup = ::makeGroup,
         addObjectToGroup = { group, pack -> underTest.addGroupPack(group.id, pack) },
         queryObjects = { group, visitor -> underTest.queryGroupPacks(group.id, visitor) },
-        checkAccept = { visitor, pack -> visitor.accept(pack) })
+        checkAccept = { visitor, pack -> visitor.accept(pack) }
+    )
 
     @Test
     fun `test queryPack`() {
@@ -170,15 +172,16 @@ private fun makeGroup(id: Int) = Group(
     id = Group.Id(id.toString()),
     title = "Group $id",
     packs = id * 3,
-    image = id.takeIf { it % 2 == 0 }?.let { FilePath("image${id}") })
+    image = id.takeIf { it % 2 == 0 }?.let { FilePath("image$id") }
+)
 
 private fun makePack(id: Int) = Pack(
     id = Pack.Id(id.toString()),
     title = "Pack $id",
-    archive = FilePath("pack${id}"),
-    image = id.takeIf { it % 2 == 0 }?.let { FilePath("image${id}") },
+    archive = FilePath("pack$id"),
+    image = id.takeIf { it % 2 == 0 }?.let { FilePath("image$id") },
     songs = id * 3 + 1,
-    size = "${id} KB"
+    size = "$id KB"
 )
 
-private fun makeTrack(id: Int) = FilePath("track${id}")
+private fun makeTrack(id: Int) = FilePath("track$id")

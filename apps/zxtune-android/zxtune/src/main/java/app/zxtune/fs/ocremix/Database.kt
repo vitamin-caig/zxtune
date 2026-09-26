@@ -29,10 +29,10 @@ import app.zxtune.fs.dbhelpers.Utils
 const val NAME = "ocremix"
 const val VERSION = 2
 
-class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) {
+class Database @VisibleForTesting constructor(private val db: OcremixDatabaseDelegate) {
 
     constructor(ctx: Context) : this(
-        Room.databaseBuilder(ctx, DatabaseDelegate::class.java, NAME)
+        Room.databaseBuilder(ctx, OcremixDatabaseDelegate::class.java, NAME)
             .fallbackToDestructiveMigration().build()
     ) {
         DBStatistics.send(db.openHelper)
@@ -50,32 +50,28 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         }
     }
 
-    fun querySystems(visitor: Catalog.SystemsVisitor) =
-        db.catalog().querySystems().onEach { visitor.accept(it.system, it.image) }.isNotEmpty()
+    fun querySystems(visitor: Catalog.SystemsVisitor) = db.catalog().querySystems().onEach { visitor.accept(it.system, it.image) }.isNotEmpty()
 
     fun addOrganization(organization: Organization) = db.catalog().add(organization)
 
-    fun queryOrganizations(visitor: Catalog.Visitor<Organization>) =
-        db.catalog().queryOrganizations().onEach { visitor.accept(it) }.isNotEmpty()
+    fun queryOrganizations(visitor: Catalog.Visitor<Organization>) = db.catalog().queryOrganizations().onEach { visitor.accept(it) }.isNotEmpty()
 
-    fun addGame(game: Game, system: System, organization: Organization?, image: FilePath?) =
-        with(db.catalog()) {
-            add(game)
-            add(system)
-            add(game ownedBy system)
-            organization?.let {
-                add(it)
-                add(game ownedBy it)
-            }
-            image?.let {
-                addImage(game.id.value, it)
-            }
-            add(game ownedBy ALL_GAMES_SCOPE)
+    fun addGame(game: Game, system: System, organization: Organization?, image: FilePath?) = with(db.catalog()) {
+        add(game)
+        add(system)
+        add(game ownedBy system)
+        organization?.let {
+            add(it)
+            add(game ownedBy it)
         }
+        image?.let {
+            addImage(game.id.value, it)
+        }
+        add(game ownedBy ALL_GAMES_SCOPE)
+    }
 
-    fun queryGames(scope: Catalog.Scope?, visitor: Catalog.GamesVisitor) =
-        db.catalog().queryGames(scope?.id ?: ALL_GAMES_SCOPE)
-            .onEach { visitor.accept(it.game, it.system, it.organization, it.image) }.isNotEmpty()
+    fun queryGames(scope: Catalog.Scope?, visitor: Catalog.GamesVisitor) = db.catalog().queryGames(scope?.id ?: ALL_GAMES_SCOPE)
+        .onEach { visitor.accept(it.game, it.system, it.organization, it.image) }.isNotEmpty()
 
     fun addRemix(scope: Catalog.Scope?, remix: Remix, game: Game) = with(db.catalog()) {
         add(game)
@@ -88,9 +84,8 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         add(remix ownedBy ALL_REMIXES_SCOPE)
     }
 
-    fun queryRemixes(scope: Catalog.Scope?, visitor: Catalog.RemixesVisitor) =
-        db.catalog().queryRemixes(scope?.id ?: ALL_REMIXES_SCOPE)
-            .onEach { visitor.accept(it.remix, it.game) }.isNotEmpty()
+    fun queryRemixes(scope: Catalog.Scope?, visitor: Catalog.RemixesVisitor) = db.catalog().queryRemixes(scope?.id ?: ALL_REMIXES_SCOPE)
+        .onEach { visitor.accept(it.remix, it.game) }.isNotEmpty()
 
     fun addAlbum(scope: Catalog.Scope?, album: Album, image: FilePath?) = with(db.catalog()) {
         add(album)
@@ -103,12 +98,10 @@ class Database @VisibleForTesting constructor(private val db: DatabaseDelegate) 
         add(album ownedBy ALL_ALBUMS_SCOPE)
     }
 
-    fun queryAlbums(scope: Catalog.Scope?, visitor: Catalog.AlbumsVisitor) =
-        db.catalog().queryAlbums(scope?.id ?: ALL_ALBUMS_SCOPE)
-            .onEach { visitor.accept(it.album, it.image) }.isNotEmpty()
+    fun queryAlbums(scope: Catalog.Scope?, visitor: Catalog.AlbumsVisitor) = db.catalog().queryAlbums(scope?.id ?: ALL_ALBUMS_SCOPE)
+        .onEach { visitor.accept(it.album, it.image) }.isNotEmpty()
 
-    fun addMusicFile(id: String, path: FilePath, size: Long? = null) =
-        db.catalog().add(MusicRecord(id, path, size))
+    fun addMusicFile(id: String, path: FilePath, size: Long? = null) = db.catalog().add(MusicRecord(id, path, size))
 
     fun deleteMusicFiles(id: String) = db.catalog().deleteMusic(id)
     fun queryMusicFiles(id: String) = db.catalog().queryMusic(id)
@@ -132,10 +125,12 @@ class OrganizationRecord(
 @DatabaseView(
     """
     SELECT scopes.id AS owned,organizations.id AS id,organizations.title AS title FROM scopes 
-    INNER JOIN organizations ON scopes.scope=organizations.id""", viewName = "organizations_owned"
+    INNER JOIN organizations ON scopes.scope=organizations.id""",
+    viewName = "organizations_owned"
 )
 class OrganizationsOwned(
-    @PrimaryKey val owned: String, @Embedded val organization: Organization
+    @PrimaryKey val owned: String,
+    @Embedded val organization: Organization
 )
 
 @Entity(tableName = "games", primaryKeys = ["id"])
@@ -341,7 +336,7 @@ object Converters {
     version = VERSION
 )
 @TypeConverters(Converters::class)
-abstract class DatabaseDelegate : RoomDatabase() {
+abstract class OcremixDatabaseDelegate : RoomDatabase() {
     abstract fun catalog(): CatalogDao
     abstract fun timestamps(): Timestamps.DAO
 }
