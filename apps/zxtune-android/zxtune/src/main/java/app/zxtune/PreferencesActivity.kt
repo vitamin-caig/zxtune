@@ -8,6 +8,7 @@ package app.zxtune
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.annotation.XmlRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
@@ -16,8 +17,11 @@ import app.zxtune.analytics.Analytics
 import app.zxtune.preferences.Preferences
 import app.zxtune.ui.utils.FragmentIntProperty
 import app.zxtune.ui.utils.ThemeUtils
+import app.zxtune.ui.utils.applyEdgeToEdge
+import app.zxtune.ui.utils.padWithSystemBars
 
-class PreferencesActivity : AppCompatActivity(),
+class PreferencesActivity :
+    AppCompatActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
 
     companion object {
@@ -27,6 +31,10 @@ class PreferencesActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // No action bar in the theme, so the list starts right at the top of the window
+        applyEdgeToEdge()
+        findViewById<View>(android.R.id.content).padWithSystemBars()
 
         ThemeUtils.setupThemeChange(this, this)
 

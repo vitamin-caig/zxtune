@@ -25,6 +25,8 @@ import androidx.viewpager.widget.ViewPager.OnPageChangeListener
 import app.zxtune.analytics.Analytics
 import app.zxtune.device.media.MediaModel
 import app.zxtune.ui.ViewPagerAdapter
+import app.zxtune.ui.utils.applyEdgeToEdge
+import app.zxtune.ui.utils.padWithSystemBars
 import app.zxtune.ui.utils.whenLifecycleStarted
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
@@ -43,10 +45,15 @@ class MainActivity : AppCompatActivity(R.layout.main_activity) {
 
         setupUi()
 
+        // On the content frame rather than per pane: it covers the tab strip, the top panel and
+        // every page's listing at once, and puts the controls above the navigation bar
+        applyEdgeToEdge()
+        findViewById<View>(android.R.id.content).padWithSystemBars()
+
         if (savedInstanceState != null) {
             intent = null
         }
-        setupMediaController();
+        setupMediaController()
         Analytics.sendUiEvent(Analytics.UiAction.OPEN)
 
         // TODO: move to MainApplication
@@ -87,7 +94,9 @@ class MainActivity : AppCompatActivity(R.layout.main_activity) {
                 private var prevPos = currentItem
 
                 override fun onPageScrolled(
-                    position: Int, positionOffset: Float, positionOffsetPixels: Int
+                    position: Int,
+                    positionOffset: Float,
+                    positionOffsetPixels: Int
                 ) = Unit
 
                 override fun onPageSelected(newPos: Int) {
