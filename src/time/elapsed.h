@@ -11,39 +11,36 @@
 #pragma once
 
 #include "time/duration.h"
+#include "time/timer.h"
 
-#include <ctime>
-#include <type_traits>
+#include <optional>
 
 namespace Time
 {
   class Elapsed
   {
   public:
-    using NativeUnit =
-        BaseUnit<std::conditional<sizeof(std::clock_t) == sizeof(uint64_t), uint64_t, uint_t>::type, CLOCKS_PER_SEC>;
+    using NativeUnit = Timer::NativeUnit;
 
     template<class DurationType>
     explicit Elapsed(const DurationType& period)
-      : Period(Duration<NativeUnit>(period).Get())
+      : Period(period)
     {}
 
     bool operator()()
     {
-      const clock_t current = ::clock();
-      if (Next <= current)
-      {
-        Next = current + Period;
-        return true;
-      }
-      else
+      // the very first call is always due, otherwise the initial report would be
+      // delayed by a full period
+      if (Last && Last->Elapsed() < Period)
       {
         return false;
       }
+      Last.emplace();
+      return true;
     }
 
   private:
-    const clock_t Period;
-    clock_t Next = 0;
+    const Duration<NativeUnit> Period;
+    std::optional<Timer> Last;
   };
 }  // namespace Time

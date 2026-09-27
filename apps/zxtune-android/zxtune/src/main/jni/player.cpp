@@ -23,13 +23,13 @@
 
 #include "parameters/merged_accessor.h"
 #include "sound/mixer_factory.h"
+#include "time/timer.h"
 
 #include "contract.h"
 #include "make_ptr.h"
 #include "pointers.h"
 
 #include <atomic>
-#include <ctime>
 #include <deque>
 
 namespace
@@ -85,7 +85,7 @@ namespace
   public:
     void Add(Sound::Chunk data)
     {
-      TotalSamples += data.size();
+      TotalSamples.fetch_add(data.size());
       Buffers.emplace_back(std::move(data));
     }
 
@@ -107,7 +107,7 @@ namespace
 
     uint64_t GetTotalSamplesDone() const
     {
-      return TotalSamples;
+      return TotalSamples.load();
     }
 
   private:
@@ -130,21 +130,15 @@ namespace
       std::size_t Avail;
     };
     std::deque<Buff> Buffers;
-    uint64_t TotalSamples = 0;
+    std::atomic<uint64_t> TotalSamples = 0;
   };
 
   class RenderingPerformanceAccountant
   {
   public:
-    void StartAccounting()
+    void Accumulate(Time::Timer::NativeDuration duration)
     {
-      LastStart = std::clock();
-    }
-
-    void StopAccounting()
-    {
-      Clocks += std::clock() - LastStart;
-      ++Frames;
+      RenderTime.fetch_add(duration.Get());
     }
 
     uint_t Measure(uint64_t totalSamples, uint_t sampleRate) const
@@ -153,19 +147,17 @@ namespace
       const uint_t minSamples = sampleRate * MIN_DURATION_SEC;
       if (totalSamples >= minSamples)
       {
-        if (const uint64_t totalClocks = Clocks + Frames / 2)  // compensate measuring error
+        if (const Time::Timer::NativeDuration renderTime{RenderTime.load()})
         {
-          // 100 * (totalSamples / sampleRate) / (totalClocks / CLOCKS_PER_SEC)
-          return (totalSamples * CLOCKS_PER_SEC * 100) / (totalClocks * sampleRate);
+          const auto playbackTime = Time::Timer::NativeDuration::FromRatio(totalSamples, sampleRate);
+          return (playbackTime * 100).Divide<uint_t>(renderTime);
         }
       }
       return 0;
     }
 
   private:
-    std::clock_t LastStart = 0;
-    std::clock_t Clocks = 0;
-    uint_t Frames = 0;
+    std::atomic<uint64_t> RenderTime;
   };
 
   class AnalyzerControl
@@ -311,9 +303,9 @@ namespace
   private:
     Sound::Chunk RenderNextFrame()
     {
-      RenderingPerformance.StartAccounting();
+      const Time::Timer timer;
       auto chunk = Renderer->Render();
-      RenderingPerformance.StopAccounting();
+      RenderingPerformance.Accumulate(timer.Elapsed());
       return chunk;
     }
 

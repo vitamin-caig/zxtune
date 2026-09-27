@@ -11,12 +11,12 @@
 #include "binary/format_factories.h"
 #include "io/api.h"
 #include "parameters/container.h"
+#include "time/timer.h"
 #include "tools/progress_callback.h"
 
 #include "error_tools.h"
 #include "types.h"
 
-#include <ctime>
 #include <iostream>
 
 namespace
@@ -25,21 +25,20 @@ namespace
   {
   public:
     explicit ScanSpeed(std::size_t total)
-      : Start(std::clock())
-      , Total(total)
+      : Total(total)
     {}
 
     void Report(std::size_t pos) const
     {
-      const std::clock_t elapsed = std::clock() - Start;
-      const std::size_t speed = pos * CLOCKS_PER_SEC / (elapsed ? elapsed : 1);
+      const auto elapsed = Start.Elapsed();
+      const auto speed = pos * elapsed.PER_SECOND / (elapsed ? elapsed.Get() : 1);
       std::cout << (pos != Total ? "Matched at " : "Finished scanning ") << pos << ". Speed " << double(speed) / 1048576
                 << "Mb/s" << std::endl;
     }
 
   private:
-    const std::clock_t Start;
     const std::size_t Total;
+    const Time::Timer Start;
   };
 }  // namespace
 
@@ -52,7 +51,7 @@ int main(int argc, char* argv[])
   }
   try
   {
-    const Binary::Format::Ptr format = Binary::CreateFormat(argv[2]);
+    const Binary::ScanningFormat::Ptr format = Binary::CreateScanningFormat(argv[2]);
     const std::string filename = argv[1];
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
     const Binary::Container::Ptr data = IO::OpenData(filename, *params, Log::ProgressCallback::Stub());

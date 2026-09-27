@@ -12,29 +12,33 @@
 
 #include "time/duration.h"
 
-#include <ctime>
-#include <type_traits>
+#include <chrono>
+#include <ratio>
 
 namespace Time
 {
+  // monotonic wall time; std::clock() cost a syscall per call and callers want real elapsed time
   class Timer
   {
   public:
-    using NativeUnit =
-        BaseUnit<std::conditional<sizeof(std::clock_t) == sizeof(uint64_t), uint64_t, uint_t>::type, CLOCKS_PER_SEC>;
+    using Clock = std::chrono::steady_clock;
+    static_assert(std::ratio_equal<Clock::period, std::nano>::value, "Clock must tick in nanoseconds");
+    using NativeUnit = Nanosecond;
+    using NativeDuration = Duration<NativeUnit>;
 
     Timer()
-      : Start(std::clock())
+      : Start(Clock::now())
     {}
 
     template<class Unit = NativeUnit>
     Duration<Unit> Elapsed() const
     {
-      return Duration<NativeUnit>(std::clock() - Start).CastTo<Unit>();
+      const auto elapsed = (Clock::now() - Start).count();
+      return Duration<NativeUnit>(elapsed).CastTo<Unit>();
     }
 
   private:
     // enable assignment
-    std::clock_t Start;
+    Clock::time_point Start;
   };
 }  // namespace Time
