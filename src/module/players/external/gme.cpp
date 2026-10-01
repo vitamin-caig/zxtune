@@ -82,7 +82,9 @@ namespace Module::GME
 
     TuneInfo GetInfo() const
     {
-      const EmuPtr emu(Type->new_info());
+      // voice_count filled only on full emu load
+      const EmuPtr emu(Type->new_emu());
+      CheckError(emu->set_sample_rate(32000));
       CheckError(emu->load_mem(Data->Start(), Data->Size()));
       TuneInfo info;
       CheckError(emu->track_info(&info, Track));
