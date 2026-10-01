@@ -41,6 +41,7 @@ extern "C"
 #include "3rdparty/vgmstream/config.h"
 #include "3rdparty/vgmstream/vgmstream.h"
 #include "3rdparty/vgmstream/base/plugins.h"
+#include "3rdparty/vgmstream/vgmstream_init.h"
   // clang-format on
 }
 
@@ -312,6 +313,24 @@ namespace Module::VGMStream
         Time::Milliseconds::FromRatio(stream.num_samples - stream.loop_start_sample, stream.sample_rate));
   }
 
+  VGMStreamPtr CloneStream(const VGMSTREAM& model, const Vfs::Ptr& vfs)
+  {
+    // vgmstream decoders are stateful and can't be shared, so the parser that the model matched is
+    // re-run over the same source data instead of detecting the format from scratch
+    const auto initFunction = ::get_vgmstream_format_init(model.format_id);
+    Require(!!initFunction);
+    MemoryStream stream(vfs);
+    stream.stream_index = model.stream_index;  // 1-based really, resolved by the model
+    auto* const clone = initFunction(&stream);
+    Require(!!clone);
+    VGMStreamPtr result(clone, &::close_vgmstream);
+    clone->format_id = model.format_id;
+    Require(::prepare_vgmstream(clone, &stream));
+    Require(clone->channels == model.channels && clone->sample_rate == model.sample_rate
+            && clone->num_samples == model.num_samples);
+    return result;
+  }
+
   class Holder : public Module::Holder
   {
   public:
@@ -335,7 +354,7 @@ namespace Module::VGMStream
     {
       try
       {
-        return MakePtr<Renderer>(GetStream(), samplerate);
+        return MakePtr<Renderer>(CloneStream(*Stream, Model), samplerate);
       }
       catch (const std::exception& e)
       {
@@ -344,18 +363,8 @@ namespace Module::VGMStream
     }
 
   private:
-    VGMStreamPtr GetStream() const
-    {
-      if (!Stream)
-      {
-        Require(!!Stream);  // TODO
-      }
-      return {std::move(Stream)};
-    }
-
-  private:
     const Vfs::Ptr Model;
-    mutable VGMStreamPtr Stream;
+    const VGMStreamPtr Stream;
     const Parameters::Accessor::Ptr Properties;
   };
 
