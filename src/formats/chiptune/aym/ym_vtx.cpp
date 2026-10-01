@@ -684,12 +684,12 @@ namespace Formats::Chiptune
 
     Decoder::Ptr CreatePackedYMDecoder()
     {
-      return MakePtr<YMDecoder>();
+      return MakePtr<PackedDecoder>();
     }
 
     Decoder::Ptr CreateYMDecoder()
     {
-      return MakePtr<PackedDecoder>();
+      return MakePtr<YMDecoder>();
     }
 
     Decoder::Ptr CreateVTXDecoder()
