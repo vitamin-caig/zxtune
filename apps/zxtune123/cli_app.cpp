@@ -287,6 +287,7 @@ namespace
         Display.Message("x{2:.2f}\t({1})\t{0}\t[0x{3:08x}]\t{{{4}..{5}, {6}}}", path, type, relSpeed,
                         receiver.GetHash(), receiver.GetMinSample(), receiver.GetMaxSample(),
                         receiver.GetTotalSamples());
+        VerifyHolderIdempotency(holder, props, info, path, type);
       }
       catch (const std::exception& e)
       {
@@ -314,6 +315,18 @@ namespace
     void BenchmarkFail(StringView path, StringView type, StringView msg) const
     {
       Display.Message("Fail\t({1})\t{0}\t[{2}]", path, type, msg);
+    }
+
+    void VerifyHolderIdempotency(const Module::Holder::Ptr& holder, const Parameters::Accessor::Ptr& props,
+                                 const Module::Information& info, StringView path, StringView type) const
+    {
+      const auto actual = holder->GetModuleInformation();
+      if (actual.Duration != info.Duration || actual.LoopDuration != info.LoopDuration)
+      {
+        BenchmarkFail(path, type, "module information changed after playback");
+        return;
+      }
+      holder->CreateRenderer(Sounder.GetSamplerate(), props);
     }
 
     class BenchmarkSoundReceiver
