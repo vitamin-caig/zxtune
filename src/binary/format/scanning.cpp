@@ -18,6 +18,7 @@
 #include "make_ptr.h"
 #include "string_view.h"
 
+#include <algorithm>
 #include <array>
 #include <limits>
 #include <vector>
@@ -34,10 +35,24 @@ namespace Binary
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
       , MinScanStep(minScanStep)
-      , Pat(std::move(mtx))
-      , PatRBegin(&Pat.back())
-      , PatREnd(&Pat.front() - 1)
-    {}
+      , PatSize(mtx.size())
+    {
+      // Rows accepting every byte ('?' wildcards) never terminate the backward walk, yet dominate
+      // wildcard-heavy patterns - Global Tracker v1.x has 288 such of 301 rows, and the full 77KB
+      // matrix misses L1. Keep only matchable rows, highest pattern position first so the walk
+      // still runs backwards, with Deltas giving how far back each row's data byte sits.
+      Rows.reserve(PatSize);
+      Deltas.reserve(PatSize);
+      for (auto pos = PatSize; pos-- > 0;)
+      {
+        const auto& row = mtx[pos];
+        if (std::any_of(row.begin(), row.end(), [](auto shift) { return shift != 0; }))
+        {
+          Rows.push_back(row);
+          Deltas.push_back(PatSize - 1 - pos);
+        }
+      }
+    }
 
     bool Match(View data) const override
     {
@@ -45,7 +60,7 @@ namespace Binary
       {
         return false;
       }
-      const std::size_t endOfPat = Offset + Pat.size();
+      const auto endOfPat = Offset + PatSize;
       const uint8_t* typedDataLast = static_cast<const uint8_t*>(data.Start()) + endOfPat - 1;
       return 0 == SearchBackward(typedDataLast);
     }
@@ -58,7 +73,7 @@ namespace Binary
         return size;
       }
       const auto* const typedData = static_cast<const uint8_t*>(data.Start());
-      const std::size_t endOfPat = Offset + Pat.size();
+      const auto endOfPat = Offset + PatSize;
       const uint8_t* const scanStart = typedData + endOfPat - 1;
       const uint8_t* const scanStop = typedData + size;
       const std::size_t firstMatch = SearchBackward(scanStart);
@@ -136,16 +151,9 @@ namespace Binary
   private:
     std::size_t SearchBackward(const uint8_t* data) const
     {
-      const auto* it = PatRBegin;
-      if (const std::size_t offset = (*it)[*data])
+      for (auto idx = std::size_t{}, count = Rows.size(); idx != count; ++idx)
       {
-        return offset;
-      }
-      --it;
-      --data;
-      for (; it != PatREnd; --it, --data)
-      {
-        if (const std::size_t offset = (*it)[*data])
+        if (const auto offset = Rows[idx][*(data - Deltas[idx])])
         {
           return offset;
         }
@@ -157,9 +165,10 @@ namespace Binary
     const std::size_t Offset;
     const std::size_t MinSize;
     const std::size_t MinScanStep;
-    const PatternMatrix Pat;
-    const PatternRow* const PatRBegin;
-    const PatternRow* const PatREnd;
+    // full pattern length - Rows is compacted, but the window and compared bytes address its end
+    const std::size_t PatSize;
+    PatternMatrix Rows;
+    std::vector<std::size_t> Deltas;
   };
 
   class ExactFormat : public FormatDetails
