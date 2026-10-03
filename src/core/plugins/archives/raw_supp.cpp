@@ -225,11 +225,12 @@ namespace ZXTune
       return res;
     }
 
-    static uint_t Percent(uint_t aimed, uint_t missed)
+    //! @brief 64 bit arguments required, native time unit is nanoseconds and may overflow 32 bit
+    static uint_t Percent(uint64_t aimed, uint64_t missed)
     {
-      if (const uint_t total = aimed + missed)
+      if (const uint64_t total = aimed + missed)
       {
-        return static_cast<uint_t>(uint64_t(100) * aimed / total);
+        return static_cast<uint_t>(100 * aimed / total);
       }
       else
       {
