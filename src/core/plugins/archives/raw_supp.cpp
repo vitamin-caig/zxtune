@@ -34,7 +34,6 @@
 
 #include <algorithm>
 #include <array>
-#include <list>
 #include <map>
 
 namespace ZXTune
@@ -311,6 +310,7 @@ namespace ZXTune::Raw
         {
           return Analysis::CreateUnmatchedResult(matched);
         }
+        AddMatched(matched);
         return result;
       }
       Statistic::Self().AddMissed(GetPlugin(), detectTimer);
@@ -322,6 +322,10 @@ namespace ZXTune::Raw
     //!        delegate types
     virtual Analysis::Result::Ptr DetectImpl(const Parameters::Accessor& params, DataLocation::Ptr inputData,
                                              ArchiveCallback& callback) const = 0;
+
+    //! @brief the matched data is accounted differently for the plugin kinds and the scaner sees
+    //!        them as one list, so it is accounted where the kind is known
+    virtual void AddMatched(std::size_t size) const = 0;
 
     virtual bool HideMatch(const Parameters::Accessor& /*params*/) const
     {
@@ -345,6 +349,11 @@ namespace ZXTune::Raw
     {
       return GetPlugin<PlayerPlugin>().Detect(params, std::move(inputData), callback);
     }
+
+    void AddMatched(std::size_t size) const override
+    {
+      Statistic::Self().AddModule(size);
+    }
   };
 
   class ArchiveDetector : public Detector
@@ -362,6 +371,11 @@ namespace ZXTune::Raw
                                      ArchiveCallback& callback) const override
     {
       return GetPlugin<ArchivePlugin>().Detect(params, std::move(inputData), callback);
+    }
+
+    void AddMatched(std::size_t size) const override
+    {
+      Statistic::Self().AddArchived(size);
     }
 
     //! @brief a plain archive reports a match for the data it merely skips
@@ -409,28 +423,19 @@ namespace ZXTune::Raw
   public:
     using List = std::vector<Detector::Ptr>;
 
-    const List& GetPlayers() const
+    const List& Get() const
     {
-      if (PlayerDetectors.empty())
+      if (All.empty())
       {
-        const auto& original = PlayerPlugin::Enumerate();
-        PlayerDetectors.reserve(original.size());
+        const auto& players = PlayerPlugin::Enumerate();
+        const auto& archives = ArchivePlugin::Enumerate();
+        All.reserve(players.size() + archives.size());
         // a player plugin is never a scaner, so no filtering here
-        for (const auto& plugin : original)
+        for (const auto& plugin : players)
         {
-          PlayerDetectors.emplace_back(MakePtr<PlayerDetector>(plugin));
+          All.emplace_back(MakePtr<PlayerDetector>(plugin));
         }
-      }
-      return PlayerDetectors;
-    }
-
-    const List& GetArchives() const
-    {
-      if (ArchiveDetectors.empty())
-      {
-        const auto& original = ArchivePlugin::Enumerate();
-        ArchiveDetectors.reserve(original.size());
-        for (const auto& plugin : original)
+        for (const auto& plugin : archives)
         {
           // the scaner is registered as an archive plugin as well and would detect itself
           if (plugin->Capabilities() == CAPS)
@@ -439,16 +444,15 @@ namespace ZXTune::Raw
           }
           else
           {
-            ArchiveDetectors.emplace_back(MakePtr<ArchiveDetector>(plugin));
+            All.emplace_back(MakePtr<ArchiveDetector>(plugin));
           }
         }
       }
-      return ArchiveDetectors;
+      return All;
     }
 
   private:
-    mutable List PlayerDetectors;
-    mutable List ArchiveDetectors;
+    mutable List All;
   };
 
   class ScanProgress
@@ -741,44 +745,33 @@ namespace ZXTune::Raw
   public:
     RawDetectionPlugins(const Parameters::Accessor& params, const Detectors& detectors)
       : Params(params)
-      , Players(detectors.GetPlayers())
-      , Archives(detectors.GetArchives())
+      , Plugins(detectors.Get())
     {}
 
     std::pair<std::size_t, bool> Detect(DataLocation::Ptr input, ArchiveCallback& callback)
     {
-      const auto detectedModules = DetectIn(Players, input, callback);
-      if (const auto matched = detectedModules->GetMatchedDataSize())
+      auto result = DetectIn(std::move(input), callback);
+      if (const auto matched = result->GetMatchedDataSize())
       {
-        Statistic::Self().AddModule(matched);
         return {matched, true};
       }
-      const auto detectedArchives = DetectIn(Archives, std::move(input), callback);
-      if (const auto matched = detectedArchives->GetMatchedDataSize())
-      {
-        Statistic::Self().AddArchived(matched);
-        return {matched, true};
-      }
-      const auto archiveLookahead = detectedArchives->GetLookaheadOffset();
-      const auto moduleLookahead = detectedModules->GetLookaheadOffset();
-      Dbg("No archives for nearest {} bytes, modules for {} bytes", archiveLookahead, moduleLookahead);
-      return {static_cast<std::size_t>(std::min(archiveLookahead, moduleLookahead)), false};
+      const auto lookahead = result->GetLookaheadOffset();
+      Dbg("No detection for nearest {} bytes", lookahead);
+      return {lookahead, false};
     }
 
     void SetOffset(std::size_t offset)
     {
       Offset = offset;
-      Archives.SetOffset(offset);
-      Players.SetOffset(offset);
+      Plugins.SetOffset(offset);
     }
 
   private:
-    Analysis::Result::Ptr DetectIn(LookaheadPlugins& container, DataLocation::Ptr input,
-                                   ArchiveCallback& callback) const
+    Analysis::Result::Ptr DetectIn(DataLocation::Ptr input, ArchiveCallback& callback)
     {
       const std::size_t maxSize = input->GetData()->Size();
-      auto unmatched = std::make_unique<DelayScanResult>(container, Offset, maxSize);
-      for (auto iter = container.Enumerate(); iter.IsValid(); iter.Next())
+      auto unmatched = std::make_unique<DelayScanResult>(Plugins, Offset, maxSize);
+      for (auto iter = Plugins.Enumerate(); iter.IsValid(); iter.Next())
       {
         const auto& detector = iter.GetDetector();
         auto result = detector.Detect(Params, input, callback);
@@ -850,8 +843,7 @@ namespace ZXTune::Raw
 
   private:
     const Parameters::Accessor& Params;
-    LookaheadPlugins Players;
-    LookaheadPlugins Archives;
+    LookaheadPlugins Plugins;
     std::size_t Offset = 0;
   };
 
