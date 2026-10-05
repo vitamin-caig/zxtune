@@ -18,6 +18,8 @@ namespace ZXTune
   class Plugin
   {
   public:
+    using Ptr = std::shared_ptr<const Plugin>;
+
     virtual ~Plugin() = default;
 
     //! Identification string

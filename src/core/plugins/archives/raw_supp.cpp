@@ -16,6 +16,7 @@
 #include "core/plugins/players/plugin.h"
 
 #include "binary/container.h"
+#include "core/plugin.h"
 #include "core/plugin_attrs.h"
 #include "core/plugins_parameters.h"
 #include "debug/log.h"
@@ -145,28 +146,25 @@ namespace ZXTune
       ModulesData += size;
     }
 
-    template<class PluginType>
-    void AddAimed(const PluginType& plug, const Time::Timer& scanTimer)
+    void AddAimed(const Plugin& plugin, const Time::Timer& scanTimer)
     {
-      StatItem& item = GetStat(plug);
+      StatItem& item = GetStat(plugin);
       ++item.Aimed;
       item.AimedTime += scanTimer.Elapsed() + item.ScanTime;
       item.ScanTime = {};
     }
 
-    template<class PluginType>
-    void AddMissed(const PluginType& plug, const Time::Timer& scanTimer)
+    void AddMissed(const Plugin& plugin, const Time::Timer& scanTimer)
     {
-      StatItem& item = GetStat(plug);
+      StatItem& item = GetStat(plugin);
       ++item.Missed;
       item.MissedTime += scanTimer.Elapsed() + item.ScanTime;
       item.ScanTime = {};
     }
 
-    template<class PluginType>
-    void AddScanned(const PluginType& plug, const Time::Timer& scanTimer)
+    void AddScanned(const Plugin& plugin, const Time::Timer& scanTimer)
     {
-      StatItem& item = GetStat(plug);
+      StatItem& item = GetStat(plugin);
       item.ScanTime += scanTimer.Elapsed();
     }
 
@@ -238,17 +236,16 @@ namespace ZXTune
       }
     }
 
-    template<class PluginType>
-    StatItem& GetStat(const PluginType& plug)
+    //! @brief the report lists the plugins in the order they were met in
+    StatItem& GetStat(const Plugin& plugin)
     {
-      const void* const key = &plug;
-      StatItem& res = Detection[key];
+      StatItem& res = Detection[&plugin];
       if (res.Name.empty())
       {
-        res.Name = plug.Description();
+        res.Name = plugin.Description();
         res.Index = Detection.size() - 1;
       }
-      return Detection[key];
+      return res;
     }
 
   private:
@@ -280,6 +277,108 @@ namespace ZXTune::Raw
     return Strings::PrefixedIndex::Create(PLUGIN_PREFIX, offset).ToString();
   }
 
+  //! @brief offset tracking and lookahead bookkeeping belong to the scaner, which treats the two
+  //!        plugin kinds uniformly, so only the delegate tells them apart
+  class Detector
+  {
+  public:
+    using Ptr = std::unique_ptr<const Detector>;
+
+    explicit Detector(Plugin::Ptr delegate)
+      : Delegate(std::move(delegate))
+    {}
+
+    virtual ~Detector() = default;
+
+    template<class T = Plugin>
+    const T& GetPlugin() const
+    {
+      return static_cast<const T&>(*Delegate);
+    }
+
+    //! @brief the delegates differ in nothing but what they detect, so all of them are measured
+    //!        and accounted here
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                                 ArchiveCallback& callback) const
+    {
+      const Time::Timer detectTimer;
+      auto result = DetectImpl(params, std::move(inputData), callback);
+      if (const auto matched = result->GetMatchedDataSize())
+      {
+        Statistic::Self().AddAimed(GetPlugin(), detectTimer);
+        // the plugin found something the scaner must not take, so the scan is not a miss either
+        if (HideMatch(params))
+        {
+          return Analysis::CreateUnmatchedResult(matched);
+        }
+        return result;
+      }
+      Statistic::Self().AddMissed(GetPlugin(), detectTimer);
+      return result;
+    }
+
+  protected:
+    //! @brief ArchiveCallback is a Module::DetectCallback, so a single signature serves both
+    //!        delegate types
+    virtual Analysis::Result::Ptr DetectImpl(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                                             ArchiveCallback& callback) const = 0;
+
+    virtual bool HideMatch(const Parameters::Accessor& /*params*/) const
+    {
+      return false;
+    }
+
+  private:
+    const Plugin::Ptr Delegate;
+  };
+
+  class PlayerDetector : public Detector
+  {
+  public:
+    explicit PlayerDetector(PlayerPlugin::Ptr plugin)
+      : Detector(std::move(plugin))
+    {}
+
+  private:
+    Analysis::Result::Ptr DetectImpl(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                                     ArchiveCallback& callback) const override
+    {
+      return GetPlugin<PlayerPlugin>().Detect(params, std::move(inputData), callback);
+    }
+  };
+
+  class ArchiveDetector : public Detector
+  {
+  public:
+    explicit ArchiveDetector(ArchivePlugin::Ptr plugin)
+      : Detector(std::move(plugin))
+      // the delegate is moved into the base, which is constructed first, so the trait is read
+      // through it and not through the moved-from argument
+      , Plain(0 != (GetPlugin<ArchivePlugin>().Capabilities() & Capabilities::Container::Traits::PLAIN))
+    {}
+
+  private:
+    Analysis::Result::Ptr DetectImpl(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                                     ArchiveCallback& callback) const override
+    {
+      return GetPlugin<ArchivePlugin>().Detect(params, std::move(inputData), callback);
+    }
+
+    //! @brief a plain archive reports a match for the data it merely skips
+    bool HideMatch(const Parameters::Accessor& params) const override
+    {
+      return Plain && DoubleAnalysis(params);
+    }
+
+    static bool DoubleAnalysis(const Parameters::Accessor& params)
+    {
+      return 0 != Parameters::GetInteger(params, Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS);
+    }
+
+    //! @brief a container trait never changes, unlike the parameter checked against it
+    const bool Plain;
+  };
+
   class PluginParameters
   {
   public:
@@ -299,13 +398,57 @@ namespace ZXTune::Raw
       return minRawSize;
     }
 
-    bool GetDoubleAnalysis() const
+  private:
+    const Parameters::Accessor& Accessor;
+  };
+
+  //! @brief built on demand because the scaner is constructed while the global plugin list is still
+  //!        being filled and cannot enumerate it yet
+  class Detectors
+  {
+  public:
+    using List = std::vector<Detector::Ptr>;
+
+    const List& GetPlayers() const
     {
-      return 0 != Parameters::GetInteger(Accessor, Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS);
+      if (PlayerDetectors.empty())
+      {
+        const auto& original = PlayerPlugin::Enumerate();
+        PlayerDetectors.reserve(original.size());
+        // a player plugin is never a scaner, so no filtering here
+        for (const auto& plugin : original)
+        {
+          PlayerDetectors.emplace_back(MakePtr<PlayerDetector>(plugin));
+        }
+      }
+      return PlayerDetectors;
+    }
+
+    const List& GetArchives() const
+    {
+      if (ArchiveDetectors.empty())
+      {
+        const auto& original = ArchivePlugin::Enumerate();
+        ArchiveDetectors.reserve(original.size());
+        for (const auto& plugin : original)
+        {
+          // the scaner is registered as an archive plugin as well and would detect itself
+          if (plugin->Capabilities() == CAPS)
+          {
+            Dbg("Ignore '{}'", plugin->Description());
+          }
+          else
+          {
+            ArchiveDetectors.emplace_back(MakePtr<ArchiveDetector>(plugin));
+          }
+        }
+      }
+      return ArchiveDetectors;
     }
 
   private:
-    const Parameters::Accessor& Accessor;
+    mutable List PlayerDetectors;
+    mutable List ArchiveDetectors;
   };
 
   class ScanProgress
@@ -487,27 +630,25 @@ namespace ZXTune::Raw
     const std::size_t End;
   };
 
-  template<class P>
-  class LookaheadPluginsStorage
+  //! @brief the detectors outlive the scans, so they are only observed here
+  class LookaheadPlugins
   {
     struct PluginEntry
     {
-      typename P::Ptr Plugin;
+      const Detector* Plugin;
       std::size_t Offset = 0;
 
-      explicit PluginEntry(typename P::Ptr plugin)
-        : Plugin(std::move(plugin))
+      explicit PluginEntry(const Detector* plugin)
+        : Plugin(plugin)
       {}
-
-      PluginEntry() = default;
     };
-    using PluginsList = typename std::vector<PluginEntry>;
+    using PluginsList = std::vector<PluginEntry>;
 
   public:
     class Iterator
     {
     public:
-      Iterator(typename PluginsList::iterator it, typename PluginsList::iterator lim, std::size_t offset)
+      Iterator(PluginsList::iterator it, PluginsList::iterator lim, std::size_t offset)
         : Cur(std::move(it))
         , Lim(std::move(lim))
         , Offset(offset)
@@ -520,10 +661,15 @@ namespace ZXTune::Raw
         return Cur != Lim;
       }
 
-      const P& GetPlugin() const
+      const Detector& GetDetector() const
       {
         assert(Cur != Lim);
         return *Cur->Plugin;
+      }
+
+      const Plugin& GetPlugin() const
+      {
+        return GetDetector().GetPlugin();
       }
 
       void SetLookahead(std::size_t offset)
@@ -549,24 +695,17 @@ namespace ZXTune::Raw
       }
 
     private:
-      typename PluginsList::iterator Cur;
-      const typename PluginsList::iterator Lim;
+      PluginsList::iterator Cur;
+      const PluginsList::iterator Lim;
       const std::size_t Offset;
     };
 
-    template<class Container>
-    explicit LookaheadPluginsStorage(const Container& plugins)
+    explicit LookaheadPlugins(const Detectors::List& plugins)
     {
+      Plugins.reserve(plugins.size());
       for (const auto& plugin : plugins)
       {
-        if (plugin->Capabilities() != CAPS)
-        {
-          Plugins.emplace_back(PluginEntry(plugin));
-        }
-        else
-        {
-          Dbg("Ignore '{}'", plugin->Description());
-        }
+        Plugins.emplace_back(PluginEntry(plugin.get()));
       }
     }
 
@@ -597,89 +736,13 @@ namespace ZXTune::Raw
     PluginsList Plugins;
   };
 
-  class DoubleAnalyzedArchivePlugin : public ArchivePlugin
-  {
-  public:
-    explicit DoubleAnalyzedArchivePlugin(ArchivePlugin::Ptr delegate)
-      : Delegate(std::move(delegate))
-    {}
-
-    PluginId Id() const override
-    {
-      return Delegate->Id();
-    }
-
-    StringView Description() const override
-    {
-      return Delegate->Description();
-    }
-
-    uint_t Capabilities() const override
-    {
-      return Delegate->Capabilities();
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Delegate->GetFormat();
-    }
-
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                                 ArchiveCallback& callback) const override
-    {
-      auto result = Delegate->Detect(params, std::move(inputData), callback);
-      if (const auto matched = result->GetMatchedDataSize())
-      {
-        return Analysis::CreateUnmatchedResult(matched);
-      }
-      return result;
-    }
-
-    DataLocation::Ptr TryOpen(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                              const Analysis::Path& pathToOpen) const override
-    {
-      return Delegate->TryOpen(params, std::move(inputData), pathToOpen);
-    }
-
-  private:
-    const ArchivePlugin::Ptr Delegate;
-  };
-
-  class DoubleAnalyzedArchives
-  {
-  public:
-    static const std::vector<ArchivePlugin::Ptr>& GetPlugins()
-    {
-      static const DoubleAnalyzedArchives INSTANCE;
-      return INSTANCE.Plugins;
-    }
-
-  private:
-    DoubleAnalyzedArchives()
-    {
-      const auto& original = ArchivePlugin::Enumerate();
-      Plugins.resize(original.size());
-      std::transform(original.begin(), original.end(), Plugins.begin(), &MakeDoubleAnalyzed);
-    }
-
-    static ArchivePlugin::Ptr MakeDoubleAnalyzed(ArchivePlugin::Ptr plugin)
-    {
-      return 0 != (plugin->Capabilities() & Capabilities::Container::Traits::PLAIN)
-                 ? MakePtr<DoubleAnalyzedArchivePlugin>(std::move(plugin))
-                 : plugin;
-    }
-
-  private:
-    std::vector<ArchivePlugin::Ptr> Plugins;
-  };
-
   class RawDetectionPlugins
   {
   public:
-    RawDetectionPlugins(const Parameters::Accessor& params, bool plainArchivesDoubleAnalysis)
+    RawDetectionPlugins(const Parameters::Accessor& params, const Detectors& detectors)
       : Params(params)
-      , Players(PlayerPlugin::Enumerate())
-      , Archives(plainArchivesDoubleAnalysis ? DoubleAnalyzedArchives::GetPlugins() : ArchivePlugin::Enumerate())
+      , Players(detectors.GetPlayers())
+      , Archives(detectors.GetArchives())
     {}
 
     std::pair<std::size_t, bool> Detect(DataLocation::Ptr input, ArchiveCallback& callback)
@@ -710,44 +773,38 @@ namespace ZXTune::Raw
     }
 
   private:
-    template<class PluginType, class CallbackType>
-    Analysis::Result::Ptr DetectIn(LookaheadPluginsStorage<PluginType>& container, DataLocation::Ptr input,
-                                   CallbackType& callback) const
+    Analysis::Result::Ptr DetectIn(LookaheadPlugins& container, DataLocation::Ptr input,
+                                   ArchiveCallback& callback) const
     {
       const std::size_t maxSize = input->GetData()->Size();
-      auto unmatched =
-          std::make_unique<DelayScanResult<LookaheadPluginsStorage<PluginType>>>(container, Offset, maxSize);
+      auto unmatched = std::make_unique<DelayScanResult>(container, Offset, maxSize);
       for (auto iter = container.Enumerate(); iter.IsValid(); iter.Next())
       {
-        const Time::Timer detectTimer;
-        const auto& plugin = iter.GetPlugin();
-        auto result = plugin.Detect(Params, input, callback);
+        const auto& detector = iter.GetDetector();
+        auto result = detector.Detect(Params, input, callback);
         if (const auto usedSize = result->GetMatchedDataSize())
         {
-          Statistic::Self().AddAimed(plugin, detectTimer);
-          Dbg("Detected {} in {} bytes at {}", plugin.Id(), usedSize, input->GetPath()->AsString());
+          Dbg("Detected {} in {} bytes at {}", iter.GetPlugin().Id(), usedSize, input->GetPath()->AsString());
           return result;
         }
         else
         {
-          Statistic::Self().AddMissed(plugin, detectTimer);
           unmatched->AddPendingScan(std::move(result), iter);
         }
       }
       return unmatched;
     }
 
-    template<class PluginsStorage>
     class DelayScanResult : public Analysis::Result
     {
     public:
-      DelayScanResult(PluginsStorage& plugins, std::size_t offset, std::size_t maxSize)
+      DelayScanResult(LookaheadPlugins& plugins, std::size_t offset, std::size_t maxSize)
         : Plugins(plugins)
         , Offset(offset)
         , MaxSize(maxSize)
       {}
 
-      void AddPendingScan(Analysis::Result::Ptr result, typename PluginsStorage::Iterator iter)
+      void AddPendingScan(Analysis::Result::Ptr result, LookaheadPlugins::Iterator iter)
       {
         PendingScans.emplace_back(std::move(result), std::move(iter));
       }
@@ -771,31 +828,30 @@ namespace ZXTune::Raw
           const Time::Timer scanTimer;
           const auto lookahead = result->GetLookaheadOffset();
           iter.SetLookahead(lookahead);
-          const auto& plugin = iter.GetPlugin();
-          Dbg("Disabling check of {} for neareast {} bytes starting from {}", plugin.Id(), lookahead, Offset);
+          Dbg("Disabling check of {} for neareast {} bytes starting from {}", iter.GetPlugin().Id(), lookahead, Offset);
           if (lookahead == MaxSize)
           {
-            Statistic::Self().AddAimed(plugin, scanTimer);
+            Statistic::Self().AddAimed(iter.GetPlugin(), scanTimer);
           }
           else
           {
-            Statistic::Self().AddScanned(plugin, scanTimer);
+            Statistic::Self().AddScanned(iter.GetPlugin(), scanTimer);
           }
         }
         PendingScans.clear();
       }
 
     private:
-      PluginsStorage& Plugins;
+      LookaheadPlugins& Plugins;
       const std::size_t Offset;
       const std::size_t MaxSize;
-      mutable std::vector<std::pair<Analysis::Result::Ptr, typename PluginsStorage::Iterator>> PendingScans;
+      mutable std::vector<std::pair<Analysis::Result::Ptr, LookaheadPlugins::Iterator>> PendingScans;
     };
 
   private:
     const Parameters::Accessor& Params;
-    LookaheadPluginsStorage<PlayerPlugin> Players;
-    LookaheadPluginsStorage<ArchivePlugin> Archives;
+    LookaheadPlugins Players;
+    LookaheadPlugins Archives;
     std::size_t Offset = 0;
   };
 
@@ -843,7 +899,7 @@ namespace ZXTune::Raw
       Dbg("Detecting modules in raw data at '{}'", currentPath);
       ScanProgress progress(callback.GetProgress(), size, currentPath);
 
-      RawDetectionPlugins usedPlugins(params, scanParams.GetDoubleAnalysis());
+      RawDetectionPlugins usedPlugins(params, Plugins);
 
       auto subLocation = MakePtr<ScanDataLocation>(input, 0);
 
@@ -890,6 +946,9 @@ namespace ZXTune::Raw
       }
       return {};
     }
+
+  private:
+    Detectors Plugins;
   };
 }  // namespace ZXTune::Raw
 
