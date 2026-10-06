@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <array>
 #include <map>
+#include <span>
 
 namespace ZXTune
 {
@@ -276,6 +277,32 @@ namespace ZXTune::Raw
     return Strings::PrefixedIndex::Create(PLUGIN_PREFIX, offset).ToString();
   }
 
+  //! @brief a probe result waits for the scaner to postpone it: the matched data size is known
+  //!        once the detector returns, while the aimed/scanned postponing is accounted at the
+  //!        scaner's decision to skip the check - and only when the probes really get skipped,
+  //!        as a match drops them unaccounted. The accounting timer starts at the lookahead-offset
+  //!        calculation, so it measures exactly that
+  class Detector;
+  class DetectResult
+  {
+  public:
+    DetectResult(const Detector& detector, Analysis::Result::Ptr result)
+      : Owner(detector)
+      , Result(std::move(result))
+    {}
+
+    std::size_t GetMatchedDataSize() const
+    {
+      return Result->GetMatchedDataSize();
+    }
+
+    std::size_t Postpone(std::size_t maxSize) const;
+
+  private:
+    const Detector& Owner;
+    Analysis::Result::Ptr Result;
+  };
+
   //! @brief offset tracking and lookahead bookkeeping belong to the scaner, which treats the two
   //!        plugin kinds uniformly, so only the delegate tells them apart
   class Detector
@@ -295,26 +322,41 @@ namespace ZXTune::Raw
       return static_cast<const T&>(*Delegate);
     }
 
-    //! @brief the delegates differ in nothing but what they detect, so all of them are measured
-    //!        and accounted here
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                                 ArchiveCallback& callback) const
+    void AddAimed(const Time::Timer& scanTimer) const
+    {
+      Statistic::Self().AddAimed(GetPlugin(), scanTimer);
+    }
+
+    void AddMissed(const Time::Timer& scanTimer) const
+    {
+      Statistic::Self().AddMissed(GetPlugin(), scanTimer);
+    }
+
+    void AddScanned(const Time::Timer& scanTimer) const
+    {
+      Statistic::Self().AddScanned(GetPlugin(), scanTimer);
+    }
+
+    //! @brief all of the delegates are measured and accounted here, while the postpone accounting
+    //!        of each missed scan is carried out on its own result later
+    DetectResult Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                        ArchiveCallback& callback) const
     {
       const Time::Timer detectTimer;
       auto result = DetectImpl(params, std::move(inputData), callback);
       if (const auto matched = result->GetMatchedDataSize())
       {
-        Statistic::Self().AddAimed(GetPlugin(), detectTimer);
+        AddAimed(detectTimer);
         // the plugin found something the scaner must not take, so the scan is not a miss either
         if (HideMatch(params))
         {
-          return Analysis::CreateUnmatchedResult(matched);
+          return DetectResult(*this, Analysis::CreateUnmatchedResult(matched));
         }
         AddMatched(matched);
-        return result;
+        return DetectResult(*this, std::move(result));
       }
-      Statistic::Self().AddMissed(GetPlugin(), detectTimer);
-      return result;
+      AddMissed(detectTimer);
+      return DetectResult(*this, std::move(result));
     }
 
   protected:
@@ -335,6 +377,24 @@ namespace ZXTune::Raw
   private:
     const Plugin::Ptr Delegate;
   };
+
+  //! @brief the scaner decides to skip the check, and the aimed/scanned accounting of the miss is
+  //!        carried by the owning detector, with the timer covering exactly the lookahead-offset
+  //!        calculation
+  std::size_t DetectResult::Postpone(std::size_t maxSize) const
+  {
+    const Time::Timer scanTimer;
+    const auto lookahead = Result->GetLookaheadOffset();
+    if (lookahead == maxSize)
+    {
+      Owner.AddAimed(scanTimer);
+    }
+    else
+    {
+      Owner.AddScanned(scanTimer);
+    }
+    return lookahead;
+  }
 
   class PlayerDetector : public Detector
   {
@@ -634,110 +694,86 @@ namespace ZXTune::Raw
     const std::size_t End;
   };
 
-  //! @brief the detectors outlive the scans, so they are only observed here
+  //! @brief the detectors outlive the scans, so they are only observed here. The entries know
+  //!        their next due offset and stay sorted by it, so only the due prefix is probed while
+  //!        the rest waits for its own position
   class LookaheadPlugins
   {
+  public:
     struct PluginEntry
     {
-      const Detector* Plugin;
-      std::size_t Offset = 0;
-
-      explicit PluginEntry(const Detector* plugin)
+      PluginEntry(const Detector* plugin, std::size_t offset, std::size_t order)
         : Plugin(plugin)
-      {}
-    };
-    using PluginsList = std::vector<PluginEntry>;
-
-  public:
-    class Iterator
-    {
-    public:
-      Iterator(PluginsList::iterator it, PluginsList::iterator lim, std::size_t offset)
-        : Cur(std::move(it))
-        , Lim(std::move(lim))
         , Offset(offset)
-      {
-        SkipUnaffected();
-      }
+        , Order(order)
+      {}
 
-      bool IsValid() const
-      {
-        return Cur != Lim;
-      }
+      const Detector* Plugin = nullptr;
+      std::size_t Offset = 0;
+      std::size_t Order = 0;
 
-      const Detector& GetDetector() const
+      bool operator<(const PluginEntry& rh) const
       {
-        assert(Cur != Lim);
-        return *Cur->Plugin;
+        return Offset != rh.Offset ? Offset < rh.Offset : Order < rh.Order;
       }
-
-      const Plugin& GetPlugin() const
-      {
-        return GetDetector().GetPlugin();
-      }
-
-      void SetLookahead(std::size_t offset)
-      {
-        assert(Cur != Lim);
-        Cur->Offset += offset;
-      }
-
-      void Next()
-      {
-        assert(Cur != Lim);
-        ++Cur;
-        SkipUnaffected();
-      }
-
-    private:
-      void SkipUnaffected()
-      {
-        while (Cur != Lim && Cur->Offset > Offset)
-        {
-          ++Cur;
-        }
-      }
-
-    private:
-      PluginsList::iterator Cur;
-      const PluginsList::iterator Lim;
-      const std::size_t Offset;
     };
 
-    explicit LookaheadPlugins(const Detectors::List& plugins)
+    bool IsEmpty() const
     {
-      Plugins.reserve(plugins.size());
-      for (const auto& plugin : plugins)
+      return Plugins.empty();
+    }
+
+    //! @brief the due entries are fixed to the current offset first, so the sort below leaves a
+    //!        same-offset group in the registration order - the one the scaner probes such group
+    //!        in, as the registration order matters only for the entries due together
+    std::span<PluginEntry> FindDue(std::size_t offset)
+    {
+      auto end = std::upper_bound(Plugins.begin(), Plugins.end(), offset,
+                                  [](std::size_t limit, const PluginEntry& entry) { return limit < entry.Offset; });
+      for (auto it = Plugins.begin(); it != end; ++it)
       {
-        Plugins.emplace_back(PluginEntry(plugin.get()));
+        it->Offset = offset;
+      }
+      std::sort(Plugins.begin(), end);
+      return {Plugins.data(), Plugins.data() + (end - Plugins.begin())};
+    }
+
+    PluginEntry& Add(const Detector* plugin)
+    {
+      const auto order = Plugins.size();
+      Plugins.emplace_back(plugin, 0, order);
+      return Plugins.back();
+    }
+
+    //! @brief only the updated prefix may have left its place: small updates are re-inserted one
+    //!        by one instead of re-sorting the whole list on every step, while fresh or heavily
+    //!        displaced entries still pay for the full sort
+    void Reorder(std::size_t updated)
+    {
+      if (updated >= INLINE_REORDER_LIMIT)
+      {
+        std::sort(Plugins.begin(), Plugins.end());
+        return;
+      }
+      std::sort(Plugins.begin(), Plugins.begin() + updated);
+      for (auto pos = updated; pos-- > 0;)
+      {
+        const auto at = Plugins.begin() + pos;
+        std::rotate(at, at + 1, std::upper_bound(at + 1, Plugins.end(), *at));
       }
     }
 
-    Iterator Enumerate()
+    std::size_t MinimalOffset() const
     {
-      return Iterator(Plugins.begin(), Plugins.end(), Offset);
-    }
-
-    std::size_t GetMinimalPluginLookahead() const
-    {
-      const auto it =
-          std::min_element(Plugins.begin(), Plugins.end(),
-                           [](const PluginEntry& lh, const PluginEntry& rh) { return lh.Offset < rh.Offset; });
-      return it->Offset >= Offset ? it->Offset - Offset : 0;
-    }
-
-    void SetOffset(std::size_t offset)
-    {
-      Offset = offset;
-      for (auto& plugin : Plugins)
-      {
-        plugin.Offset = std::max(plugin.Offset, offset);
-      }
+      assert(!Plugins.empty());
+      return Plugins.front().Offset;
     }
 
   private:
-    std::size_t Offset = 0;
-    PluginsList Plugins;
+    // above this count the insertion loop stops beating a plain re-sort of the whole list
+    static constexpr std::size_t INLINE_REORDER_LIMIT = 32;
+
+    std::vector<PluginEntry> Plugins;
   };
 
   class RawDetectionPlugins
@@ -748,103 +784,95 @@ namespace ZXTune::Raw
       , Plugins(detectors.Get())
     {}
 
-    std::pair<std::size_t, bool> Detect(DataLocation::Ptr input, ArchiveCallback& callback)
+    std::pair<std::size_t, bool> Detect(ScanDataLocation::Ptr input, ArchiveCallback& callback)
     {
-      auto result = DetectIn(std::move(input), callback);
-      if (const auto matched = result->GetMatchedDataSize())
+      if (Lookaheads.IsEmpty())
       {
-        return {matched, true};
+        return Match(std::move(input), callback);
       }
-      const auto lookahead = result->GetLookaheadOffset();
+      const auto offset = input->GetOffset();
+      const auto maxSize = input->GetData()->Size();
+      const auto due = Lookaheads.FindDue(offset);
+      if (due.empty())
+      {
+        return Unmatched(offset);
+      }
+      DetectResults pending;
+      pending.reserve(due.size());
+      for (auto& entry : due)
+      {
+        auto scan = entry.Plugin->Detect(Params, input, callback);
+        if (const auto usedSize = scan.GetMatchedDataSize())
+        {
+          Dbg("Detected {} in {} bytes at {}", entry.Plugin->GetPlugin().Id(), usedSize, input->GetPath()->AsString());
+          return {usedSize, true};
+        }
+        pending.emplace_back(&entry, std::move(scan));
+      }
+      ApplyPending(maxSize, pending);
+      return Unmatched(offset);
+    }
+
+  private:
+    using DetectResults = std::vector<std::pair<LookaheadPlugins::PluginEntry*, DetectResult>>;
+
+    //! @brief the offsets are postponed only for a full miss of the due set: a match drops the
+    //!        pending scans, so the entries probed before it keep the current offset and are
+    //!        probed again at the next position
+    void ApplyPending(std::size_t maxSize, const DetectResults& pending)
+    {
+      for (const auto& [entry, scan] : pending)
+      {
+        entry->Offset += scan.Postpone(maxSize);
+      }
+      Lookaheads.Reorder(pending.size());
+    }
+
+    //! @brief the list stays empty at a match as nothing is postponed there, so the next position
+    //!        walks the whole registration list again, like the scaner does with every entry due
+    //!        at it
+    std::pair<std::size_t, bool> Match(ScanDataLocation::Ptr input, ArchiveCallback& callback)
+    {
+      std::vector<std::pair<const Detector*, DetectResult>> pending;
+      pending.reserve(Plugins.size());
+      const auto maxSize = input->GetData()->Size();
+      for (const auto& plug : Plugins)
+      {
+        auto scan = plug->Detect(Params, input, callback);
+        if (const auto usedSize = scan.GetMatchedDataSize())
+        {
+          Dbg("Detected {} in {} bytes at {}", plug->GetPlugin().Id(), usedSize, input->GetPath()->AsString());
+          return {usedSize, true};
+        }
+        pending.emplace_back(plug.get(), std::move(scan));
+      }
+      if (pending.empty())
+      {
+        // nothing to probe means nothing to find in the whole remainder
+        return {maxSize, false};
+      }
+      const auto offset = input->GetOffset();
+      for (auto& entry : pending)
+      {
+        Lookaheads.Add(entry.first).Offset += entry.second.Postpone(maxSize);
+      }
+      Lookaheads.Reorder(pending.size());
+      return Unmatched(offset);
+    }
+
+    //! @brief the entries a match left behind may still point before the scaner moved on, and they
+    //!        are due right now, so they must not make the step look shorter than it may be
+    std::pair<std::size_t, bool> Unmatched(std::size_t offset)
+    {
+      const auto lookahead = std::max(offset, Lookaheads.MinimalOffset()) - offset;
       Dbg("No detection for nearest {} bytes", lookahead);
       return {lookahead, false};
     }
 
-    void SetOffset(std::size_t offset)
-    {
-      Offset = offset;
-      Plugins.SetOffset(offset);
-    }
-
-  private:
-    Analysis::Result::Ptr DetectIn(DataLocation::Ptr input, ArchiveCallback& callback)
-    {
-      const std::size_t maxSize = input->GetData()->Size();
-      auto unmatched = std::make_unique<DelayScanResult>(Plugins, Offset, maxSize);
-      for (auto iter = Plugins.Enumerate(); iter.IsValid(); iter.Next())
-      {
-        const auto& detector = iter.GetDetector();
-        auto result = detector.Detect(Params, input, callback);
-        if (const auto usedSize = result->GetMatchedDataSize())
-        {
-          Dbg("Detected {} in {} bytes at {}", iter.GetPlugin().Id(), usedSize, input->GetPath()->AsString());
-          return result;
-        }
-        else
-        {
-          unmatched->AddPendingScan(std::move(result), iter);
-        }
-      }
-      return unmatched;
-    }
-
-    class DelayScanResult : public Analysis::Result
-    {
-    public:
-      DelayScanResult(LookaheadPlugins& plugins, std::size_t offset, std::size_t maxSize)
-        : Plugins(plugins)
-        , Offset(offset)
-        , MaxSize(maxSize)
-      {}
-
-      void AddPendingScan(Analysis::Result::Ptr result, LookaheadPlugins::Iterator iter)
-      {
-        PendingScans.emplace_back(std::move(result), std::move(iter));
-      }
-
-      std::size_t GetMatchedDataSize() const override
-      {
-        return 0;
-      }
-
-      std::size_t GetLookaheadOffset() const override
-      {
-        ApplyPendingScans();
-        return Plugins.GetMinimalPluginLookahead();
-      }
-
-    private:
-      void ApplyPendingScans() const
-      {
-        for (auto& [result, iter] : PendingScans)
-        {
-          const Time::Timer scanTimer;
-          const auto lookahead = result->GetLookaheadOffset();
-          iter.SetLookahead(lookahead);
-          Dbg("Disabling check of {} for neareast {} bytes starting from {}", iter.GetPlugin().Id(), lookahead, Offset);
-          if (lookahead == MaxSize)
-          {
-            Statistic::Self().AddAimed(iter.GetPlugin(), scanTimer);
-          }
-          else
-          {
-            Statistic::Self().AddScanned(iter.GetPlugin(), scanTimer);
-          }
-        }
-        PendingScans.clear();
-      }
-
-    private:
-      LookaheadPlugins& Plugins;
-      const std::size_t Offset;
-      const std::size_t MaxSize;
-      mutable std::vector<std::pair<Analysis::Result::Ptr, LookaheadPlugins::Iterator>> PendingScans;
-    };
-
   private:
     const Parameters::Accessor& Params;
-    LookaheadPlugins Plugins;
-    std::size_t Offset = 0;
+    const Detectors::List& Plugins;
+    LookaheadPlugins Lookaheads;
   };
 
   class Scaner : public ArchivePlugin
@@ -900,7 +928,6 @@ namespace ZXTune::Raw
       {
         const std::size_t offset = subLocation->GetOffset();
         progress.Report(offset);
-        usedPlugins.SetOffset(offset);
         const auto detectResult = usedPlugins.Detect(subLocation, callback);
         if (!subLocation.unique())
         {
