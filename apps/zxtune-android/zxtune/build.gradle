@@ -130,6 +130,7 @@ dependencies {
 
 apply from: "${treeRoot}/make/android/android.gradle"
 apply from: "${treeRoot}/make/android/nativelibs.gradle"
+apply from: "${treeRoot}/make/android/r8report.gradle"
 
 // Testing related
 android {

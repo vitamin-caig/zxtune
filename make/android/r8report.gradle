@@ -1,0 +1,87 @@
+/*
+ * R8 removal report
+ *
+ * AGP already writes mapping.txt and usage.txt per variant under
+ * pkg/<module>/outputs/mapping/<variant>/, so the report is derived from those
+ * instead of adding -printusage to proguard-rules.pro. Keeping it out of the
+ * rules also stops duplicate dumps from landing in the module directory, where
+ * successive variants clobber each other.
+ *
+ * The report runs after every R8 invocation, with no property to opt out, and
+ * always prints its summary to stdout so a removal stays visible in the build
+ * output even when nobody opens the file. It runs in --strict mode, so a
+ * SUSPECT signal (a kept- or manifest-referenced class the output dropped)
+ * fails the build instead of just warning.
+ */
+
+import java.nio.charset.StandardCharsets
+
+def reportPackage = android.namespace
+def r8report = new File("${rootDir}/${path_step}/make/android/r8report.py")
+def r8reportTests = new File("${rootDir}/${path_step}/make/android/test_r8report.py")
+
+// both streams share one sink so a chatty traceback cannot fill the stderr
+// buffer and deadlock the process while we wait on it
+def runReport = { List<String> cmdline ->
+    def sink = new ByteArrayOutputStream()
+    def proc = cmdline.execute()
+    proc.consumeProcessOutput(sink, sink)
+    def exitValue = proc.waitFor()
+    return [exit: exitValue, out: sink.toString(StandardCharsets.UTF_8).trim()]
+}
+
+tasks.register('r8ReportTest') {
+    group = 'verification'
+    description = 'Self-test the R8 removal report against golden mapping fixtures'
+    outputs.upToDateWhen { false }
+    doLast {
+        def result = runReport(['python3', r8reportTests.absolutePath])
+        if (result.out) {
+            logger.lifecycle(result.out)
+        }
+        if (result.exit != 0) {
+            throw new GradleException("r8ReportTest exited with ${result.exit}")
+        }
+    }
+}
+
+android {
+    applicationVariants.configureEach { variant ->
+        if (!variant.buildType.minifyEnabled) {
+            return
+        }
+        def suffix = variant.name.capitalize()
+        def mappingDir = "${project.buildDir}/outputs/mapping/${variant.name}"
+        def report = tasks.register("r8Report${suffix}") {
+            group = 'verification'
+            description = "Report which ${reportPackage} symbols R8 removed or inlined for ${variant.name}"
+            def mapping = file("${mappingDir}/mapping.txt")
+            def usage = file("${mappingDir}/usage.txt")
+            inputs.file(mapping)
+            inputs.file(usage)
+            outputs.file(file("${mappingDir}/report.txt"))
+            // an audit artifact is cheap to rebuild, and a stale one is worse than none
+            outputs.upToDateWhen { false }
+            onlyIf { mapping.isFile() && usage.isFile() }
+            doLast {
+                def result = runReport(['python3', r8report.absolutePath,
+                        '--variant', variant.name,
+                        '--dir', mappingDir,
+                        '--prefix', reportPackage,
+                        '--strict'])
+                if (result.out) {
+                    logger.lifecycle(result.out)
+                }
+                if (result.exit != 0) {
+                    // a stripped class is a runtime crash (e.g. a missing Room keep
+                    // rule), so this must stop the build rather than warn
+                    throw new GradleException("r8Report${suffix} found ${reportPackage} classes R8 stripped " +
+                            "even though they are referenced (exit ${result.exit}); see ${mappingDir}/report.txt")
+                }
+            }
+        }
+        tasks.named("minify${suffix}WithR8").configure {
+            finalizedBy report
+        }
+    }
+}

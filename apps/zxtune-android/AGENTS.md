@@ -11,7 +11,7 @@ Android frontend for ZXTune. Native playback engine is built from the C++ source
   - `zxtune/src/test/` - Robolectric JVM unit tests
   - `zxtune/src/androidTest/` - on-device instrumented tests (need device + real native libs)
   - `zxtune/src/fdroid/` - flavor-specific resources
-- Shared Gradle logic lives at repo root: `make/android/{project,android,nativelibs}.gradle` - read before changing build config.
+- Shared Gradle logic lives at repo root: `make/android/{project,android,nativelibs,r8report}.gradle` - read before changing build config.
 - `Makefile` at this directory just proxies every target to `./gradlew` (`make foo` == `./gradlew foo`).
 
 ## Build prerequisites (required for ANY invocation)
@@ -42,6 +42,30 @@ Only `minsdk16` variants exist for APK flavors; `minsdk28` only for AAB flavors 
 - All unit tests for a variant: `...testFatMinsdk16DevelopUnitTest`; there is no build-type aggregate task.
 - On-device tests need an emulator/device: `./gradlew zxtune:connectedFatMinsdk16DebugAndroidTest` - requires a full native build.
 - Lint: `./gradlew lintFatMinsdk16Develop`; failures do not abort (`lintOptions { abortOnError = false }`).
+
+## R8 removal report
+
+`release` and `develop` both run R8. AGP writes `mapping.txt` / `usage.txt` / `seeds.txt` per variant under `pkg/zxtune/outputs/mapping/<variant>/`, and `make/android/r8report.gradle` turns those into a `report.txt` there, classifying every `app.zxtune*` symbol `usage.txt` lists as:
+
+- `RETAINED` - still a member of the output class
+- `INLINED` - body folded into a caller, which `mapping.txt` shows as an extra frame of the same output range
+- `GONE` - nothing refers to it and it is absent from the output
+- `both` - retained at one call site and inlined at another
+
+`usage.txt` has no reason tags, so the verdict comes from the frame groups in `mapping.txt`. Because mapping records frames by name rather than full signature, a removed overload sharing a name with a retained one is flagged as a collision instead of being guessed. The summary tree also lists retained classes that shed members as `removed: ...`, so class-level removal and per-member removal read the same way.
+
+Besides the tree, `report.txt` carries `SUSPECT` signals about the keep rules:
+
+- App classes the keep rules (`seeds.txt`) protected in whole but the output left out entirely - `@Keep` guarantees that did not hold. Only bare class entries count: `Class: <member>` (e.g. AGP's default `-keepclassmembers enum *`) protects one member, not the class, so R8 may legitimately shrink or unbox the class.
+- Classes the merged `AndroidManifest.xml` names by string (`application`/`activity`/`activity-alias`/`service`/`provider`/`receiver` `android:name`, and layout `<fragment android:name>`) that the output left out - the manifest is a runtime lookup R8 cannot see, so a miss only shows up as a `ClassNotFoundException` on device. The manifest is auto-discovered from `pkg/zxtune/intermediates/merged_manifests/<variant>/.../AndroidManifest.xml`; pass `--manifest PATH` to override. An empty result (section absent) means every referenced class survived.
+- Room database implementations (`*_Impl`) that survived but lost their no-arg constructor. Room resolves `<DatabaseClass>_Impl` by string and instantiates it via `Class.forName(...).getDeclaredConstructor().newInstance()`, so R8 cannot see the reference; Room's own consumer rule keeps the class name but not the constructor. Once it is pruned the `super()` chain collapses and `runInTransaction` bodies are rewritten to `throw null`. The `-keep class * extends androidx.room.RoomDatabase { <init>(); }` rule in `zxtune/proguard-rules.pro` is what protects it; a member-level removal in `usage.txt` is the only trace.
+
+Do NOT treat a member's `:0:0` original source range in `mapping.txt` as a bug: it is normal for any body with no source line (compiler-synthesized `equals`/`hashCode`/`toString`, enum `values`/`valueOf`, lambda/delegation forwarders, and R8-generated `$$ExternalSyntheticLambda`/`$r8$lambda$`/`BUOutline`/bridges), so a healthy release has thousands. The Room shutdown bug (`RoomDatabase.getAutoMigrations`) had the same shape, but the sentinel cannot tell the two apart, so it is not reported.
+
+- Runs automatically after every `minify*WithR8` (`finalizedBy`), with no property to opt out; the summary is printed to stdout. It runs `r8report.py --strict`, so any `SUSPECT` signal fails the build - a stripped class (e.g. a Room keep rule that did not hold) is a runtime crash, not a warning. Fix the keep rules rather than the report.
+- Re-run on demand: `./gradlew zxtune:r8ReportFatMinsdk16Release` (or `...Develop`).
+- Self-test the classifier: `./gradlew zxtune:r8ReportTest`, or `python3 make/android/test_r8report.py`. Golden fixtures cover multi-frame groups, owner-less frames, residual-signature comments, fields, constructors and missing seeds; live checks (run when a release build exists) also assert every JNI-reached and manifest-referenced class survived.
+- Do NOT add `-printusage`/`-printmapping`/`-printconfiguration` to `zxtune/proguard-rules.pro`. Duplicates there land in the module directory, where variants clobber each other, and AGP already emits per-variant copies.
 
 ## Native libs are the main cost driver
 
