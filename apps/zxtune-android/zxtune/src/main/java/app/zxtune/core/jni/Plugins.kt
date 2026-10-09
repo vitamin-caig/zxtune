@@ -1,8 +1,10 @@
 package app.zxtune.core.jni
 
+import androidx.annotation.Keep
+
 class Plugins {
     object DeviceType {
-        //ZXTune::Capabilities::Module::Device::Type
+        // ZXTune::Capabilities::Module::Device::Type
         const val AY38910 = 1
         const val TURBOSOUND = 2
         const val BEEPER = 4
@@ -20,7 +22,7 @@ class Plugins {
     }
 
     object ContainerType {
-        //ZXTune::Capabilities::Container::Type
+        // ZXTune::Capabilities::Container::Type
         const val ARCHIVE = 0
         const val COMPRESSOR = 1
         const val SNAPSHOT = 2
@@ -30,6 +32,7 @@ class Plugins {
         const val SCANER = 6
     }
 
+    @Keep
     interface Visitor {
         fun onPlayerPlugin(devices: Int, id: String, description: String)
         fun onContainerPlugin(type: Int, id: String, description: String)
