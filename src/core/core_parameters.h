@@ -25,6 +25,17 @@ namespace Parameters::ZXTune::Core
   const IntType CHANNELS_MASK_DEFAULT = 0;
   //@}
 
+  //@{
+  //! @name Frame duration in microseconds
+  const IntType FRAMEDURATION_PRECISION = 1000000;
+
+  //! Bounds
+  const IntType FRAMEDURATION_MIN = 1000;
+  const IntType FRAMEDURATION_MAX = 1000000;
+  //! Parameter name
+  const auto FRAMEDURATION = PREFIX + "frameduration"_id;
+  //@}
+
   //! @brief AYM-chip related parameters namespace
   namespace AYM
   {
