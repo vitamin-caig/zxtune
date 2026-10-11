@@ -10,6 +10,7 @@
 
 #include "module/players/properties_helper.h"
 
+#include "core/parameters.h"
 #include "formats/chiptune/container.h"
 #include "module/attributes.h"
 #include "parameters/identifiers_set.h"
@@ -183,5 +184,10 @@ namespace Module
     {
       Parameters::Set<Gain>(Delegate, 1);
     }
+  }
+
+  void PropertiesHelper::SetFrameDuration(Time::Microseconds frameDuration)
+  {
+    Parameters::Set<Parameters::ZXTune::Core::FrameDuration>(Delegate, frameDuration);
   }
 }  // namespace Module
