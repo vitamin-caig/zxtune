@@ -124,14 +124,14 @@ namespace Module::AHX
 
     Module::State MakeTrackState() const
     {
-      const auto total = (FRAME_DURATION * (Hvl->ht_PlayingTime / Hvl->ht_SpeedMultiplier)).CastTo<Time::Millisecond>();
+      const auto played =
+          (FRAME_DURATION * (Hvl->ht_PlayingTime / Hvl->ht_SpeedMultiplier)).CastTo<Time::Millisecond>();
       uint_t channels = 0;
       for (uint_t idx = 0, lim = Hvl->ht_Channels; idx != lim; ++idx)
       {
         channels += Hvl->ht_Voices[idx].vc_TrackOn != 0;
       }
-      return {.At = Time::AtMillisecond() + total,
-              .Total = total,
+      return {.At = Time::AtMillisecond() + played,
               .LoopCount = Hvl->ht_SongEndReached,
               .Track = {{.Position = static_cast<uint_t>(Hvl->ht_PosNr),
                          .Pattern = static_cast<uint_t>(Hvl->ht_PosNr) /*TODO*/,

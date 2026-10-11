@@ -46,7 +46,6 @@ namespace Module
     State Get() const
     {
       return {.At = Time::AtMillisecond() + (Stream.FrameDuration * CurFrame).CastTo<Time::Millisecond>(),
-              .Total = TotalPlayed.CastTo<Time::Millisecond>(),
               .LoopCount = Loops};
     }
 
@@ -64,7 +63,6 @@ namespace Module
     void Reset()
     {
       CurFrame = 0;
-      TotalPlayed = {};
       Loops = 0;
     }
 
@@ -78,7 +76,6 @@ namespace Module
     {
       if (IsValid())
       {
-        TotalPlayed += Stream.FrameDuration;
         ++CurFrame;
       }
     }
@@ -86,7 +83,6 @@ namespace Module
   private:
     const FramedStream Stream;
     uint_t CurFrame = 0;
-    Time::Microseconds TotalPlayed;
     uint_t Loops = 0;
   };
 
@@ -173,7 +169,6 @@ namespace Module
   {
     const auto nextSamples = samples ? DoneSamples + samples : TotalSamples;
     DoneSamples = nextSamples % TotalSamples;
-    DoneSamplesTotal += samples;
     const auto doneLoops = nextSamples / TotalSamples;
     Loops += doneLoops;
     return doneLoops;

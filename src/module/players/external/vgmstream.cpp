@@ -242,7 +242,6 @@ namespace Module::VGMStream
     State GetState() const override
     {
       return {.At = Time::AtMillisecond() + Time::Milliseconds::FromRatio(Tune->current_sample, Tune->sample_rate),
-              .Total = Time::Milliseconds::FromRatio(Tune->pstate.play_duration, Tune->sample_rate),
               .LoopCount = static_cast<uint_t>(Tune->loop_count)};
     }
 
@@ -275,7 +274,6 @@ namespace Module::VGMStream
           stereo[pos] = Sound::Sample(in, in);
         }
       }
-      Tune->pstate.play_duration += done;
       return Target->Apply(std::move(result));
     }
 
@@ -293,10 +291,7 @@ namespace Module::VGMStream
   private:
     void DoSeek(uint_t samples)
     {
-      // Keep total playback history
-      const auto play_duration = Tune->pstate.play_duration;
       ::seek_vgmstream(Tune.get(), samples);
-      Tune->pstate.play_duration = play_duration;
     }
 
   private:

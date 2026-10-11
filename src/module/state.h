@@ -41,8 +41,6 @@ namespace Module
   {
     //! Current playback position till Information::Duration
     Time::AtMillisecond At;
-    //! Total played time ignoring seeks
-    Time::Milliseconds Total;
     //! Count of restarts due to looping
     uint_t LoopCount = 0;
     //! Optional track state

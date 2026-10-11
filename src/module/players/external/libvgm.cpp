@@ -306,13 +306,6 @@ namespace Module::LibVGM
       return Time::AtMillisecond() + Time::Milliseconds(curtime * 1000);
     }
 
-    Time::Milliseconds Total() const
-    {
-      // total played time
-      const auto curtime = Delegate->GetCurTime(PLAYTIME_LOOP_INCL | PLAYTIME_TIME_PBK);
-      return Time::Milliseconds(curtime * 1000);
-    }
-
     uint_t LoopCount() const
     {
       // Tracks can specify LoopTicks == 0 to indicate no loop.
@@ -402,7 +395,7 @@ namespace Module::LibVGM
 
     State GetState() const override
     {
-      return {.At = Engine.At(), .Total = Engine.Total(), .LoopCount = Engine.LoopCount()};
+      return {.At = Engine.At(), .LoopCount = Engine.LoopCount()};
     }
 
     Sound::Chunk Render() override

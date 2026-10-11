@@ -92,7 +92,6 @@ namespace Module::MPT
     Module::State Get() const
     {
       return {.At = At(),
-              .Total = Total(),
               .LoopCount = LoopsDone,
               .Track = {{.Position = Current.Position,
                          .Pattern = static_cast<uint_t>(Track.get_current_pattern()),

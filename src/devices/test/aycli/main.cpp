@@ -86,25 +86,6 @@ namespace
     return mixer;
   }
 
-  class StubState : public Module::State
-  {
-  public:
-    Time::AtMillisecond At() const override
-    {
-      return {};
-    }
-
-    Time::Milliseconds Total() const override
-    {
-      return {};
-    }
-
-    uint_t LoopCount() const override
-    {
-      return 0;
-    }
-  };
-
   class State
   {
   public:
@@ -166,7 +147,7 @@ namespace
 
     void ExecuteCycle() override
     {
-      static const StubState STATE;
+      static const Module::State STATE{};
       static const auto PERIOD = Time::Duration<Devices::AYM::TimeUnit>::FromFrequency(50);
       Worker->FrameStart(STATE);
       Data->Read(&Chunk.Data);
@@ -191,7 +172,8 @@ namespace
       Factory = std::move(factory);
     }
 
-    virtual void Register(Sound::BackendId /*id*/, const char* /*description*/, uint_t /*caps*/, const Error& /*status*/)
+    virtual void Register(Sound::BackendId /*id*/, const char* /*description*/, uint_t /*caps*/,
+                          const Error& /*status*/)
     {}
 
     virtual void Register(Sound::BackendId /*id*/, const char* /*description*/, uint_t /*caps*/) {}

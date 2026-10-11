@@ -93,10 +93,9 @@ namespace Module::Xmp
     return {.Duration = duration, .LoopDuration = duration /*TODO*/, .Track = std::move(track)};
   }
 
-  State MakeTrackState(const xmp_frame_info& info, Time::Microseconds total)
+  State MakeTrackState(const xmp_frame_info& info)
   {
     return {.At = Time::AtMillisecond() + DurationType(info.time),
-            .Total = total.CastTo<Time::Millisecond>(),
             .LoopCount = static_cast<uint_t>(info.loop_count),
             .Track = {{.Position = static_cast<uint_t>(info.pos),
                        .Pattern = static_cast<uint_t>(info.pattern),
@@ -112,7 +111,6 @@ namespace Module::Xmp
     Renderer(uint_t channels, Context::Ptr ctx, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Ctx(std::move(ctx))
       , Params(std::move(params))
-      , SoundFreq(samplerate)
       , ChannelsCount(channels)
     {
       // Required in order to perform initial seeking
@@ -126,7 +124,7 @@ namespace Module::Xmp
 
     Module::State GetState() const override
     {
-      return MakeTrackState(State, TotalDuration);
+      return MakeTrackState(State);
     }
 
     Sound::Chunk Render() override
@@ -144,7 +142,6 @@ namespace Module::Xmp
         if (const std::size_t bytes = State.buffer_size)
         {
           const std::size_t samples = bytes / sizeof(Sound::Sample);
-          TotalDuration += Time::Microseconds::FromRatio(samples, SoundFreq);
           Sound::Chunk chunk(samples);
           std::memcpy(chunk.data(), State.buffer, samples * sizeof(Sound::Sample));
           return chunk;
@@ -157,7 +154,6 @@ namespace Module::Xmp
     {
       Params.Reset();
       Ctx->Call(&::xmp_restart_module);
-      TotalDuration = {};
     }
 
     void SetPosition(Time::AtMillisecond request) override
@@ -196,9 +192,7 @@ namespace Module::Xmp
   private:
     const Context::Ptr Ctx;
     xmp_frame_info State;
-    Time::Microseconds TotalDuration;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
-    const uint_t SoundFreq;
     const uint_t ChannelsCount;
   };
 

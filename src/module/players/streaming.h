@@ -50,14 +50,13 @@ namespace Module
 
     State Get() const
     {
-      return {.At = At(), .Total = TotalPlayback.CastTo<Time::Millisecond>(), .LoopCount = LoopCount()};
+      return {.At = At(), .LoopCount = LoopCount()};
     }
 
     void Reset()
     {
       Position = {};
       Loops = 0;
-      TotalPlayback = {};
     }
 
     // Consumes and returns min(range, End - Position)
@@ -90,7 +89,6 @@ namespace Module
   private:
     const Time::AtMicrosecond Limit;
     Time::AtMicrosecond Position;
-    Time::Microseconds TotalPlayback;
     uint_t Loops = 0;
   };
 
@@ -114,12 +112,12 @@ namespace Module
 
     State Get() const
     {
-      return {.At = At(), .Total = Time::Milliseconds::FromRatio(DoneSamplesTotal, Samplerate), .LoopCount = Loops};
+      return {.At = At(), .LoopCount = Loops};
     }
 
     void Reset()
     {
-      DoneSamples = DoneSamplesTotal = 0;
+      DoneSamples = 0;
       Loops = 0;
     }
 
@@ -146,7 +144,6 @@ namespace Module
     const uint64_t TotalSamples;
     const uint_t Samplerate;
     uint64_t DoneSamples = 0;
-    uint64_t DoneSamplesTotal = 0;
     uint_t Loops = 0;
   };
 }  // namespace Module

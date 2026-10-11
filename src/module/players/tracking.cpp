@@ -49,7 +49,6 @@ namespace Module
     State Get() const
     {
       return {.At = At(),
-              .Total = TotalPlayed.CastTo<Time::Millisecond>(),
               .LoopCount = Loops,
               .Track = {{.Position = Plain.Position,
                          .Pattern = Plain.Pattern,
@@ -70,7 +69,6 @@ namespace Module
       Plain.Frame = 0;
       Plain.Tempo = Model.GetInitialTempo();
       SetPosition(0);
-      TotalPlayed = {};
       Loops = 0;
     }
 
@@ -102,15 +100,7 @@ namespace Module
 
     bool NextFrame()
     {
-      if (NextQuirk() || NextLine() || NextPosition())
-      {
-        TotalPlayed += FrameDuration;
-        return true;
-      }
-      else
-      {
-        return false;
-      }
+      return NextQuirk() || NextLine() || NextPosition();
     }
 
     void DoneLoop()
@@ -185,7 +175,6 @@ namespace Module
     const PatternsSet& Patterns;
     // state
     PlainTrackState Plain;
-    Time::Microseconds TotalPlayed;
     uint_t Loops = 0;
   };
 

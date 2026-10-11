@@ -1101,7 +1101,6 @@ namespace Module::TFMMusicMaker
     State Get() const
     {
       return {.At = At(),
-              .Total = TotalPlayed.CastTo<Time::Millisecond>(),
               .LoopCount = Loops,
               .Track = {{.Position = Plain.Position,
                          .Pattern = Plain.Pattern,
@@ -1131,7 +1130,6 @@ namespace Module::TFMMusicMaker
       Plain.TempoInterleaveCounter = 0;
       SetPosition(0);
       NextLineState = nullptr;
-      TotalPlayed = {};
       Loops = 0;
     }
 
@@ -1159,15 +1157,7 @@ namespace Module::TFMMusicMaker
 
     bool NextFrame()
     {
-      if (NextQuirk() || NextLine() || NextPosition())
-      {
-        TotalPlayed += FrameDuration;
-        return true;
-      }
-      else
-      {
-        return false;
-      }
+      return NextQuirk() || NextLine() || NextPosition();
     }
 
     void DoneLoop()
@@ -1310,7 +1300,6 @@ namespace Module::TFMMusicMaker
     const class Line* CurLineObject;
     LoopState Loop;
     const PlainTrackState* NextLineState = nullptr;
-    Time::Microseconds TotalPlayed;
     uint_t Loops = 0;
   };
 
