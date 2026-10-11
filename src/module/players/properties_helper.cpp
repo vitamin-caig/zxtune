@@ -10,6 +10,7 @@
 
 #include "module/players/properties_helper.h"
 
+#include "core/core_parameters.h"
 #include "formats/chiptune/container.h"
 #include "module/attributes.h"
 #include "sound/sound_parameters.h"
@@ -176,5 +177,12 @@ namespace Module
     {
       Delegate.SetValue(GAIN, 1);
     }
+  }
+
+  void PropertiesHelper::SetFrameDuration(Time::Microseconds frameDuration)
+  {
+    using namespace Parameters::ZXTune::Core;
+    using Storage = Time::BaseUnit<Parameters::IntType, FRAMEDURATION_PRECISION>;
+    Delegate.SetValue(FRAMEDURATION, frameDuration.CastTo<Storage>().Get());
   }
 }  // namespace Module

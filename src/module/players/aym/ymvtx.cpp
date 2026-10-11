@@ -163,6 +163,7 @@ namespace Module::AYM
         // TODO: detect platform by intfreq and clockrate
         props.SetSource(*container);
         const auto frameDuration = dataBuilder.GetFrameDuration();
+        props.SetFrameDuration(frameDuration);
         return CreateStreamedChiptune(frameDuration, std::move(data));
       }
     }

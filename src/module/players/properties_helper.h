@@ -59,6 +59,7 @@ namespace Module
     void SetFadein(Time::Milliseconds fadein);
     void SetFadeout(Time::Milliseconds fadeout);
     void SetGain(float gain);
+    void SetFrameDuration(Time::Microseconds frameDuration);
 
   protected:
     Parameters::Modifier& Delegate;
