@@ -32,23 +32,17 @@ namespace Module
   class TrackStateCursor
   {
   public:
-    TrackStateCursor(Time::Microseconds frameDuration, const TrackModel& model)
-      : FrameDuration(frameDuration)
-      , Model(model)
+    explicit TrackStateCursor(const TrackModel& model)
+      : Model(model)
       , Order(Model.GetOrder())
       , Patterns(Model.GetPatterns())
     {
       Reset();
     }
 
-    Time::AtMillisecond At() const
+    FramedState Get() const
     {
-      return Time::AtMillisecond() + (FrameDuration * Plain.Frame).CastTo<Time::Millisecond>();
-    }
-
-    State Get() const
-    {
-      return {.At = At(),
+      return {.At = Plain.Frame,
               .LoopCount = Loops,
               .Track = {{.Position = Plain.Position,
                          .Pattern = Plain.Pattern,
@@ -169,7 +163,6 @@ namespace Module
 
   private:
     // context
-    const Time::Microseconds FrameDuration;
     const TrackModel& Model;
     const OrderList& Order;
     const PatternsSet& Patterns;
@@ -181,9 +174,9 @@ namespace Module
   class TrackStateIterator : public Iterator
   {
   public:
-    TrackStateIterator(Time::Microseconds frameDuration, TrackModel::Ptr model)
+    explicit TrackStateIterator(TrackModel::Ptr model)
       : Model(std::move(model))
-      , Cursor(frameDuration, *Model)
+      , Cursor(*Model)
     {}
 
     // iterator functions
@@ -200,7 +193,7 @@ namespace Module
       }
     }
 
-    State GetState() const override
+    FramedState GetState() const override
     {
       return Cursor.Get();
     }
@@ -226,21 +219,21 @@ namespace Module
     std::optional<PlainTrackState> LoopState;
   };
 
-  Information CreateTrackInfoFixedChannels(Time::Microseconds frameDuration, const TrackModel& model, uint_t channels)
+  FramedInformation CreateTrackInfoFixedChannels(const TrackModel& model, uint_t channels)
   {
     const auto& order = model.GetOrder();
     TrackLayout track = {
         .ChannelsCount = channels, .PositionsCount = order.GetSize(), .LoopPosition = order.GetLoopPosition()};
-    TrackStateCursor cursor(frameDuration, model);
+    TrackStateCursor cursor(model);
     cursor.Seek(track.LoopPosition);
-    const auto loopAt = cursor.At();
+    const auto loopFrame = cursor.Get().At;
     cursor.Seek(track.PositionsCount);
-    const auto endAt = cursor.At();
-    return {.Duration = endAt - Time::AtMillisecond(), .LoopDuration = endAt - loopAt, .Track = std::move(track)};
+    const auto totalFrame = cursor.Get().At;
+    return {.Total = totalFrame, .Loop = loopFrame, .Track = std::move(track)};
   }
 
-  Iterator::Ptr CreateTrackStateIterator(Time::Microseconds frameDuration, TrackModel::Ptr model)
+  Iterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model)
   {
-    return MakePtr<TrackStateIterator>(frameDuration, std::move(model));
+    return MakePtr<TrackStateIterator>(std::move(model));
   }
 }  // namespace Module

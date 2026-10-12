@@ -106,15 +106,15 @@ namespace Module
     }
   };
 
-  Information CreateTrackInfoFixedChannels(Time::Microseconds frameDuration, const TrackModel& model, uint_t channels);
+  FramedInformation CreateTrackInfoFixedChannels(const TrackModel& model, uint_t channels);
 
-  inline Information CreateTrackInfo(Time::Microseconds frameDuration, const TrackModel& model)
+  inline FramedInformation CreateTrackInfo(const TrackModel& model)
   {
     const auto channels = model.GetChannelsCount();
-    return CreateTrackInfoFixedChannels(frameDuration, model, channels);
+    return CreateTrackInfoFixedChannels(model, channels);
   }
 
-  Iterator::Ptr CreateTrackStateIterator(Time::Microseconds frameDuration, TrackModel::Ptr model);
+  Iterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model);
 
   class PatternsBuilder : public Formats::Chiptune::PatternBuilder
   {

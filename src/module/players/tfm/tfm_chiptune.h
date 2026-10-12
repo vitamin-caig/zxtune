@@ -36,7 +36,7 @@ namespace Module::TFM
 
     virtual Time::Microseconds GetFrameDuration() const = 0;
 
-    virtual Information GetInformation() const = 0;
+    virtual FramedInformation GetInformation() const = 0;
     virtual Parameters::Accessor::Ptr GetProperties() const = 0;
     virtual DataIterator::Ptr CreateDataIterator() const = 0;
   };

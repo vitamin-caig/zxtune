@@ -54,7 +54,7 @@ namespace Module::TFM
       FillCurrentData();
     }
 
-    Module::State GetState() const override
+    FramedState GetState() const override
     {
       return Delegate->GetState();
     }

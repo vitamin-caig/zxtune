@@ -10,8 +10,6 @@
 
 #include "module/players/streaming.h"
 
-#include "module/players/stream_model.h"
-
 #include "make_ptr.h"
 
 #include <algorithm>
@@ -23,7 +21,6 @@ namespace Module
   {
     uint_t TotalFrames = 0;
     uint_t LoopFrame = 0;
-    Time::Microseconds FrameDuration;
 
     void Sanitize()
     {
@@ -43,15 +40,9 @@ namespace Module
       Reset();
     }
 
-    State Get() const
+    FramedState Get() const
     {
-      return {.At = Time::AtMillisecond() + (Stream.FrameDuration * CurFrame).CastTo<Time::Millisecond>(),
-              .LoopCount = Loops};
-    }
-
-    uint_t Frame() const
-    {
-      return CurFrame;
+      return {.At = CurFrame, .LoopCount = Loops};
     }
 
     // navigation
@@ -86,7 +77,7 @@ namespace Module
     uint_t Loops = 0;
   };
 
-  class FramedStreamStateIterator : public StateIterator
+  class FramedStreamStateIterator : public Iterator
   {
   public:
     explicit FramedStreamStateIterator(FramedStream stream)
@@ -108,12 +99,7 @@ namespace Module
       }
     }
 
-    uint_t CurrentFrame() const override
-    {
-      return Cursor.Frame();
-    }
-
-    State GetState() const override
+    FramedState GetState() const override
     {
       return Cursor.Get();
     }
@@ -122,24 +108,11 @@ namespace Module
     FramedStreamStateCursor Cursor;
   };
 
-  Information CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel& model)
+  Iterator::Ptr CreateStreamStateIterator(const FramedInformation& info)
   {
     FramedStream stream;
-    stream.FrameDuration = frameDuration;
-    stream.TotalFrames = model.GetTotalFrames();
-    stream.LoopFrame = model.GetLoopFrame();
-    stream.Sanitize();
-    return CreateTimedInfo(
-        (stream.FrameDuration * stream.TotalFrames).CastTo<Time::Millisecond>(),
-        (stream.FrameDuration * (stream.TotalFrames - stream.LoopFrame)).CastTo<Time::Millisecond>());
-  }
-
-  StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, const StreamModel& model)
-  {
-    FramedStream stream;
-    stream.FrameDuration = frameDuration;
-    stream.TotalFrames = model.GetTotalFrames();
-    stream.LoopFrame = model.GetLoopFrame();
+    stream.TotalFrames = info.Total;
+    stream.LoopFrame = info.Loop;
     stream.Sanitize();
     return MakePtr<FramedStreamStateIterator>(stream);
   }

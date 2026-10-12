@@ -136,14 +136,9 @@ namespace Module::AYM
       return BASE_FRAME_DURATION;
     }
 
-    TrackModel::Ptr FindTrackModel() const override
+    FramedInformation GetInformation() const override
     {
-      return Data;
-    }
-
-    Module::StreamModel::Ptr FindStreamModel() const override
-    {
-      return {};
+      return CreateTrackInfo(*Data);
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -153,7 +148,7 @@ namespace Module::AYM
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
+      auto iterator = CreateTrackStateIterator(Data);
       auto renderer = MakePtr<DataRenderer>(Data);
       return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }

@@ -41,7 +41,7 @@ namespace Module
       FillCurrentData();
     }
 
-    Module::State GetState() const override
+    FramedState GetState() const override
     {
       return Delegate->GetState();
     }
@@ -76,7 +76,7 @@ namespace Module
 
     State GetState() const override
     {
-      return Iterator->GetState();
+      return ToState(Iterator->GetState(), FrameDuration.CastTo<Time::Microsecond>());
     }
 
     Sound::Chunk Render() override
@@ -96,13 +96,13 @@ namespace Module
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      if (request < Iterator->GetState().At)
+      if (request < GetState().At)
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = {};
       }
-      while (Iterator->GetState().At < request)
+      while (GetState().At < request)
       {
         TransferChunk();
         Iterator->NextFrame();
@@ -132,7 +132,7 @@ namespace Module
 
     Information GetModuleInformation() const override
     {
-      return CreateTrackInfo(Tune->GetFrameDuration(), *Tune->GetTrackModel());
+      return ToInformation(CreateTrackInfo(*Tune->GetTrackModel()), Tune->GetFrameDuration());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override

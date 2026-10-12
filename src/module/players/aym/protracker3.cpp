@@ -195,14 +195,9 @@ namespace Module::ProTracker3
       return AYM::BASE_FRAME_DURATION;
     }
 
-    TrackModel::Ptr FindTrackModel() const override
+    FramedInformation GetInformation() const override
     {
-      return Data;
-    }
-
-    Module::StreamModel::Ptr FindStreamModel() const override
-    {
-      return {};
+      return CreateTrackInfo(*Data);
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -212,7 +207,7 @@ namespace Module::ProTracker3
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
+      auto iterator = CreateTrackStateIterator(Data);
       auto renderer = CreateDataRenderer(Data);
       return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
@@ -249,7 +244,7 @@ namespace Module::ProTracker3
         Delegate->NextFrame();
       }
 
-      Module::State GetState() const override
+      FramedState GetState() const override
       {
         return Delegate->GetState();
       }
@@ -301,14 +296,9 @@ namespace Module::ProTracker3
         return AYM::BASE_FRAME_DURATION;
       }
 
-      TrackModel::Ptr FindTrackModel() const override
+      FramedInformation GetInformation() const override
       {
-        return Data;
-      }
-
-      Module::StreamModel::Ptr FindStreamModel() const override
-      {
-        return {};
+        return CreateTrackInfo(*Data);
       }
 
       Parameters::Accessor::Ptr GetProperties() const override
@@ -319,7 +309,7 @@ namespace Module::ProTracker3
       TurboSound::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first,
                                                        AYM::TrackParameters::Ptr /*second*/) const override
       {
-        auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
+        auto iterator = CreateTrackStateIterator(Data);
         return MakePtr<DataIterator>(*Data->TurboPatternsOffset, std::move(first), std::move(iterator),
                                      Vortex::CreateDataRenderer(Data), Vortex::CreateDataRenderer(Data));
       }

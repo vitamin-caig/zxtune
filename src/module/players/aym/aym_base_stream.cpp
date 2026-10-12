@@ -21,7 +21,7 @@ namespace Module::AYM
   class StreamDataIterator : public DataIterator
   {
   public:
-    StreamDataIterator(StateIterator::Ptr delegate, StreamModel::Ptr data)
+    StreamDataIterator(Iterator::Ptr delegate, StreamModel::Ptr data)
       : Delegate(std::move(delegate))
       , Data(std::move(data))
     {}
@@ -36,18 +36,18 @@ namespace Module::AYM
       Delegate->NextFrame();
     }
 
-    Module::State GetState() const override
+    FramedState GetState() const override
     {
       return Delegate->GetState();
     }
 
     Devices::AYM::Registers GetData() const override
     {
-      return Data->Get(Delegate->CurrentFrame());
+      return Data->Get(Delegate->GetState().At);
     }
 
   private:
-    const StateIterator::Ptr Delegate;
+    const Iterator::Ptr Delegate;
     const StreamModel::Ptr Data;
   };
 
@@ -65,14 +65,9 @@ namespace Module::AYM
       return FrameDuration;
     }
 
-    TrackModel::Ptr FindTrackModel() const override
+    FramedInformation GetInformation() const override
     {
-      return {};
-    }
-
-    Module::StreamModel::Ptr FindStreamModel() const override
-    {
-      return Data;
+      return Data->GetInformation();
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -82,7 +77,7 @@ namespace Module::AYM
 
     DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr /*trackParams*/) const override
     {
-      auto iter = CreateStreamStateIterator(FrameDuration, *Data);
+      auto iter = CreateStreamStateIterator(Data->GetInformation());
       return MakePtr<StreamDataIterator>(std::move(iter), Data);
     }
 

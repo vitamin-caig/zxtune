@@ -184,7 +184,7 @@ namespace Module::DAC
 
     DAC::DataIterator::Ptr CreateDataIterator() const override
     {
-      auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
+      auto iterator = CreateTrackStateIterator(Data);
       auto renderer = MakePtr<SimpleDataRenderer>(Data);
       return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
     }

@@ -11,25 +11,19 @@
 #pragma once
 
 #include "module/players/aym/aym_chiptune.h"
-#include "module/players/stream_model.h"
 
 #include "contract.h"
 
 namespace Module::AYM
 {
-  class StreamModel : public Module::StreamModel
+  class StreamModel
   {
   public:
     using Ptr = std::shared_ptr<const StreamModel>;
 
-    uint_t GetTotalFrames() const override
+    FramedInformation GetInformation() const
     {
-      return static_cast<uint_t>(Data.size());
-    }
-
-    uint_t GetLoopFrame() const override
-    {
-      return Loop;
+      return {.Total = static_cast<uint_t>(Data.size()), .Loop = Loop};
     }
 
     const Devices::AYM::Registers& Get(uint_t pos) const

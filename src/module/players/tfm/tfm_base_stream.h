@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "module/players/stream_model.h"
 #include "module/players/tfm/tfm_chiptune.h"
 
 namespace Module::TFM
 {
-  class StreamModel : public Module::StreamModel
+  class StreamModel
   {
   public:
     using Ptr = std::shared_ptr<const StreamModel>;
 
+    virtual FramedInformation GetInformation() const = 0;
     virtual void Get(uint_t pos, Devices::TFM::Registers& res) const = 0;
   };
 

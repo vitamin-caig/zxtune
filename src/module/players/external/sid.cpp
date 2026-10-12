@@ -306,7 +306,6 @@ namespace Module::Sid
     const Model::Ptr Tune;
     TimedState State;
     const SidEngine::Ptr Engine;
-    const StateIterator::Ptr Iterator;
     Parameters::TrackingHelper<SidParameters> SidParams;
   };
 

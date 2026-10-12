@@ -145,7 +145,7 @@ namespace Module::TurboSound
     const Parameters::Accessor::Ptr Second;
   };
 
-  State CreateState(State lh, State rh)
+  FramedState CreateState(FramedState lh, FramedState rh)
   {
     if (lh.Track && rh.Track)
     {
@@ -174,7 +174,7 @@ namespace Module::TurboSound
       Second->NextFrame();
     }
 
-    State GetState() const override
+    FramedState GetState() const override
     {
       return CreateState(First->GetState(), Second->GetState());
     }
@@ -200,7 +200,7 @@ namespace Module::TurboSound
 
     State GetState() const override
     {
-      return Iterator->GetState();
+      return ToState(Iterator->GetState(), FrameDuration.CastTo<Time::Microsecond>());
     }
 
     Sound::Chunk Render() override
@@ -220,13 +220,13 @@ namespace Module::TurboSound
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      if (request < Iterator->GetState().At)
+      if (request < GetState().At)
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = {};
       }
-      while (Iterator->GetState().At < request)
+      while (GetState().At < request)
       {
         TransferChunk();
         Iterator->NextFrame();
@@ -261,14 +261,14 @@ namespace Module::TurboSound
       return First->GetFrameDuration();
     }
 
-    TrackModel::Ptr FindTrackModel() const override
+    FramedInformation GetInformation() const override
     {
-      return First->FindTrackModel();
-    }
-
-    Module::StreamModel::Ptr FindStreamModel() const override
-    {
-      return First->FindStreamModel();
+      auto info = First->GetInformation();
+      if (info.Track)
+      {
+        info.Track->ChannelsCount = TRACK_CHANNELS;
+      }
+      return info;
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -308,14 +308,7 @@ namespace Module::TurboSound
 
     Information GetModuleInformation() const override
     {
-      if (auto track = Tune->FindTrackModel())
-      {
-        return CreateTrackInfoFixedChannels(Tune->GetFrameDuration(), *track, TRACK_CHANNELS);
-      }
-      else
-      {
-        return CreateStreamInfo(Tune->GetFrameDuration(), *Tune->FindStreamModel());
-      }
+      return ToInformation(Tune->GetInformation(), Tune->GetFrameDuration());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
