@@ -167,19 +167,13 @@ namespace Module::DAC
   class SimpleChiptune : public DAC::Chiptune
   {
   public:
-    SimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+    explicit SimpleChiptune(SimpleModuleData::Ptr data)
       : Data(std::move(data))
-      , Properties(std::move(properties))
     {}
 
     TrackModel::Ptr GetTrackModel() const override
     {
       return Data;
-    }
-
-    Parameters::Accessor::Ptr GetProperties() const override
-    {
-      return Properties;
     }
 
     DAC::DataIterator::Ptr CreateDataIterator() const override
@@ -196,11 +190,10 @@ namespace Module::DAC
 
   private:
     const SimpleModuleData::Ptr Data;
-    const Parameters::Accessor::Ptr Properties;
   };
 
-  DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+  DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data)
   {
-    return MakePtr<SimpleChiptune>(std::move(data), std::move(properties));
+    return MakePtr<SimpleChiptune>(std::move(data));
   }
 }  // namespace Module::DAC

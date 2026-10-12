@@ -731,14 +731,13 @@ namespace Module::SQTracker
 
 namespace Module::AYM
 {
-  Chiptune::Ptr CreateSQTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateSQTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties);
     SQTracker::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<SQTracker::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+      return CreateTrackingChiptune<SQTracker::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }

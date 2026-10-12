@@ -57,16 +57,15 @@ namespace Module::PSG
 
 namespace Module::AYM
 {
-  Chiptune::Ptr CreatePSGChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreatePSGChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
     PSG::DataBuilder dataBuilder;
     if (const auto container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
     {
       if (auto data = dataBuilder.CaptureResult())
       {
-        PropertiesHelper props(*properties);
         props.SetSource(*container);
-        return CreateStreamedChiptune(BASE_FRAME_DURATION, std::move(data), std::move(properties));
+        return CreateStreamedChiptune(std::move(data));
       }
     }
     return {};

@@ -38,12 +38,14 @@ namespace Module::TurboSound
 
     virtual FramedInformation GetInformation() const = 0;
 
-    virtual Parameters::Accessor::Ptr GetProperties() const = 0;
     virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first,
                                                  AYM::TrackParameters::Ptr second) const = 0;
   };
 
-  Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second);
+  Chiptune::Ptr CreateChiptune(AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second);
 
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
+  Parameters::Accessor::Ptr CreateModuleProperties(Parameters::Accessor::Ptr outer, Parameters::Accessor::Ptr first,
+                                                   Parameters::Accessor::Ptr second);
+
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties);
 }  // namespace Module::TurboSound

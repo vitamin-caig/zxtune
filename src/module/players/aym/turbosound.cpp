@@ -250,9 +250,8 @@ namespace Module::TurboSound
   class MergedChiptune : public Chiptune
   {
   public:
-    MergedChiptune(Parameters::Accessor::Ptr props, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
-      : Properties(std::move(props))
-      , First(std::move(first))
+    MergedChiptune(AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
+      : First(std::move(first))
       , Second(std::move(second))
     {}
 
@@ -271,12 +270,6 @@ namespace Module::TurboSound
       return info;
     }
 
-    Parameters::Accessor::Ptr GetProperties() const override
-    {
-      auto mixProps = MakePtr<MergedModuleProperties>(First->GetProperties(), Second->GetProperties());
-      return Parameters::CreateMergedAccessor(Properties, std::move(mixProps));
-    }
-
     DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first,
                                          AYM::TrackParameters::Ptr second) const override
     {
@@ -285,7 +278,6 @@ namespace Module::TurboSound
     }
 
   private:
-    const Parameters::Accessor::Ptr Properties;
     const AYM::Chiptune::Ptr First;
     const AYM::Chiptune::Ptr Second;
   };
@@ -302,8 +294,9 @@ namespace Module::TurboSound
   class Holder : public Module::Holder
   {
   public:
-    Holder(Chiptune::Ptr chiptune)
+    Holder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
       : Tune(std::move(chiptune))
+      , Properties(std::move(properties))
     {}
 
     Information GetModuleInformation() const override
@@ -313,7 +306,7 @@ namespace Module::TurboSound
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
     {
-      return Tune->GetProperties();
+      return Properties;
     }
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
@@ -327,9 +320,10 @@ namespace Module::TurboSound
 
   private:
     const Chiptune::Ptr Tune;
+    const Parameters::Accessor::Ptr Properties;
   };
 
-  Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
+  Chiptune::Ptr CreateChiptune(AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
   {
     /* TODO: think about it
     if (first->GetInformation()->FramesCount() < second->GetInformation()->FramesCount())
@@ -337,11 +331,18 @@ namespace Module::TurboSound
       std::swap(first, second);
     }
     */
-    return MakePtr<MergedChiptune>(std::move(params), std::move(first), std::move(second));
+    return MakePtr<MergedChiptune>(std::move(first), std::move(second));
   }
 
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+  Parameters::Accessor::Ptr CreateModuleProperties(Parameters::Accessor::Ptr outer, Parameters::Accessor::Ptr first,
+                                                   Parameters::Accessor::Ptr second)
   {
-    return MakePtr<Holder>(std::move(chiptune));
+    auto mixProps = MakePtr<MergedModuleProperties>(std::move(first), std::move(second));
+    return Parameters::CreateMergedAccessor(std::move(outer), std::move(mixProps));
+  }
+
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
+  {
+    return MakePtr<Holder>(std::move(chiptune), std::move(properties));
   }
 }  // namespace Module::TurboSound

@@ -28,14 +28,14 @@ namespace Module::DigitalStudio
 
 namespace Module::DAC
 {
-  Chiptune::Ptr CreateDigitalStudioChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateDigitalStudioChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties, DigitalStudio::CHANNELS_COUNT);
+    props.SetChannels(DigitalStudio::CHANNELS_COUNT);
     DigitalStudio::DataBuilder::Ptr dataBuilder = CreateSimpleDataBuilder<DigitalStudio::CHANNELS_COUNT>(props);
     if (const auto container = Formats::Chiptune::DigitalStudio::Parse(rawData, *dataBuilder))
     {
       props.SetSource(*container);
-      return CreateSimpleChiptune(dataBuilder->CaptureResult(), std::move(properties));
+      return CreateSimpleChiptune(dataBuilder->CaptureResult());
     }
     return {};
   }

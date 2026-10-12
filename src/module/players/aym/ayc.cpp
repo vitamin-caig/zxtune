@@ -76,18 +76,17 @@ namespace Module::AYC
 
 namespace Module::AYM
 {
-  Chiptune::Ptr CreateAYCChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateAYCChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
     AYC::DataBuilder dataBuilder;
     if (const auto container = Formats::Chiptune::AYC::Parse(rawData, dataBuilder))
     {
       if (auto data = dataBuilder.CaptureResult())
       {
-        PropertiesHelper props(*properties);
         props.SetSource(*container);
         props.SetPlatform(Platforms::AMSTRAD_CPC);
         props.SetChipFrequency(1000000);
-        return CreateStreamedChiptune(BASE_FRAME_DURATION, std::move(data), std::move(properties));
+        return CreateStreamedChiptune(std::move(data));
       }
     }
     return {};

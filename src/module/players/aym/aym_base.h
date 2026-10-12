@@ -28,7 +28,7 @@ namespace Module::AYM
     virtual void Dump(Devices::AYM::Device& dev) const = 0;
   };
 
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties);
 
   Devices::AYM::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params);
 }  // namespace Module::AYM

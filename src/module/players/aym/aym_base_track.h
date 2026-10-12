@@ -126,9 +126,8 @@ namespace Module::AYM
   class TrackingChiptune : public Chiptune
   {
   public:
-    TrackingChiptune(DataPtr data, Parameters::Accessor::Ptr properties)
+    explicit TrackingChiptune(DataPtr data)
       : Data(std::move(data))
-      , Properties(std::move(properties))
     {}
 
     Time::Microseconds GetFrameDuration() const override
@@ -141,11 +140,6 @@ namespace Module::AYM
       return CreateTrackInfo(*Data);
     }
 
-    Parameters::Accessor::Ptr GetProperties() const override
-    {
-      return Properties;
-    }
-
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
       auto iterator = CreateTrackStateIterator(Data);
@@ -155,12 +149,11 @@ namespace Module::AYM
 
   private:
     const DataPtr Data;
-    const Parameters::Accessor::Ptr Properties;
   };
 
   template<class DataRenderer, class DataPtr>
-  Chiptune::Ptr CreateTrackingChiptune(DataPtr data, Parameters::Accessor::Ptr properties)
+  Chiptune::Ptr CreateTrackingChiptune(DataPtr data)
   {
-    return MakePtr<TrackingChiptune<DataPtr, DataRenderer>>(std::move(data), std::move(properties));
+    return MakePtr<TrackingChiptune<DataPtr, DataRenderer>>(std::move(data));
   }
 }  // namespace Module::AYM

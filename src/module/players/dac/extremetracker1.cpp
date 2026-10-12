@@ -248,14 +248,14 @@ namespace Module::ExtremeTracker1
 
 namespace Module::DAC
 {
-  Chiptune::Ptr CreateExtremeTracker1Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateExtremeTracker1Chiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties, ExtremeTracker1::CHANNELS_COUNT);
+    props.SetChannels(ExtremeTracker1::CHANNELS_COUNT);
     ExtremeTracker1::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::ExtremeTracker1::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ExtremeTracker1::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+      return CreateTrackingChiptune<ExtremeTracker1::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }

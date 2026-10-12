@@ -11,6 +11,7 @@
 #include "module/players/dac/dac_factory.h"
 
 #include "module/players/dac/dac_base.h"
+#include "module/players/dac/dac_properties_helper.h"
 
 #include "make_ptr.h"
 
@@ -28,9 +29,10 @@ namespace Module::DAC
     Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data,
                              Parameters::Container::Ptr properties) const override
     {
-      if (auto chiptune = Create(data, std::move(properties)))
+      PropertiesHelper props(*properties);
+      if (auto chiptune = Create(data, props))
       {
-        return CreateHolder(std::move(chiptune));
+        return CreateHolder(std::move(chiptune), std::move(properties));
       }
       return {};
     }

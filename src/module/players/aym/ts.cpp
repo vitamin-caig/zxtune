@@ -35,7 +35,7 @@ namespace Module::TS
 
     void SetFirstSubmoduleLocation(std::size_t offset, std::size_t size) override
     {
-      if (!(First = LoadChiptune(offset, size)))
+      if (!LoadChiptune(offset, size, First, FirstProperties))
       {
         Dbg("Failed to create first module");
       }
@@ -43,7 +43,7 @@ namespace Module::TS
 
     void SetSecondSubmoduleLocation(std::size_t offset, std::size_t size) override
     {
-      if (!(Second = LoadChiptune(offset, size)))
+      if (!LoadChiptune(offset, size, Second, SecondProperties))
       {
         Dbg("Failed to create second module");
       }
@@ -64,18 +64,28 @@ namespace Module::TS
       return Second;
     }
 
+    Parameters::Accessor::Ptr GetFirstProperties() const
+    {
+      return FirstProperties;
+    }
+
+    Parameters::Accessor::Ptr GetSecondProperties() const
+    {
+      return SecondProperties;
+    }
+
   private:
-    AYM::Chiptune::Ptr LoadChiptune(std::size_t offset, std::size_t size) const
+    bool LoadChiptune(std::size_t offset, std::size_t size, AYM::Chiptune::Ptr& tune,
+                      Parameters::Accessor::Ptr& properties) const
     {
       const auto content = Data.GetSubcontainer(offset, size);
       if (const auto holder = std::dynamic_pointer_cast<const AYM::Holder>(TryOpenAYModule(*content)))
       {
-        return holder->GetChiptune();
+        tune = holder->GetChiptune();
+        properties = holder->GetModuleProperties();
+        return true;
       }
-      else
-      {
-        return {};
-      }
+      return false;
     }
 
     Module::Holder::Ptr TryOpenAYModule(const Binary::Container& data) const
@@ -90,6 +100,8 @@ namespace Module::TS
     const Factory& Delegate;
     AYM::Chiptune::Ptr First;
     AYM::Chiptune::Ptr Second;
+    Parameters::Accessor::Ptr FirstProperties;
+    Parameters::Accessor::Ptr SecondProperties;
   };
 
   class Factory : public Module::Factory
@@ -110,9 +122,10 @@ namespace Module::TS
           AYM::PropertiesHelper props(*properties);
           props.SetSource(*container);
           props.SetChipsCount(Devices::TurboSound::CHIPS);
-          auto chiptune =
-              TurboSound::CreateChiptune(std::move(properties), dataBuilder.GetFirst(), dataBuilder.GetSecond());
-          return TurboSound::CreateHolder(std::move(chiptune));
+          auto moduleProperties = TurboSound::CreateModuleProperties(properties, dataBuilder.GetFirstProperties(),
+                                                                     dataBuilder.GetSecondProperties());
+          auto chiptune = TurboSound::CreateChiptune(dataBuilder.GetFirst(), dataBuilder.GetSecond());
+          return TurboSound::CreateHolder(std::move(chiptune), std::move(moduleProperties));
         }
       }
       return {};

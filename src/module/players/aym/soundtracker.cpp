@@ -462,32 +462,30 @@ namespace Module::SoundTracker
 
 namespace Module::AYM
 {
-  Chiptune::Ptr CreateModule(const Binary::Container& rawData, Parameters::Container::Ptr properties,
+  Chiptune::Ptr CreateModule(const Binary::Container& rawData, PropertiesHelper& props,
                              Formats::Chiptune::SoundTracker::Parser parse)
   {
-    PropertiesHelper props(*properties);
     SoundTracker::DataBuilder dataBuilder(props);
     if (const auto container = parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<SoundTracker::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+      return CreateTrackingChiptune<SoundTracker::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }
 
-  Chiptune::Ptr CreateSoundTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateSoundTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    return CreateModule(rawData, std::move(properties), Formats::Chiptune::SoundTracker::Ver1::Parse);
+    return CreateModule(rawData, props, Formats::Chiptune::SoundTracker::Ver1::Parse);
   }
 
-  Chiptune::Ptr CreateSoundTrackerCompiledChiptune(const Binary::Container& rawData,
-                                                   Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateSoundTrackerCompiledChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    return CreateModule(rawData, std::move(properties), Formats::Chiptune::SoundTracker::Ver1::ParseCompiled);
+    return CreateModule(rawData, props, Formats::Chiptune::SoundTracker::Ver1::ParseCompiled);
   }
 
-  Chiptune::Ptr CreateSoundTracker3Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateSoundTracker3Chiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    return CreateModule(rawData, std::move(properties), Formats::Chiptune::SoundTracker::Ver3::Parse);
+    return CreateModule(rawData, props, Formats::Chiptune::SoundTracker::Ver3::Parse);
   }
 }  // namespace Module::AYM

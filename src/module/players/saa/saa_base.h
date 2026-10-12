@@ -102,11 +102,10 @@ namespace Module::SAA
     virtual Time::Microseconds GetFrameDuration() const = 0;
 
     virtual TrackModel::Ptr GetTrackModel() const = 0;
-    virtual Parameters::Accessor::Ptr GetProperties() const = 0;
     virtual DataIterator::Ptr CreateDataIterator() const = 0;
   };
 
   DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties);
 }  // namespace Module::SAA

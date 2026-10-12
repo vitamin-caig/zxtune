@@ -376,14 +376,13 @@ namespace Module::ProTracker2
 
 namespace Module::AYM
 {
-  Chiptune::Ptr CreateProTracker2Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateProTracker2Chiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties);
     ProTracker2::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::ProTracker2::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ProTracker2::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+      return CreateTrackingChiptune<ProTracker2::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }

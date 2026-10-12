@@ -79,8 +79,9 @@ namespace Module
   class TFMHolder : public Holder
   {
   public:
-    explicit TFMHolder(TFM::Chiptune::Ptr chiptune)
+    TFMHolder(TFM::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
       : Tune(std::move(chiptune))
+      , Properties(std::move(properties))
     {}
 
     Information GetModuleInformation() const override
@@ -90,7 +91,7 @@ namespace Module
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
     {
-      return Tune->GetProperties();
+      return Properties;
     }
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
@@ -104,6 +105,7 @@ namespace Module
 
   private:
     const TFM::Chiptune::Ptr Tune;
+    const Parameters::Accessor::Ptr Properties;
   };
 }  // namespace Module
 
@@ -115,8 +117,8 @@ namespace Module::TFM
     return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device));
   }
 
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
   {
-    return MakePtr<TFMHolder>(std::move(chiptune));
+    return MakePtr<TFMHolder>(std::move(chiptune), std::move(properties));
   }
 }  // namespace Module::TFM

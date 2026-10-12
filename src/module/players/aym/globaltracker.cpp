@@ -288,14 +288,13 @@ namespace Module::GlobalTracker
 
 namespace Module::AYM
 {
-  Chiptune::Ptr CreateGlobalTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateGlobalTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties);
     GlobalTracker::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::GlobalTracker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<GlobalTracker::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+      return CreateTrackingChiptune<GlobalTracker::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }

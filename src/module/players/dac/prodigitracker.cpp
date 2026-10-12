@@ -230,14 +230,14 @@ namespace Module::ProDigiTracker
 
 namespace Module::DAC
 {
-  Chiptune::Ptr CreateProDigiTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateProDigiTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties, ProDigiTracker::CHANNELS_COUNT);
+    props.SetChannels(ProDigiTracker::CHANNELS_COUNT);
     ProDigiTracker::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::ProDigiTracker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ProDigiTracker::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+      return CreateTrackingChiptune<ProDigiTracker::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }

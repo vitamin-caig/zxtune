@@ -432,9 +432,8 @@ namespace Module::ETracker
   class Chiptune : public SAA::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+    explicit Chiptune(ModuleData::Ptr data)
       : Data(std::move(data))
-      , Properties(std::move(properties))
     {}
 
     Time::Microseconds GetFrameDuration() const override
@@ -447,11 +446,6 @@ namespace Module::ETracker
       return Data;
     }
 
-    Parameters::Accessor::Ptr GetProperties() const override
-    {
-      return Properties;
-    }
-
     SAA::DataIterator::Ptr CreateDataIterator() const override
     {
       auto iterator = CreateTrackStateIterator(Data);
@@ -461,7 +455,6 @@ namespace Module::ETracker
 
   private:
     const ModuleData::Ptr Data;
-    const Parameters::Accessor::Ptr Properties;
   };
 
   class Factory : public Module::Factory
@@ -477,8 +470,8 @@ namespace Module::ETracker
         props.SetSource(*container);
         props.SetPlatform(Platforms::SAM_COUPE);
         props.SetChannels({"A"s, "B"s, "C"s, "N"s, "E"s}, 2);
-        auto chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
-        return SAA::CreateHolder(std::move(chiptune));
+        auto chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult());
+        return SAA::CreateHolder(std::move(chiptune), std::move(properties));
       }
       return {};
     }

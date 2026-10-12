@@ -1360,9 +1360,8 @@ namespace Module::TFMMusicMaker
   class Chiptune : public TFM::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+    explicit Chiptune(ModuleData::Ptr data)
       : Data(std::move(data))
-      , Properties(std::move(properties))
     {}
 
     Time::Microseconds GetFrameDuration() const override
@@ -1375,11 +1374,6 @@ namespace Module::TFMMusicMaker
       return MakeInformation(*Data);
     }
 
-    Parameters::Accessor::Ptr GetProperties() const override
-    {
-      return Properties;
-    }
-
     TFM::DataIterator::Ptr CreateDataIterator() const override
     {
       auto iterator = MakePtr<TrackStateIterator>(Data);
@@ -1389,7 +1383,6 @@ namespace Module::TFMMusicMaker
 
   private:
     const ModuleData::Ptr Data;
-    const Parameters::Accessor::Ptr Properties;
   };
 
 }  // namespace Module::TFMMusicMaker
@@ -1397,26 +1390,25 @@ namespace Module::TFMMusicMaker
 namespace Module::TFM
 {
   Chiptune::Ptr CreateTFMMusicMakerChiptune(Formats::Chiptune::TFMMusicMaker::Parser parse,
-                                            const Binary::Container& rawData, Parameters::Container::Ptr properties)
+                                            const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties);
     TFMMusicMaker::DataBuilder dataBuilder(props);
     if (const auto container = parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
       props.SetChannels("FM"sv, Devices::TFM::VOICES);
-      return MakePtr<TFMMusicMaker::Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
+      return MakePtr<TFMMusicMaker::Chiptune>(dataBuilder.CaptureResult());
     }
     return {};
   }
 
-  Chiptune::Ptr CreateTFMMusicMaker05Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateTFMMusicMaker05Chiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    return CreateTFMMusicMakerChiptune(Formats::Chiptune::TFMMusicMaker::Ver05::Parse, rawData, std::move(properties));
+    return CreateTFMMusicMakerChiptune(Formats::Chiptune::TFMMusicMaker::Ver05::Parse, rawData, props);
   }
 
-  Chiptune::Ptr CreateTFMMusicMaker13Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateTFMMusicMaker13Chiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    return CreateTFMMusicMakerChiptune(Formats::Chiptune::TFMMusicMaker::Ver13::Parse, rawData, std::move(properties));
+    return CreateTFMMusicMakerChiptune(Formats::Chiptune::TFMMusicMaker::Ver13::Parse, rawData, props);
   }
 }  // namespace Module::TFM

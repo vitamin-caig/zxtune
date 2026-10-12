@@ -222,9 +222,8 @@ namespace Module::TFC
 
 namespace Module::TFM
 {
-  Chiptune::Ptr CreateTFCChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateTFCChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties);
     TFC::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::TFC::Parse(rawData, dataBuilder))
     {
@@ -234,7 +233,7 @@ namespace Module::TFM
         props.SetSource(*container);
         props.SetPlatform(Platforms::ZX_SPECTRUM);
         props.SetChannels("FM"sv, Devices::TFM::VOICES);
-        return CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data), std::move(properties));
+        return CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data));
       }
     }
     return {};

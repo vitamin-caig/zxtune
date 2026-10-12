@@ -13,16 +13,16 @@
 #include "module/players/dac/dac_chiptune.h"
 
 #include "binary/container.h"
-#include "parameters/container.h"
 
 namespace Module::DAC
 {
-  Chiptune::Ptr CreateChipTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties);
-  Chiptune::Ptr CreateDigitalMusicMakerChiptune(const Binary::Container& rawData,
-                                                Parameters::Container::Ptr properties);
-  Chiptune::Ptr CreateDigitalStudioChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties);
-  Chiptune::Ptr CreateExtremeTracker1Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties);
-  Chiptune::Ptr CreateProDigiTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties);
-  Chiptune::Ptr CreateSampleTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties);
-  Chiptune::Ptr CreateSQDigitalTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties);
+  class PropertiesHelper;
+
+  Chiptune::Ptr CreateChipTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props);
+  Chiptune::Ptr CreateDigitalMusicMakerChiptune(const Binary::Container& rawData, PropertiesHelper& props);
+  Chiptune::Ptr CreateDigitalStudioChiptune(const Binary::Container& rawData, PropertiesHelper& props);
+  Chiptune::Ptr CreateExtremeTracker1Chiptune(const Binary::Container& rawData, PropertiesHelper& props);
+  Chiptune::Ptr CreateProDigiTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props);
+  Chiptune::Ptr CreateSampleTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props);
+  Chiptune::Ptr CreateSQDigitalTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props);
 }  // namespace Module::DAC

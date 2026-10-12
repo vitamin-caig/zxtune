@@ -134,8 +134,9 @@ namespace Module
   class DACHolder : public Holder
   {
   public:
-    explicit DACHolder(DAC::Chiptune::Ptr chiptune)
+    DACHolder(DAC::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
       : Tune(std::move(chiptune))
+      , Properties(std::move(properties))
     {}
 
     Information GetModuleInformation() const override
@@ -145,7 +146,7 @@ namespace Module
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
     {
-      return Tune->GetProperties();
+      return Properties;
     }
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
@@ -159,6 +160,7 @@ namespace Module
 
   private:
     const DAC::Chiptune::Ptr Tune;
+    const Parameters::Accessor::Ptr Properties;
   };
 }  // namespace Module
 
@@ -220,8 +222,8 @@ namespace Module::DAC
     };
   }
 
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
   {
-    return MakePtr<DACHolder>(std::move(chiptune));
+    return MakePtr<DACHolder>(std::move(chiptune), std::move(properties));
   }
 }  // namespace Module::DAC

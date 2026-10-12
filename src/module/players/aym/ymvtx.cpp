@@ -152,10 +152,9 @@ namespace Module::YMVTX
 
 namespace Module::AYM
 {
-  Chiptune::Ptr CreateModule(const Binary::Container& rawData, Parameters::Container::Ptr properties,
+  Chiptune::Ptr CreateModule(const Binary::Container& rawData, PropertiesHelper& props,
                              Formats::Chiptune::YM::Parser parse)
   {
-    PropertiesHelper props(*properties);
     YMVTX::DataBuilder dataBuilder(props);
     if (const auto container = parse(rawData, dataBuilder))
     {
@@ -163,24 +162,25 @@ namespace Module::AYM
       {
         // TODO: detect platform by intfreq and clockrate
         props.SetSource(*container);
-        return CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data), std::move(properties));
+        const auto frameDuration = dataBuilder.GetFrameDuration();
+        return CreateStreamedChiptune(frameDuration, std::move(data));
       }
     }
     return {};
   }
 
-  Chiptune::Ptr CreateYMChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateYMChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    return CreateModule(rawData, std::move(properties), Formats::Chiptune::YM::Parse);
+    return CreateModule(rawData, props, Formats::Chiptune::YM::Parse);
   }
 
-  Chiptune::Ptr CreateYMPackedChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateYMPackedChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    return CreateModule(rawData, std::move(properties), Formats::Chiptune::YM::ParsePacked);
+    return CreateModule(rawData, props, Formats::Chiptune::YM::ParsePacked);
   }
 
-  Chiptune::Ptr CreateVTXChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateVTXChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    return CreateModule(rawData, std::move(properties), Formats::Chiptune::YM::ParseVTX);
+    return CreateModule(rawData, props, Formats::Chiptune::YM::ParseVTX);
   }
 }  // namespace Module::AYM

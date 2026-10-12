@@ -74,25 +74,19 @@ namespace Module::DAC
     return SimpleDataBuilder::Create(props, Channels);
   }
 
-  DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties);
+  DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data);
 
   template<class DataPtr, class DataRenderer>
   class TrackingChiptune : public Chiptune
   {
   public:
-    TrackingChiptune(DataPtr data, Parameters::Accessor::Ptr properties)
+    explicit TrackingChiptune(DataPtr data)
       : Data(std::move(data))
-      , Properties(std::move(properties))
     {}
 
     TrackModel::Ptr GetTrackModel() const override
     {
       return Data;
-    }
-
-    Parameters::Accessor::Ptr GetProperties() const override
-    {
-      return Properties;
     }
 
     DataIterator::Ptr CreateDataIterator() const override
@@ -109,12 +103,11 @@ namespace Module::DAC
 
   private:
     const DataPtr Data;
-    const Parameters::Accessor::Ptr Properties;
   };
 
   template<class DataRenderer, class DataPtr>
-  Chiptune::Ptr CreateTrackingChiptune(DataPtr data, Parameters::Accessor::Ptr properties)
+  Chiptune::Ptr CreateTrackingChiptune(DataPtr data)
   {
-    return MakePtr<TrackingChiptune<DataPtr, DataRenderer>>(std::move(data), std::move(properties));
+    return MakePtr<TrackingChiptune<DataPtr, DataRenderer>>(std::move(data));
   }
 }  // namespace Module::DAC

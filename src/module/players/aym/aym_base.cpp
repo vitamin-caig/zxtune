@@ -84,8 +84,9 @@ namespace Module
   class AYMHolder : public AYM::Holder
   {
   public:
-    AYMHolder(AYM::Chiptune::Ptr chiptune)
+    AYMHolder(AYM::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
       : Tune(std::move(chiptune))
+      , Properties(std::move(properties))
     {}
 
     Information GetModuleInformation() const override
@@ -95,7 +96,7 @@ namespace Module
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
     {
-      return Tune->GetProperties();
+      return Properties;
     }
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
@@ -114,7 +115,7 @@ namespace Module
 
     void Dump(Devices::AYM::Device& aym) const override
     {
-      auto trackParams = AYM::TrackParameters::Create(Tune->GetProperties());
+      auto trackParams = AYM::TrackParameters::Create(Properties);
       const auto iterator = Tune->CreateDataIterator(std::move(trackParams));
       Devices::AYM::DataChunk chunk;
       for (const auto frameDuration = Tune->GetFrameDuration(); !iterator->GetState().LoopCount;
@@ -127,14 +128,15 @@ namespace Module
 
   private:
     const AYM::Chiptune::Ptr Tune;
+    const Parameters::Accessor::Ptr Properties;
   };
 }  // namespace Module
 
 namespace Module::AYM
 {
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
   {
-    return MakePtr<AYMHolder>(std::move(chiptune));
+    return MakePtr<AYMHolder>(std::move(chiptune), std::move(properties));
   }
 
   Devices::AYM::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params)

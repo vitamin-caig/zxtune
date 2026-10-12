@@ -252,14 +252,14 @@ namespace Module::ChipTracker
 
 namespace Module::DAC
 {
-  Chiptune::Ptr CreateChipTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateChipTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties, ChipTracker::CHANNELS_COUNT);
+    props.SetChannels(ChipTracker::CHANNELS_COUNT);
     ChipTracker::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::ChipTracker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ChipTracker::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+      return CreateTrackingChiptune<ChipTracker::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }

@@ -185,9 +185,8 @@ namespace Module::ProTracker3
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+    explicit Chiptune(ModuleData::Ptr data)
       : Data(std::move(data))
-      , Properties(std::move(properties))
     {}
 
     Time::Microseconds GetFrameDuration() const override
@@ -200,11 +199,6 @@ namespace Module::ProTracker3
       return CreateTrackInfo(*Data);
     }
 
-    Parameters::Accessor::Ptr GetProperties() const override
-    {
-      return Properties;
-    }
-
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
       auto iterator = CreateTrackStateIterator(Data);
@@ -214,7 +208,6 @@ namespace Module::ProTracker3
 
   private:
     const ModuleData::Ptr Data;
-    const Parameters::Accessor::Ptr Properties;
   };
 
   namespace TS
@@ -286,9 +279,8 @@ namespace Module::ProTracker3
     class Chiptune : public TurboSound::Chiptune
     {
     public:
-      Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+      explicit Chiptune(ModuleData::Ptr data)
         : Data(std::move(data))
-        , Properties(std::move(properties))
       {}
 
       Time::Microseconds GetFrameDuration() const override
@@ -301,11 +293,6 @@ namespace Module::ProTracker3
         return CreateTrackInfo(*Data);
       }
 
-      Parameters::Accessor::Ptr GetProperties() const override
-      {
-        return Properties;
-      }
-
       TurboSound::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first,
                                                        AYM::TrackParameters::Ptr /*second*/) const override
       {
@@ -316,7 +303,6 @@ namespace Module::ProTracker3
 
     private:
       const ModuleData::Ptr Data;
-      const Parameters::Accessor::Ptr Properties;
     };
   }  // namespace TS
 
@@ -341,13 +327,13 @@ namespace Module::ProTracker3
           // TurboSound modules
           props.SetChipsCount(Devices::TurboSound::CHIPS);
           props.SetComment(TURBOSOUND_COMMENT);
-          auto chiptune = MakePtr<TS::Chiptune>(std::move(modData), std::move(properties));
-          return TurboSound::CreateHolder(std::move(chiptune));
+          auto chiptune = MakePtr<TS::Chiptune>(std::move(modData));
+          return TurboSound::CreateHolder(std::move(chiptune), std::move(properties));
         }
         else
         {
-          auto chiptune = MakePtr<Chiptune>(std::move(modData), std::move(properties));
-          return AYM::CreateHolder(std::move(chiptune));
+          auto chiptune = MakePtr<Chiptune>(std::move(modData));
+          return AYM::CreateHolder(std::move(chiptune), std::move(properties));
         }
       }
       return {};

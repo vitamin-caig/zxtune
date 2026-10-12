@@ -79,6 +79,6 @@ namespace Module::AYM
     }
   };
 
-  Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model,
-                                       Parameters::Accessor::Ptr properties);
+  Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model);
+  Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model);
 }  // namespace Module::AYM

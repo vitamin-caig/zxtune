@@ -14,11 +14,12 @@
 #include "module/players/factory.h"
 
 #include "binary/container.h"
-#include "parameters/container.h"
 
 namespace Module::DAC
 {
-  using Factory = Chiptune::Ptr (*)(const Binary::Container& rawData, Parameters::Container::Ptr properties);
+  class PropertiesHelper;
+
+  using Factory = Chiptune::Ptr (*)(const Binary::Container& rawData, PropertiesHelper& props);
 
   Module::Factory::Ptr CreateModuleFactory(Factory create);
 }  // namespace Module::DAC

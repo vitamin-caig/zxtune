@@ -23,6 +23,6 @@ namespace Module::TFM
     virtual void Get(uint_t pos, Devices::TFM::Registers& res) const = 0;
   };
 
-  Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model,
-                                       Parameters::Accessor::Ptr properties);
+  Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model);
+  Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model);
 }  // namespace Module::TFM

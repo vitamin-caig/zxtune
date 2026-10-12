@@ -40,7 +40,6 @@ namespace Module::DAC
     }
 
     virtual TrackModel::Ptr GetTrackModel() const = 0;
-    virtual Parameters::Accessor::Ptr GetProperties() const = 0;
     virtual DataIterator::Ptr CreateDataIterator() const = 0;
     virtual void GetSamples(Devices::DAC::Chip& chip) const = 0;
   };

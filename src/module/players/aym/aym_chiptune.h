@@ -39,8 +39,6 @@ namespace Module::AYM
     virtual Time::Microseconds GetFrameDuration() const = 0;
 
     virtual FramedInformation GetInformation() const = 0;
-
-    virtual Parameters::Accessor::Ptr GetProperties() const = 0;
     virtual DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
   };
 }  // namespace Module::AYM

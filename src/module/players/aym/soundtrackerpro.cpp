@@ -322,14 +322,13 @@ namespace Module::SoundTrackerPro
 
 namespace Module::AYM
 {
-  Chiptune::Ptr CreateSoundTrackerProChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateSoundTrackerProChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties);
     SoundTrackerPro::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::SoundTrackerPro::ParseCompiled(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<SoundTrackerPro::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+      return CreateTrackingChiptune<SoundTrackerPro::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }

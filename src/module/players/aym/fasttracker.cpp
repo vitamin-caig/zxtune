@@ -500,14 +500,13 @@ namespace Module::FastTracker
 
 namespace Module::AYM
 {
-  Chiptune::Ptr CreateFastTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateFastTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties);
     FastTracker::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::FastTracker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<FastTracker::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+      return CreateTrackingChiptune<FastTracker::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }

@@ -16,16 +16,20 @@
 
 namespace Module::DAC
 {
-  PropertiesHelper::PropertiesHelper(Parameters::Modifier& delegate, uint_t channels)
+  PropertiesHelper::PropertiesHelper(Parameters::Modifier& delegate)
     : Module::PropertiesHelper(delegate)
   {
+    SetPlatform(Platforms::ZX_SPECTRUM);
+  }
+
+  void PropertiesHelper::SetChannels(uint_t count)
+  {
     Strings::Array chans;
-    for (uint_t ch = 0; ch < channels; ++ch)
+    for (uint_t ch = 0; ch < count; ++ch)
     {
       chans.emplace_back(1, 'A' + ch);
     }
-    SetChannels(chans);
-    SetPlatform(Platforms::ZX_SPECTRUM);
+    Module::PropertiesHelper::SetChannels(chans);
   }
 
   void PropertiesHelper::SetSamplesFrequency(uint_t freq)

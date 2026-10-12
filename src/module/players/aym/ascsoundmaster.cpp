@@ -540,26 +540,25 @@ namespace Module::ASCSoundMaster
 
 namespace Module::AYM
 {
-  AYM::Chiptune::Ptr CreateModule(const Binary::Container& rawData, Parameters::Container::Ptr properties,
+  AYM::Chiptune::Ptr CreateModule(const Binary::Container& rawData, PropertiesHelper& props,
                                   Formats::Chiptune::ASCSoundMaster::Parser parse)
   {
-    PropertiesHelper props(*properties);
     ASCSoundMaster::DataBuilder dataBuilder(props);
     if (const auto container = parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ASCSoundMaster::DataRenderer>(dataBuilder.CaptureResult(), std::move(properties));
+      return CreateTrackingChiptune<ASCSoundMaster::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }
 
-  Chiptune::Ptr CreateASCSoundMasterChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateASCSoundMasterChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    return CreateModule(rawData, std::move(properties), Formats::Chiptune::ASCSoundMaster::Ver1::Parse);
+    return CreateModule(rawData, props, Formats::Chiptune::ASCSoundMaster::Ver1::Parse);
   }
 
-  Chiptune::Ptr CreateASCSoundMaster0Chiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateASCSoundMaster0Chiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    return CreateModule(rawData, std::move(properties), Formats::Chiptune::ASCSoundMaster::Ver0::Parse);
+    return CreateModule(rawData, props, Formats::Chiptune::ASCSoundMaster::Ver0::Parse);
   }
 }  // namespace Module::AYM

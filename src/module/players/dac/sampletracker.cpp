@@ -37,14 +37,14 @@ namespace Module::SampleTracker
 
 namespace Module::DAC
 {
-  Chiptune::Ptr CreateSampleTrackerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateSampleTrackerChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties, SampleTracker::CHANNELS_COUNT);
+    props.SetChannels(SampleTracker::CHANNELS_COUNT);
     SampleTracker::DataBuilder::Ptr dataBuilder = CreateSimpleDataBuilder<SampleTracker::CHANNELS_COUNT>(props);
     if (const auto container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
     {
       props.SetSource(*container);
-      return CreateSimpleChiptune(dataBuilder->CaptureResult(), std::move(properties));
+      return CreateSimpleChiptune(dataBuilder->CaptureResult());
     }
     return {};
   }

@@ -445,14 +445,13 @@ namespace Module::ProSoundMaker
 
 namespace Module::AYM
 {
-  Chiptune::Ptr CreateProSoundMakerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateProSoundMakerChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties);
     ProSoundMaker::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::ProSoundMaker::ParseCompiled(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ProSoundMaker::DataRenderer>(dataBuilder.CaptureResult(), properties);
+      return CreateTrackingChiptune<ProSoundMaker::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }

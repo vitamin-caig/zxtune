@@ -126,8 +126,9 @@ namespace Module
   class SAAHolder : public Holder
   {
   public:
-    explicit SAAHolder(SAA::Chiptune::Ptr chiptune)
+    SAAHolder(SAA::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
       : Tune(std::move(chiptune))
+      , Properties(std::move(properties))
     {}
 
     Information GetModuleInformation() const override
@@ -137,7 +138,7 @@ namespace Module
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
     {
-      return Tune->GetProperties();
+      return Properties;
     }
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
@@ -151,6 +152,7 @@ namespace Module
 
   private:
     const SAA::Chiptune::Ptr Tune;
+    const Parameters::Accessor::Ptr Properties;
   };
 }  // namespace Module
 
@@ -208,8 +210,8 @@ namespace Module::SAA
     return MakePtr<SAADataIterator>(std::move(iterator), std::move(renderer));
   }
 
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
   {
-    return MakePtr<SAAHolder>(std::move(chiptune));
+    return MakePtr<SAAHolder>(std::move(chiptune), std::move(properties));
   }
 }  // namespace Module::SAA

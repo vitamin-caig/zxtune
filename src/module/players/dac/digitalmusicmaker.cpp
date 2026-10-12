@@ -632,15 +632,14 @@ namespace Module::DigitalMusicMaker
 
 namespace Module::DAC
 {
-  Chiptune::Ptr CreateDigitalMusicMakerChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties)
+  Chiptune::Ptr CreateDigitalMusicMakerChiptune(const Binary::Container& rawData, PropertiesHelper& props)
   {
-    PropertiesHelper props(*properties, DigitalMusicMaker::CHANNELS_COUNT);
+    props.SetChannels(DigitalMusicMaker::CHANNELS_COUNT);
     DigitalMusicMaker::DataBuilder dataBuilder(props);
     if (const auto container = Formats::Chiptune::DigitalMusicMaker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<DigitalMusicMaker::DataRenderer>(dataBuilder.CaptureResult(),
-                                                                     std::move(properties));
+      return CreateTrackingChiptune<DigitalMusicMaker::DataRenderer>(dataBuilder.CaptureResult());
     }
     return {};
   }

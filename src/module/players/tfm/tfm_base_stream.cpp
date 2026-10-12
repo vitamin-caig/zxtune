@@ -54,10 +54,9 @@ namespace Module::TFM
   class StreamedChiptune : public Chiptune
   {
   public:
-    StreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model, Parameters::Accessor::Ptr properties)
+    StreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model)
       : FrameDuration(frameDuration)
       , Data(std::move(model))
-      , Properties(std::move(properties))
     {}
 
     Time::Microseconds GetFrameDuration() const override
@@ -70,11 +69,6 @@ namespace Module::TFM
       return Data->GetInformation();
     }
 
-    Parameters::Accessor::Ptr GetProperties() const override
-    {
-      return Properties;
-    }
-
     TFM::DataIterator::Ptr CreateDataIterator() const override
     {
       auto iter = CreateStreamStateIterator(Data->GetInformation());
@@ -84,12 +78,15 @@ namespace Module::TFM
   private:
     const Time::Microseconds FrameDuration;
     const StreamModel::Ptr Data;
-    const Parameters::Accessor::Ptr Properties;
   };
 
-  Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model,
-                                       Parameters::Accessor::Ptr properties)
+  Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model)
   {
-    return MakePtr<StreamedChiptune>(frameDuration, std::move(model), std::move(properties));
+    return MakePtr<StreamedChiptune>(frameDuration, std::move(model));
+  }
+
+  Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model)
+  {
+    return CreateStreamedChiptune(BASE_FRAME_DURATION, std::move(model));
   }
 }  // namespace Module::TFM

@@ -14,11 +14,12 @@
 #include "module/players/factory.h"
 
 #include "binary/container.h"
-#include "parameters/container.h"
 
 namespace Module::AYM
 {
-  using ChiptuneCreator = Chiptune::Ptr (*)(const Binary::Container& data, Parameters::Container::Ptr properties);
+  class PropertiesHelper;
+
+  using ChiptuneCreator = Chiptune::Ptr (*)(const Binary::Container& data, PropertiesHelper& props);
 
   Module::Factory::Ptr CreateModuleFactory(ChiptuneCreator create);
 }  // namespace Module::AYM
