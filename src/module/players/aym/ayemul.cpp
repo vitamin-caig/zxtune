@@ -14,6 +14,7 @@
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/duration.h"
+#include "module/players/parameters.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
@@ -488,7 +489,7 @@ namespace Module::AYEMUL
     }
 
     uint_t Frames = 0;
-    Time::Microseconds FrameDuration;
+    uint_t Fadeout = 0;
     uint16_t Registers = 0;
     uint16_t StackPointer = 0;
     Binary::Data::Ptr Memory;
@@ -539,25 +540,71 @@ namespace Module::AYEMUL
     Devices::Z80::Chip::Ptr CPU;
   };
 
+  class FramedState
+  {
+  public:
+    explicit FramedState(uint_t totalFrames)
+      : TotalFrames(totalFrames)
+    {}
+
+    State Get(Time::Microseconds frameDuration) const
+    {
+      return {.At = Time::AtMillisecond() + (frameDuration * CurFrame).CastTo<Time::Millisecond>(), .LoopCount = Loops};
+    }
+
+    void Reset()
+    {
+      CurFrame = 0;
+      Loops = 0;
+    }
+
+    void NextFrame()
+    {
+      if (++CurFrame >= TotalFrames)
+      {
+        CurFrame = 0;
+        ++Loops;
+      }
+    }
+
+    // Moves to a frame-aligned position not exceeding request; returns frames to skip
+    uint_t Seek(Time::AtMillisecond request, Time::Microseconds frameDuration)
+    {
+      Loops = 0;
+      const auto frames =
+          request.Get() * (Time::Microsecond::PER_SECOND / Time::Millisecond::PER_SECOND) / frameDuration.Get();
+      const auto target = static_cast<uint_t>(std::min<uint64_t>(frames, TotalFrames - 1));
+      const auto delta = target >= CurFrame ? target - CurFrame : target;
+      CurFrame = target;
+      return delta;
+    }
+
+  private:
+    const uint_t TotalFrames;
+    uint_t CurFrame = 0;
+    uint_t Loops = 0;
+  };
+
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const ModuleData& data, Computer::Ptr comp, DataChannel::Ptr device)
-      : State((data.FrameDuration * data.Frames).CastTo<Time::Millisecond>())
+    Renderer(FrameDurationParameter frameDuration, const ModuleData& data, Computer::Ptr comp, DataChannel::Ptr device)
+      : FrameDuration(std::move(frameDuration))
+      , State(data.Frames)
       , Comp(std::move(comp))
       , Device(std::move(device))
-      , FrameDuration(data.FrameDuration)
     {}
 
     Module::State GetState() const override
     {
-      return State.Get();
+      return State.Get(FrameDuration.Get());
     }
 
     Sound::Chunk Render() override
     {
-      State.ConsumeUpTo(FrameDuration);
-      DeviceTime += FrameDuration;
+      FrameDuration.Synchronize();
+      State.NextFrame();
+      DeviceTime += FrameDuration.Get();
       Comp->ExecuteFrameTill(DeviceTime);
       return Device->RenderFrameTill(DeviceTime);
     }
@@ -572,28 +619,25 @@ namespace Module::AYEMUL
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      auto current = State.Get().At;
+      const auto frameDuration = FrameDuration.Get();
+      const auto current = State.Get(frameDuration).At;
       if (request < current)
       {
-        current = {};
         Comp->Reset();
         Device->Reset();
         DeviceTime = {};
       }
-      const auto delta = State.Seek(request);
-      if (const auto frames = delta.Divide<uint_t>(FrameDuration))
+      if (const auto frames = State.Seek(request, frameDuration))
       {
-        // correct logical position
-        State.Seek(current + (FrameDuration * frames).CastTo<Time::Millisecond>());
-        Comp->SkipFrames(DeviceTime, frames, FrameDuration);
+        Comp->SkipFrames(DeviceTime, frames, frameDuration);
       }
     }
 
   private:
-    TimedState State;
+    FrameDurationParameter FrameDuration;
+    FramedState State;
     const Computer::Ptr Comp;
     const DataChannel::Ptr Device;
-    const Time::Microseconds FrameDuration;
     // Monotonic time, does not change on fast-forward
     Time::AtMicrosecond DeviceTime;
   };
@@ -616,10 +660,7 @@ namespace Module::AYEMUL
     void SetDuration(uint_t duration, uint_t fadeout) override
     {
       Data->Frames = duration;
-      if (fadeout)
-      {
-        Properties.SetFadeout((AYM::BASE_FRAME_DURATION * fadeout).CastTo<Time::Millisecond>());
-      }
+      Data->Fadeout = fadeout;
     }
 
     void SetRegisters(uint16_t reg, uint16_t sp) override
@@ -640,10 +681,13 @@ namespace Module::AYEMUL
 
     void FillTimingInfo(const Parameters::Accessor& params)
     {
-      Data->FrameDuration = AYM::BASE_FRAME_DURATION;
       if (!Data->Frames)
       {
-        Data->Frames = GetDefaultDuration(params).Divide<uint_t>(Data->FrameDuration);
+        Data->Frames = GetDefaultDuration(params).Divide<uint_t>(AYM::BASE_FRAME_DURATION);
+      }
+      if (Data->Fadeout)
+      {
+        Properties.SetFadeout((AYM::BASE_FRAME_DURATION * Data->Fadeout).CastTo<Time::Millisecond>());
       }
     }
 
@@ -716,11 +760,12 @@ namespace Module::AYEMUL
     Holder(ModuleData::Ptr data, Parameters::Accessor::Ptr params)
       : Data(std::move(data))
       , Properties(std::move(params))
+      , FrameDuration(Properties, AYM::BASE_FRAME_DURATION)
     {}
 
     Information GetModuleInformation() const override
     {
-      return CreateTimedInfo((Data->FrameDuration * Data->Frames).CastTo<Time::Millisecond>());
+      return CreateTimedInfo((FrameDuration.Get() * Data->Frames).CastTo<Time::Millisecond>());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -739,16 +784,18 @@ namespace Module::AYEMUL
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Chip::Ptr ay,
                                  Devices::Beeper::Chip::Ptr beep) const
     {
-      auto cpuParams = MakePtr<CPUParameters>(std::move(params));
+      auto cpuParams = MakePtr<CPUParameters>(params);
       auto channel = MakePtr<DataChannel>(std::move(ay), std::move(beep));
       auto cpuPorts = PortsPlexer::Create(channel);
       auto comp = MakePtr<Computer>(Data, std::move(cpuParams), std::move(cpuPorts));
-      return MakePtr<Renderer>(*Data, std::move(comp), std::move(channel));
+      return MakePtr<Renderer>(FrameDurationParameter(std::move(params), AYM::BASE_FRAME_DURATION), *Data,
+                               std::move(comp), std::move(channel));
     }
 
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
+    FrameDurationParameter FrameDuration;
   };
 
   class Factory : public Module::Factory

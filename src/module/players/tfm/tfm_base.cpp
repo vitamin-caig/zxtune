@@ -10,6 +10,7 @@
 
 #include "module/players/tfm/tfm_base.h"
 
+#include "module/players/parameters.h"
 #include "module/players/tfm/tfm_parameters.h"
 
 #include "make_ptr.h"
@@ -21,21 +22,22 @@ namespace Module
   class TFMRenderer : public Renderer
   {
   public:
-    TFMRenderer(Time::Microseconds frameDuration, TFM::DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device)
-      : Iterator(std::move(iterator))
+    TFMRenderer(FrameDurationParameter frameDuration, TFM::DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device)
+      : FrameDuration(std::move(frameDuration))
+      , Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration(frameDuration)
     {}
 
     State GetState() const override
     {
-      return ToState(Iterator->GetState(), FrameDuration.CastTo<Time::Microsecond>());
+      return ToState(Iterator->GetState(), FrameDuration.Get());
     }
 
     Sound::Chunk Render() override
     {
       TransferChunk();
-      LastChunk.TimeStamp += FrameDuration;
+      FrameDuration.Synchronize();
+      LastChunk.TimeStamp += FrameDuration.Get<Devices::TFM::TimeUnit>();
       return Device->RenderTill(LastChunk.TimeStamp);
     }
 
@@ -68,23 +70,24 @@ namespace Module
     }
 
   private:
+    FrameDurationParameter FrameDuration;
     const TFM::DataIterator::Ptr Iterator;
     const Devices::TFM::Chip::Ptr Device;
-    const Time::Duration<Devices::TFM::TimeUnit> FrameDuration;
     Devices::TFM::DataChunk LastChunk;
   };
 
   class TFMHolder : public Holder
   {
   public:
-    TFMHolder(TFM::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
+    TFMHolder(TFM::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties, Time::Microseconds frameDuration)
       : Tune(std::move(chiptune))
       , Properties(std::move(properties))
+      , FrameDuration(frameDuration)
     {}
 
     Information GetModuleInformation() const override
     {
-      return ToInformation(Tune->GetInformation(), Tune->GetFrameDuration());
+      return ToInformation(Tune->GetInformation(), FrameDuration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -94,29 +97,32 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
+      auto rendererParams = params;
       auto chipParams = TFM::CreateChipParameters(samplerate, std::move(params));
       auto chip = Devices::TFM::CreateChip(std::move(chipParams));
       auto iterator = Tune->CreateDataIterator();
-      return TFM::CreateRenderer(Tune->GetFrameDuration() /*TODO: speed variation*/, std::move(iterator),
-                                 std::move(chip));
+      return TFM::CreateRenderer(FrameDurationParameter(std::move(rendererParams), TFM::BASE_FRAME_DURATION),
+                                 std::move(iterator), std::move(chip));
     }
 
   private:
     const TFM::Chiptune::Ptr Tune;
     const Parameters::Accessor::Ptr Properties;
+    const Time::Microseconds FrameDuration;
   };
 }  // namespace Module
 
 namespace Module::TFM
 {
-  Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, TFM::DataIterator::Ptr iterator,
+  Renderer::Ptr CreateRenderer(FrameDurationParameter frameDuration, DataIterator::Ptr iterator,
                                Devices::TFM::Chip::Ptr device)
   {
-    return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device));
+    return MakePtr<TFMRenderer>(std::move(frameDuration), std::move(iterator), std::move(device));
   }
 
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
   {
-    return MakePtr<TFMHolder>(std::move(chiptune), std::move(properties));
+    const FrameDurationParameter frameDuration(properties, TFM::BASE_FRAME_DURATION);
+    return MakePtr<TFMHolder>(std::move(chiptune), std::move(properties), frameDuration.Get());
   }
 }  // namespace Module::TFM

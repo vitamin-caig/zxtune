@@ -10,6 +10,7 @@
 
 #include "module/players/aym/aym_base.h"
 
+#include "module/players/parameters.h"
 #include "module/players/streaming.h"
 #include "module/players/tracking.h"
 
@@ -26,21 +27,22 @@ namespace Module
   class AYMRenderer : public Renderer
   {
   public:
-    AYMRenderer(Time::Microseconds frameDuration, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
-      : Iterator(std::move(iterator))
+    AYMRenderer(FrameDurationParameter frameDuration, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
+      : FrameDuration(std::move(frameDuration))
+      , Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration(frameDuration)
     {}
 
     State GetState() const override
     {
-      return ToState(Iterator->GetState(), FrameDuration.CastTo<Time::Microsecond>());
+      return ToState(Iterator->GetState(), FrameDuration.Get());
     }
 
     Sound::Chunk Render() override
     {
       TransferChunk();
-      LastChunk.TimeStamp += FrameDuration;
+      FrameDuration.Synchronize();
+      LastChunk.TimeStamp += FrameDuration.Get<Devices::AYM::TimeUnit>();
       return Device->RenderTill(LastChunk.TimeStamp);
     }
 
@@ -73,23 +75,24 @@ namespace Module
     }
 
   private:
+    FrameDurationParameter FrameDuration;
     const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Chip::Ptr Device;
-    const Time::Duration<Devices::AYM::TimeUnit> FrameDuration;
     Devices::AYM::DataChunk LastChunk;
   };
 
   class AYMHolder : public AYM::Holder
   {
   public:
-    AYMHolder(AYM::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
+    AYMHolder(AYM::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties, Time::Microseconds frameDuration)
       : Tune(std::move(chiptune))
       , Properties(std::move(properties))
+      , FrameDuration(frameDuration)
     {}
 
     Information GetModuleInformation() const override
     {
-      return ToInformation(Tune->GetInformation(), Tune->GetFrameDuration());
+      return ToInformation(Tune->GetInformation(), FrameDuration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -99,11 +102,12 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
+      auto rendererParams = params;
       auto chip = AYM::CreateChip(samplerate, params);
       auto trackParams = AYM::TrackParameters::Create(std::move(params));
       auto iterator = Tune->CreateDataIterator(std::move(trackParams));
-      return MakePtr<AYMRenderer>(Tune->GetFrameDuration() /*TODO: speed variation*/, std::move(iterator),
-                                  std::move(chip));
+      return MakePtr<AYMRenderer>(FrameDurationParameter(std::move(rendererParams), AYM::BASE_FRAME_DURATION),
+                                  std::move(iterator), std::move(chip));
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override
@@ -116,8 +120,7 @@ namespace Module
       auto trackParams = AYM::TrackParameters::Create(Properties);
       const auto iterator = Tune->CreateDataIterator(std::move(trackParams));
       Devices::AYM::DataChunk chunk;
-      for (const auto frameDuration = Tune->GetFrameDuration(); !iterator->GetState().LoopCount;
-           chunk.TimeStamp += frameDuration)
+      for (const auto frameDuration = FrameDuration; !iterator->GetState().LoopCount; chunk.TimeStamp += frameDuration)
       {
         chunk.Data = iterator->Advance();
         aym.RenderData(chunk);
@@ -127,6 +130,7 @@ namespace Module
   private:
     const AYM::Chiptune::Ptr Tune;
     const Parameters::Accessor::Ptr Properties;
+    const Time::Microseconds FrameDuration;
   };
 }  // namespace Module
 
@@ -134,7 +138,8 @@ namespace Module::AYM
 {
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
   {
-    return MakePtr<AYMHolder>(std::move(chiptune), std::move(properties));
+    const FrameDurationParameter frameDuration(properties, AYM::BASE_FRAME_DURATION);
+    return MakePtr<AYMHolder>(std::move(chiptune), std::move(properties), frameDuration.Get());
   }
 
   Devices::AYM::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params)
