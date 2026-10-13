@@ -246,17 +246,19 @@ namespace
   class Benchmark : public OnItemCallback
   {
   public:
-    Benchmark(unsigned iterations, bool dumpUnknownData, SoundComponent& sound, DisplayComponent& display)
+    Benchmark(unsigned iterations, bool dumpUnknownData, SoundComponent& sound, DisplayComponent& display,
+              Parameters::Accessor::Ptr globalParams)
       : Iterations(iterations)
       , DumpUnknownData(dumpUnknownData)
       , Sounder(sound)
       , Display(display)
+      , GlobalParams(std::move(globalParams))
     {}
 
     void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder) override
     {
       const auto info = holder->GetModuleInformation();
-      const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
+      const auto props = Parameters::CreateMergedAccessor(holder->GetModuleProperties(), GlobalParams);
       const auto& path = Parameters::GetString(*props, Module::ATTR_FULLPATH);
       const auto& type = Parameters::GetString(*props, Module::ATTR_TYPE);
 
@@ -382,6 +384,7 @@ namespace
     const bool DumpUnknownData;
     SoundComponent& Sounder;
     DisplayComponent& Display;
+    const Parameters::Accessor::Ptr GlobalParams;
   };
 
   class Indexer : public OnItemCallback
@@ -548,7 +551,7 @@ namespace
         }
         else if (NO_BENCHMARK != BenchmarkIterations)
         {
-          Benchmark benchmark(BenchmarkIterations, DumpUnknownData, *Sounder, *Display);
+          Benchmark benchmark(BenchmarkIterations, DumpUnknownData, *Sounder, *Display, ConfigParams);
           Sourcer->ProcessItems(benchmark);
         }
         else if (!IndexerParams.empty())

@@ -118,6 +118,8 @@ namespace
 
       opt("frequency", value<String>(GetSoundOption(Parameters::ZXTune::Sound::FREQUENCY)),
           "specify sound frequency in Hz");
+      opt("frameduration", value<String>(GetSoundOption(Parameters::ZXTune::Core::FRAMEDURATION)),
+          "specify frame duration in uS");
       opt("freqtable", value<String>(GetSoundOption(Parameters::ZXTune::Core::AYM::TABLE)), "specify frequency table");
       opt("loop", bool_switch(&Looped), "loop playback");
     }
