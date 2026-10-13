@@ -296,7 +296,7 @@ namespace Sound::Alsa
       {}
     }
 
-    void SetParameters(Time::Milliseconds lat, const RenderParameters& params)
+    void SetParameters(Time::Milliseconds lat, uint_t freq)
     {
       const auto hwParams =
           Allocate<snd_pcm_hw_params_t>(AlsaApi, &Api::snd_pcm_hw_params_malloc, &Api::snd_pcm_hw_params_free);
@@ -315,7 +315,6 @@ namespace Sound::Alsa
         throw Error(THIS_LINE, translate("No suitable formats supported by ALSA."));
       }
 
-      const unsigned freq = params.SoundFreq();
       const unsigned latency = Time::Microseconds(lat).Get();
       Dbg("Setting parameters: rate={}Hz latency={}uS", freq, latency);
       Pcm.CheckedCall(&Api::snd_pcm_set_params, fmt.Get(), SND_PCM_ACCESS_RW_INTERLEAVED, unsigned(Sample::CHANNELS),
@@ -751,13 +750,12 @@ namespace Sound::Alsa
 
     AlsaObjects OpenDevices() const
     {
-      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
       const BackendParameters backend(*Params);
       const Identifier deviceId(backend.GetDeviceName());
 
       AlsaObjects res;
       res.Dev = MakePtr<DeviceWrapper>(AlsaApi, deviceId);
-      res.Dev->SetParameters(backend.GetLatency(), *sound);
+      res.Dev->SetParameters(backend.GetLatency(), GetSoundFrequency(*Params));
       res.Mix = MakePtr<Mixer>(AlsaApi, deviceId, backend.GetMixerName());
       res.Vol = MakePtr<VolumeControl>(res.Mix);
       return res;

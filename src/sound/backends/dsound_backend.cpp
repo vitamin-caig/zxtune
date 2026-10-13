@@ -398,7 +398,6 @@ namespace Sound::DirectSound
     BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
       : DsApi(std::move(api))
       , BackendParams(std::move(params))
-      , RenderingParameters(RenderParameters::Create(BackendParams))
     {}
 
     void Startup() override
@@ -481,7 +480,8 @@ namespace Sound::DirectSound
       DSObjects res;
       res.Device = OpenDevice(*DsApi, device);
       const uint_t latency = params.GetLatency();
-      const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(*res.Device, RenderingParameters->SoundFreq(), latency);
+      const DirectSoundBufferPtr buffer =
+          CreateSecondaryBuffer(*res.Device, GetSoundFrequency(*BackendParams), latency);
       res.Stream = MakePtr<StreamBuffer>(buffer);
       const DirectSoundBufferPtr primary = CreatePrimaryBuffer(*res.Device);
       res.Volume = MakePtr<VolumeControl>(res.Device, primary);
@@ -491,7 +491,6 @@ namespace Sound::DirectSound
   private:
     const Api::Ptr DsApi;
     const Parameters::Accessor::Ptr BackendParams;
-    const RenderParameters::Ptr RenderingParameters;
     DSObjects Objects;
   };
 

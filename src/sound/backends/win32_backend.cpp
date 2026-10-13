@@ -410,7 +410,6 @@ namespace Sound::Win32
     BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
       : WinApi(std::move(api))
       , BackendParams(std::move(params))
-      , RenderingParameters(RenderParameters::Create(BackendParams))
     {}
 
     ~BackendWorker() override
@@ -463,7 +462,7 @@ namespace Sound::Win32
       std::memset(&format, 0, sizeof(format));
       format.wFormatTag = WAVE_FORMAT_PCM;
       format.nChannels = Sample::CHANNELS;
-      format.nSamplesPerSec = static_cast< ::DWORD>(RenderingParameters->SoundFreq());
+      format.nSamplesPerSec = static_cast< ::DWORD>(GetSoundFrequency(*BackendParams));
       format.nBlockAlign = sizeof(Sample);
       format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
       format.wBitsPerSample = Sample::BITS;
@@ -490,7 +489,6 @@ namespace Sound::Win32
   private:
     const Api::Ptr WinApi;
     const Parameters::Accessor::Ptr BackendParams;
-    const RenderParameters::Ptr RenderingParameters;
     WaveOutObjects Objects;
   };
 

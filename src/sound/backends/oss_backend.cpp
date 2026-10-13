@@ -319,7 +319,6 @@ namespace Sound::Oss
   private:
     void SetupDevices(AutoDescriptor& device, AutoDescriptor& mixer, int& fmt) const
     {
-      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
       const BackendParameters backend(*Params);
 
       AutoDescriptor tmpMixer(backend.GetMixerName(), O_RDWR);
@@ -341,7 +340,7 @@ namespace Sound::Oss
       Dbg("Setting channels to {}", tmp);
       tmpDevice.Ioctl(SNDCTL_DSP_CHANNELS, &tmp, THIS_LINE);
 
-      tmp = sound->SoundFreq();
+      tmp = GetSoundFrequency(*Params);
       Dbg("Setting frequency to {}", tmp);
       tmpDevice.Ioctl(SNDCTL_DSP_SPEED, &tmp, THIS_LINE);
 

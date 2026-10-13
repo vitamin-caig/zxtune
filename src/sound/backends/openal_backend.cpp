@@ -294,25 +294,24 @@ namespace Sound::OpenAl
   {
   public:
     explicit BackendParameters(Parameters::Accessor::Ptr accessor)
-      : Accessor(*accessor)
-      , RenderingParameters(RenderParameters::Create(std::move(accessor)))
+      : Accessor(std::move(accessor))
     {}
 
     String GetDeviceName() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::OpenAl;
-      return Parameters::GetString(Accessor, DEVICE, DEVICE_DEFAULT);
+      return Parameters::GetString(*Accessor, DEVICE, DEVICE_DEFAULT);
     }
 
     uint_t GetSoundFreq() const
     {
-      return RenderingParameters->SoundFreq();
+      return GetSoundFrequency(*Accessor);
     }
 
     uint_t GetBuffersCount() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::OpenAl;
-      const auto val = Parameters::GetInteger<uint_t>(Accessor, BUFFERS, BUFFERS_DEFAULT);
+      const auto val = Parameters::GetInteger<uint_t>(*Accessor, BUFFERS, BUFFERS_DEFAULT);
       if (!Math::InRange(val, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
@@ -323,8 +322,7 @@ namespace Sound::OpenAl
     }
 
   private:
-    const Parameters::Accessor& Accessor;
-    const RenderParameters::Ptr RenderingParameters;
+    const Parameters::Accessor::Ptr Accessor;
   };
 
   class VolumeController : public VolumeControl

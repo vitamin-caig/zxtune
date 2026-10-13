@@ -106,8 +106,7 @@ namespace Sound::PulseAudio
       format.channels = Sample::CHANNELS;
       format.format = isLE() ? PA_SAMPLE_S16LE : PA_SAMPLE_S16BE;
 
-      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
-      format.rate = sound->SoundFreq();
+      format.rate = GetSoundFrequency(*Params);
       return format;
     }
 

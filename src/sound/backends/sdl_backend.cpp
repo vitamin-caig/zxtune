@@ -190,9 +190,8 @@ namespace Sound::Sdl
         assert(!"Invalid format");
       }
 
-      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
       const BackendParameters backend(*Params);
-      format.freq = sound->SoundFreq();
+      format.freq = GetSoundFrequency(*Params);
       format.channels = static_cast< ::Uint8>(Sample::CHANNELS);
       format.samples = format.freq / 2;  // keep 0.5 seconds of data
       // fix if size is not power of 2
