@@ -274,8 +274,13 @@ namespace Module::AYM
     const uint_t Index;
   };
 
-  const Parameters::IdentifiersSet ChipParameters::ALL{Aym::Clockrate::Key, Aym::Chip::Key, Aym::Interpolation::Key,
-                                                       Aym::DutyCycle::Key, Aym::DutyCycleMask::Key, Aym::Layout::Key};
+  const Parameters::IdentifiersSet ChipParameters::ALL{Aym::Clockrate::Key,
+                                                       Aym::Chip::Key,
+                                                       Aym::Interpolation::Key,
+                                                       Aym::DutyCycle::Key,
+                                                       Aym::DutyCycleMask::Key,
+                                                       Aym::Layout::Key,
+                                                       Parameters::ZXTune::Core::FrameDuration::Key};
 
   const Parameters::IdentifiersSet TrackParameters::ALL{Aym::Table::Key};
 

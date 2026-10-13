@@ -64,7 +64,8 @@ namespace Module::TFM
     const Parameters::Accessor::Ptr Params;
   };
 
-  const Parameters::IdentifiersSet ChipParameters::ALL{Fm::Clockrate::Key};
+  const Parameters::IdentifiersSet ChipParameters::ALL{Fm::Clockrate::Key,
+                                                       Parameters::ZXTune::Core::FrameDuration::Key};
 
   Devices::TFM::ChipParameters::Ptr ChipParameters::Create(uint_t samplerate, Parameters::Accessor::Ptr params)
   {
