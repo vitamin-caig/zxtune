@@ -24,6 +24,7 @@
 #include "core/plugin_attrs.h"
 #include "core/service.h"
 #include "io/api.h"
+#include "parameters/merged_accessor.h"
 #include "parameters/merged_container.h"
 #include "platform/application.h"
 #include "strings/array.h"
@@ -145,8 +146,9 @@ namespace
     Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const override
     {
       auto subId = Id->WithSubpath(subpath);
-      auto moduleProperties = Module::CreatePathProperties(std::move(subId));
-      return Parameters::CreateMergedContainer(std::move(moduleProperties), Parameters::Container::Create());
+      auto pathProperties = Module::CreatePathProperties(std::move(subId));
+      return Parameters::CreateMergedContainer(Parameters::CreateMergedAccessor(std::move(pathProperties), Params),
+                                               Parameters::Container::Create());
     }
 
     void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& /*decoder*/,
