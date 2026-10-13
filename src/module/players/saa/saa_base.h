@@ -20,6 +20,8 @@ namespace Module::SAA
   const uint_t TRACK_CHANNELS = 6;
   const auto BASE_FRAME_DURATION = Time::Microseconds::FromFrequency(50);
 
+  using DataIterator = Iterator<Devices::SAA::Registers>;
+
   class ChannelBuilder
   {
   public:
@@ -74,23 +76,33 @@ namespace Module::SAA
     Devices::SAA::Registers Regs;
   };
 
-  class DataRenderer
+  template<class RendererType>
+  class Synth
   {
   public:
-    using Ptr = std::unique_ptr<DataRenderer>;
+    using Data = Devices::SAA::Registers;
 
-    virtual ~DataRenderer() = default;
+    template<class ModelType>
+    explicit Synth(const ModelType& model)
+      : Renderer(model)
+    {}
 
-    virtual void SynthesizeData(const TrackState& state, TrackBuilder& track) = 0;
-    virtual void Reset() = 0;
-  };
+    void Reset()
+    {
+      Renderer.Reset();
+    }
 
-  class DataIterator : public Iterator
-  {
-  public:
-    using Ptr = std::unique_ptr<DataIterator>;
+    Devices::SAA::Registers Synthesize(const TrackState& state)
+    {
+      TrackBuilder builder;
+      Renderer.SynthesizeData(state, builder);
+      Devices::SAA::Registers result;
+      builder.GetResult(result);
+      return result;
+    }
 
-    virtual Devices::SAA::Registers GetData() const = 0;
+  private:
+    RendererType Renderer;
   };
 
   class Chiptune
@@ -104,8 +116,6 @@ namespace Module::SAA
     virtual TrackModel::Ptr GetTrackModel() const = 0;
     virtual DataIterator::Ptr CreateDataIterator() const = 0;
   };
-
-  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer);
 
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties);
 }  // namespace Module::SAA

@@ -11,64 +11,9 @@
 #include "module/players/aym/aym_base_track.h"
 
 #include "math/numeric.h"
-#include "parameters/tracking_helper.h"
-
-#include "make_ptr.h"
-
-#include <utility>
 
 namespace Module::AYM
 {
-  class TrackDataIterator : public DataIterator
-  {
-  public:
-    TrackDataIterator(TrackParameters::Ptr trackParams, Iterator::Ptr delegate, DataRenderer::Ptr renderer)
-      : Params(std::move(trackParams))
-      , Delegate(std::move(delegate))
-      , Render(std::move(renderer))
-    {}
-
-    void Reset() override
-    {
-      Params.Reset();
-      Delegate->Reset();
-      Render->Reset();
-    }
-
-    void NextFrame() override
-    {
-      Delegate->NextFrame();
-    }
-
-    FramedState GetState() const override
-    {
-      return Delegate->GetState();
-    }
-
-    Devices::AYM::Registers GetData() const override
-    {
-      SynchronizeParameters();
-      TrackBuilder builder(Table);
-      Render->SynthesizeData(*Delegate->GetState().Track, builder);
-      return builder.GetResult();
-    }
-
-  private:
-    void SynchronizeParameters() const
-    {
-      if (Params.IsChanged())
-      {
-        Params->FreqTable(Table);
-      }
-    }
-
-  private:
-    Parameters::TrackingHelper<AYM::TrackParameters> Params;
-    const Iterator::Ptr Delegate;
-    const AYM::DataRenderer::Ptr Render;
-    mutable FrequencyTable Table;
-  };
-
   void ChannelBuilder::SetTone(int_t halfTones, int_t offset)
   {
     const auto halftone = Math::Clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
@@ -136,11 +81,5 @@ namespace Module::AYM
     const int_t toneFrom = Table[halfFrom];
     const int_t toneTo = Table[halfTo];
     return toneTo - toneFrom;
-  }
-
-  DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, Iterator::Ptr iterator,
-                                       DataRenderer::Ptr renderer)
-  {
-    return MakePtr<TrackDataIterator>(std::move(trackParams), std::move(iterator), std::move(renderer));
   }
 }  // namespace Module::AYM

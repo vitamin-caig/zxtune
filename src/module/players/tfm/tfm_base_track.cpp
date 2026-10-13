@@ -10,10 +10,6 @@
 
 #include "module/players/tfm/tfm_base_track.h"
 
-#include "make_ptr.h"
-
-#include <utility>
-
 namespace
 {
   inline uint_t EncodeDetune(int_t in)
@@ -31,53 +27,6 @@ namespace
 
 namespace Module::TFM
 {
-  class TrackDataIterator : public DataIterator
-  {
-  public:
-    TrackDataIterator(Iterator::Ptr delegate, DataRenderer::Ptr renderer)
-      : Delegate(std::move(delegate))
-      , Render(std::move(renderer))
-    {
-      FillCurrentData();
-    }
-
-    void Reset() override
-    {
-      Delegate->Reset();
-      Render->Reset();
-      FillCurrentData();
-    }
-
-    void NextFrame() override
-    {
-      Delegate->NextFrame();
-      FillCurrentData();
-    }
-
-    FramedState GetState() const override
-    {
-      return Delegate->GetState();
-    }
-
-    void GetData(Devices::TFM::Registers& res) const override
-    {
-      res.assign(CurrentData.begin(), CurrentData.end());
-    }
-
-  private:
-    void FillCurrentData()
-    {
-      TrackBuilder builder;
-      Render->SynthesizeData(*Delegate->GetState().Track, builder);
-      builder.CaptureResult(CurrentData);
-    }
-
-  private:
-    const Iterator::Ptr Delegate;
-    const DataRenderer::Ptr Render;
-    Devices::TFM::Registers CurrentData;
-  };
-
   ChannelBuilder::ChannelBuilder(uint_t chan, Devices::TFM::Registers& data)
     : Chip(chan >= TFM::TRACK_CHANNELS / 2)
     , Channel(0 != Chip ? chan - TFM::TRACK_CHANNELS / 2 : chan)
@@ -201,10 +150,5 @@ namespace Module::TFM
   void ChannelBuilder::WriteChipRegister(uint_t idx, uint_t val)
   {
     Registers.emplace_back(Chip, idx, val);
-  }
-
-  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer)
-  {
-    return MakePtr<TrackDataIterator>(std::move(iterator), std::move(renderer));
   }
 }  // namespace Module::TFM

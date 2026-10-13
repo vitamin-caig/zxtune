@@ -76,38 +76,38 @@ namespace Module::DAC
 
   DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data);
 
-  template<class DataPtr, class DataRenderer>
+  template<class RendererType, class ModelPtr>
   class TrackingChiptune : public Chiptune
   {
+    using ModelType = std::remove_const_t<typename ModelPtr::element_type>;
+
   public:
-    explicit TrackingChiptune(DataPtr data)
-      : Data(std::move(data))
+    explicit TrackingChiptune(ModelPtr model)
+      : Model(std::move(model))
     {}
 
     TrackModel::Ptr GetTrackModel() const override
     {
-      return Data;
+      return Model;
     }
 
     DataIterator::Ptr CreateDataIterator() const override
     {
-      auto iterator = CreateTrackStateIterator(Data);
-      auto renderer = MakePtr<DataRenderer>(Data);
-      return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
+      return MakePtr<TrackIterator<ModelType, ModelTrackCursor, Synth<RendererType>>>(Model);
     }
 
     void GetSamples(Devices::DAC::Chip& chip) const override
     {
-      Data->SetupSamples(chip);
+      Model->SetupSamples(chip);
     }
 
   private:
-    const DataPtr Data;
+    const ModelPtr Model;
   };
 
-  template<class DataRenderer, class DataPtr>
-  Chiptune::Ptr CreateTrackingChiptune(DataPtr data)
+  template<class RendererType, class ModelPtr>
+  Chiptune::Ptr CreateTrackingChiptune(ModelPtr model)
   {
-    return MakePtr<TrackingChiptune<DataPtr, DataRenderer>>(std::move(data));
+    return MakePtr<TrackingChiptune<RendererType, ModelPtr>>(std::move(model));
   }
 }  // namespace Module::DAC

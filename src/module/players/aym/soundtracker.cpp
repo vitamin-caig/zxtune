@@ -272,8 +272,8 @@ namespace Module::SoundTracker
 
   struct ChannelState
   {
-    explicit ChannelState(ModuleData::Ptr data, uint_t& envType, uint_t& envTone)
-      : Data(std::move(data))
+    explicit ChannelState(const ModuleData& data, uint_t& envType, uint_t& envTone)
+      : Data(data)
       , CurSample(GetStubSample())
       , CurOrnament(GetStubOrnament())
       , EnvState(envType, envTone)
@@ -301,11 +301,11 @@ namespace Module::SoundTracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        CurSample = &Data->Samples.Get(*sample);
+        CurSample = &Data.Samples.Get(*sample);
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        CurOrnament = &Data->Ornaments.Get(*ornament);
+        CurOrnament = &Data.Ornaments.Get(*ornament);
       }
       EnvState.SetNewState(src);
     }
@@ -366,7 +366,7 @@ namespace Module::SoundTracker
     }
 
   private:
-    const ModuleData::Ptr Data;
+    const ModuleData& Data;
     uint_t Note = 0;
     StateCursor Cursor;
     const Sample* CurSample;
@@ -374,17 +374,17 @@ namespace Module::SoundTracker
     EnvelopeState EnvState;
   };
 
-  class DataRenderer : public AYM::DataRenderer
+  class DataRenderer
   {
   public:
-    explicit DataRenderer(ModuleData::Ptr data)
-      : Data(std::move(data))
+    explicit DataRenderer(const ModuleData& data)
+      : Data(data)
       , StateA(Data, EnvType, EnvTone)
       , StateB(Data, EnvType, EnvTone)
       , StateC(Data, EnvType, EnvTone)
     {}
 
-    void Reset() override
+    void Reset()
     {
       StateA.Reset();
       StateB.Reset();
@@ -392,7 +392,7 @@ namespace Module::SoundTracker
       EnvType = EnvTone = 0;
     }
 
-    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk)
       {
@@ -405,7 +405,7 @@ namespace Module::SoundTracker
   private:
     void SwitchToNewLine(const TrackState& state)
     {
-      if (const auto* const line = Data->GetLine(state))
+      if (const auto* const line = Data.GetLine(state))
       {
         if (const auto* const chan = line->GetChannel(0))
         {
@@ -424,7 +424,7 @@ namespace Module::SoundTracker
 
     void SynthesizeChannelsData(const TrackState& state, AYM::TrackBuilder& track) const
     {
-      const int_t transposition = Data->Order->GetTransposition(state.Position);
+      const int_t transposition = Data.Order->GetTransposition(state.Position);
       {
         ChannelBuilder channel(transposition, track, 0);
         StateA.Synthesize(channel);
@@ -452,7 +452,7 @@ namespace Module::SoundTracker
     }
 
   private:
-    const ModuleData::Ptr Data;
+    const ModuleData& Data;
     ChannelState StateA;
     ChannelState StateB;
     ChannelState StateC;

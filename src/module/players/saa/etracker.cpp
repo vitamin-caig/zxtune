@@ -225,17 +225,17 @@ namespace Module::ETracker
     bool SwapSampleChannels = false;
   };
 
-  class DataRenderer : public SAA::DataRenderer
+  class DataRenderer
   {
   public:
-    explicit DataRenderer(ModuleData::Ptr data)
-      : Data(std::move(data))
+    explicit DataRenderer(const ModuleData& data)
+      : Data(data)
       , Noise()
     {
       Reset();
     }
 
-    void Reset() override
+    void Reset()
     {
       static const Sample STUB_SAMPLE;
       static const Ornament STUB_ORNAMENT;
@@ -251,13 +251,13 @@ namespace Module::ETracker
       Transposition = 0;
     }
 
-    void SynthesizeData(const TrackState& state, SAA::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, SAA::TrackBuilder& track)
     {
       if (0 == state.Quirk)
       {
         if (0 == state.Line)
         {
-          Transposition = Data->Order->GetTransposition(state.Position);
+          Transposition = Data.Order->GetTransposition(state.Position);
         }
         GetNewLineState(state, track);
       }
@@ -267,7 +267,7 @@ namespace Module::ETracker
   private:
     void GetNewLineState(const TrackState& state, SAA::TrackBuilder& track)
     {
-      if (const auto* const line = Data->GetLine(state))
+      if (const auto* const line = Data.GetLine(state))
       {
         line->ForEachChannel(
             [&](auto chan, const auto& src) { GetNewChannelState(chan, src, PlayerState[chan], track); });
@@ -295,12 +295,12 @@ namespace Module::ETracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleIterator.Set(Data->Samples.Get(*sample));
+        dst.SampleIterator.Set(Data.Samples.Get(*sample));
         dst.OrnamentIterator.Reset();
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentIterator.Set(Data->Ornaments.Get(*ornament));
+        dst.OrnamentIterator.Set(Data.Ornaments.Get(*ornament));
       }
       if (const uint_t* volume = src.GetVolume())
       {
@@ -423,7 +423,7 @@ namespace Module::ETracker
     }
 
   private:
-    const ModuleData::Ptr Data;
+    const ModuleData& Data;
     std::array<ChannelState, SAA::TRACK_CHANNELS> PlayerState;
     std::array<uint_t, 2> Noise;
     uint_t Transposition = 0;
@@ -448,9 +448,7 @@ namespace Module::ETracker
 
     SAA::DataIterator::Ptr CreateDataIterator() const override
     {
-      auto iterator = CreateTrackStateIterator(Data);
-      auto renderer = MakePtr<DataRenderer>(Data);
-      return SAA::CreateDataIterator(std::move(iterator), std::move(renderer));
+      return MakePtr<TrackIterator<ModuleData, ModelTrackCursor, SAA::Synth<DataRenderer>>>(Data);
     }
 
   private:

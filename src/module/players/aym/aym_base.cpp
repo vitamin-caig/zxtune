@@ -40,7 +40,6 @@ namespace Module
     Sound::Chunk Render() override
     {
       TransferChunk();
-      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -63,14 +62,13 @@ namespace Module
       while (GetState().At < request)
       {
         TransferChunk();
-        Iterator->NextFrame();
       }
     }
 
   private:
     void TransferChunk()
     {
-      LastChunk.Data = Iterator->GetData();
+      LastChunk.Data = Iterator->Advance();
       Device->RenderData(LastChunk);
     }
 
@@ -119,9 +117,9 @@ namespace Module
       const auto iterator = Tune->CreateDataIterator(std::move(trackParams));
       Devices::AYM::DataChunk chunk;
       for (const auto frameDuration = Tune->GetFrameDuration(); !iterator->GetState().LoopCount;
-           chunk.TimeStamp += frameDuration, iterator->NextFrame())
+           chunk.TimeStamp += frameDuration)
       {
-        chunk.Data = iterator->GetData();
+        chunk.Data = iterator->Advance();
         aym.RenderData(chunk);
       }
     }

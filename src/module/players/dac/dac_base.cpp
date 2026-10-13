@@ -19,53 +19,6 @@
 
 namespace Module
 {
-  class DACDataIterator : public DAC::DataIterator
-  {
-  public:
-    DACDataIterator(Iterator::Ptr delegate, DAC::DataRenderer::Ptr renderer)
-      : Delegate(std::move(delegate))
-      , Render(std::move(renderer))
-    {
-      FillCurrentData();
-    }
-
-    void Reset() override
-    {
-      Delegate->Reset();
-      Render->Reset();
-      FillCurrentData();
-    }
-
-    void NextFrame() override
-    {
-      Delegate->NextFrame();
-      FillCurrentData();
-    }
-
-    FramedState GetState() const override
-    {
-      return Delegate->GetState();
-    }
-
-    void GetData(Devices::DAC::Channels& res) const override
-    {
-      res.assign(CurrentData.begin(), CurrentData.end());
-    }
-
-  private:
-    void FillCurrentData()
-    {
-      DAC::TrackBuilder builder;
-      Render->SynthesizeData(*Delegate->GetState().Track, builder);
-      builder.GetResult(CurrentData);
-    }
-
-  private:
-    const Iterator::Ptr Delegate;
-    const DAC::DataRenderer::Ptr Render;
-    Devices::DAC::Channels CurrentData;
-  };
-
   class DACRenderer : public Renderer
   {
   public:
@@ -83,7 +36,6 @@ namespace Module
     Sound::Chunk Render() override
     {
       TransferChunk();
-      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -103,24 +55,18 @@ namespace Module
         Device->Reset();
         LastChunk.TimeStamp = {};
       }
-      if (LastChunk.TimeStamp == Devices::DAC::Stamp())
-      {
-        Iterator->GetData(LastChunk.Data);
-        Device->UpdateState(LastChunk);
-      }
       while (GetState().At < request)
       {
-        Iterator->NextFrame();
-        LastChunk.TimeStamp += FrameDuration;
-        Iterator->GetData(LastChunk.Data);
+        LastChunk.Data = Iterator->Advance();
         Device->UpdateState(LastChunk);
+        LastChunk.TimeStamp += FrameDuration;
       }
     }
 
   private:
     void TransferChunk()
     {
-      Iterator->GetData(LastChunk.Data);
+      LastChunk.Data = Iterator->Advance();
       Device->RenderData(LastChunk);
     }
 
@@ -186,11 +132,6 @@ namespace Module::DAC
     using namespace Devices::DAC;
     const auto last = std::remove_if(Data.begin(), Data.end(), [](const ChannelData& data) { return data.Mask == 0; });
     result.assign(Data.begin(), last);
-  }
-
-  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer)
-  {
-    return MakePtr<DACDataIterator>(std::move(iterator), std::move(renderer));
   }
 
   Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator,

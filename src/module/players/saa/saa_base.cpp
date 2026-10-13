@@ -18,53 +18,6 @@
 
 namespace Module
 {
-  class SAADataIterator : public SAA::DataIterator
-  {
-  public:
-    SAADataIterator(Iterator::Ptr delegate, SAA::DataRenderer::Ptr renderer)
-      : Delegate(std::move(delegate))
-      , Render(std::move(renderer))
-    {
-      FillCurrentData();
-    }
-
-    void Reset() override
-    {
-      Delegate->Reset();
-      Render->Reset();
-      FillCurrentData();
-    }
-
-    void NextFrame() override
-    {
-      Delegate->NextFrame();
-      FillCurrentData();
-    }
-
-    FramedState GetState() const override
-    {
-      return Delegate->GetState();
-    }
-
-    Devices::SAA::Registers GetData() const override
-    {
-      return CurrentData;
-    }
-
-  private:
-    void FillCurrentData()
-    {
-      SAA::TrackBuilder builder;
-      Render->SynthesizeData(*Delegate->GetState().Track, builder);
-      builder.GetResult(CurrentData);
-    }
-
-  private:
-    const Iterator::Ptr Delegate;
-    const SAA::DataRenderer::Ptr Render;
-    Devices::SAA::Registers CurrentData;
-  };
-
   class SAARenderer : public Renderer
   {
   public:
@@ -82,7 +35,6 @@ namespace Module
     Sound::Chunk Render() override
     {
       TransferChunk();
-      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -105,14 +57,13 @@ namespace Module
       while (GetState().At < request)
       {
         TransferChunk();
-        Iterator->NextFrame();
       }
     }
 
   private:
     void TransferChunk()
     {
-      LastChunk.Data = Iterator->GetData();
+      LastChunk.Data = Iterator->Advance();
       Device->RenderData(LastChunk);
     }
 
@@ -203,11 +154,6 @@ namespace Module::SAA
   void ChannelBuilder::EnableNoise()
   {
     AddRegister(Devices::SAA::Registers::NOISEMIXER, 1 << Channel);
-  }
-
-  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer)
-  {
-    return MakePtr<SAADataIterator>(std::move(iterator), std::move(renderer));
   }
 
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)

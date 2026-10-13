@@ -15,9 +15,82 @@
 #include "module/information.h"
 #include "time/duration.h"
 
+#include <utility>
+
 namespace Module
 {
-  Iterator::Ptr CreateStreamStateIterator(const FramedInformation& info);
+  //! Frame-domain cursor for stream (lookup) modules
+  class StreamCursor
+  {
+  public:
+    explicit StreamCursor(const FramedInformation& info)
+      : TotalFrames(info.Total)
+      , LoopFrame(info.Loop < info.Total ? info.Loop : 0)
+    {}
+
+    FramedState Get() const
+    {
+      return {.At = CurFrame, .LoopCount = Loops};
+    }
+
+    uint_t At() const
+    {
+      return CurFrame;
+    }
+
+    void Reset()
+    {
+      CurFrame = 0;
+      Loops = 0;
+    }
+
+    void NextFrameLooped()
+    {
+      if (++CurFrame >= TotalFrames)
+      {
+        CurFrame = LoopFrame;
+        ++Loops;
+      }
+    }
+
+  private:
+    const uint_t TotalFrames;
+    const uint_t LoopFrame;
+    uint_t CurFrame = 0;
+    uint_t Loops = 0;
+  };
+
+  //! Data source for stream modules which precompute per-frame device data
+  template<class ModelType>
+  class StreamIterator : public Iterator<typename ModelType::Data>
+  {
+  public:
+    explicit StreamIterator(typename ModelType::Ptr model)
+      : Model(std::move(model))
+      , Cursor(Model->GetInformation())
+    {}
+
+    FramedState GetState() const override
+    {
+      return Cursor.Get();
+    }
+
+    typename ModelType::Data Advance() override
+    {
+      auto data = Model->Get(Cursor.At());
+      Cursor.NextFrameLooped();
+      return data;
+    }
+
+    void Reset() override
+    {
+      Cursor.Reset();
+    }
+
+  private:
+    const typename ModelType::Ptr Model;
+    StreamCursor Cursor;
+  };
 
   inline Information CreateTimedInfo(Time::Milliseconds duration, Time::Milliseconds loopDuration)
   {

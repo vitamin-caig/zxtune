@@ -160,19 +160,19 @@ namespace Module::SoundTrackerPro
     int_t Glissade = 0;
   };
 
-  class DataRenderer : public AYM::DataRenderer
+  class DataRenderer
   {
   public:
-    explicit DataRenderer(ModuleData::Ptr data)
-      : Data(std::move(data))
+    explicit DataRenderer(const ModuleData& data)
+      : Data(data)
     {}
 
-    void Reset() override
+    void Reset()
     {
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk)
       {
@@ -184,7 +184,7 @@ namespace Module::SoundTrackerPro
   private:
     void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = Data->GetLine(state))
+      if (const auto* const line = Data.GetLine(state))
       {
         line->ForEachChannel([&](auto chan, const auto& src) { GetNewChannelState(src, PlayerState[chan], track); });
       }
@@ -263,9 +263,9 @@ namespace Module::SoundTrackerPro
         return;
       }
 
-      const Sample& curSample = Data->Samples.Get(dst.SampleNum);
+      const Sample& curSample = Data.Samples.Get(dst.SampleNum);
       const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-      const Ornament& curOrnament = Data->Ornaments.Get(dst.OrnamentNum);
+      const Ornament& curOrnament = Data.Ornaments.Get(dst.OrnamentNum);
 
       // calculate tone
       dst.TonSlide += dst.Glissade;
@@ -278,7 +278,7 @@ namespace Module::SoundTrackerPro
         channel.EnableEnvelope();
       }
       // apply tone
-      const int_t halftones = int_t(dst.Note) + Data->Order->GetTransposition(state.Position)
+      const int_t halftones = int_t(dst.Note) + Data.Order->GetTransposition(state.Position)
                               + (dst.Envelope ? 0 : curOrnament.GetLine(dst.PosInOrnament));
       channel.SetTone(halftones, dst.TonSlide + curSampleLine.Vibrato);
       if (curSampleLine.ToneMask)
@@ -315,7 +315,7 @@ namespace Module::SoundTrackerPro
     }
 
   private:
-    const ModuleData::Ptr Data;
+    const ModuleData& Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
 }  // namespace Module::SoundTrackerPro

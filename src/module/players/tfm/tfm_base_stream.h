@@ -18,9 +18,18 @@ namespace Module::TFM
   {
   public:
     using Ptr = std::shared_ptr<const StreamModel>;
+    using Data = Devices::TFM::Registers;
+    virtual ~StreamModel() = default;
 
     virtual FramedInformation GetInformation() const = 0;
     virtual void Get(uint_t pos, Devices::TFM::Registers& res) const = 0;
+
+    Devices::TFM::Registers Get(uint_t pos) const
+    {
+      Devices::TFM::Registers res;
+      Get(pos, res);
+      return res;
+    }
   };
 
   Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model);

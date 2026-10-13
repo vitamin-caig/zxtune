@@ -312,19 +312,19 @@ namespace Module::FastTracker
     ToneSlider ToneSlide;
   };
 
-  class DataRenderer : public AYM::DataRenderer
+  class DataRenderer
   {
   public:
-    explicit DataRenderer(ModuleData::Ptr data)
-      : Data(std::move(data))
+    explicit DataRenderer(const ModuleData& data)
+      : Data(data)
     {
       Reset();
     }
 
-    void Reset() override
+    void Reset()
     {
-      const Sample& stubSample = Data->Samples.Get(0);
-      const Ornament& stubOrnament = Data->Ornaments.Get(0);
+      const Sample& stubSample = Data.Samples.Get(0);
+      const Ornament& stubOrnament = Data.Ornaments.Get(0);
       for (auto& dst : PlayerState)
       {
         dst = ChannelState();
@@ -336,13 +336,13 @@ namespace Module::FastTracker
       Transposition = 0;
     }
 
-    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk)
       {
         if (0 == state.Line)
         {
-          Transposition = Data->Order->GetTransposition(state.Position);
+          Transposition = Data.Order->GetTransposition(state.Position);
         }
         GetNewLineState(state, track);
       }
@@ -352,7 +352,7 @@ namespace Module::FastTracker
   private:
     void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = Data->GetLine(state))
+      if (const auto* const line = Data.GetLine(state))
       {
         line->ForEachChannel([&](auto chan, const auto& src) { GetNewChannelState(src, PlayerState[chan], track); });
       }
@@ -385,11 +385,11 @@ namespace Module::FastTracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleIterator.Set(Data->Samples.Get(*sample));
+        dst.SampleIterator.Set(Data.Samples.Get(*sample));
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentIterator.Set(Data->Ornaments.Get(*ornament));
+        dst.OrnamentIterator.Set(Data.Ornaments.Get(*ornament));
         dst.OrnamentIterator.Reset();
         dst.NoiseAccumulator.Reset();
         dst.NoteAccumulator.Reset();
@@ -492,7 +492,7 @@ namespace Module::FastTracker
     }
 
   private:
-    const ModuleData::Ptr Data;
+    const ModuleData& Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
     int_t Transposition = 0;
   };

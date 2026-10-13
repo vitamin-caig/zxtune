@@ -20,13 +20,7 @@ namespace Module::TurboSound
 {
   const uint_t TRACK_CHANNELS = AYM::TRACK_CHANNELS * Devices::TurboSound::CHIPS;
 
-  class DataIterator : public Iterator
-  {
-  public:
-    using Ptr = std::unique_ptr<DataIterator>;
-
-    virtual Devices::TurboSound::Registers GetData() const = 0;
-  };
+  using DataIterator = Iterator<Devices::TurboSound::Registers>;
 
   class Chiptune
   {

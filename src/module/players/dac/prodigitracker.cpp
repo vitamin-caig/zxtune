@@ -149,21 +149,21 @@ namespace Module::ProDigiTracker
     }
   };
 
-  class DataRenderer : public DAC::DataRenderer
+  class DataRenderer
   {
   public:
-    explicit DataRenderer(ModuleData::Ptr data)
-      : Data(std::move(data))
+    explicit DataRenderer(const ModuleData& data)
+      : Data(data)
     {
       Reset();
     }
 
-    void Reset() override
+    void Reset()
     {
       std::fill(Ornaments.begin(), Ornaments.end(), OrnamentState());
     }
 
-    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track)
     {
       SynthesizeChannelsData(track);
       if (0 == state.Quirk)
@@ -186,7 +186,7 @@ namespace Module::ProDigiTracker
 
     void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
-      if (const auto* const line = Data->GetLine(state))
+      if (const auto* const line = Data.GetLine(state))
       {
         line->ForEachChannel(
             [&](auto chan, const auto& src) { GetNewChannelState(src, Ornaments[chan], track.GetChannel(chan)); });
@@ -208,7 +208,7 @@ namespace Module::ProDigiTracker
       {
         if (const uint_t* ornament = src.GetOrnament())
         {
-          ornamentState.Object = &Data->Ornaments.Get(*ornament);
+          ornamentState.Object = &Data.Ornaments.Get(*ornament);
           ornamentState.Position = 0;
           builder.SetNoteSlide(ornamentState.GetOffset());
         }
@@ -222,7 +222,7 @@ namespace Module::ProDigiTracker
     }
 
   private:
-    const ModuleData::Ptr Data;
+    const ModuleData& Data;
     std::array<OrnamentState, CHANNELS_COUNT> Ornaments;
   };
 

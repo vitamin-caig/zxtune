@@ -20,20 +20,21 @@ namespace Module::AYM
   {
   public:
     using Ptr = std::shared_ptr<const StreamModel>;
+    using Data = Devices::AYM::Registers;
 
     FramedInformation GetInformation() const
     {
-      return {.Total = static_cast<uint_t>(Data.size()), .Loop = Loop};
+      return {.Total = static_cast<uint_t>(Frames.size()), .Loop = Loop};
     }
 
     const Devices::AYM::Registers& Get(uint_t pos) const
     {
-      return Data[pos];
+      return Frames[pos];
     }
 
   protected:
     uint_t Loop = 0;
-    std::vector<Devices::AYM::Registers> Data;
+    std::vector<Devices::AYM::Registers> Frames;
   };
 
   class MutableStreamModel : public StreamModel
@@ -43,7 +44,7 @@ namespace Module::AYM
 
     bool IsEmpty() const
     {
-      return Data.empty();
+      return Frames.empty();
     }
 
     void SetLoop(uint_t frame)
@@ -53,29 +54,29 @@ namespace Module::AYM
 
     void Resize(std::size_t size)
     {
-      Require(Data.empty());
-      Data.resize(size);
+      Require(Frames.empty());
+      Frames.resize(size);
     }
 
     void Append(std::size_t count)
     {
-      Data.resize(Data.size() + count);
+      Frames.resize(Frames.size() + count);
     }
 
     Devices::AYM::Registers& Frame(uint_t pos)
     {
-      return Data.at(pos);
+      return Frames.at(pos);
     }
 
     Devices::AYM::Registers* LastFrame()
     {
-      return Data.empty() ? nullptr : &Data.back();
+      return Frames.empty() ? nullptr : &Frames.back();
     }
 
     Devices::AYM::Registers& AddFrame()
     {
-      Data.emplace_back();
-      return Data.back();
+      Frames.emplace_back();
+      return Frames.back();
     }
   };
 

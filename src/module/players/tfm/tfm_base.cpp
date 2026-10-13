@@ -35,7 +35,6 @@ namespace Module
     Sound::Chunk Render() override
     {
       TransferChunk();
-      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -58,14 +57,13 @@ namespace Module
       while (GetState().At < request)
       {
         TransferChunk();
-        Iterator->NextFrame();
       }
     }
 
   private:
     void TransferChunk()
     {
-      Iterator->GetData(LastChunk.Data);
+      LastChunk.Data = Iterator->Advance();
       Device->RenderData(LastChunk);
     }
 
@@ -111,7 +109,7 @@ namespace Module
 
 namespace Module::TFM
 {
-  Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
+  Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, TFM::DataIterator::Ptr iterator,
                                Devices::TFM::Chip::Ptr device)
   {
     return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device));

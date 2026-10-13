@@ -20,13 +20,7 @@ namespace Module::DAC
 {
   const auto BASE_FRAME_DURATION = Time::Microseconds::FromFrequency(50);
 
-  class DataIterator : public Iterator
-  {
-  public:
-    using Ptr = std::unique_ptr<DataIterator>;
-
-    virtual void GetData(Devices::DAC::Channels& data) const = 0;
-  };
+  using DataIterator = Iterator<Devices::DAC::Channels>;
 
   class Chiptune
   {

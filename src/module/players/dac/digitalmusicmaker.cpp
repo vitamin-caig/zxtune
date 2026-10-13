@@ -588,23 +588,23 @@ namespace Module::DigitalMusicMaker
     EffectFunc Effect;
   };
 
-  class DataRenderer : public DAC::DataRenderer
+  class DataRenderer
   {
   public:
-    explicit DataRenderer(ModuleData::Ptr data)
-      : Data(std::move(data))
+    explicit DataRenderer(const ModuleData& data)
+      : Data(data)
     {
       Reset();
     }
 
-    void Reset() override
+    void Reset()
     {
       std::fill(Chans.begin(), Chans.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track)
     {
-      const auto* const line = 0 == state.Quirk ? Data->GetLine(state) : nullptr;
+      const auto* const line = 0 == state.Quirk ? Data.GetLine(state) : nullptr;
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         DAC::ChannelDataBuilder builder = track.GetChannel(chan);
@@ -616,7 +616,7 @@ namespace Module::DigitalMusicMaker
         {
           if (const auto* const src = line->GetChannel(chan))
           {
-            chanState.OnNote(*src, *Data, builder);
+            chanState.OnNote(*src, Data, builder);
           }
         }
         chanState.GetState(builder);
@@ -624,7 +624,7 @@ namespace Module::DigitalMusicMaker
     }
 
   private:
-    const ModuleData::Ptr Data;
+    const ModuleData& Data;
     std::array<ChannelState, CHANNELS_COUNT> Chans;
   };
 

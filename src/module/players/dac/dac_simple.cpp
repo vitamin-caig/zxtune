@@ -112,16 +112,16 @@ namespace Module::DAC
     return MakePtr<SimpleDataBuilderImpl>(props, channels);
   }
 
-  class SimpleDataRenderer : public DAC::DataRenderer
+  class SimpleDataRenderer
   {
   public:
-    explicit SimpleDataRenderer(SimpleModuleData::Ptr data)
-      : Data(std::move(data))
+    explicit SimpleDataRenderer(const SimpleModuleData& data)
+      : Data(data)
     {}
 
-    void Reset() override {}
+    void Reset() {}
 
-    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track)
     {
       if (0 == state.Quirk)
       {
@@ -132,7 +132,7 @@ namespace Module::DAC
   private:
     void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
-      if (const auto* const line = Data->GetLine(state))
+      if (const auto* const line = Data.GetLine(state))
       {
         line->ForEachChannel([&](auto chan, const auto& src) { GetNewChannelState(src, track.GetChannel(chan)); });
       }
@@ -161,7 +161,7 @@ namespace Module::DAC
     }
 
   private:
-    const SimpleModuleData::Ptr Data;
+    const SimpleModuleData& Data;
   };
 
   class SimpleChiptune : public DAC::Chiptune
@@ -176,11 +176,9 @@ namespace Module::DAC
       return Data;
     }
 
-    DAC::DataIterator::Ptr CreateDataIterator() const override
+    DataIterator::Ptr CreateDataIterator() const override
     {
-      auto iterator = CreateTrackStateIterator(Data);
-      auto renderer = MakePtr<SimpleDataRenderer>(Data);
-      return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
+      return MakePtr<TrackIterator<SimpleModuleData, ModelTrackCursor, Synth<SimpleDataRenderer>>>(Data);
     }
 
     void GetSamples(Devices::DAC::Chip& chip) const override

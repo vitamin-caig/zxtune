@@ -93,18 +93,34 @@ namespace Module::DAC
     Devices::DAC::Channels Data;
   };
 
-  class DataRenderer
+  template<class RendererType>
+  class Synth
   {
   public:
-    using Ptr = std::unique_ptr<DataRenderer>;
+    using Data = Devices::DAC::Channels;
 
-    virtual ~DataRenderer() = default;
+    template<class ModelType>
+    explicit Synth(const ModelType& model)
+      : Renderer(model)
+    {}
 
-    virtual void SynthesizeData(const TrackState& state, TrackBuilder& track) = 0;
-    virtual void Reset() = 0;
+    void Reset()
+    {
+      Renderer.Reset();
+    }
+
+    Devices::DAC::Channels Synthesize(const TrackState& state)
+    {
+      TrackBuilder builder;
+      Renderer.SynthesizeData(state, builder);
+      Devices::DAC::Channels result;
+      builder.GetResult(result);
+      return result;
+    }
+
+  private:
+    RendererType Renderer;
   };
-
-  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer);
 
   Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
                                Devices::DAC::Chip::Ptr device);

@@ -368,19 +368,19 @@ namespace Module::ProSoundCreator
     bool EnvelopeEnabled = false;
   };
 
-  class DataRenderer : public AYM::DataRenderer
+  class DataRenderer
   {
   public:
-    explicit DataRenderer(ModuleData::Ptr data)
-      : Data(std::move(data))
+    explicit DataRenderer(const ModuleData& data)
+      : Data(data)
     {
       Reset();
     }
 
-    void Reset() override
+    void Reset()
     {
-      const Sample& stubSample = Data->Samples.Get(0);
-      const Ornament& stubOrnament = Data->Ornaments.Get(0);
+      const Sample& stubSample = Data.Samples.Get(0);
+      const Ornament& stubOrnament = Data.Ornaments.Get(0);
       for (auto& dst : PlayerState)
       {
         dst = ChannelState();
@@ -395,7 +395,7 @@ namespace Module::ProSoundCreator
       NoiseBase = 0;
     }
 
-    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk)
       {
@@ -407,7 +407,7 @@ namespace Module::ProSoundCreator
   private:
     void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = Data->GetLine(state))
+      if (const auto* const line = Data.GetLine(state))
       {
         line->ForEachChannel([&](auto chan, const auto& src) { GetNewChannelState(src, PlayerState[chan], track); });
       }
@@ -448,11 +448,11 @@ namespace Module::ProSoundCreator
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleIterator.Set(Data->Samples.Get(*sample));
+        dst.SampleIterator.Set(Data.Samples.Get(*sample));
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentIterator.Set(Data->Ornaments.Get(*ornament));
+        dst.OrnamentIterator.Set(Data.Ornaments.Get(*ornament));
       }
       if (const uint_t* volume = src.GetVolume())
       {
@@ -591,7 +591,7 @@ namespace Module::ProSoundCreator
     }
 
   private:
-    const ModuleData::Ptr Data;
+    const ModuleData& Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
     uint_t EnvelopeTone = 0;
     uint_t NoiseBase = 0;

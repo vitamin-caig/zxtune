@@ -145,43 +145,36 @@ namespace Module::TurboSound
     const Parameters::Accessor::Ptr Second;
   };
 
-  FramedState CreateState(FramedState lh, FramedState rh)
-  {
-    if (lh.Track && rh.Track)
-    {
-      lh.Track->Channels += rh.Track->Channels;
-    }
-    return lh;
-  }
-
-  class MergedDataIterator : public DataIterator
+  class MergedSource : public DataIterator
   {
   public:
-    MergedDataIterator(AYM::DataIterator::Ptr first, AYM::DataIterator::Ptr second)
+    MergedSource(AYM::DataIterator::Ptr first, AYM::DataIterator::Ptr second)
       : First(std::move(first))
       , Second(std::move(second))
     {}
+
+    FramedState GetState() const override
+    {
+      auto first = First->GetState();
+      auto second = Second->GetState();
+      if (first.Track && second.Track)
+      {
+        first.Track->Channels += second.Track->Channels;
+      }
+      return first;
+    }
+
+    Devices::TurboSound::Registers Advance() override
+    {
+      auto first = First->Advance();
+      auto second = Second->Advance();
+      return {{std::move(first), std::move(second)}};
+    }
 
     void Reset() override
     {
       First->Reset();
       Second->Reset();
-    }
-
-    void NextFrame() override
-    {
-      First->NextFrame();
-      Second->NextFrame();
-    }
-
-    FramedState GetState() const override
-    {
-      return CreateState(First->GetState(), Second->GetState());
-    }
-
-    Devices::TurboSound::Registers GetData() const override
-    {
-      return {{First->GetData(), Second->GetData()}};
     }
 
   private:
@@ -206,7 +199,6 @@ namespace Module::TurboSound
     Sound::Chunk Render() override
     {
       TransferChunk();
-      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -229,19 +221,18 @@ namespace Module::TurboSound
       while (GetState().At < request)
       {
         TransferChunk();
-        Iterator->NextFrame();
       }
     }
 
   private:
     void TransferChunk()
     {
-      LastChunk.Data = Iterator->GetData();
+      LastChunk.Data = Iterator->Advance();
       Device->RenderData(LastChunk);
     }
 
   private:
-    const TurboSound::DataIterator::Ptr Iterator;
+    const DataIterator::Ptr Iterator;
     const Devices::TurboSound::Chip::Ptr Device;
     const Time::Duration<Devices::TurboSound::TimeUnit> FrameDuration;
     Devices::TurboSound::DataChunk LastChunk;
@@ -273,8 +264,8 @@ namespace Module::TurboSound
     DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first,
                                          AYM::TrackParameters::Ptr second) const override
     {
-      return MakePtr<MergedDataIterator>(First->CreateDataIterator(std::move(first)),
-                                         Second->CreateDataIterator(std::move(second)));
+      return MakePtr<MergedSource>(First->CreateDataIterator(std::move(first)),
+                                   Second->CreateDataIterator(std::move(second)));
     }
 
   private:

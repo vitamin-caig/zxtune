@@ -66,16 +66,32 @@ namespace Module::TFM
     Devices::TFM::Registers Data;
   };
 
-  class DataRenderer
+  template<class RendererType>
+  class Synth
   {
   public:
-    using Ptr = std::unique_ptr<DataRenderer>;
+    using Data = Devices::TFM::Registers;
 
-    virtual ~DataRenderer() = default;
+    template<class ModelType>
+    explicit Synth(const ModelType& model)
+      : Renderer(model)
+    {}
 
-    virtual void SynthesizeData(const TrackState& state, TrackBuilder& track) = 0;
-    virtual void Reset() = 0;
+    void Reset()
+    {
+      Renderer.Reset();
+    }
+
+    Devices::TFM::Registers Synthesize(const TrackState& state)
+    {
+      TrackBuilder builder;
+      Renderer.SynthesizeData(state, builder);
+      Devices::TFM::Registers result;
+      builder.CaptureResult(result);
+      return result;
+    }
+
+  private:
+    RendererType Renderer;
   };
-
-  DataIterator::Ptr CreateDataIterator(Iterator::Ptr iterator, DataRenderer::Ptr renderer);
 }  // namespace Module::TFM

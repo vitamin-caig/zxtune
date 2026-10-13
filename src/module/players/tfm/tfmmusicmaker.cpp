@@ -83,6 +83,11 @@ namespace Module::TFMMusicMaker
 
     ModuleData() = default;
 
+    const OrderList& GetOrder() const
+    {
+      return *Order;
+    }
+
     const Line* GetLine(const TrackState& state) const
     {
       if (const auto* pat = Patterns.Get(state.Pattern))
@@ -612,19 +617,19 @@ namespace Module::TFMMusicMaker
     std::array<ChannelState, TFM::TRACK_CHANNELS> Channels;
   };
 
-  class DataRenderer : public TFM::DataRenderer
+  class DataRenderer
   {
   public:
-    explicit DataRenderer(ModuleData::Ptr data)
-      : Data(std::move(data))
+    explicit DataRenderer(const ModuleData& data)
+      : Data(data)
     {}
 
-    void Reset() override
+    void Reset()
     {
       State = PlayerState();
     }
 
-    void SynthesizeData(const TrackState& state, TFM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, TFM::TrackBuilder& track)
     {
       const uint_t quirk = state.Quirk;
       if (0 == quirk)
@@ -638,7 +643,7 @@ namespace Module::TFMMusicMaker
     void GetNewLineState(const TrackState& state, TFM::TrackBuilder& track)
     {
       ResetOneLineEffects();
-      if (const auto* const line = Data->GetLine(state))
+      if (const auto* const line = Data.GetLine(state))
       {
         line->ForEachChannel([&](auto chan, const auto& src) {
           GetNewChannelState(src, State.Channels[chan], track, track.GetChannel(chan));
@@ -731,7 +736,7 @@ namespace Module::TFMMusicMaker
         const Instrument* newInstrument = GetNewInstrument(src);
         if (!dst.CurInstrument && !newInstrument)
         {
-          newInstrument = &Data->Instruments.Get(1);
+          newInstrument = &Data.Instruments.Get(1);
         }
         if (dropEffects && dst.CurInstrument && !newInstrument)
         {
@@ -823,7 +828,7 @@ namespace Module::TFMMusicMaker
     {
       if (const uint_t* instrument = src.GetSample())
       {
-        return &Data->Instruments.Get(*instrument);
+        return &Data.Instruments.Get(*instrument);
       }
       else
       {
@@ -997,12 +1002,10 @@ namespace Module::TFMMusicMaker
     }
 
   private:
-    const ModuleData::Ptr Data;
+    const ModuleData& Data;
     PlayerState State;
   };
 
-  // TrackStateModel and TrackStateIterator with alternative tempo logic and loop support
-  // TODO: refactor with common code and remove C&P
   class StubPattern : public Pattern
   {
     StubPattern() = default;
@@ -1015,34 +1018,13 @@ namespace Module::TFMMusicMaker
     }
   };
 
-  struct PlainTrackState
+  struct ExtendedState
   {
-    uint_t Frame = 0;
-    uint_t Position = 0;
-    uint_t Pattern = 0;
-    uint_t Line = 0;
-    uint_t Quirk = 0;
+    Module::TrackPosition Position;
     uint_t EvenTempo = 0;
     uint_t OddTempo = 0;
     uint_t TempoInterleavePeriod = 0;
     uint_t TempoInterleaveCounter = 0;
-
-    PlainTrackState() = default;
-
-    uint_t GetTempo() const
-    {
-      return TempoInterleaveCounter >= TempoInterleavePeriod ? OddTempo : EvenTempo;
-    }
-
-    void NextLine()
-    {
-      Quirk = 0;
-      ++Line;
-      if (++TempoInterleaveCounter >= 2 * TempoInterleavePeriod)
-      {
-        TempoInterleaveCounter -= 2 * TempoInterleavePeriod;
-      }
-    }
   };
 
   struct LoopState
@@ -1050,16 +1032,16 @@ namespace Module::TFMMusicMaker
   public:
     LoopState() = default;
 
-    void Start(const PlainTrackState& state)
+    void Start(const ExtendedState& state)
     {
-      if (!Begin || Begin->Line != state.Line || Begin->Position != state.Position)
+      if (!Begin || Begin->Position.Line != state.Position.Line || Begin->Position.Position != state.Position.Position)
       {
-        Begin = std::make_unique<PlainTrackState>(state);
+        Begin = std::make_unique<const ExtendedState>(state);
         Counter = 0;
       }
     }
 
-    const PlainTrackState* Stop(uint_t repeatCount)
+    const ExtendedState* Stop(uint_t repeatCount)
     {
       if (Counter >= repeatCount)
       {
@@ -1077,185 +1059,127 @@ namespace Module::TFMMusicMaker
     }
 
   private:
-    std::unique_ptr<const PlainTrackState> Begin;
+    std::unique_ptr<const ExtendedState> Begin;
     uint_t Counter = 0;
   };
 
-  class TrackStateCursor
+  struct ExtendedPosition : Module::TrackPosition
   {
-  public:
-    explicit TrackStateCursor(const ModuleData& data)
-      : Data(data)
-      , Order(*Data.Order)
-      , Patterns(Data.Patterns)
+    void OnReset(const ModuleData& data)
     {
-      Reset();
+      EvenTempo = data.EvenInitialTempo;
+      OddTempo = data.OddInitialTempo;
+      TempoInterleavePeriod = data.InitialTempoInterleave;
+      TempoInterleaveCounter = 0;
     }
 
-    FramedState Get() const
+    void OnResetDone(const ModuleData&)
     {
-      return {.At = Plain.Frame,
-              .LoopCount = Loops,
-              .Track = {{.Position = Plain.Position,
-                         .Pattern = Plain.Pattern,
-                         .Line = Plain.Line,
-                         .Tempo = Plain.GetTempo(),
-                         .Quirk = Plain.Quirk,
-                         .Channels = CurLineObject ? CurLineObject->CountActiveChannels() : 0}}};
-    }
-
-    // navigation
-    bool IsValid() const
-    {
-      return Plain.Position < Order.GetSize();
-    }
-
-    const PlainTrackState& GetState() const
-    {
-      return Plain;
-    }
-
-    void Reset()
-    {
-      Plain.Frame = 0;
-      Plain.EvenTempo = Data.EvenInitialTempo;
-      Plain.OddTempo = Data.OddInitialTempo;
-      Plain.TempoInterleavePeriod = Data.InitialTempoInterleave;
-      Plain.TempoInterleaveCounter = 0;
-      SetPosition(0);
       NextLineState = nullptr;
-      Loops = 0;
     }
 
-    void SetState(const PlainTrackState& state)
+    void OnLineLoaded(const ModuleData& data)
     {
-      GoTo(state);
-      Plain.Frame = state.Frame;
-    }
-
-    void Seek(uint_t position)
-    {
-      if (Plain.Position > position || (Plain.Position == position && (0 != Plain.Line || 0 != Plain.Quirk)))
+      CurPattern = data.Patterns.Get(Pattern);
+      if (!CurPattern)
       {
-        Reset();
+        CurPattern = StubPattern::Create();
       }
-      while (IsValid() && Plain.Position != position)
+      CurLine = CurPattern->GetLine(Line);
+      if (CurLine)
       {
-        Plain.Frame += Plain.GetTempo();
-        if (!NextLine())
-        {
-          NextPosition();
-        }
+        CurLine->ForEachChannel([&](auto, const auto& chan) { LoadNewLoopTempoParameters(chan); });
       }
     }
 
-    bool NextFrame()
+    uint_t GetTempo(const ModuleData&) const
     {
-      return NextQuirk() || NextLine() || NextPosition();
+      return TempoInterleaveCounter >= TempoInterleavePeriod ? OddTempo : EvenTempo;
     }
 
-    void DoneLoop()
-    {
-      ++Loops;
-    }
-
-  private:
-    void SetPosition(uint_t pos)
-    {
-      Plain.Position = pos;
-      if (IsValid())
-      {
-        SetPattern(Order.GetPatternIndex(Plain.Position));
-      }
-      else
-      {
-        SetStubPattern();
-      }
-    }
-
-    void SetStubPattern()
-    {
-      Plain.Pattern = 0;
-      CurPatternObject = StubPattern::Create();
-      SetLine(0);
-    }
-
-    void SetPattern(uint_t pat)
-    {
-      Plain.Pattern = pat;
-      CurPatternObject = Patterns.Get(Plain.Pattern);
-      if (CurPatternObject)
-      {
-        SetLine(0);
-      }
-      else
-      {
-        SetStubPattern();
-      }
-    }
-
-    void SetLine(uint_t line)
-    {
-      Plain.Quirk = 0;
-      Plain.Line = line;
-      LoadLine();
-    }
-
-    void LoadLine()
-    {
-      CurLineObject = CurPatternObject->GetLine(Plain.Line);
-      if (CurLineObject)
-      {
-        LoadNewLoopTempoParameters();
-      }
-    }
-
-    bool NextQuirk()
-    {
-      ++Plain.Frame;
-      return ++Plain.Quirk < Plain.GetTempo();
-    }
-
-    bool NextLine()
+    bool AdvanceLine(const ModuleData& data)
     {
       if (NextLineState)
       {
-        GoTo(*NextLineState);
+        GoTo(data, *NextLineState);
+        return true;
       }
-      else
+      ++Line;
+      Quirk = 0;
+      if (++TempoInterleaveCounter >= 2 * TempoInterleavePeriod)
       {
-        Plain.NextLine();
-        if (Plain.Line >= CurPatternObject->GetSize())
-        {
-          return false;
-        }
-        LoadLine();
+        TempoInterleaveCounter -= 2 * TempoInterleavePeriod;
       }
+      if (Line >= CurPattern->GetSize())
+      {
+        return false;
+      }
+      OnLineLoaded(data);
       return true;
     }
 
-    bool NextPosition()
+    uint_t CountChannels(const ModuleData&) const
     {
-      SetPosition(Plain.Position + 1);
-      return IsValid();
+      return CurLine ? CurLine->CountActiveChannels() : 0;
     }
 
-    void GoTo(const PlainTrackState& state)
+    void SaveLoop(const ModuleData&)
     {
-      SetPosition(state.Position);
-      assert(Plain.Pattern == state.Pattern);
-      SetLine(state.Line);
-      Plain.Quirk = state.Quirk;
-      Plain.EvenTempo = state.EvenTempo;
-      Plain.OddTempo = state.OddTempo;
-      Plain.TempoInterleavePeriod = state.TempoInterleavePeriod;
-      Plain.TempoInterleaveCounter = state.TempoInterleaveCounter;
+      LoopEvenTempo = EvenTempo;
+      LoopOddTempo = OddTempo;
+      LoopTempoInterleavePeriod = TempoInterleavePeriod;
+      LoopTempoInterleaveCounter = TempoInterleaveCounter;
+    }
+
+    void RestoreLoop(const ModuleData& data)
+    {
+      OnLineLoaded(data);
+      EvenTempo = LoopEvenTempo;
+      OddTempo = LoopOddTempo;
+      TempoInterleavePeriod = LoopTempoInterleavePeriod;
+      TempoInterleaveCounter = LoopTempoInterleaveCounter;
       NextLineState = nullptr;
     }
 
-    void LoadNewLoopTempoParameters()
+  private:
+    void GoTo(const ModuleData& data, const ExtendedState& state)
     {
-      CurLineObject->ForEachChannel([&](auto, const auto& chan) { LoadNewLoopTempoParameters(chan); });
+      SetPosition(data, state.Position.Position);
+      assert(Pattern == state.Position.Pattern);
+      SetLine(data, state.Position.Line);
+      Quirk = state.Position.Quirk;
+      Frame = state.Position.Frame;
+      EvenTempo = state.EvenTempo;
+      OddTempo = state.OddTempo;
+      TempoInterleavePeriod = state.TempoInterleavePeriod;
+      TempoInterleaveCounter = state.TempoInterleaveCounter;
+      NextLineState = nullptr;
+    }
+
+    void SetPosition(const ModuleData& data, uint_t pos)
+    {
+      Position = pos;
+      if (Position < data.Order->GetSize())
+      {
+        Pattern = data.Order->GetPatternIndex(pos);
+      }
+      else
+      {
+        Pattern = 0;
+      }
+      SetLine(data, 0);
+    }
+
+    void SetLine(const ModuleData& data, uint_t line)
+    {
+      Quirk = 0;
+      Line = line;
+      OnLineLoaded(data);
+    }
+
+    ExtendedState MakeCurrentState() const
+    {
+      return {*this, EvenTempo, OddTempo, TempoInterleavePeriod, TempoInterleaveCounter};
     }
 
     void LoadNewLoopTempoParameters(const Cell& chan)
@@ -1266,14 +1190,14 @@ namespace Module::TFMMusicMaker
         switch (cmd.Type)
         {
         case TEMPO_INTERLEAVE:
-          Plain.TempoInterleavePeriod = cmd.Param1;
+          TempoInterleavePeriod = cmd.Param1;
           break;
         case TEMPO_VALUES:
-          Plain.EvenTempo = cmd.Param1;
-          Plain.OddTempo = cmd.Param2;
+          EvenTempo = cmd.Param1;
+          OddTempo = cmd.Param2;
           break;
         case LOOP_START:
-          Loop.Start(Plain);
+          Loop.Start(MakeCurrentState());
           break;
         case LOOP_STOP:
           NextLineState = Loop.Stop(cmd.Param1);
@@ -1283,65 +1207,23 @@ namespace Module::TFMMusicMaker
     }
 
   private:
-    // context
-    const ModuleData& Data;
-    const OrderList& Order;
-    const PatternsSet& Patterns;
-    // state
-    PlainTrackState Plain;
-    const class Pattern* CurPatternObject;
-    const class Line* CurLineObject;
+    const Module::Pattern* CurPattern = nullptr;
+    const Module::Line* CurLine = nullptr;
+    uint_t EvenTempo = 0;
+    uint_t OddTempo = 0;
+    uint_t TempoInterleavePeriod = 0;
+    uint_t TempoInterleaveCounter = 0;
     LoopState Loop;
-    const PlainTrackState* NextLineState = nullptr;
-    uint_t Loops = 0;
+    const ExtendedState* NextLineState = nullptr;
+    // order-loop snapshot
+    uint_t LoopEvenTempo = 0;
+    uint_t LoopOddTempo = 0;
+    uint_t LoopTempoInterleavePeriod = 0;
+    uint_t LoopTempoInterleaveCounter = 0;
   };
 
-  class TrackStateIterator : public Iterator
-  {
-  public:
-    explicit TrackStateIterator(ModuleData::Ptr data)
-      : Data(std::move(data))
-      , Cursor(*Data)
-    {}
-
-    void Reset() override
-    {
-      Cursor.Reset();
-    }
-
-    void NextFrame() override
-    {
-      if (!Cursor.NextFrame())
-      {
-        MoveToLoop();
-      }
-    }
-
-    FramedState GetState() const override
-    {
-      return Cursor.Get();
-    }
-
-  private:
-    void MoveToLoop()
-    {
-      if (LoopState)
-      {
-        Cursor.SetState(*LoopState);
-      }
-      else
-      {
-        Cursor.Seek(Data->Order->GetLoopPosition());
-        LoopState = Cursor.GetState();
-      }
-      Cursor.DoneLoop();
-    }
-
-  private:
-    const ModuleData::Ptr Data;
-    TrackStateCursor Cursor;
-    std::optional<PlainTrackState> LoopState;
-  };
+  //! TrackCursor backed by a TFM ModuleData
+  using TrackCursor = Module::TrackCursor<ModuleData, ExtendedPosition>;
 
   Module::FramedInformation MakeInformation(const ModuleData& model)
   {
@@ -1349,7 +1231,7 @@ namespace Module::TFMMusicMaker
     TrackLayout track = {.ChannelsCount = TFM::TRACK_CHANNELS,
                          .PositionsCount = order->GetSize(),
                          .LoopPosition = order->GetLoopPosition()};
-    TrackStateCursor cursor(model);
+    TrackCursor cursor(model);
     cursor.Seek(track.LoopPosition);
     const auto loopFrame = cursor.Get().At;
     cursor.Seek(track.PositionsCount);
@@ -1376,9 +1258,7 @@ namespace Module::TFMMusicMaker
 
     TFM::DataIterator::Ptr CreateDataIterator() const override
     {
-      auto iterator = MakePtr<TrackStateIterator>(Data);
-      auto renderer = MakePtr<DataRenderer>(Data);
-      return TFM::CreateDataIterator(std::move(iterator), std::move(renderer));
+      return MakePtr<TrackIterator<ModuleData, TrackCursor, TFM::Synth<DataRenderer>>>(Data);
     }
 
   private:

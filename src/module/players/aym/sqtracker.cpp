@@ -523,25 +523,25 @@ namespace Module::SQTracker
     }
   };
 
-  class DataRenderer : public AYM::DataRenderer
+  class DataRenderer
   {
   public:
-    explicit DataRenderer(ModuleData::Ptr data)
-      : Data(std::move(data))
+    explicit DataRenderer(const ModuleData& data)
+      : Data(data)
     {}
 
-    void Reset() override
+    void Reset()
     {
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track) override
+    void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk)
       {
         if (0 == state.Line)
         {
-          StartNewPattern(Data->Positions.GetLine(state.Position));
+          StartNewPattern(Data.Positions.GetLine(state.Position));
         }
         GetNewLineState(state, track);
       }
@@ -560,7 +560,7 @@ namespace Module::SQTracker
 
     void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const auto* const line = Data->GetLine(state))
+      if (const auto* const line = Data.GetLine(state))
       {
         for (uint_t idx = 0; idx != PlayerState.size(); ++idx)
         {
@@ -589,7 +589,7 @@ namespace Module::SQTracker
       }
       if (const uint_t* sample = src.GetSample())
       {
-        dst.CurSample = &Data->Samples.Get(*sample);
+        dst.CurSample = &Data.Samples.Get(*sample);
         dst.SampleTick = 32;
         dst.SamplePos = 0;
         dst.CurOrnament = nullptr;
@@ -598,7 +598,7 @@ namespace Module::SQTracker
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.CurOrnament = &Data->Ornaments.Get(*ornament);
+        dst.CurOrnament = &Data.Ornaments.Get(*ornament);
         dst.OrnamentTick = 32;
         dst.OrnamentPos = 0;
       }
@@ -724,7 +724,7 @@ namespace Module::SQTracker
     }
 
   private:
-    const ModuleData::Ptr Data;
+    const ModuleData& Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
 }  // namespace Module::SQTracker

@@ -42,6 +42,8 @@ namespace Module
   Information ToInformation(const FramedInformation& framed, Time::Microseconds frameDuration);
   State ToState(const FramedState& framed, Time::Microseconds frameDuration);
 
+  //! Forward-only endlessly looping stream of per-frame device data
+  template<class Data>
   class Iterator
   {
   public:
@@ -49,9 +51,11 @@ namespace Module
 
     virtual ~Iterator() = default;
 
-    virtual void Reset() = 0;
-    virtual void NextFrame() = 0;
-
+    //! State of the frame the next Advance() will yield
     virtual FramedState GetState() const = 0;
+    //! Produces the current frame (advancing internal state) and steps to the next one
+    virtual Data Advance() = 0;
+    //! Returns to the initial frame
+    virtual void Reset() = 0;
   };
 }  // namespace Module

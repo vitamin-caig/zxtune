@@ -22,13 +22,7 @@ namespace Module::AYM
 {
   const auto BASE_FRAME_DURATION = Time::Microseconds::FromFrequency(50);
 
-  class DataIterator : public Iterator
-  {
-  public:
-    using Ptr = std::unique_ptr<DataIterator>;
-
-    virtual Devices::AYM::Registers GetData() const = 0;
-  };
+  using DataIterator = Iterator<Devices::AYM::Registers>;
 
   class Chiptune
   {

@@ -201,9 +201,7 @@ namespace Module::ProTracker3
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      auto iterator = CreateTrackStateIterator(Data);
-      auto renderer = CreateDataRenderer(Data);
-      return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
+      return Vortex::CreateDataIterator(Data, std::move(trackParams));
     }
 
   private:
@@ -212,70 +210,6 @@ namespace Module::ProTracker3
 
   namespace TS
   {
-    class DataIterator : public TurboSound::DataIterator
-    {
-    public:
-      DataIterator(uint_t base, AYM::TrackParameters::Ptr trackParams, Iterator::Ptr iterator,
-                   AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second)
-        : Base(base)
-        , Params(std::move(trackParams))
-        , Delegate(std::move(iterator))
-        , First(std::move(first))
-        , Second(std::move(second))
-      {}
-
-      void Reset() override
-      {
-        Params.Reset();
-        Delegate->Reset();
-        First->Reset();
-        Second->Reset();
-      }
-
-      void NextFrame() override
-      {
-        Delegate->NextFrame();
-      }
-
-      FramedState GetState() const override
-      {
-        return Delegate->GetState();
-      }
-
-      Devices::TurboSound::Registers GetData() const override
-      {
-        SynchronizeParameters();
-        auto state = Delegate->GetState();
-        auto firstReg = RenderFrom(*state.Track, *First);
-        state.Track->Pattern = Base - 1 - state.Track->Pattern;
-        return {{std::move(firstReg), RenderFrom(*state.Track, *Second)}};
-      }
-
-    private:
-      Devices::AYM::Registers RenderFrom(const TrackState& state, AYM::DataRenderer& renderer) const
-      {
-        AYM::TrackBuilder builder(Table);
-        renderer.SynthesizeData(state, builder);
-        return builder.GetResult();
-      }
-
-      void SynchronizeParameters() const
-      {
-        if (Params.IsChanged())
-        {
-          Params->FreqTable(Table);
-        }
-      }
-
-    private:
-      const uint_t Base;
-      Parameters::TrackingHelper<AYM::TrackParameters> Params;
-      const Iterator::Ptr Delegate;
-      const AYM::DataRenderer::Ptr First;
-      const AYM::DataRenderer::Ptr Second;
-      mutable AYM::FrequencyTable Table;
-    };
-
     class Chiptune : public TurboSound::Chiptune
     {
     public:
@@ -296,9 +230,7 @@ namespace Module::ProTracker3
       TurboSound::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first,
                                                        AYM::TrackParameters::Ptr /*second*/) const override
       {
-        auto iterator = CreateTrackStateIterator(Data);
-        return MakePtr<DataIterator>(*Data->TurboPatternsOffset, std::move(first), std::move(iterator),
-                                     Vortex::CreateDataRenderer(Data), Vortex::CreateDataRenderer(Data));
+        return Vortex::CreateTurboSoundDataIterator(Data, std::move(first));
       }
 
     private:
