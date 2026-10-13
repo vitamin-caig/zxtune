@@ -18,6 +18,7 @@
 #include "module/properties/path.h"
 
 #include "core/additional_files_resolve.h"
+#include "core/core_parameters.h"
 #include "core/data_location.h"
 #include "core/plugin.h"
 #include "core/plugin_attrs.h"
@@ -426,7 +427,9 @@ namespace
     const String DummyDisplayName;
   };
 
-  class DataImpl : public Playlist::Item::Data
+  class DataImpl
+    : public Playlist::Item::Data
+    , private Parameters::Modifier
   {
   public:
     using Ptr = Playlist::Item::Data::Ptr;
@@ -448,6 +451,10 @@ namespace
       {
         CurrentState = Playlist::Item::ModuleState::MakeLoading();
         auto res = Source.GetModule(AdjustedParams);
+        if (res)
+        {
+          Duration = res->GetModuleInformation().Duration;
+        }
         CurrentState = Playlist::Item::ModuleState::MakeReady();
         return res;
       }
@@ -470,7 +477,9 @@ namespace
 
     Parameters::Container::Ptr GetAdjustedParameters() const override
     {
-      return AdjustedParams;
+      const Parameters::Modifier& cb = *this;
+      return Parameters::CreatePostChangePropertyTrackedContainer(AdjustedParams,
+                                                                  const_cast<Parameters::Modifier&>(cb));
     }
 
     Playlist::Item::Capabilities GetCapabilities() const override
@@ -540,12 +549,46 @@ namespace
     }
 
   private:
+    // Parameters::Modifier
+    void SetValue(Parameters::Identifier name, Parameters::IntType /*val*/) override
+    {
+      OnPropertyChanged(name);
+    }
+
+    void SetValue(Parameters::Identifier name, StringView /*val*/) override
+    {
+      OnPropertyChanged(name);
+    }
+
+    void SetValue(Parameters::Identifier name, Binary::View /*val*/) override
+    {
+      OnPropertyChanged(name);
+    }
+
+    void RemoveValue(Parameters::Identifier name) override
+    {
+      OnPropertyChanged(name);
+    }
+
+    void OnPropertyChanged(Parameters::Identifier name)
+    {
+      // other adjusted parameters are read live from the merged properties; only the frame duration is
+      // resolved inside the module, so the cached information is refreshed on an asynchronous re-open
+      if (name != Parameters::ZXTune::Core::FRAMEDURATION)
+      {
+        return;
+      }
+      // invalidate the item so the model re-opens it (and re-reads the duration) on the IO thread
+      CurrentState = Playlist::Item::ModuleState::Make();
+    }
+
+  private:
     const Playlist::Item::Capabilities Caps;
     const DynamicAttributesProvider::Ptr Attributes;
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
     const Parameters::Accessor::Ptr Properties;
-    Time::Milliseconds Duration;
+    mutable Time::Milliseconds Duration;
     mutable Playlist::Item::ModuleState CurrentState;
   };
 

@@ -23,7 +23,6 @@
 #include "module/attributes.h"
 #include "parameters/convert.h"
 #include "parameters/serialize.h"
-#include "sound/sound_parameters.h"
 #include "strings/casing.h"
 #include "tools/progress_callback_helpers.h"
 
@@ -66,6 +65,13 @@ namespace
     String DecodeString(const QString& str) const
     {
       return FromQString(Codec->toUnicode(str.toLocal8Bit()));
+    }
+
+    Parameters::IntType DecodeFrameduration(Parameters::IntType playerFreq) const
+    {
+      // player frequency is in Hz (v0) or mHz
+      const Parameters::IntType divisor = Version > 0 ? 1000000000 : 1000000;
+      return divisor / playerFreq;
     }
 
   private:
@@ -292,9 +298,9 @@ namespace
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
       }
-      else if (name == AYL::PLAYER_FREQUENCY)
+      else if (name == AYL::PLAYER_FREQUENCY && val)
       {
-        // TODO: think about this...
+        Delegate.SetValue(Parameters::ZXTune::Core::FRAMEDURATION, Version.DecodeFrameduration(val));
       }
       else if (name == AYL::FORMAT_SPECIFIC)
       {

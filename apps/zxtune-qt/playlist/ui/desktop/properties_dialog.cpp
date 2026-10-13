@@ -157,6 +157,12 @@ namespace
         const Parameters::IntegerTraits clockRate(CLOCKRATE, -1, CLOCKRATE_MIN, CLOCKRATE_MAX);
         AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Clockrate, Hz"), clockRate);
       }
+      if (caps.IsFramed())
+      {
+        using namespace Parameters::ZXTune::Core;
+        const Parameters::IntegerTraits frameDuration(FRAMEDURATION, -1, FRAMEDURATION_MIN, FRAMEDURATION_MAX);
+        AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Frame duration, uS"), frameDuration);
+      }
       if (caps.IsDAC())
       {
         using namespace Parameters::ZXTune::Core::DAC;
