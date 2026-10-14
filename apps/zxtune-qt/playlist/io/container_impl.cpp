@@ -316,42 +316,41 @@ namespace
   private:
     const Playlist::Item::Data& AcquireDelegate() const
     {
-      const std::scoped_lock lock(Guard);
-      if (!Delegate)
+      if (auto delegate = GetDelegate())
       {
-        CurrentState = Playlist::Item::ModuleState::MakeLoading();
-        Delegate = LoadItemUnlocked();
+        return *delegate;
+      }
+      // Items are opened concurrently via a thread pool (see IOThread), so serialize per-item opening
+      const std::scoped_lock loadLock(LoadMutex);
+      if (auto delegate = GetDelegate())
+      {
+        return *delegate;
+      }
+      SetCurrentState(Playlist::Item::ModuleState::MakeLoading());
+      auto delegate = Provider->OpenItem();
+      {
+        const std::scoped_lock lock(Guard);
+        Delegate = delegate;
         Provider.reset();
       }
-      return *Delegate;
+      return *delegate;
     }
 
-    Playlist::Item::Data::Ptr LoadItemUnlocked() const
+    Playlist::Item::Data::Ptr GetDelegate() const
     {
-      const ScopedUnlock unlock(Guard);
-      return Provider->OpenItem();
+      const std::scoped_lock lock(Guard);
+      return Delegate;
     }
 
-    class ScopedUnlock
+    void SetCurrentState(Playlist::Item::ModuleState state) const
     {
-    public:
-      ScopedUnlock(std::mutex& mtx)
-        : Mtx(mtx)
-      {
-        Mtx.unlock();
-      }
-
-      ~ScopedUnlock()
-      {
-        Mtx.lock();
-      }
-
-    private:
-      std::mutex& Mtx;
-    };
+      const std::scoped_lock lock(Guard);
+      CurrentState = state;
+    }
 
   private:
     mutable std::mutex Guard;
+    mutable std::mutex LoadMutex;
     mutable DelayLoadItemProvider::Ptr Provider;
     mutable Playlist::Item::ModuleState CurrentState;
     mutable Playlist::Item::Data::Ptr Delegate;

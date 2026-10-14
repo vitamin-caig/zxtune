@@ -444,16 +444,19 @@ namespace
 
     Module::Holder::Ptr GetModule() const override
     {
+      // Items are loaded concurrently via a thread pool (see IOThread), so the same item may be requested
+      // from several threads at once. Serialize per-item loading to avoid concurrent parsing.
+      const std::scoped_lock loadLock(LoadMutex);
       try
       {
-        CurrentState = Playlist::Item::ModuleState::MakeLoading();
+        SetCurrentState(Playlist::Item::ModuleState::MakeLoading());
         auto res = Source.GetModule(AdjustedParams);
-        CurrentState = Playlist::Item::ModuleState::MakeReady();
+        SetCurrentState(Playlist::Item::ModuleState::MakeReady());
         return res;
       }
       catch (const Error& e)
       {
-        CurrentState = Playlist::Item::ModuleState::MakeReady(e);
+        SetCurrentState(Playlist::Item::ModuleState::MakeReady(e));
       }
       return {};
     }
@@ -481,6 +484,7 @@ namespace
     // playlist-related properties
     Playlist::Item::ModuleState GetState() const override
     {
+      const std::scoped_lock lock(StateMutex);
       return CurrentState;
     }
 
@@ -540,12 +544,20 @@ namespace
     }
 
   private:
+    void SetCurrentState(Playlist::Item::ModuleState state) const
+    {
+      const std::scoped_lock lock(StateMutex);
+      CurrentState = state;
+    }
+
     const Playlist::Item::Capabilities Caps;
     const DynamicAttributesProvider::Ptr Attributes;
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
     const Parameters::Accessor::Ptr Properties;
     Time::Milliseconds Duration;
+    mutable std::mutex LoadMutex;
+    mutable std::mutex StateMutex;
     mutable Playlist::Item::ModuleState CurrentState;
   };
 
