@@ -236,11 +236,8 @@ namespace
 
     void SetName(const QString& name) override
     {
-      if (name != Name)
-      {
-        Name = name;
-        emit Renamed(Name);
-      }
+      // May be called from an operation thread; the name is owned by the controller's thread
+      SelfThread::Execute(this, &ControllerImpl::ApplyName, name);
     }
 
     Playlist::Scanner::Ptr GetScanner() const override
@@ -270,6 +267,16 @@ namespace
       QMessageBox msgBox(QMessageBox::Information, notification->Category(), notification->Text(), QMessageBox::Ok);
       msgBox.setDetailedText(notification->Details());
       msgBox.exec();
+    }
+
+  private:
+    void ApplyName(const QString& name)
+    {
+      if (name != Name)
+      {
+        Name = name;
+        emit Renamed(Name);
+      }
     }
 
   private:
