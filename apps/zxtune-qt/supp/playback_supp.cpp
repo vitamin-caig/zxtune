@@ -11,6 +11,7 @@
 #include "apps/zxtune-qt/supp/playback_supp.h"
 
 #include "apps/zxtune-qt/playlist/supp/data.h"
+#include "apps/zxtune-qt/supp/ptr_utils.h"
 #include "apps/zxtune-qt/supp/thread_utils.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
@@ -169,7 +170,7 @@ namespace
     // BackendCallback
     void OnStart() override
     {
-      emit OnStartModule(Backend, Item);
+      SelfThread::Execute(this, &PlaybackSupportImpl::EmitStart);
     }
 
     void OnFrame(const Module::State& /*state*/) override {}
@@ -198,7 +199,12 @@ namespace
   private:
     void SetItemAsync(Playlist::Item::Data::Ptr item, bool play)
     {
-      IOThread::Execute([this, item, play]() { LoadItem(item, play); });
+      IOThread::Execute([self = toWeak(this), item = std::move(item), play]() {
+        if (auto* that = self.data())
+        {
+          that->LoadItem(std::move(item), play);
+        }
+      });
     }
 
     void LoadItem(Playlist::Item::Data::Ptr item, bool play)
@@ -238,6 +244,11 @@ namespace
       {
         Play();
       }
+    }
+
+    void EmitStart()
+    {
+      emit OnStartModule(Backend, Item);
     }
 
     Sound::Backend::Ptr CreateBackend(const Module::Holder::Ptr& module)
