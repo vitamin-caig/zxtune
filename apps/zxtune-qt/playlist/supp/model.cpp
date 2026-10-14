@@ -33,6 +33,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <shared_mutex>
 #include <utility>
 
 namespace
@@ -283,67 +284,6 @@ namespace
     QStringList Paths;
   };
 
-  // https://en.wikipedia.org/wiki/Readers–writer_lock
-  template<class MutexType>
-  class RWMutexType
-  {
-  public:
-    class ReadLock
-    {
-    public:
-      ReadLock(RWMutexType& mtx)
-        : Mtx(mtx)
-      {
-        const std::lock_guard<MutexType> guard(Mtx.ReaderLock);
-        if (1 == ++Mtx.ReaderCount)
-        {
-          Mtx.WriterLock.lock();
-        }
-      }
-
-      ReadLock(const ReadLock&) = delete;
-
-      ~ReadLock()
-      {
-        const std::lock_guard<MutexType> guard(Mtx.ReaderLock);
-        if (0 == --Mtx.ReaderCount)
-        {
-          Mtx.WriterLock.unlock();
-        }
-      }
-
-    private:
-      RWMutexType& Mtx;
-    };
-
-    class WriteLock
-    {
-    public:
-      WriteLock(RWMutexType& mtx)
-        : Mtx(mtx)
-      {
-        Mtx.WriterLock.lock();
-      }
-
-      WriteLock(const WriteLock&) = delete;
-
-      ~WriteLock()
-      {
-        Mtx.WriterLock.unlock();
-      }
-
-    private:
-      RWMutexType& Mtx;
-    };
-
-  private:
-    MutexType ReaderLock;
-    std::size_t ReaderCount;
-    MutexType WriterLock;
-  };
-
-  using RWMutex = RWMutexType<std::mutex>;
-
   class ModelImpl
     : public Playlist::Model
     , public OperationTarget<Playlist::Item::StorageAccessOperation>
@@ -363,6 +303,7 @@ namespace
 
     ~ModelImpl() override
     {
+      WaitOperationFinish();
       Dbg("Destroyed at {}", Self());
     }
 
@@ -384,36 +325,38 @@ namespace
 
     void WaitOperationFinish() override
     {
-      AsyncExecution->Wait();
+      try
+      {
+        AsyncExecution->Wait();
+      }
+      catch (const Error& e)
+      {
+        Dbg("Operation failed: {}", e.ToString());
+      }
       Canceled = false;
     }
 
     // new virtuals
     unsigned CountItems() const override
     {
-      const RWMutex::ReadLock lock(SyncAccess);
-      return static_cast<unsigned>(Container->CountItems());
+      return static_cast<unsigned>(WithStorage([](const auto& storage) { return storage.CountItems(); }));
     }
 
     Playlist::Item::Data::Ptr GetItem(IndexType index) const override
     {
-      const RWMutex::ReadLock lock(SyncAccess);
-      return Container->GetItem(index);
+      return WithStorage([index](const auto& storage) { return storage.GetItem(index); });
     }
 
     QStringList GetItemsPaths(const IndexSet& items) const override
     {
       PathsVisitor visitor;
-      {
-        const RWMutex::ReadLock lock(SyncAccess);
-        Container->ForSpecifiedItems(items, visitor);
-      }
+      WithStorage([&](const auto& storage) { storage.ForSpecifiedItems(items, visitor); });
       return visitor.GetResult();
     }
 
     unsigned GetVersion() const override
     {
-      return Container->GetVersion();
+      return WithStorage([](const auto& storage) { return storage.GetVersion(); });
     }
 
     void Clear() override
@@ -474,12 +417,14 @@ namespace
     {
       const Qt::ItemFlags defaultFlags = Playlist::Model::flags(index);
       const Qt::ItemFlags invalidFlags = Qt::ItemIsDropEnabled | defaultFlags;
-      if (index.internalId() != Container->GetVersion())
-      {
-        return invalidFlags;
-      }
-      const Qt::ItemFlags validFlags = Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
-      return validFlags;
+      return WithStorage([&](const auto& storage) {
+        if (index.internalId() != storage.GetVersion())
+        {
+          return invalidFlags;
+        }
+        const Qt::ItemFlags validFlags = Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
+        return validFlags;
+      });
     }
 
     QStringList mimeTypes() const override
@@ -545,17 +490,18 @@ namespace
 
     bool canFetchMore(const QModelIndex& /*index*/) const override
     {
-      const RWMutex::ReadLock lock(SyncAccess);
-      return FetchedItemsCount < Container->CountItems();
+      return WithStorage([this](const auto& storage) { return FetchedItemsCount < storage.CountItems(); });
     }
 
     void fetchMore(const QModelIndex& /*index*/) override
     {
-      const RWMutex::ReadLock lock(SyncAccess);
-      const std::size_t nextCount = Container->CountItems();
-      beginInsertRows(EMPTY_INDEX, static_cast<int>(FetchedItemsCount), nextCount - 1);
-      FetchedItemsCount = nextCount;
-      endInsertRows();
+      // Runs in the model's thread only, so the shared lock is enough for the count update
+      WithStorage([this](const auto& storage) {
+        const std::size_t nextCount = storage.CountItems();
+        beginInsertRows(EMPTY_INDEX, static_cast<int>(FetchedItemsCount), nextCount - 1);
+        FetchedItemsCount = nextCount;
+        endInsertRows();
+      });
     }
 
     QModelIndex index(int row, int column, const QModelIndex& parent) const override
@@ -564,12 +510,13 @@ namespace
       {
         return EMPTY_INDEX;
       }
-      const RWMutex::ReadLock lock(SyncAccess);
-      if (row < static_cast<int>(Container->CountItems()))
-      {
-        return createIndex(row, column, Container->GetVersion());
-      }
-      return EMPTY_INDEX;
+      return WithStorage([&](const auto& storage) {
+        if (row < static_cast<int>(storage.CountItems()))
+        {
+          return createIndex(row, column, storage.GetVersion());
+        }
+        return EMPTY_INDEX;
+      });
     }
 
     QModelIndex parent(const QModelIndex& /*index*/) const override
@@ -579,7 +526,7 @@ namespace
 
     int rowCount(const QModelIndex& index) const override
     {
-      const RWMutex::ReadLock lock(SyncAccess);
+      const std::shared_lock lock(SyncAccess);
       return index.isValid() ? 0 : static_cast<int>(FetchedItemsCount);
     }
 
@@ -606,20 +553,21 @@ namespace
       }
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
-      const RWMutex::ReadLock lock(SyncAccess);
-      if (auto item = Container->GetItem(itemNum))
-      {
-        const auto& provider = Providers.GetProvider(role);
-        if (provider.IsLightweightField(fieldNum) || item->GetState().IsReady())
+      return WithStorage([&](const auto& storage) -> QVariant {
+        if (auto item = storage.GetItem(itemNum))
         {
-          return provider.GetData(*item, fieldNum);
+          const auto& provider = Providers.GetProvider(role);
+          if (provider.IsLightweightField(fieldNum) || item->GetState().IsReady())
+          {
+            return provider.GetData(*item, fieldNum);
+          }
+          else
+          {
+            AsyncLoad(std::move(item), index);
+          }
         }
-        else
-        {
-          AsyncLoad(std::move(item), index);
-        }
-      }
-      return {};
+        return {};
+      });
     }
 
     void sort(int column, Qt::SortOrder order) override
@@ -659,17 +607,30 @@ namespace
       dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(Playlist::Model::COLUMNS_COUNT));
     }
 
+    template<class F>
+    auto WithStorage(F func) const -> decltype(func(std::declval<const Playlist::Item::Storage&>()))
+    {
+      const std::shared_lock lock(SyncAccess);
+      return func(static_cast<const Playlist::Item::Storage&>(*Container));
+    }
+
+    //! May be called from any thread; the storage change is guarded, the model notification is marshalled
     template<class Function>
     void ChangeModel(Function cmd)
     {
-      beginResetModel();
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        const RWMutex::WriteLock lock(SyncAccess);
+        const std::lock_guard lock(SyncAccess);
         cmd();
         FetchedItemsCount = Container->CountItems();
         remapping = Container->ResetIndices();
       }
+      SelfThread::Execute(this, &ModelImpl::NotifyModelReset, std::move(remapping));
+    }
+
+    void NotifyModelReset(Playlist::Model::OldToNewIndexMap::Ptr remapping)
+    {
+      beginResetModel();
       endResetModel();
       if (remapping)
       {
@@ -679,7 +640,8 @@ namespace
 
     void ExecuteOperation(Playlist::Item::StorageAccessOperation::Ptr operation) override
     {
-      const RWMutex::ReadLock lock(SyncAccess);
+      // Access operations read the live storage, so block model mutations for their duration
+      const std::shared_lock lock(SyncAccess);
       emit OperationStarted();
       try
       {
@@ -696,7 +658,7 @@ namespace
         emit OperationStarted();
         Playlist::Item::Storage::Ptr tmpStorage;
         {
-          const RWMutex::ReadLock lock(SyncAccess);
+          const std::shared_lock lock(SyncAccess);
           tmpStorage = Container->Clone();
         }
         try
@@ -733,13 +695,13 @@ namespace
     template<class T>
     void Add(const T& val)
     {
-      const RWMutex::WriteLock lock(SyncAccess);
+      const std::lock_guard lock(SyncAccess);
       Container->Add(val);
     }
 
   private:
     const DataProvidersSet Providers;
-    mutable RWMutex SyncAccess;
+    mutable std::shared_mutex SyncAccess;
     std::size_t FetchedItemsCount = 0;
     Playlist::Item::Storage::Ptr Container;
     Async::Activity::Ptr AsyncExecution;
