@@ -12,7 +12,6 @@
 
 #include "apps/zxtune-qt/playlist/supp/model.h"
 #include "apps/zxtune-qt/playlist/supp/scanner.h"
-#include "apps/zxtune-qt/supp/ptr_utils.h"
 #include "apps/zxtune-qt/supp/thread_utils.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
@@ -22,8 +21,10 @@
 #include "error.h"
 #include "make_ptr.h"
 
+#include <QtCore/QPointer>
 #include <QtWidgets/QMessageBox>
 
+#include <memory>
 #include <utility>
 
 namespace
@@ -122,18 +123,23 @@ namespace
         }
         else if (!state.IsLoading())
         {
-          IOThread::Execute([weakItem = toWeak(item), idx, self = toWeak(this)]() {
-            if (auto item = weakItem.lock())
-            {
-              item->GetModule();
-              SelfThread::Execute(self, &ItemIteratorImpl::SetItem, idx, std::move(item));
-            }
-          });
+          IOThread::Execute(this, &ItemIteratorImpl::LoadItem, idx, item);
           return true;
         }
         return true;
       }
       return false;
+    }
+
+    //! Runs on the IO thread
+    static void LoadItem(QPointer<ItemIteratorImpl> self, unsigned idx,
+                         std::weak_ptr<const Playlist::Item::Data> weakItem)
+    {
+      if (auto item = weakItem.lock())
+      {
+        item->GetModule();
+        SelfThread::Execute(self, &ItemIteratorImpl::SetItem, idx, std::move(item));
+      }
     }
 
     void SetItem(unsigned idx, Playlist::Item::Data::Ptr item)

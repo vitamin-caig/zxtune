@@ -11,7 +11,6 @@
 #include "apps/zxtune-qt/supp/playback_supp.h"
 
 #include "apps/zxtune-qt/playlist/supp/data.h"
-#include "apps/zxtune-qt/supp/ptr_utils.h"
 #include "apps/zxtune-qt/supp/thread_utils.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
@@ -199,12 +198,7 @@ namespace
   private:
     void SetItemAsync(Playlist::Item::Data::Ptr item, bool play)
     {
-      IOThread::Execute([self = toWeak(this), item = std::move(item), play]() {
-        if (auto* that = self.data())
-        {
-          that->LoadItem(std::move(item), play);
-        }
-      });
+      IOThread::Execute(this, &PlaybackSupportImpl::LoadItem, std::move(item), play);
     }
 
     void LoadItem(Playlist::Item::Data::Ptr item, bool play)

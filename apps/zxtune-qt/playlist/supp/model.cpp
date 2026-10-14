@@ -11,7 +11,6 @@
 #include "apps/zxtune-qt/playlist/supp/model.h"
 
 #include "apps/zxtune-qt/playlist/supp/storage.h"
-#include "apps/zxtune-qt/supp/ptr_utils.h"
 #include "apps/zxtune-qt/supp/thread_utils.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
@@ -28,10 +27,12 @@
 
 #include <QtCore/QDataStream>
 #include <QtCore/QMimeData>
+#include <QtCore/QPointer>
 #include <QtCore/QSet>
 #include <QtCore/QStringList>
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <shared_mutex>
 #include <utility>
@@ -563,7 +564,7 @@ namespace
           }
           else
           {
-            AsyncLoad(std::move(item), index);
+            const_cast<ModelImpl*>(this)->AsyncLoad(std::move(item), index);
           }
         }
         return {};
@@ -587,19 +588,24 @@ namespace
       return this;
     }
 
-    void AsyncLoad(Playlist::Item::Data::Ptr item, const QModelIndex& index) const
+    void AsyncLoad(Playlist::Item::Data::Ptr item, const QModelIndex& index)
     {
-      IOThread::Execute([weakItem = toWeak(std::move(item)), self = toWeak(const_cast<ModelImpl*>(this)), index]() {
-        if (auto item = weakItem.lock())
+      IOThread::Execute(this, &ModelImpl::LoadItem, item, index);
+    }
+
+    //! Runs on the IO thread
+    static void LoadItem(QPointer<ModelImpl> self, std::weak_ptr<const Playlist::Item::Data> weakItem,
+                         const QModelIndex& index)
+    {
+      if (auto item = weakItem.lock())
+      {
+        const auto& state = item->GetState();
+        if (!state.IsLoading() && !state.IsReady())
         {
-          const auto& state = item->GetState();
-          if (!state.IsLoading() && !state.IsReady())
-          {
-            item->GetModule();
-            SelfThread::Execute(self, &ModelImpl::NotifyRowChanged, index);
-          }
+          item->GetModule();
+          SelfThread::Execute(self, &ModelImpl::NotifyRowChanged, index);
         }
-      });
+      }
     }
 
     void NotifyRowChanged(const QModelIndex& index)
