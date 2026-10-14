@@ -205,7 +205,6 @@ namespace
   class FilesQueue
     : public FilenamesTarget
     , public FilenamesSource
-    , public Playlist::ScanStatus
   {
   public:
     using Ptr = std::shared_ptr<FilesQueue>;
@@ -219,7 +218,7 @@ namespace
 
     void Add(const QStringList& items) override
     {
-      const std::lock_guard<std::mutex> lock(Lock);
+      const std::lock_guard lock(Lock);
       Source.Add(items);
     }
 
@@ -231,29 +230,19 @@ namespace
 
     QString GetNext() override
     {
-      const std::lock_guard<std::mutex> lock(Lock);
+      const std::lock_guard lock(Lock);
       return Current = PrefetchedStatistic.GetNext();
     }
 
-    // ScanStatus
-    unsigned DoneFiles() const override
+    //! Runs in the scanner's thread only
+    Playlist::ScanStatus GetStatus() const
     {
-      return PrefetchedStatistic.Get();
-    }
-
-    unsigned FoundFiles() const override
-    {
-      return ResolvedStatistic.Get();
-    }
-
-    QString CurrentFile() const override
-    {
-      return Current;
-    }
-
-    bool SearchFinished() const override
-    {
-      return Resolved.Empty();
+      return {
+          .DoneFiles = PrefetchedStatistic.Get(),
+          .FoundFiles = ResolvedStatistic.Get(),
+          .CurrentFile = Current,
+          .SearchFinished = Resolved.Empty(),
+      };
     }
 
   private:
@@ -273,9 +262,9 @@ namespace
 
     virtual void OnItem(Playlist::Item::Data::Ptr item) = 0;
     virtual void OnItems(Playlist::Item::Collection::Ptr items) = 0;
-    virtual void OnScanStart(Playlist::ScanStatus::Ptr status) = 0;
-    virtual void OnProgress(unsigned progress) = 0;
-    virtual void OnMessage(const QString& message) = 0;
+    virtual void OnScanStart(Playlist::ScanStatus status) = 0;
+    virtual void OnFile(Playlist::ScanStatus status) = 0;
+    virtual void OnProgress(unsigned progress, QString message) = 0;
     virtual void OnError(const class Error& err) = 0;
     virtual void OnScanEnd() = 0;
   };
@@ -321,24 +310,24 @@ namespace
 
     void OnProgress(uint_t current) override
     {
-      if (ReportTimeout())
-      {
-        Callback.OnProgress(current);
-        Scheduler.Yield();
-      }
+      Report(current, {});
     }
 
     void OnProgress(uint_t current, StringView message) override
     {
+      Report(current, message);
+    }
+
+  private:
+    void Report(uint_t current, StringView message)
+    {
       if (ReportTimeout())
       {
-        Callback.OnProgress(current);
-        Callback.OnMessage(ToQString(message));
+        Callback.OnProgress(current, ToQString(message));
         Scheduler.Yield();
       }
     }
 
-  private:
     ScannerCallback& Callback;
     Async::Scheduler& Scheduler;
     Time::Elapsed ReportTimeout;
@@ -365,7 +354,7 @@ namespace
 
     void Initialize() override
     {
-      Callback.OnScanStart(Queue);
+      Callback.OnScanStart(Queue->GetStatus());
     }
 
     void Finalize() override
@@ -386,6 +375,7 @@ namespace
         try
         {
           const QString file = Queue->GetNext();
+          Callback.OnFile(Queue->GetStatus());
           ScanFile(file, cb);
         }
         catch (const std::exception&)
@@ -498,6 +488,12 @@ namespace
       ScanJob->Stop();
     }
 
+    std::optional<Playlist::ScanStatus> GetStatus() const override
+    {
+      const std::lock_guard lock(StatusLock);
+      return Status;
+    }
+
   private:
     const void* Self() const
     {
@@ -514,19 +510,29 @@ namespace
       emit ItemsFound(items);
     }
 
-    void OnScanStart(Playlist::ScanStatus::Ptr status) override
+    void OnScanStart(Playlist::ScanStatus status) override
     {
-      emit ScanStarted(status);
+      {
+        const std::lock_guard lock(StatusLock);
+        Status = std::move(status);
+      }
+      emit ScanStarted();
     }
 
-    void OnProgress(unsigned progress) override
+    void OnFile(Playlist::ScanStatus status) override
     {
-      emit ScanProgressChanged(progress);
+      const std::lock_guard lock(StatusLock);
+      Status = std::move(status);
     }
 
-    void OnMessage(const QString& message) override
+    void OnProgress(unsigned progress, QString message) override
     {
-      emit ScanMessageChanged(message);
+      const std::lock_guard lock(StatusLock);
+      if (Status)
+      {
+        Status->Progress = progress;
+        Status->Message = std::move(message);
+      }
     }
 
     void OnError(const Error& err) override
@@ -536,6 +542,10 @@ namespace
 
     void OnScanEnd() override
     {
+      {
+        const std::lock_guard lock(StatusLock);
+        Status.reset();
+      }
       emit ScanStopped();
     }
 
@@ -543,6 +553,8 @@ namespace
     const Playlist::Item::DataProvider::Ptr Provider;
     const ScanRoutine::Ptr Routine;
     const Async::Job::Ptr ScanJob;
+    mutable std::mutex StatusLock;
+    std::optional<Playlist::ScanStatus> Status;
   };
 }  // namespace
 
@@ -556,7 +568,6 @@ namespace Playlist
   {
     REGISTER_METATYPE(Playlist::Item::Data::Ptr);
     REGISTER_METATYPE(Playlist::Item::Collection::Ptr);
-    REGISTER_METATYPE(Playlist::ScanStatus::Ptr);
     return new ScannerImpl(parent, std::move(provider));
   }
 }  // namespace Playlist

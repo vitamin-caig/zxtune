@@ -17,9 +17,12 @@
 
 #include "contract.h"
 
+#include <QtCore/QTimer>
+
 namespace
 {
   const Debug::Stream Dbg("Playlist::UI::ScannerView");
+  const auto UPDATE_PERIOD = 500;
 
   class ScannerViewImpl
     : public Playlist::UI::ScannerView
@@ -33,11 +36,11 @@ namespace
       // setup self
       setupUi(this);
       hide();
+      UpdateTimer.setInterval(UPDATE_PERIOD);
       // make connections with scanner
       Require(connect(Scanner, &Playlist::Scanner::ScanStarted, this, &ScannerViewImpl::ScanStart));
       Require(connect(Scanner, &Playlist::Scanner::ScanStopped, this, &ScannerViewImpl::ScanStop));
-      Require(connect(Scanner, &Playlist::Scanner::ScanProgressChanged, this, &ScannerViewImpl::ShowProgress));
-      Require(connect(Scanner, &Playlist::Scanner::ScanMessageChanged, scanProgress, &QProgressBar::setToolTip));
+      Require(connect(&UpdateTimer, &QTimer::timeout, this, &ScannerViewImpl::UpdateStatus));
       Require(connect(scanCancel, &QToolButton::clicked, Scanner, &Playlist::Scanner::Stop));
       Require(connect(scanPause, &QToolButton::toggled, Scanner, &Playlist::Scanner::Pause));
 
@@ -50,34 +53,34 @@ namespace
     }
 
   private:
-    void ScanStart(Playlist::ScanStatus::Ptr status)
+    void ScanStart()
     {
       Dbg("Scan started for {}", Self());
-      Status = status;
-      show();
+      UpdateStatus();
+      UpdateTimer.start();
     }
 
     void ScanStop()
     {
       Dbg("Scan stopped for {}", Self());
+      UpdateTimer.stop();
       hide();
       scanPause->setChecked(false);
     }
 
-    void ShowProgress(unsigned progress)
+    void UpdateStatus()
     {
-      // new file started
-      if (progress == 0)
+      if (const auto& status = Scanner->GetStatus())
       {
-        const QString itemsProgressText = QString::fromLatin1("%1/%2%3")
-                                              .arg(Status->DoneFiles())
-                                              .arg(Status->FoundFiles())
-                                              .arg(Status->SearchFinished() ? ' ' : '+');
-        itemsProgress->setText(itemsProgressText);
-        itemsProgress->setToolTip(Status->CurrentFile());
+        itemsProgress->setText(QString::fromLatin1("%1/%2%3")
+                                   .arg(status->DoneFiles)
+                                   .arg(status->FoundFiles)
+                                   .arg(status->SearchFinished ? ' ' : '+'));
+        itemsProgress->setToolTip(status->CurrentFile);
+        scanProgress->setValue(status->Progress);
+        scanProgress->setToolTip(status->Message);
+        CheckedShow();
       }
-      scanProgress->setValue(progress);
-      CheckedShow();
     }
 
     const void* Self() const
@@ -95,7 +98,7 @@ namespace
 
   private:
     const Playlist::Scanner::Ptr Scanner;
-    Playlist::ScanStatus::Ptr Status;
+    QTimer UpdateTimer;
   };
 }  // namespace
 

@@ -14,18 +14,18 @@
 
 #include <QtCore/QThread>
 
+#include <optional>
+
 namespace Playlist
 {
-  class ScanStatus
+  struct ScanStatus
   {
-  public:
-    using Ptr = std::shared_ptr<const ScanStatus>;
-    virtual ~ScanStatus() = default;
-
-    virtual unsigned DoneFiles() const = 0;
-    virtual unsigned FoundFiles() const = 0;
-    virtual QString CurrentFile() const = 0;
-    virtual bool SearchFinished() const = 0;
+    unsigned DoneFiles = 0;
+    unsigned FoundFiles = 0;
+    QString CurrentFile;
+    bool SearchFinished = false;
+    unsigned Progress = 0;
+    QString Message;
   };
 
   class Scanner : public QObject
@@ -43,11 +43,10 @@ namespace Playlist
     virtual void PasteItems(const QStringList& items) = 0;
     virtual void Pause(bool pause) = 0;
     virtual void Stop() = 0;
+    virtual std::optional<ScanStatus> GetStatus() const = 0;
   signals:
     // for UI
-    void ScanStarted(Playlist::ScanStatus::Ptr status);
-    void ScanProgressChanged(unsigned progress);
-    void ScanMessageChanged(const QString& message);
+    void ScanStarted();
     void ScanStopped();
     // for BL
     void ItemFound(Playlist::Item::Data::Ptr item);
