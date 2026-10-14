@@ -11,12 +11,15 @@
 #include "apps/zxtune-qt/playlist/supp/storage.h"
 
 #include "debug/log.h"
-#include "math/numeric.h"
 
 #include "make_ptr.h"
 
+#include <algorithm>
+#include <cassert>
+#include <iterator>
 #include <random>
 #include <utility>
+#include <vector>
 
 namespace
 {
@@ -24,106 +27,7 @@ namespace
 
   using IndexedItem = std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType>;
 
-  using ItemsContainer = std::list<IndexedItem>;
-
-  template<class IteratorType>
-  class IteratorContainerWalker
-  {
-  public:
-    virtual ~IteratorContainerWalker() = default;
-
-    virtual void OnItem(IteratorType it) = 0;
-  };
-
-  class PlaylistItemVisitorAdapter : public IteratorContainerWalker<ItemsContainer::const_iterator>
-  {
-  public:
-    explicit PlaylistItemVisitorAdapter(Playlist::Item::Visitor& delegate)
-      : Delegate(delegate)
-    {}
-
-    void OnItem(ItemsContainer::const_iterator it) override
-    {
-      Delegate.OnItem(it->second, it->first);
-    }
-
-  private:
-    Playlist::Item::Visitor& Delegate;
-  };
-
-  class RemoveItemsWalker : public IteratorContainerWalker<ItemsContainer::iterator>
-  {
-  public:
-    explicit RemoveItemsWalker(ItemsContainer& container)
-      : Container(container)
-      , LastRangeStart(Container.end())
-      , LastRangeEnd(Container.end())
-    {}
-
-    ~RemoveItemsWalker() override
-    {
-      Erase();
-    }
-
-    void OnItem(ItemsContainer::iterator it) override
-    {
-      if (it != LastRangeEnd)
-      {
-        Erase();
-        LastRangeStart = it;
-      }
-      LastRangeEnd = ++it;
-    }
-
-  private:
-    void Erase()
-    {
-      Container.erase(LastRangeStart, LastRangeEnd);
-    }
-
-  private:
-    ItemsContainer& Container;
-    ItemsContainer::iterator LastRangeStart;
-    ItemsContainer::iterator LastRangeEnd;
-  };
-
-  class MoveItemsWalker : public IteratorContainerWalker<ItemsContainer::iterator>
-  {
-  public:
-    MoveItemsWalker(ItemsContainer& src, ItemsContainer& dst)
-      : Src(src)
-      , Dst(dst)
-      , LastRangeStart(Src.end())
-      , LastRangeEnd(Src.end())
-    {}
-
-    ~MoveItemsWalker() override
-    {
-      Splice();
-    }
-
-    void OnItem(ItemsContainer::iterator it) override
-    {
-      if (it != LastRangeEnd)
-      {
-        Splice();
-        LastRangeStart = it;
-      }
-      LastRangeEnd = ++it;
-    }
-
-  private:
-    void Splice()
-    {
-      Dst.splice(Dst.end(), Src, LastRangeStart, LastRangeEnd);
-    }
-
-  private:
-    ItemsContainer& Src;
-    ItemsContainer& Dst;
-    ItemsContainer::iterator LastRangeStart;
-    ItemsContainer::iterator LastRangeEnd;
-  };
+  using ItemsContainer = std::vector<IndexedItem>;
 
   using namespace Playlist;
 
@@ -154,8 +58,6 @@ namespace
     ItemsContainer::const_iterator Current;
     const ItemsContainer::const_iterator Limit;
   };
-
-  const std::size_t CACHE_THRESHOLD = 200;
 
   class LinearStorage : public Item::Storage
   {
@@ -202,8 +104,7 @@ namespace
 
     void Add(Item::Data::Ptr item) override
     {
-      const IndexedItem idxItem(item, static_cast<Model::IndexType>(Items.size()));
-      Items.push_back(idxItem);
+      Items.emplace_back(std::move(item), static_cast<Model::IndexType>(Items.size()));
       Modify();
     }
 
@@ -211,8 +112,7 @@ namespace
     {
       for (auto idx = static_cast<Model::IndexType>(Items.size()); items->IsValid(); items->Next(), ++idx)
       {
-        const IndexedItem idxItem(items->Get(), idx);
-        Items.push_back(idxItem);
+        Items.emplace_back(items->Get(), idx);
       }
       Modify();
     }
@@ -228,8 +128,7 @@ namespace
       {
         return {};
       }
-      const auto it = GetIteratorByIndex(idx);
-      return it->first;
+      return Items[idx].first;
     }
 
     Item::Collection::Ptr GetItems() const override
@@ -247,54 +146,45 @@ namespace
 
     void ForSpecifiedItems(const Model::IndexSet& indices, Playlist::Item::Visitor& visitor) const override
     {
-      PlaylistItemVisitorAdapter walker(visitor);
-      ForChoosenItems(indices, walker);
+      if (Items.empty() || indices.empty())
+      {
+        return;
+      }
+      assert(*indices.rbegin() < Items.size());
+      for (const auto idx : indices)
+      {
+        visitor.OnItem(Items[idx].second, Items[idx].first);
+      }
     }
 
     void MoveItems(const Model::IndexSet& indices, Model::IndexType destination) override
     {
-      if (!indices.count(destination))
+      if (indices.empty())
       {
-        MoveItemsInternal(indices, destination);
+        return;
       }
-      else
+      if (indices.count(destination))
       {
         // try to move at the first nonselected and place before it
-        for (Model::IndexType moveAfter = destination; moveAfter != Items.size(); ++moveAfter)
+        Model::IndexType moveAfter = destination;
+        while (moveAfter != Items.size() && indices.count(moveAfter))
         {
-          if (!indices.count(moveAfter))
-          {
-            MoveItemsInternal(indices, moveAfter);
-            return;
-          }
+          ++moveAfter;
         }
-        MoveItemsInternal(indices, static_cast<Model::IndexType>(Items.size()));
+        destination = moveAfter;
       }
+      MoveItemsInternal(indices, destination);
     }
 
     void Sort(const Item::Comparer& cmp) override
     {
-      Items.sort(ComparerWrapper(cmp));
-      ClearCache();
+      std::stable_sort(Items.begin(), Items.end(), ComparerWrapper(cmp));
       Modify();
     }
 
     void Shuffle() override
     {
-      std::vector<ItemsContainer::const_iterator> iters;
-      iters.reserve(Items.size());
-      for (auto it = Items.begin(), lim = Items.end(); it != lim; ++it)
-      {
-        iters.emplace_back(it);
-      }
-      std::shuffle(iters.begin(), iters.end(), std::mt19937(std::random_device()()));
-      ItemsContainer newOne;
-      for (const auto& it : iters)
-      {
-        newOne.push_back(*it);
-      }
-      newOne.swap(Items);
-      ClearCache();
+      std::shuffle(Items.begin(), Items.end(), std::mt19937(std::random_device()()));
       Modify();
     }
 
@@ -304,11 +194,20 @@ namespace
       {
         return;
       }
+      assert(*indices.rbegin() < Items.size());
+      std::size_t out = 0;
+      for (std::size_t in = 0; in != Items.size(); ++in)
       {
-        RemoveItemsWalker walker(Items);
-        ForChoosenItems(indices, walker);
+        if (!indices.count(static_cast<Model::IndexType>(in)))
+        {
+          if (out != in)
+          {
+            Items[out] = std::move(Items[in]);
+          }
+          ++out;
+        }
       }
-      ClearCache();
+      Items.resize(out);
       Modify();
     }
 
@@ -334,144 +233,39 @@ namespace
       const Item::Comparer& Cmp;
     };
 
-    using IndexToIterator = std::map<Model::IndexType, ItemsContainer::iterator>;
-
-    ItemsContainer::iterator GetIteratorByIndex(Model::IndexType idx) const
-    {
-      std::pair<Model::IndexType, ItemsContainer::iterator> entry = GetNearestIterator(idx);
-      if (const std::ptrdiff_t delta = std::ptrdiff_t(idx) - entry.first)
-      {
-        std::advance(entry.second, delta);
-        if (Math::Absolute(delta) > std::ptrdiff_t(CACHE_THRESHOLD))
-        {
-          Dbg("Cached iterator for idx={}. Nearest idx={}, delta={}", idx, entry.first, delta);
-          entry.first += delta;
-          IteratorsCache.insert(entry);
-        }
-      }
-      return entry.second;
-    }
-
-    IndexToIterator::value_type GetNearestIterator(Model::IndexType idx) const
-    {
-      const IndexToIterator::value_type predefinedEntry = GetNearestPredefinedIterator(idx);
-      const std::size_t predefinedDelta = Math::Absolute<std::ptrdiff_t>(std::ptrdiff_t(idx) - predefinedEntry.first);
-      if (predefinedDelta <= CACHE_THRESHOLD || IteratorsCache.empty())
-      {
-        return predefinedEntry;
-      }
-      const IndexToIterator::value_type cachedEntry = GetNearestCachedIterator(idx);
-      const std::size_t cachedDelta = Math::Absolute<std::ptrdiff_t>(std::ptrdiff_t(idx) - cachedEntry.first);
-      if (cachedDelta <= CACHE_THRESHOLD)
-      {
-        return cachedEntry;
-      }
-      return predefinedDelta <= cachedDelta ? predefinedEntry : cachedEntry;
-    }
-
-    IndexToIterator::value_type GetNearestPredefinedIterator(Model::IndexType idx) const
-    {
-      const Model::IndexType firstIndex = 0;
-      const auto lastIndex = Model::IndexType(Items.size() - 1);
-      const std::size_t toFirst = idx - firstIndex;
-      const std::size_t toLast = lastIndex - idx;
-      if (toFirst <= toLast)
-      {
-        return {firstIndex, Items.begin()};
-      }
-      else
-      {
-        return {lastIndex, --Items.end()};
-      }
-    }
-
-    IndexToIterator::value_type GetNearestCachedIterator(Model::IndexType idx) const
-    {
-      assert(!IteratorsCache.empty());
-      const auto upper = IteratorsCache.upper_bound(idx);
-      if (upper == IteratorsCache.begin())
-      {
-        return *upper;
-      }
-      auto lower = upper;
-      --lower;
-      if (upper == IteratorsCache.end())
-      {
-        return *lower;
-      }
-      // upper->first > idx
-      const std::size_t toLower = idx - lower->first;
-      const std::size_t toUpper = upper->first - idx;
-      return *(toLower <= toUpper ? lower : upper);
-    }
-
+    //! Places selected items right before the item originally at destination
     void MoveItemsInternal(const Model::IndexSet& indices, Model::IndexType destination)
     {
-      if (indices.empty())
-      {
-        return;
-      }
       assert(!indices.count(destination));
-      auto delimiter = GetIteratorByIndex(destination);
 
-      ItemsContainer movedItems;
+      ItemsContainer moved;
+      moved.reserve(indices.size());
+      for (const auto idx : indices)
       {
-        MoveItemsWalker walker(Items, movedItems);
-        ForChoosenItems(indices, walker);
+        assert(idx < Items.size());
+        moved.push_back(std::move(Items[idx]));
       }
-      assert(indices.size() == movedItems.size());
 
-      ItemsContainer afterItems;
-      afterItems.splice(afterItems.begin(), Items, delimiter, Items.end());
-
-      // gathering back
-      Items.splice(Items.end(), movedItems);
-      Items.splice(Items.end(), afterItems);
-      ClearCache();
+      ItemsContainer result;
+      result.reserve(Items.size());
+      const auto total = static_cast<Model::IndexType>(Items.size());
+      for (Model::IndexType idx = 0; idx <= total; ++idx)
+      {
+        if (idx == destination)
+        {
+          result.insert(result.end(), std::make_move_iterator(moved.begin()), std::make_move_iterator(moved.end()));
+        }
+        if (idx == total)
+        {
+          break;
+        }
+        if (!indices.count(idx))
+        {
+          result.push_back(std::move(Items[idx]));
+        }
+      }
+      Items = std::move(result);
       Modify();
-    }
-
-    template<class IteratorType>
-    void ForChoosenItems(const Playlist::Model::IndexSet& indices, IteratorContainerWalker<IteratorType>& walker) const
-    {
-      if (Items.empty() || indices.empty())
-      {
-        return;
-      }
-      assert(*indices.rbegin() < Items.size());
-      if (indices.size() == Items.size())
-      {
-        // all items
-        for (IteratorType it = Items.begin(), lim = Items.end(); it != lim;)
-        {
-          const IteratorType op = it;
-          ++it;
-          walker.OnItem(op);
-        }
-      }
-      else
-      {
-        Playlist::Model::IndexType lastIndex = *indices.begin();
-        IteratorType lastIterator = GetIteratorByIndex(lastIndex);
-        for (auto curIndex : indices)
-        {
-          assert(curIndex >= lastIndex);
-          if (const Playlist::Model::IndexType delta = curIndex - lastIndex)
-          {
-            std::advance(lastIterator, delta);
-          }
-          const IteratorType op = lastIterator;
-          ++lastIterator;
-          lastIndex = curIndex + 1;
-          walker.OnItem(op);
-        }
-      }
-    }
-
-    void ClearCache()
-    {
-      Dbg("Cleared iterators cache");
-      IteratorsCache.clear();
     }
 
     void Modify()
@@ -481,8 +275,7 @@ namespace
 
   private:
     unsigned Version = 0;
-    mutable ItemsContainer Items;
-    mutable IndexToIterator IteratorsCache;
+    ItemsContainer Items;
   };
 }  // namespace
 
