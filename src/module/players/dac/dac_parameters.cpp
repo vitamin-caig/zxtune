@@ -18,10 +18,12 @@
 
 namespace Module::DAC
 {
-  class ChipParameters : public Devices::DAC::ChipParameters
+  namespace Dac = Parameters::ZXTune::Core::DAC;
+
+  class ChipParametersImpl : public Devices::DAC::ChipParameters
   {
   public:
-    ChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
+    ChipParametersImpl(uint_t samplerate, Parameters::Accessor::Ptr params)
       : Samplerate(samplerate)
       , Params(std::move(params))
     {}
@@ -59,8 +61,10 @@ namespace Module::DAC
     const Parameters::Accessor::Ptr Params;
   };
 
-  Devices::DAC::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
+  const Parameters::IdentifiersSet ChipParameters::ALL{Dac::Interpolation::Key, Dac::SamplesFrequency::Key};
+
+  Devices::DAC::ChipParameters::Ptr ChipParameters::Create(uint_t samplerate, Parameters::Accessor::Ptr params)
   {
-    return MakePtr<ChipParameters>(samplerate, std::move(params));
+    return MakePtr<ChipParametersImpl>(samplerate, std::move(params));
   }
 }  // namespace Module::DAC

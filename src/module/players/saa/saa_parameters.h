@@ -12,8 +12,14 @@
 
 #include "devices/saa.h"
 #include "parameters/accessor.h"
+#include "parameters/identifiers_set.h"
 
 namespace Module::SAA
 {
-  Devices::SAA::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params);
+  struct ChipParameters
+  {
+    static const Parameters::IdentifiersSet ALL;
+
+    static Devices::SAA::ChipParameters::Ptr Create(uint_t samplerate, Parameters::Accessor::Ptr params);
+  };
 }  // namespace Module::SAA

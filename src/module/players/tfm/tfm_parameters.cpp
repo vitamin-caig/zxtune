@@ -22,10 +22,12 @@ namespace Module::TFM
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module");
 
-  class ChipParameters : public Devices::TFM::ChipParameters
+  namespace Fm = Parameters::ZXTune::Core::FM;
+
+  class ChipParametersImpl : public Devices::TFM::ChipParameters
   {
   public:
-    ChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
+    ChipParametersImpl(uint_t samplerate, Parameters::Accessor::Ptr params)
       : Samplerate(samplerate)
       , Params(std::move(params))
     {}
@@ -62,8 +64,10 @@ namespace Module::TFM
     const Parameters::Accessor::Ptr Params;
   };
 
-  Devices::TFM::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
+  const Parameters::IdentifiersSet ChipParameters::ALL{Fm::Clockrate::Key};
+
+  Devices::TFM::ChipParameters::Ptr ChipParameters::Create(uint_t samplerate, Parameters::Accessor::Ptr params)
   {
-    return MakePtr<ChipParameters>(samplerate, std::move(params));
+    return MakePtr<ChipParametersImpl>(samplerate, std::move(params));
   }
 }  // namespace Module::TFM

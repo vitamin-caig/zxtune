@@ -12,6 +12,7 @@
 
 #include "formats/chiptune/emulation/ay.h"
 #include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_parameters.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/duration.h"
 #include "module/players/properties_helper.h"
@@ -22,6 +23,7 @@
 #include "debug/log.h"
 #include "devices/beeper.h"
 #include "devices/z80.h"
+#include "parameters/identifiers_set.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -441,6 +443,8 @@ namespace Module::AYEMUL
   class CPUParameters : public Devices::Z80::ChipParameters
   {
   public:
+    static const Parameters::IdentifiersSet ALL;
+
     explicit CPUParameters(Parameters::Accessor::Ptr params)
       : Params(std::move(params))
     {}
@@ -464,6 +468,9 @@ namespace Module::AYEMUL
   private:
     const Parameters::Accessor::Ptr Params;
   };
+
+  const Parameters::IdentifiersSet CPUParameters::ALL{Parameters::ZXTune::Core::Z80::Clockrate::Key,
+                                                      Parameters::ZXTune::Core::Z80::IntTicks::Key};
 
   class ModuleData
   {
@@ -761,6 +768,7 @@ namespace Module::AYEMUL
       if (const auto container = Formats::Chiptune::AY::Parse(rawData, 0, builder))
       {
         props.SetSource(*container);
+        props.SetSupportedParameters(AYM::ChipParameters::ALL | CPUParameters::ALL);
         builder.FillTimingInfo(params);
         auto data = builder.GetResult();
         return MakePtr<Holder>(std::move(data), std::move(properties));

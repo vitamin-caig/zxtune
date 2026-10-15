@@ -10,6 +10,7 @@
 
 #include "module/players/dac/dac_properties_helper.h"
 
+#include "module/players/dac/dac_parameters.h"
 #include "module/players/platforms.h"
 
 #include "core/parameters.h"
@@ -20,6 +21,7 @@ namespace Module::DAC
     : Module::PropertiesHelper(delegate)
   {
     SetPlatform(Platforms::ZX_SPECTRUM);
+    SetSupportedParameters(ChipParameters::ALL);
   }
 
   void PropertiesHelper::SetChannels(uint_t count)

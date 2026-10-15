@@ -146,7 +146,7 @@ namespace Module::DAC
     using MixerType = Sound::FixedChannelsMatrixMixer<Channels>;
     auto mixer = MixerType::Create();
     auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
-    auto chipParams = CreateChipParameters(samplerate, std::move(pollParams));
+    auto chipParams = ChipParameters::Create(samplerate, std::move(pollParams));
     return Devices::DAC::CreateChip(std::move(chipParams), std::move(mixer));
   }
 

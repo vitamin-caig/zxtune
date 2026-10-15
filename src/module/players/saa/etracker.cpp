@@ -14,6 +14,7 @@
 #include "module/players/platforms.h"
 #include "module/players/properties_meta.h"
 #include "module/players/saa/saa_base.h"
+#include "module/players/saa/saa_parameters.h"
 #include "module/players/simple_orderlist.h"
 
 #include "make_ptr.h"
@@ -466,6 +467,7 @@ namespace Module::ETracker
       if (const auto container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
+        props.SetSupportedParameters(SAA::ChipParameters::ALL);
         props.SetPlatform(Platforms::SAM_COUPE);
         props.SetChannels({"A"s, "B"s, "C"s, "N"s, "E"s}, 2);
         auto chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult());

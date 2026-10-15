@@ -10,6 +10,7 @@
 
 #include "module/players/aym/aym_properties_helper.h"
 
+#include "module/players/aym/aym_parameters.h"
 #include "module/players/platforms.h"
 
 #include "core/parameters.h"
@@ -25,6 +26,7 @@ namespace Module::AYM
   {
     SetPlatform(Platforms::ZX_SPECTRUM);
     SetChipsCount(1);
+    SetSupportedParameters(ChipParameters::ALL);
   }
 
   void PropertiesHelper::SetChipsCount(uint_t count)
@@ -36,6 +38,8 @@ namespace Module::AYM
   {
     assert(!freqTable.empty());
     Parameters::Set<Parameters::ZXTune::Core::AYM::Table>(Delegate, freqTable);
+    // Defining a table means the renderer reads it, unlike raw stream formats
+    SetSupportedParameters(ChipParameters::ALL | TrackParameters::ALL);
   }
 
   void PropertiesHelper::SetChipType(uint_t type)

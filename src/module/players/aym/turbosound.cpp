@@ -278,7 +278,7 @@ namespace Module::TurboSound
     using MixerType = Sound::ThreeChannelsMatrixMixer;
     auto mixer = MixerType::Create();
     auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
-    auto chipParams = AYM::CreateChipParameters(samplerate, std::move(pollParams));
+    auto chipParams = AYM::ChipParameters::Create(samplerate, std::move(pollParams));
     return Devices::TurboSound::CreateChip(std::move(chipParams), std::move(mixer));
   }
 

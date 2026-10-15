@@ -51,6 +51,8 @@ namespace Module
   constexpr auto ATTR_PICTURE = "Picture"sv;
   //! Channels names. Endl-delimited list, should be only provided if zxtune.core.channels_mask parameter supported
   constexpr auto ATTR_CHANNELS_NAMES = "ChannelsNames"sv;
+  //! Tunable parameter ids supported by the module renderer. Endl-delimited list @see Parameters::ZXTune::Core
+  constexpr auto ATTR_SUPPORTED_PARAMETERS = "SupportedParameters"sv;
   //@}
 
   //@{

@@ -17,6 +17,9 @@
 #include "module/players/properties_helper.h"
 
 #include "debug/log.h"
+#include "module/attributes.h"
+#include "parameters/accessor.h"
+#include "parameters/identifiers_set.h"
 
 #include "make_ptr.h"
 
@@ -122,6 +125,11 @@ namespace Module::TS
           AYM::PropertiesHelper props(*properties);
           props.SetSource(*container);
           props.SetChipsCount(Devices::TurboSound::CHIPS);
+          // A composite supports everything its parts do
+          const auto firstIds = Parameters::GetString(*dataBuilder.GetFirstProperties(), ATTR_SUPPORTED_PARAMETERS);
+          const auto secondIds = Parameters::GetString(*dataBuilder.GetSecondProperties(), ATTR_SUPPORTED_PARAMETERS);
+          props.SetSupportedParameters(Parameters::IdentifiersSet::Parse(firstIds)
+                                       | Parameters::IdentifiersSet::Parse(secondIds));
           auto moduleProperties = TurboSound::CreateModuleProperties(properties, dataBuilder.GetFirstProperties(),
                                                                      dataBuilder.GetSecondProperties());
           auto chiptune = TurboSound::CreateChiptune(dataBuilder.GetFirst(), dataBuilder.GetSecond());
