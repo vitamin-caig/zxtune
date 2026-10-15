@@ -10,7 +10,6 @@
 
 #include "apps/zxtune-qt/ui/controls/playback_options.h"
 
-#include "apps/zxtune-qt/playlist/supp/capabilities.h"
 #include "apps/zxtune-qt/supp/playback_supp.h"
 #include "apps/zxtune-qt/ui/options/strings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
@@ -18,17 +17,33 @@
 
 #include "core/parameters.h"
 #include "module/attributes.h"
+#include "parameters/identifiers_set.h"
 #include "parameters/merged_accessor.h"
 #include "sound/parameters.h"
 #include "strings/split.h"
 
 #include "contract.h"
 
+#include <QtWidgets/QLayout>
+
 #include <utility>
 #include <vector>
 
 namespace
 {
+  // Apply a method to each widget directly placed into the layout
+  template<class... Args>
+  void ForEachChild(QLayout& layout, void (QWidget::*method)(Args...), Args... args)
+  {
+    for (int idx = 0, count = layout.count(); idx < count; ++idx)
+    {
+      if (auto* widget = layout.itemAt(idx)->widget())
+      {
+        (widget->*method)(args...);
+      }
+    }
+  }
+
   class PlaybackOptionsImpl
     : public PlaybackOptions
     , private Ui::PlaybackOptions
@@ -41,9 +56,9 @@ namespace
     {
       // setup self
       setupUi(this);
-      AYMOptions->setVisible(false);
-      DACOptions->setVisible(false);
-      Muting.SetVisible(false);
+      // Looping is the only always-applicable control; the rest are shown per advertised parameters
+      ForEachChild(*horizontalLayout, &QWidget::setVisible, false);
+      CommonOptions->setVisible(true);
       UpdateOptionTexts();
 
       // common
@@ -85,11 +100,6 @@ namespace
         : Control(self.MuteOptions)
         , Layout(self.MuteButtons)
       {}
-
-      void SetVisible(bool visible)
-      {
-        Control->setVisible(visible);
-      }
 
       void Init(const Playlist::Item::Data& item)
       {
@@ -176,11 +186,15 @@ namespace
 
     void InitState(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
-      const auto& caps = item->GetCapabilities();
-      AYMOptions->setVisible(caps.IsAYM());
-      DACOptions->setVisible(caps.IsDAC());
-
       ModuleProperties = item->GetModuleProperties();
+      // Show only the parameters the renderer actually reads
+      const auto supported = Parameters::GetString(*ModuleProperties, Module::ATTR_SUPPORTED_PARAMETERS);
+      const auto ids = Parameters::IdentifiersSet::Parse(supported);
+      using namespace Parameters::ZXTune::Core;
+      isYM->setVisible(ids.Contains(AYM::TYPE));
+      aymLayout->setVisible(ids.Contains(AYM::LAYOUT));
+      isDACInterpolated->setVisible(ids.Contains(DAC::INTERPOLATION));
+
       Muting.Init(*item);  // muting is only in adjusted
 
       setEnabled(true);
