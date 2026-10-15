@@ -10,7 +10,6 @@
 
 #include "apps/zxtune-qt/playlist/ui/desktop/properties_dialog.h"
 
-#include "apps/zxtune-qt/playlist/supp/capabilities.h"
 #include "apps/zxtune-qt/playlist/ui/table_view.h"
 #include "apps/zxtune-qt/ui/options/strings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
@@ -21,6 +20,7 @@
 #include "debug/log.h"
 #include "module/attributes.h"
 #include "parameters/delegated.h"
+#include "parameters/identifiers_set.h"
 #include "parameters/merged_accessor.h"
 
 #include "contract.h"
@@ -118,7 +118,7 @@ namespace
 
       Properties = MakePtr<ItemPropertiesContainer>(item.GetAdjustedParameters(), item.GetModuleProperties());
 
-      FillProperties(item.GetCapabilities());
+      FillProperties();
 
       auto* filler = new QImageView(this);
       itemsLayout->addWidget(filler, itemsLayout->rowCount(), 0, 1, itemsLayout->columnCount());
@@ -139,12 +139,16 @@ namespace
       }
     }
 
-    void FillProperties(const Playlist::Item::Capabilities& caps)
+    void FillProperties()
     {
       AddStringProperty(Playlist::UI::PropertiesDialog::tr("Title"), Module::ATTR_TITLE);
       AddStringProperty(Playlist::UI::PropertiesDialog::tr("Author"), Module::ATTR_AUTHOR);
       AddStringProperty(Playlist::UI::PropertiesDialog::tr("Comment"), Module::ATTR_COMMENT);
 
+      // Show only the parameters the renderer actually reads
+      const auto supported = Parameters::GetString(*Properties, Module::ATTR_SUPPORTED_PARAMETERS);
+      const auto ids = Parameters::IdentifiersSet::Parse(supported);
+      using namespace Parameters::ZXTune::Core;
       // Shared captions; the exact chip is clarified by the row tooltip
       // The dialog is modal: translations are stable for its lifetime, so build the lists once
       const auto clockRateLabel = UI::Options::Clockrate();
@@ -152,19 +156,29 @@ namespace
       const QStringList interpolationValues = UI::Options::InterpolationValues();
       const QStringList booleanValues = UI::Options::BooleanValues();
 
-      if (caps.IsAYM())
+      if (ids.Contains(AYM::Chip::Key))
       {
         FillAymChipTypeProperty();
-        FillAymLayoutProperty();
-        AddSetProperty<Parameters::ZXTune::Core::AYM::Interpolation>(interpolationLabel, interpolationValues);
-        using namespace Parameters::ZXTune::Core::AYM;
-        AddIntegerProperty<Clockrate>(clockRateLabel);
       }
-      if (caps.IsDAC())
+      if (ids.Contains(AYM::Layout::Key))
       {
-        using namespace Parameters::ZXTune::Core::DAC;
-        AddSetProperty<Interpolation>(interpolationLabel, booleanValues);
-        AddIntegerProperty<SamplesFrequency>(Playlist::UI::PropertiesDialog::tr("Samples frequency"));
+        FillAymLayoutProperty();
+      }
+      if (ids.Contains(AYM::Interpolation::Key))
+      {
+        AddSetProperty<AYM::Interpolation>(interpolationLabel, interpolationValues);
+      }
+      if (ids.Contains(AYM::Clockrate::Key))
+      {
+        AddIntegerProperty<AYM::Clockrate>(clockRateLabel);
+      }
+      if (ids.Contains(DAC::Interpolation::Key))
+      {
+        AddSetProperty<DAC::Interpolation>(interpolationLabel, booleanValues);
+      }
+      if (ids.Contains(DAC::SamplesFrequency::Key))
+      {
+        AddIntegerProperty<DAC::SamplesFrequency>(Playlist::UI::PropertiesDialog::tr("Samples frequency"));
       }
       AddStrings(Module::ATTR_STRINGS);
     }

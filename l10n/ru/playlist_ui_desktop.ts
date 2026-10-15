@@ -215,7 +215,7 @@
         <translation>Частота семплов, Гц</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="175"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="154"/>
         <source>Chip type</source>
         <translation>Тип микросхемы</translation>
     </message>
