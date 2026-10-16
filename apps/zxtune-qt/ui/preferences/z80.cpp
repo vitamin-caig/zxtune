@@ -36,9 +36,8 @@ namespace UI
       using namespace Parameters;
       const IntegerTraits clockRate(ZXTune::Core::Z80::CLOCKRATE, ZXTune::Core::Z80::CLOCKRATE_DEFAULT,
                                     ZXTune::Core::Z80::CLOCKRATE_MIN, ZXTune::Core::Z80::CLOCKRATE_MAX);
-      BigIntegerValue::Bind(*clockRateValue, *Options, clockRate);
-      IntegerValue::Bind(*intDurationValue, *Options, ZXTune::Core::Z80::INT_TICKS,
-                         ZXTune::Core::Z80::INT_TICKS_DEFAULT);
+      Value::Bind(*clockRateValue, *Options, clockRate);
+      Value::Bind(*intDurationValue, *Options, ZXTune::Core::Z80::INT_TICKS, ZXTune::Core::Z80::INT_TICKS_DEFAULT);
     }
 
     // QWidget

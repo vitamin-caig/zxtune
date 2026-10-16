@@ -37,13 +37,13 @@ namespace UI
 
       using namespace Parameters;
       // raw scaner
-      IntegerValue::Bind(*rawMinSizeValue, *Options, ZXTune::Core::Plugins::Raw::MIN_SIZE,
-                         ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT);
-      BooleanValue::Bind(*rawPlainDoubleAnalysis, *Options, ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS, false);
+      Value::Bind(*rawMinSizeValue, *Options, ZXTune::Core::Plugins::Raw::MIN_SIZE,
+                  ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT);
+      Value::Bind(*rawPlainDoubleAnalysis, *Options, ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS, false);
 
       // players
-      IntegerValue::Bind(*defaultDurationValue, *Options, ZXTune::Core::Plugins::DEFAULT_DURATION,
-                         ZXTune::Core::Plugins::DEFAULT_DURATION_DEFAULT);
+      Value::Bind(*defaultDurationValue, *Options, ZXTune::Core::Plugins::DEFAULT_DURATION,
+                  ZXTune::Core::Plugins::DEFAULT_DURATION_DEFAULT);
     }
 
     // QWidget

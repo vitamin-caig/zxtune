@@ -126,10 +126,10 @@ namespace
       Require(
           connect(widgetsContainer, &QTabWidget::tabCloseRequested, this, &Playlist::UI::ContainerView::ClosePlaylist));
 
-      UI::BooleanValue::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED,
-                             Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
-      UI::BooleanValue::Bind(*actionRandom, *Options, Parameters::ZXTuneQT::Playlist::RANDOMIZED,
-                             Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT);
+      UI::Value::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED,
+                      Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
+      UI::Value::Bind(*actionRandom, *Options, Parameters::ZXTuneQT::Playlist::RANDOMIZED,
+                      Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT);
 
       Dbg("Created at {}", Self());
     }

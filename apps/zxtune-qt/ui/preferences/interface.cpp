@@ -19,18 +19,16 @@
 #include "apps/zxtune-qt/update/parameters.h"
 #include "interface.ui.h"
 
-#include "math/numeric.h"
-
 #include "contract.h"
-#include "make_ptr.h"
 
 #include <QtWidgets/QRadioButton>
 
 #include <utility>
+#include <vector>
 
 namespace
 {
-  const Parameters::IntType UPDATE_CHECK_PERIODS[] = {
+  const std::vector<Parameters::IntType> UPDATE_CHECK_PERIODS = {
       // never
       0,
       // once a day
@@ -43,38 +41,6 @@ namespace
 
 namespace UI
 {
-  class UpdateCheckPeriodComboboxValue : public Integer
-  {
-  public:
-    explicit UpdateCheckPeriodComboboxValue(Parameters::Container::Ptr ctr)
-      : Ctr(std::move(ctr))
-    {}
-
-    int Get() const override
-    {
-      using namespace Parameters::ZXTuneQT::Update;
-      const auto val = Parameters::GetInteger(*Ctr, CHECK_PERIOD, CHECK_PERIOD_DEFAULT);
-      const auto* const arrPos = std::find(UPDATE_CHECK_PERIODS, std::end(UPDATE_CHECK_PERIODS), val);
-      return arrPos != std::end(UPDATE_CHECK_PERIODS) ? arrPos - UPDATE_CHECK_PERIODS : -1;
-    }
-
-    void Set(int val) override
-    {
-      if (Math::InRange<int>(val, 0, std::size(UPDATE_CHECK_PERIODS) - 1))
-      {
-        Ctr->SetValue(Parameters::ZXTuneQT::Update::CHECK_PERIOD, UPDATE_CHECK_PERIODS[val]);
-      }
-    }
-
-    void Reset() override
-    {
-      Ctr->RemoveValue(Parameters::ZXTuneQT::Update::CHECK_PERIOD);
-    }
-
-  private:
-    const Parameters::Container::Ptr Ctr;
-  };
-
   class InterfaceOptionsWidget
     : public UI::InterfaceSettingsWidget
     , public UI::Ui_InterfaceSettingsWidget
@@ -92,16 +58,17 @@ namespace UI
       Require(connect(languageSelect, qOverload<int>(&QComboBox::currentIndexChanged), this,
                       &InterfaceOptionsWidget::OnLanguageChanged));
       using namespace Parameters;
-      IntegerValue::Bind(*playlistCachedFiles, *Options, ZXTuneQT::Playlist::Cache::FILES_LIMIT,
-                         ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT);
-      IntegerValue::Bind(*playlistCacheLimit, *Options, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB,
-                         ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT);
-      BooleanValue::Bind(*playlistStoreAllProperties, *Options, ZXTuneQT::Playlist::Store::PROPERTIES,
-                         ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT);
-      UpdateCheckPeriod = IntegerValue::Bind(*updateCheckPeriod, MakePtr<UpdateCheckPeriodComboboxValue>(Options));
-      BooleanValue::Bind(*appSingleInstance, *Options, ZXTuneQT::SINGLE_INSTANCE, ZXTuneQT::SINGLE_INSTANCE_DEFAULT);
-      CmdlineTarget = IntegerValue::Bind(*cmdlineTarget, *Options, ZXTuneQT::Playlist::CMDLINE_TARGET,
-                                         ZXTuneQT::Playlist::CMDLINE_TARGET_DEFAULT);
+      Value::Bind(*playlistCachedFiles, *Options, ZXTuneQT::Playlist::Cache::FILES_LIMIT,
+                  ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT);
+      Value::Bind(*playlistCacheLimit, *Options, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB,
+                  ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT);
+      Value::Bind(*playlistStoreAllProperties, *Options, ZXTuneQT::Playlist::Store::PROPERTIES,
+                  ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT);
+      UpdateCheckPeriod = Value::Bind(*updateCheckPeriod, *Options, ZXTuneQT::Update::CHECK_PERIOD,
+                                      UPDATE_CHECK_PERIODS, ZXTuneQT::Update::CHECK_PERIOD_DEFAULT);
+      Value::Bind(*appSingleInstance, *Options, ZXTuneQT::SINGLE_INSTANCE, ZXTuneQT::SINGLE_INSTANCE_DEFAULT);
+      CmdlineTarget = Value::Bind(*cmdlineTarget, *Options, ZXTuneQT::Playlist::CMDLINE_TARGET,
+                                  ZXTuneQT::Playlist::CMDLINE_TARGET_DEFAULT);
     }
 
     // QWidget

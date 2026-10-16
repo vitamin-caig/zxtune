@@ -62,7 +62,7 @@ namespace UI
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::Win32;
-      IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
+      Value::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
       Require(connect(devices, &QComboBox::currentTextChanged, this, &Win32OptionsWidget::DeviceNameChanged));
     }
 

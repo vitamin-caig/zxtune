@@ -40,8 +40,8 @@ namespace UI
       Require(connect(selectMixer, &QToolButton::clicked, this, &OssOptionsWidget::MixerSelected));
 
       using namespace Parameters::ZXTune::Sound::Backends::Oss;
-      StringValue::Bind(*device, *Options, DEVICE, DEVICE_DEFAULT);
-      StringValue::Bind(*mixer, *Options, MIXER, MIXER_DEFAULT);
+      Value::Bind(*device, *Options, DEVICE, DEVICE_DEFAULT);
+      Value::Bind(*mixer, *Options, MIXER, MIXER_DEFAULT);
     }
 
     StringView GetBackendId() const override

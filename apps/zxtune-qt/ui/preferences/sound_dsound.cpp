@@ -45,7 +45,7 @@ namespace UI
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
-      IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
+      Value::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
       Require(connect(devices, &QComboBox::currentTextChanged, this, &DirectSoundOptionsWidget::DeviceChanged));
     }
 

@@ -35,7 +35,7 @@ namespace UI
       setupUi(this);
 
       using namespace Parameters::ZXTune::Sound::Backends::Sdl;
-      IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
+      Value::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
     }
 
     StringView GetBackendId() const override

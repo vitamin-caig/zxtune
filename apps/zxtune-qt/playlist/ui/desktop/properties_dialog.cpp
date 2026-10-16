@@ -194,7 +194,7 @@ namespace
     void AddStringProperty(const QString& title, Parameters::Identifier name)
     {
       auto* const wid = new QLineEdit(this);
-      auto* const value = UI::StringValue::Bind(*wid, *Properties, name, Parameters::StringType());
+      auto* const value = UI::Value::Bind(*wid, *Properties, name, Parameters::StringType());
       AddProperty(title, wid, value);
     }
 
@@ -202,14 +202,14 @@ namespace
     {
       auto* const wid = new QComboBox(this);
       wid->addItems(values);
-      auto* const value = UI::IntegerValue::Bind(*wid, *Properties, name, -1);
+      auto* const value = UI::Value::Bind(*wid, *Properties, name, -1);
       AddProperty(title, wid, value);
     }
 
     void AddIntegerProperty(const QString& title, const UI::IntegerTraits& traits)
     {
       auto* const wid = new QLineEdit(this);
-      auto* const value = UI::BigIntegerValue::Bind(*wid, *Properties, traits);
+      auto* const value = UI::Value::Bind(*wid, *Properties, traits);
       AddProperty(title, wid, value);
     }
 

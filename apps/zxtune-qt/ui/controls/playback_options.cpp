@@ -45,14 +45,14 @@ namespace
       Muting.SetVisible(false);
 
       // common
-      UI::BooleanValue::Bind(*isLooped, *Params, Parameters::ZXTune::Sound::LOOPED, false);
+      UI::Value::Bind(*isLooped, *Params, Parameters::ZXTune::Sound::LOOPED, false);
       // AYM
-      UI::BooleanValue::Bind(*isYM, *Params, Parameters::ZXTune::Core::AYM::TYPE, false);
-      UI::IntegerValue::Bind(*aymLayout, *Params, Parameters::ZXTune::Core::AYM::LAYOUT,
-                             Parameters::ZXTune::Core::AYM::LAYOUT_DEFAULT);
+      UI::Value::Bind(*isYM, *Params, Parameters::ZXTune::Core::AYM::TYPE, false);
+      UI::Value::Bind(*aymLayout, *Params, Parameters::ZXTune::Core::AYM::LAYOUT,
+                      Parameters::ZXTune::Core::AYM::LAYOUT_DEFAULT);
       // DAC
-      UI::BooleanValue::Bind(*isDACInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION,
-                             Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT);
+      UI::Value::Bind(*isDACInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION,
+                      Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT);
 
       Require(connect(&supp, &PlaybackSupport::OnStartModule, this, &PlaybackOptionsImpl::InitState));
       Require(connect(&supp, &PlaybackSupport::OnUpdateState, this, &PlaybackOptionsImpl::UpdateState));

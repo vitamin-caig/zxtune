@@ -66,11 +66,11 @@ namespace UI
       SetFrequency(freq);
       Require(connect(soundFrequencyValue, qOverload<int>(&QComboBox::currentIndexChanged), this,
                       &SoundOptionsWidget::ChangeSoundFrequency));
-      IntegerValue::Bind(*silenceLimitValue, *Options, SILENCE_LIMIT, SILENCE_LIMIT_DEFAULT);
-      IntegerValue::Bind(*loopsCountLimitValue, *Options, LOOP_LIMIT, 0);
-      IntegerValue::Bind(*fadeinValue, *Options, FADEIN, FADEIN_DEFAULT);
-      IntegerValue::Bind(*fadeoutValue, *Options, FADEOUT, FADEOUT_DEFAULT);
-      IntegerValue::Bind(*preampValue, *Options, GAIN, GAIN_DEFAULT);
+      Value::Bind(*silenceLimitValue, *Options, SILENCE_LIMIT, SILENCE_LIMIT_DEFAULT);
+      Value::Bind(*loopsCountLimitValue, *Options, LOOP_LIMIT, 0);
+      Value::Bind(*fadeinValue, *Options, FADEIN, FADEIN_DEFAULT);
+      Value::Bind(*fadeoutValue, *Options, FADEOUT, FADEOUT_DEFAULT);
+      Value::Bind(*preampValue, *Options, GAIN, GAIN_DEFAULT);
 
       Require(connect(backendsList, &QListWidget::currentRowChanged, this, &SoundOptionsWidget::SelectBackend));
       Require(connect(moveUp, &QToolButton::released, this, &SoundOptionsWidget::MoveBackendUp));

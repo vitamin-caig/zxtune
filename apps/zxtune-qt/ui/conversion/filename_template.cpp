@@ -80,10 +80,10 @@ namespace UI
       State->Load();
 
       using namespace Parameters;
-      IntegerValue::Bind(*overwriteExisting, *Options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING,
-                         ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT);
-      BooleanValue::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES,
-                         ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
+      Value::Bind(*overwriteExisting, *Options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING,
+                  ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT);
+      Value::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES,
+                  ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
     }
 
     ~FilenameTemplateWidgetImpl() override

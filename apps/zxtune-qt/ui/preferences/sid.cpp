@@ -37,9 +37,9 @@ namespace UI
       setupUi(this);
 
       using namespace Parameters;
-      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SID::INTERPOLATION,
-                                         ZXTune::Core::SID::INTERPOLATION_DEFAULT);
-      BooleanValue::Bind(*filterValue, *Options, ZXTune::Core::SID::FILTER, ZXTune::Core::SID::FILTER_DEFAULT);
+      Interpolation = Value::Bind(*interpolationValue, *Options, ZXTune::Core::SID::INTERPOLATION,
+                                  ZXTune::Core::SID::INTERPOLATION_DEFAULT);
+      Value::Bind(*filterValue, *Options, ZXTune::Core::SID::FILTER, ZXTune::Core::SID::FILTER_DEFAULT);
     }
 
     // QWidget

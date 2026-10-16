@@ -124,8 +124,8 @@ namespace UI
 
       toolBox->setCurrentIndex(TEMPLATE_PAGE);
       useMultithreading->setEnabled(HasMultithreadEnvironment());
-      BooleanValue::Bind(*useMultithreading, *Options, Parameters::ZXTune::Sound::Backends::File::BUFFERS, false,
-                         MULTITHREAD_BUFFERS_COUNT);
+      Value::Bind(*useMultithreading, *Options, Parameters::ZXTune::Sound::Backends::File::BUFFERS, false,
+                  MULTITHREAD_BUFFERS_COUNT);
 
       UpdateDescriptions();
       State->Load();

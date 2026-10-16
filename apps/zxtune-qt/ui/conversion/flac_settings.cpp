@@ -48,8 +48,8 @@ namespace UI
       Require(connect(compressionValue, &QSlider::valueChanged, this, &UI::BackendSettingsWidget::SettingChanged<int>));
 
       using namespace Parameters;
-      IntegerValue::Bind(*compressionValue, *Options, ZXTune::Sound::Backends::Flac::COMPRESSION,
-                         ZXTune::Sound::Backends::Flac::COMPRESSION_DEFAULT);
+      Value::Bind(*compressionValue, *Options, ZXTune::Sound::Backends::Flac::COMPRESSION,
+                  ZXTune::Sound::Backends::Flac::COMPRESSION_DEFAULT);
     }
 
     StringView GetBackendId() const override

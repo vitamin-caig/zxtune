@@ -20,9 +20,6 @@ ui_files += controls/playback_controls \
 
 moc_files += controls/analyzer_control controls/overlay_progress
 
-#other
-moc_files += tools/parameters_helpers
-
 ts_files := ui_common
 
 include $(dirs.root)/makefile.mak

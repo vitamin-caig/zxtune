@@ -77,7 +77,7 @@ namespace UI
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
+      Value::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
       Require(connect(mixers, &QComboBox::currentTextChanged, this, &AlsaOptionsWidget::MixerChanged));
       Require(connect(devices, &QComboBox::currentTextChanged, this, &AlsaOptionsWidget::DeviceChanged));
     }
