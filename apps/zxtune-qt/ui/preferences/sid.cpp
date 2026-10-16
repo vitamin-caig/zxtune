@@ -22,7 +22,7 @@
 
 #include <utility>
 
-namespace
+namespace UI
 {
   class SIDOptionsWidget
     : public UI::SIDSettingsWidget
@@ -47,7 +47,7 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
-        const Parameters::ValueSnapshot blockInterpolation(*Interpolation);
+        const ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
       }
       UI::SIDSettingsWidget::changeEvent(event);
@@ -55,11 +55,8 @@ namespace
 
   private:
     const Parameters::Container::Ptr Options;
-    Parameters::Value* Interpolation;
+    Value* Interpolation;
   };
-}  // namespace
-namespace UI
-{
   SIDSettingsWidget::SIDSettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

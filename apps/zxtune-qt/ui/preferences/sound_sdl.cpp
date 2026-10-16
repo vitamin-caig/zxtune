@@ -20,7 +20,7 @@
 
 #include <utility>
 
-namespace
+namespace UI
 {
   class SdlOptionsWidget
     : public UI::SdlSettingsWidget
@@ -35,7 +35,7 @@ namespace
       setupUi(this);
 
       using namespace Parameters::ZXTune::Sound::Backends::Sdl;
-      Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
+      IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
     }
 
     StringView GetBackendId() const override
@@ -61,9 +61,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-namespace UI
-{
   SdlSettingsWidget::SdlSettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
   {}

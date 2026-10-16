@@ -154,15 +154,14 @@ namespace
         FillAymLayoutProperty();
         FillAymInterpolationProperty();
         using namespace Parameters::ZXTune::Core::AYM;
-        const Parameters::IntegerTraits clockRate(CLOCKRATE, -1, CLOCKRATE_MIN, CLOCKRATE_MAX);
+        const UI::IntegerTraits clockRate(CLOCKRATE, -1, CLOCKRATE_MIN, CLOCKRATE_MAX);
         AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Clockrate, Hz"), clockRate);
       }
       if (caps.IsDAC())
       {
         using namespace Parameters::ZXTune::Core::DAC;
         AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), INTERPOLATION, valuesOffOn);
-        const Parameters::IntegerTraits samplesFreq(SAMPLES_FREQUENCY, -1, SAMPLES_FREQUENCY_MIN,
-                                                    SAMPLES_FREQUENCY_MAX);
+        const UI::IntegerTraits samplesFreq(SAMPLES_FREQUENCY, -1, SAMPLES_FREQUENCY_MIN, SAMPLES_FREQUENCY_MAX);
         AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Samples frequency"), samplesFreq);
       }
       AddStrings(Module::ATTR_STRINGS);
@@ -195,7 +194,7 @@ namespace
     void AddStringProperty(const QString& title, Parameters::Identifier name)
     {
       auto* const wid = new QLineEdit(this);
-      Parameters::Value* const value = Parameters::StringValue::Bind(*wid, *Properties, name, Parameters::StringType());
+      auto* const value = UI::StringValue::Bind(*wid, *Properties, name, Parameters::StringType());
       AddProperty(title, wid, value);
     }
 
@@ -203,18 +202,18 @@ namespace
     {
       auto* const wid = new QComboBox(this);
       wid->addItems(values);
-      Parameters::Value* const value = Parameters::IntegerValue::Bind(*wid, *Properties, name, -1);
+      auto* const value = UI::IntegerValue::Bind(*wid, *Properties, name, -1);
       AddProperty(title, wid, value);
     }
 
-    void AddIntegerProperty(const QString& title, const Parameters::IntegerTraits& traits)
+    void AddIntegerProperty(const QString& title, const UI::IntegerTraits& traits)
     {
       auto* const wid = new QLineEdit(this);
-      Parameters::Value* const value = Parameters::BigIntegerValue::Bind(*wid, *Properties, traits);
+      auto* const value = UI::BigIntegerValue::Bind(*wid, *Properties, traits);
       AddProperty(title, wid, value);
     }
 
-    void AddProperty(const QString& title, QWidget* widget, Parameters::Value* value)
+    void AddProperty(const QString& title, QWidget* widget, UI::Value* value)
     {
       auto* const resetButton = new QToolButton(this);
       resetButton->setArrowType(Qt::DownArrow);
@@ -223,8 +222,8 @@ namespace
       itemsLayout->addWidget(new QLabel(title, this), row, 0);
       itemsLayout->addWidget(widget, row, 1);
       itemsLayout->addWidget(resetButton, row, 2);
-      Require(connect(this, &Playlist::UI::PropertiesDialog::ResetToDefaults, value, &Parameters::Value::Reset));
-      Require(connect(resetButton, &QToolButton::clicked, value, &Parameters::Value::Reset));
+      Require(connect(this, &Playlist::UI::PropertiesDialog::ResetToDefaults, value, &UI::Value::Reset));
+      Require(connect(resetButton, &QToolButton::clicked, value, &UI::Value::Reset));
     }
 
     void AddStrings(Parameters::Identifier name)

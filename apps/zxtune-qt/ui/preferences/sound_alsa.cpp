@@ -57,6 +57,10 @@ namespace
     box.setCurrentIndex(-1);
   }
 
+}  // namespace
+
+namespace UI
+{
   class AlsaOptionsWidget
     : public UI::AlsaSettingsWidget
     , public Ui::AlsaOptions
@@ -73,7 +77,7 @@ namespace
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      Parameters::IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
+      IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
       Require(connect(mixers, &QComboBox::currentTextChanged, this, &AlsaOptionsWidget::MixerChanged));
       Require(connect(devices, &QComboBox::currentTextChanged, this, &AlsaOptionsWidget::DeviceChanged));
     }
@@ -178,9 +182,6 @@ namespace
     using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
-}  // namespace
-namespace UI
-{
   AlsaSettingsWidget::AlsaSettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
   {}

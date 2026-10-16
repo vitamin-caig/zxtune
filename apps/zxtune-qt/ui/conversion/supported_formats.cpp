@@ -24,7 +24,7 @@
 
 #include <QtWidgets/QRadioButton>
 
-namespace
+namespace UI
 {
   class FileBackendsSet
   {
@@ -135,7 +135,7 @@ namespace
       {
         but.second->setEnabled(true);
       }
-      Parameters::ExclusiveValue::Bind(*but.second, *Options, Parameters::ZXTuneQT::UI::Export::TYPE, but.first);
+      ExclusiveValue::Bind(*but.second, *Options, Parameters::ZXTuneQT::UI::Export::TYPE, but.first);
     }
 
   private:
@@ -143,10 +143,6 @@ namespace
     const FileBackendsSet Backends;
     IdToButton Buttons;
   };
-}  // namespace
-
-namespace UI
-{
   SupportedFormatsWidget::SupportedFormatsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

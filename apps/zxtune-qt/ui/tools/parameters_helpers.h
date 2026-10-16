@@ -26,8 +26,13 @@ class QLineEdit;
 class QSlider;
 class QSpinBox;
 
-namespace Parameters
+namespace UI
 {
+  using ::Parameters::Container;
+  using ::Parameters::Identifier;
+  using ::Parameters::IntType;
+  using ::Parameters::operator""_id;
+
   class Value : public QObject
   {
     Q_OBJECT
@@ -144,4 +149,4 @@ namespace Parameters
     Value& Val;
     const AutoBlockSignal Blocker;
   };
-}  // namespace Parameters
+}  // namespace UI

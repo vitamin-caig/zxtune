@@ -29,6 +29,7 @@
 namespace
 {
   using namespace Parameters;
+  using namespace UI;
 
   const Debug::Stream Dbg("Parameters::Helper");
 
@@ -247,7 +248,7 @@ namespace
     {
       BigIntegerValueImpl::Reload();
       Require(connect(&parent, &QLineEdit::textChanged, this, &BigIntegerValueImpl::Set));
-      Require(connect(&parent, &QLineEdit::editingFinished, this, &Value::Reload));
+      Require(connect(&parent, &QLineEdit::editingFinished, this, &UI::Value::Reload));
     }
 
     void Reset() override
@@ -339,7 +340,7 @@ namespace
   };
 }  // namespace
 
-namespace Parameters
+namespace UI
 {
   Value::Value(QObject& parent)
     : QObject(&parent)
@@ -414,4 +415,4 @@ namespace Parameters
   {
     return new StringValueImpl(edit, ctr, name, defValue);
   }
-}  // namespace Parameters
+}  // namespace UI

@@ -28,6 +28,10 @@ namespace
       1773400, 1750000, 3500000, 2000000, 1000000,
   };
 
+}  // namespace
+
+namespace UI
+{
   class AYMOptionsWidget
     : public UI::AYMSettingsWidget
     , public Ui::AYMOptions
@@ -62,7 +66,7 @@ namespace
       {
         // do not change preset or smth
         const AutoBlockSignal blockClockrate(*clockRatePresets);
-        const Parameters::ValueSnapshot blockInterpolation(*Interpolation);
+        const ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
         // restore combobox value
         OnClockRateChanged(clockRateValue->text());
@@ -96,11 +100,8 @@ namespace
 
   private:
     const Parameters::Container::Ptr Options;
-    Parameters::Value* Interpolation;
+    Value* Interpolation;
   };
-}  // namespace
-namespace UI
-{
   AYMSettingsWidget::AYMSettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

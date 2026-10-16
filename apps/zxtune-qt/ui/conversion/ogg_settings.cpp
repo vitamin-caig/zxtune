@@ -29,6 +29,10 @@ namespace
     return QApplication::translate("OggSettings", msg);
   }
 
+}  // namespace
+
+namespace UI
+{
   class OGGSettingsWidget
     : public UI::BackendSettingsWidget
     , private Ui::OggSettings
@@ -86,10 +90,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-
-namespace UI
-{
   BackendSettingsWidget* CreateOGGSettingsWidget(QWidget& parent)
   {
     return new OGGSettingsWidget(parent);

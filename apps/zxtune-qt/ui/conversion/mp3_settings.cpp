@@ -36,7 +36,11 @@ namespace
                                                   Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_JOINTSTEREO,
                                                   Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_MONO};
 
-  class ChannelModeComboboxValue : public Parameters::Integer
+}  // namespace
+
+namespace UI
+{
+  class ChannelModeComboboxValue : public Integer
   {
   public:
     explicit ChannelModeComboboxValue(Parameters::Container::Ptr ctr)
@@ -145,10 +149,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-
-namespace UI
-{
   BackendSettingsWidget* CreateMP3SettingsWidget(QWidget& parent)
   {
     return new MP3SettingsWidget(parent);

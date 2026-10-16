@@ -27,7 +27,7 @@ namespace
   const Debug::Stream Dbg("UI::Preferences::DirectSound");
 }
 
-namespace
+namespace UI
 {
   class DirectSoundOptionsWidget
     : public UI::DirectSoundSettingsWidget
@@ -45,7 +45,7 @@ namespace
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
-      Parameters::IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
+      IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
       Require(connect(devices, &QComboBox::currentTextChanged, this, &DirectSoundOptionsWidget::DeviceChanged));
     }
 
@@ -125,9 +125,6 @@ namespace
     using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
-}  // namespace
-namespace UI
-{
   DirectSoundSettingsWidget::DirectSoundSettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
   {}

@@ -22,7 +22,7 @@
 
 #include <utility>
 
-namespace
+namespace UI
 {
   class SAAOptionsWidget
     : public UI::SAASettingsWidget
@@ -49,7 +49,7 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
-        const Parameters::ValueSnapshot blockInterpolation(*Interpolation);
+        const ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
       }
       UI::SAASettingsWidget::changeEvent(event);
@@ -57,11 +57,8 @@ namespace
 
   private:
     const Parameters::Container::Ptr Options;
-    Parameters::Value* Interpolation;
+    Value* Interpolation;
   };
-}  // namespace
-namespace UI
-{
   SAASettingsWidget::SAASettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

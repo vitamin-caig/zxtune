@@ -42,6 +42,10 @@ namespace
     int_t Id = 0;
   };
 
+}  // namespace
+
+namespace UI
+{
   class Win32OptionsWidget
     : public UI::Win32SettingsWidget
     , public Ui::Win32Options
@@ -58,7 +62,7 @@ namespace
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::Win32;
-      Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
+      IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
       Require(connect(devices, &QComboBox::currentTextChanged, this, &Win32OptionsWidget::DeviceNameChanged));
     }
 
@@ -128,9 +132,6 @@ namespace
     using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
-}  // namespace
-namespace UI
-{
   Win32SettingsWidget::Win32SettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
   {}

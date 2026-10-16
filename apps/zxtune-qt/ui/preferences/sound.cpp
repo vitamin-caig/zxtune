@@ -40,6 +40,10 @@ namespace
     return Sound::CreateSystemService(std::move(params))->GetAvailableBackends();
   }
 
+}  // namespace
+
+namespace UI
+{
   class SoundOptionsWidget
     : public UI::SoundSettingsWidget
     , public UI::Ui_SoundSettingsWidget
@@ -199,9 +203,6 @@ namespace
     std::vector<Sound::BackendId> Backends;
     Strings::ValueMap<QWidget*> SetupPages;
   };
-}  // namespace
-namespace UI
-{
   SoundSettingsWidget::SoundSettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

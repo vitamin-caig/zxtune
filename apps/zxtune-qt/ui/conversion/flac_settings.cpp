@@ -29,6 +29,10 @@ namespace
     return QApplication::translate("FlacSettings", msg);
   }
 
+}  // namespace
+
+namespace UI
+{
   class FLACSettingsWidget
     : public UI::BackendSettingsWidget
     , private Ui::FlacSettings
@@ -61,10 +65,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-
-namespace UI
-{
   BackendSettingsWidget* CreateFLACSettingsWidget(QWidget& parent)
   {
     return new FLACSettingsWidget(parent);

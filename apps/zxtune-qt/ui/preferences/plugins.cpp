@@ -21,7 +21,7 @@
 
 #include <utility>
 
-namespace
+namespace UI
 {
   class PluginsOptionsWidget
     : public UI::PluginsSettingsWidget
@@ -59,10 +59,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-
-namespace UI
-{
   PluginsSettingsWidget::PluginsSettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

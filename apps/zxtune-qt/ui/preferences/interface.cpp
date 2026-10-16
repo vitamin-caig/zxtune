@@ -39,7 +39,11 @@ namespace
       86400 * 7,
   };
 
-  class UpdateCheckPeriodComboboxValue : public Parameters::Integer
+}  // namespace
+
+namespace UI
+{
+  class UpdateCheckPeriodComboboxValue : public Integer
   {
   public:
     explicit UpdateCheckPeriodComboboxValue(Parameters::Container::Ptr ctr)
@@ -105,8 +109,8 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
-        const Parameters::ValueSnapshot blockUpdateCheck(*UpdateCheckPeriod);
-        const Parameters::ValueSnapshot blockCmdlineTarget(*CmdlineTarget);
+        const ValueSnapshot blockUpdateCheck(*UpdateCheckPeriod);
+        const ValueSnapshot blockCmdlineTarget(*CmdlineTarget);
         retranslateUi(this);
       }
       UI::InterfaceSettingsWidget::changeEvent(event);
@@ -142,13 +146,9 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
     const UI::Language::Ptr Language;
-    Parameters::Value* UpdateCheckPeriod;
-    Parameters::Value* CmdlineTarget;
+    Value* UpdateCheckPeriod;
+    Value* CmdlineTarget;
   };
-}  // namespace
-
-namespace UI
-{
   InterfaceSettingsWidget::InterfaceSettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

@@ -22,7 +22,7 @@
 
 #include <utility>
 
-namespace
+namespace UI
 {
   class OssOptionsWidget
     : public UI::OssSettingsWidget
@@ -40,8 +40,8 @@ namespace
       Require(connect(selectMixer, &QToolButton::clicked, this, &OssOptionsWidget::MixerSelected));
 
       using namespace Parameters::ZXTune::Sound::Backends::Oss;
-      Parameters::StringValue::Bind(*device, *Options, DEVICE, DEVICE_DEFAULT);
-      Parameters::StringValue::Bind(*mixer, *Options, MIXER, MIXER_DEFAULT);
+      StringValue::Bind(*device, *Options, DEVICE, DEVICE_DEFAULT);
+      StringValue::Bind(*mixer, *Options, MIXER, MIXER_DEFAULT);
     }
 
     StringView GetBackendId() const override
@@ -102,9 +102,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-namespace UI
-{
   OssSettingsWidget::OssSettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
   {}

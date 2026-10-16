@@ -58,6 +58,41 @@ namespace
     return MakePtr<Playlist::Item::Conversion::Options>(String{type}, FromQString(filenameTemplate), std::move(params));
   }
 
+  QString GetDefaultFilename(const Playlist::Item::Data& item)
+  {
+    const auto& filePath = item.GetFilePath();
+    const auto id = IO::ResolveUri(filePath);
+    return ToQString(id->Filename());
+  }
+
+  QString FixExtension(const QString& filename, const QString& extension)
+  {
+    const int pos = filename.indexOf('.');
+    if (pos != -1)
+    {
+      return filename.left(pos + 1) + extension;
+    }
+    else
+    {
+      return filename + '.' + extension;
+    }
+  }
+
+  Parameters::Accessor::Ptr CreateSaveAsParameters()
+  {
+    // force simpliest mode
+    const Parameters::Accessor::Ptr base = GlobalOptions::Instance().GetSnapshot();
+    const Parameters::Container::Ptr overriden = Parameters::Container::Create();
+    overriden->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 1);
+    overriden->SetValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, 0);
+    overriden->SetValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, 0);
+    return Parameters::CreateMergedAccessor(overriden, base);
+  }
+
+}  // namespace
+
+namespace UI
+{
   class SetupConversionDialogImpl
     : public UI::SetupConversionDialog
     , private UI::Ui_SetupConversionDialog
@@ -89,8 +124,8 @@ namespace
 
       toolBox->setCurrentIndex(TEMPLATE_PAGE);
       useMultithreading->setEnabled(HasMultithreadEnvironment());
-      Parameters::BooleanValue::Bind(*useMultithreading, *Options, Parameters::ZXTune::Sound::Backends::File::BUFFERS,
-                                     false, MULTITHREAD_BUFFERS_COUNT);
+      BooleanValue::Bind(*useMultithreading, *Options, Parameters::ZXTune::Sound::Backends::File::BUFFERS, false,
+                         MULTITHREAD_BUFFERS_COUNT);
 
       UpdateDescriptions();
       State->Load();
@@ -179,26 +214,6 @@ namespace
     BackendIdToSettings BackendSettings;
   };
 
-  QString GetDefaultFilename(const Playlist::Item::Data& item)
-  {
-    const auto& filePath = item.GetFilePath();
-    const auto id = IO::ResolveUri(filePath);
-    return ToQString(id->Filename());
-  }
-
-  QString FixExtension(const QString& filename, const QString& extension)
-  {
-    const int pos = filename.indexOf('.');
-    if (pos != -1)
-    {
-      return filename.left(pos + 1) + extension;
-    }
-    else
-    {
-      return filename + '.' + extension;
-    }
-  }
-
   class Formats
   {
   public:
@@ -245,20 +260,6 @@ namespace
     QStringList Filters;
   };
 
-  Parameters::Accessor::Ptr CreateSaveAsParameters()
-  {
-    // force simpliest mode
-    const Parameters::Accessor::Ptr base = GlobalOptions::Instance().GetSnapshot();
-    const Parameters::Container::Ptr overriden = Parameters::Container::Create();
-    overriden->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 1);
-    overriden->SetValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, 0);
-    overriden->SetValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, 0);
-    return Parameters::CreateMergedAccessor(overriden, base);
-  }
-}  // namespace
-
-namespace UI
-{
   SetupConversionDialog::SetupConversionDialog(QWidget& parent)
     : QDialog(&parent)
   {}

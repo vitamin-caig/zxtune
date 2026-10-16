@@ -19,7 +19,7 @@
 
 #include <utility>
 
-namespace
+namespace UI
 {
   class Z80OptionsWidget
     : public UI::Z80SettingsWidget
@@ -54,10 +54,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-
-namespace UI
-{
   Z80SettingsWidget::Z80SettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

@@ -48,6 +48,10 @@ namespace
     }
   }
 
+}  // namespace
+
+namespace UI
+{
   class FilenameTemplateWidgetImpl
     : public UI::FilenameTemplateWidget
     , private UI::Ui_FilenameTemplateWidget
@@ -158,10 +162,6 @@ namespace
   private:
     UI::FilenameTemplateWidget* TemplateBuilder = nullptr;
   };
-}  // namespace
-
-namespace UI
-{
   FilenameTemplateWidget::FilenameTemplateWidget(QWidget& parent)
     : QWidget(&parent)
   {}
