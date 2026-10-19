@@ -172,7 +172,7 @@ namespace Devices::Z80
       Clock.Reset();
     }
 
-    void SetParameters(uint64_t clockFreq, uint_t intDuration)
+    void SetParameters(uint_t clockFreq, uint_t intDuration)
     {
       if (clockFreq != ClockFreq || intDuration != IntDuration)
       {
@@ -221,7 +221,7 @@ namespace Devices::Z80
     }
 
   private:
-    uint64_t ClockFreq = 0;
+    uint_t ClockFreq = 0;
     uint_t IntDuration = 0;
     Oscillator Clock;
   };

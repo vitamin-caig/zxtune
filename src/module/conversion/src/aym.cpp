@@ -67,7 +67,7 @@ namespace Module
       return Base.OptimizationLevel();
     }
 
-    uint64_t ClockFreq() const override
+    uint_t ClockFreq() const override
     {
       using namespace Parameters::ZXTune::Core::AYM;
       return Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);

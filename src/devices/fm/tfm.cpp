@@ -22,7 +22,7 @@ namespace Devices::TFM
   class ChipAdapter
   {
   public:
-    void SetParams(uint64_t clock, uint_t sndFreq, uint_t muteMask)
+    void SetParams(uint_t clock, uint_t sndFreq, uint_t muteMask)
     {
       if (Helper.SetNewParams(clock, sndFreq))
       {

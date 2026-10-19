@@ -243,7 +243,7 @@ namespace Formats::Chiptune
       void SetStereoMode(uint_t /*mode*/) override {}
       void SetLoop(uint_t /*loop*/) override {}
       void SetDigitalSample(uint_t /*idx*/, Binary::View /*data*/) override {}
-      void SetClockrate(uint64_t /*freq*/) override {}
+      void SetClockrate(uint_t /*freq*/) override {}
       void SetIntFreq(uint_t /*freq*/) override {}
       void SetYear(uint_t /*year*/) override {}
       void SetEditor(StringView /*editor*/) override {}

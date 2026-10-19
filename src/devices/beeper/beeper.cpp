@@ -111,7 +111,7 @@ namespace Devices::Beeper
     {
       if (Params.IsChanged())
       {
-        const uint64_t clkFreq = Params->ClockFreq();
+        const uint_t clkFreq = Params->ClockFreq();
         const uint_t sndFreq = Params->SoundFreq();
         if (clkFreq != ClockFreq || sndFreq != SoundFreq)
         {
@@ -126,7 +126,7 @@ namespace Devices::Beeper
     BeeperPSG PSG;
     Details::ClockSource<Stamp> Clock;
     Details::HQRenderer<Stamp, BeeperPSG> Renderer;
-    uint64_t ClockFreq = 0;
+    uint_t ClockFreq = 0;
     uint_t SoundFreq = 0;
     Sound::Chunk RenderedData;
   };

@@ -91,7 +91,7 @@ namespace Module::YMVTX
       // TODO:
     }
 
-    void SetClockrate(uint64_t freq) override
+    void SetClockrate(uint_t freq) override
     {
       Properties.SetChipFrequency(freq);
     }

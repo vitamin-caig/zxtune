@@ -456,7 +456,7 @@ namespace Module::AYEMUL
       return Parameters::GetInteger<uint_t>(*Params, INT_TICKS, INT_TICKS_DEFAULT);
     }
 
-    uint64_t ClockFreq() const override
+    uint_t ClockFreq() const override
     {
       using namespace Parameters::ZXTune::Core::Z80;
       return Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
@@ -686,7 +686,7 @@ namespace Module::AYEMUL
       return Params->Version();
     }
 
-    uint64_t ClockFreq() const override
+    uint_t ClockFreq() const override
     {
       const uint_t MIN_Z80_TICKS_PER_OUTPUT = 10;
       using namespace Parameters::ZXTune::Core::Z80;

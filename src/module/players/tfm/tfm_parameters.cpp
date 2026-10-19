@@ -31,7 +31,7 @@ namespace Module::TFM
       return Params->Version();
     }
 
-    uint64_t ClockFreq() const override
+    uint_t ClockFreq() const override
     {
       using namespace Parameters::ZXTune::Core::FM;
       return Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);

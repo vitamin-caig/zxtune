@@ -48,7 +48,7 @@ namespace Module::AYM
     Delegate.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, layout);
   }
 
-  void PropertiesHelper::SetChipFrequency(uint64_t freq)
+  void PropertiesHelper::SetChipFrequency(uint_t freq)
   {
     Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, freq);
   }

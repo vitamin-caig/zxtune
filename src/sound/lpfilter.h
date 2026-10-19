@@ -23,7 +23,7 @@ namespace Sound
   public:
     LPFilter() = default;
 
-    void SetParameters(uint64_t sampleFreq, uint64_t cutOffFreq)
+    void SetParameters(uint_t sampleFreq, uint_t cutOffFreq)
     {
       /*
         A0 * Y[i] = B0 * X[i] + B1 * X[i-1] + B2 * X[i-2] - A1 * Y[i-1] - A2 * Y[i-2]

@@ -28,7 +28,7 @@ namespace Module::DigitalMusicMaker
 {
   const std::size_t CHANNELS_COUNT = 3;
 
-  const uint64_t Z80_FREQ = 3500000;
+  const uint_t Z80_FREQ = 3500000;
   // 119+116+111+10=356 ticks/out cycle = 9831 outs/sec (AY)
   const uint_t TICKS_PER_CYCLE = 119 + 116 + 111 + 10;
   // C-1 step 44/256 32.7Hz = ~1689 samples/sec

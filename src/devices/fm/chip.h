@@ -66,7 +66,7 @@ namespace Devices::FM::Details
   public:
     ChipAdapterHelper() = default;
 
-    bool SetNewParams(uint64_t clock, uint_t sndFreq)
+    bool SetNewParams(uint_t clock, uint_t sndFreq)
     {
       if (clock != LastClockrate || sndFreq != LastSoundFreq)
       {
@@ -96,7 +96,7 @@ namespace Devices::FM::Details
     }
 
   private:
-    uint64_t LastClockrate = 0;
+    uint_t LastClockrate = 0;
     uint_t LastSoundFreq = 0;
   };
 
@@ -138,7 +138,7 @@ namespace Devices::FM::Details
     {
       if (Params.IsChanged())
       {
-        const uint64_t clockFreq = Params->ClockFreq();
+        const uint_t clockFreq = Params->ClockFreq();
         const uint_t sndFreq = Params->SoundFreq();
         const uint_t muteMask = Params->MuteMask();
         Adapter.SetParams(clockFreq, sndFreq, muteMask);

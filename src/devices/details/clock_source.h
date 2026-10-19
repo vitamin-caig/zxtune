@@ -25,7 +25,7 @@ namespace Devices::Details
 
     ClockSource() = default;
 
-    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    void SetFrequency(uint_t clockFreq, uint_t soundFreq)
     {
       SoundFreq = soundFreq;
       NextSampleTime -= SamplePeriod;

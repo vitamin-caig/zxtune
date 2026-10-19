@@ -85,7 +85,7 @@ namespace Devices::Z80
 
     virtual uint_t Version() const = 0;
     virtual uint_t IntTicks() const = 0;
-    virtual uint64_t ClockFreq() const = 0;
+    virtual uint_t ClockFreq() const = 0;
   };
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports);

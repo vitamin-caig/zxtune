@@ -43,7 +43,7 @@ namespace Formats::Chiptune
     const std::size_t MAX_PATTERNS_COUNT = 32;
     const std::size_t MAX_PATTERN_SIZE = 64;
 
-    const uint64_t Z80_FREQ = 3500000;
+    const uint_t Z80_FREQ = 3500000;
 
     const uint_t TICKS_PER_CYCLE_31 = 450;
     const uint_t C_1_STEP_31 = 0x5f;

@@ -20,7 +20,7 @@ namespace
   class AYParameters : public Devices::AYM::ChipParameters
   {
   public:
-    AYParameters(uint64_t clockFreq, uint_t soundFreq, Devices::AYM::InterpolationType interpolate)
+    AYParameters(uint_t clockFreq, uint_t soundFreq, Devices::AYM::InterpolationType interpolate)
       : Clock(clockFreq)
       , Sound(soundFreq)
       , Interpolate(interpolate)
@@ -31,7 +31,7 @@ namespace
       return 1;
     }
 
-    uint64_t ClockFreq() const override
+    uint_t ClockFreq() const override
     {
       return Clock;
     }
@@ -67,7 +67,7 @@ namespace
     }
 
   private:
-    const uint64_t Clock;
+    const uint_t Clock;
     const uint_t Sound;
     const Devices::AYM::InterpolationType Interpolate;
   };
@@ -76,8 +76,7 @@ namespace
 
 namespace Benchmark::AY
 {
-  Devices::AYM::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t soundFreq,
-                                       Devices::AYM::InterpolationType interpolate)
+  Devices::AYM::Chip::Ptr CreateDevice(uint_t clockFreq, uint_t soundFreq, Devices::AYM::InterpolationType interpolate)
   {
     auto params = MakePtr<AYParameters>(clockFreq, soundFreq, interpolate);
     return Devices::AYM::CreateChip(std::move(params), Sound::ThreeChannelsMatrixMixer::Create());

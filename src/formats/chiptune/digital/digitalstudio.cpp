@@ -450,7 +450,7 @@ namespace Formats::Chiptune
         "20{8}"
         ""sv;
 
-    const uint64_t Z80_FREQ = 3500000;
+    const uint_t Z80_FREQ = 3500000;
     // step is not changed in AY and SounDrive versions
     const uint_t C_1_STEP = 88;
     const uint_t SD_TICKS_PER_CYCLE = 356;

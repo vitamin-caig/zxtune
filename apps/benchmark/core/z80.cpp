@@ -19,7 +19,7 @@ namespace
   class Z80Parameters : public Devices::Z80::ChipParameters
   {
   public:
-    Z80Parameters(uint64_t clockFreq, uint_t intTicks)
+    Z80Parameters(uint_t clockFreq, uint_t intTicks)
       : Clock(clockFreq)
       , Int(intTicks)
     {}
@@ -34,20 +34,20 @@ namespace
       return Int;
     }
 
-    uint64_t ClockFreq() const override
+    uint_t ClockFreq() const override
     {
       return Clock;
     }
 
   private:
-    const uint64_t Clock;
+    const uint_t Clock;
     const uint_t Int;
   };
 }  // namespace
 
 namespace Benchmark::Z80
 {
-  Devices::Z80::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t intTicks, Binary::View memory,
+  Devices::Z80::Chip::Ptr CreateDevice(uint_t clockFreq, uint_t intTicks, Binary::View memory,
                                        Devices::Z80::ChipIO::Ptr io)
   {
     auto params = MakePtr<Z80Parameters>(clockFreq, intTicks);

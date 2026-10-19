@@ -28,7 +28,7 @@ namespace Module::ChipTracker
 {
   const std::size_t CHANNELS_COUNT = 4;
 
-  const uint64_t Z80_FREQ = 3500000;
+  const uint_t Z80_FREQ = 3500000;
   // one cycle is 4 outputs
   const uint_t OUTS_PER_CYCLE = 4;
   const uint_t TICKS_PER_CYCLE = 890;

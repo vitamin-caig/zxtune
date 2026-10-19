@@ -132,7 +132,7 @@ namespace Devices::SAA
       : Delegate(delegate)
     {}
 
-    void SetClockFrequency(uint64_t clockFreq)
+    void SetClockFrequency(uint_t clockFreq)
     {
       Filter.SetParameters(clockFreq / FREQ_DIVIDER, Details::SOUND_CUTOFF_FREQUENCY);
     }
@@ -170,7 +170,7 @@ namespace Devices::SAA
       : Parent(clock, psg)
     {}
 
-    void SetClockFrequency(uint64_t clockFreq)
+    void SetClockFrequency(uint_t clockFreq)
     {
       Parent::PSG.SetClockFrequency(clockFreq);
     }
@@ -194,7 +194,7 @@ namespace Devices::SAA
       Current = nullptr;
     }
 
-    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    void SetFrequency(uint_t clockFreq, uint_t soundFreq)
     {
       if (ClockFreq != clockFreq || SoundFreq != soundFreq)
       {
@@ -227,7 +227,7 @@ namespace Devices::SAA
     }
 
   private:
-    uint64_t ClockFreq = 0;
+    uint_t ClockFreq = 0;
     uint_t SoundFreq = 0;
     ClockSource& Clock;
     LQRenderer LQ;
@@ -276,7 +276,7 @@ namespace Devices::SAA
       if (Params.IsChanged())
       {
         PSG.SetMuteMask(Params->MuteMask());
-        const uint64_t clock = Params->ClockFreq();
+        const uint_t clock = Params->ClockFreq();
         const uint_t sndFreq = Params->SoundFreq();
         Renderers.SetFrequency(clock, sndFreq);
         Renderers.SetInterpolation(Params->Interpolation());

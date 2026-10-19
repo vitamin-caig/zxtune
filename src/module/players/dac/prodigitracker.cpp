@@ -28,7 +28,7 @@ namespace Module::ProDigiTracker
 {
   const uint_t CHANNELS_COUNT = 4;
 
-  const uint64_t Z80_FREQ = 3500000;
+  const uint_t Z80_FREQ = 3500000;
   const uint_t TICKS_PER_CYCLE = 374;
   const uint_t C_1_STEP = 46;
   const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;

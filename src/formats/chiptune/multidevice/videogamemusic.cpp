@@ -147,7 +147,7 @@ namespace Formats::Chiptune
         return lo + 10 * hi;
       }
 
-      static Time::Milliseconds SamplesToTime(uint64_t samples)
+      static Time::Milliseconds SamplesToTime(uint_t samples)
       {
         const uint_t FREQUENCY = 44100;
         return Time::Milliseconds::FromRatio(samples, FREQUENCY);

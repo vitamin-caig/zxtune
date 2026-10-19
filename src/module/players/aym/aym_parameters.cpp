@@ -102,7 +102,7 @@ namespace Module::AYM
       return Params->Version();
     }
 
-    uint64_t ClockFreq() const override
+    uint_t ClockFreq() const override
     {
       using namespace Parameters::ZXTune::Core::AYM;
       const auto val = Parameters::GetInteger(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);

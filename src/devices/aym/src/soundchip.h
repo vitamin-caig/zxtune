@@ -98,7 +98,7 @@ namespace Devices::AYM
       {
         PSG.SetMuteMask(Params->MuteMask());
         PSG.SetDutyCycle(Params->DutyCycleValue(), Params->DutyCycleMask());
-        const uint64_t clock = Params->ClockFreq() / AYM_CLOCK_DIVISOR;
+        const uint_t clock = Params->ClockFreq() / AYM_CLOCK_DIVISOR;
         const uint_t sndFreq = Params->SoundFreq();
         Renderers.SetFrequency(clock, sndFreq);
         Renderers.SetInterpolation(Params->Interpolation());

@@ -25,6 +25,6 @@ namespace Module::AYM
     void SetFrequencyTable(StringView freqTable);
     void SetChipType(uint_t type);
     void SetChannelsLayout(uint_t layout);
-    void SetChipFrequency(uint64_t freq);
+    void SetChipFrequency(uint_t freq);
   };
 }  // namespace Module::AYM

@@ -55,7 +55,7 @@ namespace Devices::AYM
   public:
     using Ptr = std::unique_ptr<const FYMDumperParameters>;
 
-    virtual uint64_t ClockFreq() const = 0;
+    virtual uint_t ClockFreq() const = 0;
     virtual String Title() const = 0;
     virtual String Author() const = 0;
     virtual uint_t LoopFrame() const = 0;

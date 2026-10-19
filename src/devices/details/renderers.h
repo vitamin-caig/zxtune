@@ -205,7 +205,7 @@ namespace Devices::Details
       : Delegate(delegate)
     {}
 
-    void SetClockFrequency(uint64_t clockFreq)
+    void SetClockFrequency(uint_t clockFreq)
     {
       Filter.SetParameters(clockFreq, SOUND_CUTOFF_FREQUENCY);
     }
@@ -263,7 +263,7 @@ namespace Devices::Details
       : Parent(clock, psg)
     {}
 
-    void SetClockFrequency(uint64_t clockFreq)
+    void SetClockFrequency(uint_t clockFreq)
     {
       Parent::PSG.SetClockFrequency(clockFreq);
     }

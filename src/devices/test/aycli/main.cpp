@@ -33,7 +33,7 @@ namespace
       return 0;
     }
 
-    uint64_t ClockFreq() const override
+    uint_t ClockFreq() const override
     {
       return Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
     };

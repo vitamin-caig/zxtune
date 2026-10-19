@@ -39,7 +39,7 @@ namespace Formats::Chiptune
       // Default: 0
       virtual void SetLoop(uint_t loop) = 0;
       virtual void SetDigitalSample(uint_t idx, Binary::View data) = 0;
-      virtual void SetClockrate(uint64_t freq) = 0;
+      virtual void SetClockrate(uint_t freq) = 0;
       // Default: 50
       virtual void SetIntFreq(uint_t freq) = 0;
       virtual void SetYear(uint_t year) = 0;
