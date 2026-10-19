@@ -9,6 +9,7 @@
  **/
 
 #include "io/impl/filesystem_path.h"
+#include "io/providers/parameters.h"
 
 #include "analysis/path.h"
 #include "analysis/result.h"
@@ -21,7 +22,6 @@
 #include "formats/image/decoders.h"
 #include "formats/packed/decoders.h"
 #include "io/api.h"
-#include "io/providers_parameters.h"
 #include "parameters/container.h"
 #include "platform/application.h"
 #include "platform/version/api.h"
@@ -365,7 +365,7 @@ namespace
     SaveTarget()
       : Params(Parameters::Container::Create())
     {
-      Params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 2);
+      Parameters::Set<Parameters::ZXTune::IO::Providers::File::OverwriteExisting>(*Params, 2);
     }
 
     void ApplyData(Parsing::Result::Ptr result) override

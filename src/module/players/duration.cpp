@@ -10,7 +10,8 @@
 
 #include "module/players/duration.h"
 
-#include "core/plugins_parameters.h"
+#include "core/plugins/parameters.h"
+
 #include "parameters/accessor.h"
 
 namespace Module
@@ -18,7 +19,6 @@ namespace Module
   Time::Seconds GetDefaultDuration(const Parameters::Accessor& params)
   {
     using namespace Parameters::ZXTune::Core::Plugins;
-    const auto duration = Parameters::GetInteger<uint_t>(params, DEFAULT_DURATION, DEFAULT_DURATION_DEFAULT);
-    return Time::Seconds{duration};
+    return Time::Seconds{Parameters::Get<DefaultDuration>(params)};
   }
 }  // namespace Module

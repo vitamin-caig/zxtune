@@ -17,7 +17,7 @@
 #include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "debug/log.h"
 #include "formats/multitrack/container.h"
 #include "math/numeric.h"
@@ -227,7 +227,7 @@ namespace Module::GME
       if (Params.IsChanged())
       {
         using namespace Parameters::ZXTune::Core;
-        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        const auto val = Params.Get<ChannelsMask>();
         Engine.SetChannelsMask(val);
       }
     }

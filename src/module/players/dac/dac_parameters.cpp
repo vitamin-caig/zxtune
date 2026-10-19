@@ -10,7 +10,7 @@
 
 #include "module/players/dac/dac_parameters.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 
 #include "make_ptr.h"
 
@@ -33,7 +33,8 @@ namespace Module::DAC
 
     uint_t BaseSampleFreq() const override
     {
-      return Parameters::GetInteger<uint_t>(*Params, Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY);
+      return static_cast<uint_t>(
+          Parameters::Find<Parameters::ZXTune::Core::DAC::SamplesFrequency>(*Params).value_or(0));
     }
 
     uint_t SoundFreq() const override
@@ -44,13 +45,13 @@ namespace Module::DAC
     bool Interpolate() const override
     {
       using namespace Parameters::ZXTune::Core::DAC;
-      return 0 != Parameters::GetInteger(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
+      return Parameters::Get<Interpolation>(*Params);
     }
 
     uint_t MuteMask() const override
     {
       using namespace Parameters::ZXTune::Core;
-      return Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+      return Parameters::Get<ChannelsMask>(*Params);
     }
 
   private:

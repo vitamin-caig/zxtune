@@ -10,82 +10,83 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/app_parameters.h"
+#include "apps/zxtune-qt/parameters.h"
 
 namespace Parameters::ZXTuneQT::Playlist
 {
-  const auto PREFIX = ZXTuneQT::PREFIX + "Playlist"_id;
-  const auto NAMESPACE_NAME = static_cast<Identifier>(PREFIX).Name();
+  constexpr auto Prefix = ZXTuneQT::Prefix + "Playlist"_id;
+  const auto NAMESPACE_NAME = static_cast<Identifier>(Prefix).Name();
 
-  //@{
-  //! @name Loop playlist playback
+  //! @brief Loop playlist playback
+  struct Looped : Value<bool>
+  {
+    static constexpr auto Key = Prefix + "Loop"_id;
+    static constexpr Type Default = false;
+  };
 
-  //! Parameter name
-  const auto LOOPED = PREFIX + "Loop"_id;
-  //! Default value
-  const IntType LOOPED_DEFAULT = 0;
-  //@}
+  //! @brief Randomize playlist playback
+  struct Randomized : Value<bool>
+  {
+    static constexpr auto Key = Prefix + "Random"_id;
+    static constexpr Type Default = false;
+  };
 
-  //@{
-  //! @name Randomize playlist playback
+  //! @brief Index of last played tab
+  struct Index : Value<uint_t>
+  {
+    static constexpr auto Key = Prefix + "Index"_id;
+    static constexpr Type Default = 0;
+  };
 
-  //! Parameter name
-  const auto RANDOMIZED = PREFIX + "Random"_id;
-  //! Default value
-  const IntType RANDOMIZED_DEFAULT = 0;
-  //@}
+  //! @brief Index of last played track
+  struct Track : Value<uint_t>
+  {
+    static constexpr auto Key = Prefix + "Track"_id;
+    static constexpr Type Default = 0;
+  };
 
-  //@}
-  //! @name Index of last played tab
-  const auto INDEX = PREFIX + "Index"_id;
+  //! @brief Command line processing target
+  enum class CmdlineTargetMode : uint_t
+  {
+    New = 0,
+    Active = 1,
+    Visible = 2,
+  };
 
-  //! @name Index of last played track
-  const auto TRACK = PREFIX + "Track"_id;
-  //@}
-
-  const auto CMDLINE_TARGET = PREFIX + "CmdlineTarget"_id;
-
-  const IntType CMDLINE_TARGET_NEW = 0;
-  const IntType CMDLINE_TARGET_ACTIVE = 1;
-  const IntType CMDLINE_TARGET_VISIBLE = 2;
-
-  const IntType CMDLINE_TARGET_DEFAULT = CMDLINE_TARGET_NEW;
+  struct CmdlineTarget : Value<CmdlineTargetMode>
+  {
+    static constexpr auto Key = Prefix + "CmdlineTarget"_id;
+    static constexpr Type Default = CmdlineTargetMode::New;
+  };
 
   namespace Cache
   {
-    const auto PREFIX = Playlist::PREFIX + "Cache"_id;
+    constexpr auto Prefix = Playlist::Prefix + "Cache"_id;
 
-    //@{
-    //! @name Cache size limit in bytes
+    //! @brief Cache size limit in MB
+    struct MemoryLimitMb : Value<uint_t>
+    {
+      static constexpr auto Key = Prefix + "Memory"_id;
+      static constexpr Type Default = 10, Min = 0, Max = 100;
+    };
 
-    //! Parameter name
-    const auto MEMORY_LIMIT_MB = PREFIX + "Memory"_id;
-    //! Default value
-    const IntType MEMORY_LIMIT_MB_DEFAULT = 10;
-    //@}
-
-    //@{
-    //! @name Cache size limit in files
-
-    //! Parameter name
-    const auto FILES_LIMIT = PREFIX + "Files"_id;
-    //! Default value
-    const IntType FILES_LIMIT_DEFAULT = 1000;
-    //@}
+    //! @brief Cache size limit in files
+    struct FilesLimit : Value<uint_t>
+    {
+      static constexpr auto Key = Prefix + "Files"_id;
+      static constexpr Type Default = 1000, Min = 0, Max = 10'000;
+    };
   }  // namespace Cache
 
   namespace Store
   {
-    const auto PREFIX = Playlist::PREFIX + "Store"_id;
+    constexpr auto Prefix = Playlist::Prefix + "Store"_id;
 
-    //@{
-
-    //! @name Store full properties set instead of only changed
-
-    //! Parameter name
-    const auto PROPERTIES = PREFIX + "Properties"_id;
-    //! Default value
-    const IntType PROPERTIES_DEFAULT = 0;
-    //@}
+    //! @brief Store full properties set instead of only changed
+    struct Properties : Value<bool>
+    {
+      static constexpr auto Key = Prefix + "Properties"_id;
+      static constexpr Type Default = false;
+    };
   }  // namespace Store
 }  // namespace Parameters::ZXTuneQT::Playlist

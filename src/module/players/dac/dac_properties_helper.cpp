@@ -12,7 +12,7 @@
 
 #include "module/players/platforms.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 
 namespace Module::DAC
 {
@@ -34,6 +34,6 @@ namespace Module::DAC
 
   void PropertiesHelper::SetSamplesFrequency(uint_t freq)
   {
-    Delegate.SetValue(Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY, freq);
+    Parameters::Set<Parameters::ZXTune::Core::DAC::SamplesFrequency>(Delegate, freq);
   }
 }  // namespace Module::DAC

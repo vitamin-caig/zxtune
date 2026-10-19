@@ -15,7 +15,7 @@
 #include "module/players/properties_meta.h"
 
 #include "binary/container_factories.h"
-#include "core/plugins_parameters.h"
+#include "core/plugins/parameters.h"
 #include "debug/log.h"
 #include "module/information.h"
 #include "parameters/tracking_helper.h"
@@ -184,7 +184,7 @@ namespace Module::AHX
       if (Params.IsChanged())
       {
         using namespace Parameters::ZXTune::Core;
-        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        const auto val = Params.Get<ChannelsMask>();
         Tune->SetChannelsMask(val);
       }
     }

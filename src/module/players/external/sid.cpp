@@ -10,6 +10,7 @@
 
 #include "module/players/external/sid.h"
 
+#include "core/plugins/parameters.h"
 #include "module/players/duration.h"
 #include "module/players/external/sid/roms.h"
 #include "module/players/external/sid/songlengths.h"
@@ -17,8 +18,7 @@
 #include "module/players/properties_helper.h"
 #include "module/players/streaming.h"
 
-#include "core/core_parameters.h"
-#include "core/plugins_parameters.h"
+#include "core/parameters.h"
 #include "debug/log.h"
 #include "formats/multitrack/container.h"
 #include "module/attributes.h"
@@ -118,32 +118,31 @@ namespace Module::Sid
 
     bool GetFastSampling() const
     {
-      return Parameters::ZXTune::Core::SID::INTERPOLATION_NONE == GetInterpolation();
+      return 0 == GetInterpolation();
     }
 
     SidConfig::sampling_method_t GetSamplingMethod() const
     {
-      return Parameters::ZXTune::Core::SID::INTERPOLATION_HQ == GetInterpolation() ? SidConfig::RESAMPLE_INTERPOLATE
-                                                                                   : SidConfig::INTERPOLATE;
+      return 2 == GetInterpolation() ? SidConfig::RESAMPLE_INTERPOLATE : SidConfig::INTERPOLATE;
     }
 
     bool GetUseFilter() const
     {
       using namespace Parameters::ZXTune::Core::SID;
-      return 0 != Parameters::GetInteger(*Params, FILTER, FILTER_DEFAULT);
+      return Parameters::Get<Filter>(*Params);
     }
 
     uint_t GetMuteMask() const
     {
       using namespace Parameters::ZXTune::Core;
-      return Parameters::GetInteger<uint_t>(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+      return Parameters::Get<ChannelsMask>(*Params);
     }
 
   private:
-    Parameters::IntType GetInterpolation() const
+    uint_t GetInterpolation() const
     {
       using namespace Parameters::ZXTune::Core::SID;
-      return Parameters::GetInteger(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
+      return Parameters::Get<Interpolation>(*Params);
     }
 
   private:
@@ -162,9 +161,9 @@ namespace Module::Sid
 
     void Init(uint_t samplerate, const Parameters::Accessor& params)
     {
-      const auto kernal = params.FindData(Parameters::ZXTune::Core::Plugins::SID::KERNAL);
-      const auto basic = params.FindData(Parameters::ZXTune::Core::Plugins::SID::BASIC);
-      const auto chargen = params.FindData(Parameters::ZXTune::Core::Plugins::SID::CHARGEN);
+      const auto kernal = Parameters::Find<Parameters::ZXTune::Core::Plugins::SID::Kernal>(params);
+      const auto basic = Parameters::Find<Parameters::ZXTune::Core::Plugins::SID::Basic>(params);
+      const auto chargen = Parameters::Find<Parameters::ZXTune::Core::Plugins::SID::Chargen>(params);
       Player.setRoms(GetData(kernal, GetKernalROM()), GetData(basic, GetBasicROM()), GetData(chargen, GetChargenROM()));
       const uint_t chipsCount = Player.info().maxsids();
       Builder.create(chipsCount);

@@ -14,7 +14,7 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "sound_oss.ui.h"
 
-#include "sound/backends_parameters.h"
+#include "sound/backends/parameters.h"
 
 #include "contract.h"
 
@@ -40,8 +40,8 @@ namespace UI
       Require(connect(selectMixer, &QToolButton::clicked, this, &OssOptionsWidget::MixerSelected));
 
       using namespace Parameters::ZXTune::Sound::Backends::Oss;
-      Value::Bind(*device, *Options, DEVICE, DEVICE_DEFAULT);
-      Value::Bind(*mixer, *Options, MIXER, MIXER_DEFAULT);
+      Value::Bind(*device, *Options, Device::Key, Device::Default);
+      Value::Bind(*mixer, *Options, Mixer::Key, Mixer::Default);
     }
 
     StringView GetBackendId() const override

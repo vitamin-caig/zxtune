@@ -15,8 +15,8 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "aym.ui.h"
 
-#include "core/core_parameters.h"
-#include "sound/sound_parameters.h"
+#include "core/parameters.h"
+#include "sound/parameters.h"
 
 #include "contract.h"
 
@@ -49,13 +49,10 @@ namespace UI
                       &AYMOptionsWidget::OnClockRatePresetChanged));
 
       using namespace Parameters;
-      const IntegerTraits clockRate(ZXTune::Core::AYM::CLOCKRATE, ZXTune::Core::AYM::CLOCKRATE_DEFAULT,
-                                    ZXTune::Core::AYM::CLOCKRATE_MIN, ZXTune::Core::AYM::CLOCKRATE_MAX);
-      Value::Bind(*clockRateValue, *Options, clockRate);
-      Value::Bind(*dutyCycleGroup, *Options, ZXTune::Core::AYM::DUTY_CYCLE_MASK, false, 7);
-      Value::Bind(*dutyCycleValue, *Options, ZXTune::Core::AYM::DUTY_CYCLE, ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT);
-      Interpolation = Value::Bind(*interpolationValue, *Options, ZXTune::Core::AYM::INTERPOLATION,
-                                  ZXTune::Core::AYM::INTERPOLATION_DEFAULT);
+      Value::Bind<ZXTune::Core::AYM::Clockrate>(*clockRateValue, *Options);
+      Value::Bind<ZXTune::Core::AYM::DutyCycleMask>(*dutyCycleGroup, *Options, 7);
+      Value::Bind<ZXTune::Core::AYM::DutyCycle>(*dutyCycleValue, *Options);
+      Interpolation = Value::Bind<ZXTune::Core::AYM::Interpolation>(*interpolationValue, *Options);
     }
 
     // QWidget

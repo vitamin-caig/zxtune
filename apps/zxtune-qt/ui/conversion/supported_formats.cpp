@@ -135,7 +135,7 @@ namespace UI
       {
         but.second->setEnabled(true);
       }
-      Value::BindExclusive(*but.second, *Options, Parameters::ZXTuneQT::UI::Export::TYPE, but.first);
+      Value::BindExclusive(*but.second, *Options, Parameters::ZXTuneQT::UI::Export::Type::Key, but.first);
     }
 
   private:

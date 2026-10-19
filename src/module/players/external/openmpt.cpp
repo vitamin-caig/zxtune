@@ -12,7 +12,7 @@
 
 #include "module/players/properties_helper.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "debug/log.h"
 #include "formats/chiptune/container.h"
 #include "math/numeric.h"
@@ -207,11 +207,11 @@ namespace Module::MPT
       if (Params.IsChanged())
       {
         using namespace Parameters::ZXTune::Core;
-        const auto val = Parameters::GetInteger(*Params, DAC::INTERPOLATION, DAC::INTERPOLATION_DEFAULT);
+        const auto val = Params.Get<DAC::Interpolation>();
         // cubic interpolation vs windowed sinc with 8 taps
-        const int interpolation = val != DAC::INTERPOLATION_NO ? 8 : 3;
+        const int interpolation = val ? 8 : 3;
         Track->set_render_param(openmpt::module::render_param::RENDER_INTERPOLATIONFILTER_LENGTH, interpolation);
-        ApplyMuting(Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT));
+        ApplyMuting(Params.Get<ChannelsMask>());
       }
     }
 

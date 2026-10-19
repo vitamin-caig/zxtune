@@ -40,12 +40,6 @@
           <property name="enabled">
            <bool>false</bool>
           </property>
-          <property name="minimum">
-           <number>32</number>
-          </property>
-          <property name="maximum">
-           <number>320</number>
-          </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -99,12 +93,6 @@
          <widget class="QSlider" name="qualityValue">
           <property name="enabled">
            <bool>false</bool>
-          </property>
-          <property name="minimum">
-           <number>0</number>
-          </property>
-          <property name="maximum">
-           <number>9</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>

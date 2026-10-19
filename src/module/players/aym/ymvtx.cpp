@@ -16,7 +16,7 @@
 #include "module/players/properties_meta.h"
 
 #include "binary/container.h"
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "parameters/container.h"
 #include "strings/conversion.h"
 
@@ -73,7 +73,7 @@ namespace Module::YMVTX
 
     void SetChipType(bool ym) override
     {
-      Properties.SetChipType(ym ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY);
+      Properties.SetChipType(ym ? Devices::AYM::TYPE_YM2149F : Devices::AYM::TYPE_AY38910);
     }
 
     void SetStereoMode(uint_t mode) override

@@ -54,7 +54,8 @@ namespace
   UI::Language::Ptr CreateLanguage(const Parameters::Container& options)
   {
     auto res = UI::Language::Create();
-    const auto lang = Parameters::GetString(options, Parameters::ZXTuneQT::UI::LANGUAGE, FromQString(res->GetSystem()));
+    const auto lang =
+        Parameters::Find<Parameters::ZXTuneQT::UI::Language>(options).value_or(FromQString(res->GetSystem()));
     res->Set(ToQString(lang));
     return res;
   }

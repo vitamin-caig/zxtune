@@ -14,7 +14,6 @@
 
 namespace Parameters::ZXTune::IO
 {
-  //! @brief Parameters#ZXTune#IO namespace prefix
-  const auto PREFIX = ZXTune::PREFIX + "io"_id;
+  constexpr auto Prefix = ZXTune::PREFIX + "io"_id;
   // IO-related parameters
 }  // namespace Parameters::ZXTune::IO

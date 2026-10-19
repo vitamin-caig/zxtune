@@ -126,10 +126,8 @@ namespace
       Require(
           connect(widgetsContainer, &QTabWidget::tabCloseRequested, this, &Playlist::UI::ContainerView::ClosePlaylist));
 
-      UI::Value::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED,
-                      Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
-      UI::Value::Bind(*actionRandom, *Options, Parameters::ZXTuneQT::Playlist::RANDOMIZED,
-                      Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT);
+      UI::Value::Bind<Parameters::ZXTuneQT::Playlist::Looped>(*actionLoop, *Options);
+      UI::Value::Bind<Parameters::ZXTuneQT::Playlist::Randomized>(*actionRandom, *Options);
 
       Dbg("Created at {}", Self());
     }
@@ -439,8 +437,8 @@ namespace
     void RestorePlaylistSession()
     {
       Session->Load(Container);
-      const auto idx = Parameters::GetInteger(*Options, Parameters::ZXTuneQT::Playlist::INDEX);
-      const auto trk = Parameters::GetInteger(*Options, Parameters::ZXTuneQT::Playlist::TRACK);
+      const auto idx = Parameters::Get<Parameters::ZXTuneQT::Playlist::Index>(*Options);
+      const auto trk = Parameters::Get<Parameters::ZXTuneQT::Playlist::Track>(*Options);
       Dbg("Restore current playlist {} with track {}", idx, trk);
       ActivatePlaylist(idx);
       widgetsContainer->setCurrentIndex(idx);
@@ -456,18 +454,18 @@ namespace
       const uint_t idx = widgetsContainer->indexOf(ActivePlaylistView);
       const uint_t trk = ActivePlaylistView->GetPlaylist()->GetIterator()->GetIndex();
       Dbg("Store current playlist {} (visible is {}), track {}", idx, widgetsContainer->currentIndex(), trk);
-      Options->SetValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
-      Options->SetValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
+      Parameters::Set<Parameters::ZXTuneQT::Playlist::Index>(*Options, idx);
+      Parameters::Set<Parameters::ZXTuneQT::Playlist::Track>(*Options, trk);
     }
 
     Playlist::UI::View& GetCmdlineTarget()
     {
       using namespace Parameters::ZXTuneQT::Playlist;
-      switch (Parameters::GetInteger(*Options, CMDLINE_TARGET, CMDLINE_TARGET_DEFAULT))
+      switch (Parameters::Get<CmdlineTarget>(*Options))
       {
-      case CMDLINE_TARGET_ACTIVE:
+      case CmdlineTargetMode::Active:
         return GetActivePlaylist();
-      case CMDLINE_TARGET_VISIBLE:
+      case CmdlineTargetMode::Visible:
         return GetVisiblePlaylist();
       default:
       {

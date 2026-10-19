@@ -12,10 +12,10 @@
 #include "sound/backends/flac.h"
 #include "sound/backends/gates/flac_api.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/parameters.h"
 #include "sound/backends/storage.h"
 
 #include "debug/log.h"
-#include "sound/backends_parameters.h"
 #include "sound/render_params.h"
 
 #include "error_tools.h"
@@ -200,12 +200,12 @@ namespace Sound::Flac
 
     auto GetCompressionLevel() const
     {
-      return Params->FindInteger(Parameters::ZXTune::Sound::Backends::Flac::COMPRESSION);
+      return Parameters::Find<Parameters::ZXTune::Sound::Backends::Flac::Compression>(*Params);
     }
 
     auto GetBlockSize() const
     {
-      return Params->FindInteger(Parameters::ZXTune::Sound::Backends::Flac::BLOCKSIZE);
+      return Parameters::Find<Parameters::ZXTune::Sound::Backends::Flac::Blocksize>(*Params);
     }
 
   private:

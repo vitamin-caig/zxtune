@@ -17,13 +17,13 @@
 #include "devices/aym/chip.h"
 #include "formats/archived/multitrack/filename.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "debug/log.h"
 #include "io/api.h"
 #include "module/attributes.h"
 #include "parameters/convert.h"
 #include "parameters/serialize.h"
-#include "sound/sound_parameters.h"
+#include "sound/parameters.h"
 #include "strings/casing.h"
 #include "tools/progress_callback_helpers.h"
 
@@ -290,7 +290,7 @@ namespace
       Dbg("  property {}={}", static_cast<StringView>(name), val);
       if (name == AYL::CHIP_FREQUENCY)
       {
-        Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
+        Parameters::Set<Parameters::ZXTune::Core::AYM::Clockrate>(Delegate, val);
       }
       else if (name == AYL::PLAYER_FREQUENCY)
       {
@@ -312,12 +312,12 @@ namespace
       Dbg("  property {}='{}'", static_cast<StringView>(name), val);
       if (name == AYL::CHIP_TYPE)
       {
-        Delegate.SetValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
+        Parameters::Set<Parameters::ZXTune::Core::AYM::Chip>(Delegate, DecodeChipType(val));
       }
       // ignore "Channels"
       else if (name == AYL::CHANNELS_ALLOCATION)
       {
-        Delegate.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, DecodeChipLayout(val));
+        Parameters::Set<Parameters::ZXTune::Core::AYM::Layout>(Delegate, DecodeChipLayout(val));
       }
       // ignore "Length", "Address", "Loop", "Time", "Original"
       else if (name == AYL::NAME)
@@ -357,7 +357,8 @@ namespace
   private:
     static Parameters::IntType DecodeChipType(StringView value)
     {
-      return value == AYL::YM ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY;
+      return static_cast<Parameters::IntType>(value == AYL::YM ? Devices::AYM::TYPE_YM2149F
+                                                               : Devices::AYM::TYPE_AY38910);
     }
 
     static Parameters::IntType DecodeChipLayout(StringView value)

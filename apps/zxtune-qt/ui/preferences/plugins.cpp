@@ -15,7 +15,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "plugins.ui.h"
 
-#include "core/plugins_parameters.h"
+#include "core/plugins/parameters.h"
 
 #include "contract.h"
 
@@ -37,13 +37,11 @@ namespace UI
 
       using namespace Parameters;
       // raw scaner
-      Value::Bind(*rawMinSizeValue, *Options, ZXTune::Core::Plugins::Raw::MIN_SIZE,
-                  ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT);
-      Value::Bind(*rawPlainDoubleAnalysis, *Options, ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS, false);
+      Value::Bind<ZXTune::Core::Plugins::Raw::MinSize>(*rawMinSizeValue, *Options);
+      Value::Bind<ZXTune::Core::Plugins::Raw::PlainDoubleAnalysis>(*rawPlainDoubleAnalysis, *Options);
 
       // players
-      Value::Bind(*defaultDurationValue, *Options, ZXTune::Core::Plugins::DEFAULT_DURATION,
-                  ZXTune::Core::Plugins::DEFAULT_DURATION_DEFAULT);
+      Value::Bind<ZXTune::Core::Plugins::DefaultDuration>(*defaultDurationValue, *Options);
     }
 
     // QWidget

@@ -12,12 +12,12 @@
 #include "sound/backends/gates/mp3_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/mp3.h"
+#include "sound/backends/parameters.h"
 #include "sound/backends/storage.h"
 
 #include "binary/dump.h"
 #include "debug/log.h"
 #include "math/numeric.h"
-#include "sound/backends_parameters.h"
 #include "sound/render_params.h"
 
 #include "error_tools.h"
@@ -158,16 +158,16 @@ namespace Sound::Mp3
     BitrateMode GetBitrateMode() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Mp3;
-      const auto mode = Parameters::GetString(*Params, MODE, MODE_DEFAULT);
-      if (mode == MODE_CBR)
+      const auto mode = Parameters::Get<Mode>(*Params);
+      if (mode == Mode::CBR)
       {
         return BitrateMode::CBR;
       }
-      else if (mode == MODE_VBR)
+      else if (mode == Mode::VBR)
       {
         return BitrateMode::VBR;
       }
-      else if (mode == MODE_ABR)
+      else if (mode == Mode::ABR)
       {
         return BitrateMode::ABR;
       }
@@ -180,7 +180,7 @@ namespace Sound::Mp3
     uint_t GetBitrate() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Mp3;
-      const auto bitrate = Parameters::GetInteger<uint_t>(*Params, BITRATE, BITRATE_DEFAULT);
+      const auto bitrate = Parameters::Get<Bitrate>(*Params);
       if (!Math::InRange(bitrate, BITRATE_MIN, BITRATE_MAX))
       {
         throw MakeFormattedError(THIS_LINE, translate("MP3 backend error: bitrate ({0}) is out of range ({1}..{2})."),
@@ -192,7 +192,7 @@ namespace Sound::Mp3
     uint_t GetQuality() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Mp3;
-      const auto quality = Parameters::GetInteger<uint_t>(*Params, QUALITY, QUALITY_DEFAULT);
+      const auto quality = Parameters::Get<Quality>(*Params);
       if (!Math::InRange(quality, QUALITY_MIN, QUALITY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, translate("MP3 backend error: quality ({0}) is out of range ({1}..{2})."),
@@ -204,20 +204,20 @@ namespace Sound::Mp3
     ChannelsMode GetChannelsMode() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Mp3;
-      const auto mode = Parameters::GetString(*Params, CHANNELS, CHANNELS_DEFAULT);
-      if (mode == CHANNELS_DEFAULT)
+      const auto mode = Parameters::Get<Channels>(*Params);
+      if (mode == Channels::Default)
       {
         return ChannelsMode::DEFAULT;
       }
-      else if (mode == CHANNELS_STEREO)
+      else if (mode == Channels::Stereo)
       {
         return ChannelsMode::STEREO;
       }
-      else if (mode == CHANNELS_JOINTSTEREO)
+      else if (mode == Channels::JointStereo)
       {
         return ChannelsMode::JOINTSTEREO;
       }
-      else if (mode == CHANNELS_MONO)
+      else if (mode == Channels::Mono)
       {
         return ChannelsMode::MONO;
       }

@@ -15,7 +15,7 @@
 #include "module/players/xsf/xsf.h"
 
 #include "binary/compression/zlib.h"
-#include "core/plugins_parameters.h"
+#include "core/plugins/parameters.h"
 #include "debug/log.h"
 #include "parameters/tracking_helper.h"
 #include "sound/resampler.h"
@@ -256,7 +256,7 @@ namespace Module::SDSF
       if (Params.IsChanged())
       {
         using namespace Parameters::ZXTune::Core;
-        const auto val = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        const auto val = Params.Get<ChannelsMask>();
         Engine.SetChannelsMask(val);
       }
     }

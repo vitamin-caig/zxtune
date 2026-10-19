@@ -58,17 +58,13 @@ namespace UI
       Require(connect(languageSelect, qOverload<int>(&QComboBox::currentIndexChanged), this,
                       &InterfaceOptionsWidget::OnLanguageChanged));
       using namespace Parameters;
-      Value::Bind(*playlistCachedFiles, *Options, ZXTuneQT::Playlist::Cache::FILES_LIMIT,
-                  ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT);
-      Value::Bind(*playlistCacheLimit, *Options, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB,
-                  ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT);
-      Value::Bind(*playlistStoreAllProperties, *Options, ZXTuneQT::Playlist::Store::PROPERTIES,
-                  ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT);
-      UpdateCheckPeriod = Value::Bind(*updateCheckPeriod, *Options, ZXTuneQT::Update::CHECK_PERIOD,
-                                      UPDATE_CHECK_PERIODS, ZXTuneQT::Update::CHECK_PERIOD_DEFAULT);
-      Value::Bind(*appSingleInstance, *Options, ZXTuneQT::SINGLE_INSTANCE, ZXTuneQT::SINGLE_INSTANCE_DEFAULT);
-      CmdlineTarget = Value::Bind(*cmdlineTarget, *Options, ZXTuneQT::Playlist::CMDLINE_TARGET,
-                                  ZXTuneQT::Playlist::CMDLINE_TARGET_DEFAULT);
+      Value::Bind<ZXTuneQT::Playlist::Cache::FilesLimit>(*playlistCachedFiles, *Options);
+      Value::Bind<ZXTuneQT::Playlist::Cache::MemoryLimitMb>(*playlistCacheLimit, *Options);
+      Value::Bind<ZXTuneQT::Playlist::Store::Properties>(*playlistStoreAllProperties, *Options);
+      UpdateCheckPeriod =
+          Value::Bind<ZXTuneQT::Update::CheckPeriod>(*updateCheckPeriod, *Options, UPDATE_CHECK_PERIODS);
+      Value::Bind<ZXTuneQT::SingleInstance>(*appSingleInstance, *Options);
+      CmdlineTarget = Value::Bind<ZXTuneQT::Playlist::CmdlineTarget>(*cmdlineTarget, *Options);
     }
 
     // QWidget
@@ -99,7 +95,10 @@ namespace UI
     QString GetCurrentLanguage() const
     {
       Parameters::StringType val = FromQString(Language->GetSystem());
-      Parameters::FindValue(*Options, Parameters::ZXTuneQT::UI::LANGUAGE, val);
+      if (const auto stored = Parameters::Find<Parameters::ZXTuneQT::UI::Language>(*Options))
+      {
+        val = *stored;
+      }
       return ToQString(val);
     }
 
@@ -107,7 +106,7 @@ namespace UI
     {
       const QString lang = languageSelect->itemData(idx).toString();
       Language->Set(lang);
-      Options->SetValue(Parameters::ZXTuneQT::UI::LANGUAGE, FromQString(lang));
+      Parameters::Set<Parameters::ZXTuneQT::UI::Language>(*Options, FromQString(lang));
     }
 
   private:

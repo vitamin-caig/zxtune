@@ -10,7 +10,8 @@
 
 #include "core/plugins/scan_result.h"
 
-#include "core/plugins_parameters.h"
+#include "core/plugins/parameters.h"
+
 #include "parameters/accessor.h"
 
 namespace ZXTune
@@ -19,7 +20,7 @@ namespace ZXTune
                                               Binary::Container::Ptr data)
   {
     using namespace Parameters::ZXTune::Core::Plugins::Raw;
-    if (const auto limit = Parameters::GetInteger<std::size_t>(params, SCAN_LIMIT, SCAN_LIMIT_DEFAULT))
+    if (const auto limit = Parameters::Get<ScanLimit>(params))
     {
       data = data->GetSubcontainer(0, limit);
     }

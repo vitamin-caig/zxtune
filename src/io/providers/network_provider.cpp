@@ -13,11 +13,11 @@
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
 #include "io/providers/gates/curl_api.h"
+#include "io/providers/parameters.h"
 
 #include "binary/container_factories.h"
 #include "binary/data_builder.h"
 #include "debug/log.h"
-#include "io/providers_parameters.h"
 #include "parameters/accessor.h"
 #include "tools/progress_callback.h"
 
@@ -42,7 +42,7 @@ namespace IO::Network
 
     String GetHttpUseragent() const
     {
-      return Parameters::GetString(Accessor, Parameters::ZXTune::IO::Providers::Network::Http::USERAGENT);
+      return Parameters::Find<Parameters::ZXTune::IO::Providers::Network::Http::UserAgent>(Accessor).value_or(String{});
     }
 
   private:

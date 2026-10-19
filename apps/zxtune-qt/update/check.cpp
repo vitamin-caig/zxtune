@@ -337,15 +337,14 @@ namespace
     QUrl GetFeedUrl() const
     {
       using namespace Parameters;
-      const auto url = GetString(*Params, ZXTuneQT::Update::FEED, Urls::DownloadsFeed());
+      const auto url = Find<ZXTuneQT::Update::Feed>(*Params).value_or(Urls::DownloadsFeed());
       return ToQString(url);
     }
 
     std::optional<Time::Seconds> GetCheckPeriod() const
     {
       using namespace Parameters::ZXTuneQT::Update;
-      if (const auto val =
-              Parameters::GetInteger<Time::Seconds::ValueType>(*Params, CHECK_PERIOD, CHECK_PERIOD_DEFAULT))
+      if (const auto val = Parameters::Get<CheckPeriod>(*Params))
       {
         return Time::Seconds(val);
       }
@@ -358,12 +357,12 @@ namespace
     AtSecond GetLastCheckTime() const
     {
       using namespace Parameters;
-      return AtSecond{GetInteger<AtSecond::ValueType>(*Params, ZXTuneQT::Update::LAST_CHECK)};
+      return AtSecond{Get<ZXTuneQT::Update::LastCheck>(*Params)};
     }
 
     void SetLastCheckTime(AtSecond time)
     {
-      Params->SetValue(Parameters::ZXTuneQT::Update::LAST_CHECK, time.Get());
+      Parameters::Set<Parameters::ZXTuneQT::Update::LastCheck>(*Params, time.Get());
     }
 
   private:

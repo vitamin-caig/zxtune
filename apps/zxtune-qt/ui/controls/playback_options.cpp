@@ -15,10 +15,10 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "playback_options.ui.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "module/attributes.h"
 #include "parameters/merged_accessor.h"
-#include "sound/sound_parameters.h"
+#include "sound/parameters.h"
 #include "strings/split.h"
 
 #include "contract.h"
@@ -45,14 +45,12 @@ namespace
       Muting.SetVisible(false);
 
       // common
-      UI::Value::Bind(*isLooped, *Params, Parameters::ZXTune::Sound::LOOPED, false);
+      UI::Value::Bind<Parameters::ZXTune::Sound::Looped>(*isLooped, *Params);
       // AYM
-      UI::Value::Bind(*isYM, *Params, Parameters::ZXTune::Core::AYM::TYPE, false);
-      UI::Value::Bind(*aymLayout, *Params, Parameters::ZXTune::Core::AYM::LAYOUT,
-                      Parameters::ZXTune::Core::AYM::LAYOUT_DEFAULT);
+      UI::Value::Bind<Parameters::ZXTune::Core::AYM::Chip>(*isYM, *Params);
+      UI::Value::Bind<Parameters::ZXTune::Core::AYM::Layout>(*aymLayout, *Params);
       // DAC
-      UI::Value::Bind(*isDACInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION,
-                      Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT);
+      UI::Value::Bind<Parameters::ZXTune::Core::DAC::Interpolation>(*isDACInterpolated, *Params);
 
       Require(connect(&supp, &PlaybackSupport::OnStartModule, this, &PlaybackOptionsImpl::InitState));
       Require(connect(&supp, &PlaybackSupport::OnUpdateState, this, &PlaybackOptionsImpl::UpdateState));
@@ -89,7 +87,7 @@ namespace
         {
           Params = item.GetAdjustedParameters();
           using namespace Parameters::ZXTune::Core;
-          State = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+          State = Parameters::Get<ChannelsMask>(*Params);
           Control->setVisible(true);
           const auto names = Strings::Split(*channelsNames, '\n');
           for (std::size_t idx = 0, namesCount = names.size(), buttonsCount = Buttons.size();
@@ -149,11 +147,11 @@ namespace
         {
           if (State)
           {
-            Params->SetValue(Parameters::ZXTune::Core::CHANNELS_MASK, State);
+            Parameters::Set<Parameters::ZXTune::Core::ChannelsMask>(*Params, State);
           }
           else
           {
-            Params->RemoveValue(Parameters::ZXTune::Core::CHANNELS_MASK);
+            Parameters::Remove<Parameters::ZXTune::Core::ChannelsMask>(*Params);
           }
         }
       }
@@ -184,9 +182,9 @@ namespace
       {
         // TODO: use walker?
         using namespace Parameters::ZXTune::Core;
-        isYM->setEnabled(!ModuleProperties->FindInteger(AYM::TYPE).has_value());
-        aymLayout->setEnabled(!ModuleProperties->FindInteger(AYM::LAYOUT).has_value());
-        isDACInterpolated->setEnabled(!ModuleProperties->FindInteger(DAC::INTERPOLATION).has_value());
+        isYM->setEnabled(!Parameters::Find<AYM::Chip>(*ModuleProperties).has_value());
+        aymLayout->setEnabled(!Parameters::Find<AYM::Layout>(*ModuleProperties).has_value());
+        isDACInterpolated->setEnabled(!Parameters::Find<DAC::Interpolation>(*ModuleProperties).has_value());
       }
     }
 

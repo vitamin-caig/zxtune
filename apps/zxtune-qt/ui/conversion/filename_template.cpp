@@ -18,7 +18,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "filename_template.ui.h"
 
-#include "io/providers_parameters.h"
+#include "io/providers/parameters.h"
 
 #include "contract.h"
 
@@ -80,10 +80,8 @@ namespace UI
       State->Load();
 
       using namespace Parameters;
-      Value::Bind(*overwriteExisting, *Options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING,
-                  ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT);
-      Value::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES,
-                  ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
+      Value::Bind<ZXTune::IO::Providers::File::OverwriteExisting>(*overwriteExisting, *Options);
+      Value::Bind<ZXTune::IO::Providers::File::CreateDirectories>(*createDirectories, *Options);
     }
 
     ~FilenameTemplateWidgetImpl() override

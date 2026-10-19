@@ -14,11 +14,11 @@
 #include "sound/backends/gates/vorbisenc_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/ogg.h"
+#include "sound/backends/parameters.h"
 #include "sound/backends/storage.h"
 
 #include "debug/log.h"
 #include "math/numeric.h"
-#include "sound/backends_parameters.h"
 #include "sound/render_params.h"
 
 #include "error_tools.h"
@@ -309,12 +309,12 @@ namespace Sound::Ogg
     bool IsABRMode() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Ogg;
-      const auto mode = Parameters::GetString(*Params, MODE, MODE_DEFAULT);
-      if (mode == MODE_ABR)
+      const auto mode = Parameters::Get<Mode>(*Params);
+      if (mode == Mode::ABR)
       {
         return true;
       }
-      else if (mode == MODE_QUALITY)
+      else if (mode == Mode::Quality)
       {
         return false;
       }
@@ -327,7 +327,7 @@ namespace Sound::Ogg
     uint_t GetBitrate() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Ogg;
-      const auto bitrate = Parameters::GetInteger<uint_t>(*Params, BITRATE, BITRATE_DEFAULT);
+      const auto bitrate = Parameters::Get<Bitrate>(*Params);
       if (!Math::InRange(bitrate, BITRATE_MIN, BITRATE_MAX))
       {
         throw MakeFormattedError(THIS_LINE, translate("OGG backend error: bitrate ({0}) is out of range ({1}..{2})."),
@@ -339,7 +339,7 @@ namespace Sound::Ogg
     uint_t GetQuality() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Ogg;
-      const auto quality = Parameters::GetInteger<uint_t>(*Params, QUALITY, QUALITY_DEFAULT);
+      const auto quality = Parameters::Get<Quality>(*Params);
       if (!Math::InRange(quality, QUALITY_MIN, QUALITY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, translate("OGG backend error: quality ({0}) is out of range ({1}..{2})."),

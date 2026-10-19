@@ -16,9 +16,9 @@
 #include "sound_dsound.ui.h"
 
 #include "sound/backends/dsound.h"
+#include "sound/backends/parameters.h"
 
 #include "debug/log.h"
-#include "sound/backends_parameters.h"
 
 #include "contract.h"
 
@@ -45,7 +45,7 @@ namespace UI
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
-      Value::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
+      Value::Bind<Latency>(*latency, *Options);
       Require(connect(devices, &QComboBox::currentTextChanged, this, &DirectSoundOptionsWidget::DeviceChanged));
     }
 
@@ -73,7 +73,7 @@ namespace UI
     void SelectDevice()
     {
       using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
-      const auto curDevice = Parameters::GetString(*Options, DEVICE);
+      const auto curDevice = Parameters::Get<Parameters::ZXTune::Sound::Backends::DirectSound::Device>(*Options);
       DeviceChanged(ToQString(curDevice));
     }
 
@@ -98,7 +98,7 @@ namespace UI
       if (it != Devices.end())
       {
         devices->setCurrentIndex(it - Devices.begin());
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::DirectSound::DEVICE, it->Id);
+        Parameters::Set<Parameters::ZXTune::Sound::Backends::DirectSound::Device>(*Options, it->Id);
       }
       else
       {

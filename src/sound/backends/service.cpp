@@ -13,11 +13,11 @@
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/backends_list.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/parameters.h"
 #include "sound/backends/storage.h"
 
 #include "debug/log.h"
 #include "sound/backend_attrs.h"
-#include "sound/backends_parameters.h"
 #include "strings/array.h"
 #include "strings/split.h"
 #include "tools/locale_helpers.h"
@@ -139,7 +139,7 @@ namespace Sound
   private:
     Strings::Array GetOrder() const
     {
-      const auto order = Parameters::GetString(*Options, Parameters::ZXTune::Sound::Backends::ORDER);
+      const auto order = Parameters::Get<Parameters::ZXTune::Sound::Backends::Order>(*Options);
       const auto& elements = Strings::Split(order, [](auto c) { return !IsAlNum(c); });
       return {elements.begin(), elements.end()};
     }

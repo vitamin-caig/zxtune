@@ -13,14 +13,14 @@
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/gates/sdl_api.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/parameters.h"
 #include "sound/backends/sdl.h"
 #include "sound/backends/storage.h"
 
 #include "debug/log.h"
 #include "math/numeric.h"
-#include "sound/backends_parameters.h"
+#include "sound/parameters.h"
 #include "sound/render_params.h"
-#include "sound/sound_parameters.h"
 
 #include "byteorder.h"
 #include "error_tools.h"
@@ -48,7 +48,7 @@ namespace Sound::Sdl
     uint_t GetBuffersCount() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Sdl;
-      const auto val = Parameters::GetInteger(Accessor, BUFFERS, BUFFERS_DEFAULT);
+      const auto val = Parameters::Get<Buffers>(Accessor);
       if (!Math::InRange(val, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
@@ -143,7 +143,7 @@ namespace Sound::Sdl
       : SdlApi(std::move(api))
       , Params(std::move(params))
       , WasInitialized(SdlApi->SDL_WasInit(SDL_INIT_EVERYTHING))
-      , Queue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT)
+      , Queue(Parameters::ZXTune::Sound::Backends::Sdl::Buffers::Default)
     {
       if (0 == WasInitialized)
       {

@@ -14,7 +14,7 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "sound_sdl.ui.h"
 
-#include "sound/backends_parameters.h"
+#include "sound/backends/parameters.h"
 
 #include "contract.h"
 
@@ -35,7 +35,7 @@ namespace UI
       setupUi(this);
 
       using namespace Parameters::ZXTune::Sound::Backends::Sdl;
-      Value::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
+      Value::Bind<Buffers>(*buffers, *Options);
     }
 
     StringView GetBackendId() const override

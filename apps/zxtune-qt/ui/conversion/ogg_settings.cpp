@@ -16,7 +16,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "ogg_settings.ui.h"
 
-#include "sound/backends_parameters.h"
+#include "sound/backends/parameters.h"
 
 #include "contract.h"
 
@@ -51,14 +51,12 @@ namespace UI
       Require(connect(bitrateValue, &QSlider::valueChanged, this, &UI::BackendSettingsWidget::SettingChanged<int>));
 
       using namespace Parameters;
-      Value::BindExclusive(*selectQuality, *Options, ZXTune::Sound::Backends::Ogg::MODE,
-                           ZXTune::Sound::Backends::Ogg::MODE_QUALITY);
-      Value::Bind(*qualityValue, *Options, ZXTune::Sound::Backends::Ogg::QUALITY,
-                  ZXTune::Sound::Backends::Ogg::QUALITY_DEFAULT);
-      Value::BindExclusive(*selectBitrate, *Options, ZXTune::Sound::Backends::Ogg::MODE,
-                           ZXTune::Sound::Backends::Ogg::MODE_ABR);
-      Value::Bind(*bitrateValue, *Options, ZXTune::Sound::Backends::Ogg::BITRATE,
-                  ZXTune::Sound::Backends::Ogg::BITRATE_DEFAULT);
+      Value::BindExclusive(*selectQuality, *Options, ZXTune::Sound::Backends::Ogg::Mode::Key,
+                           ZXTune::Sound::Backends::Ogg::Mode::Quality);
+      Value::Bind<ZXTune::Sound::Backends::Ogg::Quality>(*qualityValue, *Options);
+      Value::BindExclusive(*selectBitrate, *Options, ZXTune::Sound::Backends::Ogg::Mode::Key,
+                           ZXTune::Sound::Backends::Ogg::Mode::ABR);
+      Value::Bind<ZXTune::Sound::Backends::Ogg::Bitrate>(*bitrateValue, *Options);
       // fixup
       if (!selectQuality->isChecked() && !selectBitrate->isChecked())
       {

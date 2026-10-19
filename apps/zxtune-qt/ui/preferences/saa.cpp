@@ -15,8 +15,8 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "saa.ui.h"
 
-#include "core/core_parameters.h"
-#include "sound/sound_parameters.h"
+#include "core/parameters.h"
+#include "sound/parameters.h"
 
 #include "contract.h"
 
@@ -37,11 +37,8 @@ namespace UI
       setupUi(this);
 
       using namespace Parameters;
-      const IntegerTraits clockRate(ZXTune::Core::SAA::CLOCKRATE, ZXTune::Core::SAA::CLOCKRATE_DEFAULT,
-                                    ZXTune::Core::SAA::CLOCKRATE_MIN, ZXTune::Core::SAA::CLOCKRATE_MAX);
-      Value::Bind(*clockRateValue, *Options, clockRate);
-      Interpolation = Value::Bind(*interpolationValue, *Options, ZXTune::Core::SAA::INTERPOLATION,
-                                  ZXTune::Core::SAA::INTERPOLATION_DEFAULT);
+      Value::Bind<ZXTune::Core::SAA::Clockrate>(*clockRateValue, *Options);
+      Interpolation = Value::Bind<ZXTune::Core::SAA::Interpolation>(*interpolationValue, *Options);
     }
 
     // QWidget

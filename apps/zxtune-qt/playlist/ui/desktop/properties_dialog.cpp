@@ -17,7 +17,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "properties_dialog.ui.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "debug/log.h"
 #include "module/attributes.h"
 #include "parameters/delegated.h"
@@ -154,15 +154,13 @@ namespace
         FillAymLayoutProperty();
         FillAymInterpolationProperty();
         using namespace Parameters::ZXTune::Core::AYM;
-        const UI::IntegerTraits clockRate(CLOCKRATE, -1, CLOCKRATE_MIN, CLOCKRATE_MAX);
-        AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Clockrate, Hz"), clockRate);
+        AddIntegerProperty<Clockrate>(Playlist::UI::PropertiesDialog::tr("Clockrate, Hz"));
       }
       if (caps.IsDAC())
       {
         using namespace Parameters::ZXTune::Core::DAC;
-        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), INTERPOLATION, valuesOffOn);
-        const UI::IntegerTraits samplesFreq(SAMPLES_FREQUENCY, -1, SAMPLES_FREQUENCY_MIN, SAMPLES_FREQUENCY_MAX);
-        AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Samples frequency"), samplesFreq);
+        AddSetProperty<Interpolation>(Playlist::UI::PropertiesDialog::tr("Interpolation"), valuesOffOn);
+        AddIntegerProperty<SamplesFrequency>(Playlist::UI::PropertiesDialog::tr("Samples frequency"));
       }
       AddStrings(Module::ATTR_STRINGS);
     }
@@ -171,7 +169,7 @@ namespace
     {
       QStringList chipTypes;
       chipTypes << QLatin1String("AY-3-8910/12") << QLatin1String("YM2149");
-      AddSetProperty(Playlist::UI::PropertiesDialog::tr("Chip type"), Parameters::ZXTune::Core::AYM::TYPE, chipTypes);
+      AddSetProperty<Parameters::ZXTune::Core::AYM::Chip>(Playlist::UI::PropertiesDialog::tr("Chip type"), chipTypes);
     }
 
     void FillAymLayoutProperty()
@@ -179,7 +177,7 @@ namespace
       QStringList layouts;
       layouts << QLatin1String("ABC") << QLatin1String("ACB") << QLatin1String("BAC") << QLatin1String("BCA")
               << QLatin1String("CAB") << QLatin1String("CBA") << Playlist::UI::PropertiesDialog::tr("Mono");
-      AddSetProperty(Playlist::UI::PropertiesDialog::tr("Layout"), Parameters::ZXTune::Core::AYM::LAYOUT, layouts);
+      AddSetProperty<Parameters::ZXTune::Core::AYM::Layout>(Playlist::UI::PropertiesDialog::tr("Layout"), layouts);
     }
 
     void FillAymInterpolationProperty()
@@ -187,14 +185,14 @@ namespace
       QStringList interpolations;
       interpolations << Playlist::UI::PropertiesDialog::tr("None") << Playlist::UI::PropertiesDialog::tr("Performance")
                      << Playlist::UI::PropertiesDialog::tr("Quality");
-      AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), Parameters::ZXTune::Core::AYM::INTERPOLATION,
-                     interpolations);
+      AddSetProperty<Parameters::ZXTune::Core::AYM::Interpolation>(Playlist::UI::PropertiesDialog::tr("Interpolation"),
+                                                                   interpolations);
     }
 
     void AddStringProperty(const QString& title, Parameters::Identifier name)
     {
       auto* const wid = new QLineEdit(this);
-      auto* const value = UI::Value::Bind(*wid, *Properties, name, Parameters::StringType());
+      auto* const value = UI::Value::BindExplicit(*wid, *Properties, name);
       AddProperty(title, wid, value);
     }
 
@@ -202,14 +200,21 @@ namespace
     {
       auto* const wid = new QComboBox(this);
       wid->addItems(values);
-      auto* const value = UI::Value::Bind(*wid, *Properties, name, -1);
+      auto* const value = UI::Value::BindExplicit(*wid, *Properties, name);
       AddProperty(title, wid, value);
     }
 
-    void AddIntegerProperty(const QString& title, const UI::IntegerTraits& traits)
+    template<class P>
+    void AddSetProperty(const QString& title, const QStringList& values)
+    {
+      AddSetProperty(title, P::Key, values);
+    }
+
+    template<class P>
+    void AddIntegerProperty(const QString& title)
     {
       auto* const wid = new QLineEdit(this);
-      auto* const value = UI::Value::Bind(*wid, *Properties, traits);
+      auto* const value = UI::Value::BindExplicit<P>(*wid, *Properties);
       AddProperty(title, wid, value);
     }
 

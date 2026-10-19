@@ -10,14 +10,19 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/app_parameters.h"
+#include "apps/zxtune-qt/parameters.h"
 
 namespace Parameters::ZXTuneQT::UI
 {
-  const auto PREFIX = ZXTuneQT::PREFIX + "UI"_id;
+  constexpr auto Prefix = ZXTuneQT::Prefix + "UI"_id;
 
-  const auto LANGUAGE = PREFIX + "Language"_id;
+  //! @brief Interface language
+  struct Language : Value<StringType>
+  {
+    static constexpr auto Key = Prefix + "Language"_id;
+  };
 
+  // Per-widget state sub-namespace suffixes; the namespace is dynamic, so these are keys, not descriptors
   const auto PARAM_GEOMETRY = "Geometry"sv;
   const auto PARAM_LAYOUT = "Layout"sv;
   const auto PARAM_VISIBLE = "Visible"sv;

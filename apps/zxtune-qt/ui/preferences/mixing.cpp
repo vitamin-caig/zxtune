@@ -47,9 +47,8 @@ namespace
         {
           UI::MixerWidget* const mixer = UI::MixerWidget::Create(*this, static_cast<UI::MixerWidget::Channel>(outChan));
           channelValues->addWidget(mixer);
-          const auto name = Parameters::ZXTune::Sound::Mixer::LEVEL(channels, inChan, outChan);
-          const auto defVal = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
-          Parameters::MixerValue::Bind(*mixer, *Options, name, defVal);
+          const auto level = Parameters::ZXTune::Sound::Mixer::Level::For(channels, inChan, outChan);
+          Parameters::MixerValue::Bind(*mixer, *Options, level.Key, level.Default);
         }
       }
     }

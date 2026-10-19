@@ -15,8 +15,8 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "sid.ui.h"
 
-#include "core/core_parameters.h"
-#include "sound/sound_parameters.h"
+#include "core/parameters.h"
+#include "sound/parameters.h"
 
 #include "contract.h"
 
@@ -37,9 +37,8 @@ namespace UI
       setupUi(this);
 
       using namespace Parameters;
-      Interpolation = Value::Bind(*interpolationValue, *Options, ZXTune::Core::SID::INTERPOLATION,
-                                  ZXTune::Core::SID::INTERPOLATION_DEFAULT);
-      Value::Bind(*filterValue, *Options, ZXTune::Core::SID::FILTER, ZXTune::Core::SID::FILTER_DEFAULT);
+      Interpolation = Value::Bind<ZXTune::Core::SID::Interpolation>(*interpolationValue, *Options);
+      Value::Bind<ZXTune::Core::SID::Filter>(*filterValue, *Options);
     }
 
     // QWidget

@@ -15,7 +15,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "z80.ui.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 
 #include <utility>
 
@@ -34,10 +34,8 @@ namespace UI
       setupUi(this);
 
       using namespace Parameters;
-      const IntegerTraits clockRate(ZXTune::Core::Z80::CLOCKRATE, ZXTune::Core::Z80::CLOCKRATE_DEFAULT,
-                                    ZXTune::Core::Z80::CLOCKRATE_MIN, ZXTune::Core::Z80::CLOCKRATE_MAX);
-      Value::Bind(*clockRateValue, *Options, clockRate);
-      Value::Bind(*intDurationValue, *Options, ZXTune::Core::Z80::INT_TICKS, ZXTune::Core::Z80::INT_TICKS_DEFAULT);
+      Value::Bind<ZXTune::Core::Z80::Clockrate>(*clockRateValue, *Options);
+      Value::Bind<ZXTune::Core::Z80::IntTicks>(*intDurationValue, *Options);
     }
 
     // QWidget

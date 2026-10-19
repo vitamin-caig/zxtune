@@ -12,7 +12,7 @@
 
 #include "formats/chiptune/container.h"
 #include "module/attributes.h"
-#include "sound/sound_parameters.h"
+#include "sound/parameters.h"
 #include "strings/join.h"
 #include "strings/trim.h"
 
@@ -156,25 +156,25 @@ namespace Module
   void PropertiesHelper::SetFadein(Time::Milliseconds fadein)
   {
     using namespace Parameters::ZXTune::Sound;
-    Delegate.SetValue(FADEIN, FADEIN_PRECISION * fadein.Get() / fadein.PER_SECOND);
+    Parameters::Set<FadeIn>(Delegate, FadeIn::Precision * fadein.Get() / fadein.PER_SECOND);
   }
 
   void PropertiesHelper::SetFadeout(Time::Milliseconds fadeout)
   {
     using namespace Parameters::ZXTune::Sound;
-    Delegate.SetValue(FADEOUT, FADEOUT_PRECISION * fadeout.Get() / fadeout.PER_SECOND);
+    Parameters::Set<FadeOut>(Delegate, FadeOut::Precision * fadeout.Get() / fadeout.PER_SECOND);
   }
 
   void PropertiesHelper::SetGain(float gain)
   {
     using namespace Parameters::ZXTune::Sound;
-    if (gain > 1.f / GAIN_PRECISION)
+    if (gain > 1.f / Gain::Precision)
     {
-      Delegate.SetValue(GAIN, GAIN_PRECISION * gain);
+      Parameters::Set<Gain>(Delegate, Gain::Precision * gain);
     }
     else
     {
-      Delegate.SetValue(GAIN, 1);
+      Parameters::Set<Gain>(Delegate, 1);
     }
   }
 }  // namespace Module

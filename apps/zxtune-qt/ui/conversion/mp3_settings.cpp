@@ -16,7 +16,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "mp3_settings.ui.h"
 
-#include "sound/backends_parameters.h"
+#include "sound/backends/parameters.h"
 
 #include "contract.h"
 
@@ -29,10 +29,10 @@ namespace
     return QApplication::translate("Mp3Settings", msg);
   }
 
-  const Strings::Array CHANNEL_MODES = {Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT,
-                                        Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_STEREO,
-                                        Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_JOINTSTEREO,
-                                        Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_MONO};
+  const Strings::Array CHANNEL_MODES = {Parameters::ZXTune::Sound::Backends::Mp3::Channels::Default,
+                                        Parameters::ZXTune::Sound::Backends::Mp3::Channels::Stereo,
+                                        Parameters::ZXTune::Sound::Backends::Mp3::Channels::JointStereo,
+                                        Parameters::ZXTune::Sound::Backends::Mp3::Channels::Mono};
 
 }  // namespace
 
@@ -59,18 +59,16 @@ namespace UI
                       &UI::BackendSettingsWidget::SettingChanged<int>));
 
       using namespace Parameters;
-      Value::BindExclusive(*selectCBR, *Options, ZXTune::Sound::Backends::Mp3::MODE,
-                           ZXTune::Sound::Backends::Mp3::MODE_CBR);
-      Value::BindExclusive(*selectABR, *Options, ZXTune::Sound::Backends::Mp3::MODE,
-                           ZXTune::Sound::Backends::Mp3::MODE_ABR);
-      Value::BindExclusive(*selectQuality, *Options, ZXTune::Sound::Backends::Mp3::MODE,
-                           ZXTune::Sound::Backends::Mp3::MODE_VBR);
-      Value::Bind(*bitrateValue, *Options, ZXTune::Sound::Backends::Mp3::BITRATE,
-                  ZXTune::Sound::Backends::Mp3::BITRATE_DEFAULT);
-      Value::Bind(*qualityValue, *Options, ZXTune::Sound::Backends::Mp3::QUALITY,
-                  ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT);
-      Value::Bind(*channelsMode, *Options, ZXTune::Sound::Backends::Mp3::CHANNELS, CHANNEL_MODES,
-                  ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT);
+      Value::BindExclusive(*selectCBR, *Options, ZXTune::Sound::Backends::Mp3::Mode::Key,
+                           ZXTune::Sound::Backends::Mp3::Mode::CBR);
+      Value::BindExclusive(*selectABR, *Options, ZXTune::Sound::Backends::Mp3::Mode::Key,
+                           ZXTune::Sound::Backends::Mp3::Mode::ABR);
+      Value::BindExclusive(*selectQuality, *Options, ZXTune::Sound::Backends::Mp3::Mode::Key,
+                           ZXTune::Sound::Backends::Mp3::Mode::VBR);
+      Value::Bind<ZXTune::Sound::Backends::Mp3::Bitrate>(*bitrateValue, *Options);
+      Value::Bind<ZXTune::Sound::Backends::Mp3::Quality>(*qualityValue, *Options);
+      Value::Bind(*channelsMode, *Options, ZXTune::Sound::Backends::Mp3::Channels::Key, CHANNEL_MODES,
+                  ZXTune::Sound::Backends::Mp3::Channels::Default);
       // fixup
       if (!selectCBR->isChecked() && !selectABR->isChecked() && !selectQuality->isChecked())
       {

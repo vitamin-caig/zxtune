@@ -18,7 +18,7 @@
 #include "module/players/properties_meta.h"
 #include "module/players/streaming.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "debug/log.h"
 #include "devices/beeper.h"
 #include "devices/z80.h"
@@ -452,14 +452,13 @@ namespace Module::AYEMUL
 
     uint_t IntTicks() const override
     {
-      using namespace Parameters::ZXTune::Core::Z80;
-      return Parameters::GetInteger<uint_t>(*Params, INT_TICKS, INT_TICKS_DEFAULT);
+      return static_cast<uint_t>(Parameters::Get<Parameters::ZXTune::Core::Z80::IntTicks>(*Params));
     }
 
     uint_t ClockFreq() const override
     {
       using namespace Parameters::ZXTune::Core::Z80;
-      return Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
+      return Parameters::Get<Clockrate>(*Params);
     }
 
   private:
@@ -690,7 +689,7 @@ namespace Module::AYEMUL
     {
       const uint_t MIN_Z80_TICKS_PER_OUTPUT = 10;
       using namespace Parameters::ZXTune::Core::Z80;
-      const auto cpuClock = Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
+      const auto cpuClock = Parameters::Get<Clockrate>(*Params);
       return cpuClock / MIN_Z80_TICKS_PER_OUTPUT;
     }
 

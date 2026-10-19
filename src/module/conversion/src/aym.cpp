@@ -14,7 +14,7 @@
 #include "module/players/aym/aym_base.h"
 
 #include "binary/container_factories.h"
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "l10n/api.h"
 #include "module/attributes.h"
 
@@ -70,7 +70,7 @@ namespace Module
     uint_t ClockFreq() const override
     {
       using namespace Parameters::ZXTune::Core::AYM;
-      return Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
+      return Parameters::Get<Clockrate>(*Params);
     }
 
     String Title() const override
