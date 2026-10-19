@@ -180,11 +180,12 @@ namespace Module::Xmp
       Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), interpolation);
     }
 
-    void ApplyMuting(uint_t mask)
+    void ApplyMuting(uint64_t mask)
     {
+      // The mask is 64-bit, matching XMP_MAX_CHANNELS, so every module channel can be muted
       for (uint_t chan = 0; chan != ChannelsCount; ++chan)
       {
-        const int mute = (mask & (1 << chan)) ? 1 : 0;
+        const int mute = (mask & (uint64_t{1} << chan)) ? 1 : 0;
         Ctx->Call(&::xmp_channel_mute, static_cast<int>(chan), mute);
       }
     }

@@ -215,13 +215,16 @@ namespace Module::MPT
       }
     }
 
-    void ApplyMuting(uint_t newMask)
+    void ApplyMuting(uint64_t newMask)
     {
-      for (uint_t chan = 0, diff = MuteMask ^ newMask; diff != 0; ++chan, diff >>= 1)
+      // The mask is 64-bit, so only the first 64 channels can be muted,
+      // though OpenMPT supports up to MAX_BASECHANNELS (192) channels
+      uint_t chan = 0;
+      for (uint64_t diff = MuteMask ^ newMask; diff != 0; ++chan, diff >>= 1)
       {
         if (diff & 1)
         {
-          InteractiveTrack.set_channel_mute_status(chan, newMask & (1 << chan));
+          InteractiveTrack.set_channel_mute_status(chan, newMask & (uint64_t{1} << chan));
         }
       }
       MuteMask = newMask;
@@ -233,7 +236,7 @@ namespace Module::MPT
     TrackState State;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
     const uint_t SoundFreq;
-    uint_t MuteMask = 0;
+    uint64_t MuteMask = 0;
   };
 
   class Holder : public Module::Holder
