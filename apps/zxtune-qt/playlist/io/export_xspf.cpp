@@ -273,7 +273,7 @@ namespace
   private:
     void SaveDuration(const Module::Information& info)
     {
-      const uint64_t msecDuration = info.Duration.CastTo<Time::Millisecond>().Get();
+      const uint_t msecDuration = info.Duration.CastTo<Time::Millisecond>().Get();
       Dbg("  saving item attribute Duration={}", msecDuration);
       Element.Text(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
     }
@@ -487,7 +487,7 @@ namespace
 
     void WriteItems(const Playlist::IO::Container& container, Log::ProgressCallback& cb)
     {
-      const uint64_t PERCENTS = 100;
+      const uint_t PERCENTS = 100;
       const ElementHelper tracklist(XML, XSPF::TRACKLIST_TAG);
       const uint_t totalItems = container.GetItemsCount();
       uint_t doneItems = 0;

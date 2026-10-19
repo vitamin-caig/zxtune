@@ -24,7 +24,7 @@
 
 namespace
 {
-  const uint64_t PRESETS[] = {
+  const uint_t PRESETS[] = {
       1773400, 1750000, 3500000, 2000000, 1000000,
   };
 
@@ -74,7 +74,7 @@ namespace
     void OnClockRateChanged(const QString& val)
     {
       const qlonglong num = val.toLongLong();
-      const uint64_t* const preset = std::find(PRESETS, std::end(PRESETS), num);
+      const uint_t* const preset = std::find(PRESETS, std::end(PRESETS), num);
       if (preset == std::end(PRESETS))
       {
         clockRatePresets->setCurrentIndex(0);  // custom
