@@ -293,7 +293,15 @@ namespace Formats::Archived
             Dbg("Stored file mismatch");
             return {};
           }
-          return Unstore(payload);
+          try
+          {
+            return Unstore(payload);
+          }
+          catch (const std::exception&)
+          {
+            Dbg("Failed to unstore file");
+            return {};
+          }
         }
         // Old format starts from 52 45 7e 5e
         const bool oldFormat = false;

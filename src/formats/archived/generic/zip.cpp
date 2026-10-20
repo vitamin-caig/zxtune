@@ -21,6 +21,7 @@
 #include "strings/encoding.h"
 #include "strings/map.h"
 
+#include "error.h"
 #include "make_ptr.h"
 #include "string_view.h"
 
@@ -274,7 +275,19 @@ namespace Formats::Archived
 
       Binary::Container::Ptr GetData() const override
       {
-        return Ref.Decompress(*Data);
+        try
+        {
+          return Ref.Decompress(*Data);
+        }
+        catch (const Error& e)
+        {
+          Dbg("Failed to depack '{}': {}", Name, e.ToString());
+        }
+        catch (const std::exception&)
+        {
+          Dbg("Failed to depack '{}'", Name);
+        }
+        return {};
       }
 
     private:

@@ -450,10 +450,14 @@ namespace Formats::Archived
         {
           return DecompressData(blk);
         }
+        else if (blk.Size == blk.UncompressedSize)
+        {
+          return Binary::CreateContainer(Binary::View(src, blk.Size));
+        }
         else
         {
-          Require(blk.Size == blk.UncompressedSize);
-          return Binary::CreateContainer(Binary::View(src, blk.Size));
+          Dbg("Stored data size mismatch");
+          return {};
         }
       }
       else
