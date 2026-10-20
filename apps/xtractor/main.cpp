@@ -32,6 +32,7 @@
 #include "strings/template.h"
 #include "tools/progress_callback.h"
 
+#include "error.h"
 #include "make_ptr.h"
 #include "string_view.h"
 
@@ -483,16 +484,17 @@ namespace
   class MatchedDataFilter : public Analysis::NodeReceiver
   {
   public:
-    MatchedDataFilter(StringView format, Analysis::NodeReceiver::Ptr target)
+    MatchedDataFilter(StringView format, bool headerOnly, Analysis::NodeReceiver::Ptr target)
       : Format(Binary::CreateScanningFormat(format))
+      , HeaderOnly(headerOnly)
       , Target(std::move(target))
     {}
 
     void ApplyData(Analysis::Node::Ptr result) override
     {
       const Binary::Container::Ptr data = result->Data();
-      const std::size_t size = data->Size();
-      if (Format->Match(*data) || size != Format->NextMatchOffset(*data))
+      // For header-only matching only the beginning of data matters, so skip the internal search
+      if (Format->Match(*data) || (!HeaderOnly && data->Size() != Format->NextMatchOffset(*data)))
       {
         Target->ApplyData(std::move(result));
       }
@@ -505,6 +507,7 @@ namespace
 
   private:
     const Binary::ScanningFormat::Ptr Format;
+    const bool HeaderOnly;
     const Analysis::NodeReceiver::Ptr Target;
   };
 }  // namespace
@@ -521,9 +524,9 @@ namespace Analysis
     return MakePtr<EmptyDataFilter>(std::move(target));
   }
 
-  NodeReceiver::Ptr CreateMatchFilter(StringView filter, NodeReceiver::Ptr target)
+  NodeReceiver::Ptr CreateMatchFilter(StringView filter, bool headerOnly, NodeReceiver::Ptr target)
   {
-    return MakePtr<MatchedDataFilter>(filter, std::move(target));
+    return MakePtr<MatchedDataFilter>(filter, headerOnly, std::move(target));
   }
 }  // namespace Analysis
 
@@ -638,6 +641,11 @@ namespace
       catch (const std::exception& e)
       {
         std::cout << "Failed to process " << node->Name() << "(" << e.what() << ")\n";
+      }
+      catch (const Error& e)
+      {
+        // Decoders may report malformed data via Error which is not a std::exception
+        std::cout << "Failed to process " << node->Name() << "\n" << e.ToString() << std::endl;
       }
     }
 
@@ -942,6 +950,7 @@ namespace
     virtual bool IgnoreEmptyData() const = 0;
     virtual std::size_t MinDataSize() const = 0;
     virtual std::string FormatFilter() const = 0;
+    virtual std::string FormatHeaderFilter() const = 0;
     virtual std::size_t SaveThreadsCount() const = 0;
     virtual std::size_t SaveDataQueueSize() const = 0;
     virtual bool StatisticOutput() const = 0;
@@ -975,9 +984,9 @@ namespace
       Target = Analysis::CreateSizeFilter(minSize, std::move(Target));
     }
 
-    void AddFormatFilter(StringView format)
+    void AddFormatFilter(StringView format, bool headerOnly)
     {
-      Target = Analysis::CreateMatchFilter(format, std::move(Target));
+      Target = Analysis::CreateMatchFilter(format, headerOnly, std::move(Target));
     }
 
     Analysis::NodeReceiver::Ptr CaptureResult()
@@ -1013,9 +1022,13 @@ namespace
     {
       builder.AddMinSizeFilter(minSize);
     }
-    if (const auto& filter = opts.FormatFilter(); !filter.empty())
+    if (const auto& filter = opts.FormatHeaderFilter(); !filter.empty())
     {
-      builder.AddFormatFilter(filter);
+      builder.AddFormatFilter(filter, true);
+    }
+    else if (const auto& filter = opts.FormatFilter(); !filter.empty())
+    {
+      builder.AddFormatFilter(filter, false);
     }
     return AsyncWrap<Analysis::Node::Ptr>(opts.SaveThreadsCount(), opts.SaveDataQueueSize(), builder.CaptureResult());
   }
@@ -1096,6 +1109,8 @@ namespace
       opt("minimal-size", value<std::size_t>(&MinDataSizeValue),
           Strings::Format("do not store files with lesser size. Default is {}", MinDataSizeValue).c_str());
       opt("format", value<std::string>(&FormatFilterValue), "specify fuzzy data format to save");
+      opt("format-header", value<std::string>(&FormatHeaderFilterValue),
+          "specify fuzzy data format to save matching the beginning of data only");
       opt("save-threads", value<std::size_t>(&SaveThreadsCountValue),
           Strings::Format("threads count for parallel data saving. 0 to disable paralleling. Default is {}",
                           SaveThreadsCountValue)
@@ -1143,6 +1158,11 @@ namespace
       return FormatFilterValue;
     }
 
+    std::string FormatHeaderFilter() const override
+    {
+      return FormatHeaderFilterValue;
+    }
+
     std::size_t SaveThreadsCount() const override
     {
       return SaveThreadsCountValue;
@@ -1171,6 +1191,7 @@ namespace
     bool IgnoreEmptyDataValue = false;
     std::size_t MinDataSizeValue = 0;
     std::string FormatFilterValue;
+    std::string FormatHeaderFilterValue;
     std::size_t SaveThreadsCountValue = 1;
     std::size_t SaveDataQueueSizeValue = 500;
     bool StatisticOutputValue = false;
@@ -1219,6 +1240,8 @@ private:
   bool ParseCmdline(Strings::Array args, Strings::Array& paths) const
   {
     using namespace boost::program_options;
+    const auto* const formatKey = "format";
+    const auto* const formatHeaderKey = "format-header";
     const auto* const helpKey = "help";
     const auto* const inputKey = "input";
     const auto* const versionKey = "version";
@@ -1245,6 +1268,12 @@ private:
     else if (vars.count(helpKey) || paths.empty())
     {
       std::cout << options << std::endl;
+      return false;
+    }
+    else if (vars.count(formatKey) && vars.count(formatHeaderKey))
+    {
+      std::cout << Strings::Format("Options '{}' and '{}' are mutually exclusive", formatKey, formatHeaderKey)
+                << std::endl;
       return false;
     }
     return true;
