@@ -110,7 +110,8 @@ namespace Formats::Archived
     {
       for (;;)
       {
-        if (const auto size = GetBlockSize(stream); size <= stream.GetRestSize())
+        // Zero-sized block does not advance the stream and causes an infinite loop
+        if (const auto size = GetBlockSize(stream); 0 != size && size <= stream.GetRestSize())
         {
           cb(stream.ReadData(size));
         }
