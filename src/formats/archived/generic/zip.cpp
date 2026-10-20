@@ -321,9 +321,11 @@ namespace Formats::Archived
 
     const auto DESCRIPTION = "ZIP"sv;
     const auto FORMAT =
-        "504b0304"             // uint32_t Signature;
-        "?00"                  // uint16_t VersionToExtract;
-        "%0000xxx0 %0000x000"  // uint16_t Flags;
+        "504b0304"  // uint32_t Signature;
+        "?00"       // uint16_t VersionToExtract;
+        // Reserved bits (e.g. 0x8000 in local header) are set by some producers, but
+        // masked headers (bit 10) would hide CRC/sizes the parser relies on
+        "%0000xxx0 %xxxxx000"  // uint16_t Flags;
         "%0000x00x 00"         // uint16_t CompressionMethod;
         ""sv;
 
