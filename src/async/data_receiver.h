@@ -14,6 +14,7 @@
 #include "async/progress.h"
 #include "async/sized_queue.h"
 #include "tools/data_streaming.h"
+#include "tools/scope_exit.h"
 
 #include "contract.h"
 #include "make_ptr.h"
@@ -126,8 +127,8 @@ namespace Async
         T val;
         while (QueueObject->Get(val))
         {
+          const ScopeExit consumeOnExit([this]() { Statistic->Consume(1); });
           Target->ApplyData(std::move(val));
-          Statistic->Consume(1);
         }
       }
 
