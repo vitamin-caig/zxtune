@@ -16,6 +16,7 @@
 #include "binary/crc.h"
 #include "binary/data_builder.h"
 #include "binary/format_factories.h"
+#include "binary/input_stream.h"
 #include "formats/packed/decoder.h"
 #include "math/numeric.h"
 
@@ -29,143 +30,165 @@
 #include <cstring>
 #include <iterator>
 
-namespace Formats::Packed
+namespace Formats::Packed::ZXZip
 {
-  namespace ZXZip
+  const std::size_t MIN_SIZE = 0x16 + 32;
+
+  const auto DESCRIPTION = "ZXZip"sv;
+  const auto HEADER_PATTERN =
+      // Filename
+      "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
+      // Type
+      "20-7a ??"
+      // SourceSize
+      "??"
+      // SourceSectors
+      "01-ff"
+      // PackedSize
+      "??"
+      // SourceCRC
+      "????"
+      // Method
+      "00-03"
+      // Flags
+      "%0000000x"
+      ""sv;
+
+  struct RawHeader
   {
-    const std::size_t MIN_SIZE = 0x16 + 32;
+    //+0x0
+    char Name[8];
+    //+0x8
+    char Type;
+    //+0x9
+    le_uint16_t StartOrSize;
+    //+0xb
+    le_uint16_t SourceSize;
+    //+0xd
+    uint8_t SourceSectors;
+    //+0xe
+    le_uint16_t PackedSize;
+    //+0x10
+    le_uint32_t SourceCRC;
+    //+0x14
+    uint8_t Method;
+    //+0x15
+    uint8_t Flags;
+    //+0x16
+  };
 
-    const auto DESCRIPTION = "ZXZip"sv;
-    const auto HEADER_PATTERN =
-        // Filename
-        "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
-        // Type
-        "20-7a ??"
-        // SourceSize
-        "??"
-        // SourceSectors
-        "01-ff"
-        // PackedSize
-        "??"
-        // SourceCRC
-        "????"
-        // Method
-        "00-03"
-        // Flags
-        "%0000000x"
-        ""sv;
+  static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x16, "Invalid layout");
 
-    struct RawHeader
+  class Parser
+  {
+  public:
+    explicit Parser(Binary::View data)
+      : Data(data)
+    {}
+
+    bool FastCheck() const
     {
-      //+0x0
-      char Name[8];
-      //+0x8
-      char Type;
-      //+0x9
-      le_uint16_t StartOrSize;
-      //+0xb
-      le_uint16_t SourceSize;
-      //+0xd
-      uint8_t SourceSectors;
-      //+0xe
-      le_uint16_t PackedSize;
-      //+0x10
-      le_uint32_t SourceCRC;
-      //+0x14
-      uint8_t Method;
-      //+0x15
-      uint8_t Flags;
-      //+0x16
-    };
+      if (Data.Size() < sizeof(RawHeader))
+      {
+        return false;
+      }
+      const RawHeader& header = GetHeader();
+      const std::size_t packedSize = header.PackedSize;
+      if (!packedSize)
+      {
+        return false;
+      }
+      if (GetSourceFileSize() < packedSize)
+      {
+        return false;
+      }
+      return GetUsedSize() <= Data.Size();
+    }
 
-    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x16, "Invalid layout");
-
-    std::size_t GetSourceFileSize(const RawHeader& header)
+    const RawHeader& GetHeader() const
     {
+      return *Data.As<RawHeader>();
+    }
+
+    std::size_t GetUsedSize() const
+    {
+      const RawHeader& header = GetHeader();
+      return sizeof(header) + header.PackedSize;
+    }
+
+    std::size_t GetSourceFileSize() const
+    {
+      const auto& header = GetHeader();
       const uint_t calcSize = header.Type == 'B' || header.Type == 'b' ? uint_t(4 + header.StartOrSize)
                                                                        : uint_t(header.SourceSize);
-      const std::size_t calcSectors = Math::Align(calcSize, uint_t(256)) / 256;
+      constexpr uint_t SECTOR_SIZE = 256;
+      const auto calcSectors = Math::Align(calcSize, SECTOR_SIZE) / SECTOR_SIZE;
       return calcSectors == header.SourceSectors ? calcSize : 256 * header.SourceSectors;
     }
 
-    class Parser
+    Binary::View GetCompressedData() const
     {
-    public:
-      explicit Parser(Binary::View data)
-        : Data(data)
-      {}
+      const auto& header = GetHeader();
+      return Data.SubView(sizeof(header), header.PackedSize);
+    }
 
-      bool FastCheck() const
-      {
-        if (Data.Size() < sizeof(RawHeader))
-        {
-          return false;
-        }
-        const RawHeader& header = GetHeader();
-        const std::size_t packedSize = header.PackedSize;
-        if (!packedSize)
-        {
-          return false;
-        }
-        if (GetSourceFileSize(header) < packedSize)
-        {
-          return false;
-        }
-        return GetUsedSize() <= Data.Size();
-      }
+  private:
+    const Binary::View Data;
+  };
 
-      std::size_t GetUsedSize() const
-      {
-        const RawHeader& header = GetHeader();
-        return sizeof(header) + header.PackedSize;
-      }
+  enum PackMethods
+  {
+    STORE = 0,
+    LZPRESS = 1,
+    SHRINK = 2,
+    IMPLODE = 3
+  };
 
-      const RawHeader& GetHeader() const
-      {
-        return *Data.As<RawHeader>();
-      }
+  // ZXZip data is LSB-first; reading past the input end is a contract violation.
+  class Bitstream
+  {
+  public:
+    explicit Bitstream(Binary::View data)
+      : Delegate(data)
+    {}
 
-    private:
-      const Binary::View Data;
-    };
-
-    enum PackMethods
+    bool GetBit()
     {
-      STORE = 0,
-      LZPRESS = 1,
-      SHRINK = 2,
-      IMPLODE = 3
-    };
-
-    class DataDecoder
-    {
-    public:
-      using Ptr = std::unique_ptr<DataDecoder>;
-      virtual ~DataDecoder() = default;
-
-      virtual Binary::Container::Ptr GetDecodedData() = 0;
-    };
-
-    class StoreDataDecoder : public DataDecoder
-    {
-    public:
-      explicit StoreDataDecoder(const RawHeader& header)
-        : Header(header)
+      if ((Mask <<= 1) > 255)
       {
-        assert(STORE == Header.Method);
+        Bits = Delegate.ReadByte();
+        Mask = 0x1;
       }
+      return 0 != (Bits & Mask);
+    }
 
-      Binary::Container::Ptr GetDecodedData() override
+    uint_t GetBits(uint_t count)
+    {
+      uint_t result = 0;
+      for (uint_t idx = 0; idx < count; ++idx)
       {
-        const uint_t packedSize = Header.PackedSize;
-        const auto* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
-        return Binary::CreateContainer(Binary::View{sourceData, packedSize});
+        result = result | (GetBit() << idx);
       }
+      return result;
+    }
 
-    private:
-      const RawHeader& Header;
-    };
+  private:
+    Binary::DataInputStream Delegate;
+    uint_t Bits = 0;
+    uint_t Mask = 128;
+  };
 
+  namespace Store
+  {
+    Binary::Container::Ptr Decode(const Parser& parser)
+    {
+      assert(STORE == parser.GetHeader().Method);
+      return Binary::CreateContainer(parser.GetCompressedData());
+    }
+  }  // namespace Store
+
+  namespace Implode
+  {
     const uint8_t SFT_64_1[] = {
         0x07,                                     // size
         0x01, 0x13, 0x34, 0xE5, 0xF6, 0x96, 0xF7  // packed data llllbbbb
@@ -203,202 +226,139 @@ namespace Formats::Packed
       }
     };
 
-    // implode bitstream decoder
-    class SafeByteStream : public ByteStream
+    constexpr uint_t InvertBits(uint_t val)
     {
-    public:
-      explicit SafeByteStream(Binary::View data)
-        : ByteStream(data)
-      {}
-
-      uint8_t GetByte()
+      uint_t res = 0;
+      for (uint_t count = 16, mask = val; count; --count, mask >>= 1)
       {
-        Require(!Eof());
-        return ByteStream::GetByte();
+        res = 2 * res + (mask & 1);
       }
-    };
+      return res;
+    }
 
-    class Bitstream : public SafeByteStream
+    void ExtractTree(const uint8_t* data, std::vector<SFTEntry>& result)
     {
-    public:
-      explicit Bitstream(Binary::View data)
-        : SafeByteStream(data)
-      {}
-
-      bool GetBit()
+      std::vector<SFTEntry> tree;
+      for (uint_t count = *data++, idx = 0; count; --count)
       {
-        if ((Mask <<= 1) > 255)
+        const uint_t bits = (*data & 0x0f) + 1;
+        for (uint_t groupLen = (*data++ >> 4) + 1; groupLen; --groupLen, ++idx)
         {
-          Bits = GetByte();
-          Mask = 0x1;
+          const SFTEntry entry = {bits, idx, 0};
+          tree.push_back(entry);
         }
-        return 0 != (Bits & Mask);
       }
-
-      uint_t GetBits(uint_t count)
+      std::sort(tree.begin(), tree.end());
+      static_assert(InvertBits(1) == 0x8000, "Wrong InvertBits");
+      static_assert(InvertBits(0x180) == 0x180, "Wrong InvertBits");
+      static_assert(InvertBits(0x8000) == 1, "Wrong InvertBits");
+      uint_t code = 0;
+      uint_t codeIncrement = 0;
+      uint_t lastBits = 0;
+      for (auto it = tree.rbegin(), lim = tree.rend(); it != lim; ++it)
       {
-        uint_t result = 0;
-        for (uint_t idx = 0; idx < count; ++idx)
+        code += codeIncrement;
+        it->Code = InvertBits(code);
+        if (it->Bits != lastBits)
         {
-          result = result | (GetBit() << idx);
+          lastBits = it->Bits;
+          codeIncrement = 1 << (16 - lastBits);
         }
-        return result;
       }
+      result.swap(tree);
+    }
 
-      uint_t ReadByTree(const std::vector<SFTEntry>& tree)
+    uint_t ReadByTree(Bitstream& stream, const std::vector<SFTEntry>& tree)
+    {
+      auto it = tree.begin();
+      for (uint_t bits = 0, result = 0;;)
       {
-        auto it = tree.begin();
-        for (uint_t bits = 0, result = 0;;)
+        result |= stream.GetBit() << bits++;
+        for (; it->Bits <= bits; ++it)
         {
-          result |= GetBit() << bits++;
-          for (; it->Bits <= bits; ++it)
+          Require(it != tree.end());
+          if (it->Bits == bits && it->Code == result)
           {
-            Require(it != tree.end());
-            if (it->Bits == bits && it->Code == result)
-            {
-              return it->Value;
-            }
+            return it->Value;
           }
         }
-        return 0;
       }
+      return 0;
+    }
 
-    private:
-      uint_t Bits = 0;
-      uint_t Mask = 128;
-    };
-
-    class ImplodeDataDecoder : public DataDecoder
+    Binary::Container::Ptr Decode(const Parser& parser)
     {
-    public:
-      explicit ImplodeDataDecoder(const RawHeader& header)
-        : Header(header)
+      const auto& header = parser.GetHeader();
+      assert(IMPLODE == header.Method);
+      const std::size_t dataSize = parser.GetSourceFileSize();
+      const bool isBigFile = dataSize >= 0x1600;
+      const bool isTextFile = 0 != (header.Flags & 1);
+      const bool isBigTextFile = isBigFile && isTextFile;
+
+      std::vector<SFTEntry> SFT1;
+      std::vector<SFTEntry> SFT2;
+      std::vector<SFTEntry> SFT3;
+
+      if (isBigTextFile)
       {
-        assert(IMPLODE == Header.Method);
+        ExtractTree(SFT_100, SFT1);
+        assert(SFT1.size() == 256);
       }
-
-      Binary::Container::Ptr GetDecodedData() override
+      if (isTextFile)
       {
-        const std::size_t dataSize = GetSourceFileSize(Header);
-        const bool isBigFile = dataSize >= 0x1600;
-        const bool isTextFile = 0 != (Header.Flags & 1);
-        const bool isBigTextFile = isBigFile && isTextFile;
+        ExtractTree(isBigFile ? SFT_64_4 : SFT_64_6, SFT2);
+        ExtractTree(isBigFile ? SFT_64_3 : SFT_64_5, SFT3);
+      }
+      else
+      {
+        ExtractTree(SFT_64_2, SFT2);
+        ExtractTree(SFT_64_1, SFT3);
+      }
+      assert(SFT2.size() == 64);
+      assert(SFT3.size() == 64);
 
-        std::vector<SFTEntry> SFT1;
-        std::vector<SFTEntry> SFT2;
-        std::vector<SFTEntry> SFT3;
+      const uint_t distBits = isBigTextFile ? 7 : 6;
+      const uint_t minMatchLen = isBigTextFile ? 3 : 2;
 
-        if (isBigTextFile)
+      Bitstream stream(parser.GetCompressedData());
+      Binary::DataBuilder result(dataSize);
+      while (result.Size() < dataSize)
+      {
+        if (stream.GetBit())
         {
-          ExtractTree(SFT_100, SFT1);
-          assert(SFT1.size() == 256);
-        }
-        if (isTextFile)
-        {
-          ExtractTree(isBigFile ? SFT_64_4 : SFT_64_6, SFT2);
-          ExtractTree(isBigFile ? SFT_64_3 : SFT_64_5, SFT3);
+          const uint_t data = isBigTextFile ? ReadByTree(stream, SFT1) : stream.GetBits(8);
+          result.AddByte(static_cast<uint8_t>(data));
         }
         else
         {
-          ExtractTree(SFT_64_2, SFT2);
-          ExtractTree(SFT_64_1, SFT3);
-        }
-        assert(SFT2.size() == 64);
-        assert(SFT3.size() == 64);
+          const uint_t loDist = stream.GetBits(distBits);
+          const uint_t hiDist = ReadByTree(stream, SFT3);
+          const std::size_t dist = (loDist | (hiDist << distBits)) + 1;
 
-        try
-        {
-          const uint_t distBits = isBigTextFile ? 7 : 6;
-          const uint_t minMatchLen = isBigTextFile ? 3 : 2;
-
-          Bitstream stream({&Header + 1, Header.PackedSize});
-          Binary::DataBuilder result(2 * Header.PackedSize);
-          while (!stream.Eof())
+          std::size_t len = ReadByTree(stream, SFT2);
+          if (63 == len)
           {
-            if (stream.GetBit())
-            {
-              const uint_t data = isBigTextFile ? stream.ReadByTree(SFT1) : stream.GetBits(8);
-              result.AddByte(static_cast<uint8_t>(data));
-            }
-            else
-            {
-              const uint_t loDist = stream.GetBits(distBits);
-              const uint_t hiDist = stream.ReadByTree(SFT3);
-              const std::size_t dist = (loDist | (hiDist << distBits)) + 1;
-
-              std::size_t len = stream.ReadByTree(SFT2);
-              if (63 == len)
-              {
-                len += stream.GetBits(8);
-              }
-              len += minMatchLen;
-              if (dist > result.Size())
-              {
-                const std::size_t zeroes = std::min<std::size_t>(dist - result.Size(), len);
-                Fill(result, zeroes, 0);
-                len -= zeroes;
-              }
-              if (len)
-              {
-                CopyFromBack(dist, result, len);
-              }
-            }
+            len += stream.GetBits(8);
           }
-          return result.CaptureResult();
-        }
-        catch (const std::exception&)
-        {
-          return {};
-        }
-      }
-
-    private:
-      static constexpr uint_t InvertBits(uint_t val)
-      {
-        uint_t res = 0;
-        for (uint_t count = 16, mask = val; count; --count, mask >>= 1)
-        {
-          res = 2 * res + (mask & 1);
-        }
-        return res;
-      }
-
-      static void ExtractTree(const uint8_t* data, std::vector<SFTEntry>& result)
-      {
-        std::vector<SFTEntry> tree;
-        for (uint_t count = *data++, idx = 0; count; --count)
-        {
-          const uint_t bits = (*data & 0x0f) + 1;
-          for (uint_t groupLen = (*data++ >> 4) + 1; groupLen; --groupLen, ++idx)
+          len += minMatchLen;
+          if (dist > result.Size())
           {
-            const SFTEntry entry = {bits, idx, 0};
-            tree.push_back(entry);
+            const std::size_t zeroes = std::min<std::size_t>(dist - result.Size(), len);
+            Fill(result, zeroes, 0);
+            len -= zeroes;
+          }
+          if (len)
+          {
+            CopyFromBack(dist, result, len);
           }
         }
-        std::sort(tree.begin(), tree.end());
-        static_assert(InvertBits(1) == 0x8000, "Wrong InvertBits");
-        static_assert(InvertBits(0x180) == 0x180, "Wrong InvertBits");
-        static_assert(InvertBits(0x8000) == 1, "Wrong InvertBits");
-        uint_t code = 0;
-        uint_t codeIncrement = 0;
-        uint_t lastBits = 0;
-        for (auto it = tree.rbegin(), lim = tree.rend(); it != lim; ++it)
-        {
-          code += codeIncrement;
-          it->Code = InvertBits(code);
-          if (it->Bits != lastBits)
-          {
-            lastBits = it->Bits;
-            codeIncrement = 1 << (16 - lastBits);
-          }
-        }
-        result.swap(tree);
       }
+      return result.CaptureResult();
+    }
+  }  // namespace Implode
 
-    private:
-      const RawHeader& Header;
-    };
-
+  namespace Shrink
+  {
     struct LZWEntry
     {
       static const uint_t LIMITER = 256;
@@ -418,206 +378,160 @@ namespace Formats::Packed
 
     using LZWTree = std::array<LZWEntry, 8192>;
 
-    class ShrinkDataDecoder : public DataDecoder
+    void ResetTree(LZWTree& tree)
     {
-    public:
-      explicit ShrinkDataDecoder(const RawHeader& header)
-        : Header(header)
+      for (uint_t idx = 0; idx < tree.size(); ++idx)
       {
-        assert(SHRINK == Header.Method);
+        tree[idx] = LZWEntry(idx);
       }
+    }
 
-      Binary::Container::Ptr GetDecodedData() override
-      {
-        try
-        {
-          Bitstream stream({&Header + 1, Header.PackedSize});
-          Binary::DataBuilder result(2 * Header.PackedSize);
-
-          LZWTree tree;
-          ResetTree(tree);
-
-          auto* lastFree = tree.begin() + LZWEntry::LIMITER;
-
-          uint_t codeSize = 9;
-          uint_t oldCode = stream.GetBits(codeSize);
-          result.AddByte(static_cast<uint8_t>(oldCode));
-          while (!stream.Eof())
-          {
-            const uint_t code = stream.GetBits(codeSize);
-            if (LZWEntry::LIMITER == code)
-            {
-              const uint_t subCode = stream.GetBits(codeSize);
-              if (1 == subCode)
-              {
-                ++codeSize;
-              }
-              else if (2 == subCode)
-              {
-                PartialResetTree(tree);
-                lastFree = tree.begin() + LZWEntry::LIMITER;
-              }
-            }
-            else
-            {
-              const bool isFree = tree.at(code).IsFree;
-              Binary::Dump substring(isFree ? 1 : 0);
-              for (uint_t curCode = isFree ? oldCode : code; curCode != LZWEntry::LIMITER;)
-              {
-                const LZWEntry& curEntry = tree.at(curCode);
-                Require(curCode != curEntry.Parent);
-                Require(substring.size() <= tree.size());
-                substring.push_back(curEntry.Value);
-                curCode = curEntry.Parent;
-              }
-              Require(!substring.empty());
-              if (isFree)
-              {
-                substring.front() = substring.back();
-              }
-              std::reverse(substring.begin(), substring.end());
-              result.Add(substring);
-              for (++lastFree; lastFree != tree.end() && !lastFree->IsFree; ++lastFree)
-              {}
-              Require(lastFree != tree.end());
-              lastFree->Value = substring.front();
-              lastFree->Parent = oldCode;
-              lastFree->IsFree = false;
-              oldCode = code;
-            }
-          }
-          return result.CaptureResult();
-        }
-        catch (const std::exception&)
-        {
-          return {};
-        }
-      }
-
-    private:
-      static void ResetTree(LZWTree& tree)
-      {
-        for (uint_t idx = 0; idx < tree.size(); ++idx)
-        {
-          tree[idx] = LZWEntry(idx);
-        }
-      }
-
-      static void PartialResetTree(LZWTree& tree)
-      {
-        const std::size_t parentsCount = tree.size() - LZWEntry::LIMITER;
-        std::vector<bool> hasChilds(parentsCount);
-        for (std::size_t idx = 0; idx < parentsCount; ++idx)
-        {
-          if (!tree[idx + LZWEntry::LIMITER].IsFree && tree[idx + LZWEntry::LIMITER].Parent > LZWEntry::LIMITER)
-          {
-            const std::size_t parent = tree[idx + LZWEntry::LIMITER].Parent - LZWEntry::LIMITER;
-            hasChilds[parent] = true;
-          }
-        }
-        for (std::size_t idx = 0; idx < parentsCount; ++idx)
-        {
-          if (!hasChilds[idx])
-          {
-            tree[idx + LZWEntry::LIMITER].IsFree = true;
-            tree[idx + LZWEntry::LIMITER].Parent = LZWEntry::LIMITER;
-          }
-        }
-      }
-
-    private:
-      const RawHeader& Header;
-    };
-
-    DataDecoder::Ptr CreateDecoder(const RawHeader& header)
+    void PartialResetTree(LZWTree& tree)
     {
-      switch (header.Method)
+      const std::size_t parentsCount = tree.size() - LZWEntry::LIMITER;
+      std::vector<bool> hasChilds(parentsCount);
+      for (std::size_t idx = 0; idx < parentsCount; ++idx)
       {
-      case STORE:
-        return MakePtr<StoreDataDecoder>(header);
-      case IMPLODE:
-        return MakePtr<ImplodeDataDecoder>(header);
-      case SHRINK:
-        return MakePtr<ShrinkDataDecoder>(header);
-      default:
+        if (!tree[idx + LZWEntry::LIMITER].IsFree && tree[idx + LZWEntry::LIMITER].Parent > LZWEntry::LIMITER)
+        {
+          const std::size_t parent = tree[idx + LZWEntry::LIMITER].Parent - LZWEntry::LIMITER;
+          hasChilds[parent] = true;
+        }
+      }
+      for (std::size_t idx = 0; idx < parentsCount; ++idx)
+      {
+        if (!hasChilds[idx])
+        {
+          tree[idx + LZWEntry::LIMITER].IsFree = true;
+          tree[idx + LZWEntry::LIMITER].Parent = LZWEntry::LIMITER;
+        }
+      }
+    }
+
+    Binary::Container::Ptr Decode(const Parser& parser)
+    {
+      assert(SHRINK == parser.GetHeader().Method);
+
+      Bitstream stream(parser.GetCompressedData());
+      const std::size_t sourceSize = parser.GetSourceFileSize();
+      Binary::DataBuilder result(sourceSize);
+
+      LZWTree tree;
+      ResetTree(tree);
+
+      auto* lastFree = tree.begin() + LZWEntry::LIMITER;
+
+      uint_t codeSize = 9;
+      uint_t oldCode = stream.GetBits(codeSize);
+      result.AddByte(static_cast<uint8_t>(oldCode));
+      while (result.Size() < sourceSize)
+      {
+        const uint_t code = stream.GetBits(codeSize);
+        if (LZWEntry::LIMITER == code)
+        {
+          const uint_t subCode = stream.GetBits(codeSize);
+          if (1 == subCode)
+          {
+            ++codeSize;
+          }
+          else if (2 == subCode)
+          {
+            PartialResetTree(tree);
+            lastFree = tree.begin() + LZWEntry::LIMITER;
+          }
+        }
+        else
+        {
+          const bool isFree = tree.at(code).IsFree;
+          Binary::Dump substring(isFree ? 1 : 0);
+          for (uint_t curCode = isFree ? oldCode : code; curCode != LZWEntry::LIMITER;)
+          {
+            const LZWEntry& curEntry = tree.at(curCode);
+            Require(curCode != curEntry.Parent);
+            Require(substring.size() <= tree.size());
+            substring.push_back(curEntry.Value);
+            curCode = curEntry.Parent;
+          }
+          Require(!substring.empty());
+          if (isFree)
+          {
+            substring.front() = substring.back();
+          }
+          std::reverse(substring.begin(), substring.end());
+          result.Add(substring);
+          for (++lastFree; lastFree != tree.end() && !lastFree->IsFree; ++lastFree)
+          {}
+          Require(lastFree != tree.end());
+          lastFree->Value = substring.front();
+          lastFree->Parent = oldCode;
+          lastFree->IsFree = false;
+          oldCode = code;
+        }
+      }
+      return result.CaptureResult();
+    }
+  }  // namespace Shrink
+
+  Binary::Container::Ptr DecodeImpl(const Parser& parser)
+  {
+    switch (parser.GetHeader().Method)
+    {
+    case STORE:
+      return Store::Decode(parser);
+    case IMPLODE:
+      return Implode::Decode(parser);
+    case SHRINK:
+      return Shrink::Decode(parser);
+    default:
+      return {};
+    }
+  }
+
+  class Decoder : public Packed::Decoder
+  {
+  public:
+    StringView GetDescription() const override
+    {
+      return DESCRIPTION;
+    }
+
+    Binary::Format::Ptr GetFormat() const override
+    {
+      return Format;
+    }
+
+    Container::Ptr Decode(const Binary::Container& rawData) const override
+    {
+      if (!Format->Match(rawData))
+      {
         return {};
-      };
-    };
-
-    class DispatchedDataDecoder : public DataDecoder
-    {
-    public:
-      explicit DispatchedDataDecoder(const Parser& parser)
-        : Header(parser.GetHeader())
-        , Delegate(CreateDecoder(Header))
-        , IsValid(parser.FastCheck() && Delegate.get())
+      }
+      const Parser parser(rawData);
+      if (!parser.FastCheck())
+      {
+        return {};
+      }
+      try
+      {
+        if (const auto decoded = DecodeImpl(parser))
+        {
+          Require(parser.GetSourceFileSize() == decoded->Size());
+          Require(~parser.GetHeader().SourceCRC == Binary::Crc32(*decoded));
+          return CreateContainer(std::move(decoded), parser.GetUsedSize());
+        }
+      }
+      catch (const std::exception&)
       {}
+      return {};
+    }
 
-      Binary::Container::Ptr GetDecodedData() override
-      {
-        if (!IsValid)
-        {
-          return {};
-        }
-        auto result = Delegate->GetDecodedData();
-        while (result.get())
-        {
-          const std::size_t dataSize = GetSourceFileSize(Header);
-          if (dataSize != result->Size())
-          {
-            break;
-          }
-          const uint32_t realCRC = Binary::Crc32(*result);
-          // ZXZip CRC32 calculation does not invert result
-          if (realCRC != ~Header.SourceCRC)
-          {
-            break;
-          }
-          return result;
-        }
-        IsValid = false;
-        return {};
-      }
+  private:
+    const Binary::Format::Ptr Format = Binary::CreateFormat(HEADER_PATTERN, MIN_SIZE);
+  };
+}  // namespace Formats::Packed::ZXZip
 
-    private:
-      const RawHeader& Header;
-      const DataDecoder::Ptr Delegate;
-      bool IsValid;
-    };
-
-    class Decoder : public Packed::Decoder
-    {
-    public:
-      StringView GetDescription() const override
-      {
-        return DESCRIPTION;
-      }
-
-      Binary::Format::Ptr GetFormat() const override
-      {
-        return Format;
-      }
-
-      Container::Ptr Decode(const Binary::Container& rawData) const override
-      {
-        if (!Format->Match(rawData))
-        {
-          return {};
-        }
-        const Parser parser(rawData);
-        if (!parser.FastCheck())
-        {
-          return {};
-        }
-        DispatchedDataDecoder decoder(parser);
-        return CreateContainer(decoder.GetDecodedData(), parser.GetUsedSize());
-      }
-
-    private:
-      const Binary::Format::Ptr Format = Binary::CreateFormat(HEADER_PATTERN, MIN_SIZE);
-    };
-  }  // namespace ZXZip
-
+namespace Formats::Packed
+{
   Decoder::Ptr CreateZXZipDecoder()
   {
     return MakePtr<ZXZip::Decoder>();
