@@ -11,13 +11,17 @@
 #include "module/players/tfm/tfm_parameters.h"
 
 #include "core/parameters.h"
+#include "l10n/api.h"
 
+#include "error_tools.h"
 #include "make_ptr.h"
 
 #include <utility>
 
 namespace Module::TFM
 {
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module");
+
   class ChipParameters : public Devices::TFM::ChipParameters
   {
   public:
@@ -34,7 +38,12 @@ namespace Module::TFM
     uint_t ClockFreq() const override
     {
       using namespace Parameters::ZXTune::Core::FM;
-      return Parameters::Get<Clockrate>(*Params);
+      const auto val = Parameters::Get<Clockrate>(*Params);
+      if (!Parameters::Validate<Clockrate>(val))
+      {
+        throw MakeFormattedError(THIS_LINE, translate("Invalid clock frequency ({})."), val);
+      }
+      return val;
     }
 
     uint_t SoundFreq() const override
