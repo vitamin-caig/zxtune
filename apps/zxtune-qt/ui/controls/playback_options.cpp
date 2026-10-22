@@ -191,9 +191,9 @@ namespace
       const auto supported = Parameters::GetString(*ModuleProperties, Module::ATTR_SUPPORTED_PARAMETERS);
       const auto ids = Parameters::IdentifiersSet::Parse(supported);
       using namespace Parameters::ZXTune::Core;
-      isYM->setVisible(ids.Contains(AYM::TYPE));
-      aymLayout->setVisible(ids.Contains(AYM::LAYOUT));
-      isDACInterpolated->setVisible(ids.Contains(DAC::INTERPOLATION));
+      isYM->setVisible(ids.Contains(AYM::Chip::Key));
+      aymLayout->setVisible(ids.Contains(AYM::Layout::Key));
+      isDACInterpolated->setVisible(ids.Contains(DAC::Interpolation::Key));
 
       Muting.Init(*item);  // muting is only in adjusted
 

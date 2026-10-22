@@ -16,6 +16,8 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "properties_dialog.ui.h"
 
+#include "module/players/aym/freq_tables.h"
+
 #include "core/parameters.h"
 #include "debug/log.h"
 #include "module/attributes.h"
@@ -166,15 +168,48 @@ namespace
       }
       if (ids.Contains(AYM::Interpolation::Key))
       {
-        AddSetProperty<AYM::Interpolation>(interpolationLabel, interpolationValues);
+        AddSetProperty<AYM::Interpolation>(interpolationLabel, interpolationValues, "AY"_latin);
       }
       if (ids.Contains(AYM::Clockrate::Key))
       {
-        AddIntegerProperty<AYM::Clockrate>(clockRateLabel);
+        AddIntegerProperty<AYM::Clockrate>(clockRateLabel, "AY"_latin);
+      }
+      if (ids.Contains(AYM::Table::Key))
+      {
+        QStringList tables;
+        for (const auto table : Module::AYM::GetAvailableFreqTables())
+        {
+          tables << ToQString(table);
+        }
+        AddStringSetProperty<AYM::Table>(Playlist::UI::PropertiesDialog::tr("Frequency table"), tables);
+      }
+      if (ids.Contains(Z80::Clockrate::Key))
+      {
+        AddIntegerProperty<Z80::Clockrate>(clockRateLabel, "Z80"_latin);
+      }
+      if (ids.Contains(SAA::Clockrate::Key))
+      {
+        AddIntegerProperty<SAA::Clockrate>(clockRateLabel, "SAA"_latin);
+      }
+      if (ids.Contains(FM::Clockrate::Key))
+      {
+        AddIntegerProperty<FM::Clockrate>(clockRateLabel, "FM"_latin);
+      }
+      if (ids.Contains(SAA::Interpolation::Key))
+      {
+        AddSetProperty<SAA::Interpolation>(interpolationLabel, interpolationValues, "SAA"_latin);
+      }
+      if (ids.Contains(SID::Filter::Key))
+      {
+        AddSetProperty<SID::Filter>(UI::Options::Filter(), booleanValues, "SID"_latin);
+      }
+      if (ids.Contains(SID::Interpolation::Key))
+      {
+        AddSetProperty<SID::Interpolation>(interpolationLabel, interpolationValues, "SID"_latin);
       }
       if (ids.Contains(DAC::Interpolation::Key))
       {
-        AddSetProperty<DAC::Interpolation>(interpolationLabel, booleanValues);
+        AddSetProperty<DAC::Interpolation>(interpolationLabel, booleanValues, "DAC"_latin);
       }
       if (ids.Contains(DAC::SamplesFrequency::Key))
       {
@@ -203,35 +238,45 @@ namespace
       AddProperty(title, wid, value);
     }
 
-    void AddSetProperty(const QString& title, Parameters::Identifier name, const QStringList& values)
+    template<class P>
+    void AddSetProperty(const QString& title, const QStringList& values, const QString& tooltip = {})
     {
       auto* const wid = new QComboBox(this);
       wid->addItems(values);
-      auto* const value = UI::Value::BindExplicit(*wid, *Properties, name);
+      auto* const value = UI::Value::BindExplicit<P>(*wid, *Properties);
+      AddProperty(title, wid, value, tooltip);
+    }
+
+    template<class P>
+    void AddStringSetProperty(const QString& title, const QStringList& values)
+    {
+      auto* const wid = new QComboBox(this);
+      wid->addItems(values);
+      auto* const value = UI::Value::Bind<P>(*wid, *Properties, ""sv);
       AddProperty(title, wid, value);
     }
 
     template<class P>
-    void AddSetProperty(const QString& title, const QStringList& values)
-    {
-      AddSetProperty(title, P::Key, values);
-    }
-
-    template<class P>
-    void AddIntegerProperty(const QString& title)
+    void AddIntegerProperty(const QString& title, const QString& tooltip = {})
     {
       auto* const wid = new QLineEdit(this);
       auto* const value = UI::Value::BindExplicit<P>(*wid, *Properties);
-      AddProperty(title, wid, value);
+      AddProperty(title, wid, value, tooltip);
     }
 
-    void AddProperty(const QString& title, QWidget* widget, UI::Value* value)
+    void AddProperty(const QString& title, QWidget* widget, UI::Value* value, const QString& tooltip = {})
     {
+      auto* const label = new QLabel(title, this);
+      if (!tooltip.isEmpty())
+      {
+        label->setToolTip(tooltip);
+        widget->setToolTip(tooltip);
+      }
       auto* const resetButton = new QToolButton(this);
       resetButton->setArrowType(Qt::DownArrow);
       resetButton->setToolTip(Playlist::UI::PropertiesDialog::tr("Reset value"));
       const int row = itemsLayout->rowCount();
-      itemsLayout->addWidget(new QLabel(title, this), row, 0);
+      itemsLayout->addWidget(label, row, 0);
       itemsLayout->addWidget(widget, row, 1);
       itemsLayout->addWidget(resetButton, row, 2);
       Require(connect(this, &Playlist::UI::PropertiesDialog::ResetToDefaults, value, &UI::Value::Reset));

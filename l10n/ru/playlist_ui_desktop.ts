@@ -195,37 +195,42 @@
 <context>
     <name>Playlist::UI::PropertiesDialog</name>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="144"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="146"/>
         <source>Title</source>
         <translation>Название</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="145"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="147"/>
         <source>Author</source>
         <translation>Автор</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="146"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="148"/>
         <source>Comment</source>
         <translation>Комментарий</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="166"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="184"/>
+        <source>Frequency table</source>
+        <translation>Частотная таблица</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="212"/>
         <source>Samples frequency</source>
         <translation>Частота семплов, Гц</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="154"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="221"/>
         <source>Chip type</source>
         <translation>Тип микросхемы</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="183"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="226"/>
         <source>Layout</source>
         <translation>Раскладка каналов</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="221"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="278"/>
         <source>Reset value</source>
         <translation>Сбросить значение</translation>
     </message>

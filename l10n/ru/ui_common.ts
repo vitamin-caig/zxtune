@@ -265,10 +265,6 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Расположен в нескольких файлах</translation>
     </message>
     <message>
-        <source>Not recursive</source>
-        <translation type="vanished">Не рекурсивный</translation>
-    </message>
-    <message>
         <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="259"/>
         <source>Playback backends</source>
         <translation>Воспроизведение</translation>
@@ -380,7 +376,6 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <source>Loop playback</source>
         <translation>Зациклить</translation>
     </message>
-
 </context>
 <context>
     <name>QMessageBox</name>

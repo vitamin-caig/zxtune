@@ -78,11 +78,11 @@
     </widget>
    </item>
    <item>
-     <widget class="QComboBox" name="aymLayout"/>
+    <widget class="QComboBox" name="aymLayout"/>
    </item>
    <item>
-     <widget class="QToolButton" name="isDACInterpolated">
-      <property name="icon">
+    <widget class="QToolButton" name="isDACInterpolated">
+     <property name="icon">
       <iconset>
        <normalon>:/setup/interpolation_on.png</normalon>
       </iconset>
@@ -90,10 +90,11 @@
      <property name="checkable">
       <bool>true</bool>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QFrame" name="MuteOptions">
+     </widget>
+    </item>
+
+    <item>
+     <widget class="QFrame" name="MuteOptions">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
