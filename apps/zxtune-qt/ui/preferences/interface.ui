@@ -64,11 +64,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QSpinBox" name="playlistCachedFiles">
-        <property name="maximum">
-         <number>10000</number>
-        </property>
-       </widget>
+       <widget class="QSpinBox" name="playlistCachedFiles"/>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="labelPlaylistCachedMemory">
@@ -81,11 +77,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QSpinBox" name="playlistCacheLimit">
-        <property name="maximum">
-         <number>100</number>
-        </property>
-       </widget>
+       <widget class="QSpinBox" name="playlistCacheLimit"/>
       </item>
       <item row="2" column="0" colspan="2">
        <widget class="QCheckBox" name="playlistStoreAllProperties">

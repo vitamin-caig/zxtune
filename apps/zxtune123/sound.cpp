@@ -12,16 +12,17 @@
 
 #include "apps/zxtune123/config.h"
 
-#include "core/core_parameters.h"
+#include "sound/backends/parameters.h"
+
+#include "core/parameters.h"
 #include "debug/log.h"
 #include "math/numeric.h"
 #include "parameters/merged_accessor.h"
 #include "parameters/serialize.h"
 #include "platform/application.h"
-#include "sound/backends_parameters.h"
+#include "sound/parameters.h"
 #include "sound/render_params.h"
 #include "sound/service.h"
-#include "sound/sound_parameters.h"
 #include "strings/array.h"
 #include "strings/map.h"
 
@@ -54,7 +55,7 @@ namespace
     void SetBackendParameters(StringView id, StringView options)
     {
       using namespace Parameters;
-      ParseParametersString(static_cast<Parameters::Identifier>(ZXTune::Sound::Backends::PREFIX).Append(id), options,
+      ParseParametersString(static_cast<Parameters::Identifier>(ZXTune::Sound::Backends::Prefix).Append(id), options,
                             *Params);
     }
 
@@ -78,7 +79,7 @@ namespace
     {
       if (looped)
       {
-        Params->SetValue(Parameters::ZXTune::Sound::LOOPED, true);
+        Parameters::Set<Parameters::ZXTune::Sound::Looped>(*Params, true);
       }
     }
 
@@ -116,9 +117,10 @@ namespace
         opt(id.c_str(), value<String>(&opts)->implicit_value(String(), "parameters"), info->Description().c_str());
       }
 
-      opt("frequency", value<String>(GetSoundOption(Parameters::ZXTune::Sound::FREQUENCY)),
+      opt("frequency", value<String>(GetSoundOption(Parameters::ZXTune::Sound::Frequency::Key)),
           "specify sound frequency in Hz");
-      opt("freqtable", value<String>(GetSoundOption(Parameters::ZXTune::Core::AYM::TABLE)), "specify frequency table");
+      opt("freqtable", value<String>(GetSoundOption(Parameters::ZXTune::Core::AYM::Table::Key)),
+          "specify frequency table");
       opt("loop", bool_switch(&Looped), "loop playback");
     }
 

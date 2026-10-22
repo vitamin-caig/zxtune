@@ -19,18 +19,16 @@
 #include "apps/zxtune-qt/update/parameters.h"
 #include "interface.ui.h"
 
-#include "math/numeric.h"
-
 #include "contract.h"
-#include "make_ptr.h"
 
 #include <QtWidgets/QRadioButton>
 
 #include <utility>
+#include <vector>
 
 namespace
 {
-  const Parameters::IntType UPDATE_CHECK_PERIODS[] = {
+  const std::vector<Parameters::IntType> UPDATE_CHECK_PERIODS = {
       // never
       0,
       // once a day
@@ -39,38 +37,10 @@ namespace
       86400 * 7,
   };
 
-  class UpdateCheckPeriodComboboxValue : public Parameters::Integer
-  {
-  public:
-    explicit UpdateCheckPeriodComboboxValue(Parameters::Container::Ptr ctr)
-      : Ctr(std::move(ctr))
-    {}
+}  // namespace
 
-    int Get() const override
-    {
-      using namespace Parameters::ZXTuneQT::Update;
-      const auto val = Parameters::GetInteger(*Ctr, CHECK_PERIOD, CHECK_PERIOD_DEFAULT);
-      const auto* const arrPos = std::find(UPDATE_CHECK_PERIODS, std::end(UPDATE_CHECK_PERIODS), val);
-      return arrPos != std::end(UPDATE_CHECK_PERIODS) ? arrPos - UPDATE_CHECK_PERIODS : -1;
-    }
-
-    void Set(int val) override
-    {
-      if (Math::InRange<int>(val, 0, std::size(UPDATE_CHECK_PERIODS) - 1))
-      {
-        Ctr->SetValue(Parameters::ZXTuneQT::Update::CHECK_PERIOD, UPDATE_CHECK_PERIODS[val]);
-      }
-    }
-
-    void Reset() override
-    {
-      Ctr->RemoveValue(Parameters::ZXTuneQT::Update::CHECK_PERIOD);
-    }
-
-  private:
-    const Parameters::Container::Ptr Ctr;
-  };
-
+namespace UI
+{
   class InterfaceOptionsWidget
     : public UI::InterfaceSettingsWidget
     , public UI::Ui_InterfaceSettingsWidget
@@ -88,16 +58,13 @@ namespace
       Require(connect(languageSelect, qOverload<int>(&QComboBox::currentIndexChanged), this,
                       &InterfaceOptionsWidget::OnLanguageChanged));
       using namespace Parameters;
-      IntegerValue::Bind(*playlistCachedFiles, *Options, ZXTuneQT::Playlist::Cache::FILES_LIMIT,
-                         ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT);
-      IntegerValue::Bind(*playlistCacheLimit, *Options, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB,
-                         ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT);
-      BooleanValue::Bind(*playlistStoreAllProperties, *Options, ZXTuneQT::Playlist::Store::PROPERTIES,
-                         ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT);
-      UpdateCheckPeriod = IntegerValue::Bind(*updateCheckPeriod, MakePtr<UpdateCheckPeriodComboboxValue>(Options));
-      BooleanValue::Bind(*appSingleInstance, *Options, ZXTuneQT::SINGLE_INSTANCE, ZXTuneQT::SINGLE_INSTANCE_DEFAULT);
-      CmdlineTarget = IntegerValue::Bind(*cmdlineTarget, *Options, ZXTuneQT::Playlist::CMDLINE_TARGET,
-                                         ZXTuneQT::Playlist::CMDLINE_TARGET_DEFAULT);
+      Value::Bind<ZXTuneQT::Playlist::Cache::FilesLimit>(*playlistCachedFiles, *Options);
+      Value::Bind<ZXTuneQT::Playlist::Cache::MemoryLimitMb>(*playlistCacheLimit, *Options);
+      Value::Bind<ZXTuneQT::Playlist::Store::Properties>(*playlistStoreAllProperties, *Options);
+      UpdateCheckPeriod =
+          Value::Bind<ZXTuneQT::Update::CheckPeriod>(*updateCheckPeriod, *Options, UPDATE_CHECK_PERIODS);
+      Value::Bind<ZXTuneQT::SingleInstance>(*appSingleInstance, *Options);
+      CmdlineTarget = Value::Bind<ZXTuneQT::Playlist::CmdlineTarget>(*cmdlineTarget, *Options);
     }
 
     // QWidget
@@ -105,8 +72,8 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
-        const Parameters::ValueSnapshot blockUpdateCheck(*UpdateCheckPeriod);
-        const Parameters::ValueSnapshot blockCmdlineTarget(*CmdlineTarget);
+        const ValueSnapshot blockUpdateCheck(*UpdateCheckPeriod);
+        const ValueSnapshot blockCmdlineTarget(*CmdlineTarget);
         retranslateUi(this);
       }
       UI::InterfaceSettingsWidget::changeEvent(event);
@@ -128,7 +95,10 @@ namespace
     QString GetCurrentLanguage() const
     {
       Parameters::StringType val = FromQString(Language->GetSystem());
-      Parameters::FindValue(*Options, Parameters::ZXTuneQT::UI::LANGUAGE, val);
+      if (const auto stored = Parameters::Find<Parameters::ZXTuneQT::UI::Language>(*Options))
+      {
+        val = *stored;
+      }
       return ToQString(val);
     }
 
@@ -136,19 +106,15 @@ namespace
     {
       const QString lang = languageSelect->itemData(idx).toString();
       Language->Set(lang);
-      Options->SetValue(Parameters::ZXTuneQT::UI::LANGUAGE, FromQString(lang));
+      Parameters::Set<Parameters::ZXTuneQT::UI::Language>(*Options, FromQString(lang));
     }
 
   private:
     const Parameters::Container::Ptr Options;
     const UI::Language::Ptr Language;
-    Parameters::Value* UpdateCheckPeriod;
-    Parameters::Value* CmdlineTarget;
+    Value* UpdateCheckPeriod;
+    Value* CmdlineTarget;
   };
-}  // namespace
-
-namespace UI
-{
   InterfaceSettingsWidget::InterfaceSettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

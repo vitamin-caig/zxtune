@@ -12,12 +12,12 @@
 #include "sound/backends/dsound.h"
 #include "sound/backends/gates/dsound_api.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/parameters.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/volume_control.h"
 
 #include "debug/log.h"
 #include "math/numeric.h"
-#include "sound/backends_parameters.h"
 #include "sound/render_params.h"
 #include "strings/encoding.h"
 
@@ -372,13 +372,13 @@ namespace Sound::DirectSound
 
     String GetDevice() const
     {
-      return Parameters::GetString(Accessor, Parameters::ZXTune::Sound::Backends::DirectSound::DEVICE);
+      return Parameters::Get<Parameters::ZXTune::Sound::Backends::DirectSound::Device>(Accessor);
     }
 
     uint_t GetLatency() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
-      const auto latency = Parameters::GetInteger<uint_t>(Accessor, LATENCY, LATENCY_DEFAULT);
+      const auto latency = Parameters::Get<Latency>(Accessor);
       if (!Math::InRange(latency, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE,

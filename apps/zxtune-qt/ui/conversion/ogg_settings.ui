@@ -53,12 +53,6 @@
           <property name="enabled">
            <bool>false</bool>
           </property>
-          <property name="minimum">
-           <number>0</number>
-          </property>
-          <property name="maximum">
-           <number>10</number>
-          </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -89,12 +83,6 @@
          <widget class="QSlider" name="bitrateValue">
           <property name="enabled">
            <bool>false</bool>
-          </property>
-          <property name="minimum">
-           <number>48</number>
-          </property>
-          <property name="maximum">
-           <number>500</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>

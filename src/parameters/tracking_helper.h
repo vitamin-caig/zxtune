@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "parameters/value.h"
+
 #include "types.h"
 
 namespace Parameters
@@ -35,6 +37,18 @@ namespace Parameters
         Version = newVers;
         return true;
       }
+    }
+
+    template<Parameter P>
+    auto Find() const
+    {
+      return Parameters::Find<P>(*Params);
+    }
+
+    template<Defaulted P>
+    auto Get() const
+    {
+      return Parameters::Get<P>(*Params);
     }
 
     void Reset()

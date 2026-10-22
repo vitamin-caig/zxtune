@@ -224,14 +224,13 @@ namespace
     std::size_t MemoryLimit() const
     {
       using namespace Parameters::ZXTuneQT::Playlist::Cache;
-      const auto mb = Parameters::GetInteger(*Params, MEMORY_LIMIT_MB, MEMORY_LIMIT_MB_DEFAULT);
+      const auto mb = Parameters::Get<MemoryLimitMb>(*Params);
       return static_cast<std::size_t>(mb * 1048576);
     }
 
     std::size_t FilesLimit() const
     {
-      using namespace Parameters::ZXTuneQT::Playlist::Cache;
-      return Parameters::GetInteger<std::size_t>(*Params, FILES_LIMIT, FILES_LIMIT_DEFAULT);
+      return Parameters::Get<Parameters::ZXTuneQT::Playlist::Cache::FilesLimit>(*Params);
     }
 
   private:

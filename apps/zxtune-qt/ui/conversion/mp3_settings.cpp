@@ -16,11 +16,9 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "mp3_settings.ui.h"
 
-#include "math/numeric.h"
-#include "sound/backends_parameters.h"
+#include "sound/backends/parameters.h"
 
 #include "contract.h"
-#include "make_ptr.h"
 
 #include <utility>
 
@@ -31,43 +29,15 @@ namespace
     return QApplication::translate("Mp3Settings", msg);
   }
 
-  const Parameters::StringType CHANNEL_MODES[] = {Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT,
-                                                  Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_STEREO,
-                                                  Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_JOINTSTEREO,
-                                                  Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_MONO};
+  const Strings::Array CHANNEL_MODES = {Parameters::ZXTune::Sound::Backends::Mp3::Channels::Default,
+                                        Parameters::ZXTune::Sound::Backends::Mp3::Channels::Stereo,
+                                        Parameters::ZXTune::Sound::Backends::Mp3::Channels::JointStereo,
+                                        Parameters::ZXTune::Sound::Backends::Mp3::Channels::Mono};
 
-  class ChannelModeComboboxValue : public Parameters::Integer
-  {
-  public:
-    explicit ChannelModeComboboxValue(Parameters::Container::Ptr ctr)
-      : Ctr(std::move(ctr))
-    {}
+}  // namespace
 
-    int Get() const override
-    {
-      using namespace Parameters::ZXTune::Sound::Backends::Mp3;
-      const auto val = Parameters::GetString(*Ctr, CHANNELS, CHANNELS_DEFAULT);
-      const auto* const arrPos = std::find(CHANNEL_MODES, std::end(CHANNEL_MODES), val);
-      return arrPos != std::end(CHANNEL_MODES) ? arrPos - CHANNEL_MODES : -1;
-    }
-
-    void Set(int val) override
-    {
-      if (Math::InRange<int>(val, 0, std::size(CHANNEL_MODES) - 1))
-      {
-        Ctr->SetValue(Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS, CHANNEL_MODES[val]);
-      }
-    }
-
-    void Reset() override
-    {
-      Ctr->RemoveValue(Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS);
-    }
-
-  private:
-    const Parameters::Container::Ptr Ctr;
-  };
-
+namespace UI
+{
   class MP3SettingsWidget
     : public UI::BackendSettingsWidget
     , private Ui::Mp3Settings
@@ -89,17 +59,16 @@ namespace
                       &UI::BackendSettingsWidget::SettingChanged<int>));
 
       using namespace Parameters;
-      ExclusiveValue::Bind(*selectCBR, *Options, ZXTune::Sound::Backends::Mp3::MODE,
-                           ZXTune::Sound::Backends::Mp3::MODE_CBR);
-      ExclusiveValue::Bind(*selectABR, *Options, ZXTune::Sound::Backends::Mp3::MODE,
-                           ZXTune::Sound::Backends::Mp3::MODE_ABR);
-      ExclusiveValue::Bind(*selectQuality, *Options, ZXTune::Sound::Backends::Mp3::MODE,
-                           ZXTune::Sound::Backends::Mp3::MODE_VBR);
-      IntegerValue::Bind(*bitrateValue, *Options, ZXTune::Sound::Backends::Mp3::BITRATE,
-                         ZXTune::Sound::Backends::Mp3::BITRATE_DEFAULT);
-      IntegerValue::Bind(*qualityValue, *Options, ZXTune::Sound::Backends::Mp3::QUALITY,
-                         ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT);
-      IntegerValue::Bind(*channelsMode, MakePtr<ChannelModeComboboxValue>(Options));
+      Value::BindExclusive(*selectCBR, *Options, ZXTune::Sound::Backends::Mp3::Mode::Key,
+                           ZXTune::Sound::Backends::Mp3::Mode::CBR);
+      Value::BindExclusive(*selectABR, *Options, ZXTune::Sound::Backends::Mp3::Mode::Key,
+                           ZXTune::Sound::Backends::Mp3::Mode::ABR);
+      Value::BindExclusive(*selectQuality, *Options, ZXTune::Sound::Backends::Mp3::Mode::Key,
+                           ZXTune::Sound::Backends::Mp3::Mode::VBR);
+      Value::Bind<ZXTune::Sound::Backends::Mp3::Bitrate>(*bitrateValue, *Options);
+      Value::Bind<ZXTune::Sound::Backends::Mp3::Quality>(*qualityValue, *Options);
+      Value::Bind(*channelsMode, *Options, ZXTune::Sound::Backends::Mp3::Channels::Key, CHANNEL_MODES,
+                  ZXTune::Sound::Backends::Mp3::Channels::Default);
       // fixup
       if (!selectCBR->isChecked() && !selectABR->isChecked() && !selectQuality->isChecked())
       {
@@ -145,10 +114,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-
-namespace UI
-{
   BackendSettingsWidget* CreateMP3SettingsWidget(QWidget& parent)
   {
     return new MP3SettingsWidget(parent);

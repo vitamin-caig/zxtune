@@ -19,7 +19,7 @@
 #include "module/players/streaming.h"
 
 #include "binary/container_factories.h"
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "debug/log.h"
 #include "parameters/tracking_helper.h"
 #include "tools/xrange.h"
@@ -440,7 +440,7 @@ namespace Module::LibVGM
       if (Params.IsChanged())
       {
         using namespace Parameters::ZXTune::Core;
-        const auto mask = Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+        const auto mask = Params.Get<ChannelsMask>();
         Engine.MuteChannels(mask);
       }
     }

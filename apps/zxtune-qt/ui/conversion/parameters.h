@@ -14,8 +14,12 @@
 
 namespace Parameters::ZXTuneQT::UI::Export
 {
-  const auto PREFIX = UI::PREFIX + "Export"_id;
-  const auto NAMESPACE_NAME = static_cast<Identifier>(PREFIX).Name();
+  constexpr auto Prefix = UI::Prefix + "Export"_id;
+  const auto NAMESPACE_NAME = static_cast<Identifier>(Prefix).Name();
 
-  const auto TYPE = PREFIX + "Type"_id;
+  //! @brief Export target type
+  struct Type : Value<StringType>
+  {
+    static constexpr auto Key = Prefix + "Type"_id;
+  };
 }  // namespace Parameters::ZXTuneQT::UI::Export

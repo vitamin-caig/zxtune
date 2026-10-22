@@ -105,8 +105,8 @@ namespace
     unsigned GetPlayorderMode() const
     {
       using namespace Parameters::ZXTuneQT::Playlist;
-      const auto isLooped = Parameters::GetInteger(*Params, LOOPED, LOOPED_DEFAULT);
-      const auto isRandom = Parameters::GetInteger(*Params, RANDOMIZED, RANDOMIZED_DEFAULT);
+      const auto isLooped = Parameters::Get<Looped>(*Params);
+      const auto isRandom = Parameters::Get<Randomized>(*Params);
       return (isLooped ? Playlist::Item::LOOPED : 0) | (isRandom ? Playlist::Item::RANDOMIZED : 0);
     }
 
@@ -799,7 +799,7 @@ namespace
       const auto options = GlobalOptions::Instance().Get();
       using namespace Parameters::ZXTuneQT::Playlist::Store;
       Playlist::IO::ExportFlags res = 0;
-      if (0 != Parameters::GetInteger(*options, PROPERTIES, PROPERTIES_DEFAULT))
+      if (Parameters::Get<Properties>(*options))
       {
         res |= Playlist::IO::SAVE_ATTRIBUTES;
       }

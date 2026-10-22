@@ -3,10 +3,10 @@
 #include "sound/backends/storage.h"
 
 #include "async/worker.h"
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "parameters/container.h"
 #include "sound/mixer_factory.h"
-#include "sound/sound_parameters.h"
+#include "sound/parameters.h"
 
 #include "api_dynamic.h"
 #include "contract.h"
@@ -35,12 +35,12 @@ namespace
 
     uint_t ClockFreq() const override
     {
-      return Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
+      return Parameters::ZXTune::Core::AYM::Clockrate::Default;
     };
 
     uint_t SoundFreq() const override
     {
-      return Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      return Parameters::ZXTune::Sound::Frequency::Default;
     }
 
     Devices::AYM::ChipType Type() const override

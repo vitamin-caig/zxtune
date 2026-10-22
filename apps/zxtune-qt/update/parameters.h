@@ -10,30 +10,29 @@
 
 #pragma once
 
-#include "apps/zxtune-qt/app_parameters.h"
+#include "apps/zxtune-qt/parameters.h"
 
 namespace Parameters::ZXTuneQT::Update
 {
-  const auto PREFIX = ZXTuneQT::PREFIX + "Update"_id;
+  constexpr auto Prefix = ZXTuneQT::Prefix + "Update"_id;
 
-  //@{
-  //! @name Feed URL
-  const auto FEED = PREFIX + "Feed"_id;
-  //@}
+  //! @brief Feed URL (code default is Urls::DownloadsFeed())
+  struct Feed : Value<StringType>
+  {
+    static constexpr auto Key = Prefix + "Feed"_id;
+  };
 
-  //@{
-  //! @name Check period
+  //! @brief Check period in seconds; zero disables the checks
+  struct CheckPeriod : Value<uint_t>
+  {
+    static constexpr auto Key = Prefix + "CheckPeriod"_id;
+    static constexpr Type Default = 86400;
+  };
 
-  //! Parameter name
-  const auto CHECK_PERIOD = PREFIX + "CheckPeriod"_id;
-  //! Default value- once a day
-  const IntType CHECK_PERIOD_DEFAULT = 86400;
-  //@}
-
-  //@{
-  //! @name Last check time
-
-  //! Parameter name
-  const auto LAST_CHECK = PREFIX + "LastCheck"_id;
-  //@}
+  //! @brief Last check timestamp
+  struct LastCheck : Value<uint_t>
+  {
+    static constexpr auto Key = Prefix + "LastCheck"_id;
+    static constexpr Type Default = 0;
+  };
 }  // namespace Parameters::ZXTuneQT::Update

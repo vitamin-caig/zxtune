@@ -16,7 +16,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "ogg_settings.ui.h"
 
-#include "sound/backends_parameters.h"
+#include "sound/backends/parameters.h"
 
 #include "contract.h"
 
@@ -29,6 +29,10 @@ namespace
     return QApplication::translate("OggSettings", msg);
   }
 
+}  // namespace
+
+namespace UI
+{
   class OGGSettingsWidget
     : public UI::BackendSettingsWidget
     , private Ui::OggSettings
@@ -47,14 +51,12 @@ namespace
       Require(connect(bitrateValue, &QSlider::valueChanged, this, &UI::BackendSettingsWidget::SettingChanged<int>));
 
       using namespace Parameters;
-      ExclusiveValue::Bind(*selectQuality, *Options, ZXTune::Sound::Backends::Ogg::MODE,
-                           ZXTune::Sound::Backends::Ogg::MODE_QUALITY);
-      IntegerValue::Bind(*qualityValue, *Options, ZXTune::Sound::Backends::Ogg::QUALITY,
-                         ZXTune::Sound::Backends::Ogg::QUALITY_DEFAULT);
-      ExclusiveValue::Bind(*selectBitrate, *Options, ZXTune::Sound::Backends::Ogg::MODE,
-                           ZXTune::Sound::Backends::Ogg::MODE_ABR);
-      IntegerValue::Bind(*bitrateValue, *Options, ZXTune::Sound::Backends::Ogg::BITRATE,
-                         ZXTune::Sound::Backends::Ogg::BITRATE_DEFAULT);
+      Value::BindExclusive(*selectQuality, *Options, ZXTune::Sound::Backends::Ogg::Mode::Key,
+                           ZXTune::Sound::Backends::Ogg::Mode::Quality);
+      Value::Bind<ZXTune::Sound::Backends::Ogg::Quality>(*qualityValue, *Options);
+      Value::BindExclusive(*selectBitrate, *Options, ZXTune::Sound::Backends::Ogg::Mode::Key,
+                           ZXTune::Sound::Backends::Ogg::Mode::ABR);
+      Value::Bind<ZXTune::Sound::Backends::Ogg::Bitrate>(*bitrateValue, *Options);
       // fixup
       if (!selectQuality->isChecked() && !selectBitrate->isChecked())
       {
@@ -86,10 +88,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-
-namespace UI
-{
   BackendSettingsWidget* CreateOGGSettingsWidget(QWidget& parent)
   {
     return new OGGSettingsWidget(parent);

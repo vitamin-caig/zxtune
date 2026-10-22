@@ -13,10 +13,10 @@
 #include "io/impl/filesystem_path.h"
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
+#include "io/providers/parameters.h"
 
 #include "binary/data_builder.h"
 #include "debug/log.h"
-#include "io/providers_parameters.h"
 #include "parameters/accessor.h"
 #include "strings/encoding.h"
 #include "strings/format.h"
@@ -87,26 +87,23 @@ namespace IO::File
 
     std::size_t MemoryMappingThreshold() const
     {
-      using namespace Parameters::ZXTune::IO::Providers::File;
-      return Parameters::GetInteger<std::size_t>(Accessor, MMAP_THRESHOLD, MMAP_THRESHOLD_DEFAULT);
+      return Parameters::Get<Parameters::ZXTune::IO::Providers::File::MmapThreshold>(Accessor);
     }
 
     OverwriteMode Overwrite() const override
     {
-      using namespace Parameters::ZXTune::IO::Providers::File;
-      return Parameters::GetInteger<OverwriteMode>(Accessor, OVERWRITE_EXISTING, OVERWRITE_EXISTING_DEFAULT);
+      return static_cast<OverwriteMode>(
+          Parameters::Get<Parameters::ZXTune::IO::Providers::File::OverwriteExisting>(Accessor));
     }
 
     bool CreateDirectories() const override
     {
-      using namespace Parameters::ZXTune::IO::Providers::File;
-      return 0 != Parameters::GetInteger(Accessor, CREATE_DIRECTORIES, CREATE_DIRECTORIES_DEFAULT);
+      return Parameters::Get<Parameters::ZXTune::IO::Providers::File::CreateDirectories>(Accessor);
     }
 
     bool SanitizeNames() const override
     {
-      using namespace Parameters::ZXTune::IO::Providers::File;
-      return 0 != Parameters::GetInteger(Accessor, SANITIZE_NAMES, SANITIZE_NAMES_DEFAULT);
+      return Parameters::Get<Parameters::ZXTune::IO::Providers::File::SanitizeNames>(Accessor);
     }
 
   private:

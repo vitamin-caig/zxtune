@@ -15,14 +15,14 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "saa.ui.h"
 
-#include "core/core_parameters.h"
-#include "sound/sound_parameters.h"
+#include "core/parameters.h"
+#include "sound/parameters.h"
 
 #include "contract.h"
 
 #include <utility>
 
-namespace
+namespace UI
 {
   class SAAOptionsWidget
     : public UI::SAASettingsWidget
@@ -37,11 +37,8 @@ namespace
       setupUi(this);
 
       using namespace Parameters;
-      const IntegerTraits clockRate(ZXTune::Core::SAA::CLOCKRATE, ZXTune::Core::SAA::CLOCKRATE_DEFAULT,
-                                    ZXTune::Core::SAA::CLOCKRATE_MIN, ZXTune::Core::SAA::CLOCKRATE_MAX);
-      BigIntegerValue::Bind(*clockRateValue, *Options, clockRate);
-      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SAA::INTERPOLATION,
-                                         ZXTune::Core::SAA::INTERPOLATION_DEFAULT);
+      Value::Bind<ZXTune::Core::SAA::Clockrate>(*clockRateValue, *Options);
+      Interpolation = Value::Bind<ZXTune::Core::SAA::Interpolation>(*interpolationValue, *Options);
     }
 
     // QWidget
@@ -49,7 +46,7 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
-        const Parameters::ValueSnapshot blockInterpolation(*Interpolation);
+        const ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
       }
       UI::SAASettingsWidget::changeEvent(event);
@@ -57,11 +54,8 @@ namespace
 
   private:
     const Parameters::Container::Ptr Options;
-    Parameters::Value* Interpolation;
+    Value* Interpolation;
   };
-}  // namespace
-namespace UI
-{
   SAASettingsWidget::SAASettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

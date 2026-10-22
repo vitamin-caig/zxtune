@@ -10,7 +10,7 @@
 
 #include "apps/zxtune-qt/singlemode.h"
 
-#include "apps/zxtune-qt/app_parameters.h"
+#include "apps/zxtune-qt/parameters.h"
 #include "apps/zxtune-qt/ui/utils.h"
 
 #include "debug/log.h"
@@ -226,7 +226,7 @@ SingleModeDispatcher::Ptr SingleModeDispatcher::Create(const Parameters::Accesso
   ++cmdBegin;
   const auto cmdEnd = argv.end();
   using namespace Parameters::ZXTuneQT;
-  if (0 != Parameters::GetInteger(params, SINGLE_INSTANCE, SINGLE_INSTANCE_DEFAULT))
+  if (Parameters::Get<SingleInstance>(params))
   {
     Dbg("Working in single instance mode");
     return new SocketBasedSingleModeDispatcher(cmdBegin, cmdEnd);

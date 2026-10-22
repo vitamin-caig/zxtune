@@ -10,8 +10,9 @@
 
 #include "providers/file_provider.h"
 
+#include "io/providers/parameters.h"
+
 #include "io/api.h"
-#include "io/providers_parameters.h"
 #include "parameters/container.h"
 #include "tools/progress_callback.h"
 
@@ -88,37 +89,38 @@ int main()
     using namespace IO;
     std::cout << "------ test for openers --------\n";
     Parameters::Container::Ptr params = Parameters::Container::Create();
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD,
-                     std::numeric_limits<int64_t>::max());  // set always buffered
+    Parameters::Set<Parameters::ZXTune::IO::Providers::File::MmapThreshold>(
+        *params, std::numeric_limits<int64_t>::max());  // set always buffered
     Test(OpenData(EXISTING_FILE, *params), "Opening in buffer mode", __LINE__);
     CheckError(OpenData(NONEXISTING_FILE, *params), "Open non-existent in buffer mode", __LINE__);
     CheckError(OpenData(LOCKED_FILE, *params), "Open locked in buffer mode", __LINE__);
     CheckError(OpenData(FOLDER, *params), "Open folder in buffer mode", __LINE__);
     CheckError(OpenData(EMPTY_FILE, *params), "Open empty file in buffer mode", __LINE__);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, 0);  // set always mmaped
+    Parameters::Set<Parameters::ZXTune::IO::Providers::File::MmapThreshold>(*params, 0);  // set always mmaped
     Test(OpenData(EXISTING_FILE, *params), "Opening in mmap mode", __LINE__);
     CheckError(OpenData(NONEXISTING_FILE, *params), "Open non-existent in shared mode", __LINE__);
     CheckError(OpenData(LOCKED_FILE, *params), "Open locked in shared mode", __LINE__);
     CheckError(OpenData(FOLDER, *params), "Open folder in shared mode", __LINE__);
     CheckError(OpenData(EMPTY_FILE, *params), "Open empty file in shared mode", __LINE__);
     std::cout << "------ test for creators ---------\n";
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, 0);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteMode::STOP_IF_EXISTS);
+    Parameters::Set<Parameters::ZXTune::IO::Providers::File::CreateDirectories>(*params, false);
+    Parameters::Set<Parameters::ZXTune::IO::Providers::File::OverwriteExisting>(*params, OverwriteMode::STOP_IF_EXISTS);
     const String fileName = "file1";
     const String folder = "folder1";
     const String nestedFile = folder + '/' + "folder2" + '/' + "file2";
     Test(CreateData(fileName, *params), "Creating nonexisting file", __LINE__);
     CheckError(CreateData(fileName, *params), "Create existing non-overwritable file", __LINE__);
     CheckError(CreateData(nestedFile, *params), "Create file in nonexisting dir", __LINE__);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, 1);
+    Parameters::Set<Parameters::ZXTune::IO::Providers::File::CreateDirectories>(*params, true);
     Test(CreateData(nestedFile, *params), "Create file with intermediate dirs", __LINE__);
     CheckError(CreateData(nestedFile, *params), "Create existing non-overwritable file with intermediate dirs",
                __LINE__);
     CheckError(CreateData(folder, *params), "Create file as existing folder", __LINE__);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteMode::OVERWRITE_EXISTING);
+    Parameters::Set<Parameters::ZXTune::IO::Providers::File::OverwriteExisting>(*params,
+                                                                                OverwriteMode::OVERWRITE_EXISTING);
     Test(CreateData(fileName, *params), "Overwrite file", __LINE__);
     Test(CreateData(nestedFile, *params), "Overwrite file with intermediate dirs", __LINE__);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteMode::RENAME_NEW);
+    Parameters::Set<Parameters::ZXTune::IO::Providers::File::OverwriteExisting>(*params, OverwriteMode::RENAME_NEW);
     for (uint_t retry = 0; retry != 3; ++retry)
     {
       Test(CreateData(fileName, *params), "Renamed new file file step", __LINE__);
@@ -127,12 +129,14 @@ int main()
     const String dirOnFile = fileName + '/' + "file3";
     CheckError(CreateData(dirOnFile, *params), "Create file nested to file", __LINE__);
     {
-      params->SetValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, 0);
-      params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteMode::STOP_IF_EXISTS);
+      Parameters::Set<Parameters::ZXTune::IO::Providers::File::SanitizeNames>(*params, false);
+      Parameters::Set<Parameters::ZXTune::IO::Providers::File::OverwriteExisting>(*params,
+                                                                                  OverwriteMode::STOP_IF_EXISTS);
       CheckError(CreateData(INVALID_NAME, *params), "Create file with invalid name", __LINE__);
-      params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteMode::OVERWRITE_EXISTING);
+      Parameters::Set<Parameters::ZXTune::IO::Providers::File::OverwriteExisting>(*params,
+                                                                                  OverwriteMode::OVERWRITE_EXISTING);
       CheckError(CreateData(INVALID_NAME, *params), "Overwrite file with invalid name", __LINE__);
-      params->SetValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, 1);
+      Parameters::Set<Parameters::ZXTune::IO::Providers::File::SanitizeNames>(*params, true);
       Test(CreateData(INVALID_NAME, *params), "Create file with invalid name (sanitized)", __LINE__);
       Test(CreateData(INVALID_NAME, *params), "Create file with the same invalid name (sanitized)", __LINE__);
     }

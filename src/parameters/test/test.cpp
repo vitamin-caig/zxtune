@@ -12,11 +12,13 @@
 #include "parameters/container.h"
 #include "parameters/convert.h"
 #include "parameters/types.h"
+#include "parameters/value.h"
 
 #include "string_view.h"
 
 #include <iostream>
 #include <iterator>
+#include <type_traits>
 
 template<class T>
 std::ostream& operator<<(std::ostream& s, const std::vector<T>& v)
@@ -167,6 +169,93 @@ namespace
     {
       Test("value", Parameters::ConvertToString(*out), Parameters::ConvertToString(*ref));
     }
+  }
+
+  namespace TestParams
+  {
+    using namespace Parameters;
+
+    struct INT : Value<uint64_t>
+    {
+      static constexpr auto Key = "int"_id;
+      static constexpr Type Default = 5, Min = 1, Max = 10;
+    };
+
+    struct STR : Value<StringType>
+    {
+      static constexpr auto Key = "str"_id;
+      static constexpr const char* Default = "def";
+    };
+
+    struct DATA : Value<Binary::Data>
+    {
+      static constexpr auto Key = "data"_id;
+    };
+
+    struct BOOL : Value<bool>
+    {
+      static constexpr auto Key = "bool"_id;
+      static constexpr Type Default = false;
+    };
+
+  }  // namespace TestParams
+
+  template<class P>
+  concept CanGet = requires(Parameters::Accessor& ac)
+  {
+    Parameters::Get<P>(ac);
+  };
+
+  static_assert(std::is_same_v<Parameters::Value<uint64_t>::Protocol, Parameters::Detail::IntegerProtocol>);
+  static_assert(std::is_same_v<Parameters::Value<bool>::Protocol, Parameters::Detail::IntegerProtocol>);
+  static_assert(
+      std::is_same_v<Parameters::Value<Parameters::StringType>::Protocol, Parameters::Detail::StringProtocol>);
+  static_assert(std::is_same_v<Parameters::Value<Binary::Data>::Protocol, Parameters::Detail::DataProtocol>);
+  static_assert(Parameters::Defaulted<TestParams::INT>);
+  static_assert(Parameters::Defaulted<TestParams::STR>);
+  static_assert(Parameters::Defaulted<TestParams::BOOL>);
+  static_assert(!Parameters::Defaulted<TestParams::DATA>);
+  static_assert(CanGet<TestParams::INT> && CanGet<TestParams::STR> && !CanGet<TestParams::DATA>);
+  static_assert(Parameters::Validate<TestParams::INT>(1));
+  static_assert(Parameters::Validate<TestParams::INT>(10));
+  static_assert(!Parameters::Validate<TestParams::INT>(0));
+  static_assert(!Parameters::Validate<TestParams::INT>(11));
+  static_assert(Parameters::Validate<TestParams::STR>("x"));
+
+  void TestValue()
+  {
+    std::cout << "---- Test for Parameters::Value" << std::endl;
+    using namespace Parameters;
+    using namespace TestParams;
+
+    const auto cont = Container::Create();
+    Test("unset int", Get<INT>(*cont), uint64_t(5));
+    Test("unset str", Get<STR>(*cont), String("def"));
+    Test("unset data", !!Find<DATA>(*cont), false);
+
+    Set<INT>(*cont, IntType(7));
+    Test("stored int", *Find<INT>(*cont), uint64_t(7));
+    Test("int is not str", !!Find<STR>(*cont), false);
+
+    Set<STR>(*cont, "hello"sv);
+    Test("stored str", *Find<STR>(*cont), String("hello"));
+
+    Set<DATA>(*cont, Binary::View("abcd", 4));
+    Test("stored data", !!Find<DATA>(*cont), true);
+
+    Test("unset bool", Get<BOOL>(*cont), false);
+
+    Set<BOOL>(*cont, true);
+    Test("stored bool true", *Find<BOOL>(*cont), true);
+    Test("bool true stored as 1", *cont->FindInteger("bool"_id), IntType(1));
+
+    Set<BOOL>(*cont, false);
+    Test("stored bool false", *Find<BOOL>(*cont), false);
+    Test("bool false stored as 0", *cont->FindInteger("bool"_id), IntType(0));
+
+    // any non-zero stored value means true
+    cont->SetValue("bool"_id, IntType(7));
+    Test("non-zero reads true", *Find<BOOL>(*cont), true);
   }
 
   void TestContainer()
@@ -326,6 +415,7 @@ int main()
   try
   {
     TestIdentifier();
+    TestValue();
     TestContainer();
   }
   catch (int code)

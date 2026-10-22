@@ -14,13 +14,13 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "sound_sdl.ui.h"
 
-#include "sound/backends_parameters.h"
+#include "sound/backends/parameters.h"
 
 #include "contract.h"
 
 #include <utility>
 
-namespace
+namespace UI
 {
   class SdlOptionsWidget
     : public UI::SdlSettingsWidget
@@ -35,7 +35,7 @@ namespace
       setupUi(this);
 
       using namespace Parameters::ZXTune::Sound::Backends::Sdl;
-      Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
+      Value::Bind<Buffers>(*buffers, *Options);
     }
 
     StringView GetBackendId() const override
@@ -61,9 +61,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-namespace UI
-{
   SdlSettingsWidget::SdlSettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
   {}

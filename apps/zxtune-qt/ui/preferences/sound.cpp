@@ -20,11 +20,12 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "sound.ui.h"
 
+#include "sound/backends/parameters.h"
+
 #include "math/numeric.h"
 #include "sound/backend_attrs.h"
-#include "sound/backends_parameters.h"
+#include "sound/parameters.h"
 #include "sound/service.h"
-#include "sound/sound_parameters.h"
 #include "strings/map.h"
 
 #include "contract.h"
@@ -40,6 +41,10 @@ namespace
     return Sound::CreateSystemService(std::move(params))->GetAvailableBackends();
   }
 
+}  // namespace
+
+namespace UI
+{
   class SoundOptionsWidget
     : public UI::SoundSettingsWidget
     , public UI::Ui_SoundSettingsWidget
@@ -58,15 +63,15 @@ namespace
 
       using namespace Parameters;
       using namespace ZXTune::Sound;
-      const auto freq = GetInteger(*Options, FREQUENCY, FREQUENCY_DEFAULT);
+      const auto freq = Get<Frequency>(*Options);
       SetFrequency(freq);
       Require(connect(soundFrequencyValue, qOverload<int>(&QComboBox::currentIndexChanged), this,
                       &SoundOptionsWidget::ChangeSoundFrequency));
-      IntegerValue::Bind(*silenceLimitValue, *Options, SILENCE_LIMIT, SILENCE_LIMIT_DEFAULT);
-      IntegerValue::Bind(*loopsCountLimitValue, *Options, LOOP_LIMIT, 0);
-      IntegerValue::Bind(*fadeinValue, *Options, FADEIN, FADEIN_DEFAULT);
-      IntegerValue::Bind(*fadeoutValue, *Options, FADEOUT, FADEOUT_DEFAULT);
-      IntegerValue::Bind(*preampValue, *Options, GAIN, GAIN_DEFAULT);
+      Value::Bind<SilenceLimit>(*silenceLimitValue, *Options);
+      Value::Bind<LoopLimit>(*loopsCountLimitValue, *Options);
+      Value::Bind<FadeIn>(*fadeinValue, *Options);
+      Value::Bind<FadeOut>(*fadeoutValue, *Options);
+      Value::Bind<Gain>(*preampValue, *Options);
 
       Require(connect(backendsList, &QListWidget::currentRowChanged, this, &SoundOptionsWidget::SelectBackend));
       Require(connect(moveUp, &QToolButton::released, this, &SoundOptionsWidget::MoveBackendUp));
@@ -129,7 +134,7 @@ namespace
     void ChangeSoundFrequency(int idx)
     {
       const qlonglong val = FREQUENCES[idx];
-      Options->SetValue(Parameters::ZXTune::Sound::FREQUENCY, val);
+      Parameters::Set<Parameters::ZXTune::Sound::Frequency>(*Options, val);
     }
 
     void SelectBackend(int idx)
@@ -191,7 +196,7 @@ namespace
         }
         value.append(id);
       }
-      Options->SetValue(Parameters::ZXTune::Sound::Backends::ORDER, value);
+      Parameters::Set<Parameters::ZXTune::Sound::Backends::Order>(*Options, value);
     }
 
   private:
@@ -199,9 +204,6 @@ namespace
     std::vector<Sound::BackendId> Backends;
     Strings::ValueMap<QWidget*> SetupPages;
   };
-}  // namespace
-namespace UI
-{
   SoundSettingsWidget::SoundSettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

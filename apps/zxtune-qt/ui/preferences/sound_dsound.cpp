@@ -16,9 +16,9 @@
 #include "sound_dsound.ui.h"
 
 #include "sound/backends/dsound.h"
+#include "sound/backends/parameters.h"
 
 #include "debug/log.h"
-#include "sound/backends_parameters.h"
 
 #include "contract.h"
 
@@ -27,7 +27,7 @@ namespace
   const Debug::Stream Dbg("UI::Preferences::DirectSound");
 }
 
-namespace
+namespace UI
 {
   class DirectSoundOptionsWidget
     : public UI::DirectSoundSettingsWidget
@@ -45,7 +45,7 @@ namespace
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
-      Parameters::IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
+      Value::Bind<Latency>(*latency, *Options);
       Require(connect(devices, &QComboBox::currentTextChanged, this, &DirectSoundOptionsWidget::DeviceChanged));
     }
 
@@ -73,7 +73,7 @@ namespace
     void SelectDevice()
     {
       using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
-      const auto curDevice = Parameters::GetString(*Options, DEVICE);
+      const auto curDevice = Parameters::Get<Parameters::ZXTune::Sound::Backends::DirectSound::Device>(*Options);
       DeviceChanged(ToQString(curDevice));
     }
 
@@ -98,7 +98,7 @@ namespace
       if (it != Devices.end())
       {
         devices->setCurrentIndex(it - Devices.begin());
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::DirectSound::DEVICE, it->Id);
+        Parameters::Set<Parameters::ZXTune::Sound::Backends::DirectSound::Device>(*Options, it->Id);
       }
       else
       {
@@ -125,9 +125,6 @@ namespace
     using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
-}  // namespace
-namespace UI
-{
   DirectSoundSettingsWidget::DirectSoundSettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
   {}

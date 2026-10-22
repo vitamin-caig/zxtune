@@ -10,17 +10,17 @@
 
 #include "sound/backends/file_backend.h"
 
+#include "io/providers/parameters.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/parameters.h"
 
 #include "async/data_receiver.h"
 #include "debug/log.h"
 #include "io/api.h"
-#include "io/providers_parameters.h"
 #include "io/template.h"
 #include "module/attributes.h"
 #include "parameters/convert.h"
 #include "parameters/template.h"
-#include "sound/backends_parameters.h"
 #include "tools/progress_callback.h"
 
 #include "make_ptr.h"
@@ -137,7 +137,7 @@ namespace Sound::File
 
     String GetFilenameTemplate() const
     {
-      auto nameTemplate = GetProperty<Parameters::StringType>(Parameters::ZXTune::Sound::Backends::File::FILENAME);
+      auto nameTemplate = GetProperty<Parameters::StringType>(Parameters::ZXTune::Sound::Backends::File::Filename::Key);
       if (nameTemplate.empty())
       {
         // Filename parameter is required
@@ -155,7 +155,7 @@ namespace Sound::File
 
     uint_t GetBuffersCount() const
     {
-      const auto intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::BUFFERS);
+      const auto intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::Buffers::Key);
       return static_cast<uint_t>(intParam);
     }
 

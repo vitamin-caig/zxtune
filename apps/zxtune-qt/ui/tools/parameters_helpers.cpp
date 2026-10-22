@@ -11,7 +11,6 @@
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 
 #include "debug/log.h"
-#include "math/numeric.h"
 
 #include "contract.h"
 #include "string_view.h"
@@ -24,113 +23,159 @@
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QSpinBox>
 
+#include <algorithm>
+#include <optional>
 #include <utility>
 
 namespace
 {
   using namespace Parameters;
+  using namespace UI;
 
   const Debug::Stream Dbg("Parameters::Helper");
 
-  template<class Holder>
-  class BooleanValueImpl : public BooleanValue
+  class LoggingContainer : public Container
   {
   public:
-    BooleanValueImpl(Holder& parent, Container& ctr, Identifier name, bool defValue, IntType oneValue)
-      : BooleanValue(parent)
-      , Parent(parent)
+    explicit LoggingContainer(Container& delegate)
+      : Delegate(delegate)
+    {}
+
+    uint_t Version() const override
+    {
+      return Delegate.Version();
+    }
+
+    std::optional<IntType> FindInteger(Identifier name) const override
+    {
+      return Delegate.FindInteger(name);
+    }
+
+    std::optional<StringType> FindString(Identifier name) const override
+    {
+      return Delegate.FindString(name);
+    }
+
+    Binary::Data::Ptr FindData(Identifier name) const override
+    {
+      return Delegate.FindData(name);
+    }
+
+    void Process(Visitor& visitor) const override
+    {
+      Delegate.Process(visitor);
+    }
+
+    void SetValue(Identifier name, IntType val) override
+    {
+      Log(name, val);
+      Delegate.SetValue(name, val);
+    }
+
+    void SetValue(Identifier name, StringView val) override
+    {
+      Log(name, val);
+      Delegate.SetValue(name, val);
+    }
+
+    void SetValue(Identifier name, Binary::View val) override
+    {
+      Delegate.SetValue(name, val);
+    }
+
+    void RemoveValue(Identifier name) override
+    {
+      Delegate.RemoveValue(name);
+    }
+
+  private:
+    template<class T>
+    static void Log(Identifier name, const T& val)
+    {
+      Dbg("{}={}", static_cast<StringView>(name), val);
+    }
+
+  private:
+    Container& Delegate;
+  };
+
+  class BaseValue : public UI::Value
+  {
+  public:
+    BaseValue(QObject& parent, Container& ctr, Identifier name)
+      : UI::Value(parent)
       , Storage(ctr)
       , Name(std::move(name))
-      , Default(defValue)
-      , OneValue(oneValue)
-    {
-      BooleanValueImpl<Holder>::Reload();
-      Require(connect(&parent, &Holder::toggled, this, &BooleanValueImpl::Set));
-    }
+    {}
 
     void Reset() override
     {
-      const AutoBlockSignal block(Parent);
+      const AutoBlockSignal block(*parent());
       Storage.RemoveValue(Name);
       Reload();
     }
 
+  protected:
+    // Value is a QObject child of the bound widget
+    template<class Holder>
+    Holder& Parent() const
+    {
+      return *static_cast<Holder*>(parent());
+    }
+
+    LoggingContainer Storage;
+    const Identifier Name;
+  };
+
+  // Radio groups share one parameter: an unset falseValue makes an unchecked button
+  // write nothing, so it cannot clobber the newly selected one
+  template<class Holder, class T>
+  class BooleanValue : public BaseValue
+  {
+  public:
+    BooleanValue(Holder& parent, Container& ctr, Identifier name, T trueValue, std::optional<T> falseValue,
+                 bool defValue = false)
+      : BaseValue(parent, ctr, std::move(name))
+      , TrueValue(std::move(trueValue))
+      , FalseValue(std::move(falseValue))
+      , Default(defValue)
+    {
+      BooleanValue<Holder, T>::Reload();
+      Require(connect(&parent, &Holder::toggled, this, &BooleanValue::Set));
+    }
+
     void Reload() override
     {
-      Parent.setChecked(GetValue());
+      Parent<Holder>().setChecked(GetValue());
     }
 
   private:
-    void Set(bool value)
+    void Set(bool checked)
     {
-      const IntType val = value ? OneValue : 0;
-      Dbg("{}={}", static_cast<StringView>(Name), val);
-      Storage.SetValue(Name, val);
+      if (checked)
+      {
+        Storage.SetValue(Name, TrueValue);
+      }
+      else if (FalseValue)
+      {
+        Storage.SetValue(Name, *FalseValue);
+      }
     }
 
     bool GetValue() const
     {
-      if (const auto val = Storage.FindInteger(Name))
+      T stored{};
+      if (Parameters::FindValue(Storage, Name, stored))
       {
-        return *val != 0;
+        return stored == TrueValue;
       }
-      return Default ? OneValue : 0;
+      return Default;
     }
 
   private:
-    Holder& Parent;
-    Container& Storage;
-    const Identifier Name;
+    const T TrueValue;
+    const std::optional<T> FalseValue;
     const bool Default;
-    const IntType OneValue;
-  };
-
-  class StringSetValue : public ExclusiveValue
-  {
-  public:
-    StringSetValue(QAbstractButton& parent, Container& ctr, Identifier name, StringView value)
-      : ExclusiveValue(parent)
-      , Parent(parent)
-      , Storage(ctr)
-      , Name(std::move(name))
-      , Value(value)
-    {
-      StringSetValue::Reload();
-      Require(connect(&parent, &QAbstractButton::toggled, this, &StringSetValue::Set));
-    }
-
-    void Reset() override
-    {
-      const AutoBlockSignal block(Parent);
-      Storage.RemoveValue(Name);
-      Reload();
-    }
-
-    void Reload() override
-    {
-      Parent.setChecked(GetValue() == Value);
-    }
-
-  private:
-    void Set(bool value)
-    {
-      if (value)
-      {
-        Dbg("{}={}", static_cast<StringView>(Name), Value);
-        Storage.SetValue(Name, Value);
-      }
-    }
-
-    StringType GetValue() const
-    {
-      return Parameters::GetString(Storage, Name);
-    }
-
-  private:
-    QAbstractButton& Parent;
-    Container& Storage;
-    const Identifier Name;
-    const StringType Value;
   };
 
   template<class Holder>
@@ -139,10 +184,10 @@ namespace
     holder.setValue(val);
   }
 
-  template<class Holder>
-  void ConnectChanges(Holder& holder, IntegerValue& val)
+  template<class Holder, class Target>
+  void ConnectChanges(Holder& holder, Target& val)
   {
-    Require(QObject::connect(&holder, qOverload<int>(&Holder::valueChanged), &val, &IntegerValue::Set));
+    Require(QObject::connect(&holder, qOverload<int>(&Holder::valueChanged), &val, &Target::Set));
   }
 
   void SetWidgetValue(QComboBox& holder, int val)
@@ -150,268 +195,274 @@ namespace
     holder.setCurrentIndex(val);
   }
 
-  void ConnectChanges(QComboBox& holder, IntegerValue& val)
+  template<class Target>
+  void ConnectChanges(QComboBox& holder, Target& val)
   {
-    Require(QObject::connect(&holder, qOverload<int>(&QComboBox::currentIndexChanged), &val, &IntegerValue::Set));
+    Require(QObject::connect(&holder, qOverload<int>(&QComboBox::currentIndexChanged), &val, &Target::Set));
   }
 
+  // Only nullable widgets can display an unset value
   template<class Holder>
-  class IntegerValueImpl : public IntegerValue
+  void ClearWidgetValue(Holder&)
+  {}
+
+  void ClearWidgetValue(QComboBox& holder)
+  {
+    holder.setCurrentIndex(-1);
+  }
+
+  // Value widgets (spinbox/slider/combobox index); an unset default means "no override"
+  template<class Holder>
+  class IntegerValue : public BaseValue
   {
   public:
-    IntegerValueImpl(Holder& parent, Container& ctr, Identifier name, int defValue)
-      : IntegerValue(parent)
-      , Parent(parent)
-      , Storage(ctr)
-      , Name(std::move(name))
-      , Default(defValue)
+    IntegerValue(Holder& parent, Container& ctr, Identifier name, std::optional<IntType> defValue)
+      : BaseValue(parent, ctr, std::move(name))
+      , Default(std::move(defValue))
     {
-      IntegerValueImpl<Holder>::Reload();
-      ConnectChanges(Parent, *this);
+      IntegerValue<Holder>::Reload();
+      ConnectChanges(Parent<Holder>(), *this);
     }
 
-    void Set(int value) override
+    void Set(int value)
     {
-      Dbg("{}={}", static_cast<StringView>(Name), value);
       Storage.SetValue(Name, value);
     }
 
-    void Reset() override
-    {
-      const AutoBlockSignal block(Parent);
-      Storage.RemoveValue(Name);
-      Reload();
-    }
-
     void Reload() override
     {
-      SetWidgetValue(Parent, GetValue());
-    }
-
-  private:
-    int GetValue() const
-    {
-      return Parameters::GetInteger<int>(Storage, Name, Default);
-    }
-
-  private:
-    Holder& Parent;
-    Container& Storage;
-    const Identifier Name;
-    const int Default;
-  };
-
-  template<class Holder>
-  class IntegerValueControl : public IntegerValue
-  {
-  public:
-    IntegerValueControl(Holder& parent, Integer::Ptr val)
-      : IntegerValue(parent)
-      , Parent(parent)
-      , Value(std::move(val))
-    {
-      IntegerValueControl<Holder>::Reload();
-      ConnectChanges(Parent, *this);
-    }
-
-    void Set(int value) override
-    {
-      Value->Set(value);
-    }
-
-    void Reset() override
-    {
-      const AutoBlockSignal block(Parent);
-      Value->Reset();
-      Reload();
-    }
-
-    void Reload() override
-    {
-      SetWidgetValue(Parent, Value->Get());
-    }
-
-  private:
-    Holder& Parent;
-    const Integer::Ptr Value;
-  };
-
-  class BigIntegerValueImpl : public BigIntegerValue
-  {
-  public:
-    BigIntegerValueImpl(QLineEdit& parent, Container& ctr, IntegerTraits traits)
-      : BigIntegerValue(parent)
-      , Parent(parent)
-      , Storage(ctr)
-      , Traits(traits)
-    {
-      BigIntegerValueImpl::Reload();
-      Require(connect(&parent, &QLineEdit::textChanged, this, &BigIntegerValueImpl::Set));
-      Require(connect(&parent, &QLineEdit::editingFinished, this, &Value::Reload));
-    }
-
-    void Reset() override
-    {
-      const AutoBlockSignal block(Parent);
-      Storage.RemoveValue(Traits.Name);
-      Reload();
-    }
-
-    void Reload() override
-    {
-      const IntType val = GetValue();
-      if (Math::InRange(val, Traits.Min, Traits.Max))
+      if (const auto stored = Storage.FindInteger(Name))
       {
-        Parent.setText(QString::number(val));
+        SetWidgetValue(Parent<Holder>(), static_cast<int>(*stored));
+      }
+      else if (Default)
+      {
+        SetWidgetValue(Parent<Holder>(), static_cast<int>(*Default));
       }
       else
       {
-        Parent.clear();
+        ClearWidgetValue(Parent<Holder>());
       }
     }
 
   private:
-    void Set(const QString& value)
-    {
-      const IntType val = value.toLongLong();
-      if (Math::InRange(val, Traits.Min, Traits.Max))
-      {
-        Dbg("{}={}", static_cast<StringView>(Traits.Name), val);
-        Storage.SetValue(Traits.Name, val);
-      }
-    }
-
-    IntType GetValue() const
-    {
-      return Parameters::GetInteger<IntType>(Storage, Traits.Name, Traits.Default);
-    }
-
-  private:
-    QLineEdit& Parent;
-    Container& Storage;
-    const IntegerTraits Traits;
+    const std::optional<IntType> Default;
   };
 
-  class StringValueImpl : public StringValue
+  StringType LoadValue(const Accessor& ac, Identifier name, StringView def)
+  {
+    return Parameters::GetString(ac, name, def);
+  }
+
+  IntType LoadValue(const Accessor& ac, Identifier name, IntType def)
+  {
+    return Parameters::GetInteger<IntType>(ac, name, def);
+  }
+
+  template<class T>
+  class IndexedValue : public BaseValue
   {
   public:
-    StringValueImpl(QLineEdit& parent, Container& ctr, Identifier name, StringView defValue)
-      : StringValue(parent)
-      , Parent(parent)
-      , Storage(ctr)
-      , Name(std::move(name))
-      , Default(defValue)
+    IndexedValue(QComboBox& parent, Container& ctr, Identifier name, std::vector<T> values, T defValue)
+      : BaseValue(parent, ctr, std::move(name))
+      , Values(std::move(values))
+      , Default(std::move(defValue))
     {
-      StringValueImpl::Reload();
-      Require(connect(&parent, &QLineEdit::textChanged, this, &StringValueImpl::Set));
+      Require(parent.count() == static_cast<int>(Values.size()));
+      Reload();
+      ConnectChanges(parent, *this);
     }
 
-    void Reset() override
+    void Set(int index)
     {
-      const AutoBlockSignal block(Parent);
-      Storage.RemoveValue(Name);
-      Reload();
+      if (index >= 0 && index < static_cast<int>(Values.size()))
+      {
+        Storage.SetValue(Name, Values[index]);
+      }
     }
 
     void Reload() override
     {
-      Parent.setText(ToQString(GetValue()));
+      Parent<QComboBox>().setCurrentIndex(GetIndex());
     }
 
   private:
-    void Set(const QString& value)
+    int GetIndex() const
     {
-      const auto val = FromQString(value);
-      Dbg("{}={}", static_cast<StringView>(Name), val);
-      Storage.SetValue(Name, val);
-    }
-
-    StringType GetValue() const
-    {
-      return Parameters::GetString(Storage, Name, Default);
+      const T val = LoadValue(Storage, Name, Default);
+      const auto it = std::find(Values.begin(), Values.end(), val);
+      return it != Values.end() ? static_cast<int>(it - Values.begin()) : -1;
     }
 
   private:
-    QLineEdit& Parent;
-    Container& Storage;
-    const Identifier Name;
-    const StringType Default;
+    const std::vector<T> Values;
+    const T Default;
+  };
+
+  // Textual integer input; an unset default means "no override"
+  class IntegerTextValue : public BaseValue
+  {
+  public:
+    IntegerTextValue(QLineEdit& parent, Container& ctr, Identifier name, std::optional<IntType> defValue)
+      : BaseValue(parent, ctr, std::move(name))
+      , Default(std::move(defValue))
+    {
+      IntegerTextValue::Reload();
+      Require(connect(&parent, &QLineEdit::textChanged, this, &IntegerTextValue::Set));
+      Require(connect(&parent, &QLineEdit::editingFinished, this, &UI::Value::Reload));
+    }
+
+    void Reload() override
+    {
+      auto& edit = Parent<QLineEdit>();
+      if (const auto stored = Storage.FindInteger(Name))
+      {
+        edit.setText(QString::number(*stored));
+      }
+      else if (Default)
+      {
+        edit.setText(QString::number(*Default));
+      }
+      else
+      {
+        edit.clear();
+      }
+    }
+
+  private:
+    void Set(const QString& text)
+    {
+      if (text.isEmpty())
+      {
+        if (!Default)
+        {
+          Storage.RemoveValue(Name);
+        }
+      }
+      else if (Parent<QLineEdit>().hasAcceptableInput())
+      {
+        Storage.SetValue(Name, text.toLongLong());
+      }
+    }
+
+  private:
+    const std::optional<IntType> Default;
+  };
+
+  // Textual input; an unset default means "no override"
+  class StringValue : public BaseValue
+  {
+  public:
+    StringValue(QLineEdit& parent, Container& ctr, Identifier name, std::optional<StringType> defValue)
+      : BaseValue(parent, ctr, std::move(name))
+      , Default(std::move(defValue))
+    {
+      StringValue::Reload();
+      Require(connect(&parent, &QLineEdit::textChanged, this, &StringValue::Set));
+    }
+
+    void Reload() override
+    {
+      auto& edit = Parent<QLineEdit>();
+      if (const auto stored = Storage.FindString(Name))
+      {
+        edit.setText(ToQString(*stored));
+      }
+      else if (Default)
+      {
+        edit.setText(ToQString(*Default));
+      }
+      else
+      {
+        edit.clear();
+      }
+    }
+
+  private:
+    void Set(const QString& text)
+    {
+      if (text.isEmpty())
+      {
+        if (!Default)
+        {
+          Storage.RemoveValue(Name);
+        }
+      }
+      else
+      {
+        Storage.SetValue(Name, FromQString(text));
+      }
+    }
+
+  private:
+    const std::optional<StringType> Default;
   };
 }  // namespace
 
-namespace Parameters
+namespace UI
 {
+  using ::Parameters::Container;
+  using ::Parameters::Identifier;
+  using ::Parameters::IntType;
+
   Value::Value(QObject& parent)
     : QObject(&parent)
   {}
 
-  BooleanValue::BooleanValue(QObject& parent)
-    : Value(parent)
-  {}
-
-  ExclusiveValue::ExclusiveValue(QObject& parent)
-    : Value(parent)
-  {}
-
-  IntegerValue::IntegerValue(QObject& parent)
-    : Value(parent)
-  {}
-
-  BigIntegerValue::BigIntegerValue(QObject& parent)
-    : Value(parent)
-  {}
-
-  StringValue::StringValue(QObject& parent)
-    : Value(parent)
-  {}
-
-  Value* BooleanValue::Bind(QAction& action, Container& ctr, Identifier name, bool defValue)
+  Value* Value::Bind(QAction& action, Container& ctr, Identifier name, bool defValue)
   {
-    return new BooleanValueImpl<QAction>(action, ctr, name, defValue, 1);
+    return new BooleanValue<QAction, IntType>(action, ctr, name, 1, IntType(0), defValue);
   }
 
-  Value* BooleanValue::Bind(QAbstractButton& button, Container& ctr, Identifier name, bool defValue, IntType oneValue)
+  Value* Value::Bind(QAbstractButton& button, Container& ctr, Identifier name, bool defValue, IntType trueValue)
   {
-    return new BooleanValueImpl<QAbstractButton>(button, ctr, name, defValue, oneValue);
+    return new BooleanValue<QAbstractButton, IntType>(button, ctr, name, trueValue, IntType(0), defValue);
   }
 
-  Value* BooleanValue::Bind(QGroupBox& box, Container& ctr, Identifier name, bool defValue, IntType oneValue)
+  Value* Value::BindExclusive(QAbstractButton& button, Container& ctr, Identifier name, StringView trueValue)
   {
-    return new BooleanValueImpl<QGroupBox>(box, ctr, name, defValue, oneValue);
+    return new BooleanValue<QAbstractButton, StringType>(button, ctr, name, String(trueValue), std::nullopt);
   }
 
-  Value* ExclusiveValue::Bind(QAbstractButton& button, Container& ctr, Identifier name, StringView value)
+  Value* Value::Bind(QGroupBox& box, Container& ctr, Identifier name, bool defValue, IntType trueValue)
   {
-    return new StringSetValue(button, ctr, name, value);
+    return new BooleanValue<QGroupBox, IntType>(box, ctr, name, trueValue, IntType(0), defValue);
   }
 
-  Value* IntegerValue::Bind(QComboBox& combo, Container& ctr, Identifier name, int defValue)
+  Value* Value::Bind(QComboBox& combo, Container& ctr, Identifier name, std::optional<IntType> defValue)
   {
-    return new IntegerValueImpl<QComboBox>(combo, ctr, name, defValue);
+    return new IntegerValue<QComboBox>(combo, ctr, name, std::move(defValue));
   }
 
-  Value* IntegerValue::Bind(QSlider& slider, Container& ctr, Identifier name, int defValue)
+  Value* Value::Bind(QSlider& slider, Container& ctr, Identifier name, std::optional<IntType> defValue)
   {
-    return new IntegerValueImpl<QSlider>(slider, ctr, name, defValue);
+    return new IntegerValue<QSlider>(slider, ctr, name, std::move(defValue));
   }
 
-  Value* IntegerValue::Bind(QSpinBox& spinbox, Container& ctr, Identifier name, int defValue)
+  Value* Value::Bind(QSpinBox& spinbox, Container& ctr, Identifier name, std::optional<IntType> defValue)
   {
-    return new IntegerValueImpl<QSpinBox>(spinbox, ctr, name, defValue);
+    return new IntegerValue<QSpinBox>(spinbox, ctr, name, std::move(defValue));
   }
 
-  Value* IntegerValue::Bind(QComboBox& combo, Integer::Ptr val)
+  Value* Value::Bind(QLineEdit& edit, Container& ctr, Identifier name, std::optional<IntType> defValue)
   {
-    return new IntegerValueControl<QComboBox>(combo, std::move(val));
+    return new IntegerTextValue(edit, ctr, name, std::move(defValue));
   }
 
-  Value* BigIntegerValue::Bind(QLineEdit& edit, Container& ctr, const IntegerTraits& traits)
+  Value* Value::Bind(QLineEdit& edit, Container& ctr, Identifier name, std::optional<StringType> defValue)
   {
-    return new BigIntegerValueImpl(edit, ctr, traits);
+    return new StringValue(edit, ctr, name, std::move(defValue));
   }
 
-  Value* StringValue::Bind(QLineEdit& edit, Container& ctr, Identifier name, StringView defValue)
+  Value* Value::Bind(QComboBox& combo, Container& ctr, Identifier name, const Strings::Array& values,
+                     StringView defValue)
   {
-    return new StringValueImpl(edit, ctr, name, defValue);
+    return new IndexedValue<StringType>(combo, ctr, name, values, String(defValue));
   }
-}  // namespace Parameters
+
+  Value* Value::Bind(QComboBox& combo, Container& ctr, Identifier name, const std::vector<IntType>& values,
+                     IntType defValue)
+  {
+    return new IndexedValue<IntType>(combo, ctr, name, values, defValue);
+  }
+}  // namespace UI

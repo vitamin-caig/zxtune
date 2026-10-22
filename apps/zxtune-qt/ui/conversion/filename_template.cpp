@@ -18,7 +18,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "filename_template.ui.h"
 
-#include "io/providers_parameters.h"
+#include "io/providers/parameters.h"
 
 #include "contract.h"
 
@@ -48,6 +48,10 @@ namespace
     }
   }
 
+}  // namespace
+
+namespace UI
+{
   class FilenameTemplateWidgetImpl
     : public UI::FilenameTemplateWidget
     , private UI::Ui_FilenameTemplateWidget
@@ -76,10 +80,8 @@ namespace
       State->Load();
 
       using namespace Parameters;
-      IntegerValue::Bind(*overwriteExisting, *Options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING,
-                         ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT);
-      BooleanValue::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES,
-                         ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
+      Value::Bind<ZXTune::IO::Providers::File::OverwriteExisting>(*overwriteExisting, *Options);
+      Value::Bind<ZXTune::IO::Providers::File::CreateDirectories>(*createDirectories, *Options);
     }
 
     ~FilenameTemplateWidgetImpl() override
@@ -158,10 +160,6 @@ namespace
   private:
     UI::FilenameTemplateWidget* TemplateBuilder = nullptr;
   };
-}  // namespace
-
-namespace UI
-{
   FilenameTemplateWidget::FilenameTemplateWidget(QWidget& parent)
     : QWidget(&parent)
   {}

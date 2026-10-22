@@ -15,14 +15,14 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "sid.ui.h"
 
-#include "core/core_parameters.h"
-#include "sound/sound_parameters.h"
+#include "core/parameters.h"
+#include "sound/parameters.h"
 
 #include "contract.h"
 
 #include <utility>
 
-namespace
+namespace UI
 {
   class SIDOptionsWidget
     : public UI::SIDSettingsWidget
@@ -37,9 +37,8 @@ namespace
       setupUi(this);
 
       using namespace Parameters;
-      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SID::INTERPOLATION,
-                                         ZXTune::Core::SID::INTERPOLATION_DEFAULT);
-      BooleanValue::Bind(*filterValue, *Options, ZXTune::Core::SID::FILTER, ZXTune::Core::SID::FILTER_DEFAULT);
+      Interpolation = Value::Bind<ZXTune::Core::SID::Interpolation>(*interpolationValue, *Options);
+      Value::Bind<ZXTune::Core::SID::Filter>(*filterValue, *Options);
     }
 
     // QWidget
@@ -47,7 +46,7 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
-        const Parameters::ValueSnapshot blockInterpolation(*Interpolation);
+        const ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
       }
       UI::SIDSettingsWidget::changeEvent(event);
@@ -55,11 +54,8 @@ namespace
 
   private:
     const Parameters::Container::Ptr Options;
-    Parameters::Value* Interpolation;
+    Value* Interpolation;
   };
-}  // namespace
-namespace UI
-{
   SIDSettingsWidget::SIDSettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

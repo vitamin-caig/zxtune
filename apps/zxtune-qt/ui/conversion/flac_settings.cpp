@@ -16,7 +16,7 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "flac_settings.ui.h"
 
-#include "sound/backends_parameters.h"
+#include "sound/backends/parameters.h"
 
 #include "contract.h"
 
@@ -29,6 +29,10 @@ namespace
     return QApplication::translate("FlacSettings", msg);
   }
 
+}  // namespace
+
+namespace UI
+{
   class FLACSettingsWidget
     : public UI::BackendSettingsWidget
     , private Ui::FlacSettings
@@ -44,8 +48,7 @@ namespace
       Require(connect(compressionValue, &QSlider::valueChanged, this, &UI::BackendSettingsWidget::SettingChanged<int>));
 
       using namespace Parameters;
-      IntegerValue::Bind(*compressionValue, *Options, ZXTune::Sound::Backends::Flac::COMPRESSION,
-                         ZXTune::Sound::Backends::Flac::COMPRESSION_DEFAULT);
+      Value::Bind<ZXTune::Sound::Backends::Flac::Compression>(*compressionValue, *Options);
     }
 
     StringView GetBackendId() const override
@@ -61,10 +64,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-
-namespace UI
-{
   BackendSettingsWidget* CreateFLACSettingsWidget(QWidget& parent)
   {
     return new FLACSettingsWidget(parent);

@@ -517,7 +517,7 @@ namespace UI
   {
     using namespace Parameters;
     auto container = MakePtr<NamespaceContainer>(GlobalOptions::Instance().Get(),
-                                                 static_cast<Identifier>(ZXTuneQT::UI::PREFIX).Append(category));
+                                                 static_cast<Identifier>(ZXTuneQT::UI::Prefix).Append(category));
     return MakePtr<PersistentState>(container);
   }
 
@@ -526,7 +526,7 @@ namespace UI
     using namespace Parameters;
     auto container = MakePtr<NamespaceContainer>(
         GlobalOptions::Instance().Get(),
-        static_cast<Identifier>(ZXTuneQT::UI::PREFIX).Append(root.objectName().toStdString()));
+        static_cast<Identifier>(ZXTuneQT::UI::Prefix).Append(root.objectName().toStdString()));
     State::Ptr res = MakePtr<PersistentState>(container);
     res->AddWidget(root);
     return res;

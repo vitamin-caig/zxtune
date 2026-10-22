@@ -18,7 +18,7 @@
 #include "debug/log.h"
 #include "devices/aym.h"
 #include "platform/shared_library.h"
-#include "sound/backends_parameters.h"
+#include "sound/backends/parameters.h"
 
 #include "byteorder.h"
 #include "error_tools.h"

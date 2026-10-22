@@ -13,7 +13,7 @@
 #include "formats/chiptune/common/decoder.h"
 #include "module/players/properties_helper.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "parameters/tracking_helper.h"
 #include "strings/sanitize.h"
 #include "time/duration.h"
@@ -168,15 +168,14 @@ namespace Module::Xmp
       if (Params.IsChanged())
       {
         using namespace Parameters::ZXTune::Core;
-        ApplyInterpolation(Parameters::GetInteger(*Params, DAC::INTERPOLATION, DAC::INTERPOLATION_DEFAULT));
-        ApplyMuting(Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT));
+        ApplyInterpolation(Params.Get<DAC::Interpolation>());
+        ApplyMuting(Params.Get<ChannelsMask>());
       }
     }
 
-    void ApplyInterpolation(uint_t val)
+    void ApplyInterpolation(bool val)
     {
-      const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? XMP_INTERP_SPLINE
-                                                                                       : XMP_INTERP_LINEAR;
+      const int interpolation = val ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
       Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), interpolation);
     }
 

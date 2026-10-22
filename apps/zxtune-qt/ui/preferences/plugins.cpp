@@ -15,13 +15,13 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "plugins.ui.h"
 
-#include "core/plugins_parameters.h"
+#include "core/plugins/parameters.h"
 
 #include "contract.h"
 
 #include <utility>
 
-namespace
+namespace UI
 {
   class PluginsOptionsWidget
     : public UI::PluginsSettingsWidget
@@ -37,13 +37,11 @@ namespace
 
       using namespace Parameters;
       // raw scaner
-      IntegerValue::Bind(*rawMinSizeValue, *Options, ZXTune::Core::Plugins::Raw::MIN_SIZE,
-                         ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT);
-      BooleanValue::Bind(*rawPlainDoubleAnalysis, *Options, ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS, false);
+      Value::Bind<ZXTune::Core::Plugins::Raw::MinSize>(*rawMinSizeValue, *Options);
+      Value::Bind<ZXTune::Core::Plugins::Raw::PlainDoubleAnalysis>(*rawPlainDoubleAnalysis, *Options);
 
       // players
-      IntegerValue::Bind(*defaultDurationValue, *Options, ZXTune::Core::Plugins::DEFAULT_DURATION,
-                         ZXTune::Core::Plugins::DEFAULT_DURATION_DEFAULT);
+      Value::Bind<ZXTune::Core::Plugins::DefaultDuration>(*defaultDurationValue, *Options);
     }
 
     // QWidget
@@ -59,10 +57,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
   };
-}  // namespace
-
-namespace UI
-{
   PluginsSettingsWidget::PluginsSettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

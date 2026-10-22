@@ -64,12 +64,6 @@
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
-        <property name="minimum">
-         <number>3</number>
-        </property>
-        <property name="maximum">
-         <number>10</number>
-        </property>
        </widget>
       </item>
      </layout>

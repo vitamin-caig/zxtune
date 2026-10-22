@@ -13,7 +13,7 @@
 #include "devices/aym/chip.h"
 #include "module/players/aym/freq_tables.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "l10n/api.h"
 #include "math/numeric.h"
 
@@ -105,12 +105,12 @@ namespace Module::AYM
     uint_t ClockFreq() const override
     {
       using namespace Parameters::ZXTune::Core::AYM;
-      const auto val = Parameters::GetInteger(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
-      if (!Math::InRange(val, CLOCKRATE_MIN, CLOCKRATE_MAX))
+      const auto val = Parameters::Get<Clockrate>(*Params);
+      if (!Parameters::Validate<Clockrate>(val))
       {
         throw MakeFormattedError(THIS_LINE, translate("Invalid clock frequency ({})."), val);
       }
-      return static_cast<uint64_t>(val);
+      return val;
     }
 
     uint_t SoundFreq() const override
@@ -121,21 +121,21 @@ namespace Module::AYM
     Devices::AYM::ChipType Type() const override
     {
       using namespace Parameters::ZXTune::Core::AYM;
-      return Parameters::GetInteger<Devices::AYM::ChipType>(*Params, TYPE, TYPE_DEFAULT);
+      return static_cast<Devices::AYM::ChipType>(Parameters::Get<Chip>(*Params));
     }
 
     Devices::AYM::InterpolationType Interpolation() const override
     {
-      using namespace Parameters::ZXTune::Core::AYM;
-      return Parameters::GetInteger<Devices::AYM::InterpolationType>(*Params, INTERPOLATION, INTERPOLATION_DEFAULT);
+      return static_cast<Devices::AYM::InterpolationType>(
+          Parameters::Get<Parameters::ZXTune::Core::AYM::Interpolation>(*Params));
     }
 
     uint_t DutyCycleValue() const override
     {
       using namespace Parameters::ZXTune::Core::AYM;
-      const auto val = Parameters::GetInteger(*Params, DUTY_CYCLE, DUTY_CYCLE_DEFAULT);
+      const auto val = Parameters::Get<DutyCycle>(*Params);
       // duty cycle in percents should be in range 1..99 inc
-      if (!Math::InRange(val, DUTY_CYCLE_MIN, DUTY_CYCLE_MAX))
+      if (!Parameters::Validate<DutyCycle>(val))
       {
         throw MakeFormattedError(THIS_LINE, translate("Invalid duty cycle value ({})."), val);
       }
@@ -144,13 +144,11 @@ namespace Module::AYM
 
     uint_t DutyCycleMask() const override
     {
-      using namespace Parameters::ZXTune::Core::AYM;
-      Parameters::IntType intVal = DUTY_CYCLE_MASK_DEFAULT;
-      if (Parameters::FindValue(*Params, DUTY_CYCLE_MASK, intVal))
+      if (const auto intVal = Parameters::Find<Parameters::ZXTune::Core::AYM::DutyCycleMask>(*Params))
       {
-        return static_cast<uint_t>(intVal);
+        return *intVal;
       }
-      if (const auto strVal = Params->FindString(DUTY_CYCLE_MASK))
+      if (const auto strVal = Params->FindString(Parameters::ZXTune::Core::AYM::DutyCycleMask::Key))
       {
         return String2Mask(*strVal);
       }
@@ -160,7 +158,7 @@ namespace Module::AYM
     Devices::AYM::LayoutType Layout() const override
     {
       using namespace Parameters::ZXTune::Core::AYM;
-      if (const auto val = Params->FindInteger(LAYOUT))
+      if (const auto val = Params->FindInteger(Parameters::ZXTune::Core::AYM::Layout::Key))
       {
         if (!Math::InRange<Parameters::IntType>(*val, Devices::AYM::LAYOUT_ABC, Devices::AYM::LAYOUT_LAST))
         {
@@ -168,7 +166,7 @@ namespace Module::AYM
         }
         return static_cast<Devices::AYM::LayoutType>(*val);
       }
-      if (const auto strVal = Params->FindString(LAYOUT))
+      if (const auto strVal = Params->FindString(Parameters::ZXTune::Core::AYM::Layout::Key))
       {
         return String2Layout(*strVal);
       }
@@ -178,7 +176,7 @@ namespace Module::AYM
     uint_t MuteMask() const override
     {
       using namespace Parameters::ZXTune::Core;
-      return Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+      return Parameters::Get<ChannelsMask>(*Params);
     }
 
   private:
@@ -201,13 +199,13 @@ namespace Module::AYM
     void FreqTable(FrequencyTable& table) const override
     {
       using namespace Parameters::ZXTune::Core::AYM;
-      if (const auto newName = Params->FindString(TABLE))
+      if (const auto newName = Params->FindString(Table::Key))
       {
         table = GetFreqTable(*newName);
       }
       else
       {
-        const auto newData = Params->FindData(TABLE);
+        const auto newData = Params->FindData(Table::Key);
         // frequency table is mandatory!!!
         Require(!!newData);
         // as dump
@@ -240,7 +238,7 @@ namespace Module::AYM
 
     void FreqTable(FrequencyTable& table) const override
     {
-      if (const auto newName = Params->FindString(Parameters::ZXTune::Core::AYM::TABLE))
+      if (const auto newName = Params->FindString(Parameters::ZXTune::Core::AYM::Table::Key))
       {
         const auto& subName = ExtractMergedValue(*newName);
         table = GetFreqTable(subName);

@@ -16,14 +16,14 @@
 #include "apps/zxtune-qt/ui/utils.h"
 
 #include "async/src/event.h"
+#include "sound/backends/parameters.h"
 
 #include "io/api.h"
 #include "io/template.h"
 #include "parameters/merged_accessor.h"
 #include "parameters/template.h"
 #include "sound/backend.h"
-#include "sound/backends_parameters.h"
-#include "sound/sound_parameters.h"
+#include "sound/parameters.h"
 #include "tools/progress_callback_helpers.h"
 
 #include "contract.h"
@@ -258,8 +258,8 @@ namespace
   Parameters::Accessor::Ptr CreateSoundParameters(const Playlist::Item::Conversion::Options& opts)
   {
     auto overriden = Parameters::Container::Create();
-    overriden->SetValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, opts.FilenameTemplate);
-    overriden->SetValue(Parameters::ZXTune::Sound::LOOPED, 0);
+    Parameters::Set<Parameters::ZXTune::Sound::Backends::File::Filename>(*overriden, opts.FilenameTemplate);
+    Parameters::Set<Parameters::ZXTune::Sound::Looped>(*overriden, false);
     return Parameters::CreateMergedAccessor(std::move(overriden), opts.Params);
   }
 }  // namespace

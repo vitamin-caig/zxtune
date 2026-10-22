@@ -19,7 +19,7 @@
 #include "debug/log.h"
 #include "module/attributes.h"
 #include "parameters/convert.h"
-#include "sound/sound_parameters.h"
+#include "sound/parameters.h"
 
 #include "error_tools.h"
 #include "string_view.h"

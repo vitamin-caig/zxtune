@@ -10,7 +10,7 @@
 
 #include "module/players/tfm/tfm_parameters.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 
 #include "make_ptr.h"
 
@@ -34,7 +34,7 @@ namespace Module::TFM
     uint_t ClockFreq() const override
     {
       using namespace Parameters::ZXTune::Core::FM;
-      return Parameters::GetInteger<uint64_t>(*Params, CLOCKRATE, CLOCKRATE_DEFAULT);
+      return Parameters::Get<Clockrate>(*Params);
     }
 
     uint_t SoundFreq() const override
@@ -45,7 +45,7 @@ namespace Module::TFM
     uint_t MuteMask() const override
     {
       using namespace Parameters::ZXTune::Core;
-      return Parameters::GetInteger(*Params, CHANNELS_MASK, CHANNELS_MASK_DEFAULT);
+      return Parameters::Get<ChannelsMask>(*Params);
     }
 
   private:

@@ -15,10 +15,10 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "sound_win32.ui.h"
 
+#include "sound/backends/parameters.h"
 #include "sound/backends/win32.h"
 
 #include "debug/log.h"
-#include "sound/backends_parameters.h"
 
 #include "contract.h"
 
@@ -42,6 +42,10 @@ namespace
     int_t Id = 0;
   };
 
+}  // namespace
+
+namespace UI
+{
   class Win32OptionsWidget
     : public UI::Win32SettingsWidget
     , public Ui::Win32Options
@@ -58,7 +62,7 @@ namespace
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::Win32;
-      Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
+      Value::Bind<Buffers>(*buffers, *Options);
       Require(connect(devices, &QComboBox::currentTextChanged, this, &Win32OptionsWidget::DeviceNameChanged));
     }
 
@@ -91,8 +95,7 @@ namespace
 
     void SelectDevice()
     {
-      using namespace Parameters::ZXTune::Sound::Backends::Win32;
-      const auto curDevice = Parameters::GetInteger(*Options, DEVICE, DEVICE_DEFAULT);
+      const auto curDevice = Parameters::Get<Parameters::ZXTune::Sound::Backends::Win32::Device>(*Options);
       DeviceChanged([curDevice](const Device& dev) { return dev.Id == curDevice; });
     }
 
@@ -103,7 +106,7 @@ namespace
       if (it != Devices.end())
       {
         devices->setCurrentIndex(it - Devices.begin());
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::Win32::DEVICE, it->Id);
+        Parameters::Set<Parameters::ZXTune::Sound::Backends::Win32::Device>(*Options, it->Id);
       }
       else
       {
@@ -128,9 +131,6 @@ namespace
     using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
-}  // namespace
-namespace UI
-{
   Win32SettingsWidget::Win32SettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
   {}

@@ -12,7 +12,7 @@
 #include "parameters/delegated.h"
 #include "sound/matrix_mixer.h"
 #include "sound/mixer_parameters.h"
-#include "sound/sound_parameters.h"
+#include "sound/parameters.h"
 
 #include "make_ptr.h"
 
@@ -28,10 +28,9 @@ namespace Sound
     for (uint_t outChan = 0; outChan != out.size(); ++outChan)
     {
       using namespace Parameters::ZXTune::Sound;
-      const auto name = Mixer::LEVEL(channels, inChan, outChan);
-      const auto def = Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
-      const auto val = Parameters::GetInteger<int_t>(params, name, def);
-      out[outChan] = Gain::Type(val, GAIN_PRECISION);
+      const auto level = Mixer::Level::For(channels, inChan, outChan);
+      const auto val = Parameters::GetInteger<int_t>(params, level.Key, level.Default);
+      out[outChan] = Gain::Type(val, Parameters::ZXTune::Sound::Gain::Precision);
     }
   }
 

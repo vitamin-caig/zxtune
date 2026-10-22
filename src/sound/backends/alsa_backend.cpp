@@ -12,14 +12,14 @@
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/gates/alsa_api.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/parameters.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/volume_control.h"
 
 #include "debug/log.h"
 #include "math/numeric.h"
-#include "sound/backends_parameters.h"
+#include "sound/parameters.h"
 #include "sound/render_params.h"
-#include "sound/sound_parameters.h"
 #include "strings/split.h"
 
 #include "byteorder.h"
@@ -663,20 +663,18 @@ namespace Sound::Alsa
 
     String GetDeviceName() const
     {
-      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      return Parameters::GetString(Accessor, DEVICE, DEVICE_DEFAULT);
+      return Parameters::Get<Parameters::ZXTune::Sound::Backends::Alsa::Device>(Accessor);
     }
 
     String GetMixerName() const
     {
-      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      return Parameters::GetString(Accessor, MIXER);
+      return Parameters::Get<Parameters::ZXTune::Sound::Backends::Alsa::Mixer>(Accessor);
     }
 
     Time::Milliseconds GetLatency() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      const auto val = Parameters::GetInteger<uint_t>(Accessor, LATENCY, LATENCY_DEFAULT);
+      const auto val = Parameters::Get<Latency>(Accessor);
       if (!Math::InRange(val, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, translate("ALSA backend error: latency ({0}) is out of range ({1}..{2})."),
@@ -960,7 +958,7 @@ namespace Sound::Alsa
     static Ptr CreateDefault(Api::Ptr api)
     {
       static const auto DEFAULT_DEVICE_NAME = "Default"sv;
-      return MakePtr<DeviceInfo>(std::move(api), Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT,
+      return MakePtr<DeviceInfo>(std::move(api), Parameters::ZXTune::Sound::Backends::Alsa::Device::Default,
                                  DEFAULT_DEVICE_NAME, DEFAULT_DEVICE_NAME);
     }
 

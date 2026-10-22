@@ -13,12 +13,12 @@
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/archives/archived.h"
 #include "core/plugins/archives/l10n.h"
+#include "core/plugins/parameters.h"
 #include "core/plugins/players/plugin.h"
 
 #include "binary/container.h"
 #include "core/plugin.h"
 #include "core/plugin_attrs.h"
-#include "core/plugins_parameters.h"
 #include "debug/log.h"
 #include "math/scale.h"
 #include "strings/conversion.h"
@@ -446,7 +446,7 @@ namespace ZXTune::Raw
 
     static bool DoubleAnalysis(const Parameters::Accessor& params)
     {
-      return 0 != Parameters::GetInteger(params, Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS);
+      return Parameters::Get<Parameters::ZXTune::Core::Plugins::Raw::PlainDoubleAnalysis>(params);
     }
 
     //! @brief a container trait never changes, unlike the parameter checked against it
@@ -463,7 +463,7 @@ namespace ZXTune::Raw
     std::size_t GetMinimalSize() const
     {
       using namespace Parameters::ZXTune::Core::Plugins::Raw;
-      const auto minRawSize = Parameters::GetInteger<std::size_t>(Accessor, MIN_SIZE, MIN_SIZE_DEFAULT);
+      const auto minRawSize = Parameters::Get<MinSize>(Accessor);
       if (minRawSize < MIN_MINIMAL_RAW_SIZE)
       {
         throw MakeFormattedError(THIS_LINE, translate("Specified minimal scan size ({0}). Should be more than {1}."),

@@ -10,19 +10,20 @@
 
 #pragma once
 
-#include "sound/sound_parameters.h"
+#include "sound/parameters.h"
 
 namespace Parameters::ZXTune::Sound::Mixer
 {
   //! @brief Parameters#ZXTune#Sound#Mixer namespace prefix
-  const auto PREFIX = Sound::PREFIX + "mixer"_id;
+  constexpr auto Prefix = Sound::Prefix + "mixer"_id;
 
-  //@{
-  //! @brief Function to create parameter name
-  Identifier LEVEL(uint_t totalChannels, uint_t inChannel, uint_t outChannel);
+  //! @brief Mixer level for a channels pair, percent-based
+  //! @see Parameters#ZXTune#Sound#Gain#Precision
+  struct Level
+  {
+    const Identifier Key = ""_id;
+    const uint_t Default = 0;
 
-  //! @brief Function to get defaul percent-based level
-  //! @see Parameters#ZXTune#Sound#GAIN_PRECISION
-  IntType LEVEL_DEFAULT(uint_t totalChannels, uint_t inChannel, uint_t outChannel);
-  //@}
+    static Level For(uint_t channels, uint_t inChannel, uint_t outChannel);
+  };
 }  // namespace Parameters::ZXTune::Sound::Mixer

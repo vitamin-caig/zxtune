@@ -16,9 +16,9 @@
 #include "sound_alsa.ui.h"
 
 #include "sound/backends/alsa.h"
+#include "sound/backends/parameters.h"
 
 #include "debug/log.h"
-#include "sound/backends_parameters.h"
 
 #include "contract.h"
 #include "string_view.h"
@@ -57,6 +57,10 @@ namespace
     box.setCurrentIndex(-1);
   }
 
+}  // namespace
+
+namespace UI
+{
   class AlsaOptionsWidget
     : public UI::AlsaSettingsWidget
     , public Ui::AlsaOptions
@@ -73,7 +77,7 @@ namespace
       SelectDevice();
 
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      Parameters::IntegerValue::Bind(*latency, *Options, LATENCY, LATENCY_DEFAULT);
+      Value::Bind<Latency>(*latency, *Options);
       Require(connect(mixers, &QComboBox::currentTextChanged, this, &AlsaOptionsWidget::MixerChanged));
       Require(connect(devices, &QComboBox::currentTextChanged, this, &AlsaOptionsWidget::DeviceChanged));
     }
@@ -102,7 +106,7 @@ namespace
     void SelectDevice()
     {
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      const auto curDevice = Parameters::GetString(*Options, DEVICE, DEVICE_DEFAULT);
+      const auto curDevice = Parameters::Get<Parameters::ZXTune::Sound::Backends::Alsa::Device>(*Options);
       // force fill mixers- signal is not called by previous function (even when connected before, why?)
       DeviceChanged(ToQString(curDevice));
     }
@@ -122,7 +126,7 @@ namespace
     void SelectMixer()
     {
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
-      const auto curMixer = Parameters::GetString(*Options, MIXER);
+      const auto curMixer = Parameters::Get<Parameters::ZXTune::Sound::Backends::Alsa::Mixer>(*Options);
       SetComboValue(*mixers, curMixer);
     }
 
@@ -137,7 +141,7 @@ namespace
         devices->setCurrentIndex(it - Devices.begin());
         mixers->clear();
         mixers->addItems(it->MixerNames);
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::Alsa::DEVICE, it->Id);
+        Parameters::Set<Parameters::ZXTune::Sound::Backends::Alsa::Device>(*Options, it->Id);
         SelectMixer();
       }
       else
@@ -153,7 +157,7 @@ namespace
       {
         const String mixer = FromQString(name);
         Dbg("Selecting mixer '{}'", mixer);
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, mixer);
+        Parameters::Set<Parameters::ZXTune::Sound::Backends::Alsa::Mixer>(*Options, mixer);
       }
     }
 
@@ -178,9 +182,6 @@ namespace
     using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
-}  // namespace
-namespace UI
-{
   AlsaSettingsWidget::AlsaSettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
   {}

@@ -12,23 +12,23 @@
 
 #include "apps/zxtune123/sound.h"
 
+#include "core/plugins/parameters.h"
+#include "io/providers/parameters.h"
 #include "module/players/aym/freq_tables.h"
+#include "sound/backends/parameters.h"
 
-#include "core/core_parameters.h"
+#include "core/parameters.h"
 #include "core/plugin.h"
 #include "core/plugin_attrs.h"
-#include "core/plugins_parameters.h"
 #include "io/io_parameters.h"
 #include "io/provider.h"
-#include "io/providers_parameters.h"
 #include "module/attributes.h"
 #include "platform/application.h"
 #include "sound/backend.h"
 #include "sound/backend_attrs.h"
-#include "sound/backends_parameters.h"
 #include "sound/mixer_parameters.h"
+#include "sound/parameters.h"
 #include "sound/service.h"
-#include "sound/sound_parameters.h"
 #include "strings/format.h"
 
 #include "static_string.h"
@@ -321,118 +321,121 @@ namespace
     static const OptionDesc OPTIONS[] = {
         // IO parameters
         {" IO providers options:"},
-        {Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, "minimal size for use memory mapping",
-         Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT},
-        {Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES,
+        {Parameters::ZXTune::IO::Providers::File::MmapThreshold::Key, "minimal size for use memory mapping",
+         Parameters::IntType(Parameters::ZXTune::IO::Providers::File::MmapThreshold::Default)},
+        {Parameters::ZXTune::IO::Providers::File::CreateDirectories::Key,
          "create all intermediate directories (applicable for for file-based backends)",
-         Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT},
-        {Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING,
+         Parameters::IntType(Parameters::ZXTune::IO::Providers::File::CreateDirectories::Default)},
+        {Parameters::ZXTune::IO::Providers::File::OverwriteExisting::Key,
          "overwrite target file if already exists (applicable for for file-based backends)",
-         Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT},
+         Parameters::IntType(Parameters::ZXTune::IO::Providers::File::OverwriteExisting::Default)},
         // Sound parameters
         {" Sound options:"},
-        {Parameters::ZXTune::Sound::FREQUENCY, "sound frequency in Hz", Parameters::ZXTune::Sound::FREQUENCY_DEFAULT},
-        {Parameters::ZXTune::Sound::LOOPED, "loop playback", EMPTY},
+        {Parameters::ZXTune::Sound::Frequency::Key, "sound frequency in Hz",
+         Parameters::IntType(Parameters::ZXTune::Sound::Frequency::Default)},
+        {Parameters::ZXTune::Sound::Looped::Key, "loop playback", EMPTY},
         // Mixer parameters
         {" Mixer options:"},
-        {Parameters::ZXTune::Sound::Mixer::PREFIX + "A.B_C"_id,
+        {Parameters::ZXTune::Sound::Mixer::Prefix + "A.B_C"_id,
          "specify level in percent (A- total channels count, B- input channel, C- output channel). E.g. when A=3, "
          "B=0, C=1 will specify A channel level of AY/YM-like chiptunes to right stereochannel",
          EMPTY},
         // Sound backend parameters
         {" Sound backends options:"},
-        {Parameters::ZXTune::Sound::Backends::File::FILENAME,
+        {Parameters::ZXTune::Sound::Backends::File::Filename::Key,
          "filename template for file-based backends (see --list-attributes command). Also duplicated in "
          "backend-specific namespace",
          EMPTY},
-        {Parameters::ZXTune::Sound::Backends::File::BUFFERS,
+        {Parameters::ZXTune::Sound::Backends::File::Buffers::Key,
          "use asynchronous conversing with specified queue size for file-based backends. Also duplicated in "
          "backend-specific namespace",
-         0},
-        {Parameters::ZXTune::Sound::Backends::Win32::DEVICE, "device index for win32 backend",
-         Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, "playback buffers count",
-         Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Oss::DEVICE, "playback device for OSS backend",
-         Parameters::ZXTune::Sound::Backends::Oss::DEVICE_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Oss::MIXER, "mixer device for OSS backend",
-         Parameters::ZXTune::Sound::Backends::Oss::MIXER_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Alsa::DEVICE, "playback device for ALSA backend",
-         Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Alsa::MIXER,
+         Parameters::ZXTune::Sound::Backends::File::Buffers::Default},
+        {Parameters::ZXTune::Sound::Backends::Win32::Device::Key, "device index for win32 backend",
+         Parameters::ZXTune::Sound::Backends::Win32::Device::Default},
+        {Parameters::ZXTune::Sound::Backends::Win32::Buffers::Key, "playback buffers count",
+         Parameters::ZXTune::Sound::Backends::Win32::Buffers::Default},
+        {Parameters::ZXTune::Sound::Backends::Oss::Device::Key, "playback device for OSS backend",
+         Parameters::ZXTune::Sound::Backends::Oss::Device::Default},
+        {Parameters::ZXTune::Sound::Backends::Oss::Mixer::Key, "mixer device for OSS backend",
+         Parameters::ZXTune::Sound::Backends::Oss::Mixer::Default},
+        {Parameters::ZXTune::Sound::Backends::Alsa::Device::Key, "playback device for ALSA backend",
+         Parameters::ZXTune::Sound::Backends::Alsa::Device::Default},
+        {Parameters::ZXTune::Sound::Backends::Alsa::Mixer::Key,
          "mixer for ALSA backend (taking the first one if not specified)", EMPTY},
-        {Parameters::ZXTune::Sound::Backends::Alsa::LATENCY, "latency in ms for ALSA backend",
-         Parameters::ZXTune::Sound::Backends::Alsa::LATENCY_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS, "buffers count for SDL backend",
-         Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY, "latency in ms for DirectSound backend",
-         Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Alsa::Latency::Key, "latency in ms for ALSA backend",
+         Parameters::ZXTune::Sound::Backends::Alsa::Latency::Default},
+        {Parameters::ZXTune::Sound::Backends::Sdl::Buffers::Key, "buffers count for SDL backend",
+         Parameters::ZXTune::Sound::Backends::Sdl::Buffers::Default},
+        {Parameters::ZXTune::Sound::Backends::DirectSound::Latency::Key, "latency in ms for DirectSound backend",
+         Parameters::ZXTune::Sound::Backends::DirectSound::Latency::Default},
         // Mp3
-        {Parameters::ZXTune::Sound::Backends::Mp3::MODE, "specify mode for Mp3 backend (cbr/abr/vbr)",
-         Parameters::ZXTune::Sound::Backends::Mp3::MODE_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Mp3::BITRATE,
+        {Parameters::ZXTune::Sound::Backends::Mp3::Mode::Key, "specify mode for Mp3 backend (cbr/abr/vbr)",
+         Parameters::ZXTune::Sound::Backends::Mp3::Mode::Default},
+        {Parameters::ZXTune::Sound::Backends::Mp3::Bitrate::Key,
          "specify bitrate in kbps for Mp3 backend in mode=cbr or mode=abr",
-         Parameters::ZXTune::Sound::Backends::Mp3::BITRATE_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Mp3::QUALITY,
+         Parameters::ZXTune::Sound::Backends::Mp3::Bitrate::Default},
+        {Parameters::ZXTune::Sound::Backends::Mp3::Quality::Key,
          "specify quality for Mp3 backend (0- highest, 9- lowest) in mode=vbr",
-         Parameters::ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS,
+         Parameters::ZXTune::Sound::Backends::Mp3::Quality::Default},
+        {Parameters::ZXTune::Sound::Backends::Mp3::Channels::Key,
          "specify channels encoding mode (default/stereo/jointstereo/mode)",
-         Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT},
+         Parameters::ZXTune::Sound::Backends::Mp3::Channels::Default},
         // Ogg
-        {Parameters::ZXTune::Sound::Backends::Ogg::MODE, "specify mode for Ogg backend (quality/abr)",
-         Parameters::ZXTune::Sound::Backends::Ogg::MODE_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Ogg::QUALITY,
+        {Parameters::ZXTune::Sound::Backends::Ogg::Mode::Key, "specify mode for Ogg backend (quality/abr)",
+         Parameters::ZXTune::Sound::Backends::Ogg::Mode::Default},
+        {Parameters::ZXTune::Sound::Backends::Ogg::Quality::Key,
          "specify quality for Ogg backend (0- lowest, 10- highest) in mode=quality",
-         Parameters::ZXTune::Sound::Backends::Ogg::QUALITY_DEFAULT},
-        {Parameters::ZXTune::Sound::Backends::Ogg::BITRATE,
+         Parameters::ZXTune::Sound::Backends::Ogg::Quality::Default},
+        {Parameters::ZXTune::Sound::Backends::Ogg::Bitrate::Key,
          "specify averate bitrate in kbps for Ogg backend in mode=abr",
-         Parameters::ZXTune::Sound::Backends::Ogg::BITRATE_DEFAULT},
+         Parameters::ZXTune::Sound::Backends::Ogg::Bitrate::Default},
         // flac
-        {Parameters::ZXTune::Sound::Backends::Flac::COMPRESSION,
+        {Parameters::ZXTune::Sound::Backends::Flac::Compression::Key,
          "specify compression level for Flac backend (0- lowest, 8- highest)", EMPTY},
-        {Parameters::ZXTune::Sound::Backends::Flac::BLOCKSIZE, "specyfy blocksize in samples for Flac backend", EMPTY},
+        {Parameters::ZXTune::Sound::Backends::Flac::Blocksize::Key, "specyfy blocksize in samples for Flac backend",
+         EMPTY},
         // Core options
         {" Core options:"},
-        {Parameters::ZXTune::Core::AYM::CLOCKRATE, "clock rate for AYM in Hz",
-         Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT},
-        {Parameters::ZXTune::Core::AYM::TYPE, "use YM chip type for AYM rendering",
-         Parameters::ZXTune::Core::AYM::TYPE_DEFAULT},
-        {Parameters::ZXTune::Core::AYM::INTERPOLATION, "use interpolation for AYM rendering",
-         Parameters::ZXTune::Core::AYM::INTERPOLATION_DEFAULT},
-        {Parameters::ZXTune::Core::AYM::TABLE,
+        {Parameters::ZXTune::Core::AYM::Clockrate::Key, "clock rate for AYM in Hz",
+         Parameters::IntType(Parameters::ZXTune::Core::AYM::Clockrate::Default)},
+        {Parameters::ZXTune::Core::AYM::Chip::Key, "use YM chip type for AYM rendering",
+         Parameters::IntType(Parameters::ZXTune::Core::AYM::Chip::Default)},
+        {Parameters::ZXTune::Core::AYM::Interpolation::Key, "use interpolation for AYM rendering",
+         Parameters::IntType(Parameters::ZXTune::Core::AYM::Interpolation::Default)},
+        {Parameters::ZXTune::Core::AYM::Table::Key,
          "frequency table name to use in AY-based players. Can be name (--list-freqtables) or dump (#..). Use '~' to "
          "revert",
          EMPTY},
-        {Parameters::ZXTune::Core::AYM::DUTY_CYCLE, "chip duty cycle value in percent. Should be in range 1..99",
-         Parameters::ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT},
-        {Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK,
+        {Parameters::ZXTune::Core::AYM::DutyCycle::Key, "chip duty cycle value in percent. Should be in range 1..99",
+         Parameters::IntType(Parameters::ZXTune::Core::AYM::DutyCycle::Default)},
+        {Parameters::ZXTune::Core::AYM::DutyCycleMask::Key,
          "chip channels mask where duty cycle will be applied. Can be set of letters (A,B,C) or numeric mask",
-         Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK_DEFAULT},
-        {Parameters::ZXTune::Core::AYM::LAYOUT,
+         Parameters::IntType(Parameters::ZXTune::Core::AYM::DutyCycleMask::Default)},
+        {Parameters::ZXTune::Core::AYM::Layout::Key,
          "chip channels layout. Set of letters or numeric (0-ABC, 1-ACB, 2-BAC, 3-BCA, 4-CBA, 5-CAB)",
-         Parameters::ZXTune::Core::AYM::LAYOUT_DEFAULT},
-        {Parameters::ZXTune::Core::DAC::INTERPOLATION, "use interpolation for DAC rendering",
-         Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT},
-        {Parameters::ZXTune::Core::Z80::INT_TICKS, "Z80 processor INT signal duration in ticks",
-         Parameters::ZXTune::Core::Z80::INT_TICKS_DEFAULT},
-        {Parameters::ZXTune::Core::Z80::CLOCKRATE, "Z80 processor clockrate",
-         Parameters::ZXTune::Core::Z80::CLOCKRATE_DEFAULT},
-        {Parameters::ZXTune::Core::FM::CLOCKRATE, "clock rate for FM in Hz",
-         Parameters::ZXTune::Core::FM::CLOCKRATE_DEFAULT},
-        {Parameters::ZXTune::Core::SAA::CLOCKRATE, "clock rate for SAA in Hz",
-         Parameters::ZXTune::Core::SAA::CLOCKRATE_DEFAULT},
-        {Parameters::ZXTune::Core::SAA::INTERPOLATION, "use interpolation for SAA rendering",
-         Parameters::ZXTune::Core::SAA::INTERPOLATION_DEFAULT},
+         Parameters::IntType(Parameters::ZXTune::Core::AYM::Layout::Default)},
+        {Parameters::ZXTune::Core::DAC::Interpolation::Key, "use interpolation for DAC rendering",
+         Parameters::IntType(Parameters::ZXTune::Core::DAC::Interpolation::Default)},
+        {Parameters::ZXTune::Core::Z80::IntTicks::Key, "Z80 processor INT signal duration in ticks",
+         Parameters::IntType(Parameters::ZXTune::Core::Z80::IntTicks::Default)},
+        {Parameters::ZXTune::Core::Z80::Clockrate::Key, "Z80 processor clockrate",
+         Parameters::IntType(Parameters::ZXTune::Core::Z80::Clockrate::Default)},
+        {Parameters::ZXTune::Core::FM::Clockrate::Key, "clock rate for FM in Hz",
+         Parameters::IntType(Parameters::ZXTune::Core::FM::Clockrate::Default)},
+        {Parameters::ZXTune::Core::SAA::Clockrate::Key, "clock rate for SAA in Hz",
+         Parameters::IntType(Parameters::ZXTune::Core::SAA::Clockrate::Default)},
+        {Parameters::ZXTune::Core::SAA::Interpolation::Key, "use interpolation for SAA rendering",
+         Parameters::IntType(Parameters::ZXTune::Core::SAA::Interpolation::Default)},
         // Core plugins options
         {" Core plugins options:"},
-        {Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS, "analyze cap_plain plugins twice", EMPTY},
-        {Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE, "minimum data size to use raw scaner",
-         Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT},
-        {Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, "ignore corrupted blocks in HRiP archive", EMPTY},
-        {Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB,
+        {Parameters::ZXTune::Core::Plugins::Raw::PlainDoubleAnalysis::Key, "analyze cap_plain plugins twice", EMPTY},
+        {Parameters::ZXTune::Core::Plugins::Raw::MinSize::Key, "minimum data size to use raw scaner",
+         Parameters::IntType(Parameters::ZXTune::Core::Plugins::Raw::MinSize::Default)},
+        {Parameters::ZXTune::Core::Plugins::Hrip::IgnoreCorrupted::Key, "ignore corrupted blocks in HRiP archive",
+         EMPTY},
+        {Parameters::ZXTune::Core::Plugins::Zip::MaxDepackedFileSizeMb::Key,
          "maximal file size to be depacked from .zip archive",
-         Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB_DEFAULT}};
+         Parameters::IntType(Parameters::ZXTune::Core::Plugins::Zip::MaxDepackedFileSizeMb::Default)}};
     StdOut << "Supported zxtune options:" << std::endl;
     for (const auto& opt : OPTIONS)
     {

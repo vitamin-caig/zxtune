@@ -15,8 +15,8 @@
 #include "apps/zxtune-qt/ui/utils.h"
 #include "aym.ui.h"
 
-#include "core/core_parameters.h"
-#include "sound/sound_parameters.h"
+#include "core/parameters.h"
+#include "sound/parameters.h"
 
 #include "contract.h"
 
@@ -28,6 +28,10 @@ namespace
       1773400, 1750000, 3500000, 2000000, 1000000,
   };
 
+}  // namespace
+
+namespace UI
+{
   class AYMOptionsWidget
     : public UI::AYMSettingsWidget
     , public Ui::AYMOptions
@@ -45,14 +49,10 @@ namespace
                       &AYMOptionsWidget::OnClockRatePresetChanged));
 
       using namespace Parameters;
-      const IntegerTraits clockRate(ZXTune::Core::AYM::CLOCKRATE, ZXTune::Core::AYM::CLOCKRATE_DEFAULT,
-                                    ZXTune::Core::AYM::CLOCKRATE_MIN, ZXTune::Core::AYM::CLOCKRATE_MAX);
-      BigIntegerValue::Bind(*clockRateValue, *Options, clockRate);
-      BooleanValue::Bind(*dutyCycleGroup, *Options, ZXTune::Core::AYM::DUTY_CYCLE_MASK, false, 7);
-      IntegerValue::Bind(*dutyCycleValue, *Options, ZXTune::Core::AYM::DUTY_CYCLE,
-                         ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT);
-      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::AYM::INTERPOLATION,
-                                         ZXTune::Core::AYM::INTERPOLATION_DEFAULT);
+      Value::Bind<ZXTune::Core::AYM::Clockrate>(*clockRateValue, *Options);
+      Value::Bind<ZXTune::Core::AYM::DutyCycleMask>(*dutyCycleGroup, *Options, 7);
+      Value::Bind<ZXTune::Core::AYM::DutyCycle>(*dutyCycleValue, *Options);
+      Interpolation = Value::Bind<ZXTune::Core::AYM::Interpolation>(*interpolationValue, *Options);
     }
 
     // QWidget
@@ -62,7 +62,7 @@ namespace
       {
         // do not change preset or smth
         const AutoBlockSignal blockClockrate(*clockRatePresets);
-        const Parameters::ValueSnapshot blockInterpolation(*Interpolation);
+        const ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
         // restore combobox value
         OnClockRateChanged(clockRateValue->text());
@@ -96,11 +96,8 @@ namespace
 
   private:
     const Parameters::Container::Ptr Options;
-    Parameters::Value* Interpolation;
+    Value* Interpolation;
   };
-}  // namespace
-namespace UI
-{
   AYMSettingsWidget::AYMSettingsWidget(QWidget& parent)
     : QWidget(&parent)
   {}

@@ -13,16 +13,17 @@
 #include "apps/zxtune123/config.h"
 #include "apps/zxtune123/console.h"
 
+#include "devices/aym/chip.h"
+#include "io/providers/parameters.h"
 #include "module/properties/path.h"
 
 #include "core/additional_files_resolve.h"
-#include "core/core_parameters.h"
 #include "core/data_location.h"
+#include "core/parameters.h"
 #include "core/plugin.h"
 #include "core/plugin_attrs.h"
 #include "core/service.h"
 #include "io/api.h"
-#include "io/providers_parameters.h"
 #include "parameters/merged_container.h"
 #include "platform/application.h"
 #include "strings/array.h"
@@ -209,7 +210,7 @@ namespace
       if (!ProvidersOptions.empty())
       {
         const Parameters::Container::Ptr ioParams = Parameters::Container::Create();
-        ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX, ProvidersOptions, *ioParams);
+        ParseParametersString(Parameters::ZXTune::IO::Providers::Prefix, ProvidersOptions, *ioParams);
         ioParams->Process(*Params);
       }
 
@@ -218,11 +219,11 @@ namespace
         const Parameters::Container::Ptr coreParams = Parameters::Container::Create();
         if (!CoreOptions.empty())
         {
-          ParseParametersString(Parameters::ZXTune::Core::PREFIX, CoreOptions, *coreParams);
+          ParseParametersString(Parameters::ZXTune::Core::Prefix, CoreOptions, *coreParams);
         }
         if (YM)
         {
-          coreParams->SetValue(Parameters::ZXTune::Core::AYM::TYPE, Parameters::ZXTune::Core::AYM::TYPE_YM);
+          Parameters::Set<Parameters::ZXTune::Core::AYM::Chip>(*coreParams, Devices::AYM::TYPE_YM2149F);
         }
         coreParams->Process(*Params);
       }
