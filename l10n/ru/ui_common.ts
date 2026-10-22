@@ -380,16 +380,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <source>Loop playback</source>
         <translation>Зациклить</translation>
     </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_options.ui" line="158"/>
-        <source>Interpolation</source>
-        <translation>Интерполяция</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_options.ui" line="132"/>
-        <source>Mono</source>
-        <translation>Моно</translation>
-    </message>
+
 </context>
 <context>
     <name>QMessageBox</name>

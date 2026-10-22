@@ -30,8 +30,8 @@ libraries.common = analysis async \
 libraries.3rdparty = asap atrac9 ffmpeg FLAC gme he ht hvl lazyusf2 lhasa lzma mgba mpg123 ogg openmpt opus sidplayfp snesspc sseqplayer unrar v2m vgm vgmstream vio2sf vorbis xmp z80ex zlib
 
 #ui
-libraries += playlist_ui playlist_supp playlist_io ui_common
-depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui playlist/io ui)
+libraries += playlist_ui playlist_supp playlist_io ui_common ui_options
+depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui playlist/io ui ui/options)
 
 libraries.qt = Gui Core Network Widgets
 

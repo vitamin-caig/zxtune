@@ -11,6 +11,7 @@
 #include "apps/zxtune-qt/ui/preferences/z80.h"
 
 #include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/options/strings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "z80.ui.h"
@@ -33,6 +34,8 @@ namespace UI
       // setup self
       setupUi(this);
 
+      clockRateLabel->setText(UI::Options::Clockrate());
+
       using namespace Parameters;
       Value::Bind<ZXTune::Core::Z80::Clockrate>(*clockRateValue, *Options);
       Value::Bind<ZXTune::Core::Z80::IntTicks>(*intDurationValue, *Options);
@@ -44,6 +47,7 @@ namespace UI
       if (event && QEvent::LanguageChange == event->type())
       {
         retranslateUi(this);
+        clockRateLabel->setText(UI::Options::Clockrate());
       }
       UI::Z80SettingsWidget::changeEvent(event);
     }

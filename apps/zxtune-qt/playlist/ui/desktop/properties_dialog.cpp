@@ -12,7 +12,7 @@
 
 #include "apps/zxtune-qt/playlist/supp/capabilities.h"
 #include "apps/zxtune-qt/playlist/ui/table_view.h"
-#include "apps/zxtune-qt/ui/preferences/aym.h"
+#include "apps/zxtune-qt/ui/options/strings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "properties_dialog.ui.h"
@@ -145,21 +145,25 @@ namespace
       AddStringProperty(Playlist::UI::PropertiesDialog::tr("Author"), Module::ATTR_AUTHOR);
       AddStringProperty(Playlist::UI::PropertiesDialog::tr("Comment"), Module::ATTR_COMMENT);
 
-      QStringList valuesOffOn;
-      valuesOffOn << Playlist::UI::PropertiesDialog::tr("Off") << Playlist::UI::PropertiesDialog::tr("On");
+      // Shared captions; the exact chip is clarified by the row tooltip
+      // The dialog is modal: translations are stable for its lifetime, so build the lists once
+      const auto clockRateLabel = UI::Options::Clockrate();
+      const auto interpolationLabel = UI::Options::Interpolation();
+      const QStringList interpolationValues = UI::Options::InterpolationValues();
+      const QStringList booleanValues = UI::Options::BooleanValues();
 
       if (caps.IsAYM())
       {
         FillAymChipTypeProperty();
         FillAymLayoutProperty();
-        FillAymInterpolationProperty();
+        AddSetProperty<Parameters::ZXTune::Core::AYM::Interpolation>(interpolationLabel, interpolationValues);
         using namespace Parameters::ZXTune::Core::AYM;
-        AddIntegerProperty<Clockrate>(Playlist::UI::PropertiesDialog::tr("Clockrate, Hz"));
+        AddIntegerProperty<Clockrate>(clockRateLabel);
       }
       if (caps.IsDAC())
       {
         using namespace Parameters::ZXTune::Core::DAC;
-        AddSetProperty<Interpolation>(Playlist::UI::PropertiesDialog::tr("Interpolation"), valuesOffOn);
+        AddSetProperty<Interpolation>(interpolationLabel, booleanValues);
         AddIntegerProperty<SamplesFrequency>(Playlist::UI::PropertiesDialog::tr("Samples frequency"));
       }
       AddStrings(Module::ATTR_STRINGS);
@@ -174,19 +178,8 @@ namespace
 
     void FillAymLayoutProperty()
     {
-      QStringList layouts;
-      layouts << QLatin1String("ABC") << QLatin1String("ACB") << QLatin1String("BAC") << QLatin1String("BCA")
-              << QLatin1String("CAB") << QLatin1String("CBA") << Playlist::UI::PropertiesDialog::tr("Mono");
-      AddSetProperty<Parameters::ZXTune::Core::AYM::Layout>(Playlist::UI::PropertiesDialog::tr("Layout"), layouts);
-    }
-
-    void FillAymInterpolationProperty()
-    {
-      QStringList interpolations;
-      interpolations << Playlist::UI::PropertiesDialog::tr("None") << Playlist::UI::PropertiesDialog::tr("Performance")
-                     << Playlist::UI::PropertiesDialog::tr("Quality");
-      AddSetProperty<Parameters::ZXTune::Core::AYM::Interpolation>(Playlist::UI::PropertiesDialog::tr("Interpolation"),
-                                                                   interpolations);
+      AddSetProperty<Parameters::ZXTune::Core::AYM::Layout>(Playlist::UI::PropertiesDialog::tr("Layout"),
+                                                            UI::Options::LayoutValues());
     }
 
     void AddStringProperty(const QString& title, Parameters::Identifier name)

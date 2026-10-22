@@ -11,6 +11,7 @@
 #include "apps/zxtune-qt/ui/preferences/aym.h"
 
 #include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/options/strings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "aym.ui.h"
@@ -44,6 +45,10 @@ namespace UI
       // setup self
       setupUi(this);
 
+      clockRateGroup->setTitle(UI::Options::Clockrate());
+      interpolationGroup->setTitle(UI::Options::Interpolation());
+      UI::Options::Fill(*interpolationValue, UI::Options::InterpolationValues());
+
       Require(connect(clockRateValue, &QLineEdit::textChanged, this, &AYMOptionsWidget::OnClockRateChanged));
       Require(connect(clockRatePresets, qOverload<int>(&QComboBox::currentIndexChanged), this,
                       &AYMOptionsWidget::OnClockRatePresetChanged));
@@ -64,6 +69,9 @@ namespace UI
         const AutoBlockSignal blockClockrate(*clockRatePresets);
         const ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
+        clockRateGroup->setTitle(UI::Options::Clockrate());
+        interpolationGroup->setTitle(UI::Options::Interpolation());
+        UI::Options::Fill(*interpolationValue, UI::Options::InterpolationValues());
         // restore combobox value
         OnClockRateChanged(clockRateValue->text());
       }

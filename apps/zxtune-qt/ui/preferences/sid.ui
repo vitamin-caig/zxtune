@@ -22,9 +22,6 @@
    </property>
    <item>
     <widget class="QGroupBox" name="InterpolationGroup">
-     <property name="title">
-      <string>Interpolation</string>
-     </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
        <number>4</number>
@@ -33,23 +30,7 @@
        <number>4</number>
       </property>
       <item>
-       <widget class="QComboBox" name="interpolationValue">
-        <item>
-         <property name="text">
-          <string>None</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Performance</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Quality</string>
-         </property>
-        </item>
-       </widget>
+       <widget class="QComboBox" name="interpolationValue"/>
       </item>
      </layout>
     </widget>
@@ -61,11 +42,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QCheckBox" name="filterValue">
-        <property name="text">
-         <string>Filter</string>
-        </property>
-       </widget>
+       <widget class="QCheckBox" name="filterValue"/>
       </item>
      </layout>
     </widget>

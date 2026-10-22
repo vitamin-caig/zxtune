@@ -11,6 +11,7 @@
 #include "apps/zxtune-qt/ui/preferences/saa.h"
 
 #include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/options/strings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "saa.ui.h"
@@ -36,6 +37,10 @@ namespace UI
       // setup self
       setupUi(this);
 
+      clockRateGroup->setTitle(UI::Options::Clockrate());
+      interpolationGroup->setTitle(UI::Options::Interpolation());
+      UI::Options::Fill(*interpolationValue, UI::Options::InterpolationValues());
+
       using namespace Parameters;
       Value::Bind<ZXTune::Core::SAA::Clockrate>(*clockRateValue, *Options);
       Interpolation = Value::Bind<ZXTune::Core::SAA::Interpolation>(*interpolationValue, *Options);
@@ -48,6 +53,9 @@ namespace UI
       {
         const ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
+        clockRateGroup->setTitle(UI::Options::Clockrate());
+        interpolationGroup->setTitle(UI::Options::Interpolation());
+        UI::Options::Fill(*interpolationValue, UI::Options::InterpolationValues());
       }
       UI::SAASettingsWidget::changeEvent(event);
     }

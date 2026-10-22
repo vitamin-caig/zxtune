@@ -96,43 +96,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="aymLayout">
-        <item>
-         <property name="text">
-          <string notr="true">ABC</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">ACB</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">BAC</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">BCA</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">CBA</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">CAB</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Mono</string>
-         </property>
-        </item>
-       </widget>
+       <widget class="QComboBox" name="aymLayout"/>
       </item>
      </layout>
     </widget>
@@ -154,9 +118,6 @@
       </property>
       <item>
        <widget class="QToolButton" name="isDACInterpolated">
-        <property name="toolTip">
-         <string>Interpolation</string>
-        </property>
         <property name="icon">
          <iconset>
           <normalon>:/setup/interpolation_on.png</normalon>

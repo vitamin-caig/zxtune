@@ -11,6 +11,7 @@
 #include "apps/zxtune-qt/ui/preferences/sid.h"
 
 #include "apps/zxtune-qt/supp/options.h"
+#include "apps/zxtune-qt/ui/options/strings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "sid.ui.h"
@@ -36,6 +37,10 @@ namespace UI
       // setup self
       setupUi(this);
 
+      InterpolationGroup->setTitle(UI::Options::Interpolation());
+      UI::Options::Fill(*interpolationValue, UI::Options::InterpolationValues());
+      filterValue->setText(UI::Options::Filter());
+
       using namespace Parameters;
       Interpolation = Value::Bind<ZXTune::Core::SID::Interpolation>(*interpolationValue, *Options);
       Value::Bind<ZXTune::Core::SID::Filter>(*filterValue, *Options);
@@ -48,6 +53,9 @@ namespace UI
       {
         const ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
+        InterpolationGroup->setTitle(UI::Options::Interpolation());
+        UI::Options::Fill(*interpolationValue, UI::Options::InterpolationValues());
+        filterValue->setText(UI::Options::Filter());
       }
       UI::SIDSettingsWidget::changeEvent(event);
     }
