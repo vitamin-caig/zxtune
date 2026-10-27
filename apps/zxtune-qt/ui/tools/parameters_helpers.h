@@ -152,6 +152,15 @@ namespace UI
       return Bind(combo, ctr, name, std::optional<Parameters::IntType>{});
     }
 
+    // Free-text combo box bound to a string parameter
+    template<Parameters::Parameter P>
+    static Value* Bind(QComboBox& combo, Parameters::Container& ctr, StringView defValue)
+    {
+      return Bind(combo, ctr, P::Key, defValue);
+    }
+
+    static Value* Bind(QComboBox& combo, Parameters::Container& ctr, Parameters::Identifier name, StringView defValue);
+
   private:
     //! @brief Numeric or textual field; an unset default means "no override"
     template<Parameters::Parameter P>

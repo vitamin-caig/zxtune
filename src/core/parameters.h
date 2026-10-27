@@ -133,7 +133,7 @@ namespace Parameters::ZXTune::Core
     struct Clockrate : Value<uint_t>
     {
       static constexpr auto Key = Prefix + "clockrate"_id;
-      static constexpr Type Default = 3'500'000;
+      static constexpr Type Default = 3'500'000, Min = 1'000'000, Max = 10'000'000;
     };
   }  // namespace FM
 

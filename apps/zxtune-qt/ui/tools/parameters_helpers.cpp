@@ -397,6 +397,39 @@ namespace
   private:
     const std::optional<StringType> Default;
   };
+
+  // Free-text combo box bound to a string parameter
+  class StringValueComboImpl : public BaseValue
+  {
+  public:
+    StringValueComboImpl(QComboBox& parent, Container& ctr, Identifier name, StringView defValue)
+      : BaseValue(parent, ctr, std::move(name))
+      , Default(defValue)
+    {
+      StringValueComboImpl::Reload();
+      Require(connect(&parent, qOverload<int>(&QComboBox::currentIndexChanged), this, &StringValueComboImpl::Select));
+    }
+
+    void Reload() override
+    {
+      Parent<QComboBox>().setCurrentText(ToQString(GetValue()));
+    }
+
+  private:
+    void Select(int /*index*/)
+    {
+      const auto val = FromQString(Parent<QComboBox>().currentText());
+      Storage.SetValue(Name, val);
+    }
+
+    StringType GetValue() const
+    {
+      return Parameters::GetString(Storage, Name, Default);
+    }
+
+  private:
+    const StringType Default;
+  };
 }  // namespace
 
 namespace UI
@@ -464,5 +497,10 @@ namespace UI
                      IntType defValue)
   {
     return new IndexedValue<IntType>(combo, ctr, name, values, defValue);
+  }
+
+  Value* Value::Bind(QComboBox& combo, Container& ctr, Identifier name, StringView defValue)
+  {
+    return new StringValueComboImpl(combo, ctr, std::move(name), defValue);
   }
 }  // namespace UI

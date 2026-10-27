@@ -11,6 +11,7 @@
 #include "binary/container_factories.h"
 #include "parameters/container.h"
 #include "parameters/convert.h"
+#include "parameters/identifiers_set.h"
 #include "parameters/types.h"
 #include "parameters/value.h"
 
@@ -111,6 +112,77 @@ namespace
       Test("three + one", three + one, "one.two.three.one"sv);
       Test("three + two", three + two, "one.two.three.one.two"sv);
       Test("three + three", three + three, "one.two.three.one.two.three"sv);
+    }
+  }
+
+  void TestIdentifiersSet()
+  {
+    std::cout << "---- Test for Parameters::IdentifiersSet" << std::endl;
+    using namespace Parameters;
+    const auto one = "one"_id;
+    const auto two = "two"_id;
+    const auto three = "three"_id;
+    {
+      const IdentifiersSet empty;
+      Test("empty.ToString()", empty.ToString(), String());
+      Test("empty.Contains(one)", empty.Contains(one), false);
+    }
+    {
+      const IdentifiersSet ids{one, two};
+      Test("ids.Contains(one)", ids.Contains(one), true);
+      Test("ids.Contains(two)", ids.Contains(two), true);
+      Test("ids.Contains(three)", ids.Contains(three), false);
+      Test("ids.ToString()", ids.ToString(), String("one\ntwo"));
+    }
+    {
+      // duplicates are ignored
+      const IdentifiersSet ids{one, one, two};
+      Test("dedup.ToString()", ids.ToString(), String("one\ntwo"));
+    }
+    {
+      // empty lines and trailing newline are ignored
+      const auto ids = IdentifiersSet::Parse("\none\n\ntwo\n");
+      Test("parse.Contains(one)", ids.Contains(one), true);
+      Test("parse.Contains(two)", ids.Contains(two), true);
+      Test("parse.Contains(three)", ids.Contains(three), false);
+      Test("parse.ToString()", ids.ToString(), String("one\ntwo"));
+      Test("parse empty", IdentifiersSet::Parse("").ToString(), String());
+    }
+    {
+      // views into the provided storage, which must outlive the set
+      const String storage = "one\ntwo";
+      const auto ids = IdentifiersSet::Parse(storage);
+      Test("external.Contains(one)", ids.Contains(one), true);
+      Test("external.Contains(three)", ids.Contains(three), false);
+      Test("external.ToString()", ids.ToString(), String("one\ntwo"));
+    }
+    {
+      const IdentifiersSet lhs{one, two};
+      const IdentifiersSet rhs{two, three};
+      const auto uni = lhs | rhs;
+      Test("union.Contains(one)", uni.Contains(one), true);
+      Test("union.Contains(two)", uni.Contains(two), true);
+      Test("union.Contains(three)", uni.Contains(three), true);
+      Test("union.ToString()", uni.ToString(), String("one\ntwo\nthree"));
+    }
+    {
+      // union with a single static identifier
+      const auto uni = IdentifiersSet{one} | two;
+      Test("set|id.Contains(two)", uni.Contains(two), true);
+      Test("set|id.ToString()", uni.ToString(), String("one\ntwo"));
+    }
+    {
+      // union with a single runtime identifier
+      const Identifier runtime("two");
+      const auto uni = IdentifiersSet{one} | runtime;
+      Test("set|runtime.Contains(two)", uni.Contains(two), true);
+    }
+    {
+      // parsed and static sets merge their views
+      const auto uni = IdentifiersSet::Parse("one") | IdentifiersSet{two};
+      Test("mixed union.Contains(one)", uni.Contains(one), true);
+      Test("mixed union.Contains(two)", uni.Contains(two), true);
+      Test("mixed union.ToString()", uni.ToString(), String("one\ntwo"));
     }
   }
 
@@ -416,6 +488,7 @@ int main()
   {
     TestIdentifier();
     TestValue();
+    TestIdentifiersSet();
     TestContainer();
   }
   catch (int code)

@@ -63,115 +63,38 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="AYMOptions">
-     <property name="enabled">
+    <widget class="QToolButton" name="isYM">
+     <property name="toolTip">
+      <string notr="true">YM2149</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normalon>:/setup/type_ym.png</normalon>
+      </iconset>
+     </property>
+     <property name="checkable">
       <bool>true</bool>
      </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <layout class="QHBoxLayout">
-      <property name="spacing">
-       <number>1</number>
-      </property>
-      <property name="margin">
-       <number>2</number>
-      </property>
-      <item>
-       <widget class="QToolButton" name="isYM">
-        <property name="toolTip">
-         <string notr="true">YM2149</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normalon>:/setup/type_ym.png</normalon>
-         </iconset>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="aymLayout">
-        <item>
-         <property name="text">
-          <string notr="true">ABC</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">ACB</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">BAC</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">BCA</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">CBA</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">CAB</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Mono</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-     </layout>
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="DACOptions">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <layout class="QHBoxLayout">
-      <property name="spacing">
-       <number>1</number>
-      </property>
-      <property name="margin">
-       <number>2</number>
-      </property>
-      <item>
-       <widget class="QToolButton" name="isDACInterpolated">
-        <property name="toolTip">
-         <string>Interpolation</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normalon>:/setup/interpolation_on.png</normalon>
-         </iconset>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+    <widget class="QComboBox" name="aymLayout"/>
    </item>
    <item>
-    <widget class="QFrame" name="MuteOptions">
+    <widget class="QToolButton" name="isDACInterpolated">
+     <property name="icon">
+      <iconset>
+       <normalon>:/setup/interpolation_on.png</normalon>
+      </iconset>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     </widget>
+    </item>
+
+    <item>
+     <widget class="QFrame" name="MuteOptions">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>

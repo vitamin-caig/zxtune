@@ -14,10 +14,16 @@
 #include "module/players/aym/freq_tables.h"
 
 #include "parameters/accessor.h"
+#include "parameters/identifiers_set.h"
 
 namespace Module::AYM
 {
-  Devices::AYM::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params);
+  struct ChipParameters
+  {
+    static const Parameters::IdentifiersSet ALL;
+
+    static Devices::AYM::ChipParameters::Ptr Create(uint_t samplerate, Parameters::Accessor::Ptr params);
+  };
 
   class TrackParameters
   {
@@ -28,6 +34,8 @@ namespace Module::AYM
 
     virtual uint_t Version() const = 0;
     virtual void FreqTable(FrequencyTable& table) const = 0;
+
+    static const Parameters::IdentifiersSet ALL;
 
     static Ptr Create(Parameters::Accessor::Ptr params);
     static Ptr Create(Parameters::Accessor::Ptr params, uint_t idx);

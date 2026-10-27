@@ -54,7 +54,7 @@ namespace
   {
     return name == Module::ATTR_CRC || name == Module::ATTR_FIXEDCRC || name == Module::ATTR_SIZE
            || name == Module::ATTR_CONTAINER || name == Module::ATTR_TYPE || name == Module::ATTR_VERSION
-           || name == Module::ATTR_PROGRAM || name == Module::ATTR_DATE;
+           || name == Module::ATTR_PROGRAM || name == Module::ATTR_DATE || name == Module::ATTR_SUPPORTED_PARAMETERS;
   };
 
   class PropertiesFilter : public Parameters::Visitor

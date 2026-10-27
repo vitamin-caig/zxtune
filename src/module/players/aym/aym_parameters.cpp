@@ -16,6 +16,7 @@
 #include "core/parameters.h"
 #include "l10n/api.h"
 #include "math/numeric.h"
+#include "parameters/identifiers_set.h"
 
 #include "contract.h"
 #include "error_tools.h"
@@ -28,6 +29,8 @@
 
 namespace Module::AYM
 {
+  namespace Aym = Parameters::ZXTune::Core::AYM;
+
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module");
 
   // duty-cycle related parameter: accumulate letters to bitmask functor
@@ -271,7 +274,12 @@ namespace Module::AYM
     const uint_t Index;
   };
 
-  Devices::AYM::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
+  const Parameters::IdentifiersSet ChipParameters::ALL{Aym::Clockrate::Key, Aym::Chip::Key, Aym::Interpolation::Key,
+                                                       Aym::DutyCycle::Key, Aym::DutyCycleMask::Key, Aym::Layout::Key};
+
+  const Parameters::IdentifiersSet TrackParameters::ALL{Aym::Table::Key};
+
+  Devices::AYM::ChipParameters::Ptr ChipParameters::Create(uint_t samplerate, Parameters::Accessor::Ptr params)
   {
     return MakePtr<ChipParametersImpl>(samplerate, std::move(params));
   }

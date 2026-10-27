@@ -94,7 +94,7 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      auto chipParams = TFM::CreateChipParameters(samplerate, std::move(params));
+      auto chipParams = TFM::ChipParameters::Create(samplerate, std::move(params));
       auto chip = Devices::TFM::CreateChip(std::move(chipParams));
       auto iterator = Tune->CreateDataIterator();
       return TFM::CreateRenderer(Tune->GetFrameDuration() /*TODO: speed variation*/, std::move(iterator),

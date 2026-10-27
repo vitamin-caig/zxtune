@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "parameters/modifier.h"
+#include "binary/view.h"
 #include "strings/array.h"
 #include "time/duration.h"
 
@@ -20,6 +20,12 @@ namespace Formats::Chiptune
 {
   class Container;
 }
+
+namespace Parameters
+{
+  class IdentifiersSet;
+  class Modifier;
+}  // namespace Parameters
 
 namespace Module
 {
@@ -54,6 +60,7 @@ namespace Module
     void SetChannels(const Strings::Array& names, uint_t count = 1);
     // Use "${prefix} ${idx + 1}" format
     void SetChannels(StringView prefix, uint_t count);
+    void SetSupportedParameters(const Parameters::IdentifiersSet& ids);
 
     // Sound
     void SetFadein(Time::Milliseconds fadein);

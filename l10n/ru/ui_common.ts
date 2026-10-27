@@ -265,10 +265,6 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Расположен в нескольких файлах</translation>
     </message>
     <message>
-        <source>Not recursive</source>
-        <translation type="vanished">Не рекурсивный</translation>
-    </message>
-    <message>
         <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="259"/>
         <source>Playback backends</source>
         <translation>Воспроизведение</translation>
@@ -379,16 +375,6 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <location filename="../../apps/zxtune-qt/ui/controls/playback_options.ui" line="50"/>
         <source>Loop playback</source>
         <translation>Зациклить</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_options.ui" line="158"/>
-        <source>Interpolation</source>
-        <translation>Интерполяция</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_options.ui" line="132"/>
-        <source>Mono</source>
-        <translation>Моно</translation>
     </message>
 </context>
 <context>

@@ -63,7 +63,13 @@ namespace
   private:
     static void Write(StringView name, StringView value)
     {
-      std::cout << name << ": " << value << std::endl;
+      // Repeat the name for every line to keep each output line independently parseable
+      do
+      {
+        const auto nl = value.find('\n');
+        std::cout << name << ": " << value.substr(0, nl) << std::endl;
+        value = StringView::npos == nl ? StringView() : value.substr(nl + 1);
+      } while (!value.empty());
     }
   };
 

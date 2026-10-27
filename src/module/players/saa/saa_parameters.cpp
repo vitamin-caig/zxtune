@@ -18,10 +18,12 @@
 
 namespace Module::SAA
 {
-  class ChipParameters : public Devices::SAA::ChipParameters
+  namespace Saa = Parameters::ZXTune::Core::SAA;
+
+  class ChipParametersImpl : public Devices::SAA::ChipParameters
   {
   public:
-    ChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
+    ChipParametersImpl(uint_t samplerate, Parameters::Accessor::Ptr params)
       : Samplerate(samplerate)
       , Params(std::move(params))
     {}
@@ -59,8 +61,10 @@ namespace Module::SAA
     const Parameters::Accessor::Ptr Params;
   };
 
-  Devices::SAA::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
+  const Parameters::IdentifiersSet ChipParameters::ALL{Saa::Clockrate::Key, Saa::Interpolation::Key};
+
+  Devices::SAA::ChipParameters::Ptr ChipParameters::Create(uint_t samplerate, Parameters::Accessor::Ptr params)
   {
-    return MakePtr<ChipParameters>(samplerate, std::move(params));
+    return MakePtr<ChipParametersImpl>(samplerate, std::move(params));
   }
 }  // namespace Module::SAA

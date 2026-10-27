@@ -22,6 +22,7 @@
 #include "debug/log.h"
 #include "formats/multitrack/container.h"
 #include "module/attributes.h"
+#include "parameters/identifiers_set.h"
 #include "parameters/tracking_helper.h"
 #include "strings/sanitize.h"
 
@@ -105,15 +106,21 @@ namespace Module::Sid
   class SidParameters
   {
   public:
-    using Ptr = std::unique_ptr<const SidParameters>;
+    inline static const Parameters::IdentifiersSet ALL{Parameters::ZXTune::Core::SID::Filter::Key,
+                                                       Parameters::ZXTune::Core::SID::Interpolation::Key};
 
     explicit SidParameters(Parameters::Accessor::Ptr params)
       : Params(std::move(params))
     {}
 
-    uint_t Version() const
+    bool IsChanged() const
     {
-      return Params->Version();
+      return Params.IsChanged();
+    }
+
+    void Reset()
+    {
+      Params.Reset();
     }
 
     bool GetFastSampling() const
@@ -146,7 +153,7 @@ namespace Module::Sid
     }
 
   private:
-    const Parameters::Accessor::Ptr Params;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
   };
 
   class SidEngine
@@ -244,7 +251,7 @@ namespace Module::Sid
       : Tune(std::move(tune))
       , State(Tune->GetDuration())
       , Engine(MakePtr<SidEngine>())
-      , SidParams(MakePtr<SidParameters>(params))
+      , SidParams(params)
     {
       Engine->Init(samplerate, *params);
       ApplyParameters();
@@ -297,7 +304,7 @@ namespace Module::Sid
     {
       if (SidParams.IsChanged())
       {
-        Engine->ApplyParameters(*SidParams);
+        Engine->ApplyParameters(SidParams);
       }
     }
 
@@ -305,7 +312,7 @@ namespace Module::Sid
     const Model::Ptr Tune;
     TimedState State;
     const SidEngine::Ptr Engine;
-    Parameters::TrackingHelper<SidParameters> SidParams;
+    SidParameters SidParams;
   };
 
   class Holder : public Module::Holder
@@ -369,6 +376,7 @@ namespace Module::Sid
 
         props.SetPlatform(Platforms::COMMODORE_64);
         props.SetChannels({"Voice 1"s, "Voice 2"s, "Voice 3"s}, tuneInfo.sidChips());
+        props.SetSupportedParameters(SidParameters::ALL);
 
         tune->FillDuration(params);
         return MakePtr<Holder>(std::move(tune), std::move(properties));

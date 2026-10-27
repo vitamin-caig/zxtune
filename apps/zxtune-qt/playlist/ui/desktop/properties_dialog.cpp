@@ -10,17 +10,19 @@
 
 #include "apps/zxtune-qt/playlist/ui/desktop/properties_dialog.h"
 
-#include "apps/zxtune-qt/playlist/supp/capabilities.h"
 #include "apps/zxtune-qt/playlist/ui/table_view.h"
-#include "apps/zxtune-qt/ui/preferences/aym.h"
+#include "apps/zxtune-qt/ui/options/strings.h"
 #include "apps/zxtune-qt/ui/tools/parameters_helpers.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "properties_dialog.ui.h"
+
+#include "module/players/aym/freq_tables.h"
 
 #include "core/parameters.h"
 #include "debug/log.h"
 #include "module/attributes.h"
 #include "parameters/delegated.h"
+#include "parameters/identifiers_set.h"
 #include "parameters/merged_accessor.h"
 
 #include "contract.h"
@@ -118,7 +120,7 @@ namespace
 
       Properties = MakePtr<ItemPropertiesContainer>(item.GetAdjustedParameters(), item.GetModuleProperties());
 
-      FillProperties(item.GetCapabilities());
+      FillProperties();
 
       auto* filler = new QImageView(this);
       itemsLayout->addWidget(filler, itemsLayout->rowCount(), 0, 1, itemsLayout->columnCount());
@@ -139,28 +141,79 @@ namespace
       }
     }
 
-    void FillProperties(const Playlist::Item::Capabilities& caps)
+    void FillProperties()
     {
       AddStringProperty(Playlist::UI::PropertiesDialog::tr("Title"), Module::ATTR_TITLE);
       AddStringProperty(Playlist::UI::PropertiesDialog::tr("Author"), Module::ATTR_AUTHOR);
       AddStringProperty(Playlist::UI::PropertiesDialog::tr("Comment"), Module::ATTR_COMMENT);
 
-      QStringList valuesOffOn;
-      valuesOffOn << Playlist::UI::PropertiesDialog::tr("Off") << Playlist::UI::PropertiesDialog::tr("On");
+      // Show only the parameters the renderer actually reads
+      const auto supported = Parameters::GetString(*Properties, Module::ATTR_SUPPORTED_PARAMETERS);
+      const auto ids = Parameters::IdentifiersSet::Parse(supported);
+      using namespace Parameters::ZXTune::Core;
+      // Shared captions; the exact chip is clarified by the row tooltip
+      // The dialog is modal: translations are stable for its lifetime, so build the lists once
+      const auto clockRateLabel = UI::Options::Clockrate();
+      const auto interpolationLabel = UI::Options::Interpolation();
+      const QStringList interpolationValues = UI::Options::InterpolationValues();
+      const QStringList booleanValues = UI::Options::BooleanValues();
 
-      if (caps.IsAYM())
+      if (ids.Contains(AYM::Chip::Key))
       {
         FillAymChipTypeProperty();
-        FillAymLayoutProperty();
-        FillAymInterpolationProperty();
-        using namespace Parameters::ZXTune::Core::AYM;
-        AddIntegerProperty<Clockrate>(Playlist::UI::PropertiesDialog::tr("Clockrate, Hz"));
       }
-      if (caps.IsDAC())
+      if (ids.Contains(AYM::Layout::Key))
       {
-        using namespace Parameters::ZXTune::Core::DAC;
-        AddSetProperty<Interpolation>(Playlist::UI::PropertiesDialog::tr("Interpolation"), valuesOffOn);
-        AddIntegerProperty<SamplesFrequency>(Playlist::UI::PropertiesDialog::tr("Samples frequency"));
+        FillAymLayoutProperty();
+      }
+      if (ids.Contains(AYM::Interpolation::Key))
+      {
+        AddSetProperty<AYM::Interpolation>(interpolationLabel, interpolationValues, "AY"_latin);
+      }
+      if (ids.Contains(AYM::Clockrate::Key))
+      {
+        AddIntegerProperty<AYM::Clockrate>(clockRateLabel, "AY"_latin);
+      }
+      if (ids.Contains(AYM::Table::Key))
+      {
+        QStringList tables;
+        for (const auto table : Module::AYM::GetAvailableFreqTables())
+        {
+          tables << ToQString(table);
+        }
+        AddStringSetProperty<AYM::Table>(Playlist::UI::PropertiesDialog::tr("Frequency table"), tables);
+      }
+      if (ids.Contains(Z80::Clockrate::Key))
+      {
+        AddIntegerProperty<Z80::Clockrate>(clockRateLabel, "Z80"_latin);
+      }
+      if (ids.Contains(SAA::Clockrate::Key))
+      {
+        AddIntegerProperty<SAA::Clockrate>(clockRateLabel, "SAA"_latin);
+      }
+      if (ids.Contains(FM::Clockrate::Key))
+      {
+        AddIntegerProperty<FM::Clockrate>(clockRateLabel, "FM"_latin);
+      }
+      if (ids.Contains(SAA::Interpolation::Key))
+      {
+        AddSetProperty<SAA::Interpolation>(interpolationLabel, interpolationValues, "SAA"_latin);
+      }
+      if (ids.Contains(SID::Filter::Key))
+      {
+        AddSetProperty<SID::Filter>(UI::Options::Filter(), booleanValues, "SID"_latin);
+      }
+      if (ids.Contains(SID::Interpolation::Key))
+      {
+        AddSetProperty<SID::Interpolation>(interpolationLabel, interpolationValues, "SID"_latin);
+      }
+      if (ids.Contains(DAC::Interpolation::Key))
+      {
+        AddSetProperty<DAC::Interpolation>(interpolationLabel, booleanValues, "DAC"_latin);
+      }
+      if (ids.Contains(DAC::SamplesFrequency::Key))
+      {
+        AddIntegerProperty<DAC::SamplesFrequency>(Playlist::UI::PropertiesDialog::tr("Samples frequency"));
       }
       AddStrings(Module::ATTR_STRINGS);
     }
@@ -174,19 +227,8 @@ namespace
 
     void FillAymLayoutProperty()
     {
-      QStringList layouts;
-      layouts << QLatin1String("ABC") << QLatin1String("ACB") << QLatin1String("BAC") << QLatin1String("BCA")
-              << QLatin1String("CAB") << QLatin1String("CBA") << Playlist::UI::PropertiesDialog::tr("Mono");
-      AddSetProperty<Parameters::ZXTune::Core::AYM::Layout>(Playlist::UI::PropertiesDialog::tr("Layout"), layouts);
-    }
-
-    void FillAymInterpolationProperty()
-    {
-      QStringList interpolations;
-      interpolations << Playlist::UI::PropertiesDialog::tr("None") << Playlist::UI::PropertiesDialog::tr("Performance")
-                     << Playlist::UI::PropertiesDialog::tr("Quality");
-      AddSetProperty<Parameters::ZXTune::Core::AYM::Interpolation>(Playlist::UI::PropertiesDialog::tr("Interpolation"),
-                                                                   interpolations);
+      AddSetProperty<Parameters::ZXTune::Core::AYM::Layout>(Playlist::UI::PropertiesDialog::tr("Layout"),
+                                                            UI::Options::LayoutValues());
     }
 
     void AddStringProperty(const QString& title, Parameters::Identifier name)
@@ -196,35 +238,45 @@ namespace
       AddProperty(title, wid, value);
     }
 
-    void AddSetProperty(const QString& title, Parameters::Identifier name, const QStringList& values)
+    template<class P>
+    void AddSetProperty(const QString& title, const QStringList& values, const QString& tooltip = {})
     {
       auto* const wid = new QComboBox(this);
       wid->addItems(values);
-      auto* const value = UI::Value::BindExplicit(*wid, *Properties, name);
+      auto* const value = UI::Value::BindExplicit<P>(*wid, *Properties);
+      AddProperty(title, wid, value, tooltip);
+    }
+
+    template<class P>
+    void AddStringSetProperty(const QString& title, const QStringList& values)
+    {
+      auto* const wid = new QComboBox(this);
+      wid->addItems(values);
+      auto* const value = UI::Value::Bind<P>(*wid, *Properties, ""sv);
       AddProperty(title, wid, value);
     }
 
     template<class P>
-    void AddSetProperty(const QString& title, const QStringList& values)
-    {
-      AddSetProperty(title, P::Key, values);
-    }
-
-    template<class P>
-    void AddIntegerProperty(const QString& title)
+    void AddIntegerProperty(const QString& title, const QString& tooltip = {})
     {
       auto* const wid = new QLineEdit(this);
       auto* const value = UI::Value::BindExplicit<P>(*wid, *Properties);
-      AddProperty(title, wid, value);
+      AddProperty(title, wid, value, tooltip);
     }
 
-    void AddProperty(const QString& title, QWidget* widget, UI::Value* value)
+    void AddProperty(const QString& title, QWidget* widget, UI::Value* value, const QString& tooltip = {})
     {
+      auto* const label = new QLabel(title, this);
+      if (!tooltip.isEmpty())
+      {
+        label->setToolTip(tooltip);
+        widget->setToolTip(tooltip);
+      }
       auto* const resetButton = new QToolButton(this);
       resetButton->setArrowType(Qt::DownArrow);
       resetButton->setToolTip(Playlist::UI::PropertiesDialog::tr("Reset value"));
       const int row = itemsLayout->rowCount();
-      itemsLayout->addWidget(new QLabel(title, this), row, 0);
+      itemsLayout->addWidget(label, row, 0);
       itemsLayout->addWidget(widget, row, 1);
       itemsLayout->addWidget(resetButton, row, 2);
       Require(connect(this, &Playlist::UI::PropertiesDialog::ResetToDefaults, value, &UI::Value::Reset));

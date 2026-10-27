@@ -10,6 +10,9 @@
 
 #include "module/players/multitrack/multi.h"
 
+#include "module/attributes.h"
+#include "parameters/container.h"
+#include "parameters/identifiers_set.h"
 #include "parameters/merged_accessor.h"
 #include "parameters/visitor.h"
 
@@ -227,7 +230,30 @@ namespace Module::Multi
   Holder::Ptr CreateHolder(Parameters::Accessor::Ptr tuneProperties, HoldersArray holders)
   {
     Require(!holders.empty());
-    return holders.size() == 1 ? std::move(holders.front())
-                               : MakePtr<MultiHolder>(std::move(tuneProperties), std::move(holders));
+    if (holders.size() == 1)
+    {
+      return std::move(holders.front());
+    }
+    // A composite supports everything its delegates do
+    String supported;
+    for (const auto& holder : holders)
+    {
+      const auto val = Parameters::GetString(*holder->GetModuleProperties(), ATTR_SUPPORTED_PARAMETERS);
+      if (!val.empty())
+      {
+        if (!supported.empty())
+        {
+          supported += '\n';
+        }
+        supported += val;
+      }
+    }
+    if (!supported.empty())
+    {
+      auto extra = Parameters::Container::Create();
+      extra->SetValue(ATTR_SUPPORTED_PARAMETERS, Parameters::IdentifiersSet::Parse(supported).ToString());
+      tuneProperties = Parameters::CreateMergedAccessor(std::move(tuneProperties), std::move(extra));
+    }
+    return MakePtr<MultiHolder>(std::move(tuneProperties), std::move(holders));
   }
 }  // namespace Module::Multi

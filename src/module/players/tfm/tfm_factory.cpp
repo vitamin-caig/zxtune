@@ -12,6 +12,7 @@
 
 #include "module/players/properties_helper.h"
 #include "module/players/tfm/tfm_base.h"
+#include "module/players/tfm/tfm_parameters.h"
 
 #include "make_ptr.h"
 
@@ -32,6 +33,7 @@ namespace Module::TFM
       PropertiesHelper props(*properties);
       if (auto chiptune = Create(data, props))
       {
+        props.SetSupportedParameters(ChipParameters::ALL);
         return CreateHolder(std::move(chiptune), std::move(properties));
       }
       return {};

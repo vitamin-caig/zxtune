@@ -12,6 +12,8 @@
 
 #include "formats/chiptune/container.h"
 #include "module/attributes.h"
+#include "parameters/identifiers_set.h"
+#include "parameters/modifier.h"
 #include "sound/parameters.h"
 #include "strings/join.h"
 #include "strings/trim.h"
@@ -151,6 +153,11 @@ namespace Module
       }
     }
     SetNonEmptyProperty(ATTR_CHANNELS_NAMES, result);
+  }
+
+  void PropertiesHelper::SetSupportedParameters(const Parameters::IdentifiersSet& ids)
+  {
+    SetNonEmptyProperty(ATTR_SUPPORTED_PARAMETERS, ids.ToString());
   }
 
   void PropertiesHelper::SetFadein(Time::Milliseconds fadein)

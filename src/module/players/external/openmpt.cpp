@@ -18,6 +18,7 @@
 #include "math/numeric.h"
 #include "module/holder.h"
 #include "module/renderer.h"
+#include "parameters/identifiers_set.h"
 #include "parameters/tracking_helper.h"
 #include "strings/format.h"
 #include "strings/sanitize.h"
@@ -141,6 +142,41 @@ namespace Module::MPT
     PositionIndex Current = {};
   };
 
+  class OpenMptParameters
+  {
+  public:
+    inline static const Parameters::IdentifiersSet ALL{Parameters::ZXTune::Core::DAC::Interpolation::Key};
+
+    explicit OpenMptParameters(Parameters::Accessor::Ptr params)
+      : Params(std::move(params))
+    {}
+
+    bool IsChanged() const
+    {
+      return Params.IsChanged();
+    }
+
+    void Reset()
+    {
+      Params.Reset();
+    }
+
+    int Interpolation() const
+    {
+      using namespace Parameters::ZXTune::Core;
+      // cubic interpolation vs windowed sinc with 8 taps
+      return Params.Get<DAC::Interpolation>() ? 8 : 3;
+    }
+
+    auto ChannelsMask() const
+    {
+      return Params.Get<Parameters::ZXTune::Core::ChannelsMask>();
+    }
+
+  private:
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
+  };
+
   class Renderer : public Module::Renderer
   {
   public:
@@ -206,12 +242,9 @@ namespace Module::MPT
     {
       if (Params.IsChanged())
       {
-        using namespace Parameters::ZXTune::Core;
-        const auto val = Params.Get<DAC::Interpolation>();
-        // cubic interpolation vs windowed sinc with 8 taps
-        const int interpolation = val ? 8 : 3;
-        Track->set_render_param(openmpt::module::render_param::RENDER_INTERPOLATIONFILTER_LENGTH, interpolation);
-        ApplyMuting(Params.Get<ChannelsMask>());
+        Track->set_render_param(openmpt::module::render_param::RENDER_INTERPOLATIONFILTER_LENGTH,
+                                Params.Interpolation());
+        ApplyMuting(Params.ChannelsMask());
       }
     }
 
@@ -234,7 +267,7 @@ namespace Module::MPT
     const ModulePtr Track;
     openmpt::ext::interactive& InteractiveTrack;
     TrackState State;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
+    OpenMptParameters Params;
     const uint_t SoundFreq;
     uint64_t MuteMask = 0;
   };
@@ -343,6 +376,7 @@ namespace Module::MPT
 
         PropertiesHelper props(*properties);
         FillMetadata(Id, *track, props);
+        props.SetSupportedParameters(OpenMptParameters::ALL);
 
         return MakePtr<Holder>(std::move(track), std::move(properties));
       }

@@ -14,6 +14,7 @@
 #include "module/players/properties_helper.h"
 
 #include "core/parameters.h"
+#include "parameters/identifiers_set.h"
 #include "parameters/tracking_helper.h"
 #include "strings/sanitize.h"
 #include "time/duration.h"
@@ -105,6 +106,40 @@ namespace Module::Xmp
                        .Channels = static_cast<uint_t>(info.virt_used)}}};
   }
 
+  class XmpParameters
+  {
+  public:
+    inline static const Parameters::IdentifiersSet ALL{Parameters::ZXTune::Core::DAC::Interpolation::Key};
+
+    explicit XmpParameters(Parameters::Accessor::Ptr params)
+      : Params(std::move(params))
+    {}
+
+    bool IsChanged() const
+    {
+      return Params.IsChanged();
+    }
+
+    void Reset()
+    {
+      Params.Reset();
+    }
+
+    int Interpolation() const
+    {
+      using namespace Parameters::ZXTune::Core;
+      return Params.Get<DAC::Interpolation>() ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
+    }
+
+    auto ChannelsMask() const
+    {
+      return Params.Get<Parameters::ZXTune::Core::ChannelsMask>();
+    }
+
+  private:
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
+  };
+
   class Renderer : public Module::Renderer
   {
   public:
@@ -167,16 +202,9 @@ namespace Module::Xmp
     {
       if (Params.IsChanged())
       {
-        using namespace Parameters::ZXTune::Core;
-        ApplyInterpolation(Params.Get<DAC::Interpolation>());
-        ApplyMuting(Params.Get<ChannelsMask>());
+        Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), Params.Interpolation());
+        ApplyMuting(Params.ChannelsMask());
       }
-    }
-
-    void ApplyInterpolation(bool val)
-    {
-      const int interpolation = val ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
-      Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), interpolation);
     }
 
     void ApplyMuting(uint64_t mask)
@@ -192,7 +220,7 @@ namespace Module::Xmp
   private:
     const Context::Ptr Ctx;
     xmp_frame_info State;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
+    XmpParameters Params;
     const uint_t ChannelsCount;
   };
 
@@ -269,6 +297,7 @@ namespace Module::Xmp
         }
         ParseStrings(*modInfo.mod, props);
         props.SetChannels("Ch"sv, modInfo.mod->chn);
+        props.SetSupportedParameters(XmpParameters::ALL);
         auto info = MakeInformation(*modInfo.mod, DurationType(frmInfo.total_time));
         return MakePtr<Holder>(std::move(ctx), std::move(info), std::move(properties));
       }

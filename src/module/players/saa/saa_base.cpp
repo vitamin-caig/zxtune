@@ -94,7 +94,7 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      auto chipParams = SAA::CreateChipParameters(samplerate, std::move(params));
+      auto chipParams = SAA::ChipParameters::Create(samplerate, std::move(params));
       auto chip = Devices::SAA::CreateChip(std::move(chipParams));
       auto iterator = Tune->CreateDataIterator();
       return MakePtr<SAARenderer>(Tune->GetFrameDuration() /*TODO: playback speed*/, std::move(iterator),
