@@ -470,8 +470,28 @@ namespace
       "00|(0102)",
       "C(00) O(|) O(() C(0102) O()) ",
       "00 | ( 01 02 ) ",
-      "00 | ( 01 02 ) ",
-      "00 ",
+      "00 ( 01 02 ) | ",
+      "00 ( 01 02 ) ",
+      INVALID_FORMAT,
+      INVALID_FORMAT
+    },
+    {
+      "multival conjunction left",
+      "(0001)&01",
+      "O(() C(0001) O()) O(&) C(01) ",
+      "( 00 01 ) & 01 ",
+      "( 00 01 ) 01 & ",
+      "( 00 01 ) 01 ",
+      INVALID_FORMAT,
+      INVALID_FORMAT
+    },
+    {
+      "multival conjunction right",
+      "01&(0001)",
+      "C(01) O(&) O(() C(0001) O()) ",
+      "01 & ( 00 01 ) ",
+      "01 ( 00 01 ) & ",
+      "01 ( 00 01 ) ",
       INVALID_FORMAT,
       INVALID_FORMAT
     },
@@ -480,10 +500,20 @@ namespace
       "00|(02)",
       "C(00) O(|) O(() C(02) O()) ",
       "00 | ( 02 ) ",
-      "00 | ( 02 ) ",
-      "00 ",
-      INVALID_FORMAT,
-      INVALID_FORMAT
+      "00 ( 02 ) | ",
+      "00 ( 02 ) | ",
+      FormatResult(true, 2),
+      FormatResult(true, 32)
+    },
+    {
+      "range group disjunction",
+      "(00-01)|(02-03)",
+      "O(() C(00) O(-) C(01) O()) O(|) O(() C(02) O(-) C(03) O()) ",
+      "( 00 - 01 ) | ( 02 - 03 ) ",
+      "( 00 01 - ) ( 02 03 - ) | ",
+      "( 00 01 - ) ( 02 03 - ) | ",
+      FormatResult(true, 1),
+      FormatResult(true, 32)
     },
     {
       "single char delimiters",
@@ -555,16 +585,15 @@ namespace
       INVALID_FORMAT,
       INVALID_FORMAT
     },
-    //brackets are used only for grouping, not for operations reordering
     {
       "grouping",
       "(00|01)&(01|02)",
       "O(() C(00) O(|) C(01) O()) O(&) O(() C(01) O(|) C(02) O()) ",
       "( 00 | 01 ) & ( 01 | 02 ) ",
-      "( 00 01 | ) & ( 01 02 | ) ",
-      "( 00 01 | ) ",
-      INVALID_FORMAT,
-      INVALID_FORMAT
+      "( 00 01 | ) ( 01 02 | ) & ",
+      "( 00 01 | ) ( 01 02 | ) & ",
+      FormatResult(false, 1),
+      FormatResult(false, 32)
     },
     //valid tests
     {

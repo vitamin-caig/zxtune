@@ -296,20 +296,25 @@ namespace Binary::FormatDSL
 
     void Match(StringView val) override
     {
-      if (LastIsMatch)
+      if (LastIsValue)
       {
         FlushOperations();
       }
       Delegate.Match(val);
-      LastIsMatch = true;
+      LastIsValue = true;
     }
 
     void GroupStart() override
     {
-      FlushOperations();
+      // A group directly after an operator is the operator's right operand, so pending operations
+      // must not be flushed yet; otherwise they would bind to the previous value
+      if (LastIsValue)
+      {
+        FlushOperations();
+      }
       Ops.emplace(GROUP_START);
       Delegate.GroupStart();
-      LastIsMatch = false;
+      LastIsValue = false;
     }
 
     void GroupEnd() override
@@ -318,14 +323,14 @@ namespace Binary::FormatDSL
       Require(!Ops.empty() && Ops.top().Value() == GROUP_START);
       Ops.pop();
       Delegate.GroupEnd();
-      LastIsMatch = false;
+      LastIsValue = true;
     }
 
     void Quantor(uint_t count) override
     {
       FlushOperations();
       Delegate.Quantor(count);
-      LastIsMatch = false;
+      LastIsValue = true;
     }
 
     void Operation(StringView op) override
@@ -333,7 +338,7 @@ namespace Binary::FormatDSL
       const Operator newOp(op);
       FlushOperations(newOp);
       Ops.push(newOp);
-      LastIsMatch = false;
+      LastIsValue = false;
     }
 
     void Flush()
@@ -384,7 +389,9 @@ namespace Binary::FormatDSL
   private:
     FormatTokensVisitor& Delegate;
     std::stack<Operator> Ops;
-    bool LastIsMatch = false;
+    // Whether the last token completed a value (match, closed/quantified group); a following
+    // operand then starts a new element and closes pending operations
+    bool LastIsValue = false;
   };
 
   class SyntaxCheck : public FormatTokensVisitor
