@@ -413,8 +413,10 @@ namespace Formats::Chiptune
         "('0-'9)|00"
         "1a     |00"
         "1a     |00"
-        "1a|1b  |00"  // has ID666
-        "0a-1e  |00"  // version minor
+        // ID666 presence flag (spec 26/27 decimal; some dumpers write 0x26/0x27)
+        "1a|1b|26|27|00"
+        // version minor: range matches the accepted v0.10-v0.39 version string
+        "0a-27|00"
         ""sv;
 
     class Decoder : public Formats::Chiptune::Decoder
