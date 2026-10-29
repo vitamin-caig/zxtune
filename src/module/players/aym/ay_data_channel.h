@@ -12,6 +12,9 @@
 
 #include "devices/aym/chip.h"
 
+#include <algorithm>
+#include <vector>
+
 namespace Module
 {
   class AyDataChannel
@@ -71,8 +74,17 @@ namespace Module
     Sound::Chunk RenderFrame(Devices::AYM::Stamp till)
     {
       AllocateChunk(till);
+      // Writes carry the machine clock, which may run ahead of the output grid when a timer handler
+      // overran the frame; keep those pending so the chip timeline stays on the grid
+      // TODO: move this into the chip's own queue: RenderTill should slice the already rendered data
+      // up to the requested time instead of letting RenderData advance the chip clock past it
+      const auto split =
+          std::stable_partition(Chunks.begin(), Chunks.end(),
+                                [&till](const Devices::AYM::DataChunk& chunk) { return !(till < chunk.TimeStamp); });
+      std::vector<Devices::AYM::DataChunk> pending(split, Chunks.end());
+      Chunks.erase(split, Chunks.end());
       Chip->RenderData(Chunks);
-      Chunks.clear();
+      Chunks.swap(pending);
       return Chip->RenderTill(till);
     }
 

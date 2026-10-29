@@ -11,7 +11,7 @@ source_files.darwin = $(source_files.linux)
 libraries.common = analysis async \
                   binary binary_compression binary_format \
                   core core_plugins_players core_plugins_archives \
-                  debug devices_aym devices_beeper devices_dac devices_aym_dumper devices_fm devices_saa devices_z80 \
+                  debug devices_aym devices_beeper devices_dac devices_aym_dumper devices_fm devices_m68k devices_saa devices_z80 \
                   formats_archived formats_archived_multitrack formats_chiptune formats_packed formats_multitrack \
                   io \
                   l10n_stub \
