@@ -124,6 +124,36 @@ namespace Parameters::ZXTune::Core
     };
   }  // namespace Z80
 
+  //! @brief 68000-related parameters namespace
+  namespace M68K
+  {
+    constexpr auto Prefix = Core::Prefix + "m68k"_id;
+
+    //@{
+    //! @name CPU clockrate in Hz; takes precedence over the Atari master clock derived value
+    struct Clockrate : Value<uint_t>
+    {
+      static constexpr auto Key = Prefix + "clockrate"_id;
+      static constexpr Type Default = 8'000'000, Min = 1'000'000, Max = 100'000'000;
+    };
+    //@}
+  }  // namespace M68K
+
+  //! @brief Atari-related parameters namespace
+  namespace Atari
+  {
+    constexpr auto Prefix = Core::Prefix + "atari"_id;
+
+    //@{
+    //! @name Master clockrate in Hz; the 68000 runs at a quarter of it
+    struct Clockrate : Value<uint_t>
+    {
+      static constexpr auto Key = Prefix + "clockrate"_id;
+      static constexpr Type Default = 32'000'000, Min = 4'000'000, Max = 400'000'000;
+    };
+    //@}
+  }  // namespace Atari
+
   //! @brief FM-related parameters namespace
   namespace FM
   {

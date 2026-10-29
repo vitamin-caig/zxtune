@@ -1,6 +1,6 @@
 library_name := module
 dirs.root := ../..
-source_dirs := players players/aym players/dac players/external players/external/sid players/external/wav players/multitrack players/saa players/tfm players/xsf
+source_dirs := players players/aym players/aym/atari players/dac players/external players/external/sid players/external/wav players/multitrack players/saa players/tfm players/xsf
 
 po_files := module
 
@@ -33,3 +33,10 @@ players/external/sid/songlengths_db.inc: players/external/sid/mksonglength.py $(
 endif
 
 players/external/sid/songlengths.cpp: players/external/sid/songlengths_db.inc
+
+ifdef tools.python
+players/aym/atari/sndh.inc: players/aym/atari/mksndhtimedb.py players/aym/atari/timedb.inc.h
+	$(tools.python) $^ > $@
+endif
+
+players/aym/atari/timedb.cpp: players/aym/atari/sndh.inc

@@ -22,6 +22,8 @@ namespace Module::AYM
     explicit PropertiesHelper(Parameters::Modifier& delegate);
 
     void SetChipsCount(uint_t count);
+    //! @brief Append non-AY channels (e.g. an STe DMA stream) after the standard A/B/C/N/E
+    void SetExtraChannels(const Strings::Array& extra);
     void SetFrequencyTable(StringView freqTable);
     void SetChipType(uint_t type);
     void SetChannelsLayout(uint_t layout);

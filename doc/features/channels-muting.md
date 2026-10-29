@@ -25,6 +25,7 @@ IMPORTANT: for newly implemented low-level support (e.g. at 3rdparty libraries) 
 | SID (C64), 2 chips | [`sid_base.cpp`](/src/core/plugins/players/sid/sid_base.cpp#L364) | `Voice 1/1`…`Voice 3/1` `Voice 1/2`…`Voice 3/2` |
 | ASAP (Atari), 1 chip | [`asap_base.cpp`](/src/core/plugins/players/asap/asap_base.cpp#L166) | `C1`…`C4` |
 | ASAP (Atari), 2 chips | [`asap_base.cpp`](/src/core/plugins/players/asap/asap_base.cpp#L166) | `L1`…`L4` `R1`…`R4` |
+| SNDH (Atari ST/STe) | [`sndh.cpp`](/src/module/players/aym/sndh.cpp) | `A` `B` `C` `N` `E` `DMA` |
 
 ---
 

@@ -21,6 +21,9 @@
 
 namespace Module::AYM
 {
+  //! Standard channel vocabulary of a single AY/YM voice set
+  const Strings::Array AY_CHANNELS{"A"s, "B"s, "C"s, "N"s, "E"s};
+
   PropertiesHelper::PropertiesHelper(Parameters::Modifier& delegate)
     : Module::PropertiesHelper(delegate)
   {
@@ -31,7 +34,14 @@ namespace Module::AYM
 
   void PropertiesHelper::SetChipsCount(uint_t count)
   {
-    SetChannels({"A"s, "B"s, "C"s, "N"s, "E"s}, count);
+    SetChannels(AY_CHANNELS, count);
+  }
+
+  void PropertiesHelper::SetExtraChannels(const Strings::Array& extra)
+  {
+    Strings::Array names = AY_CHANNELS;
+    names.insert(names.end(), extra.begin(), extra.end());
+    SetChannels(names);
   }
 
   void PropertiesHelper::SetFrequencyTable(StringView freqTable)
