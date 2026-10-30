@@ -74,7 +74,7 @@ namespace Test
       // positive test
       if (const auto unpacked = decoder.Decode(*testdata))
       {
-        if (unpacked->Size() != etalon.Size() && 0 != std::memcmp(etalon.Start(), unpacked->Start(), etalon.Size()))
+        if (unpacked->Size() != etalon.Size() || 0 != std::memcmp(etalon.Start(), unpacked->Start(), unpacked->Size()))
         {
           std::ofstream output((testname + "_decoded").c_str(), std::ios::binary);
           output.write(static_cast<const char*>(unpacked->Start()), unpacked->Size());
