@@ -225,6 +225,7 @@ namespace Formats
       scanner.AddDecoder(CreateMegaLZDecoder());
       scanner.AddDecoder(CreateDSKDecoder());
       scanner.AddDecoder(CreateGzipDecoder());
+      scanner.AddDecoder(CreateICEDecoder());
       // players
       if (!skipChiptunes)
       {

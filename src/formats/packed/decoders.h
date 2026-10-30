@@ -56,5 +56,6 @@ namespace Formats::Packed
   Decoder::Ptr CreateMegaLZDecoder();
   Decoder::Ptr CreateDSKDecoder();
   Decoder::Ptr CreateGzipDecoder();
+  Decoder::Ptr CreateICEDecoder();
   Decoder::Ptr CreateMUSEDecoder();
 }  // namespace Formats::Packed

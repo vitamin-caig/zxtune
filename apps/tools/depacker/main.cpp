@@ -59,6 +59,7 @@ namespace
       {"MEGALZ"sv, &CreateMegaLZDecoder},
       {"DSK"sv, &CreateDSKDecoder},
       {"GZIP"sv, &CreateGzipDecoder},
+      {"ICE"sv, &CreateICEDecoder},
   };
 
   class AutoDecoder : public Formats::Packed::Decoder
