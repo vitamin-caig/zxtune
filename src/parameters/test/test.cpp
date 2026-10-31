@@ -14,6 +14,7 @@
 #include "parameters/identifiers_set.h"
 #include "parameters/types.h"
 #include "parameters/value.h"
+#include "time/duration.h"
 
 #include "string_view.h"
 
@@ -270,6 +271,12 @@ namespace
       static constexpr Type Default = false;
     };
 
+    struct DUR : Value<Time::Milliseconds>
+    {
+      static constexpr auto Key = "dur"_id;
+      static constexpr auto Default = Time::Seconds(2), Min = Time::Seconds(1), Max = Time::Seconds(30);
+    };
+
   }  // namespace TestParams
 
   template<class P>
@@ -283,16 +290,26 @@ namespace
   static_assert(
       std::is_same_v<Parameters::Value<Parameters::StringType>::Protocol, Parameters::Detail::StringProtocol>);
   static_assert(std::is_same_v<Parameters::Value<Binary::Data>::Protocol, Parameters::Detail::DataProtocol>);
+  static_assert(std::is_same_v<Parameters::Value<Time::Milliseconds>::Protocol, Parameters::Detail::IntegerProtocol>);
+  static_assert(std::is_same_v<Parameters::Value<Time::Nanoseconds>::Protocol, Parameters::Detail::IntegerProtocol>);
   static_assert(Parameters::Defaulted<TestParams::INT>);
   static_assert(Parameters::Defaulted<TestParams::STR>);
   static_assert(Parameters::Defaulted<TestParams::BOOL>);
   static_assert(!Parameters::Defaulted<TestParams::DATA>);
+  static_assert(Parameters::Defaulted<TestParams::DUR>);
   static_assert(CanGet<TestParams::INT> && CanGet<TestParams::STR> && !CanGet<TestParams::DATA>);
+  static_assert(Parameters::Ranged<TestParams::INT>);
+  static_assert(Parameters::Ranged<TestParams::DUR>);
+  static_assert(!Parameters::Ranged<TestParams::STR>);
   static_assert(Parameters::Validate<TestParams::INT>(1));
   static_assert(Parameters::Validate<TestParams::INT>(10));
   static_assert(!Parameters::Validate<TestParams::INT>(0));
   static_assert(!Parameters::Validate<TestParams::INT>(11));
-  static_assert(Parameters::Validate<TestParams::STR>("x"));
+  static_assert(Parameters::Validate<TestParams::DUR>(Time::Seconds(1)));
+  static_assert(Parameters::Validate<TestParams::DUR>(Time::Seconds(30)));
+  static_assert(Parameters::Validate<TestParams::DUR>(Time::Milliseconds(2000)));
+  static_assert(!Parameters::Validate<TestParams::DUR>(Time::Milliseconds(999)));
+  static_assert(!Parameters::Validate<TestParams::DUR>(Time::Seconds(31)));
 
   void TestValue()
   {
@@ -328,6 +345,15 @@ namespace
     // any non-zero stored value means true
     cont->SetValue("bool"_id, IntType(7));
     Test("non-zero reads true", *Find<BOOL>(*cont), true);
+
+    Test("unset dur", Get<DUR>(*cont).Get(), uint32_t(2000));
+
+    Set<DUR>(*cont, Time::Milliseconds(250));
+    Test("stored dur", Find<DUR>(*cont)->Get(), uint32_t(250));
+    Test("dur stored as unit count", *cont->FindInteger("dur"_id), IntType(250));
+
+    Set<DUR>(*cont, Time::Seconds(1));
+    Test("converted dur", *cont->FindInteger("dur"_id), IntType(1000));
   }
 
   void TestContainer()

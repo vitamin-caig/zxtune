@@ -13,6 +13,7 @@
 #include "parameters/accessor.h"
 #include "parameters/modifier.h"
 #include "parameters/types.h"
+#include "time/duration.h"
 
 #include "string_view.h"
 
@@ -24,10 +25,21 @@ namespace Parameters
 {
   namespace Detail
   {
+    template<class T>
+    struct IsDuration : std::false_type
+    {};
+
+    template<class Unit>
+    struct IsDuration<Time::Duration<Unit>> : std::true_type
+    {};
+
     //! @brief Integer storage: optional IntType
     struct IntegerProtocol
     {
       static constexpr bool SupportsDefault = true;
+
+      template<class Wire>
+      static constexpr bool Accepts = std::is_integral_v<Wire> || std::is_enum_v<Wire> || IsDuration<Wire>::value;
 
       template<class P>
       static std::optional<typename P::Type> Find(const Accessor& ac)
@@ -65,11 +77,25 @@ namespace Parameters
     };
 
     template<class Wire>
-    using ProtocolOf = std::conditional_t<
-        std::is_same_v<Wire, StringType>, StringProtocol,
-        std::conditional_t<std::is_integral_v<Wire> || std::is_enum_v<Wire>, IntegerProtocol, DataProtocol>>;
+    using ProtocolOf =
+        std::conditional_t<std::is_same_v<Wire, StringType>, StringProtocol,
+                           std::conditional_t<IntegerProtocol::Accepts<Wire>, IntegerProtocol, DataProtocol>>;
 
   }  // namespace Detail
+
+  //! @brief Convert typed value to its integer wire representation
+  template<class T>
+  constexpr IntType Encode(T val)
+  {
+    return static_cast<IntType>(val);
+  }
+
+  template<class Unit>
+  constexpr IntType Encode(Time::Duration<Unit> val)
+  {
+    // raw unit count is the wire format
+    return static_cast<IntType>(val.Get());
+  }
 
   //! @brief Base for a typed parameter descriptor; Wire defines both payload type and storage protocol
   template<class Wire>
@@ -96,6 +122,14 @@ namespace Parameters
     requires std::is_convertible_v<decltype(P::Default), typename P::Type>;
   };
 
+  //! @brief Parameter with an explicit range contract
+  template<class P>
+  concept Ranged = Parameter<P>&& requires
+  {
+    P::Min;
+    P::Max;
+  };
+
   //! @brief Find typed value; data parameters return a nullable pointer instead of an optional
   template<Parameter P>
   auto Find(const Accessor& ac)
@@ -110,22 +144,12 @@ namespace Parameters
     return Find<P>(ac).value_or(P::Default);
   }
 
-  //! @brief Check value against descriptor range (if any); opt-in, not enforced by Get/Find
-  template<Parameter P, class V>
+  //! @brief Check value against the descriptor range; not enforced by Get/Find
+  template<Ranged P, class V>
   constexpr bool Validate(V val)
   {
-    if constexpr (requires {
-                    P::Min;
-                    P::Max;
-                  })
-    {
-      const auto typed = static_cast<typename P::Type>(val);
-      return typed >= P::Min && typed <= P::Max;
-    }
-    else
-    {
-      return true;
-    }
+    const auto typed = static_cast<typename P::Type>(val);
+    return !(typed < P::Min) && !(P::Max < typed);
   }
 
   //! @brief Set value; integer inputs are encoded, views are passed through
@@ -134,7 +158,7 @@ namespace Parameters
   {
     if constexpr (std::is_same_v<typename P::Protocol, Detail::IntegerProtocol>)
     {
-      target.SetValue(P::Key, static_cast<IntType>(static_cast<typename P::Type>(std::forward<V>(val))));
+      target.SetValue(P::Key, Encode(static_cast<typename P::Type>(std::forward<V>(val))));
     }
     else
     {
