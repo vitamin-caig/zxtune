@@ -16,11 +16,11 @@ namespace Parameters::ZXTune::Core::Plugins
 {
   constexpr auto Prefix = Core::Prefix + "plugins"_id;
 
-  //! @brief Default song duration in seconds if not specified exactly (can be overridden)
-  struct DefaultDuration : Value<uint_t>
+  //! @brief Default song duration if not specified exactly (can be overridden)
+  struct DefaultDuration : Value<Time::Seconds>
   {
     static constexpr auto Key = Prefix + "default_duration"_id;
-    static constexpr Type Default = 3 * 60, Min = 30, Max = 600;
+    static constexpr Type Default{3 * 60}, Min{30}, Max{600};
   };
 
   //! @brief RAW scaner parameters namespace

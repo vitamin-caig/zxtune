@@ -19,6 +19,6 @@ namespace Module
   Time::Seconds GetDefaultDuration(const Parameters::Accessor& params)
   {
     using namespace Parameters::ZXTune::Core::Plugins;
-    return Time::Seconds{Parameters::Get<DefaultDuration>(params)};
+    return Parameters::Get<DefaultDuration>(params);
   }
 }  // namespace Module

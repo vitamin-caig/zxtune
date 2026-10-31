@@ -17,7 +17,6 @@
 #include "sound/backends/volume_control.h"
 
 #include "debug/log.h"
-#include "math/numeric.h"
 #include "sound/parameters.h"
 #include "sound/render_params.h"
 #include "strings/split.h"
@@ -35,9 +34,6 @@ namespace Sound::Alsa
   const Debug::Stream Dbg("Sound::Backend::Alsa");
 
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
-
-  const uint_t LATENCY_MIN = 20;
-  const uint_t LATENCY_MAX = 10000;
 
   inline void CheckResult(Api& api, int res, Error::LocationRef loc)
   {
@@ -675,12 +671,12 @@ namespace Sound::Alsa
     {
       using namespace Parameters::ZXTune::Sound::Backends::Alsa;
       const auto val = Parameters::Get<Latency>(Accessor);
-      if (!Math::InRange(val, LATENCY_MIN, LATENCY_MAX))
+      if (!Parameters::Validate<Latency>(val))
       {
         throw MakeFormattedError(THIS_LINE, translate("ALSA backend error: latency ({0}) is out of range ({1}..{2})."),
-                                 val, LATENCY_MIN, LATENCY_MAX);
+                                 val.Get(), Latency::Min.Get(), Latency::Max.Get());
       }
-      return Time::Milliseconds{val};
+      return val;
     }
 
   private:

@@ -163,13 +163,13 @@ namespace Module
   void PropertiesHelper::SetFadein(Time::Milliseconds fadein)
   {
     using namespace Parameters::ZXTune::Sound;
-    Parameters::Set<FadeIn>(Delegate, FadeIn::Precision * fadein.Get() / fadein.PER_SECOND);
+    Parameters::Set<FadeIn>(Delegate, fadein.CastTo<Time::Second>());
   }
 
   void PropertiesHelper::SetFadeout(Time::Milliseconds fadeout)
   {
     using namespace Parameters::ZXTune::Sound;
-    Parameters::Set<FadeOut>(Delegate, FadeOut::Precision * fadeout.Get() / fadeout.PER_SECOND);
+    Parameters::Set<FadeOut>(Delegate, fadeout.CastTo<Time::Second>());
   }
 
   void PropertiesHelper::SetGain(float gain)

@@ -17,7 +17,6 @@
 #include "sound/backends/volume_control.h"
 
 #include "debug/log.h"
-#include "math/numeric.h"
 #include "sound/render_params.h"
 #include "strings/encoding.h"
 
@@ -33,9 +32,6 @@ namespace Sound::DirectSound
   const Debug::Stream Dbg("Sound::Backend::DirectSound");
 
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
-
-  const uint_t LATENCY_MIN = 20;
-  const uint_t LATENCY_MAX = 10000;
 
   HWND GetWindowHandle()
   {
@@ -375,15 +371,15 @@ namespace Sound::DirectSound
       return Parameters::Get<Parameters::ZXTune::Sound::Backends::DirectSound::Device>(Accessor);
     }
 
-    uint_t GetLatency() const
+    Time::Milliseconds GetLatency() const
     {
       using namespace Parameters::ZXTune::Sound::Backends::DirectSound;
       const auto latency = Parameters::Get<Latency>(Accessor);
-      if (!Math::InRange(latency, LATENCY_MIN, LATENCY_MAX))
+      if (!Parameters::Validate<Latency>(latency))
       {
         throw MakeFormattedError(THIS_LINE,
                                  translate("DirectSound backend error: latency ({0}) is out of range ({1}..{2})."),
-                                 latency, LATENCY_MIN, LATENCY_MAX);
+                                 latency.Get(), Latency::Min.Get(), Latency::Max.Get());
       }
       return latency;
     }
@@ -479,7 +475,7 @@ namespace Sound::DirectSound
       const String device = params.GetDevice();
       DSObjects res;
       res.Device = OpenDevice(*DsApi, device);
-      const uint_t latency = params.GetLatency();
+      const uint_t latency = params.GetLatency().Get();
       const DirectSoundBufferPtr buffer =
           CreateSecondaryBuffer(*res.Device, GetSoundFrequency(*BackendParams), latency);
       res.Stream = MakePtr<StreamBuffer>(buffer);

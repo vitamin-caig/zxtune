@@ -363,11 +363,11 @@ namespace
         {Parameters::ZXTune::Sound::Backends::Alsa::Mixer::Key,
          "mixer for ALSA backend (taking the first one if not specified)", EMPTY},
         {Parameters::ZXTune::Sound::Backends::Alsa::Latency::Key, "latency in ms for ALSA backend",
-         Parameters::ZXTune::Sound::Backends::Alsa::Latency::Default},
+         Parameters::Encode(Parameters::ZXTune::Sound::Backends::Alsa::Latency::Default)},
         {Parameters::ZXTune::Sound::Backends::Sdl::Buffers::Key, "buffers count for SDL backend",
          Parameters::ZXTune::Sound::Backends::Sdl::Buffers::Default},
         {Parameters::ZXTune::Sound::Backends::DirectSound::Latency::Key, "latency in ms for DirectSound backend",
-         Parameters::ZXTune::Sound::Backends::DirectSound::Latency::Default},
+         Parameters::Encode(Parameters::ZXTune::Sound::Backends::DirectSound::Latency::Default)},
         // Mp3
         {Parameters::ZXTune::Sound::Backends::Mp3::Mode::Key, "specify mode for Mp3 backend (cbr/abr/vbr)",
          Parameters::ZXTune::Sound::Backends::Mp3::Mode::Default},

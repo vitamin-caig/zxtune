@@ -22,11 +22,11 @@ namespace Parameters::ZXTuneQT::Update
     static constexpr auto Key = Prefix + "Feed"_id;
   };
 
-  //! @brief Check period in seconds; zero disables the checks
-  struct CheckPeriod : Value<uint_t>
+  //! @brief Check period; zero disables the checks
+  struct CheckPeriod : Value<Time::Seconds>
   {
     static constexpr auto Key = Prefix + "CheckPeriod"_id;
-    static constexpr Type Default = 86400;
+    static constexpr Type Default{86400};
   };
 
   //! @brief Last check timestamp

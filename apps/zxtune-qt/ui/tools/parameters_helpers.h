@@ -39,8 +39,8 @@ namespace UI
 {
   //! @brief Numeric parameters are always bound to int-operand widgets (QSpinBox/QSlider/QIntValidator)
   template<class P>
-  inline constexpr bool RangeFitsInt = static_cast<Parameters::IntType>(P::Min) >= std::numeric_limits<int>::min()
-                                       && static_cast<Parameters::IntType>(P::Max) <= std::numeric_limits<int>::max();
+  inline constexpr bool RangeFitsInt = Parameters::Encode(P::Min) >= std::numeric_limits<int>::min()
+                                       && Parameters::Encode(P::Max) <= std::numeric_limits<int>::max();
 
   class Value : public QObject
   {
@@ -84,31 +84,29 @@ namespace UI
     template<Parameters::Defaulted P>
     static Value* Bind(QComboBox& combo, Parameters::Container& ctr)
     {
-      return Bind(combo, ctr, P::Key, std::optional<Parameters::IntType>(static_cast<Parameters::IntType>(P::Default)));
+      return Bind(combo, ctr, P::Key, std::optional<Parameters::IntType>(Parameters::Encode(P::Default)));
     }
 
     template<Parameters::Defaulted P>
     static Value* Bind(QSlider& slider, Parameters::Container& ctr)
     {
       static_assert(RangeFitsInt<P>, "Parameter range must fit into int");
-      slider.setRange(static_cast<int>(P::Min), static_cast<int>(P::Max));
-      return Bind(slider, ctr, P::Key,
-                  std::optional<Parameters::IntType>(static_cast<Parameters::IntType>(P::Default)));
+      slider.setRange(static_cast<int>(Parameters::Encode(P::Min)), static_cast<int>(Parameters::Encode(P::Max)));
+      return Bind(slider, ctr, P::Key, std::optional<Parameters::IntType>(Parameters::Encode(P::Default)));
     }
 
     template<Parameters::Defaulted P>
     static Value* Bind(QSpinBox& spinbox, Parameters::Container& ctr)
     {
       static_assert(RangeFitsInt<P>, "Parameter range must fit into int");
-      spinbox.setRange(static_cast<int>(P::Min), static_cast<int>(P::Max));
-      return Bind(spinbox, ctr, P::Key,
-                  std::optional<Parameters::IntType>(static_cast<Parameters::IntType>(P::Default)));
+      spinbox.setRange(static_cast<int>(Parameters::Encode(P::Min)), static_cast<int>(Parameters::Encode(P::Max)));
+      return Bind(spinbox, ctr, P::Key, std::optional<Parameters::IntType>(Parameters::Encode(P::Default)));
     }
 
     template<Parameters::Defaulted P>
     static Value* Bind(QComboBox& combo, Parameters::Container& ctr, const std::vector<Parameters::IntType>& values)
     {
-      return Bind(combo, ctr, P::Key, values, static_cast<Parameters::IntType>(P::Default));
+      return Bind(combo, ctr, P::Key, values, Parameters::Encode(P::Default));
     }
 
     template<Parameters::Defaulted P>
@@ -173,8 +171,9 @@ namespace UI
       else
       {
         static_assert(RangeFitsInt<P>, "Parameter range must fit into int");
-        edit.setValidator(new QIntValidator(static_cast<int>(P::Min), static_cast<int>(P::Max), &edit));
-        const auto intDef = def ? std::optional<Parameters::IntType>(static_cast<Parameters::IntType>(*def))
+        edit.setValidator(new QIntValidator(static_cast<int>(Parameters::Encode(P::Min)),
+                                            static_cast<int>(Parameters::Encode(P::Max)), &edit));
+        const auto intDef = def ? std::optional<Parameters::IntType>(Parameters::Encode(*def))
                                 : std::optional<Parameters::IntType>{};
         return Bind(edit, ctr, P::Key, intDef);
       }

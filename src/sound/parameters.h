@@ -39,22 +39,18 @@ namespace Parameters::ZXTune::Sound
     static constexpr Type Default = 0, Min = 0, Max = 10;
   };
 
-  //! @brief Fadein in seconds
-  struct FadeIn : Value<uint_t>
+  //! @brief Fadein duration
+  struct FadeIn : Value<Time::Seconds>
   {
     static constexpr auto Key = Prefix + "fadein"_id;
-    static constexpr Type Default = 0, Min = 0, Max = 30;
-    //! @brief ticks per second
-    static constexpr IntType Precision = 1;
+    static constexpr Type Default{0}, Min{0}, Max{30};
   };
 
-  //! @brief Fadeout in seconds
-  struct FadeOut : Value<uint_t>
+  //! @brief Fadeout duration
+  struct FadeOut : Value<Time::Seconds>
   {
     static constexpr auto Key = Prefix + "fadeout"_id;
-    static constexpr Type Default = 0, Min = 0, Max = 30;
-    //! @brief ticks per second
-    static constexpr IntType Precision = 1;
+    static constexpr Type Default{0}, Min{0}, Max{30};
   };
 
   //! @brief Gain in percents
@@ -66,12 +62,10 @@ namespace Parameters::ZXTune::Sound
     static constexpr Type Default = Precision, Min = 1, Max = 1000;
   };
 
-  //! @brief Silence detection limit in seconds
-  struct SilenceLimit : Value<uint_t>
+  //! @brief Silence detection limit
+  struct SilenceLimit : Value<Time::Seconds>
   {
     static constexpr auto Key = Prefix + "silencelimit"_id;
-    static constexpr Type Default = 0, Min = 0, Max = 30;
-    //! @brief ticks per second
-    static constexpr IntType Precision = 1;
+    static constexpr Type Default{0}, Min{0}, Max{30};
   };
 }  // namespace Parameters::ZXTune::Sound

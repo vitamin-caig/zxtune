@@ -103,10 +103,10 @@ namespace Parameters::ZXTune::Sound::Backends
     };
 
     //! @brief Latency in mS
-    struct Latency : Value<uint_t>
+    struct Latency : Value<Time::Milliseconds>
     {
       static constexpr auto Key = Prefix + "latency"_id;
-      static constexpr Type Default = 100, Min = 20, Max = 10'000;
+      static constexpr Type Default{100}, Min{20}, Max{10'000};
     };
   }  // namespace Alsa
 
@@ -136,10 +136,10 @@ namespace Parameters::ZXTune::Sound::Backends
     };
 
     //! @brief Latency in mS
-    struct Latency : Value<uint_t>
+    struct Latency : Value<Time::Milliseconds>
     {
       static constexpr auto Key = Prefix + "latency"_id;
-      static constexpr Type Default = 100, Min = 20, Max = 10'000;
+      static constexpr Type Default{100}, Min{20}, Max{10'000};
     };
   }  // namespace DirectSound
 

@@ -346,7 +346,7 @@ namespace
       using namespace Parameters::ZXTuneQT::Update;
       if (const auto val = Parameters::Get<CheckPeriod>(*Params))
       {
-        return Time::Seconds(val);
+        return val;
       }
       else
       {

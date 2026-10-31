@@ -29,12 +29,6 @@ namespace Module
 
   using TimeUnit = Time::Millisecond;
 
-  template<Parameters::Defaulted P>
-  Time::Duration<TimeUnit> GetDurationValue(const Parameters::Accessor& params)
-  {
-    return Time::Duration<TimeUnit>::FromRatio(Parameters::Get<P>(params), P::Precision);
-  }
-
   struct FadeInfo
   {
     const Time::Duration<TimeUnit> FadeIn;
@@ -67,9 +61,8 @@ namespace Module
 
     static FadeInfo Create(Time::Milliseconds duration, const Parameters::Accessor& params)
     {
-      const auto fadeIn = GetDurationValue<Parameters::ZXTune::Sound::FadeIn>(params);
-      const auto fadeOut = GetDurationValue<Parameters::ZXTune::Sound::FadeOut>(params);
-      return {fadeIn, fadeOut, duration};
+      return {Parameters::Get<Parameters::ZXTune::Sound::FadeIn>(params),
+              Parameters::Get<Parameters::ZXTune::Sound::FadeOut>(params), duration};
     }
   };
 
@@ -105,9 +98,9 @@ namespace Module
     static SilenceDetector Create(uint_t samplerate, const Parameters::Accessor& params)
     {
       using namespace Parameters::ZXTune::Sound;
-      const auto duration = GetDurationValue<SilenceLimit>(params);
+      const auto duration = Parameters::Get<SilenceLimit>(params);
       const auto limit = std::size_t(samplerate) * duration.Get() / duration.PER_SECOND;
-      Debug("Silence detection: {} ms ({} samples)", duration.Get(), limit);
+      Debug("Silence detection: {}s ({} samples)", duration.Get(), limit);
       return SilenceDetector(limit);
     }
 
