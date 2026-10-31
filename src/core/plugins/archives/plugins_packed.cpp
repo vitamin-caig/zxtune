@@ -68,6 +68,7 @@ namespace ZXTune
   const ArchivePluginDescription CHIPTUNE_PACKERS[] =
   {
     {"GZIP"_id,     &CreateGzipDecoder,                      Capabilities::Container::Type::ARCHIVE},//may contain source filename, so can be treated as archive
+    {"ICE"_id,      &CreateICEDecoder,                       Capabilities::Container::Type::COMPRESSOR},
     {"MUSE"_id,     &CreateMUSEDecoder,                      Capabilities::Container::Type::COMPRESSOR},
   };
 
