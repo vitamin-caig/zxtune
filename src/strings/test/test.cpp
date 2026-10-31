@@ -298,6 +298,9 @@ int main()
       TestTranscode("CP1252", "M\xf6ller", "M\xc3\xb6ller");
       TestTranscode("CP1252", "Norrg\xe5rd", "Norrg\xc3\xa5rd");
       TestTranscode("CP1252", "Skarzy\xf1zki", "Skarzy\xc3\xb1zki");
+      TestTranscode("CP437", "Cassiop\x82\x65", "Cassiop\xc3\xa9\x65");
+      TestTranscode("CP437", "Bodenst\x84ndig 2000", "Bodenst\xc3\xa4ndig 2000");
+      TestTranscode("CP437", "W\x9aSTENSCHIFF /XF", "W\xc3\x9cSTENSCHIFF /XF");
       TestTranscode("CP866", "\xac\xe3\xa7\xeb\xaa\xa0", "\xd0\xbc\xd1\x83\xd0\xb7\xd1\x8b\xd0\xba\xd0\xb0");
       TestTranscode("UTF-8", "\xe3\x81\xaf\xe3\x81\x98", "\xe3\x81\xaf\xe3\x81\x98");
       TestTranscode("UTF-8 BOM", "\xef\xbb\xbf\xe3\x81\xaf\xe3\x81\x98", "\xe3\x81\xaf\xe3\x81\x98");
