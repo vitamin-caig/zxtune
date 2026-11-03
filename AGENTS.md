@@ -39,6 +39,8 @@ Located at `3rdparty/`. Included files are ALWAYS referenced with prefix (e.g. `
 
 Scripts for GNU make located at `make/`.
 
+Use `make -C <path_to_makefile>` to build binary (or another target).
+
 ### Jumbo builds
 
 Sources combining, allowed per-target via `jumbo.name`. ALL and ONLY sources with includes from `3rdparty/` should be listed at `jumbo.excludes`.
@@ -142,3 +144,28 @@ DON'T skip commentaries while moving blocks of code between or within files.
 
 - DON'T change git repo (`commit`, `reset`, `cherry-pick` commands disallowed) unless given permission for single action
 - DON'T change generated files (`.inc`, `*_api.h`, `*_api_dynamic.cpp`, `.qm`, `.mo`) in accessible directories
+
+# Testing
+
+## Playback
+
+`zxtune123 --benchmark 1 <files...>` processes all the input files one-by-one and renders each found track once producing output lines in format:
+
+`x{performance} ({type}) {path_with_subpath} [{rendered_output_hash}] {{rendered_output_value_range}, {rendered_samples_count}}`
+
+Example: `x155.55 (AY)    samples/chiptunes/AY-3-8910/ay/AYMD39.ay        [0x3213a9ec]    {-1874..19340, 6094620}`
+
+Optional key `--dump-unknown-data` also gives unparsed data report: `Unknown () {path} [{size}]`
+
+Example: `Unknown ()      AGENTS.md       [4900]`
+
+Basic rules for running zxtune123 benchmark:
+- pin runs to all the available low-frequency CPU cores (`taskset -c <cores> ...`)
+- limit used per-process memory (`ulimit -v <kilibytes> ...`) to its share (total RAM / parallelism level)
+- limit consumed CPU (`timeout <seconds> ...`)
+- use parallel runs with multiple input files each (e.g. testing 1000 files on 8 cores with 125 files for each process)
+- check for exit code
+
+Wav rendering is performed via `zxtune123 --wav filename=<filename_template> <input...>`.
+`filename_template` may contain any of the processed module attributes in square brackets (e.g. `[Title] - [Author]`), extension is added automatically.
+`zxtune123 --list-attributes` gives full list of supported attributes.
