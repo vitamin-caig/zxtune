@@ -12,6 +12,8 @@
 
 #include "Ym2203_Emu.h"
 
+#include "devices/details/chunks_cache.h"
+
 #include "devices/fm.h"
 #include "math/fixedpoint.h"
 #include "math/numeric.h"
@@ -19,6 +21,8 @@
 #include "time/duration.h"
 
 #include "contract.h"
+
+#include <utility>
 
 namespace Devices::FM::Details
 {
@@ -110,10 +114,9 @@ namespace Devices::FM::Details
       BaseChip::Reset();
     }
 
-    void RenderData(const typename ChipTraits::DataChunkType& src) override
+    void RenderData(typename ChipTraits::DataChunkType src) override
     {
-      Require(!Clock.AdvanceTo(src.TimeStamp));
-      Adapter.WriteRegisters(src.Data);
+      Chunks.Add(std::move(src));
     }
 
     void Reset() override
@@ -121,16 +124,21 @@ namespace Devices::FM::Details
       Params.Reset();
       Adapter.Reset();
       Clock.Reset();
+      Chunks = {};
       SynchronizeParameters();
     }
 
-    Sound::Chunk RenderTill(typename ChipTraits::StampType stamp) override
+    Sound::Chunk RenderTill(typename ChipTraits::StampType till) override
     {
-      const auto samples = Clock.AdvanceTo(stamp);
-      Require(samples);
-      auto result = Adapter.RenderSamples(samples);
       SynchronizeParameters();
-      return result;
+      for (const auto& chunk : Chunks.ConsumeBefore(till))
+      {
+        Require(!Clock.AdvanceTo(chunk.TimeStamp));
+        Adapter.WriteRegisters(chunk.Data);
+      }
+      const auto samples = Clock.AdvanceTo(till);
+      Require(samples);
+      return Adapter.RenderSamples(samples);
     }
 
   private:
@@ -150,5 +158,6 @@ namespace Devices::FM::Details
     Parameters::TrackingHelper<ChipParameters> Params;
     typename ChipTraits::AdapterType Adapter;
     ClockSource Clock;
+    ::Devices::Details::ChunksCache<typename ChipTraits::DataChunkType, typename ChipTraits::StampType> Chunks;
   };
 }  // namespace Devices::FM::Details

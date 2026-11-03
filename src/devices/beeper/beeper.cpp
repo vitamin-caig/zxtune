@@ -10,6 +10,7 @@
 
 #include "devices/beeper.h"
 
+#include "devices/details/chunks_cache.h"
 #include "devices/details/renderers.h"
 
 #include "parameters/tracking_helper.h"
@@ -54,29 +55,9 @@ namespace Devices::Beeper
       SynchronizeParameters();
     }
 
-    void RenderData(const std::vector<DataChunk>& src) override
+    void RenderData(DataChunk src) override
     {
-      if (src.empty())
-      {
-        return;
-      }
-      const Stamp end = src.back().TimeStamp;
-      if (Clock.HasSamplesBefore(end))
-      {
-        RenderedData.reserve(RenderedData.size() + Clock.SamplesTill(end));
-        for (const auto& chunk : src)
-        {
-          Renderer.Render(chunk.TimeStamp, &RenderedData);
-          PSG.SetNewData(chunk.Level);
-        }
-      }
-      else
-      {
-        for (const auto& chunk : src)
-        {
-          PSG.SetNewData(chunk.Level);
-        }
-      }
+      Chunks.Add(std::move(src));
     }
 
     void Reset() override
@@ -86,23 +67,20 @@ namespace Devices::Beeper
       Clock.Reset();
       ClockFreq = 0;
       SoundFreq = 0;
+      Chunks = {};
       SynchronizeParameters();
     }
 
-    Sound::Chunk RenderTill(Stamp stamp) override
+    Sound::Chunk RenderTill(Stamp till) override
     {
-      Sound::Chunk result;
-      if (RenderedData.empty())
-      {
-        result = Renderer.Render(stamp, Clock.SamplesTill(stamp));
-      }
-      else
-      {
-        Renderer.Render(stamp, &RenderedData);
-        result.swap(RenderedData);
-        RenderedData.reserve(result.size());
-      }
       SynchronizeParameters();
+      Sound::Chunk result;
+      for (const auto& event : Chunks.ConsumeBefore(till))
+      {
+        Renderer.Render(event.TimeStamp, &result);
+        PSG.SetNewData(event.Level);
+      }
+      Renderer.Render(till, &result);
       return result;
     }
 
@@ -128,7 +106,7 @@ namespace Devices::Beeper
     Details::HQRenderer<Stamp, BeeperPSG> Renderer;
     uint_t ClockFreq = 0;
     uint_t SoundFreq = 0;
-    Sound::Chunk RenderedData;
+    Details::ChunksCache<DataChunk, Stamp> Chunks;
   };
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params)

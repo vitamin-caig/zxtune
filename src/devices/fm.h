@@ -65,8 +65,8 @@ namespace Devices::FM
     using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
-    /// render single data chunk
-    virtual void RenderData(const DataChunk& src) = 0;
+    /// render state changes
+    virtual void RenderData(DataChunk src) = 0;
 
     /// reset internal state to initial
     virtual void Reset() = 0;
@@ -79,7 +79,7 @@ namespace Devices::FM
     using Ptr = std::unique_ptr<Chip>;
 
     /// Render rest data and return result
-    virtual Sound::Chunk RenderTill(Stamp stamp) = 0;
+    virtual Sound::Chunk RenderTill(Stamp till) = 0;
   };
 
   class ChipParameters

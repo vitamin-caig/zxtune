@@ -59,7 +59,7 @@ namespace Devices::TFM
     using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
-    virtual void RenderData(const DataChunk& src) = 0;
+    virtual void RenderData(DataChunk src) = 0;
     virtual void Reset() = 0;
   };
 
@@ -69,7 +69,7 @@ namespace Devices::TFM
     using Ptr = std::unique_ptr<Chip>;
 
     /// Render rest data and return result
-    virtual Sound::Chunk RenderTill(Stamp stamp) = 0;
+    virtual Sound::Chunk RenderTill(Stamp till) = 0;
   };
 
   using FM::ChipParameters;

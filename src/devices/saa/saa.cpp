@@ -10,6 +10,7 @@
  *
  **/
 
+#include "devices/details/chunks_cache.h"
 #include "devices/details/renderers.h"
 #include "devices/saa/device.h"
 
@@ -221,9 +222,9 @@ namespace Devices::SAA
       }
     }
 
-    Sound::Chunk Render(Stamp tillTime, uint_t samples)
+    void Render(Stamp tillTime, Sound::Chunk* target)
     {
-      return Current->Render(tillTime, samples);
+      Current->Render(tillTime, target);
     }
 
   private:
@@ -246,11 +247,9 @@ namespace Devices::SAA
       RegularSAAChip::Reset();
     }
 
-    void RenderData(const DataChunk& src) override
+    void RenderData(DataChunk src) override
     {
-      // for simplicity
-      Require(!Clock.HasSamplesBefore(src.TimeStamp));
-      PSG.SetNewData(src.Data);
+      Chunks.Add(std::move(src));
     }
 
     void Reset() override
@@ -258,15 +257,22 @@ namespace Devices::SAA
       Params.Reset();
       PSG.Reset();
       Renderers.Reset();
+      Chunks = {};
       SynchronizeParameters();
     }
 
-    Sound::Chunk RenderTill(Stamp stamp) override
+    Sound::Chunk RenderTill(Stamp till) override
     {
-      const uint_t samples = Clock.SamplesTill(stamp);
-      Require(samples);
-      auto result = Renderers.Render(stamp, samples);
       SynchronizeParameters();
+      for (const auto& event : Chunks.ConsumeBefore(till))
+      {
+        // for simplicity
+        Require(!Clock.SamplesTill(event.TimeStamp));
+        PSG.SetNewData(event.Data);
+      }
+      Sound::Chunk result;
+      Renderers.Render(till, &result);
+      Require(!result.empty());
       return result;
     }
 
@@ -288,6 +294,7 @@ namespace Devices::SAA
     SAARenderer PSG;
     ClockSource Clock;
     RenderersSet Renderers;
+    Details::ChunksCache<DataChunk, Stamp> Chunks;
   };
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params)

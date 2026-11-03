@@ -10,6 +10,7 @@
 
 #include "devices/dac.h"
 
+#include "devices/details/chunks_cache.h"
 #include "devices/details/freq_table.h"
 
 #include "math/numeric.h"
@@ -21,6 +22,7 @@
 
 #include <array>
 #include <cmath>
+#include <utility>
 
 namespace Devices::DAC
 {
@@ -485,11 +487,9 @@ namespace Devices::DAC
       Samples.Add(idx, sample);
     }
 
-    void RenderData(const DataChunk& src) override
+    void RenderData(DataChunk src) override
     {
-      // to simplify
-      Require(!(Clock.GetCurrentTime() < src.TimeStamp));
-      UpdateChannelState(src);
+      Chunks.Add(std::move(src));
     }
 
     void UpdateState(const DataChunk& src) override
@@ -501,13 +501,18 @@ namespace Devices::DAC
       UpdateChannelState(src);
     }
 
-    Sound::Chunk RenderTill(Stamp stamp) override
+    Sound::Chunk RenderTill(Stamp till) override
     {
-      const uint_t samples = Clock.Advance(stamp);
-      Require(samples);
-      auto result = Renderers.RenderData(samples);
       SynchronizeParameters();
-      return result;
+      for (const auto& chunk : Chunks.ConsumeBefore(till))
+      {
+        // to simplify
+        Require(!(Clock.GetCurrentTime() < chunk.TimeStamp));
+        UpdateChannelState(chunk);
+      }
+      const uint_t samples = Clock.Advance(till);
+      Require(samples);
+      return Renderers.RenderData(samples);
     }
 
     /// reset internal state to initial
@@ -516,6 +521,7 @@ namespace Devices::DAC
       Params.Reset();
       Clock.Reset();
       Renderers.Reset();
+      Chunks = {};
       std::fill(State.begin(), State.end(), ChannelState(Samples.Get(0)));
       SynchronizeParameters();
     }
@@ -554,6 +560,7 @@ namespace Devices::DAC
     const typename Sound::FixedChannelsMixer<Channels>::Ptr Mixer;
     SamplesStorage Samples;
     ClockSource Clock;
+    Details::ChunksCache<DataChunk, Stamp> Chunks;
     std::array<ChannelState, Channels> State;
     RenderersSet<Channels> Renderers;
   };

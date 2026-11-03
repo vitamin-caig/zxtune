@@ -39,8 +39,8 @@ namespace Devices::Beeper
     using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
-    /// Render multiple data chunks
-    virtual void RenderData(const std::vector<DataChunk>& src) = 0;
+    /// Apply state changes
+    virtual void RenderData(DataChunk src) = 0;
 
     /// reset internal state to initial
     virtual void Reset() = 0;

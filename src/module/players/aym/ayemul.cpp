@@ -46,7 +46,6 @@ namespace Module::AYEMUL
     {
       Chip->Reset();
       Register = 0;
-      Chunks.clear();
       State = Devices::AYM::DataChunk();
       Blocked = false;
     }
@@ -67,11 +66,14 @@ namespace Module::AYEMUL
       if (IsRegisterSelected())
       {
         const auto idx = static_cast<Devices::AYM::Registers::Index>(Register);
-        if (Devices::AYM::DataChunk* chunk = GetChunk(timeStamp))
-        {
-          chunk->Data[idx] = val;
-        }
         State.Data[idx] = val;
+        if (!Blocked)
+        {
+          Devices::AYM::DataChunk chunk;
+          chunk.TimeStamp = timeStamp;
+          chunk.Data[idx] = val;
+          Chip->RenderData(std::move(chunk));
+        }
         return true;
       }
       return false;
@@ -89,11 +91,8 @@ namespace Module::AYEMUL
       }
     }
 
-    Sound::Chunk RenderFrame(const Devices::AYM::Stamp& till)
+    Sound::Chunk RenderTill(const Devices::AYM::Stamp& till)
     {
-      AllocateChunk(till);
-      Chip->RenderData(Chunks);
-      Chunks.clear();
       return Chip->RenderTill(till);
     }
 
@@ -103,23 +102,9 @@ namespace Module::AYEMUL
       return Register < Devices::AYM::Registers::TOTAL;
     }
 
-    Devices::AYM::DataChunk* GetChunk(const Devices::AYM::Stamp& timeStamp)
-    {
-      return Blocked ? nullptr : &AllocateChunk(timeStamp);
-    }
-
-    Devices::AYM::DataChunk& AllocateChunk(const Devices::AYM::Stamp& timeStamp)
-    {
-      Chunks.resize(Chunks.size() + 1);
-      Devices::AYM::DataChunk& res = Chunks.back();
-      res.TimeStamp = timeStamp;
-      return res;
-    }
-
   private:
     const Devices::AYM::Chip::Ptr Chip;
     uint_t Register = 0;
-    std::vector<Devices::AYM::DataChunk> Chunks;
     Devices::AYM::DataChunk State;
     bool Blocked = false;
   };
@@ -156,14 +141,17 @@ namespace Module::AYEMUL
       }
     }
 
-    Sound::Chunk RenderFrame(const Devices::AYM::Stamp& till)
+    Sound::Chunk RenderTill(const Devices::AYM::Stamp& till)
     {
       if (Chunks.empty())
       {
         Chip->RenderTill(till);
         return {};
       }
-      Chip->RenderData(Chunks);
+      for (const auto& chunk : Chunks)
+      {
+        Chip->RenderData(chunk);
+      }
       Chunks.clear();
       return Chip->RenderTill(till);
     }
@@ -225,8 +213,8 @@ namespace Module::AYEMUL
 
     Sound::Chunk RenderFrameTill(Time::AtMicrosecond till)
     {
-      auto aySound = Ay.RenderFrame(till.CastTo<Devices::AYM::TimeUnit>());
-      auto beepSound = Beeper.RenderFrame(till.CastTo<Devices::Beeper::TimeUnit>());
+      auto aySound = Ay.RenderTill(till.CastTo<Devices::AYM::TimeUnit>());
+      auto beepSound = Beeper.RenderTill(till.CastTo<Devices::Beeper::TimeUnit>());
       if (!beepSound.empty())
       {
         if (beepSound.size() > aySound.size())
@@ -669,7 +657,7 @@ namespace Module::AYEMUL
   class StubBeeper : public Devices::Beeper::Chip
   {
   public:
-    void RenderData(const std::vector<Devices::Beeper::DataChunk>& /*src*/) override {}
+    void RenderData(Devices::Beeper::DataChunk /*src*/) override {}
 
     void Reset() override {}
 

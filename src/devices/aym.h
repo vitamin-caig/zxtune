@@ -171,11 +171,8 @@ namespace Devices::AYM
     using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
-    /// Render single data chunk
-    virtual void RenderData(const DataChunk& src) = 0;
-
-    /// Render multiple data chunks
-    virtual void RenderData(const std::vector<DataChunk>& src) = 0;
+    /// Apply state changes
+    virtual void RenderData(DataChunk src) = 0;
 
     /// reset internal state to initial
     virtual void Reset() = 0;

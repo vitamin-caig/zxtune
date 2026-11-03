@@ -107,17 +107,17 @@ namespace Devices::DAC
     /// Set sample for work
     virtual void SetSample(uint_t idx, const Sample& sample) = 0;
 
-    /// Render single data chunk
-    virtual void RenderData(const DataChunk& src) = 0;
+    /// Render state changes
+    virtual void RenderData(DataChunk src) = 0;
 
-    /// Same as RenderData but do not produce sound output
+    /// Same as RenderData
     virtual void UpdateState(const DataChunk& src) = 0;
 
     /// reset internal state to initial
     virtual void Reset() = 0;
 
     /// Render rest data and return result
-    virtual Sound::Chunk RenderTill(Stamp stamp) = 0;
+    virtual Sound::Chunk RenderTill(Stamp till) = 0;
   };
 
   class ChipParameters

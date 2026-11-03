@@ -63,11 +63,6 @@ namespace Devices::AYM
       }
     }
 
-    Sound::Chunk Render(Stamp tillTime, uint_t samples)
-    {
-      return Current->Render(tillTime, samples);
-    }
-
     void Render(Stamp tillTime, Sound::Chunk* target)
     {
       Current->Render(tillTime, target);

@@ -12,8 +12,11 @@
 
 #include "devices/aym/src/renderers.h"
 #include "devices/aym/src/volume_table.h"
+#include "devices/details/chunks_cache.h"
 
 #include "parameters/tracking_helper.h"
+
+#include <utility>
 
 namespace Devices::AYM
 {
@@ -30,38 +33,9 @@ namespace Devices::AYM
       SoundChip::Reset();
     }
 
-    void RenderData(const typename Traits::DataChunkType& src) override
+    void RenderData(typename Traits::DataChunkType src) override
     {
-      if (Clock.HasSamplesBefore(src.TimeStamp))
-      {
-        RenderTill(src.TimeStamp);
-      }
-      PSG.SetNewData(src.Data);
-    }
-
-    void RenderData(const std::vector<typename Traits::DataChunkType>& src) override
-    {
-      if (src.empty())
-      {
-        return;
-      }
-      const Stamp end = src.back().TimeStamp;
-      if (Clock.HasSamplesBefore(end))
-      {
-        RenderedData.reserve(RenderedData.size() + Clock.SamplesTill(end));
-        for (const auto& chunk : src)
-        {
-          Renderers.Render(chunk.TimeStamp, &RenderedData);
-          PSG.SetNewData(chunk.Data);
-        }
-      }
-      else
-      {
-        for (const auto& chunk : src)
-        {
-          PSG.SetNewData(chunk.Data);
-        }
-      }
+      Chunks.Add(std::move(src));
     }
 
     void Reset() override
@@ -69,23 +43,20 @@ namespace Devices::AYM
       Params.Reset();
       PSG.Reset();
       Renderers.Reset();
+      Chunks = {};
       SynchronizeParameters();
     }
 
-    Sound::Chunk RenderTill(Stamp stamp) override
+    Sound::Chunk RenderTill(Stamp till) override
     {
-      Sound::Chunk result;
-      if (RenderedData.empty())
-      {
-        result = Renderers.Render(stamp, Clock.SamplesTill(stamp));
-      }
-      else
-      {
-        Renderers.Render(stamp, &RenderedData);
-        result.swap(RenderedData);
-        RenderedData.reserve(result.size());
-      }
       SynchronizeParameters();
+      Sound::Chunk result;
+      for (const auto& event : Chunks.ConsumeBefore(till))
+      {
+        Renderers.Render(event.TimeStamp, &result);
+        PSG.SetNewData(event.Data);
+      }
+      Renderers.Render(till, &result);
       return result;
     }
 
@@ -113,6 +84,6 @@ namespace Devices::AYM
     typename Traits::PSGType PSG;
     ClockSource Clock;
     RenderersSet<typename Traits::PSGType> Renderers;
-    Sound::Chunk RenderedData;
+    Details::ChunksCache<typename Traits::DataChunkType, Stamp> Chunks;
   };
 }  // namespace Devices::AYM

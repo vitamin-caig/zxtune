@@ -83,8 +83,8 @@ namespace Devices::SAA
     using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
-    /// render single data chunk
-    virtual void RenderData(const DataChunk& src) = 0;
+    /// render state changes
+    virtual void RenderData(DataChunk src) = 0;
 
     /// reset internal state to initial
     virtual void Reset() = 0;

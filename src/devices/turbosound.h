@@ -38,8 +38,7 @@ namespace Devices::TurboSound
     using Ptr = std::unique_ptr<Device>;
     virtual ~Device() = default;
 
-    virtual void RenderData(const DataChunk& src) = 0;
-    virtual void RenderData(const std::vector<DataChunk>& src) = 0;
+    virtual void RenderData(DataChunk src) = 0;
     virtual void Reset() = 0;
   };
 

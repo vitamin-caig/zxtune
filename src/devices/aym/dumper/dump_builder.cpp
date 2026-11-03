@@ -129,21 +129,13 @@ namespace Devices::AYM
       Reset();
     }
 
-    void RenderData(const DataChunk& src) override
+    void RenderData(DataChunk src) override
     {
       if (!(src.TimeStamp < NextFrame))
       {
         FinishFrame();
       }
       State->Add(src.Data);
-    }
-
-    void RenderData(const std::vector<DataChunk>& src) override
-    {
-      for (const auto& chunk : src)
-      {
-        RenderData(chunk);
-      }
     }
 
     void Reset() override

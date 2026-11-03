@@ -30,7 +30,6 @@ namespace Devices::Details
       SoundFreq = soundFreq;
       NextSampleTime -= SamplePeriod;
       SamplePeriod = FixedPoint(StampType::PER_SECOND, soundFreq);
-      SampleFreq = FixedPoint(soundFreq, StampType::PER_SECOND);
       PsgFreq = FixedPoint(clockFreq, StampType::PER_SECOND);
       TicksPerSample = FixedPoint(clockFreq, soundFreq);
       NextSampleTime += SamplePeriod;
@@ -38,26 +37,21 @@ namespace Devices::Details
 
     void Reset()
     {
-      NextSampleTime = SamplePeriod = SampleFreq = CurPsgTime = PsgFreq = 0;
+      NextSampleTime = SamplePeriod = CurPsgTime = PsgFreq = 0;
       TicksDelta = TicksPerSample = 0;
     }
 
     uint_t SamplesTill(StampType stamp) const
     {
       const FastStamp till(stamp.Get());
-      assert(till > NextSampleTime);
-      const FastStamp curSampleStart = NextSampleTime - SamplePeriod;
-      return static_cast<uint_t>(((till - curSampleStart) * SampleFreq).Round());
-    }
-
-    bool HasSamplesBefore(StampType stamp) const
-    {
-      return HasSamplesBefore(FastStamp(stamp.Get()));
-    }
-
-    bool HasSamplesBefore(FastStamp stamp) const
-    {
-      return NextSampleTime < stamp;
+      if (till <= NextSampleTime)
+      {
+        return 0;
+      }
+      // exact count of sample boundaries before the stamp, unlike rounded time difference
+      const auto diff = till.Raw() - NextSampleTime.Raw();
+      const auto period = SamplePeriod.Raw();
+      return period ? static_cast<uint_t>((diff + period - 1) / period) : 0;
     }
 
     void UpdateNextSampleTime()
@@ -125,7 +119,6 @@ namespace Devices::Details
     uint_t SoundFreq = 0;
     FastStamp NextSampleTime;
     FixedPoint SamplePeriod;
-    FixedPoint SampleFreq;
     FastStamp CurPsgTime;
     FixedPoint PsgFreq;
     // tick error accumulator
