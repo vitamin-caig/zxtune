@@ -61,6 +61,17 @@ namespace Time
       return Instant<Unit>(CurTime.Integer());
     }
 
+    //! Move the timeline to the given instant (never backwards). The tick conversion truncates,
+    //! so advance until the integer time actually reaches the target.
+    void AdvanceTime(Instant<Unit> time)
+    {
+      while (GetCurrentTime() < time)
+      {
+        const auto delta = GetTickAtTime(time) - CurTick;
+        AdvanceTick(delta ? delta : 1);
+      }
+    }
+
     Tick GetTickAtTime(Instant<Unit> time) const
     {
       FixedPoint relTime(time.Get());
