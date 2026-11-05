@@ -6,8 +6,7 @@ import app.zxtune.BuildConfig
 import app.zxtune.R
 import app.zxtune.fs.http.MultisourceHttpProvider
 
-internal class VfsRootNetwork(private val ctx: Context, http: MultisourceHttpProvider) :
-    VfsRootComposite("online") {
+internal class VfsRootNetwork(private val ctx: Context, http: MultisourceHttpProvider) : VfsRootComposite("online") {
 
     init {
         addSubroot(VfsRootZxtunes(this, ctx, http))
@@ -21,6 +20,7 @@ internal class VfsRootNetwork(private val ctx: Context, http: MultisourceHttpPro
             addSubroot(VfsRootModarchive(this, ctx, http, BuildConfig.MODARCHIVE_KEY))
         }
         addSubroot(VfsRootAsma(this, ctx, http))
+        addSubroot(VfsRootSndh(this, ctx, http))
         addSubroot(VfsRootAminet(this, ctx, http))
         addSubroot(VfsRootVgmrips(this, ctx, http))
         addSubroot(VfsRootScene(this, ctx, http))

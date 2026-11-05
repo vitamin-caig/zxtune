@@ -48,6 +48,12 @@
         <item quantity="many">%d balíčku</item>
         <item quantity="other">%d balíčků</item>
     </plurals>
+    <plurals name="files">
+        <item quantity="one">%d soubor</item>
+        <item quantity="few">%d soubory</item>
+        <item quantity="many">%d souborů</item>
+        <item quantity="other">%d souborů</item>
+    </plurals>
     <string name="no_tracks_found">Nenalezeny žádné podporované skladby</string>
     <string name="track">Skladba</string>
     <!-- notifications -->

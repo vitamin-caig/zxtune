@@ -10,8 +10,7 @@ object Cdn {
 
     fun hvsc(path: String): Uri = root.path("browse/hvsc/$path").build()
 
-    fun joshw(catalogue: String, path: String): Uri =
-        root.path("browse/joshw/$catalogue/$path").build()
+    fun joshw(catalogue: String, path: String): Uri = root.path("browse/joshw/$catalogue/$path").build()
 
     fun amp(id: Int): Uri = root.path("download/amp/ids/$id").build()
 
@@ -35,6 +34,8 @@ object Cdn {
         require(startsWith("soundtracks/")) { path }
         root.path("download/khinsider/$this").build()
     }
+
+    fun sndh(id: Int): Uri = root.path("download/sndh/ids/$id").build()
 
     private val root: Uri.Builder
         get() = ROOT.buildUpon()

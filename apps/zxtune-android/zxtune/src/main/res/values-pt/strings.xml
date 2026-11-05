@@ -45,6 +45,11 @@
         <item quantity="many">%d pacotes</item>
         <item quantity="other">%d pacotes</item>
     </plurals>
+    <plurals name="files">
+        <item quantity="one">%d arquivo</item>
+        <item quantity="many">%d arquivos</item>
+        <item quantity="other">%d arquivos</item>
+    </plurals>
     <string name="no_tracks_found">Nenhuma faixa compatível encontrada</string>
     <string name="track">Faixa</string>
     <!-- notifications -->

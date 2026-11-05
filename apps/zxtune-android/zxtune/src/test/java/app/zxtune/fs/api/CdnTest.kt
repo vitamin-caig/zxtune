@@ -2,11 +2,11 @@ package app.zxtune.fs.api
 
 import app.zxtune.BuildConfig
 import app.zxtune.assertThrows
+import kotlin.IllegalArgumentException
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import kotlin.IllegalArgumentException
 
 @RunWith(RobolectricTestRunner::class)
 class CdnTest {
@@ -103,11 +103,19 @@ class CdnTest {
         )
         assertEquals(
             "${BuildConfig.CDN_ROOT}/browse/scene/music/groups/flange/2001/alex_garcia_(alexg)" +
-                    "_%26_jamie_holyoake_(mr.d)-flange_-%60flight_(resampled_drums).mp3",
+                "_%26_jamie_holyoake_(mr.d)-flange_-%60flight_(resampled_drums).mp3",
             Cdn.scene(
                 "groups/flange/2001/alex_garcia_(alexg)_&_jamie_holyoake_(mr.d)" +
-                        "-flange_-`flight_(resampled_drums).mp3"
+                    "-flange_-`flight_(resampled_drums).mp3"
             ).toString()
+        )
+    }
+
+    @Test
+    fun `test SNDH`() {
+        assertEquals(
+            "${BuildConfig.CDN_ROOT}/download/sndh/ids/12345",
+            Cdn.sndh(12345).toString()
         )
     }
 

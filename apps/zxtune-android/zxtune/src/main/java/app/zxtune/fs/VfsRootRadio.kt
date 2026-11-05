@@ -8,7 +8,9 @@ import androidx.core.net.toUri
 import app.zxtune.Logger
 import app.zxtune.R
 
-internal class VfsRootRadio(private val ctx: Context) : StubObject(), VfsRoot {
+internal class VfsRootRadio(private val ctx: Context) :
+    StubObject(),
+    VfsRoot {
     override val uri: Uri = Uri.fromParts("radio", "", "")
     private val children by lazy {
         ArrayList<VfsDir>().apply {
@@ -30,6 +32,12 @@ internal class VfsRootRadio(private val ctx: Context) : StubObject(), VfsRoot {
                 R.string.vfs_khinsider_root_name,
                 R.drawable.ic_browser_vfs_khinsider
             )
+            maybeAdd(
+                this,
+                "sndh:/Random",
+                R.string.vfs_sndh_root_name,
+                R.drawable.ic_browser_vfs_sndh
+            )
         }
     }
 
@@ -50,7 +58,10 @@ internal class VfsRootRadio(private val ctx: Context) : StubObject(), VfsRoot {
     override fun enumerate(visitor: VfsDir.Visitor) = children.forEach(visitor::onDir)
 
     private fun maybeAdd(
-        list: ArrayList<VfsDir>, uri: String, @StringRes description: Int, @DrawableRes icon: Int
+        list: ArrayList<VfsDir>,
+        uri: String,
+        @StringRes description: Int,
+        @DrawableRes icon: Int
     ) = runCatching {
         list.add(BaseEntry(uri, description, icon))
     }.onFailure { e ->
@@ -65,7 +76,9 @@ internal class VfsRootRadio(private val ctx: Context) : StubObject(), VfsRoot {
         VfsDir by delegate {
 
         constructor(
-            uri: String, @StringRes descr: Int, @DrawableRes icon: Int
+            uri: String,
+            @StringRes descr: Int,
+            @DrawableRes icon: Int
         ) : this(Vfs.resolve(uri.toUri()) as VfsDir, descr, icon)
 
         override val description

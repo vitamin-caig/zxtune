@@ -45,6 +45,11 @@
     <item quantity="many">%d paquetes</item>
     <item quantity="other">%d paquetes</item>
   </plurals>
+  <plurals name="files">
+    <item quantity="one">%d archivo</item>
+    <item quantity="many">%d archivos</item>
+    <item quantity="other">%d archivos</item>
+  </plurals>
   <string name="no_tracks_found">No hay módulos soportados encontrados</string>
   <string name="track">Módulo</string>
     <!-- notifications -->
