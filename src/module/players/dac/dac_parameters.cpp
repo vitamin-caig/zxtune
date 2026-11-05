@@ -61,7 +61,8 @@ namespace Module::DAC
     const Parameters::Accessor::Ptr Params;
   };
 
-  const Parameters::IdentifiersSet ChipParameters::ALL{Dac::Interpolation::Key, Dac::SamplesFrequency::Key};
+  const Parameters::IdentifiersSet ChipParameters::ALL{Dac::Interpolation::Key, Dac::SamplesFrequency::Key,
+                                                       Parameters::ZXTune::Core::FrameDuration::Key};
 
   Devices::DAC::ChipParameters::Ptr ChipParameters::Create(uint_t samplerate, Parameters::Accessor::Ptr params)
   {

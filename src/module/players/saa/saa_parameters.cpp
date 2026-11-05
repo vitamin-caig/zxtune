@@ -61,7 +61,8 @@ namespace Module::SAA
     const Parameters::Accessor::Ptr Params;
   };
 
-  const Parameters::IdentifiersSet ChipParameters::ALL{Saa::Clockrate::Key, Saa::Interpolation::Key};
+  const Parameters::IdentifiersSet ChipParameters::ALL{Saa::Clockrate::Key, Saa::Interpolation::Key,
+                                                       Parameters::ZXTune::Core::FrameDuration::Key};
 
   Devices::SAA::ChipParameters::Ptr ChipParameters::Create(uint_t samplerate, Parameters::Accessor::Ptr params)
   {

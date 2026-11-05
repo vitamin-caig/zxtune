@@ -233,7 +233,9 @@ namespace Module::TFM
         props.SetSource(*container);
         props.SetPlatform(Platforms::ZX_SPECTRUM);
         props.SetChannels("FM"sv, Devices::TFM::VOICES);
-        return CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data));
+        const auto frameDuration = dataBuilder.GetFrameDuration();
+        props.SetFrameDuration(frameDuration);
+        return CreateStreamedChiptune(frameDuration, std::move(data));
       }
     }
     return {};

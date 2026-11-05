@@ -25,6 +25,13 @@ namespace Parameters::ZXTune::Core
     static constexpr Type Default = 0;
   };
 
+  //! @brief Frame duration
+  struct FrameDuration : Value<Time::Microseconds>
+  {
+    static constexpr auto Key = Prefix + "frameduration"_id;
+    static constexpr Type Min{1'000}, Max{1'000'000};
+  };
+
   //! @brief AYM-chip related parameters namespace
   namespace AYM
   {

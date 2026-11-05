@@ -162,6 +162,10 @@ namespace
       {
         FillAymChipTypeProperty();
       }
+      if (ids.Contains(FrameDuration::Key))
+      {
+        AddIntegerProperty<FrameDuration>(Playlist::UI::PropertiesDialog::tr("Frame duration, uS"));
+      }
       if (ids.Contains(AYM::Layout::Key))
       {
         FillAymLayoutProperty();
