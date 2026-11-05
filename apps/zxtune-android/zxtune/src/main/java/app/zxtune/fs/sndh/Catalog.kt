@@ -20,7 +20,9 @@ interface Catalog {
     companion object {
         @JvmStatic
         fun create(context: Context, http: MultisourceHttpProvider): Catalog {
-            return RemoteCatalog(http)
+            val remote = RemoteCatalog(http)
+            val db = Database(context)
+            return CachingCatalog(remote, db)
         }
     }
 }
