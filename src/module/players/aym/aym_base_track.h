@@ -11,9 +11,12 @@
 #pragma once
 
 #include "module/players/aym/aym_chiptune.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/tracking.h"
 
 #include "parameters/tracking_helper.h"
+
+#include <memory>
 
 namespace Module::AYM
 {
@@ -143,14 +146,21 @@ namespace Module::AYM
     SparsedObjectsStorage<OrnamentType> Ornaments;
   };
 
-  template<class RendererType, class ModelPtr>
   class TrackingChiptune : public Chiptune
+  {
+  public:
+    virtual std::unique_ptr<const TrackPresentation> CreatePresentation() const = 0;
+  };
+
+  template<class RendererType, class ModelPtr>
+  class TrackingChiptuneImpl : public TrackingChiptune
   {
     using ModelType = std::remove_const_t<typename ModelPtr::element_type>;
 
   public:
-    explicit TrackingChiptune(ModelPtr model)
+    TrackingChiptuneImpl(ModelPtr model, Presentation::Generic::PresentPatternFunction presentPattern)
       : Model(std::move(model))
+      , PresentPattern(presentPattern)
     {}
 
     Time::Microseconds GetFrameDuration() const override
@@ -168,13 +178,20 @@ namespace Module::AYM
       return MakePtr<TrackIterator<ModelType, ModelTrackCursor, Synth<RendererType>>>(Model, std::move(trackParams));
     }
 
+    std::unique_ptr<const TrackPresentation> CreatePresentation() const override
+    {
+      return std::make_unique<Presentation::Generic>(*Model, PresentPattern);
+    }
+
   private:
     const ModelPtr Model;
+    const Presentation::Generic::PresentPatternFunction PresentPattern;
   };
 
   template<class RendererType, class ModelPtr>
-  Chiptune::Ptr CreateTrackingChiptune(ModelPtr model)
+  Chiptune::Ptr CreateTrackingChiptune(ModelPtr model,
+                                       Presentation::Generic::PresentPatternFunction presentPattern = nullptr)
   {
-    return MakePtr<TrackingChiptune<RendererType, ModelPtr>>(std::move(model));
+    return MakePtr<TrackingChiptuneImpl<RendererType, ModelPtr>>(std::move(model), presentPattern);
   }
 }  // namespace Module::AYM

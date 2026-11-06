@@ -14,6 +14,7 @@
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
@@ -282,6 +283,95 @@ namespace Module::ProTracker1
     const ModuleData& Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+
+    struct RowPrefix
+    {
+      Layout::Hex<4> EnvelopeTone;
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Module::Presentation::NoteAndOctave Note;
+      char Space = ' ';
+      Layout::Base36 Sample;
+      Layout::Hex<1> Envelope;
+      Layout::Hex<1> Ornament;
+      Layout::Hex<1> Volume;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Dec<2> Index;
+      Delimiter Separator;
+      RowPrefix Prefix;
+      Channel Channels[AYM::TRACK_CHANNELS];
+    };
+
+    void FillCell(const Cell& cell, Channel& txt, RowPrefix& prefix)
+    {
+      txt.Note.Set(&cell);
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case ENVELOPE:
+          txt.Envelope = cmd.Param1;
+          prefix.EnvelopeTone = cmd.Param2;
+          break;
+        case ENVELOPE_OFF:
+          txt.Envelope = 0xf;
+          break;
+        default:
+          break;
+        }
+      }
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Sample = *sample;
+      }
+      if (const auto* ornament = cell.GetOrnament())
+      {
+        txt.Ornament = *ornament;
+      }
+      if (const auto* volume = cell.GetVolume())
+      {
+        txt.Volume = *volume;
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t channel = 0; channel != AYM::TRACK_CHANNELS; ++channel)
+      {
+        if (const auto* cell = line.GetChannel(channel))
+        {
+          FillCell(*cell, row.Channels[channel], row.Prefix);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 }  // namespace Module::ProTracker1
 
 namespace Module::AYM
@@ -292,7 +382,8 @@ namespace Module::AYM
     if (const auto container = Formats::Chiptune::ProTracker1::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ProTracker1::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<ProTracker1::DataRenderer>(dataBuilder.CaptureResult(),
+                                                               &ProTracker1::Presentation::ForPattern);
     }
     return {};
   }

@@ -14,6 +14,7 @@
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
@@ -601,6 +602,136 @@ namespace Module::ProSoundCreator
     uint_t EnvelopeTone = 0;
     uint_t NoiseBase = 0;
   };
+
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+    using NoteLayout = Module::Presentation::Layout<'-'>;
+
+    constexpr auto OCTAVES = "UCLS1234"sv;
+    constexpr auto NOTES = std::array<StringView, 12>{"-C"sv, "#C"sv, "-D"sv, "#D"sv, "-E"sv, "-F"sv,
+                                                      "#F"sv, "-G"sv, "#G"sv, "-A"sv, "#A"sv, "-B"sv};
+
+    struct Channel
+    {
+      Delimiter Separator;
+      NoteLayout::Text<1> Octave;
+      NoteLayout::Text<2> Note;
+      char Space = ' ';
+      Layout::Hex<2> Sample;
+      Layout::Hex<2> Ornament;
+      Layout::Hex<2> Volume;
+    };
+
+    struct RowPrefix
+    {
+      Layout::Hex<4> EnvelopeTone;
+      Delimiter Separator;
+      Layout::Hex<2> NoiseBase;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Dec<2> Index;
+      Delimiter Separator;
+      RowPrefix Prefix;
+      Channel Channels[AYM::TRACK_CHANNELS];
+    };
+
+    void SetNote(Channel& txt, uint_t note)
+    {
+      // Note 0 is the subcontra #A, i.e. 10 halftones before C.
+      const auto index = note + 10;
+      const auto octave = index / NOTES.size();
+      if (octave >= OCTAVES.size())
+      {
+        txt.Octave = "?"sv;
+        txt.Note = "??"sv;
+        return;
+      }
+      txt.Octave = OCTAVES.substr(octave, 1);
+      txt.Note = NOTES[index % NOTES.size()];
+    }
+
+    void FillCell(const Cell& cell, Channel& txt, Row& row)
+    {
+      bool breakSample = false;
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case ENVELOPE:
+          // The editor shows the 12-bit period packed with the 4-bit shape in the low nibble.
+          row.Prefix.EnvelopeTone = ((uint_t(cmd.Param2) & 0xfff) << 4) | (uint_t(cmd.Param1) & 0xf);
+          break;
+        case NOISE_BASE:
+          row.Prefix.NoiseBase = uint_t(cmd.Param1);
+          break;
+        case BREAK_SAMPLE:
+          breakSample = true;
+          break;
+        default:
+          break;
+        }
+      }
+      if (breakSample)
+      {
+        txt.Octave = "R"sv;
+        txt.Note = "LS"sv;
+      }
+      else if (const bool* enabled = cell.GetEnabled(); enabled && !*enabled)
+      {
+        txt.Octave = "P"sv;
+        txt.Note = "SE"sv;
+      }
+      else if (const uint_t* note = cell.GetNote())
+      {
+        SetNote(txt, *note);
+      }
+      // Instruments and ornaments are numbered from 1 in the editor.
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Sample = *sample + 1;
+      }
+      if (const auto* ornament = cell.GetOrnament())
+      {
+        txt.Ornament = *ornament + 1;
+      }
+      if (const auto* volume = cell.GetVolume())
+      {
+        txt.Volume = *volume;
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t channel = 0; channel != AYM::TRACK_CHANNELS; ++channel)
+      {
+        if (const auto* cell = line.GetChannel(channel))
+        {
+          FillCell(*cell, row.Channels[channel], row);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 }  // namespace Module::ProSoundCreator
 
 namespace Module::AYM
@@ -611,7 +742,8 @@ namespace Module::AYM
     if (const auto container = Formats::Chiptune::ProSoundCreator::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ProSoundCreator::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<ProSoundCreator::DataRenderer>(dataBuilder.CaptureResult(),
+                                                                   &ProSoundCreator::Presentation::ForPattern);
     }
     return {};
   }

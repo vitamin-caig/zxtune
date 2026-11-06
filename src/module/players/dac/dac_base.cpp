@@ -11,6 +11,7 @@
 #include "module/players/dac/dac_base.h"
 
 #include "module/players/dac/dac_parameters.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/parameters.h"
 
 #include "sound/mixer_factory.h"
@@ -79,11 +80,14 @@ namespace Module
     Devices::DAC::DataChunk LastChunk;
   };
 
-  class DACHolder : public Holder
+  class DACHolder
+    : public Holder
+    , public Presentation::Generic
   {
   public:
     DACHolder(DAC::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties, Time::Microseconds frameDuration)
-      : Tune(std::move(chiptune))
+      : Presentation::Generic(*chiptune->GetTrackModel())
+      , Tune(std::move(chiptune))
       , Properties(std::move(properties))
       , FrameDuration(frameDuration)
     {}

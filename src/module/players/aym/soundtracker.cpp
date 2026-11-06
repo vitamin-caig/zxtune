@@ -464,6 +464,96 @@ namespace Module::SoundTracker
     ChannelState StateC;
     uint_t EnvType = 0, EnvTone = 0;
   };
+
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+
+    struct Command
+    {
+      Layout::Hex<1> Code;
+      Layout::Hex<2> Param;
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Module::Presentation::NoteAndOctave Note;
+      char Space1 = ' ';
+      char Space2 = ' ';
+      Layout::Hex<1> Sample;
+      Command Cmd;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Dec<2> Index;
+      Channel Channels[AYM::TRACK_CHANNELS];
+    };
+
+    void FillCell(const Cell& cell, Channel& txt)
+    {
+      txt.Note.Set(&cell);
+      if (!cell.GetNote())
+      {
+        return;
+      }
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Sample = *sample;
+      }
+      if (const auto* ornament = cell.GetOrnament(); ornament && *ornament)
+      {
+        txt.Cmd.Code = 0xf;
+        txt.Cmd.Param = *ornament;
+      }
+      else
+      {
+        for (const auto& cmd : cell.GetCommands())
+        {
+          switch (cmd.Type)
+          {
+          case ENVELOPE:
+            txt.Cmd.Code = cmd.Param1;
+            txt.Cmd.Param = cmd.Param2;
+            break;
+          case ENVELOPE_OFF:
+            txt.Cmd.Code = 1;
+            break;
+          }
+        }
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t channel = 0; channel != AYM::TRACK_CHANNELS; ++channel)
+      {
+        if (const auto* cell = line.GetChannel(channel))
+        {
+          FillCell(*cell, row.Channels[channel]);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 }  // namespace Module::SoundTracker
 
 namespace Module::AYM
@@ -475,7 +565,8 @@ namespace Module::AYM
     if (const auto container = parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<SoundTracker::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<SoundTracker::DataRenderer>(dataBuilder.CaptureResult(),
+                                                                &SoundTracker::Presentation::ForPattern);
     }
     return {};
   }

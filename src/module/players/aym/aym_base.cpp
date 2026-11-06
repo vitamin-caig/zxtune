@@ -10,12 +10,14 @@
 
 #include "module/players/aym/aym_base.h"
 
+#include "module/players/aym/aym_base_track.h"
 #include "module/players/parameters.h"
 #include "module/players/streaming.h"
 #include "module/players/tracking.h"
 
 #include "debug/log.h"
 #include "math/numeric.h"
+#include "module/track_presentation.h"
 #include "sound/mixer_factory.h"
 
 #include "make_ptr.h"
@@ -132,6 +134,26 @@ namespace Module
     const Parameters::Accessor::Ptr Properties;
     const Time::Microseconds FrameDuration;
   };
+
+  class AYMTrackHolder
+    : public AYMHolder
+    , public TrackPresentation
+  {
+  public:
+    AYMTrackHolder(AYM::Chiptune::Ptr chiptune, std::unique_ptr<const TrackPresentation> presentation,
+                   Parameters::Accessor::Ptr properties, Time::Microseconds frameDuration)
+      : AYMHolder(std::move(chiptune), std::move(properties), frameDuration)
+      , Presentation(std::move(presentation))
+    {}
+
+    String GetPattern(std::size_t index) const override
+    {
+      return Presentation->GetPattern(index);
+    }
+
+  private:
+    const std::unique_ptr<const TrackPresentation> Presentation;
+  };
 }  // namespace Module
 
 namespace Module::AYM
@@ -139,6 +161,14 @@ namespace Module::AYM
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
   {
     const FrameDurationParameter frameDuration(properties, AYM::BASE_FRAME_DURATION);
+    if (const auto* tracking = dynamic_cast<const TrackingChiptune*>(chiptune.get()))
+    {
+      if (auto presentation = tracking->CreatePresentation())
+      {
+        return MakePtr<AYMTrackHolder>(std::move(chiptune), std::move(presentation), std::move(properties),
+                                       frameDuration.Get());
+      }
+    }
     return MakePtr<AYMHolder>(std::move(chiptune), std::move(properties), frameDuration.Get());
   }
 

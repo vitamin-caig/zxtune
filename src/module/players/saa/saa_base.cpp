@@ -10,6 +10,7 @@
 
 #include "module/players/saa/saa_base.h"
 
+#include "module/players/generic_presentation.h"
 #include "module/players/parameters.h"
 
 #include "math/numeric.h"
@@ -77,11 +78,14 @@ namespace Module
     Devices::SAA::DataChunk LastChunk;
   };
 
-  class SAAHolder : public Holder
+  class SAAHolder
+    : public Holder
+    , public Presentation::Generic
   {
   public:
     SAAHolder(SAA::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties, Time::Microseconds frameDuration)
-      : Tune(std::move(chiptune))
+      : Presentation::Generic(*chiptune->GetTrackModel())
+      , Tune(std::move(chiptune))
       , Properties(std::move(properties))
       , FrameDuration(frameDuration)
     {}

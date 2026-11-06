@@ -14,7 +14,10 @@
 
 #include "devices/turbosound.h"
 #include "module/holder.h"
+#include "module/track_presentation.h"
 #include "strings/array.h"
+
+#include <memory>
 
 namespace Module::TurboSound
 {
@@ -41,5 +44,6 @@ namespace Module::TurboSound
   Parameters::Accessor::Ptr CreateModuleProperties(Parameters::Accessor::Ptr outer, Parameters::Accessor::Ptr first,
                                                    Parameters::Accessor::Ptr second);
 
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties);
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties,
+                           std::unique_ptr<const TrackPresentation> presentation = nullptr);
 }  // namespace Module::TurboSound

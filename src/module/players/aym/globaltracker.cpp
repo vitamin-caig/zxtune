@@ -14,6 +14,7 @@
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
@@ -287,6 +288,100 @@ namespace Module::GlobalTracker
     const ModuleData& Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
+
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Module::Presentation::NoteAndOctave Note;
+      char Space = ' ';
+      Layout::Hex<1> Sample;
+      Layout::Hex<1> Envelope;
+      Layout::Hex<1> Ornament;
+      Layout::Hex<1> Volume;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Dec<2> Index;
+      Channel Channels[AYM::TRACK_CHANNELS];
+    };
+
+    void FillCell(const Cell& cell, Channel& txt)
+    {
+      txt.Note.Set(&cell);
+      bool hasEnvelope = false;
+      bool envelopeOff = false;
+      bool hasInstrument = false;
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case ENVELOPE:
+          txt.Envelope = cmd.Param1;
+          hasEnvelope = true;
+          break;
+        case ENVELOPE_OFF:
+          envelopeOff = true;
+          break;
+        default:
+          break;
+        }
+      }
+      if (const auto* sample = cell.GetSample())
+      {
+        // Instruments are numbered from 1 in the editor.
+        txt.Sample = *sample + 1;
+        hasInstrument = true;
+      }
+      if (const auto* ornament = cell.GetOrnament())
+      {
+        txt.Ornament = *ornament;
+        hasInstrument = true;
+      }
+      if (const auto* volume = cell.GetVolume())
+      {
+        // Volume is stored as attenuation; the editor shows the remaining level.
+        txt.Volume = 0xf - *volume;
+      }
+      if (!hasEnvelope && (envelopeOff || hasInstrument))
+      {
+        txt.Envelope = 0xf;
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t channel = 0; channel != AYM::TRACK_CHANNELS; ++channel)
+      {
+        if (const auto* cell = line.GetChannel(channel))
+        {
+          FillCell(*cell, row.Channels[channel]);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 }  // namespace Module::GlobalTracker
 
 namespace Module::AYM
@@ -297,7 +392,8 @@ namespace Module::AYM
     if (const auto container = Formats::Chiptune::GlobalTracker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<GlobalTracker::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<GlobalTracker::DataRenderer>(dataBuilder.CaptureResult(),
+                                                                 &GlobalTracker::Presentation::ForPattern);
     }
     return {};
   }

@@ -14,6 +14,7 @@
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
@@ -24,6 +25,7 @@
 #include "make_ptr.h"
 
 #include <array>
+#include <memory>
 
 namespace Module::FastTracker
 {
@@ -49,6 +51,7 @@ namespace Module::FastTracker
   using Formats::Chiptune::FastTracker::Ornament;
 
   using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::FastTracker::PositionEntry>;
+
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 
   class DataBuilder : public Formats::Chiptune::FastTracker::Builder
@@ -506,6 +509,132 @@ namespace Module::FastTracker
     int_t Transposition = 0;
     uint_t EnvelopeType = 0;
   };
+
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'.'>;
+
+    struct Command
+    {
+      char Code = '.';
+      Layout::Hex<2> Param;
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Module::Presentation::NoteAndOctave Note;
+      char Space = ' ';
+      Layout::Base36 Sample;
+      Layout::Base36 Envelope;
+      Layout::Base36 Ornament;
+      Layout::Base36 Volume;
+      char Space2 = ' ';
+      Command Cmd;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Decimal<2> Index;
+      Delimiter Separator;
+      Layout::Hex<4> EnvelopePeriod;
+      Channel Channels[AYM::TRACK_CHANNELS];
+    };
+
+    struct LineContext
+    {
+      uint_t Tempo = 0;
+    };
+
+    void FillCell(const Cell& cell, Channel& txt, Layout::Hex<4>& envelopePeriod, LineContext& context)
+    {
+      txt.Note.Set(&cell);
+      for (const auto& command : cell.GetCommands())
+      {
+        const uint_t p1 = command.Param1;
+        const int_t p2 = command.Param2;
+        switch (command.Type)
+        {
+        case ENVELOPE:
+          txt.Envelope = p1;
+          envelopePeriod = p2;
+          break;
+        case ENVELOPE_OFF:
+          txt.Envelope = 0x0f;
+          break;
+        case SLIDE:
+          if (command.Param2 > 0)
+          {
+            txt.Cmd.Code = '1';
+            txt.Cmd.Param = p2;
+          }
+          else
+          {
+            txt.Cmd.Code = '2';
+            txt.Cmd.Param = -p2;
+          }
+          break;
+        case SLIDE_NOTE:
+          txt.Cmd.Code = '3';
+          txt.Cmd.Param = p1;
+          break;
+        case NOISE:
+          txt.Cmd.Code = '4';
+          txt.Cmd.Param = p1;
+          break;
+        }
+      }
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Sample = *sample + 1;
+      }
+      if (const auto* ornament = cell.GetOrnament(); ornament && *ornament)
+      {
+        txt.Ornament = *ornament;
+      }
+      if (const auto* volume = cell.GetVolume(); volume && *volume)
+      {
+        txt.Volume = *volume;
+      }
+      if (context.Tempo && txt.Cmd.Code == '.')
+      {
+        txt.Cmd.Code = 'F';
+        txt.Cmd.Param = context.Tempo;
+        context.Tempo = 0;
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      LineContext context{line.GetTempo()};
+      for (uint_t channel = 0; channel != AYM::TRACK_CHANNELS; ++channel)
+      {
+        if (const auto* cell = line.GetChannel(channel))
+        {
+          FillCell(*cell, row.Channels[channel], row.EnvelopePeriod, context);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
+
 }  // namespace Module::FastTracker
 
 namespace Module::AYM
@@ -516,7 +645,8 @@ namespace Module::AYM
     if (const auto container = Formats::Chiptune::FastTracker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<FastTracker::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<FastTracker::DataRenderer>(dataBuilder.CaptureResult(),
+                                                               &FastTracker::Presentation::ForPattern);
     }
     return {};
   }

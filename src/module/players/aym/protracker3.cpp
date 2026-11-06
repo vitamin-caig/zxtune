@@ -15,12 +15,16 @@
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/aym/turbosound.h"
 #include "module/players/aym/vortex.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
 #include "parameters/tracking_helper.h"
 
 #include "pointers.h"
+
+#include <memory>
+#include <optional>
 
 namespace Module::ProTracker3
 {
@@ -177,7 +181,12 @@ namespace Module::ProTracker3
     ModuleData::RWPtr Data;
   };
 
-  class Chiptune : public AYM::Chiptune
+  namespace Presentation
+  {
+    std::unique_ptr<const TrackPresentation> CreatePresentation(ModuleData::Ptr data);
+  }  // namespace Presentation
+
+  class Chiptune : public AYM::TrackingChiptune
   {
   public:
     explicit Chiptune(ModuleData::Ptr data)
@@ -197,6 +206,11 @@ namespace Module::ProTracker3
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
       return Vortex::CreateDataIterator(Data, std::move(trackParams));
+    }
+
+    std::unique_ptr<const TrackPresentation> CreatePresentation() const override
+    {
+      return Presentation::CreatePresentation(Data);
     }
 
   private:
@@ -233,6 +247,252 @@ namespace Module::ProTracker3
     };
   }  // namespace TS
 
+  namespace Presentation
+  {
+    constexpr uint_t TEMPO_COMMAND = 11;
+
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'.'>;
+
+    struct RowPrefix
+    {
+      Layout::Hex<4> Envelope;
+      Delimiter Separator;
+      Layout::Hex<2> Noise;
+    };
+
+    struct Command
+    {
+      Layout::Hex<1> Code;
+      Layout::Hex<1> Period;
+      Layout::Hex<2> Param;
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Module::Presentation::NoteAndOctave Note;
+      char Space = ' ';
+      Layout::Base36 Sample;
+      Layout::Hex<1> Envelope;
+      Layout::Hex<1> Ornament;
+      Layout::Hex<1> Volume;
+      char Space2 = ' ';
+      Command Cmd;
+    };
+
+    struct Row
+    {
+      Delimiter Separator;
+      RowPrefix Prefix;
+      Channel Channels[AYM::TRACK_CHANNELS];
+    };
+
+    struct LineLayout
+    {
+      Module::Presentation::Dec<2> Number;
+      Row Body;
+    };
+
+    struct LineContext
+    {
+      uint_t Tempo = 0;
+      RowPrefix& Prefix;
+    };
+
+    template<uint_t Width>
+    void SetBaseHex(Layout::Hex<Width>& field, int_t value)
+    {
+      if (value)
+      {
+        field = static_cast<uint_t>(value);
+      }
+      else
+      {
+        field.Clear();
+      }
+    }
+
+    void FillCommand(const Module::Command& cmd, Command& txt)
+    {
+      uint_t code = cmd.Type;
+      std::optional<uint_t> period;
+      int_t param = cmd.Param2;
+      switch (cmd.Type)
+      {
+      case Vortex::GLISS:
+        code = param < 0 ? 2 : 1;
+        period = cmd.Param1;
+        param = param < 0 ? -param : param;
+        break;
+      case Vortex::GLISS_NOTE:
+        code = 3;
+        period = cmd.Param1;
+        param = param < 0 ? -param : param;
+        break;
+      case Vortex::SAMPLEOFFSET:
+        code = 4;
+        param = cmd.Param1;
+        break;
+      case Vortex::ORNAMENTOFFSET:
+        code = 5;
+        param = cmd.Param1;
+        break;
+      case Vortex::VIBRATE:
+        code = 6;
+        param = cmd.Param1 * 16 + param;
+        break;
+      case Vortex::SLIDEENV:
+        code = param < 0 ? 10 : 9;
+        period = cmd.Param1;
+        param = param < 0 ? -param : param;
+        break;
+      default:
+        period = cmd.Param1;
+        break;
+      }
+      txt.Code = code;
+      txt.Period = period && *period < 16 ? *period : 0;
+      txt.Param = param;
+    }
+
+    void FillCommand(uint_t tempo, Command& txt)
+    {
+      txt.Code = TEMPO_COMMAND;
+      txt.Period = 0;
+      txt.Param = tempo;
+    }
+
+    void FillCell(const Cell& cell, Channel& txt, LineContext& context)
+    {
+      txt.Note.Set(&cell);
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Sample = *sample;
+      }
+      bool hasEnvelope = false;
+      bool hasEnvelopeOff = false;
+      uint_t envelopeType = 0;
+      const Module::Command* patternCommand = nullptr;
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case Vortex::ENVELOPE:
+          hasEnvelope = true;
+          envelopeType = cmd.Param1;
+          SetBaseHex(context.Prefix.Envelope, cmd.Param2);
+          break;
+        case Vortex::ENVELOPE_OFF:
+          hasEnvelopeOff = true;
+          break;
+        case Vortex::NOISEBASE:
+          SetBaseHex(context.Prefix.Noise, cmd.Param1);
+          break;
+        default:
+          if (!patternCommand)
+          {
+            patternCommand = &cmd;
+          }
+          break;
+        }
+      }
+      if (hasEnvelope)
+      {
+        txt.Envelope = envelopeType;
+      }
+      else if (hasEnvelopeOff)
+      {
+        txt.Envelope = 0x0f;
+      }
+      if (const auto* ornament = cell.GetOrnament())
+      {
+        txt.Ornament = *ornament;
+      }
+      if (const auto* volume = cell.GetVolume())
+      {
+        txt.Volume = *volume;
+      }
+      if (patternCommand)
+      {
+        FillCommand(*patternCommand, txt.Cmd);
+      }
+      else if (context.Tempo)
+      {
+        FillCommand(context.Tempo, txt.Cmd);
+        context.Tempo = 0;
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      LineContext context{line.GetTempo(), row.Prefix};
+      for (uint_t channel = 0; channel != AYM::TRACK_CHANNELS; ++channel)
+      {
+        if (const auto* cell = line.GetChannel(channel))
+        {
+          FillCell(*cell, row.Channels[channel], context);
+        }
+      }
+    }
+
+    class TrackTextPresentation : public Module::TrackPresentation
+    {
+    public:
+      explicit TrackTextPresentation(ModuleData::Ptr data)
+        : Data(std::move(data))
+      {}
+
+      String GetPattern(std::size_t index) const override
+      {
+        const auto& patterns = Data->GetPatterns();
+        if (index >= patterns.GetSize())
+        {
+          return {};
+        }
+        const auto* pattern = patterns.Get(static_cast<uint_t>(index));
+        if (!pattern || !pattern->GetSize())
+        {
+          return {};
+        }
+        const auto turboBase = Data->TurboPatternsOffset;
+        const auto mirroredIndex = turboBase && index < *turboBase
+                                       ? std::optional<uint_t>(*turboBase - 1 - static_cast<uint_t>(index))
+                                       : std::nullopt;
+        const auto* mirrored = mirroredIndex ? patterns.Get(*mirroredIndex) : nullptr;
+        const auto lines = pattern->GetSize();
+        String result;
+        result.reserve(lines * (sizeof(LineLayout) + (turboBase ? sizeof(Row) : 0) + 1));
+        for (uint_t row = 0; row != lines; ++row)
+        {
+          auto& dst = Module::Presentation::AppendLine<LineLayout>(result);
+          dst.Number = row;
+          if (const auto* line = pattern->GetLine(row))
+          {
+            FillLine(*line, dst.Body);
+          }
+          if (turboBase)
+          {
+            auto& mirroredDst = Module::Presentation::AppendTo<Row>(result);
+            if (const auto* mirroredLine = mirrored ? mirrored->GetLine(row) : nullptr)
+            {
+              FillLine(*mirroredLine, mirroredDst);
+            }
+          }
+        }
+        return result;
+      }
+
+    private:
+      const ModuleData::Ptr Data;
+    };
+
+    std::unique_ptr<const TrackPresentation> CreatePresentation(ModuleData::Ptr data)
+    {
+      return std::make_unique<TrackTextPresentation>(std::move(data));
+    }
+  }  // namespace Presentation
+
   class Factory : public Module::Factory
   {
   public:
@@ -254,8 +514,9 @@ namespace Module::ProTracker3
           // TurboSound modules
           props.SetChipsCount(Devices::TurboSound::CHIPS);
           props.SetComment(TURBOSOUND_COMMENT);
-          auto chiptune = MakePtr<TS::Chiptune>(std::move(modData));
-          return TurboSound::CreateHolder(std::move(chiptune), std::move(properties));
+          auto chiptune = MakePtr<TS::Chiptune>(modData);
+          auto presentation = Presentation::CreatePresentation(std::move(modData));
+          return TurboSound::CreateHolder(std::move(chiptune), std::move(properties), std::move(presentation));
         }
         else
         {

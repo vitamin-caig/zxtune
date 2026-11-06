@@ -14,6 +14,8 @@
 
 #include "module/holder.h"
 
+#include <memory>
+
 namespace Module::AYM
 {
   class Holder : public Module::Holder

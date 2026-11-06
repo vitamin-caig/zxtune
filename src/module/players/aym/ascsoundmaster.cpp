@@ -14,6 +14,7 @@
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 
@@ -22,6 +23,7 @@
 #include "parameters/container.h"
 
 #include "make_ptr.h"
+#include "string_view.h"
 
 #include <array>
 
@@ -549,6 +551,171 @@ namespace Module::ASCSoundMaster
     uint_t EnvelopeTone = 0;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
+
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'_'>;
+
+    constexpr auto ASC_OCTAVES = "UCLS1234"sv;
+    constexpr auto ASC_NOTES = std::array<StringView, 12>{"_C"sv, "#C"sv, "_D"sv, "#D"sv, "_E"sv, "_F"sv,
+                                                          "#F"sv, "_G"sv, "#G"sv, "_A"sv, "#A"sv, "_B"sv};
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Layout::Text<1> Octave;
+      Layout::Text<2> Note;
+      char NoteGap = ' ';
+      Layout::Base36 Sample;
+      char SampleGap = ' ';
+      Layout::Base36 Image;
+      char ImageGap = ' ';
+      Layout::Text<2> Volume;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Decimal<2> Index;
+      Delimiter Separator;
+      Module::Presentation::Dec<3, '_'> EnvelopeTone;
+      Layout::Text<1> EnvelopeType;
+      // Noise-offset prohibition is an editor-only field and is not stored in TrackModel.
+      char NoiseProhibit = '_';
+      Layout::Base36 NoiseBase;
+      Channel Channels[AYM::TRACK_CHANNELS];
+    };
+
+    void SetNote(Channel& txt, uint_t note)
+    {
+      // Note 0 is the subcontra #A, i.e. 10 halftones before C.
+      const auto index = note + 10;
+      const auto octave = index / ASC_NOTES.size();
+      if (octave >= ASC_OCTAVES.size())
+      {
+        txt.Octave = "?"sv;
+        txt.Note = "??"sv;
+        return;
+      }
+      txt.Octave = ASC_OCTAVES.substr(octave, 1);
+      txt.Note = ASC_NOTES[index % ASC_NOTES.size()];
+    }
+
+    void SetEnvelopeType(Layout::Text<1>& txt, uint_t type)
+    {
+      // type is the AY envelope shape (8, 10, 12, 14) i.e. \, \/, /, /\.
+      static constexpr auto SYMBOLS = "\\/^v"sv;
+      static constexpr auto SHAPE_INDEX = std::array<uint_t, 4>{0, 3, 1, 2};
+      txt[0] = SYMBOLS[SHAPE_INDEX[(type >> 1) & 3]];
+    }
+
+    void FillCell(const Cell& cell, Channel& txt, Row& row)
+    {
+      bool envelope = false;
+      bool breakSample = false;
+      bool hasCommand = false;
+
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case ENVELOPE:
+          if (0xff != cmd.Param1)
+          {
+            SetEnvelopeType(row.EnvelopeType, cmd.Param1);
+          }
+          if (-1 != cmd.Param2)
+          {
+            row.EnvelopeTone = uint_t(cmd.Param2);
+          }
+          break;
+        case ENVELOPE_ON:
+          envelope = true;
+          break;
+        case ENVELOPE_OFF:
+          envelope = false;
+          break;
+        case NOISE:
+          row.NoiseBase = cmd.Param1;
+          break;
+        case BREAK_SAMPLE:
+          breakSample = true;
+          break;
+        default:
+          // Envelope/noise/break are shown in their own fields, not as commands.
+          hasCommand = true;
+          break;
+        }
+      }
+
+      txt.Separator[1] = hasCommand ? '+' : '|';
+      if (breakSample)
+      {
+        txt.Octave = "R"sv;
+        txt.Note = "LS"sv;
+      }
+      else if (const bool* enabled = cell.GetEnabled(); enabled && !*enabled)
+      {
+        txt.Octave = "P"sv;
+        txt.Note = "SE"sv;
+      }
+      else if (const uint_t* note = cell.GetNote())
+      {
+        SetNote(txt, *note);
+      }
+      else
+      {
+        txt.Octave = "_"sv;
+        txt.Note = "__"sv;
+      }
+      if (const uint_t* sample = cell.GetSample())
+      {
+        txt.Sample = *sample;
+      }
+      if (const uint_t* ornament = cell.GetOrnament())
+      {
+        txt.Image = *ornament;
+      }
+      if (envelope)
+      {
+        txt.Volume = "EN"sv;
+      }
+      else if (const uint_t* volume = cell.GetVolume())
+      {
+        Module::Presentation::Dec<2> value;
+        value = *volume < 100 ? *volume : 99;
+        txt.Volume = MakeStringView(value);
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t channel = 0; channel != AYM::TRACK_CHANNELS; ++channel)
+      {
+        if (const auto* cell = line.GetChannel(channel))
+        {
+          FillCell(*cell, row.Channels[channel], row);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 }  // namespace Module::ASCSoundMaster
 
 namespace Module::AYM
@@ -560,7 +727,8 @@ namespace Module::AYM
     if (const auto container = parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ASCSoundMaster::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<ASCSoundMaster::DataRenderer>(dataBuilder.CaptureResult(),
+                                                                  &ASCSoundMaster::Presentation::ForPattern);
     }
     return {};
   }
