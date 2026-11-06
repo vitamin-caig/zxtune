@@ -319,6 +319,26 @@ namespace Module::TurboSound
     const Time::Microseconds FrameDuration;
   };
 
+  class TrackHolder
+    : public Holder
+    , public TrackPresentation
+  {
+  public:
+    TrackHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties, Time::Microseconds frameDuration,
+                std::unique_ptr<const TrackPresentation> presentation)
+      : Holder(std::move(chiptune), std::move(properties), frameDuration)
+      , Presentation(std::move(presentation))
+    {}
+
+    std::string GetPattern(std::size_t index) const override
+    {
+      return Presentation->GetPattern(index);
+    }
+
+  private:
+    const std::unique_ptr<const TrackPresentation> Presentation;
+  };
+
   Chiptune::Ptr CreateChiptune(AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
   {
     /* TODO: think about it
@@ -337,9 +357,15 @@ namespace Module::TurboSound
     return Parameters::CreateMergedAccessor(std::move(outer), std::move(mixProps));
   }
 
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties,
+                           std::unique_ptr<const TrackPresentation> presentation)
   {
     const FrameDurationParameter frameDuration(properties, AYM::BASE_FRAME_DURATION);
+    if (presentation)
+    {
+      return MakePtr<TrackHolder>(std::move(chiptune), std::move(properties), frameDuration.Get(),
+                                  std::move(presentation));
+    }
     return MakePtr<Holder>(std::move(chiptune), std::move(properties), frameDuration.Get());
   }
 }  // namespace Module::TurboSound

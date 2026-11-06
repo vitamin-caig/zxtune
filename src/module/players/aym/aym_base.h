@@ -13,6 +13,9 @@
 #include "module/players/aym/aym_chiptune.h"
 
 #include "module/holder.h"
+#include "module/track_presentation.h"
+
+#include <memory>
 
 namespace Module::AYM
 {
@@ -28,7 +31,8 @@ namespace Module::AYM
     virtual void Dump(Devices::AYM::Device& dev) const = 0;
   };
 
-  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties);
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties,
+                           std::unique_ptr<const TrackPresentation> presentation = nullptr);
 
   Devices::AYM::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params);
 }  // namespace Module::AYM

@@ -10,6 +10,7 @@
 
 #include "formats/chiptune/fm/tfmmusicmaker.h"
 
+#include "module/players/generic_track_presentation.h"
 #include "module/players/properties_helper.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
@@ -25,6 +26,7 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 
 namespace Module::TFMMusicMaker
 {
@@ -75,7 +77,7 @@ namespace Module::TFMMusicMaker
 
   using Instrument = Formats::Chiptune::TFMMusicMaker::Instrument;
 
-  class ModuleData
+  class ModuleData : public TrackModel
   {
   public:
     using Ptr = std::shared_ptr<const ModuleData>;
@@ -83,9 +85,24 @@ namespace Module::TFMMusicMaker
 
     ModuleData() = default;
 
-    const OrderList& GetOrder() const
+    uint_t GetChannelsCount() const override
+    {
+      return TFM::TRACK_CHANNELS;
+    }
+
+    uint_t GetInitialTempo() const override
+    {
+      return EvenInitialTempo;
+    }
+
+    const OrderList& GetOrder() const override
     {
       return *Order;
+    }
+
+    const PatternsSet& GetPatterns() const override
+    {
+      return Patterns;
     }
 
     const Line* GetLine(const TrackState& state) const
@@ -1222,6 +1239,178 @@ namespace Module::TFMMusicMaker
     uint_t LoopTempoInterleaveCounter = 0;
   };
 
+  namespace Tracking
+  {
+    constexpr auto COLUMNS_DELIMITER = " | "sv;
+    constexpr uint_t LINE_NUMBER_WIDTH = 2;
+    constexpr uint_t FIELD_WIDTH = 2;
+
+    struct Effect
+    {
+      uint_t Code = 0;
+      uint_t Param = 0;
+    };
+
+    uint_t MakeParam(uint_t high, uint_t low)
+    {
+      return (high << 4) | (low & 0xf);
+    }
+
+    std::optional<Effect> FindEffect(const Cell* cell)
+    {
+      if (!cell)
+      {
+        return std::nullopt;
+      }
+      const auto& commands = cell->GetCommands();
+      for (std::size_t idx = 0; idx != commands.size(); ++idx)
+      {
+        const auto& cmd = commands[idx];
+        const auto* next = idx + 1 < commands.size() ? &commands[idx + 1] : nullptr;
+        switch (cmd.Type)
+        {
+        case ARPEGGIO:
+          return Effect{0, MakeParam(cmd.Param1, cmd.Param2)};
+        case TONESLIDE:
+          return Effect{cmd.Param1 < 0 ? 2u : 1u, static_cast<uint_t>(cmd.Param1 < 0 ? -cmd.Param1 : cmd.Param1)};
+        case PORTAMENTO:
+          if (cmd.Param1 == 0 && next && next->Type == VOLSLIDE)
+          {
+            return Effect{5, MakeParam(next->Param1, next->Param2)};
+          }
+          return Effect{3, static_cast<uint_t>(cmd.Param1 < 0 ? -cmd.Param1 : cmd.Param1)};
+        case VIBRATO:
+          if (cmd.Param1 == 0 && cmd.Param2 == 0 && next && next->Type == VOLSLIDE)
+          {
+            return Effect{6, MakeParam(next->Param1, next->Param2)};
+          }
+          return Effect{4, MakeParam(cmd.Param1, cmd.Param2)};
+        case LEVEL:
+          return Effect{cmd.Param1 < 2 ? 8u + cmd.Param1 : 10u + cmd.Param1, static_cast<uint_t>(cmd.Param2)};
+        case VOLSLIDE:
+          return Effect{10, MakeParam(cmd.Param1, cmd.Param2)};
+        case SPECMODE:
+          return Effect{11, cmd.Param1 ? 1u : 0u};
+        case TONEOFFSET:
+          return Effect{11, MakeParam(cmd.Param1, cmd.Param2)};
+        case MULTIPLE:
+          return Effect{14, MakeParam(cmd.Param1, cmd.Param2)};
+        case MIXING:
+          return Effect{14, MakeParam(5, cmd.Param1)};
+        case PANE:
+          return Effect{14, MakeParam(8, cmd.Param1)};
+        case NOTERETRIG:
+          return Effect{14, MakeParam(9, cmd.Param1)};
+        case NOTECUT:
+          return Effect{14, MakeParam(12, cmd.Param1)};
+        case NOTEDELAY:
+          return Effect{14, MakeParam(13, cmd.Param1)};
+        case DROPEFFECTS:
+          return Effect{14, MakeParam(14, 0)};
+        case FEEDBACK:
+          return Effect{14, MakeParam(15, cmd.Param1)};
+        case TEMPO_INTERLEAVE:
+          return Effect{15, static_cast<uint_t>(cmd.Param1)};
+        case TEMPO_VALUES:
+          return Effect{15, MakeParam(cmd.Param1, cmd.Param2)};
+        case LOOP_START:
+          return Effect{14, MakeParam(6, 0)};
+        case LOOP_STOP:
+          return Effect{14, MakeParam(6, cmd.Param1)};
+        default:
+          break;
+        }
+      }
+      return std::nullopt;
+    }
+
+    class TextBuilder : public Module::TextBuilder
+    {
+    public:
+      void AddLine(uint_t row, const Line* line)
+      {
+        if (!Result.empty())
+        {
+          Result += '\n';
+        }
+        AddHex(row, LINE_NUMBER_WIDTH);
+        for (uint_t channel = 0; channel != TFM::TRACK_CHANNELS; ++channel)
+        {
+          Result += COLUMNS_DELIMITER;
+          AddCell(line ? line->GetChannel(channel) : nullptr);
+        }
+      }
+
+    private:
+      void AddCell(const Cell* cell)
+      {
+        AddNote(cell);
+        Result += ' ';
+        AddByte(cell ? cell->GetVolume() : nullptr);
+        Result += ' ';
+        AddByte(cell ? cell->GetSample() : nullptr);
+        Result += ' ';
+        AddEffect(cell);
+      }
+
+      void AddByte(const uint_t* value)
+      {
+        if (value)
+        {
+          AddHex(*value, FIELD_WIDTH);
+        }
+        else
+        {
+          AddDots(FIELD_WIDTH);
+        }
+      }
+
+      void AddEffect(const Cell* cell)
+      {
+        if (const auto& effect = FindEffect(cell))
+        {
+          Result += HexDigit(effect->Code);
+          AddHex(effect->Param, FIELD_WIDTH);
+        }
+        else
+        {
+          AddDots(FIELD_WIDTH + 1);
+        }
+      }
+    };
+
+    class TFMTrackPresentation : public Module::TrackPresentation
+    {
+    public:
+      explicit TFMTrackPresentation(const TrackModel& model)
+        : Model(model)
+      {}
+
+      std::string GetPattern(std::size_t index) const override
+      {
+        const auto& patterns = Model.GetPatterns();
+        if (index >= patterns.GetSize())
+        {
+          return {};
+        }
+        const auto* pattern = patterns.Get(static_cast<uint_t>(index));
+        if (!pattern || !pattern->GetSize())
+        {
+          return {};
+        }
+        TextBuilder builder;
+        for (uint_t row = 0, lines = pattern->GetSize(); row != lines; ++row)
+        {
+          builder.AddLine(row, pattern->GetLine(row));
+        }
+        return builder.Release();
+      }
+
+    private:
+      const TrackModel& Model;
+    };
+  }  // namespace Tracking
+
   //! TrackCursor backed by a TFM ModuleData
   using TrackCursor = Module::TrackCursor<ModuleData, ExtendedPosition>;
 
@@ -1239,7 +1428,7 @@ namespace Module::TFMMusicMaker
     return {.Total = totalFrame, .Loop = loopFrame, .Track = std::move(track)};
   }
 
-  class Chiptune : public TFM::Chiptune
+  class Chiptune : public TFM::TrackingChiptune
   {
   public:
     explicit Chiptune(ModuleData::Ptr data)
@@ -1249,6 +1438,16 @@ namespace Module::TFMMusicMaker
     Time::Microseconds GetFrameDuration() const override
     {
       return TFM::BASE_FRAME_DURATION;
+    }
+
+    const TrackModel& GetTrackModel() const override
+    {
+      return *Data;
+    }
+
+    std::unique_ptr<const TrackPresentation> CreateTrackPresentation() const override
+    {
+      return std::make_unique<Tracking::TFMTrackPresentation>(*Data);
     }
 
     FramedInformation GetInformation() const override

@@ -14,6 +14,8 @@
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/turbosound.h"
 
+#include <optional>
+
 namespace Module::Vortex
 {
   // Frequency table enumeration, compatible with binary format (PT3.x)

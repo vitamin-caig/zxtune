@@ -143,13 +143,19 @@ namespace Module::AYM
     SparsedObjectsStorage<OrnamentType> Ornaments;
   };
 
-  template<class RendererType, class ModelPtr>
   class TrackingChiptune : public Chiptune
+  {
+  public:
+    virtual const TrackModel& GetTrackModel() const = 0;
+  };
+
+  template<class RendererType, class ModelPtr>
+  class TrackingChiptuneImpl : public TrackingChiptune
   {
     using ModelType = std::remove_const_t<typename ModelPtr::element_type>;
 
   public:
-    explicit TrackingChiptune(ModelPtr model)
+    explicit TrackingChiptuneImpl(ModelPtr model)
       : Model(std::move(model))
     {}
 
@@ -168,6 +174,11 @@ namespace Module::AYM
       return MakePtr<TrackIterator<ModelType, ModelTrackCursor, Synth<RendererType>>>(Model, std::move(trackParams));
     }
 
+    const TrackModel& GetTrackModel() const override
+    {
+      return *Model;
+    }
+
   private:
     const ModelPtr Model;
   };
@@ -175,6 +186,6 @@ namespace Module::AYM
   template<class RendererType, class ModelPtr>
   Chiptune::Ptr CreateTrackingChiptune(ModelPtr model)
   {
-    return MakePtr<TrackingChiptune<RendererType, ModelPtr>>(std::move(model));
+    return MakePtr<TrackingChiptuneImpl<RendererType, ModelPtr>>(std::move(model));
   }
 }  // namespace Module::AYM

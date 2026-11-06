@@ -16,40 +16,23 @@
 #include "string_view.h"
 
 #include <algorithm>
-#include <array>
 
 namespace Module
 {
-  namespace
+  namespace TextPresentationDetail
   {
-    constexpr auto NOTE_NAMES = std::to_array<StringView>(
-        {"C-"sv, "C#"sv, "D-"sv, "D#"sv, "E-"sv, "F-"sv, "F#"sv, "G-"sv, "G#"sv, "A-"sv, "A#"sv, "B-"sv});
-    constexpr auto NOTES_COUNT = NOTE_NAMES.size();
-    constexpr auto EMPTY_NOTE = "---"sv;
-    constexpr auto REST_NOTE = "R--"sv;
     constexpr auto COLUMNS_DELIMITER = " | "sv;
     const uint_t LINE_NUMBER_MIN_WIDTH = 2;
     const uint_t COMMAND_WIDTH = 2;
 
-    uint_t HexDigits(uint_t value)
-    {
-      uint_t digits = 1;
-      while (value >>= 4)
-      {
-        ++digits;
-      }
-      return digits;
-    }
-
-    char Base36Digit(uint_t value)
-    {
-      static constexpr auto DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"sv;
-      return value < DIGITS.size() ? DIGITS[value] : '?';
-    }
-
-    class TextBuilder
+    class GenericTextBuilder : public TextBuilder
     {
     public:
+      static uint_t GetLineNumberWidth(uint_t lines)
+      {
+        return std::max(LINE_NUMBER_MIN_WIDTH, HexDigits(lines - 1));
+      }
+
       void AddLine(const Pattern& pattern, uint_t row, uint_t channels, uint_t lineNumberWidth)
       {
         if (!Result.empty())
@@ -65,24 +48,7 @@ namespace Module
         }
       }
 
-      String Release()
-      {
-        return std::move(Result);
-      }
-
     private:
-      void AddHex(uint_t value, uint_t width)
-      {
-        static constexpr auto DIGITS = "0123456789ABCDEF"sv;
-        String field(width, '0');
-        for (uint_t idx = width; idx; --idx)
-        {
-          field[idx - 1] = DIGITS[value & 0x0f];
-          value >>= 4;
-        }
-        Result += field;
-      }
-
       void AddCell(const Cell* cell)
       {
         // Generic layout from HIGHLIGHTS.md: note, sample/ornament/volume group, command
@@ -102,35 +68,6 @@ namespace Module
         }
       }
 
-      void AddNote(const Cell* cell)
-      {
-        if (!cell)
-        {
-          Result += EMPTY_NOTE;
-        }
-        else if (const auto* enabled = cell->GetEnabled(); enabled && !*enabled)
-        {
-          Result += REST_NOTE;
-        }
-        else if (const auto* note = cell->GetNote())
-        {
-          const auto octave = 1 + *note / NOTES_COUNT;
-          if (octave > 9)
-          {
-            Result += "???"sv;
-          }
-          else
-          {
-            Result += NOTE_NAMES[*note % NOTES_COUNT];
-            Result += char('0' + octave);
-          }
-        }
-        else
-        {
-          Result += EMPTY_NOTE;
-        }
-      }
-
       void AddField(const uint_t* value)
       {
         if (value)
@@ -142,16 +79,8 @@ namespace Module
           Result += '.';
         }
       }
-
-      void AddDots(uint_t width)
-      {
-        Result.append(width, '.');
-      }
-
-    private:
-      String Result;
     };
-  }  // namespace
+  }  // namespace TextPresentationDetail
 
   GenericTrackPresentation::GenericTrackPresentation(const TrackModel& model)
     : Model(model)
@@ -171,8 +100,8 @@ namespace Module
     }
     const auto channels = Model.GetChannelsCount();
     const auto lines = pattern->GetSize();
-    const auto lineNumberWidth = std::max(LINE_NUMBER_MIN_WIDTH, HexDigits(lines - 1));
-    TextBuilder builder;
+    const auto lineNumberWidth = TextPresentationDetail::GenericTextBuilder::GetLineNumberWidth(lines);
+    TextPresentationDetail::GenericTextBuilder builder;
     for (uint_t row = 0; row != lines; ++row)
     {
       builder.AddLine(*pattern, row, channels, lineNumberWidth);

@@ -11,10 +11,14 @@
 #pragma once
 
 #include "module/players/iterator.h"
+#include "module/players/track_model.h"
 
 #include "devices/tfm.h"
 #include "module/information.h"
+#include "module/track_presentation.h"
 #include "parameters/accessor.h"
+
+#include <memory>
 
 namespace Module::TFM
 {
@@ -32,5 +36,12 @@ namespace Module::TFM
 
     virtual FramedInformation GetInformation() const = 0;
     virtual DataIterator::Ptr CreateDataIterator() const = 0;
+  };
+
+  class TrackingChiptune : public Chiptune
+  {
+  public:
+    virtual const TrackModel& GetTrackModel() const = 0;
+    virtual std::unique_ptr<const TrackPresentation> CreateTrackPresentation() const = 0;
   };
 }  // namespace Module::TFM

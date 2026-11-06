@@ -11,6 +11,7 @@
 #include "binary/container_factories.h"
 #include "core/service.h"
 #include "io/api.h"
+#include "module/track_presentation.h"
 #include "parameters/container.h"
 #include "parameters/template.h"
 #include "time/serialize.h"
@@ -19,6 +20,7 @@
 #include "error_tools.h"
 #include "string_view.h"
 
+#include <cstdlib>
 #include <iostream>
 
 namespace
@@ -95,6 +97,17 @@ int main(int argc, char* argv[])
   try
   {
     const Module::Holder::Ptr module = OpenModuleByPath(argv[1]);
+    if (argc > 2)
+    {
+      const auto index = static_cast<std::size_t>(std::strtoul(argv[2], nullptr, 0));
+      if (const auto* presentation = dynamic_cast<const Module::TrackPresentation*>(module.get()))
+      {
+        std::cout << presentation->GetPattern(index) << std::endl;
+        return 0;
+      }
+      std::cout << "No track presentation" << std::endl;
+      return -1;
+    }
     ShowModuleProperties(*module);
     return 0;
   }
