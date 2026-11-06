@@ -13,6 +13,7 @@
 #include "devices/dac/sample_factories.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 #include "module/players/track_builder.h"
@@ -203,6 +204,8 @@ namespace Module::SQDigitalTracker
         case VOLUME_SLIDE:
           vol.SlideDirection = cmd.Param2;
           break;
+        case TEMPO_COMMAND:
+          break;
         default:
           assert(!"Invalid command");
         }
@@ -213,6 +216,138 @@ namespace Module::SQDigitalTracker
     const ModuleData& Data;
     std::array<VolumeState, CHANNELS_COUNT> Volumes;
   };
+
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+    using LineNumber = Module::Presentation::Dec<2>;
+    // The note/command key defaults to the editor's empty token '---'
+    using KeyText = Module::Presentation::Layout<'-'>::Text<3>;
+
+    // The editor shows the accidental as '_' for a natural note (G_3) and '#' for a sharp (G#3)
+    constexpr auto NOTES = std::array<std::array<char, 2>, 12>{{
+        {'C', '_'},
+        {'C', '#'},
+        {'D', '_'},
+        {'D', '#'},
+        {'E', '_'},
+        {'F', '_'},
+        {'F', '#'},
+        {'G', '_'},
+        {'G', '#'},
+        {'A', '_'},
+        {'A', '#'},
+        {'B', '_'},
+    }};
+
+    // key/note(3) + sample(1) + volume(1) + effect(1)
+    struct Field
+    {
+      KeyText Key;
+      Layout::Hex<1> Sample;
+      Layout::Hex<1> Volume;
+      Layout::Hex<1> Effect;
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Field Cell;
+    };
+
+    struct Row
+    {
+      LineNumber Index;
+      Channel Channels[CHANNELS_COUNT];
+    };
+
+    void FillCell(const Cell& cell, Field& txt)
+    {
+      if (const auto* enabled = cell.GetEnabled(); enabled && !*enabled)
+      {
+        txt.Key = "R__"sv;
+        return;
+      }
+      if (const auto* note = cell.GetNote())
+      {
+        const auto octave = 1 + *note / NOTES.size();
+        if (octave > 9)
+        {
+          txt.Key = "???"sv;
+        }
+        else
+        {
+          const auto& name = NOTES[*note % NOTES.size()];
+          txt.Key[0] = name[0];
+          txt.Key[1] = name[1];
+          txt.Key[2] = static_cast<char>('0' + octave);
+        }
+      }
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Sample = *sample;
+      }
+      if (const auto* volume = cell.GetVolume())
+      {
+        txt.Volume = *volume;
+      }
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case VOLUME_SLIDE_PERIOD:
+          // A command parameter is a full byte shown as the low/high nibble pair like a note's sample/volume
+          txt.Key = "VOL"sv;
+          txt.Sample = cmd.Param1 & 0x0f;
+          txt.Volume = cmd.Param1 >> 4;
+          break;
+        case VOLUME_SLIDE:
+          // 1 - fade to silence, 2 - fade to maximum
+          if (cmd.Param2)
+          {
+            txt.Effect = cmd.Param2 < 0 ? 1 : 2;
+          }
+          break;
+        case TEMPO_COMMAND:
+          txt.Key = "TMP"sv;
+          txt.Sample = cmd.Param1 & 0x0f;
+          txt.Volume = cmd.Param1 >> 4;
+          break;
+        default:
+          assert(!"Invalid command");
+        }
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
+      {
+        if (const auto* cell = line.GetChannel(chan))
+        {
+          FillCell(*cell, row.Channels[chan].Cell);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 
 }  // namespace Module::SQDigitalTracker
 
@@ -225,7 +360,8 @@ namespace Module::DAC
     if (const auto container = Formats::Chiptune::SQDigitalTracker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<SQDigitalTracker::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<SQDigitalTracker::DataRenderer>(dataBuilder.CaptureResult(),
+                                                                    &SQDigitalTracker::Presentation::ForPattern);
     }
     return {};
   }

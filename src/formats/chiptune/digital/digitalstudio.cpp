@@ -319,6 +319,7 @@ namespace Formats::Chiptune
             }
             else if (NOTE_END == note)
             {
+              channel.SetEnd();
               result = false;
             }
           }

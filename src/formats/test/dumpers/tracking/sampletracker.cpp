@@ -18,7 +18,13 @@ namespace Dump::SampleTracker
   using namespace Formats::Chiptune::SampleTracker;
 
   class ChannelDumper : public Dump::ChannelDumperBase<ChannelBuilder>
-  {};
+  {
+  public:
+    void SetEnd() override
+    {
+      Command("End"sv);
+    }
+  };
 
   class Dumper : public Builder
   {

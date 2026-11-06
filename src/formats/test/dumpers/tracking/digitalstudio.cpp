@@ -18,7 +18,13 @@ namespace Dump::DigitalStudio
   using namespace Formats::Chiptune::DigitalStudio;
 
   class ChannelDumper : public Dump::ChannelDumperBase<ChannelBuilder>
-  {};
+  {
+  public:
+    void SetEnd() override
+    {
+      Command("End"sv);
+    }
+  };
 
   class Dumper : public Builder
   {

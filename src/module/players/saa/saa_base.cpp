@@ -11,6 +11,7 @@
 #include "module/players/saa/saa_base.h"
 
 #include "module/players/framed_renderer.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/parameters.h"
 
 #include "math/numeric.h"
@@ -21,11 +22,17 @@
 
 namespace Module
 {
-  class SAAHolder : public Holder
+  class SAAHolder
+    : public Holder
+    , public Presentation::Generic
   {
   public:
-    SAAHolder(SAA::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties, Time::Microseconds frameDuration)
-      : Tune(std::move(chiptune))
+    using Ptr = Module::Holder::Ptr;
+
+    SAAHolder(SAA::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties, Time::Microseconds frameDuration,
+              Presentation::Generic::PresentPatternFunction presentPattern)
+      : Presentation::Generic(*chiptune->GetTrackModel(), presentPattern)
+      , Tune(std::move(chiptune))
       , Properties(std::move(properties))
       , FrameDuration(frameDuration)
     {}
@@ -107,6 +114,7 @@ namespace Module::SAA
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
   {
     const FrameDurationParameter frameDuration(properties, SAA::BASE_FRAME_DURATION);
-    return MakePtr<SAAHolder>(std::move(chiptune), std::move(properties), frameDuration.Get());
+    const auto presentPattern = chiptune->GetPresentPattern();
+    return MakePtr<SAAHolder>(std::move(chiptune), std::move(properties), frameDuration.Get(), presentPattern);
   }
 }  // namespace Module::SAA

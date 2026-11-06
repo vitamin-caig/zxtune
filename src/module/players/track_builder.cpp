@@ -47,6 +47,7 @@ namespace Module
 
   void TrackChannelState::SetTempo(uint_t tempo)
   {
+    GetCommands().AddOrUpdate(TEMPO_COMMAND, tempo);
     GetLine().SetTempo(tempo);
   }
 

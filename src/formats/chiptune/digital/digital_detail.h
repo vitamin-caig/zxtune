@@ -85,6 +85,11 @@ namespace Formats::Chiptune::Digital
       return GetChannel().SetVolume(volume);
     }
 
+    void SetEnd() override
+    {
+      return GetChannel().SetEnd();
+    }
+
     const Indices& GetUsedPatterns() const
     {
       return UsedPatterns;

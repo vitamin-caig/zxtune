@@ -11,6 +11,7 @@
 #include "formats/chiptune/digital/sampletracker.h"
 
 #include "module/players/dac/dac_simple.h"
+#include "module/players/generic_presentation.h"
 
 #include "binary/container.h"
 #include "parameters/container.h"
@@ -33,6 +34,56 @@ namespace Module::SampleTracker
     0x02c5 0x02ef 0x031c 0x034b 0x0373 0x03b3 0x03eb 0x0427 0x0466 0x04a9 0x04f0 0x053b
   */
 
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+
+    struct Field
+    {
+      Delimiter Separator;
+      Module::Presentation::NoteAndOctave Note;
+      char Space = ' ';
+      Module::Presentation::Dec<3> Sample;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Dec<2> Index;
+      Field Fields[CHANNELS_COUNT];
+    };
+
+    void FillCell(const Module::Cell& cell, Field& txt)
+    {
+      txt.Note.Set(&cell);
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Sample = *sample;
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
+          {
+            if (const auto* cell = line->GetChannel(chan))
+            {
+              FillCell(*cell, dst.Fields[chan]);
+            }
+          }
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 }  // namespace Module::SampleTracker
 
 namespace Module::DAC
@@ -44,7 +95,7 @@ namespace Module::DAC
     if (const auto container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
     {
       props.SetSource(*container);
-      return CreateSimpleChiptune(dataBuilder->CaptureResult());
+      return CreateSimpleChiptune(dataBuilder->CaptureResult(), &SampleTracker::Presentation::ForPattern);
     }
     return {};
   }

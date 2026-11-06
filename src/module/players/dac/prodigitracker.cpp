@@ -13,6 +13,7 @@
 #include "devices/dac/sample_factories.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 #include "module/players/track_builder.h"
@@ -188,6 +189,88 @@ namespace Module::ProDigiTracker
     std::array<OrnamentState, CHANNELS_COUNT> Ornaments;
   };
 
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+
+    using Key = Module::Presentation::NoteAndOctave;
+
+    // ccnnnnnn sssspppp: note(3) + marker(1) + sample(1) + parameter(1)
+    struct Field
+    {
+      Delimiter Separator;
+      Key Note;
+      char Marker = ' ';
+      Layout::Hex<1> Sample;
+      Layout::Hex<1> Param;
+    };
+
+    struct Row
+    {
+      Layout::Hex<2> Index;
+      Field Fields[CHANNELS_COUNT];
+    };
+
+    void FillCell(const Cell& cell, Field& txt)
+    {
+      if (const auto* note = cell.GetNote())
+      {
+        txt.Note.Set(*note);
+        if (const auto* sample = cell.GetSample())
+        {
+          txt.Sample = *sample;
+        }
+        if (const auto* ornament = cell.GetOrnament(); ornament && *ornament)
+        {
+          txt.Marker = 'o';
+          txt.Param = *ornament;
+        }
+      }
+      else if (const auto* enabled = cell.GetEnabled(); enabled && !*enabled)
+      {
+        txt.Marker = 'b';
+        txt.Param = 0x0e;
+      }
+      for (const auto& cmd : cell.GetCommands())
+      {
+        if (cmd.Type == TEMPO_COMMAND)
+        {
+          txt.Marker = 's';
+          txt.Param = cmd.Param1;
+          return;
+        }
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
+      {
+        if (const auto* cell = line.GetChannel(chan))
+        {
+          FillCell(*cell, row.Fields[chan]);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 }  // namespace Module::ProDigiTracker
 
 namespace Module::DAC
@@ -199,7 +282,8 @@ namespace Module::DAC
     if (const auto container = Formats::Chiptune::ProDigiTracker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ProDigiTracker::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<ProDigiTracker::DataRenderer>(dataBuilder.CaptureResult(),
+                                                                  &ProDigiTracker::Presentation::ForPattern);
     }
     return {};
   }

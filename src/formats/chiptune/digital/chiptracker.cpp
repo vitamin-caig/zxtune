@@ -146,6 +146,7 @@ namespace Formats::Chiptune
     public:
       void SetSlide(int_t /*step*/) override {}
       void SetSampleOffset(uint_t /*offset*/) override {}
+      void SetStop() override {}
     };
 
     class StubBuilder : public Builder
@@ -239,6 +240,11 @@ namespace Formats::Chiptune
       void SetSampleOffset(uint_t offset) override
       {
         return GetChannel().SetSampleOffset(offset);
+      }
+
+      void SetStop() override
+      {
+        return GetChannel().SetStop();
       }
 
       const Indices& GetUsedPatterns() const
@@ -420,6 +426,7 @@ namespace Formats::Chiptune
             // last channel- stop
             else if (3 == chanNum)
             {
+              channel.SetStop();
               cont = false;
             }
             break;

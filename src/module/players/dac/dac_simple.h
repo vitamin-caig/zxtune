@@ -18,6 +18,12 @@
 
 namespace Module::DAC
 {
+  enum EndCmd
+  {
+    // Synthetic command marking the end of a pattern; ignored by playback
+    END_MARKER = 0x7f
+  };
+
   class SimpleModuleData : public TrackModelData<OrderList>
   {
   public:
@@ -56,7 +62,8 @@ namespace Module::DAC
     return SimpleDataBuilder::Create(props, Channels);
   }
 
-  DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data);
+  DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data,
+                                          Chiptune::PresentPatternFunction presentPattern = nullptr);
 
   template<class RendererType, class ModelPtr>
   class TrackingChiptune : public Chiptune
@@ -64,8 +71,9 @@ namespace Module::DAC
     using ModelType = std::remove_const_t<typename ModelPtr::element_type>;
 
   public:
-    explicit TrackingChiptune(ModelPtr model)
+    explicit TrackingChiptune(ModelPtr model, PresentPatternFunction presentPattern = nullptr)
       : Model(std::move(model))
+      , PresentPattern(presentPattern)
     {}
 
     TrackModel::Ptr GetTrackModel() const override
@@ -83,13 +91,19 @@ namespace Module::DAC
       Model->SetupSamples(chip);
     }
 
+    PresentPatternFunction GetPresentPattern() const override
+    {
+      return PresentPattern;
+    }
+
   private:
     const ModelPtr Model;
+    const PresentPatternFunction PresentPattern;
   };
 
   template<class RendererType, class ModelPtr>
-  Chiptune::Ptr CreateTrackingChiptune(ModelPtr model)
+  Chiptune::Ptr CreateTrackingChiptune(ModelPtr model, Chiptune::PresentPatternFunction presentPattern = nullptr)
   {
-    return MakePtr<TrackingChiptune<RendererType, ModelPtr>>(std::move(model));
+    return MakePtr<TrackingChiptune<RendererType, ModelPtr>>(std::move(model), presentPattern);
   }
 }  // namespace Module::DAC

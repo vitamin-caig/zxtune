@@ -24,6 +24,12 @@
 
 namespace Module
 {
+  enum TrackCommand
+  {
+    // Channel-level tempo is rendered in its cell; playback uses Line's tempo instead
+    TEMPO_COMMAND = 0xfe
+  };
+
   struct Command
   {
     Command() = default;

@@ -12,6 +12,7 @@
 
 #include "module/players/dac/dac_parameters.h"
 #include "module/players/framed_renderer.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/parameters.h"
 
 #include "sound/mixer_factory.h"
@@ -21,11 +22,17 @@
 
 namespace Module
 {
-  class DACHolder : public Holder
+  class DACHolder
+    : public Holder
+    , public Presentation::Generic
   {
   public:
-    DACHolder(DAC::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties, Time::Microseconds frameDuration)
-      : Tune(std::move(chiptune))
+    using Ptr = Module::Holder::Ptr;
+
+    DACHolder(DAC::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties, Time::Microseconds frameDuration,
+              Presentation::Generic::PresentPatternFunction presentPattern)
+      : Presentation::Generic(*chiptune->GetTrackModel(), presentPattern)
+      , Tune(std::move(chiptune))
       , Properties(std::move(properties))
       , FrameDuration(frameDuration)
     {}
@@ -105,6 +112,7 @@ namespace Module::DAC
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties)
   {
     const FrameDurationParameter frameDuration(properties, DAC::BASE_FRAME_DURATION);
-    return MakePtr<DACHolder>(std::move(chiptune), std::move(properties), frameDuration.Get());
+    const auto presentPattern = chiptune->GetPresentPattern();
+    return MakePtr<DACHolder>(std::move(chiptune), std::move(properties), frameDuration.Get(), presentPattern);
   }
 }  // namespace Module::DAC

@@ -698,6 +698,177 @@ namespace Module::SQTracker
     const ModuleData& Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
+
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+
+    // SQ-Tracker names the natural B as H and keeps the accidental in a separate column
+    constexpr auto TONES = std::array<std::array<char, 2>, 12>{{
+        {'C', '-'},
+        {'C', '#'},
+        {'D', '-'},
+        {'D', '#'},
+        {'E', '-'},
+        {'F', '-'},
+        {'F', '#'},
+        {'G', '-'},
+        {'G', '#'},
+        {'A', '-'},
+        {'A', '#'},
+        {'H', '-'},
+    }};
+
+    struct Note
+    {
+      char Letter = '-';
+      char Accidental = '-';
+      char Octave = '-';
+
+      void Set(uint_t note)
+      {
+        const uint_t octave = 1 + note / TONES.size();
+        if (octave > 9)
+        {
+          Letter = '?';
+          return;
+        }
+        const auto& tone = TONES[note % TONES.size()];
+        Letter = tone[0];
+        Accidental = tone[1];
+        Octave = static_cast<char>('0' + octave);
+      }
+
+      void Set(const Cell* cell)
+      {
+        if (!cell)
+        {
+          return;
+        }
+        if (const auto* enabled = cell->GetEnabled(); enabled && !*enabled)
+        {
+          Letter = 'R';
+          return;
+        }
+        if (const auto* note = cell->GetNote())
+        {
+          Set(*note);
+        }
+      }
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Note Key;
+      char Space = ' ';
+      char Sample = '0';
+      char Ornament = '0';
+      char Command = '0';
+      Layout::Hex<2> Data;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Dec<2> Index;
+      Channel Channels[AYM::TRACK_CHANNELS];
+    };
+
+    char ToLetter(uint_t value)
+    {
+      return value && value <= 26 ? static_cast<char>('A' + value - 1) : '0';
+    }
+
+    void FillCell(const Cell& cell, Channel& txt)
+    {
+      txt.Key.Set(&cell);
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Sample = ToLetter(*sample);
+      }
+      if (const auto* ornament = cell.GetOrnament())
+      {
+        txt.Ornament = ToLetter(*ornament);
+      }
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case ATTENUATION:
+          txt.Command = 'A';
+          txt.Data = cmd.Param1;
+          break;
+
+        case ATTENUATION_ADDON:
+          txt.Command = 'B';
+          txt.Data = static_cast<uint8_t>(cmd.Param2);
+          break;
+
+        case GLOBAL_ATTENUATION:
+          txt.Command = 'C';
+          txt.Data = cmd.Param1;
+          break;
+
+        case GLOBAL_ATTENUATION_ADDON:
+          txt.Command = 'D';
+          txt.Data = static_cast<uint8_t>(cmd.Param2);
+          break;
+
+        case GLISS:
+          if (cmd.Param2 < 0)
+          {
+            txt.Command = 'H';
+            txt.Data = static_cast<uint_t>(-cmd.Param2);
+          }
+          else
+          {
+            txt.Command = 'G';
+            txt.Data = static_cast<uint_t>(cmd.Param2);
+          }
+          break;
+
+        case ENVELOPE:
+          txt.Command = static_cast<char>('I' + (cmd.Param1 >= 8 ? cmd.Param1 - 8 : 0));
+          txt.Data = cmd.Param2;
+          break;
+
+        default:
+          break;
+        }
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      // The editor lays the single-channel patterns out in A/C/B order
+      static constexpr auto DISPLAY_ORDER = std::array<uint_t, AYM::TRACK_CHANNELS>{1, 0, 2};
+      for (uint_t idx = 0; idx != AYM::TRACK_CHANNELS; ++idx)
+      {
+        if (const auto* cell = line.GetChannel(DISPLAY_ORDER[idx]))
+        {
+          FillCell(*cell, row.Channels[idx]);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 }  // namespace Module::SQTracker
 
 namespace Module::AYM
@@ -708,7 +879,8 @@ namespace Module::AYM
     if (const auto container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<SQTracker::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<SQTracker::DataRenderer>(dataBuilder.CaptureResult(),
+                                                             &SQTracker::Presentation::ForPattern);
     }
     return {};
   }

@@ -13,6 +13,7 @@
 #include "devices/dac/sample_factories.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 #include "module/players/track_builder.h"
@@ -51,7 +52,9 @@ namespace Module::ChipTracker
     // offset in bytes
     SAMPLE_OFFSET,
     // step
-    SLIDE
+    SLIDE,
+    // pattern terminator
+    STOP
   };
 
   using ModuleData = DAC::SimpleModuleData;
@@ -66,6 +69,10 @@ namespace Module::ChipTracker
     void SetSampleOffset(uint_t offset) override
     {
       GetCommands().AddOrUpdate(SAMPLE_OFFSET, 0, offset);
+    }
+    void SetStop() override
+    {
+      GetCommands().AddOrUpdate(STOP, 0, 0);
     }
   };
 
@@ -203,6 +210,10 @@ namespace Module::ChipTracker
         case SLIDE:
           gliss.Glissade = cmd.Param2;
           break;
+        case STOP:
+          break;
+        case TEMPO_COMMAND:
+          break;
         default:
           assert(!"Invalid command");
         }
@@ -213,6 +224,96 @@ namespace Module::ChipTracker
     const ModuleData& Data;
     std::array<GlissData, CHANNELS_COUNT> Gliss;
   };
+
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+
+    // note/rest(3) + command(1) + parameter(1) + sample(1)
+    struct Field
+    {
+      Module::Presentation::NoteAndOctave Note;
+      char Command = ' ';
+      Layout::Hex<1> Param;
+      Layout::Hex<1> Sample;
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Field Cell;
+    };
+
+    struct Row
+    {
+      char Hash = '#';
+      Layout::Hex<2> Index;
+      Channel Channels[CHANNELS_COUNT];
+    };
+
+    void FillCell(const Cell& cell, Field& txt)
+    {
+      txt.Note.Set(&cell);
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Sample = *sample;
+      }
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case SAMPLE_OFFSET:
+          txt.Param = cmd.Param2 / 512;
+          break;
+        case SLIDE:
+          if (cmd.Param2)
+          {
+            txt.Command = cmd.Param2 < 0 ? '-' : '+';
+            txt.Param = (cmd.Param2 < 0 ? -cmd.Param2 : cmd.Param2) / 2;
+          }
+          break;
+        case STOP:
+          txt.Command = 'E';
+          break;
+        case TEMPO_COMMAND:
+          txt.Command = 'T';
+          txt.Param = cmd.Param1;
+          break;
+        default:
+          assert(!"Invalid command");
+        }
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
+      {
+        if (const auto* cell = line.GetChannel(chan))
+        {
+          FillCell(*cell, row.Channels[chan].Cell);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 
 }  // namespace Module::ChipTracker
 
@@ -225,7 +326,8 @@ namespace Module::DAC
     if (const auto container = Formats::Chiptune::ChipTracker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ChipTracker::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<ChipTracker::DataRenderer>(dataBuilder.CaptureResult(),
+                                                               &ChipTracker::Presentation::ForPattern);
     }
     return {};
   }

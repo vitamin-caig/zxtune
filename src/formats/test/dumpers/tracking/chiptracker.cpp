@@ -28,6 +28,11 @@ namespace Dump::ChipTracker
     {
       Command("SampleOffset"sv, offset);
     }
+
+    void SetStop() override
+    {
+      Command("Stop"sv);
+    }
   };
 
   class Dumper : public Builder

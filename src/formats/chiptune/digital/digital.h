@@ -23,6 +23,7 @@ namespace Formats::Chiptune::Digital
   class ChannelBuilder : public Formats::Chiptune::ChannelBuilder
   {
   public:
+    virtual void SetEnd() = 0;
   };
 
   using LineBuilder = Tracking<ChannelBuilder>::LineBuilder;

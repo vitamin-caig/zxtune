@@ -12,7 +12,11 @@
 
 namespace Formats::Chiptune::Digital
 {
-  using StubChannelBuilder = StubChannelBuilderImpl<Digital::ChannelBuilder>;
+  class StubChannelBuilder : public StubChannelBuilderImpl<Digital::ChannelBuilder>
+  {
+  public:
+    void SetEnd() override {}
+  };
 
   class StubBuilder : public Builder
   {

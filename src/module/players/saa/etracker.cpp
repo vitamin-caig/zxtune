@@ -262,6 +262,8 @@ namespace Module::ETracker
         case NOISE:
           Noise[idx >= 3] = cmd.Param1;
           break;
+        case TEMPO_COMMAND:
+          break;
         default:
           assert(!"Invalid command");
         }
@@ -372,11 +374,119 @@ namespace Module::ETracker
     uint_t Transposition = 0;
   };
 
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+
+    // note(3) + instrument(1) + ornament(1) + command(1) + parameter(1)
+    struct Field
+    {
+      Module::Presentation::NoteAndOctave Note;
+      char Space = ' ';
+      Layout::Base36 Instrument;
+      Layout::Base36 Ornament;
+      Layout::Hex<1> Command;
+      Layout::Hex<1> Parameter;
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Field Cell;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Dec<3> Index;
+      Channel Channels[SAA::TRACK_CHANNELS];
+    };
+
+    void FillCell(const Cell& cell, Field& txt)
+    {
+      if (const auto* note = cell.GetNote())
+      {
+        txt.Note.Set(*note);
+      }
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Instrument = *sample + 1;
+      }
+      if (const auto* ornament = cell.GetOrnament())
+      {
+        txt.Ornament = *ornament + 1;
+      }
+      if (const auto* volume = cell.GetVolume())
+      {
+        txt.Command = 4;
+        txt.Parameter = 15 - *volume;
+      }
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case ENVELOPE:
+          txt.Command = 1;
+          txt.Parameter = cmd.Param1;
+          break;
+        case SWAPCHANNELS:
+          txt.Command = 2;
+          txt.Parameter = cmd.Param1;
+          break;
+        case NOISE:
+          txt.Command = 5;
+          txt.Parameter = cmd.Param1;
+          break;
+        case TEMPO_COMMAND:
+          txt.Command = 3;
+          txt.Parameter = cmd.Param1;
+          break;
+        default:
+          assert(!"Invalid command");
+        }
+      }
+      if (const auto* enabled = cell.GetEnabled(); enabled && !*enabled)
+      {
+        txt.Command = 6;
+        txt.Parameter = 0;
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t chan = 0; chan != SAA::TRACK_CHANNELS; ++chan)
+      {
+        if (const auto* cell = line.GetChannel(chan))
+        {
+          FillCell(*cell, row.Channels[chan].Cell);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
+
   class Chiptune : public SAA::Chiptune
   {
   public:
-    explicit Chiptune(ModuleData::Ptr data)
+    explicit Chiptune(ModuleData::Ptr data, PresentPatternFunction presentPattern = nullptr)
       : Data(std::move(data))
+      , PresentPattern(presentPattern)
     {}
 
     Time::Microseconds GetFrameDuration() const override
@@ -394,8 +504,14 @@ namespace Module::ETracker
       return MakePtr<TrackIterator<ModuleData, ModelTrackCursor, SAA::Synth<DataRenderer>>>(Data);
     }
 
+    PresentPatternFunction GetPresentPattern() const override
+    {
+      return PresentPattern;
+    }
+
   private:
     const ModuleData::Ptr Data;
+    const PresentPatternFunction PresentPattern;
   };
 
   class Factory : public Module::Factory
@@ -412,7 +528,7 @@ namespace Module::ETracker
         props.SetSupportedParameters(SAA::ChipParameters::ALL);
         props.SetPlatform(Platforms::SAM_COUPE);
         props.SetChannels({"A"s, "B"s, "C"s, "N"s, "E"s}, 2);
-        auto chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult());
+        auto chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), &Presentation::ForPattern);
         return SAA::CreateHolder(std::move(chiptune), std::move(properties));
       }
       return {};

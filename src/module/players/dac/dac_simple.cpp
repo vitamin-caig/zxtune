@@ -34,7 +34,13 @@ namespace Module::DAC
   }
 
   class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::Digital::ChannelBuilder>
-  {};
+  {
+  public:
+    void SetEnd() override
+    {
+      GetCommands().AddOrUpdate(END_MARKER, 0, 0);
+    }
+  };
 
   using LineBuilder = TrackLineBuilder<Formats::Chiptune::Digital::ChannelBuilder, DataChannelBuilder>;
   using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::Digital::ChannelBuilder, DataChannelBuilder>;
@@ -132,8 +138,9 @@ namespace Module::DAC
   class SimpleChiptune : public DAC::Chiptune
   {
   public:
-    explicit SimpleChiptune(SimpleModuleData::Ptr data)
+    explicit SimpleChiptune(SimpleModuleData::Ptr data, PresentPatternFunction presentPattern = nullptr)
       : Data(std::move(data))
+      , PresentPattern(presentPattern)
     {}
 
     TrackModel::Ptr GetTrackModel() const override
@@ -151,12 +158,18 @@ namespace Module::DAC
       Data->SetupSamples(chip);
     }
 
+    PresentPatternFunction GetPresentPattern() const override
+    {
+      return PresentPattern;
+    }
+
   private:
     const SimpleModuleData::Ptr Data;
+    const PresentPatternFunction PresentPattern;
   };
 
-  DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data)
+  DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Chiptune::PresentPatternFunction presentPattern)
   {
-    return MakePtr<SimpleChiptune>(std::move(data));
+    return MakePtr<SimpleChiptune>(std::move(data), presentPattern);
   }
 }  // namespace Module::DAC

@@ -13,6 +13,7 @@
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_chiptune.h"
 #include "module/players/aym/aym_properties_helper.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 #include "module/players/track_builder.h"
@@ -278,6 +279,103 @@ namespace Module::SoundTrackerPro
     const ModuleData& Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
+
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Module::Presentation::NoteAndOctave Note;
+      char Space = ' ';
+      Layout::Hex<1> Sample;
+      Layout::Hex<1> Mode;
+      Layout::Hex<1> Param1;
+      Layout::Hex<1> Param2;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Dec<2> Index;
+      Channel Channels[AYM::TRACK_CHANNELS];
+    };
+
+    void FillCell(const Cell& cell, Channel& txt)
+    {
+      txt.Note.Set(&cell);
+      if (const auto* sample = cell.GetSample())
+      {
+        // Instruments are numbered from 1 in the editor.
+        txt.Sample = *sample + 1;
+      }
+      if (const auto* vol = cell.GetVolume())
+      {
+        // Volume is stored as attenuation; the editor shows the remaining level.
+        txt.Mode = 0xf;
+        txt.Param1 = 0xf - *vol;
+      }
+      if (const auto* orn = cell.GetOrnament())
+      {
+        txt.Mode = 0xf;
+        txt.Param2 = *orn;
+      }
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case ENVELOPE:
+          txt.Mode = cmd.Param1;
+          txt.Param1 = static_cast<uint_t>(cmd.Param2) >> 4;
+          txt.Param2 = static_cast<uint_t>(cmd.Param2) & 0x0f;
+          break;
+        case GLISS:
+          if (cmd.Param2)
+          {
+            // Native presentation shows the raw two's-complement slide byte with mode 1,
+            // even for negative slides. Mode 1 denotes a frequency decrease, but the byte
+            // is an AY tone period offset, so its sign is inverse to the frequency change.
+            const uint_t raw = static_cast<uint8_t>(cmd.Param2);
+            txt.Mode = 1;
+            txt.Param1 = raw >> 4;
+            txt.Param2 = raw & 0x0f;
+          }
+          break;
+        default:
+          break;
+        }
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t channel = 0; channel != AYM::TRACK_CHANNELS; ++channel)
+      {
+        if (const auto* cell = line.GetChannel(channel))
+        {
+          FillCell(*cell, row.Channels[channel]);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 }  // namespace Module::SoundTrackerPro
 
 namespace Module::AYM
@@ -288,7 +386,8 @@ namespace Module::AYM
     if (const auto container = Formats::Chiptune::SoundTrackerPro::ParseCompiled(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<SoundTrackerPro::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<SoundTrackerPro::DataRenderer>(dataBuilder.CaptureResult(),
+                                                                   &SoundTrackerPro::Presentation::ForPattern);
     }
     return {};
   }

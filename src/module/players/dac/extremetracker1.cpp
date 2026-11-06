@@ -13,6 +13,7 @@
 #include "devices/dac/sample_factories.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 #include "module/players/track_builder.h"
@@ -193,6 +194,8 @@ namespace Module::ExtremeTracker1
         case GLISS:
           gliss.Glissade = cmd.Param2;
           break;
+        case TEMPO_COMMAND:
+          break;
         default:
           assert(!"Invalid command");
         }
@@ -203,6 +206,77 @@ namespace Module::ExtremeTracker1
     const ModuleData& Data;
     std::array<GlissData, CHANNELS_COUNT> Gliss;
   };
+
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'-'>;
+
+    struct Field
+    {
+      Module::Presentation::NoteAndOctave Note;
+      char Command = ' ';
+      Layout::Hex<1> Sample;
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Field Cell;
+    };
+
+    struct Row
+    {
+      Module::Presentation::Dec<2> Index;
+      Channel Channels[CHANNELS_COUNT];
+    };
+
+    void FillCell(const Cell& cell, Field& txt)
+    {
+      if (const auto* note = cell.GetNote())
+      {
+        txt.Note.Set(*note);
+      }
+      if (const auto* sample = cell.GetSample())
+      {
+        txt.Sample = *sample;
+      }
+      // Any command (volume/glissade/rest) is shown as a single marker
+      const auto* enabled = cell.GetEnabled();
+      if ((enabled && !*enabled) || cell.GetVolume() || !cell.GetCommands().empty())
+      {
+        txt.Command = '*';
+      }
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
+      {
+        if (const auto* cell = line.GetChannel(chan))
+        {
+          FillCell(*cell, row.Channels[chan].Cell);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 
 }  // namespace Module::ExtremeTracker1
 
@@ -215,7 +289,8 @@ namespace Module::DAC
     if (const auto container = Formats::Chiptune::ExtremeTracker1::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<ExtremeTracker1::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<ExtremeTracker1::DataRenderer>(dataBuilder.CaptureResult(),
+                                                                   &ExtremeTracker1::Presentation::ForPattern);
     }
     return {};
   }

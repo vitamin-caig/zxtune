@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "module/players/generic_presentation.h"
 #include "module/players/saa/saa_parameters.h"
 #include "module/players/tracking.h"
 
@@ -109,12 +110,19 @@ namespace Module::SAA
   {
   public:
     using Ptr = std::unique_ptr<const Chiptune>;
+    using PresentPatternFunction = Presentation::Generic::PresentPatternFunction;
+
     virtual ~Chiptune() = default;
 
     virtual Time::Microseconds GetFrameDuration() const = 0;
 
     virtual TrackModel::Ptr GetTrackModel() const = 0;
     virtual DataIterator::Ptr CreateDataIterator() const = 0;
+    //! @brief Per-format pattern renderer; nullptr means the generic layout
+    virtual PresentPatternFunction GetPresentPattern() const
+    {
+      return nullptr;
+    }
   };
 
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties);

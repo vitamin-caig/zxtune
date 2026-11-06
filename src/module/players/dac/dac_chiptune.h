@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "module/players/generic_presentation.h"
 #include "module/players/iterator.h"
 #include "module/players/track_model.h"
 
@@ -26,6 +27,8 @@ namespace Module::DAC
   {
   public:
     using Ptr = std::unique_ptr<const Chiptune>;
+    using PresentPatternFunction = Presentation::Generic::PresentPatternFunction;
+
     virtual ~Chiptune() = default;
 
     static Time::Microseconds GetFrameDuration()
@@ -36,5 +39,10 @@ namespace Module::DAC
     virtual TrackModel::Ptr GetTrackModel() const = 0;
     virtual DataIterator::Ptr CreateDataIterator() const = 0;
     virtual void GetSamples(Devices::DAC::Chip& chip) const = 0;
+    //! @brief Per-format pattern renderer; nullptr means the generic layout
+    virtual PresentPatternFunction GetPresentPattern() const
+    {
+      return nullptr;
+    }
   };
 }  // namespace Module::DAC

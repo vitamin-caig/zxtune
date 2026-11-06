@@ -13,6 +13,7 @@
 #include "devices/dac/sample_factories.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
 #include "module/players/track_builder.h"
@@ -227,6 +228,10 @@ namespace Module::DigitalMusicMaker
 
     void SetTempo(uint_t tempo) override
     {
+      if (Target)
+      {
+        Target->GetCommands().AddOrUpdate(TEMPO_COMMAND, tempo);
+      }
       if (Line)
       {
         Line->SetTempo(tempo);
@@ -619,6 +624,183 @@ namespace Module::DigitalMusicMaker
     std::array<ChannelState, CHANNELS_COUNT> Chans;
   };
 
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    // Dot-filled digits render zero bytes as absent in the editor
+    using Layout = Module::Presentation::Layout<'.'>;
+    using LineNumber = Module::Presentation::Dec<2>;
+    // The note/command key defaults to the editor's empty token '---'
+    using KeyText = Module::Presentation::Layout<'-'>::Text<3>;
+
+    // The editor shows notes octave-first: the octave digit, then '_' (natural) or '#' and the name
+    constexpr auto NOTES = std::array<std::array<char, 2>, 12>{{
+        {'_', 'C'},
+        {'#', 'C'},
+        {'_', 'D'},
+        {'#', 'D'},
+        {'_', 'E'},
+        {'_', 'F'},
+        {'#', 'F'},
+        {'_', 'G'},
+        {'#', 'G'},
+        {'_', 'A'},
+        {'#', 'A'},
+        {'_', 'B'},
+    }};
+
+    // note/command(3) + space + parameter(2) + effect(1)
+    struct Field
+    {
+      KeyText Key;
+      char Space = ' ';
+      Layout::Hex<2> Param;
+      Layout::Hex<1> Effect;
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Field Cell;
+    };
+
+    struct Row
+    {
+      LineNumber Index;
+      Channel Channels[CHANNELS_COUNT];
+    };
+
+    // Everything a channel shows is resolved here: command mnemonic, note, block and the tempo
+    void FillCell(const Cell& cell, Field& txt)
+    {
+      // DMM keeps at most one command per cell
+      for (const auto& cmd : cell.GetCommands())
+      {
+        switch (cmd.Type)
+        {
+        case FREQ_FLOAT_PARAMS:
+          txt.Key = "FLT"sv;
+          txt.Param = cmd.Param1;
+          txt.Effect = 0;
+          return;
+        case VIBRATO_PARAMS:
+          txt.Key = "VBR"sv;
+          txt.Param = cmd.Param2;
+          txt.Effect = cmd.Param1;
+          return;
+        case ARPEGGIO_PARAMS:
+          txt.Key = "ARP"sv;
+          txt.Param = cmd.Param2;
+          txt.Effect = cmd.Param1;
+          return;
+        case TONE_SLIDE_PARAMS:
+          txt.Key = "STP"sv;
+          txt.Param = cmd.Param2;
+          txt.Effect = cmd.Param1;
+          return;
+        case DOUBLE_NOTE_PARAMS:
+          txt.Key = "DBL"sv;
+          txt.Param = cmd.Param1;
+          txt.Effect = 0;
+          return;
+        case VOL_ATTACK_PARAMS:
+          txt.Key = "ATT"sv;
+          txt.Param = cmd.Param1;
+          txt.Effect = cmd.Param2;
+          return;
+        case VOL_DECAY_PARAMS:
+          txt.Key = "DEC"sv;
+          txt.Param = cmd.Param1;
+          txt.Effect = cmd.Param2;
+          return;
+        case FREQ_FLOAT:
+          txt.Effect = cmd.Param2 > 0 ? 1 : 2;
+          break;
+        case VIBRATO:
+          txt.Effect = 3;
+          break;
+        case ARPEGGIO:
+          txt.Effect = 4;
+          break;
+        case TONE_SLIDE:
+          txt.Effect = cmd.Param2 > 0 ? 5 : 6;
+          break;
+        case DOUBLE_NOTE:
+          txt.Effect = 7;
+          break;
+        case VOL_ATTACK:
+          txt.Effect = 8;
+          break;
+        case VOL_DECAY:
+          txt.Effect = 9;
+          break;
+        case MIX_SAMPLE:
+          txt.Effect = 10 + cmd.Param1;
+          break;
+        case EMPTY_CMD:
+          txt.Effect = 0x0f;
+          break;
+        case TEMPO_COMMAND:
+          txt.Key = "TMP"sv;
+          txt.Param = cmd.Param1;
+          return;
+        default:
+          break;
+        }
+      }
+      if (const auto* note = cell.GetNote())
+      {
+        const auto octave = 1 + *note / NOTES.size();
+        if (octave > 9)
+        {
+          txt.Key = "???"sv;
+        }
+        else
+        {
+          const auto& name = NOTES[*note % NOTES.size()];
+          txt.Key[0] = static_cast<char>('0' + octave);
+          txt.Key[1] = name[0];
+          txt.Key[2] = name[1];
+        }
+      }
+      else if (const auto* enabled = cell.GetEnabled(); enabled && !*enabled)
+      {
+        txt.Key = "BLK"sv;
+        return;
+      }
+      const uint_t sample = cell.GetSample() ? *cell.GetSample() : 0;
+      const uint_t volume = cell.GetVolume() ? *cell.GetVolume() : 0;
+      txt.Param = (sample << 4) | volume;
+    }
+
+    void FillLine(const Line& line, Row& row)
+    {
+      for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
+      {
+        if (const auto* cell = line.GetChannel(chan))
+        {
+          FillCell(*cell, row.Channels[chan].Cell);
+        }
+      }
+    }
+
+    String ForPattern(const Pattern& pattern, uint_t /*channels*/)
+    {
+      String result;
+      const auto lines = pattern.GetSize();
+      result.reserve(lines * (sizeof(Row) + 1));
+      for (uint_t idx = 0; idx != lines; ++idx)
+      {
+        auto& dst = Module::Presentation::AppendLine<Row>(result);
+        dst.Index = idx;
+        if (const auto* line = pattern.GetLine(idx))
+        {
+          FillLine(*line, dst);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
 }  // namespace Module::DigitalMusicMaker
 
 namespace Module::DAC
@@ -630,7 +812,8 @@ namespace Module::DAC
     if (const auto container = Formats::Chiptune::DigitalMusicMaker::Parse(rawData, dataBuilder))
     {
       props.SetSource(*container);
-      return CreateTrackingChiptune<DigitalMusicMaker::DataRenderer>(dataBuilder.CaptureResult());
+      return CreateTrackingChiptune<DigitalMusicMaker::DataRenderer>(dataBuilder.CaptureResult(),
+                                                                     &DigitalMusicMaker::Presentation::ForPattern);
     }
     return {};
   }

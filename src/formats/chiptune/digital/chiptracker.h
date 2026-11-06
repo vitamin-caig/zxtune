@@ -27,6 +27,7 @@ namespace Formats::Chiptune
     public:
       virtual void SetSlide(int_t step) = 0;
       virtual void SetSampleOffset(uint_t offset) = 0;
+      virtual void SetStop() = 0;
     };
 
     using LineBuilder = Tracking<ChannelBuilder>::LineBuilder;
