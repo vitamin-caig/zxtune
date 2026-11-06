@@ -123,7 +123,10 @@ where mode key is used to specify target format type and filename key is used to
 
 OTHER PARAMETERS
 Additional keys can be used while working with program:
---analyzer key is used to switch on spectrum analyzer while playback.
+--analyzer key is used to switch on spectrum analyzer while playback. Optional value
+	track switches on tracker-like pattern view for formats with internal track model;
+	spectrum (default) keeps spectrum analyzer. Spectrum analyzer is used as a fallback
+	when pattern view is unavailable.
 --updatefps key specifies console update frequency for dynamic output.
 --seekstep key specifies seeking step in percents.
 --quiet key is used to switch off all the dynamic output while playback.
