@@ -51,6 +51,15 @@
 
 namespace
 {
+  std::pair<String, String> ParseAnalyzerOption(const String& arg)
+  {
+    if (arg == "--analyzer"sv)
+    {
+      return {"analyzer"s, "spectrum"s};
+    }
+    return {};
+  }
+
   String GetModuleId(const Parameters::Accessor& props)
   {
     return Parameters::GetString(props, Module::ATTR_FULLPATH);
@@ -626,7 +635,12 @@ namespace
         variables_map vars;
         // args should not contain program name
         args.erase(args.begin());
-        store(command_line_parser(args).options(options).positional(inputPositional).run(), vars);
+        store(command_line_parser(args)
+                  .options(options)
+                  .positional(inputPositional)
+                  .extra_parser(&ParseAnalyzerOption)
+                  .run(),
+              vars);
         notify(vars);
         if (vars.count(HELP_KEY))
         {
