@@ -35,7 +35,7 @@ namespace Module::ProTracker2
     ENVELOPE_OFF,
     // glissade
     GLISS,
-    // glissade, limit
+    // glissade step; target note is stored in the cell
     GLISS_NOTE,
     // no parameters
     NOGLISS,
@@ -124,12 +124,12 @@ namespace Module::ProTracker2
 
     void SetGlissade(int_t val) override
     {
-      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, 0, val);
     }
 
     void SetNoteGliss(int_t val, uint_t /*limit*/) override
     {
-      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS_NOTE, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS_NOTE, 0, val);
     }
 
     void SetNoGliss() override
@@ -149,7 +149,7 @@ namespace Module::ProTracker2
 
     void SetNoiseAddon(int_t val) override
     {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(NOISE_ADD, val);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(NOISE_ADD, 0, val);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -274,22 +274,22 @@ namespace Module::ProTracker2
         {
         case ENVELOPE:
           track.SetEnvelopeType(cmd.Param1);
-          track.SetEnvelopeTone(cmd.Param2);
+          track.SetEnvelopeTone(static_cast<uint16_t>(cmd.Param2));
           dst.Envelope = true;
           break;
         case ENVELOPE_OFF:
           dst.Envelope = false;
           break;
         case NOISE_ADD:
-          dst.NoiseAdd = cmd.Param1;
+          dst.NoiseAdd = cmd.Param2;
           break;
         case GLISS_NOTE:
           dst.Sliding = 0;
-          dst.Glissade = cmd.Param1;
+          dst.Glissade = cmd.Param2;
           dst.SlidingTargetNote = dst.Note;
           break;
         case GLISS:
-          dst.Glissade = cmd.Param1;
+          dst.Glissade = cmd.Param2;
           dst.SlidingTargetNote = LIMITER;
           break;
         case NOGLISS:

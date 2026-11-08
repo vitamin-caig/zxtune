@@ -25,51 +25,52 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 
 namespace Module::TFMMusicMaker
 {
   // Supported commands and their parameters
   enum CmdType
   {
-    // add1, add2
+    // Param1: add1, Param2: add2
     ARPEGGIO,
-    // step
+    // Param2: step
     TONESLIDE,
-    // step
+    // Param1: step
     PORTAMENTO,
-    // speed, depth
+    // Param1: speed, Param2: depth
     VIBRATO,
-    // op, value
+    // Param1: op, Param2: value
     LEVEL,
-    // speedup, speeddown
+    // Param1: speedup, Param2: speeddown
     VOLSLIDE,
-    // on/off
+    // Param1: on/off
     SPECMODE,
-    // op, offset
+    // Param1: op, Param2: offset
     TONEOFFSET,
-    // op, value
+    // Param1: op, Param2: value
     MULTIPLE,
-    // mask
+    // Param1: mask
     MIXING,
-    // value
+    // Param1: value
     PANE,
-    // period
+    // Param1: period
     NOTERETRIG,
-    // value
+    // Param1: value
     NOTECUT,
-    // value
+    // Param1: value
     NOTEDELAY,
     // no parameters
     DROPEFFECTS,
-    // value
+    // Param1: value
     FEEDBACK,
-    // value
+    // Param1: value
     TEMPO_INTERLEAVE,
-    // even, odd
+    // Param1: even, Param2: odd
     TEMPO_VALUES,
     // no parameters
     LOOP_START,
-    // additional count
+    // Param1: additional count
     LOOP_STOP
   };
 
@@ -178,7 +179,7 @@ namespace Module::TFMMusicMaker
 
     void SetSlide(int_t step) override
     {
-      Patterns.GetChannel().GetCommands().Add(TONESLIDE, step);
+      Patterns.GetChannel().GetCommands().Add(TONESLIDE, 0, step);
     }
 
     void SetPortamento(int_t step) override
@@ -666,7 +667,7 @@ namespace Module::TFMMusicMaker
 
     void GetNewChannelState(const Cell& src, ChannelState& dst, TFM::TrackBuilder& track, TFM::ChannelBuilder channel)
     {
-      const int_t* multiplies[OPERATORS_COUNT] = {nullptr, nullptr, nullptr, nullptr};
+      std::optional<int16_t> multiplies[OPERATORS_COUNT];
       bool dropEffects = false;
       bool hasPortamento = false;
       bool hasOpMixer = false;
@@ -684,7 +685,7 @@ namespace Module::TFMMusicMaker
           State.ToneOffset[cmd.Param1] = cmd.Param2;
           break;
         case MULTIPLE:
-          multiplies[cmd.Param1] = &cmd.Param2;
+          multiplies[cmd.Param1] = cmd.Param2;
           break;
         case MIXING:
           hasOpMixer = true;
@@ -787,7 +788,7 @@ namespace Module::TFMMusicMaker
           dst.Arpeggio.SetAddons(cmd.Param1, cmd.Param2);
           break;
         case TONESLIDE:
-          dst.ToneSlide.SetDelta(cmd.Param1);
+          dst.ToneSlide.SetDelta(cmd.Param2);
           break;
         case PORTAMENTO:
           dst.Portamento.SetStep(cmd.Param1);
@@ -840,7 +841,8 @@ namespace Module::TFMMusicMaker
       }
     }
 
-    static void LoadInstrument(const int_t* multiplies[], ChannelState& dst, TFM::ChannelBuilder& channel)
+    static void LoadInstrument(const std::optional<int16_t> multiplies[], ChannelState& dst,
+                               TFM::ChannelBuilder& channel)
     {
       const Instrument& ins = *dst.CurInstrument;
       channel.SetupConnection(dst.Algorithm = ins.Algorithm, ins.Feedback);

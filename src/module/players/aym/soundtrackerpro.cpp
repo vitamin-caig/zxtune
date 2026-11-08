@@ -124,7 +124,7 @@ namespace Module::SoundTrackerPro
 
     void SetGliss(int_t step) override
     {
-      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, step);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, 0, step);
     }
 
     void SetVolume(uint_t vol) override
@@ -234,7 +234,7 @@ namespace Module::SoundTrackerPro
           dst.OrnamentNum = cmd.Param1;
           break;
         case GLISS:
-          dst.Glissade = cmd.Param1;
+          dst.Glissade = cmd.Param2;
           break;
         default:
           break;

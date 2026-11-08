@@ -141,7 +141,7 @@ namespace Module::FastTracker
 
     void SetEnvelope(uint_t type, uint_t tone) override
     {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, int_t(type), int_t(tone));
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, tone);
     }
 
     void SetNoEnvelope() override
@@ -161,12 +161,12 @@ namespace Module::FastTracker
 
     void SetSlide(int_t step) override
     {
-      Patterns.GetChannel().GetCommands().AddOrReplace(SLIDE, int_t(step));
+      Patterns.GetChannel().GetCommands().AddOrReplace(SLIDE, 0, step);
     }
 
     void SetNoteSlide(uint_t step) override
     {
-      Patterns.GetChannel().GetCommands().Add(SLIDE_NOTE, int_t(step));
+      Patterns.GetChannel().GetCommands().Add(SLIDE_NOTE, step);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -413,7 +413,7 @@ namespace Module::FastTracker
         case ENVELOPE:
           EnvelopeType = cmd.Param1;
           EnvelopeDirty = true;
-          dst.Envelope = cmd.Param2;
+          dst.Envelope = static_cast<uint16_t>(cmd.Param2);
           dst.EnvelopeEnabled = true;
           break;
         case ENVELOPE_OFF:
@@ -428,7 +428,7 @@ namespace Module::FastTracker
           EnvelopeDirty = true;
           break;
         case SLIDE:
-          dst.ToneSlide.SetGlissade(cmd.Param1);
+          dst.ToneSlide.SetGlissade(cmd.Param2);
           break;
         case SLIDE_NOTE:
         {

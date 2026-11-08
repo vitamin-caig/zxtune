@@ -116,7 +116,7 @@ namespace Module::ExtremeTracker1
 
     void SetGliss(int_t gliss) override
     {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(GLISS, gliss);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(GLISS, 0, gliss);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -231,7 +231,7 @@ namespace Module::ExtremeTracker1
         switch (cmd.Type)
         {
         case GLISS:
-          gliss.Glissade = cmd.Param1;
+          gliss.Glissade = cmd.Param2;
           break;
         default:
           assert(!"Invalid command");

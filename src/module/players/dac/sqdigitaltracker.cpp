@@ -235,7 +235,7 @@ namespace Module::SQDigitalTracker
           vol.SlideCounter = vol.SlidePeriod = cmd.Param1;
           break;
         case VOLUME_SLIDE:
-          vol.SlideDirection = cmd.Param1;
+          vol.SlideDirection = cmd.Param2;
           break;
         default:
           assert(!"Invalid command");

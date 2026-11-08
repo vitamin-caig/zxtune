@@ -215,7 +215,7 @@ namespace Module::ProTracker1
         {
         case ENVELOPE:
           track.SetEnvelopeType(cmd.Param1);
-          track.SetEnvelopeTone(cmd.Param2);
+          track.SetEnvelopeTone(static_cast<uint16_t>(cmd.Param2));
           dst.Envelope = true;
           break;
         case ENVELOPE_OFF:
