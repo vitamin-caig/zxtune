@@ -121,12 +121,12 @@ namespace Module::ChipTracker
 
     void SetSlide(int_t step) override
     {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(SLIDE, step);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(SLIDE, 0, step);
     }
 
     void SetSampleOffset(uint_t offset) override
     {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(SAMPLE_OFFSET, offset);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(SAMPLE_OFFSET, 0, offset);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -234,10 +234,10 @@ namespace Module::ChipTracker
         switch (cmd.Type)
         {
         case SAMPLE_OFFSET:
-          builder.SetPosInSample(cmd.Param1);
+          builder.SetPosInSample(cmd.Param2);
           break;
         case SLIDE:
-          gliss.Glissade = cmd.Param1;
+          gliss.Glissade = cmd.Param2;
           break;
         default:
           assert(!"Invalid command");

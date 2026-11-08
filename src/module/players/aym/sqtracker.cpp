@@ -303,7 +303,7 @@ namespace Module::SQTracker
         if (inLine.HasData())
         {
           auto& outLine = outPattern.GetLine();
-          ConvertLine(inLine, patAttrs, tempo, outLine);
+          ConvertLine(inLine, patAttrs, tempo, builder.GetCommandsPool(), outLine);
         }
         outPattern.SetTempo(tempo);
       }
@@ -311,7 +311,7 @@ namespace Module::SQTracker
     }
 
     static void ConvertLine(const MultiLine& inLine, const Formats::Chiptune::SQTracker::PositionEntry& patAttrs,
-                            uint_t& tempo, MutableLine& outLine)
+                            uint_t& tempo, MutableCommandsPool& commandsPool, MutableLine& outLine)
     {
       for (uint_t idx = 0; idx != patAttrs.Channels.size(); ++idx)
       {
@@ -326,6 +326,7 @@ namespace Module::SQTracker
           if (const auto* const inCell = line->GetChannel(0))
           {
             auto& outCell = outLine.AddChannel(chan);
+            outCell.SetCommandsPool(&commandsPool);
             if (const uint_t tempoAddon = ConvertChannel(*inCell, enabledEffects, outCell))
             {
               tempo = (tempo + tempoAddon) & 31;
@@ -374,7 +375,7 @@ namespace Module::SQTracker
           }
           [[fallthrough]];
         default:
-          dst.GetCommands().Add(cmd.Type, cmd.Param1, cmd.Param2);
+          dst.GetCommands().Add(static_cast<CmdType>(cmd.Type), cmd.Param1, cmd.Param2);
           break;
         }
       }
@@ -468,7 +469,7 @@ namespace Module::SQTracker
 
     void SetGlissade(int_t val) override
     {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(GLISS, val);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(GLISS, 0, val);
     }
 
     void SetAttenuation(uint_t att) override
@@ -618,7 +619,7 @@ namespace Module::SQTracker
           dst.Envelope = true;
           break;
         case GLISS:
-          dst.Glissade = cmd.Param1;
+          dst.Glissade = cmd.Param2;
           dst.Sliding = 0;
           break;
         case ATTENUATION:
@@ -631,12 +632,12 @@ namespace Module::SQTracker
           }
           break;
         case ATTENUATION_ADDON:
-          dst.AddAttenuation(cmd.Param1);
+          dst.AddAttenuation(static_cast<int8_t>(cmd.Param1));
           break;
         case GLOBAL_ATTENUATION_ADDON:
           for (auto& chan : PlayerState)
           {
-            chan.AddAttenuation(cmd.Param1);
+            chan.AddAttenuation(static_cast<int8_t>(cmd.Param1));
           }
           break;
         default:

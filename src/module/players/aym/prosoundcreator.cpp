@@ -339,7 +339,7 @@ namespace Module::ProSoundCreator
 
     void SetSlide(int_t delta) override
     {
-      Patterns.GetChannel().GetCommands().AddOrReplace(SLIDE, delta);
+      Patterns.GetChannel().GetCommands().AddOrReplace(SLIDE, 0, delta);
     }
 
     void SetVolumeSlide(uint_t period, int_t delta) override
@@ -496,15 +496,16 @@ namespace Module::ProSoundCreator
         case GLISS:
         {
           const int_t sliding = oldTone - track.GetFrequency(dst.Note);
-          const int_t newGliss = sliding >= 0 ? -cmd.Param1 : cmd.Param1;
-          const int_t steps = 0 != cmd.Param1 ? (1 + Math::Absolute(sliding) / cmd.Param1) : 0;
+          const int_t step = cmd.Param1;
+          const int_t newGliss = sliding >= 0 ? -step : step;
+          const int_t steps = 0 != step ? (1 + Math::Absolute(sliding) / step) : 0;
           dst.ToneSlide.SetSliding(sliding);
           dst.ToneSlide.SetGlissade(newGliss);
           dst.ToneSlide.SetSlidingSteps(steps);
         }
         break;
         case SLIDE:
-          dst.ToneSlide.SetGlissade(cmd.Param1);
+          dst.ToneSlide.SetGlissade(cmd.Param2);
           dst.ToneSlide.SetSlidingSteps(0);
           break;
         case VOLUME_SLIDE:

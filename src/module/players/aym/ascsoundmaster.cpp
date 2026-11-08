@@ -142,7 +142,7 @@ namespace Module::ASCSoundMaster
       auto& commands = Patterns.GetChannel().GetCommands();
       if (auto* cmd = commands.Find(ENVELOPE))
       {
-        cmd->Param1 = int_t(type);
+        cmd->Param1 = type;
       }
       else
       {
@@ -159,7 +159,7 @@ namespace Module::ASCSoundMaster
       }
       else
       {
-        commands.Add(ENVELOPE, -1, int_t(tone));
+        commands.Add(ENVELOPE, 0xff, int_t(tone));
       }
     }
 
@@ -190,17 +190,17 @@ namespace Module::ASCSoundMaster
 
     void SetGlissade(int_t val) override
     {
-      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, 0, val);
     }
 
     void SetSlide(int_t steps) override
     {
-      Patterns.GetChannel().GetCommands().Add(SLIDE, steps);
+      Patterns.GetChannel().GetCommands().Add(SLIDE, 0, steps);
     }
 
     void SetNoteSlide(int_t steps, bool useToneSliding) override
     {
-      Patterns.GetChannel().GetCommands().Add(SLIDE_NOTE, steps, useToneSliding);
+      Patterns.GetChannel().GetCommands().Add(SLIDE_NOTE, useToneSliding, steps);
     }
 
     void SetVolumeSlide(uint_t period, int_t delta) override
@@ -360,7 +360,8 @@ namespace Module::ASCSoundMaster
         switch (cmd.Type)
         {
         case ENVELOPE:
-          if (-1 != cmd.Param1)
+          // type is 4-bit, so 0xff is a safe "unchanged" marker
+          if (0xff != cmd.Param1)
           {
             track.SetEnvelopeType(cmd.Param1);
           }
@@ -386,17 +387,17 @@ namespace Module::ASCSoundMaster
           contOrnament = true;
           break;
         case GLISS:
-          dst.ToneSlide.SetGlissade(cmd.Param1);
+          dst.ToneSlide.SetGlissade(cmd.Param2);
           break;
         case SLIDE:
-          dst.ToneSlide.SetSlide(cmd.Param1, dst.ToneSlide.GetSliding() / 16 * 16);
+          dst.ToneSlide.SetSlide(cmd.Param2, dst.ToneSlide.GetSliding() / 16 * 16);
           break;
         case SLIDE_NOTE:
         {
           const int_t currentSliding = dst.ToneSlide.GetSliding() / 16 * 16;
-          const int_t toneSliding = cmd.Param2 ? currentSliding : 0;
+          const int_t toneSliding = cmd.Param1 ? currentSliding : 0;
           const int_t range = note ? -16 * track.GetSlidingDifference(dst.Note, *note) + toneSliding : currentSliding;
-          dst.ToneSlide.SetSlide(cmd.Param1, range);
+          dst.ToneSlide.SetSlide(cmd.Param2, range);
           break;
         }
         case AMPLITUDE_SLIDE:

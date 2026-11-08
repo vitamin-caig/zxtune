@@ -239,7 +239,7 @@ namespace Module::SoundTrackerPro
           dst.Envelope = false;
           break;
         case GLISS:
-          dst.Glissade = cmd.Param1;
+          dst.Glissade = static_cast<int8_t>(cmd.Param1);
           break;
         default:
           break;

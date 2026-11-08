@@ -238,7 +238,7 @@ namespace Module::SQDigitalTracker
           vol.SlideCounter = vol.SlidePeriod = cmd.Param1;
           break;
         case VOLUME_SLIDE:
-          vol.SlideDirection = cmd.Param1;
+          vol.SlideDirection = static_cast<int8_t>(cmd.Param1);
           break;
         default:
           assert(!"Invalid command");

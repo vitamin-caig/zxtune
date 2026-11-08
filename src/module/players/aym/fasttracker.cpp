@@ -161,7 +161,7 @@ namespace Module::FastTracker
 
     void SetSlide(int_t step) override
     {
-      Patterns.GetChannel().GetCommands().AddOrReplace(SLIDE, int_t(step));
+      Patterns.GetChannel().GetCommands().AddOrReplace(SLIDE, 0, int_t(step));
     }
 
     void SetNoteSlide(uint_t step) override
@@ -422,7 +422,7 @@ namespace Module::FastTracker
           // r13 rewrite, while the hardware-only tone phase reset is not representable in this model
           break;
         case SLIDE:
-          dst.ToneSlide.SetGlissade(cmd.Param1);
+          dst.ToneSlide.SetGlissade(cmd.Param2);
           break;
         case SLIDE_NOTE:
         {

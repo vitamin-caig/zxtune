@@ -35,7 +35,7 @@ namespace Module::ProTracker2
     ENVELOPE_OFF,
     // glissade
     GLISS,
-    // glissade, limit
+    // glissade step; target note is stored in the cell
     GLISS_NOTE,
     // no parameters
     NOGLISS,
@@ -129,7 +129,7 @@ namespace Module::ProTracker2
 
     void SetNoteGliss(int_t val, uint_t /*limit*/) override
     {
-      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS_NOTE, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS_NOTE, 0, val);
     }
 
     void SetNoGliss() override
@@ -281,15 +281,15 @@ namespace Module::ProTracker2
           dst.Envelope = false;
           break;
         case NOISE_ADD:
-          dst.NoiseAdd = cmd.Param1;
+          dst.NoiseAdd = static_cast<int8_t>(cmd.Param1);
           break;
         case GLISS_NOTE:
           dst.Sliding = 0;
-          dst.Glissade = cmd.Param1;
+          dst.Glissade = cmd.Param2;
           dst.SlidingTargetNote = dst.Note;
           break;
         case GLISS:
-          dst.Glissade = cmd.Param1;
+          dst.Glissade = static_cast<int8_t>(cmd.Param1);
           dst.SlidingTargetNote = LIMITER;
           break;
         case NOGLISS:

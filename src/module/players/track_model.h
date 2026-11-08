@@ -12,9 +12,14 @@
 
 #include "module/state.h"
 
+#include "contract.h"
 #include "types.h"
 
 #include <algorithm>
+#include <memory>
+#include <span>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace Module
@@ -24,58 +29,100 @@ namespace Module
     Command() = default;
 
     Command(uint_t type, int_t p1, int_t p2)
-      : Type(type)
+      : Type(static_cast<uint8_t>(type))
       , Param1(p1)
       , Param2(p2)
     {}
 
-    uint_t Type = 0;
-    int_t Param1 = 0;
-    int_t Param2 = 0;
+    uint8_t Type = 0;
+    uint8_t Param1 = 0;
+    int16_t Param2 = 0;
   };
 
-  class CommandsSet : public std::vector<Command>
+  class CommandsPool
   {
   public:
-    Command& Add(uint_t type, int_t p1 = 0, int_t p2 = 0)
+    std::span<const Command> Get(uint_t index) const
     {
-      emplace_back(type, p1, p2);
-      return back();
-    }
-
-    Command& AddOrUpdate(uint_t type, int_t p1 = 0, int_t p2 = 0)
-    {
-      if (auto* cmd = Find(type))
+      if (!IsValid(index))
       {
-        cmd->Param1 = p1;
-        cmd->Param2 = p2;
-        return *cmd;
+        return {};
       }
-      return Add(type, p1, p2);
+      const auto begin = Offsets[index];
+      const auto end = Offsets[index + 1];
+      if (begin == end)
+      {
+        return {};
+      }
+      return {Data.data() + begin, static_cast<std::size_t>(end - begin)};
     }
 
-    void Remove(uint_t type)
+  protected:
+    bool IsValid(uint_t index) const
     {
-      erase(std::remove_if(begin(), end(), [type](const auto& cmd) { return cmd.Type == type; }), end());
+      return static_cast<std::size_t>(index) + 1 < Offsets.size();
     }
 
-    Command& AddOrReplace(uint_t type, int_t p1 = 0, int_t p2 = 0)
+    std::vector<uint32_t> Offsets = {0};
+    std::vector<Command> Data;
+  };
+
+  class CommandsStorage
+  {
+  public:
+    static constexpr uint_t NO_INDEX = ~uint_t(0);
+
+    bool empty() const
     {
-      Remove(type);
-      return Add(type, p1, p2);
+      return NO_INDEX == Index || Span().empty();
     }
 
-    Command* Find(uint_t type)
+    const Command* begin() const
     {
-      const auto it = std::find_if(begin(), end(), [type](const auto& cmd) { return cmd.Type == type; });
-      return it != end() ? &*it : nullptr;
+      const auto commands = Span();
+      return commands.empty() ? nullptr : commands.data();
+    }
+
+    const Command* end() const
+    {
+      const auto commands = Span();
+      return commands.empty() ? nullptr : commands.data() + commands.size();
     }
 
     const Command* Find(uint_t type) const
     {
-      const auto it = std::find_if(begin(), end(), [type](const auto& cmd) { return cmd.Type == type; });
-      return it != end() ? &*it : nullptr;
+      for (const auto& cmd : *this)
+      {
+        if (cmd.Type == type)
+        {
+          return &cmd;
+        }
+      }
+      return nullptr;
     }
+
+    void SetPool(const CommandsPool* pool)
+    {
+      Pool = pool;
+    }
+
+    const CommandsPool* GetPool() const
+    {
+      return Pool;
+    }
+
+  protected:
+    std::span<const Command> Span() const
+    {
+      if (!Pool || NO_INDEX == Index)
+      {
+        return {};
+      }
+      return Pool->Get(Index);
+    }
+
+    const CommandsPool* Pool = nullptr;
+    uint_t Index = NO_INDEX;
   };
 
   class Cell
@@ -85,7 +132,7 @@ namespace Module
 
     bool HasData() const
     {
-      return 0 != Mask || !Commands.empty();
+      return 0 != Mask || !CommandsData.empty();
     }
 
     const bool* GetEnabled() const
@@ -113,9 +160,14 @@ namespace Module
       return 0 != (Mask & VOLUME) ? &Volume : nullptr;
     }
 
-    const auto& GetCommands() const
+    const CommandsStorage& GetCommands() const
     {
-      return Commands;
+      return CommandsData;
+    }
+
+    void SetCommandsPool(const CommandsPool* pool)
+    {
+      CommandsData.SetPool(pool);
     }
 
   protected:
@@ -134,7 +186,7 @@ namespace Module
     uint_t SampleNum = 0;
     uint_t OrnamentNum = 0;
     uint_t Volume = 0;
-    CommandsSet Commands;
+    CommandsStorage CommandsData;
   };
 
   template<class T>
@@ -280,6 +332,10 @@ namespace Module
   class PatternsSet
   {
   public:
+    PatternsSet() = default;
+    PatternsSet(PatternsSet&&) = default;
+    PatternsSet& operator=(PatternsSet&&) = default;
+
     const Pattern* Get(uint_t idx) const
     {
       return Patterns.Find(idx);
@@ -291,6 +347,12 @@ namespace Module
     }
 
   protected:
+    explicit PatternsSet(std::unique_ptr<CommandsPool> commands)
+      : Commands(std::move(commands))
+    {}
+
+    // Cells and lines keep raw CommandsPool pointers, so the pool object must keep its address across PatternsSet moves
+    std::unique_ptr<CommandsPool> Commands = std::make_unique<CommandsPool>();
     SparsedObjectsStorage<Pattern> Patterns;
   };
 

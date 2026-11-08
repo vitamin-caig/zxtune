@@ -25,6 +25,7 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 
 namespace Module::TFMMusicMaker
 {
@@ -178,7 +179,7 @@ namespace Module::TFMMusicMaker
 
     void SetSlide(int_t step) override
     {
-      Patterns.GetChannel().GetCommands().Add(TONESLIDE, step);
+      Patterns.GetChannel().GetCommands().Add(TONESLIDE, 0, step);
     }
 
     void SetPortamento(int_t step) override
@@ -666,7 +667,7 @@ namespace Module::TFMMusicMaker
 
     void GetNewChannelState(const Cell& src, ChannelState& dst, TFM::TrackBuilder& track, TFM::ChannelBuilder channel)
     {
-      const int_t* multiplies[OPERATORS_COUNT] = {nullptr, nullptr, nullptr, nullptr};
+      std::optional<int16_t> multiplies[OPERATORS_COUNT];
       bool dropEffects = false;
       bool hasPortamento = false;
       bool hasOpMixer = false;
@@ -684,7 +685,7 @@ namespace Module::TFMMusicMaker
           State.ToneOffset[cmd.Param1] = cmd.Param2;
           break;
         case MULTIPLE:
-          multiplies[cmd.Param1] = &cmd.Param2;
+          multiplies[cmd.Param1] = cmd.Param2;
           break;
         case MIXING:
           hasOpMixer = true;
@@ -787,7 +788,7 @@ namespace Module::TFMMusicMaker
           dst.Arpeggio.SetAddons(cmd.Param1, cmd.Param2);
           break;
         case TONESLIDE:
-          dst.ToneSlide.SetDelta(cmd.Param1);
+          dst.ToneSlide.SetDelta(cmd.Param2);
           break;
         case PORTAMENTO:
           dst.Portamento.SetStep(cmd.Param1);
@@ -840,7 +841,8 @@ namespace Module::TFMMusicMaker
       }
     }
 
-    static void LoadInstrument(const int_t* multiplies[], ChannelState& dst, TFM::ChannelBuilder& channel)
+    static void LoadInstrument(const std::optional<int16_t> multiplies[], ChannelState& dst,
+                               TFM::ChannelBuilder& channel)
     {
       const Instrument& ins = *dst.CurInstrument;
       channel.SetupConnection(dst.Algorithm = ins.Algorithm, ins.Feedback);
@@ -848,7 +850,7 @@ namespace Module::TFMMusicMaker
       {
         const Instrument::Operator& op = ins.Operators[opIdx];
         dst.TotalLevel[opIdx] = op.TotalLevel;
-        const uint_t multiple = multiplies[opIdx] ? *multiplies[opIdx] : op.Multiple;
+        const uint_t multiple = multiplies[opIdx] ? static_cast<uint16_t>(*multiplies[opIdx]) : op.Multiple;
         channel.SetDetuneMultiple(opIdx, op.Detune, multiple);
         channel.SetRateScalingAttackRate(opIdx, op.RateScaling, op.Attack);
         channel.SetDecay(opIdx, op.Decay);
@@ -1193,17 +1195,17 @@ namespace Module::TFMMusicMaker
         switch (cmd.Type)
         {
         case TEMPO_INTERLEAVE:
-          TempoInterleavePeriod = cmd.Param1;
+          TempoInterleavePeriod = cmd.Param8;
           break;
         case TEMPO_VALUES:
-          EvenTempo = cmd.Param1;
-          OddTempo = cmd.Param2;
+          EvenTempo = cmd.Param8;
+          OddTempo = cmd.Param16;
           break;
         case LOOP_START:
           Loop.Start(MakeCurrentState());
           break;
         case LOOP_STOP:
-          NextLineState = Loop.Stop(cmd.Param1);
+          NextLineState = Loop.Stop(cmd.Param8);
           break;
         default:
           break;

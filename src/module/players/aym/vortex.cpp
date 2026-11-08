@@ -270,7 +270,7 @@ namespace Module::Vortex
           break;
         case ENVELOPE:
           track.SetEnvelopeType(cmd.Param1);
-          PlayerState.CommState.EnvBase = cmd.Param2;
+          PlayerState.CommState.EnvBase = static_cast<uint16_t>(cmd.Param2);
           dst.Envelope = true;
           PlayerState.CommState.EnvSlider.Reset();
           dst.PosInOrnament = 0;

@@ -99,6 +99,7 @@ namespace Module::DigitalMusicMaker
       MixedChannel() = default;
     };
 
+    std::unique_ptr<MutableCommandsPool> MixinCommands = std::make_unique<MutableCommandsPool>();
     std::array<MixedChannel, 64> Mixes;
   };
 
@@ -147,7 +148,7 @@ namespace Module::DigitalMusicMaker
 
     void SetVibratoParams(uint_t step, uint_t period) override
     {
-      Target.GetCommands().AddOrUpdate(VIBRATO_PARAMS, step, period);
+      Target.GetCommands().AddOrUpdate(VIBRATO_PARAMS, period, step);
     }
 
     void SetArpeggio() override
@@ -157,7 +158,7 @@ namespace Module::DigitalMusicMaker
 
     void SetArpeggioParams(uint_t step, uint_t period) override
     {
-      Target.GetCommands().AddOrUpdate(ARPEGGIO_PARAMS, step, period);
+      Target.GetCommands().AddOrUpdate(ARPEGGIO_PARAMS, period, step);
     }
 
     void SetSlide(int_t direction) override
@@ -167,7 +168,7 @@ namespace Module::DigitalMusicMaker
 
     void SetSlideParams(uint_t step, uint_t period) override
     {
-      Target.GetCommands().AddOrUpdate(TONE_SLIDE_PARAMS, step, period);
+      Target.GetCommands().AddOrUpdate(TONE_SLIDE_PARAMS, period, step);
     }
 
     void SetDoubleNote() override
@@ -245,6 +246,7 @@ namespace Module::DigitalMusicMaker
     {
       auto& dst = Data->Mixes[index];
       dst.Period = period;
+      dst.Mixin.SetCommandsPool(Data->MixinCommands.get());
       return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(dst.Mixin));
     }
 
@@ -311,7 +313,7 @@ namespace Module::DigitalMusicMaker
           break;
         case FREQ_FLOAT:
           Effect = &ChannelState::FreqFloat;
-          FreqSlideStep = cmd.Param1;
+          FreqSlideStep = static_cast<int8_t>(cmd.Param1);
           break;
         case FREQ_FLOAT_PARAMS:
           FreqSlideStep *= cmd.Param1;
@@ -320,23 +322,23 @@ namespace Module::DigitalMusicMaker
           Effect = &ChannelState::Vibrato;
           break;
         case VIBRATO_PARAMS:
-          VibratoStep = cmd.Param1;
-          VibratoPeriod = cmd.Param2;
+          VibratoStep = cmd.Param2;
+          VibratoPeriod = cmd.Param1;
           break;
         case ARPEGGIO:
           Effect = &ChannelState::Arpeggio;
           break;
         case ARPEGGIO_PARAMS:
-          ArpeggioStep = cmd.Param1;
-          ArpeggioPeriod = cmd.Param2;
+          ArpeggioStep = cmd.Param2;
+          ArpeggioPeriod = cmd.Param1;
           break;
         case TONE_SLIDE:
           Effect = &ChannelState::NoteFloat;
-          NoteSlideStep = cmd.Param1;
+          NoteSlideStep = static_cast<int8_t>(cmd.Param1);
           break;
         case TONE_SLIDE_PARAMS:
-          NoteSlideStep *= cmd.Param1;
-          NoteSlidePeriod = cmd.Param2;
+          NoteSlideStep *= cmd.Param2;
+          NoteSlidePeriod = cmd.Param1;
           break;
         case DOUBLE_NOTE:
           Effect = &ChannelState::DoubleNote;

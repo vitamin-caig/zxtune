@@ -231,7 +231,7 @@ namespace Module::ExtremeTracker1
         switch (cmd.Type)
         {
         case GLISS:
-          gliss.Glissade = cmd.Param1;
+          gliss.Glissade = static_cast<int8_t>(cmd.Param1);
           break;
         default:
           assert(!"Invalid command");
