@@ -43,27 +43,42 @@ namespace Module::DigitalMusicMaker
     return step * 3270 / int_t(C_1_STEP * 100);
   }
 
-  // supported tracking commands
+  // per-channel commands and their parameters
+  // Presentation: distinct notation commands get distinct values; don't pack variants.
   enum CmdType
   {
     // no parameters
     EMPTY_CMD,
-    // 2 param: direction, step
+    // direction
     FREQ_FLOAT,
-    // 3 params: isApply, step, period
+    // step
+    FREQ_FLOAT_PARAMS,
+    // no parameters
     VIBRATO,
-    // 3 params: isApply, step, period
+    // step, period
+    VIBRATO_PARAMS,
+    // no parameters
     ARPEGGIO,
-    // 3 param: direction, step, period
+    // step, period
+    ARPEGGIO_PARAMS,
+    // direction
     TONE_SLIDE,
-    // 2 params: isApply, period
+    // step, period
+    TONE_SLIDE_PARAMS,
+    // no parameters
     DOUBLE_NOTE,
-    // 3 params: isApply, limit, period
+    // period
+    DOUBLE_NOTE_PARAMS,
+    // no parameters
     VOL_ATTACK,
-    // 3 params: isApply, limit, period
+    // limit, period
+    VOL_ATTACK_PARAMS,
+    // no parameters
     VOL_DECAY,
-    // 1 param
-    MIX_SAMPLE,
+    // limit, period
+    VOL_DECAY_PARAMS,
+    // index
+    MIX_SAMPLE
   };
 
   class ModuleData : public DAC::SimpleModuleData
@@ -117,82 +132,82 @@ namespace Module::DigitalMusicMaker
 
     void SetFloat(int_t direction) override
     {
-      Target.AddCommand(FREQ_FLOAT, direction);
+      Target.GetCommands().AddOrUpdate(FREQ_FLOAT, direction);
     }
 
     void SetFloatParam(uint_t step) override
     {
-      Target.AddCommand(FREQ_FLOAT, 0, step);
+      Target.GetCommands().AddOrUpdate(FREQ_FLOAT_PARAMS, step);
     }
 
     void SetVibrato() override
     {
-      Target.AddCommand(VIBRATO, true);
+      Target.GetCommands().AddOrUpdate(VIBRATO);
     }
 
     void SetVibratoParams(uint_t step, uint_t period) override
     {
-      Target.AddCommand(VIBRATO, false, step, period);
+      Target.GetCommands().AddOrUpdate(VIBRATO_PARAMS, step, period);
     }
 
     void SetArpeggio() override
     {
-      Target.AddCommand(ARPEGGIO, true);
+      Target.GetCommands().AddOrUpdate(ARPEGGIO);
     }
 
     void SetArpeggioParams(uint_t step, uint_t period) override
     {
-      Target.AddCommand(ARPEGGIO, false, step, period);
+      Target.GetCommands().AddOrUpdate(ARPEGGIO_PARAMS, step, period);
     }
 
     void SetSlide(int_t direction) override
     {
-      Target.AddCommand(TONE_SLIDE, direction);
+      Target.GetCommands().AddOrUpdate(TONE_SLIDE, direction);
     }
 
     void SetSlideParams(uint_t step, uint_t period) override
     {
-      Target.AddCommand(TONE_SLIDE, 0, step, period);
+      Target.GetCommands().AddOrUpdate(TONE_SLIDE_PARAMS, step, period);
     }
 
     void SetDoubleNote() override
     {
-      Target.AddCommand(DOUBLE_NOTE, true);
+      Target.GetCommands().AddOrUpdate(DOUBLE_NOTE);
     }
 
     void SetDoubleNoteParam(uint_t period) override
     {
-      Target.AddCommand(DOUBLE_NOTE, false, period);
+      Target.GetCommands().AddOrUpdate(DOUBLE_NOTE_PARAMS, period);
     }
 
     void SetVolumeAttack() override
     {
-      Target.AddCommand(VOL_ATTACK, true);
+      Target.GetCommands().AddOrUpdate(VOL_ATTACK);
     }
 
     void SetVolumeAttackParams(uint_t limit, uint_t period) override
     {
-      Target.AddCommand(VOL_ATTACK, false, limit, period);
+      Target.GetCommands().AddOrUpdate(VOL_ATTACK_PARAMS, limit, period);
     }
 
     void SetVolumeDecay() override
     {
-      Target.AddCommand(VOL_DECAY, true);
+      Target.GetCommands().AddOrUpdate(VOL_DECAY);
     }
 
     void SetVolumeDecayParams(uint_t limit, uint_t period) override
     {
-      Target.AddCommand(VOL_DECAY, false, limit, period);
+      Target.GetCommands().AddOrUpdate(VOL_DECAY_PARAMS, limit, period);
     }
 
     void SetMixSample(uint_t idx) override
     {
-      Target.AddCommand(MIX_SAMPLE, idx);
+      Target.GetCommands().AddOrUpdate(MIX_SAMPLE, idx);
     }
 
     void SetNoEffects() override
     {
-      Target.AddCommand(EMPTY_CMD);
+      Target.GetCommands().AddOrUpdate(EMPTY_CMD);
     }
 
   private:
@@ -228,7 +243,7 @@ namespace Module::DigitalMusicMaker
     std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> SetSampleMixin(uint_t index,
                                                                                          uint_t period) override
     {
-      ModuleData::MixedChannel& dst = Data->Mixes[index];
+      auto& dst = Data->Mixes[index];
       dst.Period = period;
       return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(dst.Mixin));
     }
@@ -295,92 +310,66 @@ namespace Module::DigitalMusicMaker
           DisableEffect();
           break;
         case FREQ_FLOAT:
-          if (cmd.Param1)
-          {
-            Effect = &ChannelState::FreqFloat;
-            FreqSlideStep = cmd.Param1;
-          }
-          else
-          {
-            FreqSlideStep *= cmd.Param2;
-          }
+          Effect = &ChannelState::FreqFloat;
+          FreqSlideStep = cmd.Param1;
+          break;
+        case FREQ_FLOAT_PARAMS:
+          FreqSlideStep *= cmd.Param1;
           break;
         case VIBRATO:
-          if (cmd.Param1)
-          {
-            Effect = &ChannelState::Vibrato;
-          }
-          else
-          {
-            VibratoStep = cmd.Param2;
-            VibratoPeriod = cmd.Param3;
-          }
+          Effect = &ChannelState::Vibrato;
+          break;
+        case VIBRATO_PARAMS:
+          VibratoStep = cmd.Param1;
+          VibratoPeriod = cmd.Param2;
           break;
         case ARPEGGIO:
-          if (cmd.Param1)
-          {
-            Effect = &ChannelState::Arpeggio;
-          }
-          else
-          {
-            ArpeggioStep = cmd.Param2;
-            ArpeggioPeriod = cmd.Param3;
-          }
+          Effect = &ChannelState::Arpeggio;
+          break;
+        case ARPEGGIO_PARAMS:
+          ArpeggioStep = cmd.Param1;
+          ArpeggioPeriod = cmd.Param2;
           break;
         case TONE_SLIDE:
-          if (cmd.Param1)
-          {
-            Effect = &ChannelState::NoteFloat;
-            NoteSlideStep = cmd.Param1;
-          }
-          else
-          {
-            NoteSlideStep *= cmd.Param2;
-            NoteSlidePeriod = cmd.Param3;
-          }
+          Effect = &ChannelState::NoteFloat;
+          NoteSlideStep = cmd.Param1;
+          break;
+        case TONE_SLIDE_PARAMS:
+          NoteSlideStep *= cmd.Param1;
+          NoteSlidePeriod = cmd.Param2;
           break;
         case DOUBLE_NOTE:
-          if (cmd.Param1)
-          {
-            Effect = &ChannelState::DoubleNote;
-          }
-          else
-          {
-            NoteDoublePeriod = cmd.Param2;
-          }
+          Effect = &ChannelState::DoubleNote;
+          break;
+        case DOUBLE_NOTE_PARAMS:
+          NoteDoublePeriod = cmd.Param1;
           break;
         case VOL_ATTACK:
-          if (cmd.Param1)
-          {
-            Effect = &ChannelState::Attack;
-          }
-          else
-          {
-            AttackLimit = cmd.Param2;
-            AttackPeriod = cmd.Param3;
-          }
+          Effect = &ChannelState::Attack;
+          break;
+        case VOL_ATTACK_PARAMS:
+          AttackLimit = cmd.Param1;
+          AttackPeriod = cmd.Param2;
           break;
         case VOL_DECAY:
-          if (cmd.Param1)
-          {
-            Effect = &ChannelState::Decay;
-          }
-          else
-          {
-            DecayLimit = cmd.Param2;
-            DecayPeriod = cmd.Param3;
-          }
+          Effect = &ChannelState::Decay;
+          break;
+        case VOL_DECAY_PARAMS:
+          DecayLimit = cmd.Param1;
+          DecayPeriod = cmd.Param2;
           break;
         case MIX_SAMPLE:
         {
           DacState = builder.GetState();
           DacState.PosInSample = oldPos;
-          const ModuleData::MixedChannel& mix = data.Mixes[cmd.Param1];
+          const auto& mix = data.Mixes[cmd.Param1];
           ParseNote(mix.Mixin, builder);
           MixPeriod = mix.Period;
           Effect = &ChannelState::Mix;
         }
         break;
+        default:
+          break;
         }
       }
     }
@@ -506,7 +495,7 @@ namespace Module::DigitalMusicMaker
         const uint_t prevStep = GetStep() + FreqSlide;
         const uint_t FPS = 50;  // TODO
         const uint_t skipped = MixPeriod * prevStep * RENDERS_PER_SEC / FPS / 256;
-        Devices::DAC::ChannelData& dst = builder.GetState();
+        auto& dst = builder.GetState();
         dst = DacState;
         builder.SetPosInSample(dst.PosInSample + skipped);
 
@@ -607,9 +596,9 @@ namespace Module::DigitalMusicMaker
       const auto* const line = 0 == state.Quirk ? Data.GetLine(state) : nullptr;
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+        auto builder = track.GetChannel(chan);
 
-        ChannelState& chanState = Chans[chan];
+        auto& chanState = Chans[chan];
         chanState.OnFrame(builder);
         // begin note
         if (line)

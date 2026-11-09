@@ -18,7 +18,7 @@
 
 #include "make_ptr.h"
 
-#include <algorithm>
+#include <utility>
 
 namespace Module
 {
@@ -55,15 +55,9 @@ namespace Module
       Volume = val;
     }
 
-    void AddCommand(uint_t type, int_t p1 = 0, int_t p2 = 0, int_t p3 = 0)
+    CommandsSet& GetCommands()
     {
-      Commands.emplace_back(type, p1, p2, p3);
-    }
-
-    Command* FindCommand(uint_t type)
-    {
-      const auto it = std::find(Commands.begin(), Commands.end(), type);
-      return it != Commands.end() ? &*it : nullptr;
+      return Commands;
     }
   };
 
@@ -423,6 +417,7 @@ namespace Module
 
   private:
     MutablePatternsSet Patterns;
+
     MutablePattern* CurPattern;
     MutableLine* CurLine = nullptr;
     MutableCell* CurChannel = nullptr;

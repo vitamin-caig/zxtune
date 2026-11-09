@@ -28,9 +28,9 @@
 
 namespace Module::TFMMusicMaker
 {
+  // Supported commands and their parameters
   enum CmdType
   {
-    EMPTY,
     // add1, add2
     ARPEGGIO,
     // step
@@ -51,23 +51,23 @@ namespace Module::TFMMusicMaker
     MULTIPLE,
     // mask
     MIXING,
-    // val
+    // value
     PANE,
     // period
     NOTERETRIG,
-    // pos
+    // value
     NOTECUT,
-    // pos
+    // value
     NOTEDELAY,
-    //
+    // no parameters
     DROPEFFECTS,
-    // val
+    // value
     FEEDBACK,
-    // val
+    // value
     TEMPO_INTERLEAVE,
     // even, odd
     TEMPO_VALUES,
-    //
+    // no parameters
     LOOP_START,
     // additional count
     LOOP_STOP
@@ -173,102 +173,102 @@ namespace Module::TFMMusicMaker
 
     void SetArpeggio(uint_t add1, uint_t add2) override
     {
-      Patterns.GetChannel().AddCommand(ARPEGGIO, add1, add2);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ARPEGGIO, add1, add2);
     }
 
     void SetSlide(int_t step) override
     {
-      Patterns.GetChannel().AddCommand(TONESLIDE, step);
+      Patterns.GetChannel().GetCommands().Add(TONESLIDE, step);
     }
 
     void SetPortamento(int_t step) override
     {
-      Patterns.GetChannel().AddCommand(PORTAMENTO, step);
+      Patterns.GetChannel().GetCommands().Add(PORTAMENTO, step);
     }
 
     void SetVibrato(uint_t speed, uint_t depth) override
     {
-      Patterns.GetChannel().AddCommand(VIBRATO, speed, depth);
+      Patterns.GetChannel().GetCommands().Add(VIBRATO, speed, depth);
     }
 
     void SetTotalLevel(uint_t op, uint_t value) override
     {
-      Patterns.GetChannel().AddCommand(LEVEL, op, value);
+      Patterns.GetChannel().GetCommands().Add(LEVEL, op, value);
     }
 
     void SetVolumeSlide(uint_t up, uint_t down) override
     {
-      Patterns.GetChannel().AddCommand(VOLSLIDE, up, down);
+      Patterns.GetChannel().GetCommands().Add(VOLSLIDE, up, down);
     }
 
     void SetSpecialMode(bool on) override
     {
-      Patterns.GetChannel().AddCommand(SPECMODE, on);
+      Patterns.GetChannel().GetCommands().AddOrReplace(SPECMODE, on);
     }
 
     void SetToneOffset(uint_t op, uint_t offset) override
     {
-      Patterns.GetChannel().AddCommand(TONEOFFSET, op, offset);
+      Patterns.GetChannel().GetCommands().Add(TONEOFFSET, op, offset);
     }
 
     void SetMultiple(uint_t op, uint_t val) override
     {
-      Patterns.GetChannel().AddCommand(MULTIPLE, op, val);
+      Patterns.GetChannel().GetCommands().Add(MULTIPLE, op, val);
     }
 
     void SetOperatorsMixing(uint_t mask) override
     {
-      Patterns.GetChannel().AddCommand(MIXING, mask);
+      Patterns.GetChannel().GetCommands().AddOrReplace(MIXING, mask);
     }
 
     void SetLoopStart() override
     {
-      Patterns.GetChannel().AddCommand(LOOP_START);
+      Patterns.GetChannel().GetCommands().Add(LOOP_START);
     }
 
     void SetLoopEnd(uint_t additionalCount) override
     {
-      Patterns.GetChannel().AddCommand(LOOP_STOP, additionalCount);
+      Patterns.GetChannel().GetCommands().Add(LOOP_STOP, additionalCount);
     }
 
     void SetPane(uint_t pane) override
     {
-      Patterns.GetChannel().AddCommand(PANE, pane);
+      Patterns.GetChannel().GetCommands().AddOrReplace(PANE, pane);
     }
 
     void SetNoteRetrig(uint_t period) override
     {
-      Patterns.GetChannel().AddCommand(NOTERETRIG, period);
+      Patterns.GetChannel().GetCommands().AddOrReplace(NOTERETRIG, period);
     }
 
     void SetNoteCut(uint_t quirk) override
     {
-      Patterns.GetChannel().AddCommand(NOTECUT, quirk);
+      Patterns.GetChannel().GetCommands().AddOrReplace(NOTECUT, quirk);
     }
 
     void SetNoteDelay(uint_t quirk) override
     {
-      Patterns.GetChannel().AddCommand(NOTEDELAY, quirk);
+      Patterns.GetChannel().GetCommands().AddOrReplace(NOTEDELAY, quirk);
     }
 
     void SetDropEffects() override
     {
-      Patterns.GetChannel().AddCommand(DROPEFFECTS);
+      Patterns.GetChannel().GetCommands().AddOrReplace(DROPEFFECTS);
     }
 
     void SetFeedback(uint_t val) override
     {
-      Patterns.GetChannel().AddCommand(FEEDBACK, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(FEEDBACK, val);
     }
 
     void SetTempoInterleave(uint_t val) override
     {
-      Patterns.GetChannel().AddCommand(TEMPO_INTERLEAVE, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(TEMPO_INTERLEAVE, val);
     }
 
     void SetTempoValues(uint_t even, uint_t odd) override
     {
-      Patterns.GetChannel().AddCommand(TEMPO_VALUES, even, odd);
+      Patterns.GetChannel().GetCommands().AddOrReplace(TEMPO_VALUES, even, odd);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -715,6 +715,8 @@ namespace Module::TFMMusicMaker
         case DROPEFFECTS:
           dropEffects = true;
           break;
+        default:
+          break;
         }
       }
 
@@ -810,6 +812,8 @@ namespace Module::TFMMusicMaker
           break;
         case FEEDBACK:
           channel.SetupConnection(dst.Algorithm, cmd.Param1);
+          break;
+        default:
           break;
         }
       }
@@ -1184,7 +1188,6 @@ namespace Module::TFMMusicMaker
 
     void LoadNewLoopTempoParameters(const Cell& chan)
     {
-      // TODO: chan.FindCommand ?
       for (const auto& cmd : chan.GetCommands())
       {
         switch (cmd.Type)
@@ -1201,6 +1204,8 @@ namespace Module::TFMMusicMaker
           break;
         case LOOP_STOP:
           NextLineState = Loop.Stop(cmd.Param1);
+          break;
+        default:
           break;
         }
       }

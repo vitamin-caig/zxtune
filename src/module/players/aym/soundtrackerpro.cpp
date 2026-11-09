@@ -25,12 +25,15 @@
 
 namespace Module::SoundTrackerPro
 {
+  // Supported commands and their parameters
   enum CmdType
   {
-    EMPTY,
-    ENVELOPE,    // 2p
-    NOENVELOPE,  // 0p
-    GLISS,       // 1p
+    // type, tone
+    ENVELOPE,
+    // no parameters
+    ENVELOPE_OFF,
+    // glissade
+    GLISS
   };
 
   using Formats::Chiptune::SoundTrackerPro::Sample;
@@ -95,8 +98,9 @@ namespace Module::SoundTrackerPro
 
     void SetNote(uint_t note) override
     {
-      Patterns.GetChannel().SetEnabled(true);
-      Patterns.GetChannel().SetNote(note);
+      auto& chan = Patterns.GetChannel();
+      chan.SetEnabled(true);
+      chan.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -111,17 +115,17 @@ namespace Module::SoundTrackerPro
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, value);
     }
 
     void SetNoEnvelope() override
     {
-      Patterns.GetChannel().AddCommand(NOENVELOPE);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
     }
 
     void SetGliss(uint_t target) override
     {
-      Patterns.GetChannel().AddCommand(GLISS, target);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, target);
     }
 
     void SetVolume(uint_t vol) override
@@ -231,14 +235,14 @@ namespace Module::SoundTrackerPro
           }
           dst.Envelope = true;
           break;
-        case NOENVELOPE:
+        case ENVELOPE_OFF:
           dst.Envelope = false;
           break;
         case GLISS:
           dst.Glissade = cmd.Param1;
           break;
         default:
-          assert(!"Invalid command");
+          break;
         }
       }
     }

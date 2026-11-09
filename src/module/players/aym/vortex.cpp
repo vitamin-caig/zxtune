@@ -275,12 +275,14 @@ namespace Module::Vortex
           PlayerState.CommState.EnvSlider.Reset();
           dst.PosInOrnament = 0;
           break;
-        case NOENVELOPE:
+        case ENVELOPE_OFF:
           dst.Envelope = false;
           dst.PosInOrnament = 0;
           break;
         case NOISEBASE:
           PlayerState.CommState.NoiseBase = cmd.Param1;
+          break;
+        default:
           break;
         }
       }

@@ -27,15 +27,13 @@
 
 namespace Module::ProTracker1
 {
-  // supported commands and parameters
+  // Supported commands and their parameters
   enum CmdType
   {
-    // no parameters
-    EMPTY,
-    // r13,period
+    // type, tone
     ENVELOPE,
     // no parameters
-    NOENVELOPE,
+    ENVELOPE_OFF
   };
 
   using Formats::Chiptune::ProTracker1::Sample;
@@ -97,8 +95,9 @@ namespace Module::ProTracker1
 
     void SetNote(uint_t note) override
     {
-      Patterns.GetChannel().SetEnabled(true);
-      Patterns.GetChannel().SetNote(note);
+      auto& chan = Patterns.GetChannel();
+      chan.SetEnabled(true);
+      chan.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -118,12 +117,12 @@ namespace Module::ProTracker1
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, value);
     }
 
     void SetNoEnvelope() override
     {
-      Patterns.GetChannel().AddCommand(NOENVELOPE);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -219,11 +218,11 @@ namespace Module::ProTracker1
           track.SetEnvelopeTone(cmd.Param2);
           dst.Envelope = true;
           break;
-        case NOENVELOPE:
+        case ENVELOPE_OFF:
           dst.Envelope = false;
           break;
         default:
-          assert(!"Invalid command");
+          break;
         }
       }
     }

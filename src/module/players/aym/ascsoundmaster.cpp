@@ -27,12 +27,11 @@
 
 namespace Module::ASCSoundMaster
 {
-  // supported commands and their parameters
+  // Supported commands and their parameters
+  // Presentation: distinct notation commands get distinct values; don't pack variants.
   enum CmdType
   {
-    // no parameters
-    EMPTY,
-    // r13,envL
+    // type, tone (-1 = unchanged)
     ENVELOPE,
     // no parameters
     ENVELOPE_ON,
@@ -44,7 +43,7 @@ namespace Module::ASCSoundMaster
     CONT_SAMPLE,
     // no parameters
     CONT_ORNAMENT,
-    // glissade value
+    // glissade
     GLISS,
     // steps
     SLIDE,
@@ -52,7 +51,7 @@ namespace Module::ASCSoundMaster
     SLIDE_NOTE,
     // period,delta
     AMPLITUDE_SLIDE,
-    // no parameter
+    // no parameters
     BREAK_SAMPLE
   };
 
@@ -115,11 +114,12 @@ namespace Module::ASCSoundMaster
 
     void SetNote(uint_t note) override
     {
-      if (!Patterns.GetChannel().FindCommand(BREAK_SAMPLE))
+      auto& chan = Patterns.GetChannel();
+      if (!chan.GetCommands().Find(BREAK_SAMPLE))
       {
-        Patterns.GetChannel().SetEnabled(true);
+        chan.SetEnabled(true);
       }
-      Patterns.GetChannel().SetNote(note);
+      chan.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -139,77 +139,78 @@ namespace Module::ASCSoundMaster
 
     void SetEnvelopeType(uint_t type) override
     {
-      if (Command* cmd = Patterns.GetChannel().FindCommand(ENVELOPE))
+      auto& commands = Patterns.GetChannel().GetCommands();
+      if (auto* cmd = commands.Find(ENVELOPE))
       {
         cmd->Param1 = int_t(type);
       }
       else
       {
-        Patterns.GetChannel().AddCommand(ENVELOPE, int_t(type), -1);
+        commands.Add(ENVELOPE, int_t(type), -1);
       }
     }
 
     void SetEnvelopeTone(uint_t tone) override
     {
-      if (Command* cmd = Patterns.GetChannel().FindCommand(ENVELOPE))
+      auto& commands = Patterns.GetChannel().GetCommands();
+      if (auto* cmd = commands.Find(ENVELOPE))
       {
         cmd->Param2 = int_t(tone);
       }
       else
       {
-        // strange situation
-        Patterns.GetChannel().AddCommand(ENVELOPE, -1, int_t(tone));
+        commands.Add(ENVELOPE, -1, int_t(tone));
       }
     }
 
     void SetEnvelope() override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE_ON);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_ON);
     }
 
     void SetNoEnvelope() override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE_OFF);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
     }
 
     void SetNoise(uint_t val) override
     {
-      Patterns.GetChannel().AddCommand(NOISE, val);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(NOISE, val);
     }
 
     void SetContinueSample() override
     {
-      Patterns.GetChannel().AddCommand(CONT_SAMPLE);
+      Patterns.GetChannel().GetCommands().AddOrReplace(CONT_SAMPLE);
     }
 
     void SetContinueOrnament() override
     {
-      Patterns.GetChannel().AddCommand(CONT_ORNAMENT);
+      Patterns.GetChannel().GetCommands().AddOrReplace(CONT_ORNAMENT);
     }
 
     void SetGlissade(int_t val) override
     {
-      Patterns.GetChannel().AddCommand(GLISS, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, val);
     }
 
     void SetSlide(int_t steps) override
     {
-      Patterns.GetChannel().AddCommand(SLIDE, steps);
+      Patterns.GetChannel().GetCommands().Add(SLIDE, steps);
     }
 
     void SetNoteSlide(int_t steps, bool useToneSliding) override
     {
-      Patterns.GetChannel().AddCommand(SLIDE_NOTE, steps, useToneSliding);
+      Patterns.GetChannel().GetCommands().Add(SLIDE_NOTE, steps, useToneSliding);
     }
 
     void SetVolumeSlide(uint_t period, int_t delta) override
     {
-      Patterns.GetChannel().AddCommand(AMPLITUDE_SLIDE, period, delta);
+      Patterns.GetChannel().GetCommands().AddOrReplace(AMPLITUDE_SLIDE, period, delta);
     }
 
     void SetBreakSample() override
     {
-      Patterns.GetChannel().AddCommand(BREAK_SAMPLE);
+      Patterns.GetChannel().GetCommands().AddOrReplace(BREAK_SAMPLE);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -406,7 +407,6 @@ namespace Module::ASCSoundMaster
           dst.BreakSample = true;
           break;
         default:
-          assert(!"Invalid cmd");
           break;
         }
       }

@@ -33,21 +33,23 @@ namespace Module::SQTracker
 {
   const Debug::Stream Dbg("Core::SQTSupp");
 
-  // supported commands and parameters
+  // Supported commands and their parameters
   enum CmdType
   {
-    // no parameters
-    EMPTY,
     // value
     TEMPO_ADDON,
-    // r13,period
+    // type, tone
     ENVELOPE,
     // glissade
     GLISS,
-    // value,isGlobal
+    // value
     ATTENUATION,
-    // value,isGlobal
+    // value
+    GLOBAL_ATTENUATION,
+    // value
     ATTENUATION_ADDON,
+    // value
+    GLOBAL_ATTENUATION_ADDON
   };
 
   using Formats::Chiptune::SQTracker::Sample;
@@ -300,7 +302,7 @@ namespace Module::SQTracker
         const MultiLine inLine = inPattern.GetLine(row);
         if (inLine.HasData())
         {
-          MutableLine& outLine = outPattern.GetLine();
+          auto& outLine = outPattern.GetLine();
           ConvertLine(inLine, patAttrs, tempo, outLine);
         }
         outPattern.SetTempo(tempo);
@@ -323,7 +325,7 @@ namespace Module::SQTracker
           }
           if (const auto* const inCell = line->GetChannel(0))
           {
-            MutableCell& outCell = outLine.AddChannel(chan);
+            auto& outCell = outLine.AddChannel(chan);
             if (const uint_t tempoAddon = ConvertChannel(*inCell, enabledEffects, outCell))
             {
               tempo = (tempo + tempoAddon) & 31;
@@ -363,14 +365,16 @@ namespace Module::SQTracker
           }
           break;
         case ATTENUATION:
+        case GLOBAL_ATTENUATION:
         case ATTENUATION_ADDON:
+        case GLOBAL_ATTENUATION_ADDON:
           if (!effectsEnabled)
           {
             break;
           }
           [[fallthrough]];
         default:
-          dst.AddCommand(cmd.Type, cmd.Param1, cmd.Param2, cmd.Param3);
+          dst.GetCommands().Add(cmd.Type, cmd.Param1, cmd.Param2);
           break;
         }
       }
@@ -431,7 +435,7 @@ namespace Module::SQTracker
 
     void SetTempoAddon(uint_t addon) override
     {
-      Patterns.GetChannel().AddCommand(TEMPO_ADDON, addon);
+      Patterns.GetChannel().GetCommands().Add(TEMPO_ADDON, addon);
     }
 
     void SetRest() override
@@ -441,14 +445,15 @@ namespace Module::SQTracker
 
     void SetNote(uint_t note) override
     {
-      MutableCell& channel = Patterns.GetChannel();
+      auto& channel = Patterns.GetChannel();
       channel.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
     {
-      Patterns.GetChannel().SetEnabled(true);
-      Patterns.GetChannel().SetSample(sample);
+      auto& chan = Patterns.GetChannel();
+      chan.SetEnabled(true);
+      chan.SetSample(sample);
     }
 
     void SetOrnament(uint_t ornament) override
@@ -458,32 +463,32 @@ namespace Module::SQTracker
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(ENVELOPE, type, value);
     }
 
     void SetGlissade(int_t val) override
     {
-      Patterns.GetChannel().AddCommand(GLISS, val);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(GLISS, val);
     }
 
     void SetAttenuation(uint_t att) override
     {
-      Patterns.GetChannel().AddCommand(ATTENUATION, att);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(ATTENUATION, att);
     }
 
     void SetAttenuationAddon(int_t add) override
     {
-      Patterns.GetChannel().AddCommand(ATTENUATION_ADDON, add);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(ATTENUATION_ADDON, add);
     }
 
     void SetGlobalAttenuation(uint_t att) override
     {
-      Patterns.GetChannel().AddCommand(ATTENUATION, att, true);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(GLOBAL_ATTENUATION, att);
     }
 
     void SetGlobalAttenuationAddon(int_t add) override
     {
-      Patterns.GetChannel().AddCommand(ATTENUATION_ADDON, add, true);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(GLOBAL_ATTENUATION_ADDON, add);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -617,32 +622,25 @@ namespace Module::SQTracker
           dst.Sliding = 0;
           break;
         case ATTENUATION:
-          // global
-          if (cmd.Param2)
+          dst.Attenuation = cmd.Param1;
+          break;
+        case GLOBAL_ATTENUATION:
+          for (auto& chan : PlayerState)
           {
-            for (auto& chan : PlayerState)
-            {
-              chan.Attenuation = cmd.Param1;
-            }
-          }
-          else
-          {
-            dst.Attenuation = cmd.Param1;
+            chan.Attenuation = cmd.Param1;
           }
           break;
         case ATTENUATION_ADDON:
-          // global
-          if (cmd.Param2)
+          dst.AddAttenuation(cmd.Param1);
+          break;
+        case GLOBAL_ATTENUATION_ADDON:
+          for (auto& chan : PlayerState)
           {
-            for (auto& chan : PlayerState)
-            {
-              chan.AddAttenuation(cmd.Param1);
-            }
+            chan.AddAttenuation(cmd.Param1);
           }
-          else
-          {
-            dst.AddAttenuation(cmd.Param1);
-          }
+          break;
+        default:
+          break;
         }
       }
     }

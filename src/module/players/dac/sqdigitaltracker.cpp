@@ -31,15 +31,14 @@ namespace Module::SQDigitalTracker
   const uint_t C_1_STEP = 44;
   const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
 
-  // supported tracking commands
+  // per-channel commands and their parameters
+  // Presentation: distinct notation commands get distinct values; don't pack variants.
   enum CmdType
   {
-    // no parameters
-    EMPTY,
-    // 1 param
+    // period
     VOLUME_SLIDE_PERIOD,
-    // 1 param
-    VOLUME_SLIDE,
+    // direction
+    VOLUME_SLIDE
   };
 
   using ModuleData = DAC::SimpleModuleData;
@@ -93,8 +92,9 @@ namespace Module::SQDigitalTracker
 
     void SetNote(uint_t note) override
     {
-      Patterns.GetChannel().SetEnabled(true);
-      Patterns.GetChannel().SetNote(note);
+      auto& chan = Patterns.GetChannel();
+      chan.SetEnabled(true);
+      chan.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -109,12 +109,12 @@ namespace Module::SQDigitalTracker
 
     void SetVolumeSlidePeriod(uint_t period) override
     {
-      Patterns.GetChannel().AddCommand(VOLUME_SLIDE_PERIOD, period);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(VOLUME_SLIDE_PERIOD, period);
     }
 
     void SetVolumeSlideDirection(int_t direction) override
     {
-      Patterns.GetChannel().AddCommand(VOLUME_SLIDE, direction);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(VOLUME_SLIDE, direction);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -187,10 +187,10 @@ namespace Module::SQDigitalTracker
     {
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        VolumeState& vol = Volumes[chan];
+        auto& vol = Volumes[chan];
         if (vol.Update())
         {
-          DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+          auto builder = track.GetChannel(chan);
           builder.SetLevelInPercents(100 * vol.Value / 16);
         }
       }

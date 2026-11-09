@@ -31,29 +31,27 @@ namespace Module::Vortex
   using Formats::Chiptune::ProTracker3::Sample;
   using Formats::Chiptune::ProTracker3::Ornament;
 
-  // supported commands set and their parameters
-  enum Commands
+  // Supported commands set and their parameters
+  enum CmdType
   {
-    // no parameters
-    EMPTY,
-    // period,delta
+    // period, delta
     GLISS,
-    // period,delta
+    // period, delta; target note is stored in the cell
     GLISS_NOTE,
     // offset
     SAMPLEOFFSET,
     // offset
     ORNAMENTOFFSET,
-    // ontime,offtime
+    // ontime, offtime
     VIBRATE,
-    // period,delta
+    // period, delta
     SLIDEENV,
     // no parameters
-    NOENVELOPE,
-    // r13,period
+    ENVELOPE_OFF,
+    // type, tone
     ENVELOPE,
-    // base
-    NOISEBASE,
+    // value
+    NOISEBASE
   };
 
   class ModuleData : public AYM::ModuleData<OrderList, Sample, Ornament>

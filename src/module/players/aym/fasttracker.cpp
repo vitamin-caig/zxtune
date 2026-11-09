@@ -27,16 +27,15 @@
 
 namespace Module::FastTracker
 {
-  // supported commands and their parameters
+  // per-channel commands and their parameters
+  // Presentation: distinct notation commands get distinct values; don't pack variants.
   enum CmdType
   {
-    // no parameters
-    EMPTY,
-    // r13,tone
+    // type, tone
     ENVELOPE,
     // no parameters
     ENVELOPE_OFF,
-    // r5
+    // value
     NOISE,
     // no parameters
     RETRIG,
@@ -120,7 +119,7 @@ namespace Module::FastTracker
 
     void SetNote(uint_t note) override
     {
-      MutableCell& channel = Patterns.GetChannel();
+      auto& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
       channel.SetNote(note);
     }
@@ -142,32 +141,32 @@ namespace Module::FastTracker
 
     void SetEnvelope(uint_t type, uint_t tone) override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE, int_t(type), int_t(tone));
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, int_t(type), int_t(tone));
     }
 
     void SetNoEnvelope() override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE_OFF);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
     }
 
     void SetNoise(uint_t val) override
     {
-      Patterns.GetChannel().AddCommand(NOISE, val);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(NOISE, val);
     }
 
     void SetRetrig() override
     {
-      Patterns.GetChannel().AddCommand(RETRIG);
+      Patterns.GetChannel().GetCommands().AddOrReplace(RETRIG);
     }
 
     void SetSlide(int_t step) override
     {
-      Patterns.GetChannel().AddCommand(SLIDE, step);
+      Patterns.GetChannel().GetCommands().AddOrReplace(SLIDE, int_t(step));
     }
 
     void SetNoteSlide(uint_t step) override
     {
-      Patterns.GetChannel().AddCommand(SLIDE_NOTE, int_t(step));
+      Patterns.GetChannel().GetCommands().Add(SLIDE_NOTE, int_t(step));
     }
 
     ModuleData::Ptr CaptureResult()
@@ -435,6 +434,8 @@ namespace Module::FastTracker
           dst.ToneSlide.SetSlideDirection(direction);
         }
         break;
+        default:
+          break;
         }
       }
     }

@@ -29,16 +29,17 @@
 
 namespace Module::ProSoundMaker
 {
-  // supported commands and parameters
+  // per-channel commands and their parameters
+  // Presentation: distinct notation commands get distinct values; don't pack variants.
   enum CmdType
   {
-    // no parameters
-    EMPTY,
-    // r13,period,note delta
+    // type, tone
     ENVELOPE,
-    // disable ornament
+    // type, note
+    ENVELOPE_NOTE,
+    // no parameters
     NOORNAMENT,
-    // envelope reinit on every note,true/false
+    // enabled
     ENVELOPE_REINIT
   };
 
@@ -98,8 +99,9 @@ namespace Module::ProSoundMaker
 
     void SetNote(uint_t note) override
     {
-      Patterns.GetChannel().SetEnabled(true);
-      Patterns.GetChannel().SetNote(note);
+      auto& chan = Patterns.GetChannel();
+      chan.SetEnabled(true);
+      chan.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -119,26 +121,26 @@ namespace Module::ProSoundMaker
 
     void DisableOrnament() override
     {
-      Patterns.GetChannel().AddCommand(NOORNAMENT);
+      Patterns.GetChannel().GetCommands().AddOrReplace(NOORNAMENT);
     }
 
     void SetEnvelopeReinit(bool enabled) override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE_REINIT, enabled);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_REINIT, enabled);
     }
 
     void SetEnvelopeTone(uint_t type, uint_t tone) override
     {
-      MutableCell& channel = Patterns.GetChannel();
-      Require(!channel.FindCommand(ENVELOPE));
-      channel.AddCommand(ENVELOPE, int_t(type), int_t(tone), -1);
+      auto& channel = Patterns.GetChannel();
+      Require(!channel.GetCommands().Find(ENVELOPE) && !channel.GetCommands().Find(ENVELOPE_NOTE));
+      channel.GetCommands().Add(ENVELOPE, int_t(type), int_t(tone));
     }
 
     void SetEnvelopeNote(uint_t type, uint_t note) override
     {
-      MutableCell& channel = Patterns.GetChannel();
-      Require(!channel.FindCommand(ENVELOPE));
-      channel.AddCommand(ENVELOPE, int_t(type), -1, int_t(note));
+      auto& channel = Patterns.GetChannel();
+      Require(!channel.GetCommands().Find(ENVELOPE) && !channel.GetCommands().Find(ENVELOPE_NOTE));
+      channel.GetCommands().Add(ENVELOPE_NOTE, int_t(type), int_t(note));
     }
 
     ModuleData::Ptr CaptureResult()
@@ -296,16 +298,13 @@ namespace Module::ProSoundMaker
         {
         case ENVELOPE:
           dst.Envelope.Type = cmd.Param1;
-          if (cmd.Param2 != -1)
-          {
-            track.SetEnvelopeType(cmd.Param1);
-            track.SetEnvelopeTone(cmd.Param2);
-            dst.Envelope.SetTone(cmd.Param2);
-          }
-          else if (cmd.Param3 != -1)
-          {
-            dst.Envelope.SetNote(cmd.Param3);
-          }
+          track.SetEnvelopeType(cmd.Param1);
+          track.SetEnvelopeTone(cmd.Param2);
+          dst.Envelope.SetTone(cmd.Param2);
+          break;
+        case ENVELOPE_NOTE:
+          dst.Envelope.Type = cmd.Param1;
+          dst.Envelope.SetNote(cmd.Param2);
           break;
         case NOORNAMENT:
           dst.Orn.Finished = dst.Orn.KeepFinished = true;
@@ -317,7 +316,7 @@ namespace Module::ProSoundMaker
           dst.Orn.Current = &STUB;
           break;
         default:
-          assert(!"Invalid command");
+          break;
         }
       }
       if (const uint_t* note = src.GetNote())

@@ -96,7 +96,7 @@ namespace Module::ProTracker3
 
     void SetNote(uint_t note) override
     {
-      MutableCell& channel = Patterns.GetChannel();
+      auto& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
       channel.SetNote(note);
     }
@@ -118,48 +118,50 @@ namespace Module::ProTracker3
 
     void SetGlissade(uint_t period, int_t val) override
     {
-      Patterns.GetChannel().AddCommand(Vortex::GLISS, period, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::GLISS, int_t(period), val);
     }
 
     void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/) override
     {
       // ignore limit
-      Patterns.GetChannel().AddCommand(Vortex::GLISS_NOTE, period, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::GLISS_NOTE, int_t(period), val);
     }
 
     void SetSampleOffset(uint_t offset) override
     {
-      Patterns.GetChannel().AddCommand(Vortex::SAMPLEOFFSET, offset);
+      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::SAMPLEOFFSET, offset);
     }
 
     void SetOrnamentOffset(uint_t offset) override
     {
-      Patterns.GetChannel().AddCommand(Vortex::ORNAMENTOFFSET, offset);
+      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::ORNAMENTOFFSET, offset);
     }
 
     void SetVibrate(uint_t ontime, uint_t offtime) override
     {
-      Patterns.GetChannel().AddCommand(Vortex::VIBRATE, ontime, offtime);
+      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::VIBRATE, ontime, offtime);
     }
 
     void SetEnvelopeSlide(uint_t period, int_t val) override
     {
-      Patterns.GetChannel().AddCommand(Vortex::SLIDEENV, period, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::SLIDEENV, period, val);
     }
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
-      Patterns.GetChannel().AddCommand(Vortex::ENVELOPE, type, value);
+      auto& commands = Patterns.GetChannel().GetCommands();
+      commands.Remove(Vortex::ENVELOPE_OFF);
+      commands.AddOrReplace(Vortex::ENVELOPE, type, value);
     }
 
     void SetNoEnvelope() override
     {
-      Patterns.GetChannel().AddCommand(Vortex::NOENVELOPE);
+      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::ENVELOPE_OFF);
     }
 
     void SetNoiseBase(uint_t val) override
     {
-      Patterns.GetChannel().AddCommand(Vortex::NOISEBASE, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::NOISEBASE, val);
     }
 
     ModuleData::RWPtr CaptureResult()
