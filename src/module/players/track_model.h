@@ -23,22 +23,59 @@ namespace Module
   {
     Command() = default;
 
-    Command(uint_t type, int_t p1, int_t p2, int_t p3)
+    Command(uint_t type, int_t p1, int_t p2)
       : Type(type)
       , Param1(p1)
       , Param2(p2)
-      , Param3(p3)
     {}
-
-    bool operator==(uint_t type) const
-    {
-      return Type == type;
-    }
 
     uint_t Type = 0;
     int_t Param1 = 0;
     int_t Param2 = 0;
-    int_t Param3 = 0;
+  };
+
+  class CommandsSet : public std::vector<Command>
+  {
+  public:
+    Command& Add(uint_t type, int_t p1 = 0, int_t p2 = 0)
+    {
+      emplace_back(type, p1, p2);
+      return back();
+    }
+
+    Command& AddOrUpdate(uint_t type, int_t p1 = 0, int_t p2 = 0)
+    {
+      if (auto* cmd = Find(type))
+      {
+        cmd->Param1 = p1;
+        cmd->Param2 = p2;
+        return *cmd;
+      }
+      return Add(type, p1, p2);
+    }
+
+    void Remove(uint_t type)
+    {
+      erase(std::remove_if(begin(), end(), [type](const auto& cmd) { return cmd.Type == type; }), end());
+    }
+
+    Command& AddOrReplace(uint_t type, int_t p1 = 0, int_t p2 = 0)
+    {
+      Remove(type);
+      return Add(type, p1, p2);
+    }
+
+    Command* Find(uint_t type)
+    {
+      const auto it = std::find_if(begin(), end(), [type](const auto& cmd) { return cmd.Type == type; });
+      return it != end() ? &*it : nullptr;
+    }
+
+    const Command* Find(uint_t type) const
+    {
+      const auto it = std::find_if(begin(), end(), [type](const auto& cmd) { return cmd.Type == type; });
+      return it != end() ? &*it : nullptr;
+    }
   };
 
   class Cell
@@ -97,7 +134,7 @@ namespace Module
     uint_t SampleNum = 0;
     uint_t OrnamentNum = 0;
     uint_t Volume = 0;
-    std::vector<Command> Commands;
+    CommandsSet Commands;
   };
 
   template<class T>

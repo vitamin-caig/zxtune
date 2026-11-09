@@ -25,6 +25,7 @@
 
 namespace Module::SoundTrackerPro
 {
+  // Supported commands and their parameters
   enum CmdType
   {
     // type, tone
@@ -97,8 +98,9 @@ namespace Module::SoundTrackerPro
 
     void SetNote(uint_t note) override
     {
-      Patterns.GetChannel().SetEnabled(true);
-      Patterns.GetChannel().SetNote(note);
+      auto& chan = Patterns.GetChannel();
+      chan.SetEnabled(true);
+      chan.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -112,17 +114,17 @@ namespace Module::SoundTrackerPro
       // Keep the cell field for the generic representation, but also emit an
       // ordered command so playback can reproduce the native state machine.
       chan.SetOrnament(ornament);
-      chan.AddCommand(ORNAMENT, ornament);
+      chan.GetCommands().AddOrReplace(ORNAMENT, ornament);
     }
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, value);
     }
 
     void SetGliss(int_t step) override
     {
-      Patterns.GetChannel().AddCommand(GLISS, step);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, step);
     }
 
     void SetVolume(uint_t vol) override
@@ -235,7 +237,7 @@ namespace Module::SoundTrackerPro
           dst.Glissade = cmd.Param1;
           break;
         default:
-          assert(!"Invalid command");
+          break;
         }
       }
     }

@@ -102,8 +102,9 @@ namespace Module::ProDigiTracker
 
     void SetNote(uint_t note) override
     {
-      Patterns.GetChannel().SetEnabled(true);
-      Patterns.GetChannel().SetNote(note);
+      auto& chan = Patterns.GetChannel();
+      chan.SetEnabled(true);
+      chan.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -177,9 +178,9 @@ namespace Module::ProDigiTracker
     {
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        OrnamentState& ornament = Ornaments[chan];
+        auto& ornament = Ornaments[chan];
         ornament.Update();
-        DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+        auto builder = track.GetChannel(chan);
         builder.SetNoteSlide(ornament.GetOffset());
       }
     }

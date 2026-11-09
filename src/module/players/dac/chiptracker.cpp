@@ -43,9 +43,10 @@ namespace Module::ChipTracker
     return step * 3270 / int_t(C_1_STEP * 100);
   }
 
+  // per-channel commands and their parameters
+  // Presentation: distinct notation commands get distinct values; don't pack variants.
   enum CmdType
   {
-    EMPTY,
     // offset in bytes
     SAMPLE_OFFSET,
     // step
@@ -108,8 +109,9 @@ namespace Module::ChipTracker
 
     void SetNote(uint_t note) override
     {
-      Patterns.GetChannel().SetEnabled(true);
-      Patterns.GetChannel().SetNote(note);
+      auto& chan = Patterns.GetChannel();
+      chan.SetEnabled(true);
+      chan.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -119,12 +121,12 @@ namespace Module::ChipTracker
 
     void SetSlide(int_t step) override
     {
-      Patterns.GetChannel().AddCommand(SLIDE, step);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(SLIDE, step);
     }
 
     void SetSampleOffset(uint_t offset) override
     {
-      Patterns.GetChannel().AddCommand(SAMPLE_OFFSET, offset);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(SAMPLE_OFFSET, offset);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -186,10 +188,10 @@ namespace Module::ChipTracker
     {
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        GlissData& gliss(Gliss[chan]);
+        auto& gliss = Gliss[chan];
         if (gliss.Update())
         {
-          DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+          auto builder = track.GetChannel(chan);
           builder.SetFreqSlideHz(StepToHz(gliss.Sliding));
         }
       }

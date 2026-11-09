@@ -30,29 +30,30 @@ namespace Module::ProSoundCreator
   /*
     Do not use GLISS_NOTE command due to possible ambiguation while parsing
   */
-  // supported commands and parameters
+  // per-channel commands and their parameters
+  // Presentation: distinct notation commands get distinct values; don't pack variants.
   enum CmdType
   {
-    // no parameters
-    EMPTY,
-    // r13,period or nothing
+    // type, tone
     ENVELOPE,
     // no parameters
-    NOENVELOPE,
-    // noise base
-    NOISE_BASE,
-    // no params
+    ENVELOPE_ON,
+    // no parameters
+    ENVELOPE_OFF,
+    // no parameters
     BREAK_SAMPLE,
-    // no params
+    // no parameters
     BREAK_ORNAMENT,
-    // no params
+    // no parameters
     NO_ORNAMENT,
-    // absolute gliss
+    // glissade
     GLISS,
     // step
     SLIDE,
     // period, delta
-    VOLUME_SLIDE
+    VOLUME_SLIDE,
+    // value
+    NOISE_BASE
   };
 
   using Formats::Chiptune::ProSoundCreator::Sample;
@@ -269,7 +270,7 @@ namespace Module::ProSoundCreator
 
     void SetNote(uint_t note) override
     {
-      MutableCell& channel = Patterns.GetChannel();
+      auto& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
       channel.SetNote(note);
     }
@@ -291,52 +292,59 @@ namespace Module::ProSoundCreator
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
+      if (type || value)
+      {
+        Patterns.GetChannel().GetCommands().AddOrUpdate(ENVELOPE, type, value);
+      }
+      else
+      {
+        Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_ON);
+      }
     }
 
     void SetEnvelope() override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_ON);
     }
 
     void SetNoEnvelope() override
     {
-      Patterns.GetChannel().AddCommand(NOENVELOPE);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
     }
 
     void SetNoiseBase(uint_t val) override
     {
-      Patterns.GetChannel().AddCommand(NOISE_BASE, val);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(NOISE_BASE, val);
     }
 
     void SetBreakSample() override
     {
-      Patterns.GetChannel().AddCommand(BREAK_SAMPLE);
+      Patterns.GetChannel().GetCommands().AddOrReplace(BREAK_SAMPLE);
     }
 
     void SetBreakOrnament() override
     {
-      Patterns.GetChannel().AddCommand(BREAK_ORNAMENT);
+      Patterns.GetChannel().GetCommands().AddOrReplace(BREAK_ORNAMENT);
     }
 
     void SetNoOrnament() override
     {
-      Patterns.GetChannel().AddCommand(NO_ORNAMENT);
+      Patterns.GetChannel().GetCommands().AddOrReplace(NO_ORNAMENT);
     }
 
     void SetGliss(uint_t absStep) override
     {
-      Patterns.GetChannel().AddCommand(GLISS, absStep);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, absStep);
     }
 
     void SetSlide(int_t delta) override
     {
-      Patterns.GetChannel().AddCommand(SLIDE, delta);
+      Patterns.GetChannel().GetCommands().AddOrReplace(SLIDE, delta);
     }
 
     void SetVolumeSlide(uint_t period, int_t delta) override
     {
-      Patterns.GetChannel().AddCommand(VOLUME_SLIDE, period, delta);
+      Patterns.GetChannel().GetCommands().AddOrReplace(VOLUME_SLIDE, period, delta);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -473,17 +481,13 @@ namespace Module::ProSoundCreator
           dst.OrnamentIterator.Disable();
           break;
         case ENVELOPE:
-          if (cmd.Param1 || cmd.Param2)
-          {
-            track.SetEnvelopeType(cmd.Param1);
-            track.SetEnvelopeTone(EnvelopeTone = cmd.Param2);
-          }
-          else
-          {
-            dst.EnvelopeEnabled = true;
-          }
+          track.SetEnvelopeType(cmd.Param1);
+          track.SetEnvelopeTone(EnvelopeTone = cmd.Param2);
           break;
-        case NOENVELOPE:
+        case ENVELOPE_ON:
+          dst.EnvelopeEnabled = true;
+          break;
+        case ENVELOPE_OFF:
           dst.EnvelopeEnabled = false;
           break;
         case NOISE_BASE:
@@ -507,7 +511,7 @@ namespace Module::ProSoundCreator
           dst.VolumeSlide.SetParams(cmd.Param1, cmd.Param2);
           break;
         default:
-          assert(!"Invalid command");
+          break;
         }
       }
     }

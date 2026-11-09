@@ -30,13 +30,12 @@ namespace Module::ExtremeTracker1
 
   const uint_t C_1_STEP_GLISS = 0x50;
 
-  // supported tracking commands
+  // per-channel commands and their parameters
+  // Presentation: distinct notation commands get distinct values; don't pack variants.
   enum CmdType
   {
-    // no parameters
-    EMPTY,
-    // 1 param
-    GLISS,
+    // glissade
+    GLISS
   };
 
   inline int_t StepToHz(int_t step)
@@ -100,8 +99,9 @@ namespace Module::ExtremeTracker1
 
     void SetNote(uint_t note) override
     {
-      Patterns.GetChannel().SetEnabled(true);
-      Patterns.GetChannel().SetNote(note);
+      auto& chan = Patterns.GetChannel();
+      chan.SetEnabled(true);
+      chan.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -116,7 +116,7 @@ namespace Module::ExtremeTracker1
 
     void SetGliss(int_t gliss) override
     {
-      Patterns.GetChannel().AddCommand(GLISS, gliss);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(GLISS, gliss);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -178,10 +178,10 @@ namespace Module::ExtremeTracker1
     {
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        GlissData& gliss(Gliss[chan]);
+        auto& gliss = Gliss[chan];
         if (gliss.Update())
         {
-          DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+          auto builder = track.GetChannel(chan);
           builder.SetFreqSlideHz(StepToHz(gliss.Sliding));
         }
       }

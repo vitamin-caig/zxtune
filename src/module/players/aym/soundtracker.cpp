@@ -23,11 +23,13 @@
 
 namespace Module::SoundTracker
 {
+  // Supported commands and their parameters
   enum CmdType
   {
-    EMPTY,
-    ENVELOPE,    // 2p
-    NOENVELOPE,  // 0p
+    // type, tone
+    ENVELOPE,
+    // no parameters
+    ENVELOPE_OFF
   };
 
   using Formats::Chiptune::SoundTracker::Sample;
@@ -91,8 +93,9 @@ namespace Module::SoundTracker
 
     void SetNote(uint_t note) override
     {
-      Patterns.GetChannel().SetEnabled(true);
-      Patterns.GetChannel().SetNote(note);
+      auto& chan = Patterns.GetChannel();
+      chan.SetEnabled(true);
+      chan.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -107,12 +110,12 @@ namespace Module::SoundTracker
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
-      Patterns.GetChannel().AddCommand(SoundTracker::ENVELOPE, type, value);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, value);
     }
 
     void SetNoEnvelope() override
     {
-      Patterns.GetChannel().AddCommand(SoundTracker::NOENVELOPE);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -217,15 +220,18 @@ namespace Module::SoundTracker
   private:
     void ApplyCommand(const Command& command)
     {
-      if (command == ENVELOPE)
+      switch (command.Type)
       {
+      case ENVELOPE:
         Type = command.Param1;
         Tone = command.Param2;
         Enabled = 1;
-      }
-      else if (command == NOENVELOPE)
-      {
+        break;
+      case ENVELOPE_OFF:
         Enabled = 0;
+        break;
+      default:
+        break;
       }
     }
 

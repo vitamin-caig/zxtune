@@ -24,13 +24,12 @@
 namespace Module::ETracker
 {
   // supported commands and parameters
+  // Presentation: distinct notation commands get distinct values; don't pack variants.
   enum CmdType
   {
-    // no parameters
-    EMPTY,
-    // yes/no
+    // swap channels (bool)
     SWAPCHANNELS,
-    // tone
+    // value
     ENVELOPE,
     // type
     NOISE
@@ -147,17 +146,17 @@ namespace Module::ETracker
 
     void SetSwapSampleChannels(bool swapChannels) override
     {
-      Patterns.GetChannel().AddCommand(SWAPCHANNELS, swapChannels);
+      Patterns.GetChannel().GetCommands().AddOrReplace(SWAPCHANNELS, swapChannels);
     }
 
     void SetEnvelope(uint_t value) override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE, value);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, value);
     }
 
     void SetNoise(uint_t type) override
     {
-      Patterns.GetChannel().AddCommand(NOISE, type);
+      Patterns.GetChannel().GetCommands().AddOrReplace(NOISE, type);
     }
 
     ModuleData::Ptr CaptureResult()

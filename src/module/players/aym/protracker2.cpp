@@ -26,22 +26,20 @@
 
 namespace Module::ProTracker2
 {
-  // supported commands and parameters
+  // Supported commands and their parameters
   enum CmdType
   {
-    // no parameters
-    EMPTY,
-    // r13,period
+    // type, tone
     ENVELOPE,
     // no parameters
-    NOENVELOPE,
+    ENVELOPE_OFF,
     // glissade
     GLISS,
-    // glissade,target node
+    // glissade, limit
     GLISS_NOTE,
     // no parameters
     NOGLISS,
-    // noise addon
+    // addon; must stay per-channel as the last noise writer applies its own addon
     NOISE_ADD
   };
 
@@ -104,7 +102,7 @@ namespace Module::ProTracker2
 
     void SetNote(uint_t note) override
     {
-      MutableCell& channel = Patterns.GetChannel();
+      auto& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
       channel.SetNote(note);
     }
@@ -126,32 +124,32 @@ namespace Module::ProTracker2
 
     void SetGlissade(int_t val) override
     {
-      Patterns.GetChannel().AddCommand(GLISS, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, val);
     }
 
     void SetNoteGliss(int_t val, uint_t /*limit*/) override
     {
-      Patterns.GetChannel().AddCommand(GLISS_NOTE, val);
+      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS_NOTE, val);
     }
 
     void SetNoGliss() override
     {
-      Patterns.GetChannel().AddCommand(NOGLISS);
+      Patterns.GetChannel().GetCommands().AddOrReplace(NOGLISS);
     }
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
-      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, value);
     }
 
     void SetNoEnvelope() override
     {
-      Patterns.GetChannel().AddCommand(NOENVELOPE);
+      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
     }
 
     void SetNoiseAddon(int_t val) override
     {
-      Patterns.GetChannel().AddCommand(NOISE_ADD, val);
+      Patterns.GetChannel().GetCommands().AddOrUpdate(NOISE_ADD, val);
     }
 
     ModuleData::Ptr CaptureResult()
@@ -279,7 +277,7 @@ namespace Module::ProTracker2
           track.SetEnvelopeTone(cmd.Param2);
           dst.Envelope = true;
           break;
-        case NOENVELOPE:
+        case ENVELOPE_OFF:
           dst.Envelope = false;
           break;
         case NOISE_ADD:
@@ -298,7 +296,7 @@ namespace Module::ProTracker2
           dst.Glissade = 0;
           break;
         default:
-          assert(!"Invalid command");
+          break;
         }
       }
     }
