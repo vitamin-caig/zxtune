@@ -48,7 +48,7 @@ namespace Module::ASCSoundMaster
     GLISS,
     // steps
     SLIDE,
-    // steps,note
+    // steps,useToneSliding; target is the cell note
     SLIDE_NOTE,
     // period,delta
     AMPLITUDE_SLIDE,
@@ -119,17 +119,7 @@ namespace Module::ASCSoundMaster
       {
         Patterns.GetChannel().SetEnabled(true);
       }
-      if (Command* cmd = Patterns.GetChannel().FindCommand(SLIDE))
-      {
-        // set slide to note
-        cmd->Type = SLIDE_NOTE;
-        cmd->Param3 = cmd->Param2;
-        cmd->Param2 = note;
-      }
-      else
-      {
-        Patterns.GetChannel().SetNote(note);
-      }
+      Patterns.GetChannel().SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -202,9 +192,14 @@ namespace Module::ASCSoundMaster
       Patterns.GetChannel().AddCommand(GLISS, val);
     }
 
-    void SetSlide(int_t steps, bool useToneSliding) override
+    void SetSlide(int_t steps) override
     {
-      Patterns.GetChannel().AddCommand(SLIDE, steps, useToneSliding);
+      Patterns.GetChannel().AddCommand(SLIDE, steps);
+    }
+
+    void SetNoteSlide(int_t steps, bool useToneSliding) override
+    {
+      Patterns.GetChannel().AddCommand(SLIDE_NOTE, steps, useToneSliding);
     }
 
     void SetVolumeSlide(uint_t period, int_t delta) override
@@ -230,13 +225,60 @@ namespace Module::ASCSoundMaster
     ModuleData::RWPtr Data;
   };
 
-  const uint_t LIMITER(~uint_t(0));
+  class ToneSlider
+  {
+  public:
+    void SetGlissade(int_t gliss)
+    {
+      Glissade = gliss;
+      Steps = -1;  // infinite
+    }
+
+    void SetSlide(int_t steps, int_t range)
+    {
+      Steps = steps;
+      Glissade = -range / (steps ? steps : 1);
+      Sliding = steps ? -Glissade * steps : 0;
+    }
+
+    void Stop()
+    {
+      Steps = 0;
+    }
+
+    void ResetInfiniteSliding()
+    {
+      if (Steps <= 0)
+      {
+        Sliding = 0;
+      }
+    }
+
+    int_t GetSliding() const
+    {
+      return Sliding;
+    }
+
+    void Update()
+    {
+      if (Steps != 0)
+      {
+        if (Steps > 0 && !--Steps)
+        {
+          Sliding = Glissade = 0;
+        }
+        Sliding += Glissade;
+      }
+    }
+
+  private:
+    int_t Sliding = 0;
+    int_t Glissade = 0;
+    int_t Steps = 0;  // negative means infinite
+  };
 
   struct ChannelState
   {
-    ChannelState()
-      : SlidingTargetNote(LIMITER)
-    {}
     bool Enabled = false;
     bool Envelope = false;
     bool BreakSample = false;
@@ -256,10 +298,7 @@ namespace Module::ASCSoundMaster
     uint_t CurrentOrnamentNum = 0;
     uint_t PosInOrnament = 0;
     int_t ToneDeviation = 0;
-    int_t SlidingSteps = 0;  // may be infinite (negative)
-    int_t Sliding = 0;
-    uint_t SlidingTargetNote;
-    int_t Glissade = 0;
+    ToneSlider ToneSlide;
 
     void ResetBaseNoise()
     {
@@ -311,10 +350,10 @@ namespace Module::ASCSoundMaster
         dst.Enabled = *enabled;
       }
       dst.VolSlideCounter = 0;
-      dst.SlidingSteps = 0;
+      dst.ToneSlide.Stop();
+      const uint_t* const note = src.GetNote();
       bool contSample = false;
       bool contOrnament = false;
-      bool reloadNote = false;
       for (const auto& cmd : src.GetCommands())
       {
         switch (cmd.Type)
@@ -346,26 +385,17 @@ namespace Module::ASCSoundMaster
           contOrnament = true;
           break;
         case GLISS:
-          dst.Glissade = cmd.Param1;
-          dst.SlidingSteps = -1;  // infinite sliding
+          dst.ToneSlide.SetGlissade(cmd.Param1);
           break;
         case SLIDE:
-        {
-          dst.SlidingSteps = cmd.Param1;
-          const int_t newSliding = (dst.Sliding | 0xf) ^ 0xf;
-          dst.Glissade = -newSliding / (dst.SlidingSteps ? dst.SlidingSteps : 1);
-          dst.Sliding = dst.Glissade * dst.SlidingSteps;
+          dst.ToneSlide.SetSlide(cmd.Param1, dst.ToneSlide.GetSliding() / 16 * 16);
           break;
-        }
         case SLIDE_NOTE:
         {
-          dst.SlidingSteps = cmd.Param1;
-          dst.SlidingTargetNote = cmd.Param2;
-          const bool useToneSliding = cmd.Param3 != 0;
-          const int_t absoluteSliding = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
-          const int_t newSliding = absoluteSliding - (useToneSliding ? dst.Sliding / 16 : 0);
-          dst.Glissade = 16 * newSliding / (dst.SlidingSteps ? dst.SlidingSteps : 1);
-          reloadNote = true;
+          const int_t currentSliding = dst.ToneSlide.GetSliding() / 16 * 16;
+          const int_t toneSliding = cmd.Param2 ? currentSliding : 0;
+          const int_t range = note ? -16 * track.GetSlidingDifference(dst.Note, *note) + toneSliding : currentSliding;
+          dst.ToneSlide.SetSlide(cmd.Param1, range);
           break;
         }
         case AMPLITUDE_SLIDE:
@@ -388,18 +418,11 @@ namespace Module::ASCSoundMaster
       {
         dst.SampleNum = *sample;
       }
-      if (const uint_t* note = src.GetNote())
+      if (note)
       {
         dst.Note = *note;
-        reloadNote = true;
-      }
-      if (reloadNote)
-      {
         dst.CurrentNoise = dst.BaseNoise;
-        if (dst.SlidingSteps <= 0)
-        {
-          dst.Sliding = 0;
-        }
+        dst.ToneSlide.ResetInfiniteSliding();
         if (!contSample)
         {
           dst.CurrentSampleNum = dst.SampleNum;
@@ -460,7 +483,8 @@ namespace Module::ASCSoundMaster
       dst.ToneDeviation += curSampleLine.ToneDeviation;
       dst.NoteAddon += curOrnamentLine.NoteAddon;
       const int_t halfTone = Math::Clamp<int8_t>(int8_t(dst.Note) + dst.NoteAddon, 0, 0x55);
-      const int_t toneAddon = dst.ToneDeviation + dst.Sliding / 16;
+      const int_t sliding = dst.ToneSlide.GetSliding();
+      const int_t toneAddon = dst.ToneDeviation + sliding / 16;
       // apply tone
       channel.SetTone(halfTone, toneAddon);
 
@@ -492,7 +516,7 @@ namespace Module::ASCSoundMaster
 
       if (!curSampleLine.NoiseMask)
       {
-        track.SetNoise((dst.CurrentNoise + dst.Sliding / 256) & 0x1f);
+        track.SetNoise((dst.CurrentNoise + sliding / 256) & 0x1f);
       }
       else
       {
@@ -500,19 +524,7 @@ namespace Module::ASCSoundMaster
       }
 
       // recalc positions
-      if (dst.SlidingSteps != 0)
-      {
-        if (dst.SlidingSteps > 0)
-        {
-          if (!--dst.SlidingSteps && LIMITER != dst.SlidingTargetNote)  // finish slide to note
-          {
-            dst.Note = dst.SlidingTargetNote;
-            dst.SlidingTargetNote = LIMITER;
-            dst.Sliding = dst.Glissade = 0;
-          }
-        }
-        dst.Sliding += dst.Glissade;
-      }
+      dst.ToneSlide.Update();
 
       if (dst.PosInSample++ >= curSample.GetLoopLimit())
       {
