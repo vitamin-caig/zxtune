@@ -337,7 +337,8 @@ namespace Formats::Chiptune
       void SetEnvelope(uint_t /*type*/, uint_t /*tone*/) override {}
       void SetNoEnvelope() override {}
       void SetNoise(uint_t /*val*/) override {}
-      void SetSlide(uint_t /*step*/) override {}
+      void SetRetrig() override {}
+      void SetSlide(int_t /*step*/) override {}
       void SetNoteSlide(uint_t /*step*/) override {}
     };
 
@@ -445,7 +446,12 @@ namespace Formats::Chiptune
         return Delegate.SetNoise(val);
       }
 
-      void SetSlide(uint_t step) override
+      void SetRetrig() override
+      {
+        return Delegate.SetRetrig();
+      }
+
+      void SetSlide(int_t step) override
       {
         return Delegate.SetSlide(step);
       }
@@ -693,6 +699,13 @@ namespace Formats::Chiptune
         return *data;
       }
 
+      int_t PeekLESignedWord(std::size_t offset) const
+      {
+        const auto* const data = PeekObject<le_int16_t>(offset);
+        Require(data != nullptr);
+        return *data;
+      }
+
       struct DataCursors : public std::array<std::size_t, 3>
       {
         DataCursors(const RawPattern& src, std::size_t baseOffset)
@@ -839,6 +852,7 @@ namespace Formats::Chiptune
           }
           else if (cmd <= 0x2f)
           {
+            // volume column value 0 means 'keep current', so 0x20 encodes the F00 command
             const uint_t vol = cmd - 0x20;
             builder.SetVolume(vol);
           }
@@ -876,7 +890,7 @@ namespace Formats::Chiptune
           }
           else if (cmd == 0xed)
           {
-            const uint_t step = PeekLEWord(state.Offset);
+            const int_t step = PeekLESignedWord(state.Offset);
             builder.SetSlide(step);
             state.Offset += 2;
           }
@@ -887,8 +901,16 @@ namespace Formats::Chiptune
           }
           else if (cmd == 0xef)
           {
-            const uint_t noise = PeekByte(state.Offset++);
-            builder.SetNoise(noise);
+            const uint_t param = PeekByte(state.Offset++);
+            if (param == 0xfe)
+            {
+              // 500 command - full tone/envelope retrigger
+              builder.SetRetrig();
+            }
+            else
+            {
+              builder.SetNoise(param);
+            }
           }
           else
           {
@@ -1121,8 +1143,8 @@ namespace Formats::Chiptune
         "?{4}"                // padding1
         "?00-02"              // patterns offset
         "?{5}"                // padding2
-        "(?03-2c|64-ff){32}"  // samples
-        "(?05-2d|66-ff){33}"  // ornaments
+        "(?00-3f|64-ff){32}"  // samples
+        "(?00-3f|64-ff){33}"  // ornaments
         "00-1f?"              // at least one position
         "ff|00-1f"            // next position or end
         ""sv;
