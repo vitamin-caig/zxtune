@@ -371,7 +371,8 @@ namespace Formats::Chiptune
       void SetContinueSample() override {}
       void SetContinueOrnament() override {}
       void SetGlissade(int_t /*val*/) override {}
-      void SetSlide(int_t /*steps*/, bool /*useToneSliding*/) override {}
+      void SetSlide(int_t /*steps*/) override {}
+      void SetNoteSlide(int_t /*steps*/, bool /*useToneSliding*/) override {}
       void SetVolumeSlide(uint_t /*period*/, int_t /*delta*/) override {}
       void SetBreakSample() override {}
     };
@@ -502,9 +503,14 @@ namespace Formats::Chiptune
         return Delegate.SetGlissade(val);
       }
 
-      void SetSlide(int_t steps, bool useToneSliding) override
+      void SetSlide(int_t steps) override
       {
-        return Delegate.SetSlide(steps, useToneSliding);
+        return Delegate.SetSlide(steps);
+      }
+
+      void SetNoteSlide(int_t steps, bool useToneSliding) override
+      {
+        return Delegate.SetNoteSlide(steps, useToneSliding);
       }
 
       void SetVolumeSlide(uint_t period, int_t delta) override
@@ -928,11 +934,20 @@ namespace Formats::Chiptune
           }
           else if (cmd == 0xf7 || cmd == 0xf9)  // stepped slide
           {
-            if (cmd == 0xf7)
+            const auto useToneSliding = cmd == 0xf7;
+            const auto steps = static_cast<int8_t>(PeekByte(state.Offset++));
+            if (const auto* note = PeekObject<uint8_t>(state.Offset); note && *note <= 0x55)
+            {
+              builder.SetNoteSlide(steps, useToneSliding);
+            }
+            else
+            {
+              builder.SetSlide(steps);
+            }
+            if (useToneSliding)
             {
               builder.SetContinueSample();
             }
-            builder.SetSlide(static_cast<int8_t>(PeekByte(state.Offset++)), cmd == 0xf7);
           }
           else if ((cmd & 0xf9) == 0xf8)  // 0xf8, 0xfa, 0xfc, 0xfe - envelope
           {
