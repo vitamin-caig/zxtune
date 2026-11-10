@@ -337,9 +337,13 @@ namespace Formats::Chiptune
         return {};
       }
 
+      Format format(data);
+      if (!format.Check())
+      {
+        return {};
+      }
       try
       {
-        Format format(data);
         format.Parse(target);
         return format.GetContainer();
       }
