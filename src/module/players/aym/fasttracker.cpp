@@ -38,9 +38,11 @@ namespace Module::FastTracker
     ENVELOPE_OFF,
     // r5
     NOISE,
+    // no parameters
+    RETRIG,
     // step
     SLIDE,
-    // step,note
+    // step
     SLIDE_NOTE
   };
 
@@ -120,14 +122,7 @@ namespace Module::FastTracker
     {
       MutableCell& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
-      if (Command* cmd = channel.FindCommand(SLIDE_NOTE))
-      {
-        cmd->Param2 = note;
-      }
-      else
-      {
-        channel.SetNote(note);
-      }
+      channel.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -160,9 +155,14 @@ namespace Module::FastTracker
       Patterns.GetChannel().AddCommand(NOISE, val);
     }
 
-    void SetSlide(uint_t step) override
+    void SetRetrig() override
     {
-      Patterns.GetChannel().AddCommand(SLIDE, int_t(step));
+      Patterns.GetChannel().AddCommand(RETRIG);
+    }
+
+    void SetSlide(int_t step) override
+    {
+      Patterns.GetChannel().AddCommand(SLIDE, step);
     }
 
     void SetNoteSlide(uint_t step) override
@@ -296,6 +296,7 @@ namespace Module::FastTracker
     ChannelState() = default;
 
     uint_t Note = 0;
+    uint_t PrevNote = 0;
     uint_t Envelope = 0;
     bool EnvelopeEnabled = false;
     uint_t Volume = 15;
@@ -334,6 +335,8 @@ namespace Module::FastTracker
         dst.OrnamentIterator.Reset();
       }
       Transposition = 0;
+      EnvelopeType = 0;
+      EnvelopeDirty = true;
     }
 
     void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
@@ -345,6 +348,11 @@ namespace Module::FastTracker
           Transposition = Data.Order->GetTransposition(state.Position);
         }
         GetNewLineState(state, track);
+      }
+      if (EnvelopeDirty)
+      {
+        track.SetEnvelopeType(EnvelopeType);
+        EnvelopeDirty = false;
       }
       SynthesizeChannelsData(track);
     }
@@ -381,6 +389,7 @@ namespace Module::FastTracker
       }
       if (const uint_t* note = src.GetNote())
       {
+        dst.PrevNote = dst.Note;
         dst.Note = *note + Transposition;
       }
       if (const uint_t* sample = src.GetSample())
@@ -403,7 +412,8 @@ namespace Module::FastTracker
         switch (cmd.Type)
         {
         case ENVELOPE:
-          track.SetEnvelopeType(cmd.Param1);
+          EnvelopeType = cmd.Param1;
+          EnvelopeDirty = true;
           dst.Envelope = cmd.Param2;
           dst.EnvelopeEnabled = true;
           break;
@@ -413,18 +423,22 @@ namespace Module::FastTracker
         case NOISE:
           dst.Noise = cmd.Param1;
           break;
+        case RETRIG:
+          // 500 command retriggers the envelope by rewriting r13; the hardware-only tone phase reset
+          // is not representable in this model
+          EnvelopeDirty = true;
+          break;
         case SLIDE:
           dst.ToneSlide.SetGlissade(cmd.Param1);
           break;
         case SLIDE_NOTE:
         {
-          const int_t slide = track.GetSlidingDifference(cmd.Param2, dst.Note);
+          const int_t slide = track.GetSlidingDifference(dst.Note, dst.PrevNote);
           const int_t gliss = slide >= 0 ? -cmd.Param1 : cmd.Param1;
           const int_t direction = slide >= 0 ? -1 : +1;
           dst.ToneSlide.SetSlide(slide);
           dst.ToneSlide.SetGlissade(gliss);
           dst.ToneSlide.SetSlideDirection(direction);
-          dst.Note = cmd.Param2 + Transposition;
         }
         break;
         }
@@ -495,6 +509,8 @@ namespace Module::FastTracker
     const ModuleData& Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
     int_t Transposition = 0;
+    uint_t EnvelopeType = 0;
+    bool EnvelopeDirty = false;
   };
 }  // namespace Module::FastTracker
 

@@ -166,7 +166,12 @@ namespace
       std::cout << "\tNoise: " << val;
     }
 
-    void SetSlide(uint_t step) override
+    void SetRetrig() override
+    {
+      std::cout << "\tRetrig";
+    }
+
+    void SetSlide(int_t step) override
     {
       std::cout << "\tSlide: " << step;
     }
