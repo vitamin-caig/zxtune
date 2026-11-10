@@ -160,9 +160,15 @@ namespace Module::FastTracker
       Patterns.GetChannel().AddCommand(NOISE, val);
     }
 
-    void SetSlide(uint_t step) override
+    void SetRetrig() override
     {
-      Patterns.GetChannel().AddCommand(SLIDE, int_t(step));
+      // 500 command leaves noise pitch untouched; envelope retrigger is reproduced by the per-tick
+      // r13 rewrite, while the hardware-only tone phase reset is not representable in this model
+    }
+
+    void SetSlide(int_t step) override
+    {
+      Patterns.GetChannel().AddCommand(SLIDE, step);
     }
 
     void SetNoteSlide(uint_t step) override
@@ -334,6 +340,7 @@ namespace Module::FastTracker
         dst.OrnamentIterator.Reset();
       }
       Transposition = 0;
+      EnvelopeType = 0;
     }
 
     void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
@@ -346,6 +353,8 @@ namespace Module::FastTracker
         }
         GetNewLineState(state, track);
       }
+      // The original player re-writes r13 each tick, retriggering the envelope generator
+      track.SetEnvelopeType(EnvelopeType);
       SynthesizeChannelsData(track);
     }
 
@@ -403,7 +412,7 @@ namespace Module::FastTracker
         switch (cmd.Type)
         {
         case ENVELOPE:
-          track.SetEnvelopeType(cmd.Param1);
+          EnvelopeType = cmd.Param1;
           dst.Envelope = cmd.Param2;
           dst.EnvelopeEnabled = true;
           break;
@@ -495,6 +504,7 @@ namespace Module::FastTracker
     const ModuleData& Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
     int_t Transposition = 0;
+    uint_t EnvelopeType = 0;
   };
 }  // namespace Module::FastTracker
 
