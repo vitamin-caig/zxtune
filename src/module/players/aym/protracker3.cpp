@@ -98,14 +98,7 @@ namespace Module::ProTracker3
     {
       MutableCell& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
-      if (Command* cmd = channel.FindCommand(Vortex::GLISS_NOTE))
-      {
-        cmd->Param3 = int_t(note);
-      }
-      else
-      {
-        channel.SetNote(note);
-      }
+      channel.SetNote(note);
     }
 
     void SetSample(uint_t sample) override
