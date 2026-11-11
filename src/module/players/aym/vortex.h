@@ -38,7 +38,7 @@ namespace Module::Vortex
     EMPTY,
     // period,delta
     GLISS,
-    // period,delta,target note
+    // period,delta
     GLISS_NOTE,
     // offset
     SAMPLEOFFSET,
