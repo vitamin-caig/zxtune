@@ -99,6 +99,9 @@ namespace Module::Vortex
     bool Enabled = false;
     bool Envelope = false;
     uint_t Note = 0;
+    // A note-gliss keeps the sounding note as the tone base until the target is reached,
+    // so the source note has to be kept separately from the target stored in the cell.
+    uint_t PrevNote = 0;
     uint_t SampleNum;
     uint_t PosInSample = 0;
     uint_t OrnamentNum;
@@ -184,8 +187,26 @@ namespace Module::Vortex
         dst.VibrateCounter = 0;
         dst.Enabled = *enabled;
       }
-      if (const uint_t* note = src.GetNote())
+      const uint_t* note = src.GetNote();
+      if (note)
       {
+        // The cell note is the target of a note-gliss; keep the still-sounding note as the source
+        bool noteGliss = false;
+        for (const auto& cmd : src.GetCommands())
+        {
+          noteGliss = noteGliss || cmd.Type == GLISS_NOTE;
+        }
+        if (noteGliss)
+        {
+          if (LIMITER == dst.SlidingTargetNote)
+          {
+            dst.PrevNote = dst.Note;
+          }
+        }
+        else
+        {
+          dst.PrevNote = *note;
+        }
         dst.Note = *note;
       }
       if (const uint_t* sample = src.GetSample())
@@ -219,8 +240,8 @@ namespace Module::Vortex
           dst.VibrateCounter = 0;
           dst.ToneSlider.Period = dst.ToneSlider.Counter = cmd.Param1;
           dst.ToneSlider.Delta = Math::Absolute(cmd.Param2);
-          dst.SlidingTargetNote = cmd.Param3;
-          dst.SlidingDelta = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
+          dst.SlidingTargetNote = dst.Note;
+          dst.SlidingDelta = track.GetSlidingDifference(dst.PrevNote, dst.SlidingTargetNote);
           if (Version >= 6)
           {
             dst.ToneSlider.Value = prevSlide;
@@ -305,7 +326,7 @@ namespace Module::Vortex
       {
         dst.ToneAccumulator = toneAddon;
       }
-      const int_t halfTones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
+      const int_t halfTones = int_t(dst.PrevNote) + curOrnament.GetLine(dst.PosInOrnament);
       const int_t toneOffset = dst.ToneSlider.Value + toneAddon;
 
       // apply tone
@@ -348,7 +369,8 @@ namespace Module::Vortex
             || (dst.ToneSlider.Delta >= 0 && dst.ToneSlider.Value >= dst.SlidingDelta))
         {
           // slided to target note
-          dst.Note = dst.SlidingTargetNote;
+          dst.PrevNote = dst.Note = dst.SlidingTargetNote;
+          dst.SlidingTargetNote = LIMITER;
           dst.ToneSlider.Value = 0;
           dst.ToneSlider.Counter = 0;
         }
