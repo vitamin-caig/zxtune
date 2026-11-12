@@ -111,14 +111,9 @@ namespace Formats::Chiptune::SoundTrackerPro
       return Delegate.SetEnvelope(type, value);
     }
 
-    void SetNoEnvelope() override
+    void SetGliss(int_t step) override
     {
-      return Delegate.SetNoEnvelope();
-    }
-
-    void SetGliss(uint_t target) override
-    {
-      return Delegate.SetGliss(target);
+      return Delegate.SetGliss(step);
     }
 
     void SetVolume(uint_t vol) override

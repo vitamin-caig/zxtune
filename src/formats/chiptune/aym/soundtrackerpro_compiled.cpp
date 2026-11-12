@@ -234,8 +234,7 @@ namespace Formats::Chiptune
       void SetSample(uint_t /*sample*/) override {}
       void SetOrnament(uint_t /*ornament*/) override {}
       void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
-      void SetNoEnvelope() override {}
-      void SetGliss(uint_t /*target*/) override {}
+      void SetGliss(int_t /*step*/) override {}
       void SetVolume(uint_t /*vol*/) override {}
     };
 
@@ -630,8 +629,6 @@ namespace Formats::Chiptune
           else if (cmd <= 0x7f)  // ornament
           {
             builder.SetOrnament(cmd - 0x70);
-            builder.SetNoEnvelope();
-            builder.SetGliss(0);
           }
           else if (cmd <= 0xbf)  // skip
           {
@@ -647,8 +644,6 @@ namespace Formats::Chiptune
             {
               builder.SetEnvelope(0, 0);
             }
-            builder.SetOrnament(0);
-            builder.SetGliss(0);
           }
           else if (cmd <= 0xdf)  // reset
           {

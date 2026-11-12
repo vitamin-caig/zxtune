@@ -70,8 +70,7 @@ namespace Formats::Chiptune
       virtual void SetSample(uint_t sample) = 0;
       virtual void SetOrnament(uint_t ornament) = 0;
       virtual void SetEnvelope(uint_t type, uint_t value) = 0;
-      virtual void SetNoEnvelope() = 0;
-      virtual void SetGliss(uint_t target) = 0;
+      virtual void SetGliss(int_t step) = 0;
       virtual void SetVolume(uint_t vol) = 0;
     };
 

@@ -27,10 +27,12 @@ namespace Module::SoundTrackerPro
 {
   enum CmdType
   {
-    EMPTY,
-    ENVELOPE,    // 2p
-    NOENVELOPE,  // 0p
-    GLISS,       // 1p
+    // type, tone
+    ENVELOPE,
+    // ornament number
+    ORNAMENT,
+    // glissade
+    GLISS
   };
 
   using Formats::Chiptune::SoundTrackerPro::Sample;
@@ -106,7 +108,11 @@ namespace Module::SoundTrackerPro
 
     void SetOrnament(uint_t ornament) override
     {
-      Patterns.GetChannel().SetOrnament(ornament);
+      auto& chan = Patterns.GetChannel();
+      // Keep the cell field for the generic representation, but also emit an
+      // ordered command so playback can reproduce the native state machine.
+      chan.SetOrnament(ornament);
+      chan.AddCommand(ORNAMENT, ornament);
     }
 
     void SetEnvelope(uint_t type, uint_t value) override
@@ -114,14 +120,9 @@ namespace Module::SoundTrackerPro
       Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
     }
 
-    void SetNoEnvelope() override
+    void SetGliss(int_t step) override
     {
-      Patterns.GetChannel().AddCommand(NOENVELOPE);
-    }
-
-    void SetGliss(uint_t target) override
-    {
-      Patterns.GetChannel().AddCommand(GLISS, target);
+      Patterns.GetChannel().AddCommand(GLISS, step);
     }
 
     void SetVolume(uint_t vol) override
@@ -195,8 +196,6 @@ namespace Module::SoundTrackerPro
       if (const bool* enabled = src.GetEnabled())
       {
         dst.Enabled = *enabled;
-        dst.PosInSample = 0;
-        dst.PosInOrnament = 0;
       }
       if (const uint_t* note = src.GetNote())
       {
@@ -208,12 +207,6 @@ namespace Module::SoundTrackerPro
       if (const uint_t* sample = src.GetSample())
       {
         dst.SampleNum = *sample;
-        dst.PosInSample = 0;
-      }
-      if (const uint_t* ornament = src.GetOrnament())
-      {
-        dst.OrnamentNum = *ornament;
-        dst.PosInOrnament = 0;
       }
       if (const uint_t* volume = src.GetVolume())
       {
@@ -230,9 +223,13 @@ namespace Module::SoundTrackerPro
             track.SetEnvelopeTone(cmd.Param2);
           }
           dst.Envelope = true;
+          dst.Glissade = 0;
+          dst.PosInOrnament = 0;
           break;
-        case NOENVELOPE:
+        case ORNAMENT:
           dst.Envelope = false;
+          dst.Glissade = 0;
+          dst.OrnamentNum = cmd.Param1;
           break;
         case GLISS:
           dst.Glissade = cmd.Param1;
@@ -295,7 +292,10 @@ namespace Module::SoundTrackerPro
         channel.DisableNoise();
       }
 
-      if (++dst.PosInOrnament >= curOrnament.GetSize())
+      // The native player freezes the ornament position while the envelope is
+      // enabled (it sets the ornament length to 1), so it stays wherever the
+      // envelope left it.
+      if (!dst.Envelope && ++dst.PosInOrnament >= curOrnament.GetSize())
       {
         dst.PosInOrnament = curOrnament.GetLoop();
       }
