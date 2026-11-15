@@ -177,7 +177,8 @@ namespace Formats::Chiptune
         : Delegate(delegate)
         , UsedPatterns(0, PATTERNS_COUNT - 1)
         , UsedSamples(0, SAMPLES_COUNT - 1)
-        , UsedOrnaments(0, ORNAMENTS_COUNT - 1)
+        // Ornament parameter is 1-based (0 means no ornament)
+        , UsedOrnaments(0, ORNAMENTS_COUNT)
       {}
 
       MetaBuilder& GetMetaBuilder() override
@@ -390,31 +391,30 @@ namespace Formats::Chiptune
         uint_t lineNum = 0;
         for (; lineNum < PATTERN_SIZE; ++lineNum)
         {
-          const auto& srcLine = src[lineNum];
-          if (IsLastLine(srcLine))
+          patBuilder.StartLine(lineNum);
+          // The engine aborts on the ENDPATTERN cell, but channels before it on the same line are played
+          if (!ParseLine(src[lineNum], patBuilder, target))
           {
-            patBuilder.Finish(lineNum);
+            ++lineNum;
             break;
           }
-          patBuilder.StartLine(lineNum);
-          ParseLine(srcLine, patBuilder, target);
         }
+        patBuilder.Finish(lineNum);
         const std::size_t patStart = offsetof(RawHeader, Patterns) + idx * sizeof(RawPattern);
         const std::size_t patSize = lineNum * sizeof(RawLine);
         AddFixedRange(patStart, patSize);
       }
 
-      static bool IsLastLine(const RawLine& line)
-      {
-        return line[0].IsEnd() || line[1].IsEnd() || line[2].IsEnd() || line[3].IsEnd();
-      }
-
-      static void ParseLine(const RawLine& line, PatternBuilder& patBuilder, Builder& target)
+      static bool ParseLine(const RawLine& line, PatternBuilder& patBuilder, Builder& target)
       {
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
-          target.StartChannel(chanNum);
           const auto& note = line[chanNum];
+          if (note.IsEnd())
+          {
+            return false;
+          }
+          target.StartChannel(chanNum);
           const uint_t halftones = note.GetNote();
           int_t sample = -1;
           if (halftones != NOTE_EMPTY)
@@ -461,6 +461,7 @@ namespace Formats::Chiptune
             target.SetSample(sample);
           }
         }
+        return true;
       }
 
       void AddFixedRange(std::size_t start, std::size_t size) const
