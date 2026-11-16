@@ -201,9 +201,8 @@ namespace Formats::Chiptune
       void SetRest() override {}
       void SetNote(uint_t /*note*/) override {}
       void SetSample(uint_t /*sample*/) override {}
-      void SetVolume(uint_t /*volume*/) override {}
+      void SetVolume(uint_t /*volume*/, int_t /*slideDirection*/) override {}
       void SetVolumeSlidePeriod(uint_t /*period*/) override {}
-      void SetVolumeSlideDirection(int_t /*direction*/) override {}
     };
 
     class StatisticCollectionBuilder : public Builder
@@ -263,19 +262,14 @@ namespace Formats::Chiptune
         return Delegate.SetSample(sample);
       }
 
-      void SetVolume(uint_t volume) override
+      void SetVolume(uint_t volume, int_t slideDirection) override
       {
-        return Delegate.SetVolume(volume);
+        return Delegate.SetVolume(volume, slideDirection);
       }
 
       void SetVolumeSlidePeriod(uint_t period) override
       {
         return Delegate.SetVolumeSlidePeriod(period);
-      }
-
-      void SetVolumeSlideDirection(int_t direction) override
-      {
-        return Delegate.SetVolumeSlideDirection(direction);
       }
 
       const Indices& GetUsedPatterns() const
@@ -433,28 +427,28 @@ namespace Formats::Chiptune
           {
             return false;
           }
-          else if (const uint8_t* newTempo = srcChan.GetNewTempo())
+          else if (srcChan.IsEmpty())
+          {
+            continue;
+          }
+          target.StartChannel(chanNum);
+          if (const uint8_t* newTempo = srcChan.GetNewTempo())
           {
             patBuilder.SetTempo(*newTempo);
           }
-          else if (!srcChan.IsEmpty())
+          else if (srcChan.IsRest())
           {
-            target.StartChannel(chanNum);
-            if (srcChan.IsRest())
-            {
-              target.SetRest();
-            }
-            else if (const uint8_t* newPeriod = srcChan.GetVolumeSlidePeriod())
-            {
-              target.SetVolumeSlidePeriod(*newPeriod);
-            }
-            else
-            {
-              target.SetNote(srcChan.GetNote());
-              target.SetSample(srcChan.GetSample());
-              target.SetVolume(srcChan.GetSampleVolume());
-              target.SetVolumeSlideDirection(srcChan.GetVolumeSlideDirection());
-            }
+            target.SetRest();
+          }
+          else if (const uint8_t* newPeriod = srcChan.GetVolumeSlidePeriod())
+          {
+            target.SetVolumeSlidePeriod(*newPeriod);
+          }
+          else
+          {
+            target.SetNote(srcChan.GetNote());
+            target.SetSample(srcChan.GetSample());
+            target.SetVolume(srcChan.GetSampleVolume(), srcChan.GetVolumeSlideDirection());
           }
         }
         return true;

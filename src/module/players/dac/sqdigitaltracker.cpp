@@ -102,19 +102,16 @@ namespace Module::SQDigitalTracker
       Patterns.GetChannel().SetSample(sample);
     }
 
-    void SetVolume(uint_t volume) override
+    void SetVolume(uint_t volume, int_t slideDirection) override
     {
-      Patterns.GetChannel().SetVolume(volume);
+      auto& chan = Patterns.GetChannel();
+      chan.SetVolume(volume);
+      chan.AddCommand(VOLUME_SLIDE, 0, slideDirection);
     }
 
     void SetVolumeSlidePeriod(uint_t period) override
     {
       Patterns.GetChannel().AddCommand(VOLUME_SLIDE_PERIOD, period);
-    }
-
-    void SetVolumeSlideDirection(int_t direction) override
-    {
-      Patterns.GetChannel().AddCommand(VOLUME_SLIDE, direction);
     }
 
     ModuleData::Ptr CaptureResult()

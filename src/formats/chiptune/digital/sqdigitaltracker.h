@@ -41,9 +41,8 @@ namespace Formats::Chiptune
       virtual void SetRest() = 0;
       virtual void SetNote(uint_t note) = 0;
       virtual void SetSample(uint_t sample) = 0;
-      virtual void SetVolume(uint_t volume) = 0;
+      virtual void SetVolume(uint_t volume, int_t slideDirection) = 0;
       virtual void SetVolumeSlidePeriod(uint_t period) = 0;
-      virtual void SetVolumeSlideDirection(int_t direction) = 0;
     };
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
