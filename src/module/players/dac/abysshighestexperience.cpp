@@ -10,17 +10,20 @@
 
 #include "module/players/dac/abysshighestexperience.h"
 
+#include "core/plugins/parameters.h"
 #include "formats/chiptune/digital/abysshighestexperience.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/platforms.h"
 #include "module/players/properties_meta.h"
 
 #include "binary/container_factories.h"
-#include "core/plugins/parameters.h"
 #include "debug/log.h"
 #include "module/information.h"
+#include "module/track_presentation.h"
 #include "parameters/tracking_helper.h"
 
 #include "contract.h"
+#include "lazy.h"
 #include "make_ptr.h"
 #include "pointers.h"
 
@@ -54,23 +57,30 @@ namespace Module::AHX
 
   const auto FRAME_DURATION = Time::Milliseconds::FromFrequency(50);
 
-  Module::Information MakeTrackInformation(Binary::View data)
+  bool IsHively(Binary::View data)
   {
-    const auto hvl = LoadModule(data);
+    const auto id = data.SubView(0, 3);
+    const auto* const bytes = id.As<uint8_t>();
+    return bytes && id.Size() == 3 && bytes[0] == 'H' && bytes[1] == 'V' && bytes[2] == 'L';
+  }
+
+  Module::Information MakeTrackInformation(hvl_tune& hvl)
+  {
+    hvl_InitSubsong(&hvl, 0);
     uint_t loopTime = 0;
-    while (!hvl->ht_SongEndReached)
+    while (!hvl.ht_SongEndReached)
     {
-      hvl_NextFrame(hvl.get());
-      if (hvl->ht_PosNr == hvl->ht_Restart && 0 == hvl->ht_NoteNr && hvl->ht_Tempo == hvl->ht_StepWaitFrames)
+      hvl_NextFrame(&hvl);
+      if (hvl.ht_PosNr == hvl.ht_Restart && 0 == hvl.ht_NoteNr && hvl.ht_Tempo == hvl.ht_StepWaitFrames)
       {
-        loopTime = hvl->ht_PlayingTime;
+        loopTime = hvl.ht_PlayingTime;
       }
     }
-    const auto toTime = [&hvl](auto time) { return FRAME_DURATION * (time / hvl->ht_SpeedMultiplier); };
+    const auto toTime = [&hvl](auto time) { return FRAME_DURATION * (time / hvl.ht_SpeedMultiplier); };
     Module::TrackLayout track{
-        .ChannelsCount = hvl->ht_Channels, .PositionsCount = hvl->ht_PositionNr, .LoopPosition = hvl->ht_PosJump};
-    return {.Duration = toTime(hvl->ht_PlayingTime),
-            .LoopDuration = toTime(hvl->ht_PlayingTime - loopTime),
+        .ChannelsCount = hvl.ht_Channels, .PositionsCount = hvl.ht_PositionNr, .LoopPosition = hvl.ht_PosJump};
+    return {.Duration = toTime(hvl.ht_PlayingTime),
+            .LoopDuration = toTime(hvl.ht_PlayingTime - loopTime),
             .Track = std::move(track)};
   }
 
@@ -194,17 +204,113 @@ namespace Module::AHX
     Parameters::TrackingHelper<Parameters::Accessor> Params;
   };
 
-  class Holder : public Module::Holder
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'0'>;
+
+    struct AhxChannel
+    {
+      Delimiter Separator;
+      Module::Presentation::NoteAndOctave Note;
+      Layout::Hex<2> Instrument;
+      Layout::Hex<1> Effect;
+      Layout::Hex<2> Param;
+
+      void Fill(const hvl_step& step)
+      {
+        if (step.stp_Note)
+        {
+          Note.Set(step.stp_Note - 1);
+        }
+        Instrument = step.stp_Instrument;
+        Effect = step.stp_FX;
+        Param = step.stp_FXParam;
+      }
+    };
+
+    struct HvlChannel
+    {
+      Delimiter Separator;
+      Module::Presentation::NoteAndOctave Note;
+      char Space = ' ';
+      Layout::Hex<2> Instrument;
+      char Space2 = ' ';
+      Layout::Hex<1> Effect;
+      Layout::Hex<2> Param;
+      char Space3 = ' ';
+      Layout::Hex<1> Effect2;
+      Layout::Hex<2> Param2;
+
+      void Fill(const hvl_step& step)
+      {
+        if (step.stp_Note)
+        {
+          Note.Set(step.stp_Note - 1);
+        }
+        if (step.stp_Instrument)
+        {
+          Instrument = step.stp_Instrument;
+        }
+        else
+        {
+          Instrument.fill(' ');
+        }
+        Effect = step.stp_FX;
+        Param = step.stp_FXParam;
+        Effect2 = step.stp_FXb;
+        Param2 = step.stp_FXbParam;
+      }
+    };
+
+    struct Line
+    {
+      Module::Presentation::Dec<2> Index;
+    };
+
+    template<class Channel>
+    String ForPattern(const hvl_tune& tune, uint_t index)
+    {
+      if (index >= tune.ht_PositionNr)
+      {
+        return {};
+      }
+      const auto& position = tune.ht_Positions[index];
+      const auto lines = tune.ht_TrackLength;
+      const auto channels = tune.ht_Channels;
+      String result;
+      result.reserve(static_cast<std::size_t>(lines) * (1 + sizeof(Line) + std::size_t(channels) * sizeof(Channel)));
+      for (uint_t row = 0; row != lines; ++row)
+      {
+        auto& dst = Module::Presentation::AppendLine<Line>(result);
+        dst.Index = row;
+        for (uint_t channel = 0; channel != channels; ++channel)
+        {
+          auto& cell = Module::Presentation::AppendTo<Channel>(result);
+          cell.Fill(tune.ht_Tracks[position.pos_Track[channel]][row]);
+        }
+      }
+      return result;
+    }
+  }  // namespace Presentation
+
+  class Holder
+    : public Module::Holder
+    , public TrackPresentation
   {
   public:
-    Holder(Binary::Data::Ptr tune, Parameters::Accessor::Ptr props)
+    using Ptr = Module::Holder::Ptr;
+
+    explicit Holder(Binary::Data::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
+      , Hively(IsHively(*Tune))
+      , PatternData([this] { return LoadModule(*Tune); })
       , Properties(std::move(props))
     {}
 
     Module::Information GetModuleInformation() const override
     {
-      return MakeTrackInformation(*Tune);
+      return MakeTrackInformation(*PatternData);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -217,8 +323,17 @@ namespace Module::AHX
       return MakePtr<Renderer>(MakePtr<HVL>(*Tune, samplerate), std::move(params));
     }
 
+    String GetPattern(uint_t index) const override
+    {
+      const auto& tune = *PatternData;
+      return Hively ? Presentation::ForPattern<Presentation::HvlChannel>(tune, index)
+                    : Presentation::ForPattern<Presentation::AhxChannel>(tune, index);
+    }
+
   private:
     const Binary::Data::Ptr Tune;
+    const bool Hively;
+    const Lazy<HvlPtr> PatternData;
     const Parameters::Accessor::Ptr Properties;
   };
 

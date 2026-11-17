@@ -36,7 +36,7 @@ public:
     return Get().get();
   }
 
-  auto operator*() const
+  decltype(auto) operator*() const
   {
     return *Get();
   }
