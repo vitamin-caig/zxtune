@@ -10,6 +10,7 @@
 
 #include "module/players/external/openmpt.h"
 
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_helper.h"
 
 #include "core/parameters.h"
@@ -18,6 +19,7 @@
 #include "math/numeric.h"
 #include "module/holder.h"
 #include "module/renderer.h"
+#include "module/track_presentation.h"
 #include "parameters/identifiers_set.h"
 #include "parameters/tracking_helper.h"
 #include "strings/format.h"
@@ -272,9 +274,32 @@ namespace Module::MPT
     uint64_t MuteMask = 0;
   };
 
-  class Holder : public Module::Holder
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using Layout = Module::Presentation::Layout<'.'>;
+
+    constexpr std::size_t PATTERN_CELL_WIDTH = 13;  // "NNN IIvVV EFF"
+
+    struct Channel
+    {
+      Delimiter Separator;
+      Layout::Text<PATTERN_CELL_WIDTH> Value;
+    };
+
+    struct Line
+    {
+      Module::Presentation::Layout<'0'>::Hex<2> Index;
+    };
+  }  // namespace Presentation
+
+  class Holder
+    : public Module::Holder
+    , public TrackPresentation
   {
   public:
+    using Ptr = Module::Holder::Ptr;
+
     Holder(ModulePtr track, Parameters::Accessor::Ptr props)
       : Track(std::move(track))
       , Properties(std::move(props))
@@ -294,6 +319,32 @@ namespace Module::MPT
     {
       Require(!!Track);  // TODO
       return MakePtr<Renderer>(Track, samplerate, std::move(params));
+    }
+
+    String GetPattern(uint_t index) const override
+    {
+      const auto pattern = static_cast<std::int32_t>(index);
+      const auto lines = Track->get_pattern_num_rows(pattern);
+      if (lines <= 0)
+      {
+        return {};
+      }
+      const auto channels = Track->get_num_channels();
+      String result;
+      result.reserve(static_cast<std::size_t>(lines)
+                     * (1 + sizeof(Presentation::Line) + std::size_t(channels) * sizeof(Presentation::Channel)));
+      for (std::int32_t line = 0; line != lines; ++line)
+      {
+        auto& dst = Module::Presentation::AppendLine<Presentation::Line>(result);
+        dst.Index = static_cast<uint_t>(line);
+        for (std::int32_t channel = 0; channel != channels; ++channel)
+        {
+          auto& cell = Module::Presentation::AppendTo<Presentation::Channel>(result);
+          cell.Value =
+              Track->format_pattern_row_channel(pattern, line, channel, Presentation::PATTERN_CELL_WIDTH, true);
+        }
+      }
+      return result;
     }
 
   private:
