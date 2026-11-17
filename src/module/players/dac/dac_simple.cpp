@@ -33,7 +33,13 @@ namespace Module::DAC
     }
   }
 
-  class SimpleDataBuilderImpl : public TrackDataBuilder<SimpleDataBuilder, SimpleModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::Digital::ChannelBuilder>
+  {};
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::Digital::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::Digital::ChannelBuilder, DataChannelBuilder>;
+
+  class SimpleDataBuilderImpl : public TrackDataBuilder<SimpleDataBuilder, SimpleModuleData, PatternsBuilder>
   {
   public:
     SimpleDataBuilderImpl(DAC::PropertiesHelper& props, uint_t channels)

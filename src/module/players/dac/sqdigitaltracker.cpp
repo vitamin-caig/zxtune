@@ -46,7 +46,25 @@ namespace Module::SQDigitalTracker
 
   using ModuleData = DAC::SimpleModuleData;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::SQDigitalTracker::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::SQDigitalTracker::ChannelBuilder>
+  {
+  public:
+    void SetVolume(uint_t volume, int_t slideDirection) override
+    {
+      auto& chan = GetCell();
+      chan.SetVolume(volume);
+      chan.GetCommands().AddOrUpdate(VOLUME_SLIDE, 0, slideDirection);
+    }
+    void SetVolumeSlidePeriod(uint_t period) override
+    {
+      GetCommands().AddOrUpdate(VOLUME_SLIDE_PERIOD, period);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::SQDigitalTracker::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::SQDigitalTracker::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::SQDigitalTracker::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)
@@ -69,18 +87,6 @@ namespace Module::SQDigitalTracker
     void SetPositions(Formats::Chiptune::SQDigitalTracker::Positions positions) override
     {
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetVolume(uint_t volume, int_t slideDirection) override
-    {
-      auto& chan = Patterns.GetChannel();
-      chan.SetVolume(volume);
-      chan.GetCommands().AddOrUpdate(VOLUME_SLIDE, 0, slideDirection);
-    }
-
-    void SetVolumeSlidePeriod(uint_t period) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(VOLUME_SLIDE_PERIOD, period);
     }
 
   private:

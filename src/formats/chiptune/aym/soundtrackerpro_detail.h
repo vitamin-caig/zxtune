@@ -27,7 +27,9 @@ namespace Formats::Chiptune::SoundTrackerPro
   const uint_t MAX_SAMPLES_COUNT = 15;
   const uint_t MAX_ORNAMENTS_COUNT = 16;
 
-  class StatisticCollectingBuilder : public Builder
+  class StatisticCollectingBuilder
+    : public Builder
+    , public PatternBuilderProxy<SoundTrackerPro::ChannelBuilder>
   {
   public:
     explicit StatisticCollectingBuilder(Builder& delegate)
@@ -72,53 +74,48 @@ namespace Formats::Chiptune::SoundTrackerPro
       Require(!UsedPatterns.Empty());
       return Delegate.SetPositions(std::move(positions));
     }
-
-    PatternBuilder& StartPattern(uint_t index) override
+    SoundTrackerPro::PatternBuilder& StartPattern(uint_t index) override
     {
       assert(UsedPatterns.Contain(index));
-      return Delegate.StartPattern(index);
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      return Delegate.StartChannel(index);
+      BindPattern(Delegate.StartPattern(index));
+      return *this;
     }
 
     void SetRest() override
     {
-      return Delegate.SetRest();
+      return GetChannel().SetRest();
     }
 
     void SetNote(uint_t note) override
     {
-      return Delegate.SetNote(note);
+      return GetChannel().SetNote(note);
     }
 
     void SetSample(uint_t sample) override
     {
       UsedSamples.Insert(sample);
-      return Delegate.SetSample(sample);
+      return GetChannel().SetSample(sample);
     }
 
     void SetOrnament(uint_t ornament) override
     {
       UsedOrnaments.Insert(ornament);
-      return Delegate.SetOrnament(ornament);
+      return GetChannel().SetOrnament(ornament);
     }
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
-      return Delegate.SetEnvelope(type, value);
+      return GetChannel().SetEnvelope(type, value);
     }
 
     void SetGliss(int_t step) override
     {
-      return Delegate.SetGliss(step);
+      return GetChannel().SetGliss(step);
     }
 
     void SetVolume(uint_t vol) override
     {
-      return Delegate.SetVolume(vol);
+      return GetChannel().SetVolume(vol);
     }
 
     const Indices& GetUsedPatterns() const
@@ -143,4 +140,5 @@ namespace Formats::Chiptune::SoundTrackerPro
     Indices UsedSamples;
     Indices UsedOrnaments;
   };
+
 }  // namespace Formats::Chiptune::SoundTrackerPro

@@ -30,7 +30,54 @@ namespace Module::ProTracker3
 
   const auto TURBOSOUND_COMMENT = "TurboSound module"sv;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProTracker3::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::ProTracker3::ChannelBuilder>
+  {
+  public:
+    void SetGlissade(uint_t period, int_t val) override
+    {
+      GetCommands().AddOrReplace(Vortex::GLISS, int_t(period), val);
+    }
+    void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/) override
+    {
+      // ignore limit
+      GetCommands().AddOrReplace(Vortex::GLISS_NOTE, int_t(period), val);
+    }
+    void SetSampleOffset(uint_t offset) override
+    {
+      GetCommands().AddOrReplace(Vortex::SAMPLEOFFSET, offset);
+    }
+    void SetOrnamentOffset(uint_t offset) override
+    {
+      GetCommands().AddOrReplace(Vortex::ORNAMENTOFFSET, offset);
+    }
+    void SetVibrate(uint_t ontime, uint_t offtime) override
+    {
+      GetCommands().AddOrReplace(Vortex::VIBRATE, ontime, offtime);
+    }
+    void SetEnvelopeSlide(uint_t period, int_t val) override
+    {
+      GetCommands().AddOrReplace(Vortex::SLIDEENV, period, val);
+    }
+    void SetEnvelope(uint_t type, uint_t value) override
+    {
+      auto& commands = GetCommands();
+      commands.Remove(Vortex::ENVELOPE_OFF);
+      commands.AddOrReplace(Vortex::ENVELOPE, type, value);
+    }
+    void SetNoEnvelope() override
+    {
+      GetCommands().AddOrReplace(Vortex::ENVELOPE_OFF);
+    }
+    void SetNoiseBase(uint_t val) override
+    {
+      GetCommands().AddOrReplace(Vortex::NOISEBASE, val);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::ProTracker3::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::ProTracker3::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProTracker3::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
@@ -72,54 +119,6 @@ namespace Module::ProTracker3
     void SetPositions(Formats::Chiptune::ProTracker3::Positions positions) override
     {
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetGlissade(uint_t period, int_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::GLISS, int_t(period), val);
-    }
-
-    void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/) override
-    {
-      // ignore limit
-      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::GLISS_NOTE, int_t(period), val);
-    }
-
-    void SetSampleOffset(uint_t offset) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::SAMPLEOFFSET, offset);
-    }
-
-    void SetOrnamentOffset(uint_t offset) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::ORNAMENTOFFSET, offset);
-    }
-
-    void SetVibrate(uint_t ontime, uint_t offtime) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::VIBRATE, ontime, offtime);
-    }
-
-    void SetEnvelopeSlide(uint_t period, int_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::SLIDEENV, period, val);
-    }
-
-    void SetEnvelope(uint_t type, uint_t value) override
-    {
-      auto& commands = Patterns.GetChannel().GetCommands();
-      commands.Remove(Vortex::ENVELOPE_OFF);
-      commands.AddOrReplace(Vortex::ENVELOPE, type, value);
-    }
-
-    void SetNoEnvelope() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::ENVELOPE_OFF);
-    }
-
-    void SetNoiseBase(uint_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::NOISEBASE, val);
     }
 
   private:

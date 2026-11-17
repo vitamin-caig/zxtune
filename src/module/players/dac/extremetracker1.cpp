@@ -48,7 +48,19 @@ namespace Module::ExtremeTracker1
 
   using ModuleData = DAC::SimpleModuleData;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ExtremeTracker1::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::ExtremeTracker1::ChannelBuilder>
+  {
+  public:
+    void SetGliss(int_t gliss) override
+    {
+      GetCommands().AddOrUpdate(GLISS, 0, gliss);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::ExtremeTracker1::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::ExtremeTracker1::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ExtremeTracker1::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)
@@ -74,11 +86,6 @@ namespace Module::ExtremeTracker1
     void SetPositions(Formats::Chiptune::ExtremeTracker1::Positions positions) override
     {
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetGliss(int_t gliss) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(GLISS, 0, gliss);
     }
 
   private:

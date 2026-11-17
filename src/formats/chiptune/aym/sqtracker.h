@@ -11,7 +11,7 @@
 #pragma once
 
 #include "formats/chiptune/common/builder_meta.h"
-#include "formats/chiptune/common/builder_track.h"
+#include "formats/chiptune/common/builder_pattern.h"
 #include "formats/chiptune/common/objects.h"
 
 #include "formats/chiptune/decoder.h"
@@ -57,12 +57,24 @@ namespace Formats::Chiptune
 
     using Positions = LinesObject<PositionEntry>;
 
-    class Builder : public TrackBuilder
+    class ChannelBuilder : public Formats::Chiptune::ChannelBuilder
     {
     public:
-      using TrackBuilder::SetSample;
-      using TrackBuilder::SetOrnament;
+      virtual void SetTempoAddon(uint_t add) = 0;
+      virtual void SetEnvelope(uint_t type, uint_t value) = 0;
+      virtual void SetGlissade(int_t step) = 0;
+      virtual void SetAttenuation(uint_t att) = 0;
+      virtual void SetAttenuationAddon(int_t add) = 0;
+      virtual void SetGlobalAttenuation(uint_t att) = 0;
+      virtual void SetGlobalAttenuationAddon(int_t add) = 0;
+    };
 
+    using LineBuilder = Tracking<ChannelBuilder>::LineBuilder;
+    using PatternBuilder = Tracking<ChannelBuilder>::PatternBuilder;
+
+    class Builder
+    {
+    public:
       virtual ~Builder() = default;
 
       virtual MetaBuilder& GetMetaBuilder() = 0;
@@ -71,14 +83,7 @@ namespace Formats::Chiptune
       virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
       // patterns
       virtual void SetPositions(Positions positions) = 0;
-
-      virtual void SetTempoAddon(uint_t add) = 0;
-      virtual void SetEnvelope(uint_t type, uint_t value) = 0;
-      virtual void SetGlissade(int_t step) = 0;
-      virtual void SetAttenuation(uint_t att) = 0;
-      virtual void SetAttenuationAddon(int_t add) = 0;
-      virtual void SetGlobalAttenuation(uint_t att) = 0;
-      virtual void SetGlobalAttenuationAddon(int_t add) = 0;
+      virtual PatternBuilder& StartPattern(uint_t index) = 0;
     };
 
     Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);

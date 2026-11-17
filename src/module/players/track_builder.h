@@ -267,87 +267,153 @@ namespace Module
 
   static_assert(sizeof(MutablePatternsSet) == sizeof(PatternsSet), "Invalid patterns set layout");
 
-  class PatternsBuilder : public Formats::Chiptune::PatternBuilder
+  class TrackChannelState
   {
   public:
-    PatternsBuilder() = default;
-    PatternsBuilder(const PatternsBuilder&) = delete;
-    PatternsBuilder& operator=(const PatternsBuilder&) = delete;
+    void Bind(MutableLine& line, MutableCell& cell);
+    void SetRest();
+    void SetNote(uint_t note);
+    void SetSample(uint_t sample);
+    void SetOrnament(uint_t ornament);
+    void SetVolume(uint_t volume);
+    void SetTempo(uint_t tempo);
 
-    PatternsBuilder(PatternsBuilder&& rh) noexcept = default;
+  protected:
+    MutableLine& GetLine() const;
+    MutableCell& GetCell() const;
+    MutableCommandsStorage& GetCommands() const;
 
-    void Finish(uint_t size) override
+  private:
+    MutableLine* Line = nullptr;
+    MutableCell* Cell = nullptr;
+  };
+
+  template<class ChannelInterface>
+  class TrackChannelBuilder
+    : public ChannelInterface
+    , public TrackChannelState
+  {
+  public:
+    void SetRest() override
     {
-      FinishPattern(size);
+      TrackChannelState::SetRest();
     }
 
-    void StartLine(uint_t index) override
+    void SetNote(uint_t note) override
     {
-      SetLine(index);
+      TrackChannelState::SetNote(note);
+    }
+
+    void SetSample(uint_t sample) override
+    {
+      TrackChannelState::SetSample(sample);
+    }
+
+    void SetOrnament(uint_t ornament) override
+    {
+      TrackChannelState::SetOrnament(ornament);
+    }
+
+    void SetVolume(uint_t volume) override
+    {
+      TrackChannelState::SetVolume(volume);
     }
 
     void SetTempo(uint_t tempo) override
     {
-      GetLine().SetTempo(tempo);
+      TrackChannelState::SetTempo(tempo);
+    }
+  };
+
+  class TrackLineState
+  {
+  public:
+    void Bind(MutableLine& line, MutableCommandsPool& pool);
+    void SetTempo(uint_t tempo);
+    MutableLine& GetLine() const;
+
+  protected:
+    MutableCell& AddChannel(uint_t index);
+
+  private:
+    MutableLine* Line = nullptr;
+    MutableCommandsPool* Pool = nullptr;
+  };
+
+  template<class ChannelInterface, class ChannelType>
+  class TrackLineBuilder
+    : public Formats::Chiptune::Tracking<ChannelInterface>::LineBuilder
+    , public TrackLineState
+  {
+  public:
+    ChannelType& StartChannel(uint_t index) override
+    {
+      auto& cell = AddChannel(index);
+      Channel.Bind(GetLine(), cell);
+      return Channel;
     }
 
-    void SetPattern(uint_t idx)
+    void SetTempo(uint_t tempo) override
     {
-      CurPattern = &Patterns.AddPattern(idx);
-      CurLine = nullptr;
-      CurChannel = nullptr;
+      TrackLineState::SetTempo(tempo);
     }
 
-    void SetLine(uint_t idx)
+  private:
+    ChannelType Channel;
+  };
+
+  class TrackPatternsState
+  {
+  public:
+    ~TrackPatternsState();
+
+    void Finish(uint_t size);
+    void SetPattern(uint_t idx);
+    MutableCommandsPool& GetCommandsPool();
+    PatternsSet CaptureResult();
+
+  protected:
+    MutableLine& AddLine(uint_t index);
+
+  private:
+    MutablePatternsSet Patterns;
+    MutablePattern* CurPattern = nullptr;
+  };
+
+  template<class ChannelInterface, class ChannelType>
+  class TrackPatternsBuilder
+    : public Formats::Chiptune::Tracking<ChannelInterface>::PatternBuilder
+    , public TrackPatternsState
+  {
+    using LineType = TrackLineBuilder<ChannelInterface, ChannelType>;
+
+  public:
+    void Finish(uint_t size) override
     {
-      CurLine = &CurPattern->AddLine(idx);
-      CurChannel = nullptr;
+      TrackPatternsState::Finish(size);
     }
 
-    void SetChannel(uint_t idx)
+    LineType& StartLine(uint_t index) override
     {
-      CurChannel = &CurLine->AddChannel(idx);
-      CurChannel->SetCommandsPool(&Patterns.GetCommandsPool());
-    }
-
-    void FinishPattern(uint_t size)
-    {
-      CurPattern->SetSize(size);
-      CurLine = nullptr;
-      CurPattern = nullptr;
+      auto& line = AddLine(index);
+      Line.Bind(line, GetCommandsPool());
+      return Line;
     }
 
     MutableLine& GetLine() const
     {
-      return *CurLine;
-    }
-
-    MutableCell& GetChannel() const
-    {
-      return *CurChannel;
-    }
-
-    MutableCommandsPool& GetCommandsPool()
-    {
-      return Patterns.GetCommandsPool();
-    }
-
-    PatternsSet CaptureResult()
-    {
-      return std::move(Patterns);
+      return Line.GetLine();
     }
 
   private:
-    MutablePatternsSet Patterns;
-
-    MutablePattern* CurPattern;
-    MutableLine* CurLine = nullptr;
-    MutableCell* CurChannel = nullptr;
+    LineType Line;
   };
 
-  template<class FormatBuilder, class ModelDataType, class PatternsBuilderType = PatternsBuilder>
+  template<class FormatBuilder, class ModelDataType, class PatternsBuilderType>
   class TrackDataBuilder : public FormatBuilder
   {
+    using PatternBuilderType = std::remove_reference_t<decltype(std::declval<FormatBuilder&>().StartPattern(0))>;
+
   public:
     explicit TrackDataBuilder(PropertiesHelper& props)
       : TrackDataBuilder(props, MakeRWPtr<ModelDataType>())
@@ -363,42 +429,10 @@ namespace Module
       return Meta;
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
+    PatternBuilderType& StartPattern(uint_t index) override
     {
       Patterns.SetPattern(index);
       return Patterns;
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      Patterns.SetChannel(index);
-    }
-
-    void SetRest() override
-    {
-      Patterns.GetChannel().SetEnabled(false);
-    }
-
-    void SetNote(uint_t note) override
-    {
-      auto& channel = Patterns.GetChannel();
-      channel.SetEnabled(true);
-      channel.SetNote(note);
-    }
-
-    void SetSample(uint_t sample) override
-    {
-      Patterns.GetChannel().SetSample(sample);
-    }
-
-    void SetOrnament(uint_t ornament) override
-    {
-      Patterns.GetChannel().SetOrnament(ornament);
-    }
-
-    void SetVolume(uint_t volume) override
-    {
-      Patterns.GetChannel().SetVolume(volume);
     }
 
     typename ModelDataType::Ptr CaptureResult()

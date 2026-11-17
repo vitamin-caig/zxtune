@@ -16,7 +16,9 @@
 
 namespace Formats::Chiptune::Digital
 {
-  class StatisticCollectionBuilder : public Builder
+  class StatisticCollectionBuilder
+    : public Builder
+    , public PatternBuilderProxy<Digital::ChannelBuilder>
   {
   public:
     StatisticCollectionBuilder(Builder& delegate, uint_t maxPatternsCount, uint_t maxSamplesCount)
@@ -51,41 +53,36 @@ namespace Formats::Chiptune::Digital
       Require(!UsedPatterns.Empty());
       return Delegate.SetPositions(std::move(positions));
     }
-
-    PatternBuilder& StartPattern(uint_t index) override
+    Digital::PatternBuilder& StartPattern(uint_t index) override
     {
-      return Delegate.StartPattern(index);
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      return Delegate.StartChannel(index);
+      BindPattern(Delegate.StartPattern(index));
+      return *this;
     }
 
     void SetRest() override
     {
-      return Delegate.SetRest();
+      return GetChannel().SetRest();
     }
 
     void SetNote(uint_t note) override
     {
-      return Delegate.SetNote(note);
+      return GetChannel().SetNote(note);
     }
 
     void SetSample(uint_t sample) override
     {
       UsedSamples.Insert(sample);
-      return Delegate.SetSample(sample);
+      return GetChannel().SetSample(sample);
     }
 
     void SetOrnament(uint_t ornament) override
     {
-      return Delegate.SetOrnament(ornament);
+      return GetChannel().SetOrnament(ornament);
     }
 
     void SetVolume(uint_t volume) override
     {
-      return Delegate.SetVolume(volume);
+      return GetChannel().SetVolume(volume);
     }
 
     const Indices& GetUsedPatterns() const
@@ -104,4 +101,5 @@ namespace Formats::Chiptune::Digital
     Indices UsedPatterns;
     Indices UsedSamples;
   };
+
 }  // namespace Formats::Chiptune::Digital

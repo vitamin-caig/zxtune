@@ -36,6 +36,10 @@ namespace Formats::Chiptune
 
     using namespace SoundTracker;
 
+    using PatternBuilder = SoundTracker::PatternBuilder;
+    using LineBuilder = SoundTracker::LineBuilder;
+    using ChannelBuilder = SoundTracker::ChannelBuilder;
+
     const std::size_t MIN_SIZE = 0x180;
     const std::size_t MAX_SIZE = 0x1800;
 
@@ -371,8 +375,8 @@ namespace Formats::Chiptune
             patBuilder.Finish(std::max<uint_t>(lineIdx, MIN_PATTERN_SIZE));
             break;
           }
-          patBuilder.StartLine(lineIdx);
-          ParseLine(state, builder);
+          auto& line = patBuilder.StartLine(lineIdx);
+          ParseLine(state, line);
         }
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
@@ -407,7 +411,7 @@ namespace Formats::Chiptune
         return true;
       }
 
-      void ParseLine(ParserState& src, Builder& builder) const
+      void ParseLine(ParserState& src, LineBuilder& line) const
       {
         for (uint_t chan = 0; chan < 3; ++chan)
         {
@@ -417,13 +421,13 @@ namespace Formats::Chiptune
             --state.Counter;
             continue;
           }
-          builder.StartChannel(chan);
-          ParseChannel(state, builder);
+          auto& channel = line.StartChannel(chan);
+          ParseChannel(state, channel);
           state.Counter = state.Period;
         }
       }
 
-      void ParseChannel(ParserState::ChannelState& state, Builder& builder) const
+      void ParseChannel(ParserState::ChannelState& state, ChannelBuilder& builder) const
       {
         while (state.Offset < Data.Size())
         {

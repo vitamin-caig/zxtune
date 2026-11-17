@@ -37,6 +37,10 @@ namespace Formats::Chiptune
 
     using namespace SoundTrackerPro;
 
+    using PatternBuilder = SoundTrackerPro::PatternBuilder;
+    using LineBuilder = SoundTrackerPro::LineBuilder;
+    using ChannelBuilder = SoundTrackerPro::ChannelBuilder;
+
     // size and offsets are taken from ~3400 modules analyzing
     const std::size_t MIN_SIZE = 200;
     const std::size_t MAX_SIZE = 0x2800;
@@ -213,6 +217,13 @@ namespace Formats::Chiptune
     static_assert(sizeof(RawSample) * alignof(RawSample) == 2, "Invalid layout");
     static_assert(sizeof(RawSamples) * alignof(RawSamples) == 30, "Invalid layout");
 
+    class StubChannelBuilder : public StubChannelBuilderImpl<SoundTrackerPro::ChannelBuilder>
+    {
+    public:
+      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
+      void SetGliss(int_t /*step*/) override {}
+    };
+
     class StubBuilder : public Builder
     {
     public:
@@ -226,16 +237,8 @@ namespace Formats::Chiptune
       void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
-        return GetStubPatternBuilder();
+        return GetStubPatternBuilder<StubChannelBuilder>();
       }
-      void StartChannel(uint_t /*index*/) override {}
-      void SetRest() override {}
-      void SetNote(uint_t /*note*/) override {}
-      void SetSample(uint_t /*sample*/) override {}
-      void SetOrnament(uint_t /*ornament*/) override {}
-      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
-      void SetGliss(int_t /*step*/) override {}
-      void SetVolume(uint_t /*vol*/) override {}
     };
 
     uint_t GetUnfixDelta(const RawHeader& hdr, const RawId& id, const RawPattern& firstPattern)
@@ -556,8 +559,8 @@ namespace Formats::Chiptune
             patBuilder.Finish(std::max<uint_t>(lineIdx, MIN_PATTERN_SIZE));
             break;
           }
-          patBuilder.StartLine(lineIdx);
-          ParseLine(state, builder);
+          auto& line = patBuilder.StartLine(lineIdx);
+          ParseLine(state, line);
         }
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
@@ -592,7 +595,7 @@ namespace Formats::Chiptune
         return true;
       }
 
-      void ParseLine(ParserState& src, Builder& builder) const
+      void ParseLine(ParserState& src, LineBuilder& line) const
       {
         for (uint_t chan = 0; chan < 3; ++chan)
         {
@@ -602,13 +605,13 @@ namespace Formats::Chiptune
             --state.Counter;
             continue;
           }
-          builder.StartChannel(chan);
-          ParseChannel(state, builder);
+          auto& channel = line.StartChannel(chan);
+          ParseChannel(state, channel);
           state.Counter = state.Period;
         }
       }
 
-      void ParseChannel(ParserState::ChannelState& state, Builder& builder) const
+      void ParseChannel(ParserState::ChannelState& state, ChannelBuilder& builder) const
       {
         while (state.Offset < Data.Size())
         {

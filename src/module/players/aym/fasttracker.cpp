@@ -52,7 +52,44 @@ namespace Module::FastTracker
   using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::FastTracker::PositionEntry>;
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::FastTracker::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::FastTracker::ChannelBuilder>
+  {
+  public:
+    void SetEnvelope(uint_t type, uint_t tone) override
+    {
+      GetCommands().AddOrReplace(ENVELOPE, type, tone);
+    }
+
+    void SetNoEnvelope() override
+    {
+      GetCommands().AddOrReplace(ENVELOPE_OFF);
+    }
+
+    void SetNoise(uint_t val) override
+    {
+      GetCommands().AddOrUpdate(NOISE, val);
+    }
+
+    void SetRetrig() override
+    {
+      GetCommands().AddOrReplace(RETRIG);
+    }
+
+    void SetSlide(int_t step) override
+    {
+      GetCommands().AddOrReplace(SLIDE, 0, step);
+    }
+
+    void SetNoteSlide(uint_t step) override
+    {
+      GetCommands().Add(SLIDE_NOTE, step);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::FastTracker::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::FastTracker::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::FastTracker::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
@@ -94,36 +131,6 @@ namespace Module::FastTracker
     void SetPositions(Formats::Chiptune::FastTracker::Positions positions) override
     {
       Data->Order = MakePtr<OrderListWithTransposition>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetEnvelope(uint_t type, uint_t tone) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, tone);
-    }
-
-    void SetNoEnvelope() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
-    }
-
-    void SetNoise(uint_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(NOISE, val);
-    }
-
-    void SetRetrig() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(RETRIG);
-    }
-
-    void SetSlide(int_t step) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(SLIDE, 0, step);
-    }
-
-    void SetNoteSlide(uint_t step) override
-    {
-      Patterns.GetChannel().GetCommands().Add(SLIDE_NOTE, step);
     }
 
   private:

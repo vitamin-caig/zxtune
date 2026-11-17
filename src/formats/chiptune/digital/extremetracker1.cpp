@@ -201,6 +201,12 @@ namespace Formats::Chiptune
 
     const std::size_t MODULE_SIZE = 0x1b800;
 
+    class StubChannelBuilder : public StubChannelBuilderImpl<ExtremeTracker1::ChannelBuilder>
+    {
+    public:
+      void SetGliss(int_t /*gliss*/) override {}
+    };
+
     class StubBuilder : public Builder
     {
     public:
@@ -216,19 +222,13 @@ namespace Formats::Chiptune
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
-        return GetStubPatternBuilder();
+        return GetStubPatternBuilder<StubChannelBuilder>();
       }
-
-      void StartChannel(uint_t /*index*/) override {}
-      void SetRest() override {}
-      void SetNote(uint_t /*note*/) override {}
-      void SetSample(uint_t /*sample*/) override {}
-      void SetOrnament(uint_t /*ornament*/) override {}
-      void SetVolume(uint_t /*volume*/) override {}
-      void SetGliss(int_t /*gliss*/) override {}
     };
 
-    class StatisticCollectionBuilder : public Builder
+    class StatisticCollectionBuilder
+      : public Builder
+      , public PatternBuilderProxy<ExtremeTracker1::ChannelBuilder>
     {
     public:
       explicit StatisticCollectionBuilder(Builder& delegate)
@@ -264,45 +264,41 @@ namespace Formats::Chiptune
         return Delegate.SetPositions(std::move(positions));
       }
 
-      PatternBuilder& StartPattern(uint_t index) override
+      ExtremeTracker1::PatternBuilder& StartPattern(uint_t index) override
       {
-        return Delegate.StartPattern(index);
-      }
-
-      void StartChannel(uint_t index) override
-      {
-        return Delegate.StartChannel(index);
+        BindPattern(Delegate.StartPattern(index));
+        return *this;
       }
 
       void SetRest() override
       {
-        return Delegate.SetRest();
+        return GetChannel().SetRest();
       }
 
       void SetNote(uint_t note) override
       {
-        return Delegate.SetNote(note);
+        return GetChannel().SetNote(note);
       }
 
       void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
-        return Delegate.SetSample(sample);
+        return GetChannel().SetSample(sample);
       }
 
       void SetOrnament(uint_t ornament) override
       {
-        return Delegate.SetOrnament(ornament);
+        return GetChannel().SetOrnament(ornament);
       }
 
       void SetVolume(uint_t volume) override
       {
-        return Delegate.SetVolume(volume);
+        return GetChannel().SetVolume(volume);
       }
 
       void SetGliss(int_t gliss) override
       {
-        return Delegate.SetGliss(gliss);
+        return GetChannel().SetGliss(gliss);
       }
 
       const Indices& GetUsedPatterns() const
@@ -522,15 +518,15 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          patBuilder.StartLine(lineNum);
-          if (!ParseLine(srcLine, patBuilder, target))
+          auto& line = patBuilder.StartLine(lineNum);
+          if (!ParseLine(srcLine, line))
           {
             break;
           }
         }
       }
 
-      bool ParseLine(const Pattern::Line& srcLine, PatternBuilder& patBuilder, Builder& target) const
+      bool ParseLine(const Pattern::Line& srcLine, LineBuilder& line) const
       {
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
@@ -539,28 +535,28 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          target.StartChannel(chanNum);
+          auto& channel = line.StartChannel(chanNum);
           if (const uint_t note = srcChan.GetNote())
           {
             Require(note <= 48);
-            target.SetNote(note - 1);
-            target.SetSample(srcChan.GetSample());
+            channel.SetNote(note - 1);
+            channel.SetSample(srcChan.GetSample());
           }
           switch (Version.DecodeCommand(srcChan.GetCmd()))
           {
           case NONE:
             break;
           case TEMPO:
-            patBuilder.SetTempo(srcChan.GetTempo());
+            channel.SetTempo(srcChan.GetTempo());
             break;
           case VOLUME:
-            target.SetVolume(srcChan.GetVolume());
+            channel.SetVolume(srcChan.GetVolume());
             break;
           case GLISS:
-            target.SetGliss(srcChan.GetGliss());
+            channel.SetGliss(srcChan.GetGliss());
             break;
           case REST:
-            target.SetRest();
+            channel.SetRest();
             break;
           default:
             Require(false);

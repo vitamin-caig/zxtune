@@ -807,7 +807,7 @@ namespace Formats::Chiptune
         Val = NOTES[halftone] + char('0' + octave);
       }
 
-      void Parse(Builder& builder) const
+      void Parse(ChannelBuilder& builder) const
       {
         if (Val == REST_NOTE)
         {
@@ -859,7 +859,7 @@ namespace Formats::Chiptune
         Volume = VolumeLevel(str[3]);
       }
 
-      void Parse(uint_t envBase, Builder& builder) const
+      void Parse(uint_t envBase, ChannelBuilder& builder) const
       {
         if (const uint_t sample = Sample.AsInt())
         {
@@ -932,7 +932,7 @@ namespace Formats::Chiptune
         Param = CommandParameter(str.substr(2, 2));
       }
 
-      void Parse(PatternBuilder& patBuilder, Builder& builder) const
+      void Parse(ChannelBuilder& builder) const
       {
         const int_t period = Period.AsInt();
         const int_t param = Param.AsInt();
@@ -967,7 +967,7 @@ namespace Formats::Chiptune
         case TEMPO:
           if (param)
           {
-            patBuilder.SetTempo(param);
+            builder.SetTempo(param);
           }
           break;
         default:
@@ -1007,10 +1007,10 @@ namespace Formats::Chiptune
         Command = NoteCommandObject(fields[2]);
       }
 
-      void Parse(uint_t envBase, PatternBuilder& patBuilder, Builder& builder) const
+      void Parse(uint_t envBase, ChannelBuilder& builder) const
       {
         Parameters.Parse(envBase, builder);
-        Command.Parse(patBuilder, builder);
+        Command.Parse(builder);
         Note.Parse(builder);
       }
 
@@ -1040,15 +1040,15 @@ namespace Formats::Chiptune
         Channels[2] = ChannelObject(fields[4]);
       }
 
-      void Parse(PatternBuilder& patBuilder, Builder& builder) const
+      void Parse(LineBuilder& line) const
       {
         const uint_t envBase = Envelope.AsInt();
         for (uint_t idx = 0; idx != 3; ++idx)
         {
-          builder.StartChannel(idx);
-          Channels[idx].Parse(envBase, patBuilder, builder);
+          auto& channel = line.StartChannel(idx);
+          Channels[idx].Parse(envBase, channel);
         }
-        builder.SetNoiseBase(Noise.AsInt());
+        line.StartChannel(2).SetNoiseBase(Noise.AsInt());
       }
 
       void Dump(std::ostream& str) const
@@ -1099,8 +1099,8 @@ namespace Formats::Chiptune
         PatternBuilder& patBuilder = builder.StartPattern(Index);
         for (std::size_t idx = 0; idx != Lines.size(); ++idx)
         {
-          patBuilder.StartLine(idx);
-          Lines[idx].Parse(patBuilder, builder);
+          auto& line = patBuilder.StartLine(idx);
+          Lines[idx].Parse(line);
         }
         patBuilder.Finish(Lines.size());
       }
@@ -1283,6 +1283,8 @@ namespace Formats::Chiptune
       : public ChiptuneBuilder
       , public MetaBuilder
       , public PatternBuilder
+      , public LineBuilder
+      , public ChannelBuilder
     {
     public:
       TextBuilder()
@@ -1345,7 +1347,7 @@ namespace Formats::Chiptune
         Header.PlayOrder = LoopedList<uint_t>(positions.Loop, std::move(positions.Lines));
       }
 
-      PatternBuilder& StartPattern(uint_t index) override
+      ProTracker3::PatternBuilder& StartPattern(uint_t index) override
       {
         Context.SetPattern(index);
         return *this;
@@ -1356,9 +1358,10 @@ namespace Formats::Chiptune
         Context.FinishPattern(size);
       }
 
-      void StartLine(uint_t index) override
+      ProTracker3::LineBuilder& StartLine(uint_t index) override
       {
         Context.SetLine(index);
+        return *this;
       }
 
       void SetTempo(uint_t tempo) override
@@ -1368,9 +1371,10 @@ namespace Formats::Chiptune
         cmd.Param = tempo;
       }
 
-      void StartChannel(uint_t index) override
+      ProTracker3::ChannelBuilder& StartChannel(uint_t index) override
       {
         Context.SetChannel(index);
+        return *this;
       }
 
       void SetRest() override

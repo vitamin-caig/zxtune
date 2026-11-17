@@ -107,19 +107,117 @@ namespace Module::TFMMusicMaker
     SparsedObjectsStorage<Instrument> Instruments;
   };
 
-  class DataBuilder : public Formats::Chiptune::TFMMusicMaker::Builder
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::TFMMusicMaker::ChannelBuilder>
+  {
+  public:
+    void SetKeyOff() override
+    {
+      GetCell().SetEnabled(false);
+    }
+    void SetNote(uint_t note) override
+    {
+      GetCell().SetNote(note);
+    }
+    void SetVolume(uint_t vol) override
+    {
+      GetCell().SetVolume(vol);
+    }
+    void SetInstrument(uint_t ins) override
+    {
+      GetCell().SetSample(ins);
+    }
+    void SetArpeggio(uint_t add1, uint_t add2) override
+    {
+      GetCommands().AddOrReplace(ARPEGGIO, add1, add2);
+    }
+    void SetSlide(int_t step) override
+    {
+      GetCommands().Add(TONESLIDE, 0, step);
+    }
+    void SetPortamento(int_t step) override
+    {
+      GetCommands().Add(PORTAMENTO, step);
+    }
+    void SetVibrato(uint_t speed, uint_t depth) override
+    {
+      GetCommands().Add(VIBRATO, speed, depth);
+    }
+    void SetTotalLevel(uint_t op, uint_t value) override
+    {
+      GetCommands().Add(LEVEL, op, value);
+    }
+    void SetVolumeSlide(uint_t up, uint_t down) override
+    {
+      GetCommands().Add(VOLSLIDE, up, down);
+    }
+    void SetSpecialMode(bool on) override
+    {
+      GetCommands().AddOrReplace(SPECMODE, on);
+    }
+    void SetToneOffset(uint_t op, uint_t offset) override
+    {
+      GetCommands().Add(TONEOFFSET, op, offset);
+    }
+    void SetMultiple(uint_t op, uint_t val) override
+    {
+      GetCommands().Add(MULTIPLE, op, val);
+    }
+    void SetOperatorsMixing(uint_t mask) override
+    {
+      GetCommands().AddOrReplace(MIXING, mask);
+    }
+    void SetLoopStart() override
+    {
+      GetCommands().Add(LOOP_START);
+    }
+    void SetLoopEnd(uint_t additionalCount) override
+    {
+      GetCommands().Add(LOOP_STOP, additionalCount);
+    }
+    void SetPane(uint_t pane) override
+    {
+      GetCommands().AddOrReplace(PANE, pane);
+    }
+    void SetNoteRetrig(uint_t period) override
+    {
+      GetCommands().AddOrReplace(NOTERETRIG, period);
+    }
+    void SetNoteCut(uint_t quirk) override
+    {
+      GetCommands().AddOrReplace(NOTECUT, quirk);
+    }
+    void SetNoteDelay(uint_t quirk) override
+    {
+      GetCommands().AddOrReplace(NOTEDELAY, quirk);
+    }
+    void SetDropEffects() override
+    {
+      GetCommands().AddOrReplace(DROPEFFECTS);
+    }
+    void SetFeedback(uint_t val) override
+    {
+      GetCommands().AddOrReplace(FEEDBACK, val);
+    }
+    void SetTempoInterleave(uint_t val) override
+    {
+      GetCommands().AddOrReplace(TEMPO_INTERLEAVE, val);
+    }
+    void SetTempoValues(uint_t even, uint_t odd) override
+    {
+      GetCommands().AddOrReplace(TEMPO_VALUES, even, odd);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::TFMMusicMaker::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::TFMMusicMaker::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::TFMMusicMaker::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
-      : Properties(props)
-      , Meta(props)
-      , Data(MakeRWPtr<ModuleData>())
+      : TrackDataBuilder(props)
+      , Properties(props)
     {}
-
-    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
-    {
-      return Meta;
-    }
 
     void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod) override
     {
@@ -142,148 +240,8 @@ namespace Module::TFMMusicMaker
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
-    {
-      Patterns.SetPattern(index);
-      return Patterns;
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      Patterns.SetChannel(index);
-    }
-
-    void SetKeyOff() override
-    {
-      Patterns.GetChannel().SetEnabled(false);
-    }
-
-    void SetNote(uint_t note) override
-    {
-      Patterns.GetChannel().SetNote(note);
-    }
-
-    void SetVolume(uint_t vol) override
-    {
-      Patterns.GetChannel().SetVolume(vol);
-    }
-
-    void SetInstrument(uint_t ins) override
-    {
-      Patterns.GetChannel().SetSample(ins);
-    }
-
-    void SetArpeggio(uint_t add1, uint_t add2) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ARPEGGIO, add1, add2);
-    }
-
-    void SetSlide(int_t step) override
-    {
-      Patterns.GetChannel().GetCommands().Add(TONESLIDE, 0, step);
-    }
-
-    void SetPortamento(int_t step) override
-    {
-      Patterns.GetChannel().GetCommands().Add(PORTAMENTO, step);
-    }
-
-    void SetVibrato(uint_t speed, uint_t depth) override
-    {
-      Patterns.GetChannel().GetCommands().Add(VIBRATO, speed, depth);
-    }
-
-    void SetTotalLevel(uint_t op, uint_t value) override
-    {
-      Patterns.GetChannel().GetCommands().Add(LEVEL, op, value);
-    }
-
-    void SetVolumeSlide(uint_t up, uint_t down) override
-    {
-      Patterns.GetChannel().GetCommands().Add(VOLSLIDE, up, down);
-    }
-
-    void SetSpecialMode(bool on) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(SPECMODE, on);
-    }
-
-    void SetToneOffset(uint_t op, uint_t offset) override
-    {
-      Patterns.GetChannel().GetCommands().Add(TONEOFFSET, op, offset);
-    }
-
-    void SetMultiple(uint_t op, uint_t val) override
-    {
-      Patterns.GetChannel().GetCommands().Add(MULTIPLE, op, val);
-    }
-
-    void SetOperatorsMixing(uint_t mask) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(MIXING, mask);
-    }
-
-    void SetLoopStart() override
-    {
-      Patterns.GetChannel().GetCommands().Add(LOOP_START);
-    }
-
-    void SetLoopEnd(uint_t additionalCount) override
-    {
-      Patterns.GetChannel().GetCommands().Add(LOOP_STOP, additionalCount);
-    }
-
-    void SetPane(uint_t pane) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(PANE, pane);
-    }
-
-    void SetNoteRetrig(uint_t period) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(NOTERETRIG, period);
-    }
-
-    void SetNoteCut(uint_t quirk) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(NOTECUT, quirk);
-    }
-
-    void SetNoteDelay(uint_t quirk) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(NOTEDELAY, quirk);
-    }
-
-    void SetDropEffects() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(DROPEFFECTS);
-    }
-
-    void SetFeedback(uint_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(FEEDBACK, val);
-    }
-
-    void SetTempoInterleave(uint_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(TEMPO_INTERLEAVE, val);
-    }
-
-    void SetTempoValues(uint_t even, uint_t odd) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(TEMPO_VALUES, even, odd);
-    }
-
-    ModuleData::Ptr CaptureResult()
-    {
-      Data->Patterns = Patterns.CaptureResult();
-      return std::move(Data);
-    }
-
   private:
     PropertiesHelper& Properties;
-    MetaProperties Meta;
-    PatternsBuilder Patterns;
-    ModuleData::RWPtr Data;
   };
 
   struct Halftones

@@ -24,7 +24,9 @@ namespace Formats::Chiptune::ProTracker3
   const std::size_t MAX_ORNAMENTS_COUNT = 16;
   const uint_t SINGLE_AY_MODE = 0x20;
 
-  class StatisticCollectingBuilder : public Builder
+  class StatisticCollectingBuilder
+    : public Builder
+    , public PatternBuilderProxy<ProTracker3::ChannelBuilder>
   {
   public:
     explicit StatisticCollectingBuilder(Builder& delegate)
@@ -83,88 +85,83 @@ namespace Formats::Chiptune::ProTracker3
       Require(!UsedPatterns.Empty());
       return Delegate.SetPositions(std::move(positions));
     }
-
-    PatternBuilder& StartPattern(uint_t index) override
+    ProTracker3::PatternBuilder& StartPattern(uint_t index) override
     {
       AvailablePatterns.Insert(index);
-      return Delegate.StartPattern(index);
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      return Delegate.StartChannel(index);
+      BindPattern(Delegate.StartPattern(index));
+      return *this;
     }
 
     void SetRest() override
     {
-      return Delegate.SetRest();
+      return GetChannel().SetRest();
     }
 
     void SetNote(uint_t note) override
     {
-      return Delegate.SetNote(note);
+      return GetChannel().SetNote(note);
     }
 
     void SetSample(uint_t sample) override
     {
       UsedSamples.Insert(sample);
-      return Delegate.SetSample(sample);
+      return GetChannel().SetSample(sample);
     }
 
     void SetOrnament(uint_t ornament) override
     {
       UsedOrnaments.Insert(ornament);
-      return Delegate.SetOrnament(ornament);
+      return GetChannel().SetOrnament(ornament);
     }
 
     void SetVolume(uint_t vol) override
     {
-      return Delegate.SetVolume(vol);
+      return GetChannel().SetVolume(vol);
     }
 
     void SetGlissade(uint_t period, int_t val) override
     {
-      return Delegate.SetGlissade(period, val);
+      return GetChannel().SetGlissade(period, val);
     }
 
     void SetNoteGliss(uint_t period, int_t val, uint_t limit) override
     {
-      return Delegate.SetNoteGliss(period, val, limit);
+      return GetChannel().SetNoteGliss(period, val, limit);
     }
 
     void SetSampleOffset(uint_t offset) override
     {
-      return Delegate.SetSampleOffset(offset);
+      return GetChannel().SetSampleOffset(offset);
     }
 
     void SetOrnamentOffset(uint_t offset) override
     {
-      return Delegate.SetOrnamentOffset(offset);
+      return GetChannel().SetOrnamentOffset(offset);
     }
 
     void SetVibrate(uint_t ontime, uint_t offtime) override
     {
-      return Delegate.SetVibrate(ontime, offtime);
+      return GetChannel().SetVibrate(ontime, offtime);
     }
 
     void SetEnvelopeSlide(uint_t period, int_t val) override
     {
-      return Delegate.SetEnvelopeSlide(period, val);
+      return GetChannel().SetEnvelopeSlide(period, val);
     }
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
-      return Delegate.SetEnvelope(type, value);
+      return GetChannel().SetEnvelope(type, value);
     }
 
     void SetNoEnvelope() override
     {
-      return Delegate.SetNoEnvelope();
+      return GetChannel().SetNoEnvelope();
     }
 
     void SetNoiseBase(uint_t val) override
     {
-      return Delegate.SetNoiseBase(val);
+      return GetChannel().SetNoiseBase(val);
     }
 
     uint_t GetMode() const
@@ -212,4 +209,5 @@ namespace Formats::Chiptune::ProTracker3
     Indices UsedOrnaments;
     Indices AvailableOrnaments;
   };
+
 }  // namespace Formats::Chiptune::ProTracker3

@@ -56,7 +56,23 @@ namespace Module::ChipTracker
 
   using ModuleData = DAC::SimpleModuleData;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ChipTracker::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::ChipTracker::ChannelBuilder>
+  {
+  public:
+    void SetSlide(int_t step) override
+    {
+      GetCommands().AddOrUpdate(SLIDE, 0, step);
+    }
+    void SetSampleOffset(uint_t offset) override
+    {
+      GetCommands().AddOrUpdate(SAMPLE_OFFSET, 0, offset);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::ChipTracker::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::ChipTracker::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ChipTracker::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)
@@ -84,16 +100,6 @@ namespace Module::ChipTracker
     void SetPositions(Formats::Chiptune::ChipTracker::Positions positions) override
     {
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetSlide(int_t step) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(SLIDE, 0, step);
-    }
-
-    void SetSampleOffset(uint_t offset) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(SAMPLE_OFFSET, 0, offset);
     }
 
   private:

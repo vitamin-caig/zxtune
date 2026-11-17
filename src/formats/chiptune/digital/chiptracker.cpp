@@ -141,6 +141,13 @@ namespace Formats::Chiptune
 
     const std::size_t MIN_SIZE = sizeof(Header) + sizeof(Pattern) + 256;  // single pattern and single sample
 
+    class StubChannelBuilder : public StubChannelBuilderImpl<ChipTracker::ChannelBuilder>
+    {
+    public:
+      void SetSlide(int_t /*step*/) override {}
+      void SetSampleOffset(uint_t /*offset*/) override {}
+    };
+
     class StubBuilder : public Builder
     {
     public:
@@ -155,20 +162,13 @@ namespace Formats::Chiptune
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
-        return GetStubPatternBuilder();
+        return GetStubPatternBuilder<StubChannelBuilder>();
       }
-
-      void StartChannel(uint_t /*index*/) override {}
-      void SetRest() override {}
-      void SetNote(uint_t /*note*/) override {}
-      void SetSample(uint_t /*sample*/) override {}
-      void SetOrnament(uint_t /*ornament*/) override {}
-      void SetVolume(uint_t /*volume*/) override {}
-      void SetSlide(int_t /*step*/) override {}
-      void SetSampleOffset(uint_t /*offset*/) override {}
     };
 
-    class StatisticCollectionBuilder : public Builder
+    class StatisticCollectionBuilder
+      : public Builder
+      , public PatternBuilderProxy<ChipTracker::ChannelBuilder>
     {
     public:
       explicit StatisticCollectionBuilder(Builder& delegate)
@@ -199,50 +199,46 @@ namespace Formats::Chiptune
         return Delegate.SetPositions(std::move(positions));
       }
 
-      PatternBuilder& StartPattern(uint_t index) override
+      ChipTracker::PatternBuilder& StartPattern(uint_t index) override
       {
-        return Delegate.StartPattern(index);
-      }
-
-      void StartChannel(uint_t index) override
-      {
-        return Delegate.StartChannel(index);
+        BindPattern(Delegate.StartPattern(index));
+        return *this;
       }
 
       void SetRest() override
       {
-        return Delegate.SetRest();
+        return GetChannel().SetRest();
       }
 
       void SetNote(uint_t note) override
       {
-        return Delegate.SetNote(note);
+        return GetChannel().SetNote(note);
       }
 
       void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
-        return Delegate.SetSample(sample);
+        return GetChannel().SetSample(sample);
       }
 
       void SetOrnament(uint_t ornament) override
       {
-        return Delegate.SetOrnament(ornament);
+        return GetChannel().SetOrnament(ornament);
       }
 
       void SetVolume(uint_t volume) override
       {
-        return Delegate.SetVolume(volume);
+        return GetChannel().SetVolume(volume);
       }
 
       void SetSlide(int_t step) override
       {
-        return Delegate.SetSlide(step);
+        return GetChannel().SetSlide(step);
       }
 
       void SetSampleOffset(uint_t offset) override
       {
-        return Delegate.SetSampleOffset(offset);
+        return GetChannel().SetSampleOffset(offset);
       }
 
       const Indices& GetUsedPatterns() const
@@ -308,7 +304,7 @@ namespace Formats::Chiptune
           const uint_t patIndex = *it;
           Dbg("Parse pattern {}", patIndex);
           PatternBuilder& patBuilder = target.StartPattern(patIndex);
-          ParsePattern(patIndex, patBuilder, target);
+          ParsePattern(patIndex, patBuilder);
         }
       }
 
@@ -355,7 +351,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      void ParsePattern(uint_t idx, PatternBuilder& patBuilder, Builder& target) const
+      void ParsePattern(uint_t idx, PatternBuilder& patBuilder) const
       {
         const std::size_t patStart = sizeof(Header) + idx * sizeof(Pattern);
         const auto* src = RawData.SubView(patStart).As<Pattern>();
@@ -364,10 +360,10 @@ namespace Formats::Chiptune
         uint_t lineNum = 0;
         for (; lineNum < MAX_PATTERN_SIZE; ++lineNum)
         {
-          patBuilder.StartLine(lineNum);
+          auto& line = patBuilder.StartLine(lineNum);
           const NoteRow& notes = src->Notes[lineNum];
           const NoteParamRow& params = src->Params[lineNum];
-          if (!ParseLine(notes, params, patBuilder, target))
+          if (!ParseLine(notes, params, line))
           {
             break;
           }
@@ -378,49 +374,48 @@ namespace Formats::Chiptune
         AddFixedRange(patStart, patSize);
       }
 
-      static bool ParseLine(const NoteRow& notes, const NoteParamRow& params, PatternBuilder& patBuilder,
-                            Builder& target)
+      static bool ParseLine(const NoteRow& notes, const NoteParamRow& params, LineBuilder& line)
       {
         bool cont = true;
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
-          target.StartChannel(chanNum);
+          auto& channel = line.StartChannel(chanNum);
           const Note& note = notes[chanNum];
           const NoteParam& param = params[chanNum];
           if (note.IsPause())
           {
-            target.SetRest();
+            channel.SetRest();
           }
           else if (!note.IsEmpty())
           {
-            target.SetNote(note.GetNote());
-            target.SetSample(param.GetSample());
+            channel.SetNote(note.GetNote());
+            channel.SetSample(param.GetSample());
           }
           switch (note.GetCommand())
           {
           case SOFFSET:
             if (const uint_t off = param.GetParameter())
             {
-              target.SetSampleOffset(512 * off);
+              channel.SetSampleOffset(512 * off);
             }
             break;
           case SLIDEDN:
             if (const uint_t sld = param.GetParameter())
             {
-              target.SetSlide(-static_cast<int8_t>(2 * sld));
+              channel.SetSlide(-static_cast<int8_t>(2 * sld));
             }
             break;
           case SLIDEUP:
             if (const uint_t sld = param.GetParameter())
             {
-              target.SetSlide(static_cast<int8_t>(2 * sld));
+              channel.SetSlide(static_cast<int8_t>(2 * sld));
             }
             break;
           case SPECIAL:
             // first channel- tempo
             if (0 == chanNum)
             {
-              patBuilder.SetTempo(param.GetParameter());
+              channel.SetTempo(param.GetParameter());
             }
             // last channel- stop
             else if (3 == chanNum)

@@ -36,7 +36,9 @@ namespace
   class ASCDumpBuilder
     : public Builder
     , public Formats::Chiptune::MetaBuilder
-    , public Formats::Chiptune::PatternBuilder
+    , public Formats::Chiptune::ASCSoundMaster::PatternBuilder
+    , public Formats::Chiptune::ASCSoundMaster::LineBuilder
+    , public Formats::Chiptune::ASCSoundMaster::ChannelBuilder
   {
   public:
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -117,7 +119,7 @@ namespace
       std::cout << std::endl;
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
+    Formats::Chiptune::ASCSoundMaster::PatternBuilder& StartPattern(uint_t index) override
     {
       std::cout << std::endl << "[Pattern" << index << ']' << std::endl;
       return *this;
@@ -130,7 +132,7 @@ namespace
       Line.clear();
     }
 
-    void StartLine(uint_t index) override
+    Formats::Chiptune::ASCSoundMaster::LineBuilder& StartLine(uint_t index) override
     {
       if (!Line.empty())
       {
@@ -140,6 +142,7 @@ namespace
       Line = String(36, ' ');
       Line[0] = '0' + index / 10;
       Line[1] = '0' + index % 10;
+      return *this;
     }
 
     void SetTempo(uint_t tempo) override
@@ -147,11 +150,12 @@ namespace
       // TODO
     }
 
-    void StartChannel(uint_t index) override
+    Formats::Chiptune::ASCSoundMaster::ChannelBuilder& StartChannel(uint_t index) override
     {
       ChanPtr = &Line[3 + index * 11];
       ChanPtr[0] = ChanPtr[1] = ChanPtr[2] = '-';
       ChanPtr[4] = ChanPtr[5] = ChanPtr[6] = ChanPtr[7] = ChanPtr[8] = ChanPtr[9] = '.';
+      return *this;
     }
 
     void SetRest() override
@@ -221,7 +225,12 @@ namespace
       // TODO
     }
 
-    void SetSlide(int_t steps, bool useToneSliding) override
+    void SetSlide(int_t /*steps*/) override
+    {
+      // TODO
+    }
+
+    void SetNoteSlide(int_t /*steps*/, bool /*useToneSliding*/) override
     {
       // TODO
     }

@@ -217,7 +217,62 @@ namespace Module::ProSoundCreator
 
   using ModuleData = AYM::ModuleData<OrderList, Sample, Ornament>;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProSoundCreator::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::ProSoundCreator::ChannelBuilder>
+  {
+  public:
+    void SetEnvelope(uint_t type, uint_t value) override
+    {
+      if (type || value)
+      {
+        GetCommands().AddOrUpdate(ENVELOPE, type, value);
+      }
+      else
+      {
+        GetCommands().AddOrReplace(ENVELOPE_ON);
+      }
+    }
+    void SetEnvelope() override
+    {
+      GetCommands().AddOrReplace(ENVELOPE_ON);
+    }
+    void SetNoEnvelope() override
+    {
+      GetCommands().AddOrReplace(ENVELOPE_OFF);
+    }
+    void SetNoiseBase(uint_t val) override
+    {
+      GetCommands().AddOrUpdate(NOISE_BASE, val);
+    }
+    void SetBreakSample() override
+    {
+      GetCommands().AddOrReplace(BREAK_SAMPLE);
+    }
+    void SetBreakOrnament() override
+    {
+      GetCommands().AddOrReplace(BREAK_ORNAMENT);
+    }
+    void SetNoOrnament() override
+    {
+      GetCommands().AddOrReplace(NO_ORNAMENT);
+    }
+    void SetGliss(uint_t absStep) override
+    {
+      GetCommands().AddOrReplace(GLISS, absStep);
+    }
+    void SetSlide(int_t delta) override
+    {
+      GetCommands().AddOrReplace(SLIDE, 0, delta);
+    }
+    void SetVolumeSlide(uint_t period, int_t delta) override
+    {
+      GetCommands().AddOrReplace(VOLUME_SLIDE, period, delta);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::ProSoundCreator::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::ProSoundCreator::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProSoundCreator::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
@@ -245,63 +300,6 @@ namespace Module::ProSoundCreator
     void SetPositions(Formats::Chiptune::ProSoundCreator::Positions positions) override
     {
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetEnvelope(uint_t type, uint_t value) override
-    {
-      if (type || value)
-      {
-        Patterns.GetChannel().GetCommands().AddOrUpdate(ENVELOPE, type, value);
-      }
-      else
-      {
-        Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_ON);
-      }
-    }
-
-    void SetEnvelope() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_ON);
-    }
-
-    void SetNoEnvelope() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
-    }
-
-    void SetNoiseBase(uint_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(NOISE_BASE, val);
-    }
-
-    void SetBreakSample() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(BREAK_SAMPLE);
-    }
-
-    void SetBreakOrnament() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(BREAK_ORNAMENT);
-    }
-
-    void SetNoOrnament() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(NO_ORNAMENT);
-    }
-
-    void SetGliss(uint_t absStep) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, absStep);
-    }
-
-    void SetSlide(int_t delta) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(SLIDE, 0, delta);
-    }
-
-    void SetVolumeSlide(uint_t period, int_t delta) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(VOLUME_SLIDE, period, delta);
     }
 
   private:

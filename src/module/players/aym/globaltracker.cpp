@@ -42,7 +42,23 @@ namespace Module::GlobalTracker
 
   using ModuleData = AYM::ModuleData<OrderList, Sample, Ornament>;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::GlobalTracker::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::GlobalTracker::ChannelBuilder>
+  {
+  public:
+    void SetEnvelope(uint_t type, uint_t value) override
+    {
+      GetCommands().AddOrReplace(ENVELOPE, type, value);
+    }
+    void SetNoEnvelope() override
+    {
+      GetCommands().AddOrReplace(ENVELOPE_OFF);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::GlobalTracker::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::GlobalTracker::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::GlobalTracker::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
@@ -70,16 +86,6 @@ namespace Module::GlobalTracker
     void SetPositions(Formats::Chiptune::GlobalTracker::Positions positions) override
     {
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetEnvelope(uint_t type, uint_t value) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, value);
-    }
-
-    void SetNoEnvelope() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
     }
 
   private:

@@ -148,6 +148,10 @@ namespace Formats::Chiptune
 
     const std::size_t MODULE_SIZE = sizeof(RawHeader) + PAGES_COUNT * ZX_PAGE_SIZE;
 
+    class StubChannelBuilder : public StubChannelBuilderImpl<ProDigiTracker::ChannelBuilder>
+    {
+    };
+
     class StubBuilder : public Builder
     {
     public:
@@ -161,17 +165,13 @@ namespace Formats::Chiptune
       void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
-        return GetStubPatternBuilder();
+        return GetStubPatternBuilder<StubChannelBuilder>();
       }
-      void StartChannel(uint_t /*index*/) override {}
-      void SetRest() override {}
-      void SetNote(uint_t /*note*/) override {}
-      void SetSample(uint_t /*sample*/) override {}
-      void SetOrnament(uint_t /*ornament*/) override {}
-      void SetVolume(uint_t /*volume*/) override {}
     };
 
-    class StatisticCollectionBuilder : public Builder
+    class StatisticCollectionBuilder
+      : public Builder
+      , public PatternBuilderProxy<ProDigiTracker::ChannelBuilder>
     {
     public:
       explicit StatisticCollectionBuilder(Builder& delegate)
@@ -209,41 +209,37 @@ namespace Formats::Chiptune
         return Delegate.SetPositions(std::move(positions));
       }
 
-      PatternBuilder& StartPattern(uint_t index) override
+      ProDigiTracker::PatternBuilder& StartPattern(uint_t index) override
       {
-        return Delegate.StartPattern(index);
-      }
-
-      void StartChannel(uint_t index) override
-      {
-        return Delegate.StartChannel(index);
+        BindPattern(Delegate.StartPattern(index));
+        return *this;
       }
 
       void SetRest() override
       {
-        return Delegate.SetRest();
+        return GetChannel().SetRest();
       }
 
       void SetNote(uint_t note) override
       {
-        return Delegate.SetNote(note);
+        return GetChannel().SetNote(note);
       }
 
       void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
-        return Delegate.SetSample(sample);
+        return GetChannel().SetSample(sample);
       }
 
       void SetOrnament(uint_t ornament) override
       {
         UsedOrnaments.Insert(ornament);
-        return Delegate.SetOrnament(ornament);
+        return GetChannel().SetOrnament(ornament);
       }
 
       void SetVolume(uint_t volume) override
       {
-        return Delegate.SetVolume(volume);
+        return GetChannel().SetVolume(volume);
       }
 
       const Indices& GetUsedPatterns() const
@@ -397,9 +393,9 @@ namespace Formats::Chiptune
         uint_t lineNum = 0;
         for (; lineNum < PATTERN_SIZE; ++lineNum)
         {
-          patBuilder.StartLine(lineNum);
+          auto& line = patBuilder.StartLine(lineNum);
           // The engine aborts on the ENDPATTERN cell, but channels before it on the same line are played
-          if (!ParseLine(src[lineNum], patBuilder, target))
+          if (!ParseLine(src[lineNum], line))
           {
             ++lineNum;
             break;
@@ -411,28 +407,28 @@ namespace Formats::Chiptune
         AddFixedRange(patStart, patSize);
       }
 
-      static bool ParseLine(const RawLine& line, PatternBuilder& patBuilder, Builder& target)
+      static bool ParseLine(const RawLine& srcLine, LineBuilder& line)
       {
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
-          const auto& note = line[chanNum];
+          const auto& note = srcLine[chanNum];
           if (note.IsEnd())
           {
             return false;
           }
-          target.StartChannel(chanNum);
+          auto& channel = line.StartChannel(chanNum);
           const uint_t halftones = note.GetNote();
           int_t sample = -1;
           if (halftones != NOTE_EMPTY)
           {
-            target.SetNote(halftones - 1);
+            channel.SetNote(halftones - 1);
             sample = note.GetSample();
           }
 
           switch (note.GetCommand())
           {
           case CMD_SPEED:
-            patBuilder.SetTempo(note.GetParameter());
+            channel.SetTempo(note.GetParameter());
             break;
           case CMD_SPECIAL:
           {
@@ -445,7 +441,7 @@ namespace Formats::Chiptune
               }
               [[fallthrough]];
             case COMMAND_NOORNAMENT:
-              target.SetOrnament(0);
+              channel.SetOrnament(0);
               break;
             case COMMAND_CONTSAMPLE:
               sample = -1;
@@ -453,10 +449,10 @@ namespace Formats::Chiptune
             case COMMAND_ENDPATTERN:
               break;
             case COMMAND_BLOCKCHANNEL:
-              target.SetRest();
+              channel.SetRest();
               break;
             default:
-              target.SetOrnament(param);
+              channel.SetOrnament(param);
               break;
             }
           }
@@ -464,7 +460,7 @@ namespace Formats::Chiptune
 
           if (sample != -1)
           {
-            target.SetSample(sample);
+            channel.SetSample(sample);
           }
         }
         return true;

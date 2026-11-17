@@ -155,8 +155,8 @@ namespace Formats::Chiptune
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern {}", patIndex);
-          PatternBuilder& patBuilder = target.StartPattern(patIndex);
-          ParsePattern(Source.Patterns[patIndex], patBuilder, target);
+          Digital::PatternBuilder& patBuilder = target.StartPattern(patIndex);
+          ParsePattern(Source.Patterns[patIndex], patBuilder);
           AddFixedRange(offsetof(Header, Patterns) + patIndex * sizeof(Pattern), sizeof(Pattern));
         }
       }
@@ -199,7 +199,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      static void ParsePattern(const Pattern& src, PatternBuilder& patBuilder, Builder& target)
+      static void ParsePattern(const Pattern& src, Digital::PatternBuilder& patBuilder)
       {
         const uint_t lastLine = MAX_PATTERN_SIZE - 1;
         for (uint_t lineNum = 0; lineNum <= lastLine; ++lineNum)
@@ -215,32 +215,32 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          patBuilder.StartLine(lineNum);
-          ParseLine(srcLine, target);
+          auto& line = patBuilder.StartLine(lineNum);
+          ParseLine(srcLine, line);
         }
       }
 
-      static void ParseLine(const Pattern::Line& srcLine, Builder& target)
+      static void ParseLine(const Pattern::Line& srcLine, Digital::LineBuilder& line)
       {
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
-          target.StartChannel(chanNum);
+          auto& channel = line.StartChannel(chanNum);
           const uint_t note = srcLine.Note[chanNum];
           if (NOTE_EMPTY != note)
           {
-            target.SetNote(note - NOTE_BASE);
+            channel.SetNote(note - NOTE_BASE);
           }
           switch (const uint_t sample = srcLine.Sample[chanNum])
           {
           case PAUSE:
-            target.SetRest();
+            channel.SetRest();
             break;
           case SAMPLE_EMPTY:
             break;
           default:
             if (sample < SAMPLES_COUNT + SAMPLE_BASE)
             {
-              target.SetSample(sample - SAMPLE_BASE);
+              channel.SetSample(sample - SAMPLE_BASE);
             }
             break;
           }

@@ -61,7 +61,88 @@ namespace Module::ASCSoundMaster
 
   using ModuleData = AYM::ModuleData<OrderList, Sample, Ornament>;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ASCSoundMaster::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::ASCSoundMaster::ChannelBuilder>
+  {
+  public:
+    void SetNote(uint_t note) override
+    {
+      auto& chan = GetCell();
+      if (!chan.GetCommands().Find(BREAK_SAMPLE))
+      {
+        chan.SetEnabled(true);
+      }
+      chan.SetNote(note);
+    }
+    void SetEnvelopeType(uint_t type) override
+    {
+      auto& commands = GetCommands();
+      if (auto* cmd = commands.Find(ENVELOPE))
+      {
+        cmd->Param1 = type;
+      }
+      else
+      {
+        commands.Add(ENVELOPE, type, -1);
+      }
+    }
+    void SetEnvelopeTone(uint_t tone) override
+    {
+      auto& commands = GetCommands();
+      if (auto* cmd = commands.Find(ENVELOPE))
+      {
+        cmd->Param2 = tone;
+      }
+      else
+      {
+        commands.Add(ENVELOPE, 0xff, tone);
+      }
+    }
+    void SetEnvelope() override
+    {
+      GetCommands().AddOrReplace(ENVELOPE_ON);
+    }
+    void SetNoEnvelope() override
+    {
+      GetCommands().AddOrReplace(ENVELOPE_OFF);
+    }
+    void SetNoise(uint_t val) override
+    {
+      GetCommands().AddOrUpdate(NOISE, val);
+    }
+    void SetContinueSample() override
+    {
+      GetCommands().AddOrReplace(CONT_SAMPLE);
+    }
+    void SetContinueOrnament() override
+    {
+      GetCommands().AddOrReplace(CONT_ORNAMENT);
+    }
+    void SetGlissade(int_t val) override
+    {
+      GetCommands().AddOrReplace(GLISS, 0, val);
+    }
+    void SetSlide(int_t steps) override
+    {
+      GetCommands().Add(SLIDE, 0, steps);
+    }
+    void SetNoteSlide(int_t steps, bool useToneSliding) override
+    {
+      GetCommands().Add(SLIDE_NOTE, useToneSliding, steps);
+    }
+    void SetVolumeSlide(uint_t period, int_t delta) override
+    {
+      GetCommands().AddOrReplace(AMPLITUDE_SLIDE, period, delta);
+    }
+    void SetBreakSample() override
+    {
+      GetCommands().AddOrReplace(BREAK_SAMPLE);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::ASCSoundMaster::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::ASCSoundMaster::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ASCSoundMaster::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
@@ -89,92 +170,6 @@ namespace Module::ASCSoundMaster
     void SetPositions(Formats::Chiptune::ASCSoundMaster::Positions positions) override
     {
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetNote(uint_t note) override
-    {
-      auto& chan = Patterns.GetChannel();
-      if (!chan.GetCommands().Find(BREAK_SAMPLE))
-      {
-        chan.SetEnabled(true);
-      }
-      chan.SetNote(note);
-    }
-
-    void SetEnvelopeType(uint_t type) override
-    {
-      auto& commands = Patterns.GetChannel().GetCommands();
-      if (auto* cmd = commands.Find(ENVELOPE))
-      {
-        cmd->Param1 = type;
-      }
-      else
-      {
-        commands.Add(ENVELOPE, type, -1);
-      }
-    }
-
-    void SetEnvelopeTone(uint_t tone) override
-    {
-      auto& commands = Patterns.GetChannel().GetCommands();
-      if (auto* cmd = commands.Find(ENVELOPE))
-      {
-        cmd->Param2 = tone;
-      }
-      else
-      {
-        commands.Add(ENVELOPE, 0xff, tone);
-      }
-    }
-
-    void SetEnvelope() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_ON);
-    }
-
-    void SetNoEnvelope() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
-    }
-
-    void SetNoise(uint_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(NOISE, val);
-    }
-
-    void SetContinueSample() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(CONT_SAMPLE);
-    }
-
-    void SetContinueOrnament() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(CONT_ORNAMENT);
-    }
-
-    void SetGlissade(int_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, 0, val);
-    }
-
-    void SetSlide(int_t steps) override
-    {
-      Patterns.GetChannel().GetCommands().Add(SLIDE, 0, steps);
-    }
-
-    void SetNoteSlide(int_t steps, bool useToneSliding) override
-    {
-      Patterns.GetChannel().GetCommands().Add(SLIDE_NOTE, useToneSliding, steps);
-    }
-
-    void SetVolumeSlide(uint_t period, int_t delta) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(AMPLITUDE_SLIDE, period, delta);
-    }
-
-    void SetBreakSample() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(BREAK_SAMPLE);
     }
 
   private:

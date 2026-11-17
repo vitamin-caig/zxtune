@@ -180,6 +180,13 @@ namespace Formats::Chiptune
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
+    class StubChannelBuilder : public StubChannelBuilderImpl<SQDigitalTracker::ChannelBuilder>
+    {
+    public:
+      void SetVolume(uint_t /*volume*/, int_t /*slideDirection*/) override {}
+      void SetVolumeSlidePeriod(uint_t /*period*/) override {}
+    };
+
     class StubBuilder : public Builder
     {
     public:
@@ -194,20 +201,13 @@ namespace Formats::Chiptune
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
-        return GetStubPatternBuilder();
+        return GetStubPatternBuilder<StubChannelBuilder>();
       }
-
-      void StartChannel(uint_t /*index*/) override {}
-      void SetRest() override {}
-      void SetNote(uint_t /*note*/) override {}
-      void SetSample(uint_t /*sample*/) override {}
-      void SetOrnament(uint_t /*ornament*/) override {}
-      void SetVolume(uint_t /*volume*/) override {}
-      void SetVolume(uint_t /*volume*/, int_t /*slideDirection*/) override {}
-      void SetVolumeSlidePeriod(uint_t /*period*/) override {}
     };
 
-    class StatisticCollectionBuilder : public Builder
+    class StatisticCollectionBuilder
+      : public Builder
+      , public PatternBuilderProxy<SQDigitalTracker::ChannelBuilder>
     {
     public:
       explicit StatisticCollectionBuilder(Builder& delegate)
@@ -238,50 +238,46 @@ namespace Formats::Chiptune
         return Delegate.SetPositions(std::move(positions));
       }
 
-      PatternBuilder& StartPattern(uint_t index) override
+      SQDigitalTracker::PatternBuilder& StartPattern(uint_t index) override
       {
-        return Delegate.StartPattern(index);
-      }
-
-      void StartChannel(uint_t index) override
-      {
-        return Delegate.StartChannel(index);
+        BindPattern(Delegate.StartPattern(index));
+        return *this;
       }
 
       void SetRest() override
       {
-        return Delegate.SetRest();
+        return GetChannel().SetRest();
       }
 
       void SetNote(uint_t note) override
       {
-        return Delegate.SetNote(note);
+        return GetChannel().SetNote(note);
       }
 
       void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
-        return Delegate.SetSample(sample);
+        return GetChannel().SetSample(sample);
       }
 
       void SetOrnament(uint_t ornament) override
       {
-        return Delegate.SetOrnament(ornament);
+        return GetChannel().SetOrnament(ornament);
       }
 
       void SetVolume(uint_t volume) override
       {
-        return Delegate.SetVolume(volume);
+        return GetChannel().SetVolume(volume);
       }
 
       void SetVolume(uint_t volume, int_t slideDirection) override
       {
-        return Delegate.SetVolume(volume, slideDirection);
+        return GetChannel().SetVolume(volume, slideDirection);
       }
 
       void SetVolumeSlidePeriod(uint_t period) override
       {
-        return Delegate.SetVolumeSlidePeriod(period);
+        return GetChannel().SetVolumeSlidePeriod(period);
       }
 
       const Indices& GetUsedPatterns() const
@@ -348,7 +344,7 @@ namespace Formats::Chiptune
           Dbg("Parse pattern {}", patIndex);
           const Pattern& source = Source.Patterns[patIndex];
           PatternBuilder& patBuilder = target.StartPattern(patIndex);
-          ParsePattern(source, patBuilder, target);
+          ParsePattern(source, patBuilder);
         }
       }
 
@@ -412,7 +408,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      static void ParsePattern(const Pattern& src, PatternBuilder& patBuilder, Builder& target)
+      static void ParsePattern(const Pattern& src, PatternBuilder& patBuilder)
       {
         const uint_t lastLine = MAX_PATTERN_SIZE - 1;
         for (uint_t lineNum = 0; lineNum <= lastLine; ++lineNum)
@@ -422,15 +418,15 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          patBuilder.StartLine(lineNum);
-          if (!ParseLine(srcLine, patBuilder, target))
+          auto& line = patBuilder.StartLine(lineNum);
+          if (!ParseLine(srcLine, line))
           {
             break;
           }
         }
       }
 
-      static bool ParseLine(const Pattern::Line& srcLine, PatternBuilder& patBuilder, Builder& target)
+      static bool ParseLine(const Pattern::Line& srcLine, LineBuilder& line)
       {
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
@@ -443,24 +439,24 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          target.StartChannel(chanNum);
+          auto& channel = line.StartChannel(chanNum);
           if (const uint8_t* newTempo = srcChan.GetNewTempo())
           {
-            patBuilder.SetTempo(*newTempo);
+            channel.SetTempo(*newTempo);
           }
           else if (srcChan.IsRest())
           {
-            target.SetRest();
+            channel.SetRest();
           }
           else if (const uint8_t* newPeriod = srcChan.GetVolumeSlidePeriod())
           {
-            target.SetVolumeSlidePeriod(*newPeriod);
+            channel.SetVolumeSlidePeriod(*newPeriod);
           }
           else
           {
-            target.SetNote(srcChan.GetNote());
-            target.SetSample(srcChan.GetSample());
-            target.SetVolume(srcChan.GetSampleVolume(), srcChan.GetVolumeSlideDirection());
+            channel.SetNote(srcChan.GetNote());
+            channel.SetSample(srcChan.GetSample());
+            channel.SetVolume(srcChan.GetSampleVolume(), srcChan.GetVolumeSlideDirection());
           }
         }
         return true;

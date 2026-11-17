@@ -58,26 +58,10 @@ namespace Formats::Chiptune
 
     using Positions = LinesObject<uint_t>;
 
-    class Builder
+    class ChannelBuilder : public Formats::Chiptune::ChannelBuilder
     {
     public:
-      virtual ~Builder() = default;
-
-      virtual MetaBuilder& GetMetaBuilder() = 0;
-      virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod) = 0;
-      virtual void SetDate(const Date& created, const Date& saved) = 0;
-
-      virtual void SetInstrument(uint_t index, Instrument instrument) = 0;
-      // patterns
-      virtual void SetPositions(Positions positions) = 0;
-
-      virtual PatternBuilder& StartPattern(uint_t index) = 0;
-
-      //! @invariant Channels are built sequentally
-      virtual void StartChannel(uint_t index) = 0;
       virtual void SetKeyOff() = 0;
-      virtual void SetNote(uint_t note) = 0;
-      virtual void SetVolume(uint_t vol) = 0;
       virtual void SetInstrument(uint_t ins) = 0;
       virtual void SetArpeggio(uint_t add1, uint_t add2) = 0;
       virtual void SetSlide(int_t step) = 0;
@@ -99,6 +83,25 @@ namespace Formats::Chiptune
       virtual void SetFeedback(uint_t val) = 0;
       virtual void SetTempoInterleave(uint_t val) = 0;
       virtual void SetTempoValues(uint_t even, uint_t odd) = 0;
+    };
+
+    using LineBuilder = Tracking<ChannelBuilder>::LineBuilder;
+    using PatternBuilder = Tracking<ChannelBuilder>::PatternBuilder;
+
+    class Builder
+    {
+    public:
+      virtual ~Builder() = default;
+
+      virtual MetaBuilder& GetMetaBuilder() = 0;
+      virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod) = 0;
+      virtual void SetDate(const Date& created, const Date& saved) = 0;
+
+      virtual void SetInstrument(uint_t index, Instrument instrument) = 0;
+      // patterns
+      virtual void SetPositions(Positions positions) = 0;
+
+      virtual PatternBuilder& StartPattern(uint_t index) = 0;
     };
 
     Builder& GetStubBuilder();

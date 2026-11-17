@@ -51,7 +51,35 @@ namespace Module::ProSoundMaker
 
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProSoundMaker::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::ProSoundMaker::ChannelBuilder>
+  {
+  public:
+    void DisableOrnament() override
+    {
+      GetCommands().AddOrReplace(NOORNAMENT);
+    }
+    void SetEnvelopeReinit(bool enabled) override
+    {
+      GetCommands().AddOrReplace(ENVELOPE_REINIT, enabled);
+    }
+    void SetEnvelopeTone(uint_t type, uint_t tone) override
+    {
+      auto& channel = GetCell();
+      Require(!channel.GetCommands().Find(ENVELOPE) && !channel.GetCommands().Find(ENVELOPE_NOTE));
+      channel.GetCommands().Add(ENVELOPE, int_t(type), int_t(tone));
+    }
+    void SetEnvelopeNote(uint_t type, uint_t note) override
+    {
+      auto& channel = GetCell();
+      Require(!channel.GetCommands().Find(ENVELOPE) && !channel.GetCommands().Find(ENVELOPE_NOTE));
+      channel.GetCommands().Add(ENVELOPE_NOTE, int_t(type), int_t(note));
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::ProSoundMaker::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::ProSoundMaker::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProSoundMaker::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
@@ -74,30 +102,6 @@ namespace Module::ProSoundMaker
     void SetPositions(Formats::Chiptune::ProSoundMaker::Positions positions) override
     {
       Data->Order = MakePtr<OrderListWithTransposition>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void DisableOrnament() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(NOORNAMENT);
-    }
-
-    void SetEnvelopeReinit(bool enabled) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_REINIT, enabled);
-    }
-
-    void SetEnvelopeTone(uint_t type, uint_t tone) override
-    {
-      auto& channel = Patterns.GetChannel();
-      Require(!channel.GetCommands().Find(ENVELOPE) && !channel.GetCommands().Find(ENVELOPE_NOTE));
-      channel.GetCommands().Add(ENVELOPE, int_t(type), int_t(tone));
-    }
-
-    void SetEnvelopeNote(uint_t type, uint_t note) override
-    {
-      auto& channel = Patterns.GetChannel();
-      Require(!channel.GetCommands().Find(ENVELOPE) && !channel.GetCommands().Find(ENVELOPE_NOTE));
-      channel.GetCommands().Add(ENVELOPE_NOTE, int_t(type), int_t(note));
     }
 
   private:

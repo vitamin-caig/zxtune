@@ -31,6 +31,10 @@ namespace Formats::Chiptune
 
     using namespace SoundTracker;
 
+    using PatternBuilder = SoundTracker::PatternBuilder;
+    using LineBuilder = SoundTracker::LineBuilder;
+    using ChannelBuilder = SoundTracker::ChannelBuilder;
+
     struct RawSample
     {
       uint8_t Volume[SAMPLE_SIZE];
@@ -261,13 +265,13 @@ namespace Formats::Chiptune
             continue;
           }
           Require(idx < patSize);
-          patBuilder.StartLine(idx);
-          ParseLine(srcLine, builder, state, env);
+          auto& line = patBuilder.StartLine(idx);
+          ParseLine(srcLine, line, state, env);
         }
         patBuilder.Finish(patSize);
       }
 
-      static void ParseLine(const RawPattern::Line& srcLine, Builder& builder, std::array<ChanState, 3>& state,
+      static void ParseLine(const RawPattern::Line& srcLine, LineBuilder& line, std::array<ChanState, 3>& state,
                             std::array<EnvState, 3>& env)
       {
         for (uint_t chan = 0; chan < state.size(); ++chan)
@@ -276,12 +280,12 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          builder.StartChannel(chan);
-          ParseChannel(srcLine.Channels[chan], builder, state[chan], env[chan]);
+          auto& channel = line.StartChannel(chan);
+          ParseChannel(srcLine.Channels[chan], channel, state[chan], env[chan]);
         }
       }
 
-      static void ParseChannel(const RawPattern::Line::Channel& srcChan, Builder& builder, ChanState& state,
+      static void ParseChannel(const RawPattern::Line::Channel& srcChan, ChannelBuilder& builder, ChanState& state,
                                EnvState& env)
       {
         if (srcChan.IsRest())
@@ -508,6 +512,13 @@ namespace Formats::Chiptune
 
   namespace SoundTracker
   {
+    class StubChannelBuilder : public StubChannelBuilderImpl<SoundTracker::ChannelBuilder>
+    {
+    public:
+      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
+      void SetNoEnvelope() override {}
+    };
+
     class StubBuilder : public Builder
     {
     public:
@@ -521,16 +532,8 @@ namespace Formats::Chiptune
       void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
-        return GetStubPatternBuilder();
+        return GetStubPatternBuilder<StubChannelBuilder>();
       }
-      void StartChannel(uint_t /*index*/) override {}
-      void SetRest() override {}
-      void SetNote(uint_t /*note*/) override {}
-      void SetSample(uint_t /*sample*/) override {}
-      void SetOrnament(uint_t /*ornament*/) override {}
-      void SetVolume(uint_t /*volume*/) override {}
-      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
-      void SetNoEnvelope() override {}
     };
 
     Builder& GetStubBuilder()

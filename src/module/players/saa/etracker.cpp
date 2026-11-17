@@ -58,7 +58,35 @@ namespace Module::ETracker
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ETracker::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::ETracker::ChannelBuilder>
+  {
+  public:
+    void SetNote(uint_t note) override
+    {
+      GetCell().SetNote(note);
+    }
+    void SetAttenuation(uint_t vol) override
+    {
+      GetCell().SetVolume(15 - vol);
+    }
+    void SetSwapSampleChannels(bool swapChannels) override
+    {
+      GetCommands().AddOrReplace(SWAPCHANNELS, swapChannels);
+    }
+    void SetEnvelope(uint_t value) override
+    {
+      GetCommands().AddOrReplace(ENVELOPE, value);
+    }
+    void SetNoise(uint_t type) override
+    {
+      GetCommands().AddOrReplace(NOISE, type);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::ETracker::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::ETracker::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ETracker::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
@@ -83,31 +111,6 @@ namespace Module::ETracker
     void SetPositions(Formats::Chiptune::ETracker::Positions positions) override
     {
       Data->Order = MakePtr<OrderListWithTransposition>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetNote(uint_t note) override
-    {
-      Patterns.GetChannel().SetNote(note);
-    }
-
-    void SetAttenuation(uint_t vol) override
-    {
-      Patterns.GetChannel().SetVolume(15 - vol);
-    }
-
-    void SetSwapSampleChannels(bool swapChannels) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(SWAPCHANNELS, swapChannels);
-    }
-
-    void SetEnvelope(uint_t value) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, value);
-    }
-
-    void SetNoise(uint_t type) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(NOISE, type);
     }
   };
 

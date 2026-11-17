@@ -153,6 +153,18 @@ namespace Formats::Chiptune
     static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 34, "Invalid layout");
     static_assert(sizeof(RawHeader) * alignof(RawHeader) == 12, "Invalid layout");
 
+    class StubChannelBuilder : public StubChannelBuilderImpl<SQTracker::ChannelBuilder>
+    {
+    public:
+      void SetTempoAddon(uint_t /*add*/) override {}
+      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
+      void SetGlissade(int_t /*step*/) override {}
+      void SetAttenuation(uint_t /*att*/) override {}
+      void SetAttenuationAddon(int_t /*add*/) override {}
+      void SetGlobalAttenuation(uint_t /*att*/) override {}
+      void SetGlobalAttenuationAddon(int_t /*add*/) override {}
+    };
+
     class StubBuilder : public Builder
     {
     public:
@@ -167,24 +179,13 @@ namespace Formats::Chiptune
       void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
-        return GetStubPatternBuilder();
+        return GetStubPatternBuilder<StubChannelBuilder>();
       }
-      void SetTempoAddon(uint_t /*add*/) override {}
-      void StartChannel(uint_t /*index*/) override {}
-      void SetRest() override {}
-      void SetNote(uint_t /*note*/) override {}
-      void SetSample(uint_t /*sample*/) override {}
-      void SetOrnament(uint_t /*ornament*/) override {}
-      void SetVolume(uint_t /*volume*/) override {}
-      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
-      void SetGlissade(int_t /*step*/) override {}
-      void SetAttenuation(uint_t /*att*/) override {}
-      void SetAttenuationAddon(int_t /*add*/) override {}
-      void SetGlobalAttenuation(uint_t /*att*/) override {}
-      void SetGlobalAttenuationAddon(int_t /*add*/) override {}
     };
 
-    class StatisticCollectingBuilder : public Builder
+    class StatisticCollectingBuilder
+      : public Builder
+      , public PatternBuilderProxy<SQTracker::ChannelBuilder>
     {
     public:
       explicit StatisticCollectingBuilder(Builder& delegate)
@@ -225,77 +226,73 @@ namespace Formats::Chiptune
         return Delegate.SetPositions(std::move(positions));
       }
 
-      PatternBuilder& StartPattern(uint_t index) override
+      SQTracker::PatternBuilder& StartPattern(uint_t index) override
       {
         assert(UsedPatterns.Contain(index));
-        return Delegate.StartPattern(index);
+        BindPattern(Delegate.StartPattern(index));
+        return *this;
       }
 
       void SetTempoAddon(uint_t add) override
       {
-        return Delegate.SetTempoAddon(add);
-      }
-
-      void StartChannel(uint_t index) override
-      {
-        return Delegate.StartChannel(index);
+        return GetChannel().SetTempoAddon(add);
       }
 
       void SetRest() override
       {
-        return Delegate.SetRest();
+        return GetChannel().SetRest();
       }
 
       void SetNote(uint_t note) override
       {
-        return Delegate.SetNote(note);
+        return GetChannel().SetNote(note);
       }
 
       void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
-        return Delegate.SetSample(sample);
+        return GetChannel().SetSample(sample);
       }
 
       void SetOrnament(uint_t ornament) override
       {
         UsedOrnaments.Insert(ornament);
-        return Delegate.SetOrnament(ornament);
+        return GetChannel().SetOrnament(ornament);
       }
 
       void SetVolume(uint_t volume) override
       {
-        return Delegate.SetVolume(volume);
+        return GetChannel().SetVolume(volume);
       }
 
       void SetEnvelope(uint_t type, uint_t value) override
       {
-        return Delegate.SetEnvelope(type, value);
+        return GetChannel().SetEnvelope(type, value);
       }
 
       void SetGlissade(int_t step) override
       {
-        return Delegate.SetGlissade(step);
+        return GetChannel().SetGlissade(step);
       }
 
       void SetAttenuation(uint_t att) override
       {
-        return Delegate.SetAttenuation(att);
+        return GetChannel().SetAttenuation(att);
       }
 
       void SetAttenuationAddon(int_t add) override
       {
-        return Delegate.SetAttenuationAddon(add);
+        return GetChannel().SetAttenuationAddon(add);
       }
 
       void SetGlobalAttenuation(uint_t att) override
       {
-        return Delegate.SetGlobalAttenuation(att);
+        return GetChannel().SetGlobalAttenuation(att);
       }
 
       void SetGlobalAttenuationAddon(int_t add) override
       {
-        return Delegate.SetGlobalAttenuationAddon(add);
+        return GetChannel().SetGlobalAttenuationAddon(add);
       }
 
       const Indices& GetUsedPatterns() const
@@ -565,14 +562,14 @@ namespace Formats::Chiptune
             --state.Counter;
             if (state.RepeatLastNote)
             {
-              patBuilder.StartLine(lineIdx);
-              ParseNote(state.LastNoteStart, patBuilder, builder);
+              auto& channel = patBuilder.StartLine(lineIdx).StartChannel(0);
+              ParseNote(state.LastNoteStart, channel);
             }
           }
           else
           {
-            patBuilder.StartLine(lineIdx);
-            ParseLine(state, patBuilder, builder);
+            auto& channel = patBuilder.StartLine(lineIdx).StartChannel(0);
+            ParseLine(state, channel);
           }
         }
         patBuilder.Finish(lineIdx);
@@ -588,7 +585,7 @@ namespace Formats::Chiptune
         }
       }
 
-      void ParseLine(ParserState& state, PatternBuilder& patBuilder, Builder& builder) const
+      void ParseLine(ParserState& state, ChannelBuilder& builder) const
       {
         state.RepeatLastNote = false;
         const uint_t cmd = PeekByte(state.Cursor++);
@@ -597,11 +594,11 @@ namespace Formats::Chiptune
           state.LastNote = cmd;
           state.LastNoteStart = state.Cursor - 1;
           builder.SetNote(cmd);
-          state.Cursor = ParseNoteParameters(state.Cursor, patBuilder, builder);
+          state.Cursor = ParseNoteParameters(state.Cursor, builder);
         }
         else if (cmd <= 0x6e)
         {
-          ParseEffect(cmd - 0x60, PeekByte(state.Cursor++), patBuilder, builder);
+          ParseEffect(cmd - 0x60, PeekByte(state.Cursor++), builder);
         }
         else if (cmd == 0x6f)
         {
@@ -610,7 +607,7 @@ namespace Formats::Chiptune
         else if (cmd <= 0x7f)
         {
           builder.SetRest();
-          ParseEffect(cmd - 0x6f, PeekByte(state.Cursor++), patBuilder, builder);
+          ParseEffect(cmd - 0x6f, PeekByte(state.Cursor++), builder);
         }
         else if (cmd <= 0x9f)
         {
@@ -625,7 +622,7 @@ namespace Formats::Chiptune
             state.LastNote += addon;
           }
           builder.SetNote(state.LastNote);
-          ParseNote(state.LastNoteStart, patBuilder, builder);
+          ParseNote(state.LastNoteStart, builder);
         }
         else if (cmd <= 0xbf)
         {
@@ -633,7 +630,7 @@ namespace Formats::Chiptune
           if (cmd & 16)
           {
             state.RepeatLastNote |= state.Counter != 0;
-            ParseNote(state.LastNoteStart, patBuilder, builder);
+            ParseNote(state.LastNoteStart, builder);
           }
         }
         else
@@ -643,12 +640,12 @@ namespace Formats::Chiptune
         }
       }
 
-      void ParseNote(std::size_t cursor, PatternBuilder& patBuilder, Builder& builder) const
+      void ParseNote(std::size_t cursor, ChannelBuilder& builder) const
       {
         const uint_t cmd = PeekByte(cursor);
         if (cmd < 0x80)
         {
-          ParseNoteParameters(cursor + 1, patBuilder, builder);
+          ParseNoteParameters(cursor + 1, builder);
         }
         else
         {
@@ -656,7 +653,7 @@ namespace Formats::Chiptune
         }
       }
 
-      std::size_t ParseNoteParameters(std::size_t start, PatternBuilder& patBuilder, Builder& builder) const
+      std::size_t ParseNoteParameters(std::size_t start, ChannelBuilder& builder) const
       {
         std::size_t cursor = start;
         const uint_t cmd = PeekByte(cursor++);
@@ -675,18 +672,18 @@ namespace Formats::Chiptune
             }
             if (const uint_t effect = param & 15)
             {
-              ParseEffect(effect, PeekByte(cursor++), patBuilder, builder);
+              ParseEffect(effect, PeekByte(cursor++), builder);
             }
           }
         }
         else
         {
-          ParseEffect(cmd, PeekByte(cursor++), patBuilder, builder);
+          ParseEffect(cmd, PeekByte(cursor++), builder);
         }
         return cursor;
       }
 
-      static void ParseEffect(uint_t code, uint_t param, PatternBuilder& patBuilder, Builder& builder)
+      static void ParseEffect(uint_t code, uint_t param, ChannelBuilder& builder)
       {
         switch (code - 1)
         {
@@ -703,7 +700,7 @@ namespace Formats::Chiptune
           builder.SetGlobalAttenuationAddon(static_cast<int8_t>(param));
           break;
         case 4:
-          patBuilder.SetTempo(param & 31 ? param & 31 : 32);
+          builder.SetTempo(param & 31 ? param & 31 : 32);
           break;
         case 5:
           builder.SetTempoAddon(param);

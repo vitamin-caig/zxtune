@@ -49,7 +49,15 @@ namespace Module::ProDigiTracker
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProDigiTracker::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::ProDigiTracker::ChannelBuilder>
+  {
+  public:
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::ProDigiTracker::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::ProDigiTracker::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProDigiTracker::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)

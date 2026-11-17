@@ -34,7 +34,9 @@ namespace
   class STDumpBuilder
     : public Builder
     , public Formats::Chiptune::MetaBuilder
-    , public Formats::Chiptune::PatternBuilder
+    , public Formats::Chiptune::SoundTracker::PatternBuilder
+    , public Formats::Chiptune::SoundTracker::LineBuilder
+    , public Formats::Chiptune::SoundTracker::ChannelBuilder
   {
   public:
     // Builder
@@ -92,7 +94,7 @@ namespace
       std::cout << std::endl;
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
+    Formats::Chiptune::SoundTracker::PatternBuilder& StartPattern(uint_t index) override
     {
       // nn C-1 soETT
       Line = String(33, ' ');
@@ -107,19 +109,21 @@ namespace
       std::cout << size << " lines" << std::endl;
     }
 
-    void StartLine(uint_t index) override
+    Formats::Chiptune::SoundTracker::LineBuilder& StartLine(uint_t index) override
     {
       std::cout << Line << std::endl;
       Line[0] = '0' + index / 10;
       Line[1] = '0' + index % 10;
+      return *this;
     }
 
     void SetTempo(uint_t /*tempo*/) override {}
 
     // Builder
-    void StartChannel(uint_t index) override
+    Formats::Chiptune::SoundTracker::ChannelBuilder& StartChannel(uint_t index) override
     {
       ChanPtr = &Line[3 + index * 10];
+      return *this;
     }
 
     void SetRest() override
@@ -143,6 +147,7 @@ namespace
     {
       ChanPtr[5] = ToHex(ornament);
     }
+    void SetVolume(uint_t /*vol*/) override {}
     void SetEnvelope(uint_t type, uint_t value) override
     {
       ChanPtr[6] = ToHex(type);

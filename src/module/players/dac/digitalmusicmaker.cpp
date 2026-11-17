@@ -104,132 +104,153 @@ namespace Module::DigitalMusicMaker
     std::array<MixedChannel, 64> Mixes;
   };
 
-  class ChannelBuilder : public Formats::Chiptune::DigitalMusicMaker::ChannelBuilder
+  class DataChannelBuilder : public Formats::Chiptune::DigitalMusicMaker::ChannelBuilder
   {
   public:
-    explicit ChannelBuilder(MutableCell& cell)
-      : Target(cell)
+    DataChannelBuilder() = default;
+
+    explicit DataChannelBuilder(MutableCell& cell)
+      : Target(&cell)
     {}
+
+    void Bind(MutableLine& line, MutableCell& cell)
+    {
+      Line = &line;
+      Target = &cell;
+    }
 
     void SetRest() override
     {
-      Target.SetEnabled(false);
+      Target->SetEnabled(false);
     }
 
     void SetNote(uint_t note) override
     {
-      Target.SetEnabled(true);
-      Target.SetNote(note);
+      Target->SetEnabled(true);
+      Target->SetNote(note);
     }
 
     void SetSample(uint_t sample) override
     {
-      Target.SetSample(sample);
+      Target->SetSample(sample);
     }
 
     void SetVolume(uint_t volume) override
     {
-      Target.SetVolume(volume);
+      Target->SetVolume(volume);
     }
 
     void SetFloat(int_t direction) override
     {
-      Target.GetCommands().AddOrUpdate(FREQ_FLOAT, 0, direction);
+      Target->GetCommands().AddOrUpdate(FREQ_FLOAT, 0, direction);
     }
 
     void SetFloatParam(uint_t step) override
     {
-      Target.GetCommands().AddOrUpdate(FREQ_FLOAT_PARAMS, step);
+      Target->GetCommands().AddOrUpdate(FREQ_FLOAT_PARAMS, step);
     }
 
     void SetVibrato() override
     {
-      Target.GetCommands().AddOrUpdate(VIBRATO);
+      Target->GetCommands().AddOrUpdate(VIBRATO);
     }
 
     void SetVibratoParams(uint_t step, uint_t period) override
     {
-      Target.GetCommands().AddOrUpdate(VIBRATO_PARAMS, period, step);
+      Target->GetCommands().AddOrUpdate(VIBRATO_PARAMS, period, step);
     }
 
     void SetArpeggio() override
     {
-      Target.GetCommands().AddOrUpdate(ARPEGGIO);
+      Target->GetCommands().AddOrUpdate(ARPEGGIO);
     }
 
     void SetArpeggioParams(uint_t step, uint_t period) override
     {
-      Target.GetCommands().AddOrUpdate(ARPEGGIO_PARAMS, period, step);
+      Target->GetCommands().AddOrUpdate(ARPEGGIO_PARAMS, period, step);
     }
 
     void SetSlide(int_t direction) override
     {
-      Target.GetCommands().AddOrUpdate(TONE_SLIDE, 0, direction);
+      Target->GetCommands().AddOrUpdate(TONE_SLIDE, 0, direction);
     }
 
     void SetSlideParams(uint_t step, uint_t period) override
     {
-      Target.GetCommands().AddOrUpdate(TONE_SLIDE_PARAMS, period, step);
+      Target->GetCommands().AddOrUpdate(TONE_SLIDE_PARAMS, period, step);
     }
 
     void SetDoubleNote() override
     {
-      Target.GetCommands().AddOrUpdate(DOUBLE_NOTE);
+      Target->GetCommands().AddOrUpdate(DOUBLE_NOTE);
     }
 
     void SetDoubleNoteParam(uint_t period) override
     {
-      Target.GetCommands().AddOrUpdate(DOUBLE_NOTE_PARAMS, period);
+      Target->GetCommands().AddOrUpdate(DOUBLE_NOTE_PARAMS, period);
     }
 
     void SetVolumeAttack() override
     {
-      Target.GetCommands().AddOrUpdate(VOL_ATTACK);
+      Target->GetCommands().AddOrUpdate(VOL_ATTACK);
     }
 
     void SetVolumeAttackParams(uint_t limit, uint_t period) override
     {
-      Target.GetCommands().AddOrUpdate(VOL_ATTACK_PARAMS, limit, period);
+      Target->GetCommands().AddOrUpdate(VOL_ATTACK_PARAMS, limit, period);
     }
 
     void SetVolumeDecay() override
     {
-      Target.GetCommands().AddOrUpdate(VOL_DECAY);
+      Target->GetCommands().AddOrUpdate(VOL_DECAY);
     }
 
     void SetVolumeDecayParams(uint_t limit, uint_t period) override
     {
-      Target.GetCommands().AddOrUpdate(VOL_DECAY_PARAMS, limit, period);
+      Target->GetCommands().AddOrUpdate(VOL_DECAY_PARAMS, limit, period);
     }
 
     void SetMixSample(uint_t idx) override
     {
-      Target.GetCommands().AddOrUpdate(MIX_SAMPLE, idx);
+      Target->GetCommands().AddOrUpdate(MIX_SAMPLE, idx);
     }
 
     void SetNoEffects() override
     {
-      Target.GetCommands().AddOrUpdate(EMPTY_CMD);
+      Target->GetCommands().AddOrUpdate(EMPTY_CMD);
+    }
+
+    void SetOrnament(uint_t ornament) override
+    {
+      Target->SetOrnament(ornament);
+    }
+
+    void SetTempo(uint_t tempo) override
+    {
+      if (Line)
+      {
+        Line->SetTempo(tempo);
+      }
     }
 
   private:
-    MutableCell& Target;
+    MutableLine* Line = nullptr;
+    MutableCell* Target = nullptr;
   };
 
-  class DataBuilder : public Formats::Chiptune::DigitalMusicMaker::Builder
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder =
+      TrackPatternsBuilder<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder
+    : public TrackDataBuilder<Formats::Chiptune::DigitalMusicMaker::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)
-      : Properties(props)
-      , Meta(props)
-      , Data(MakeRWPtr<ModuleData>())
+      : TrackDataBuilder(props)
+      , Properties(props)
     {
       Properties.SetSamplesFrequency(SAMPLES_FREQ);
-    }
-
-    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
-    {
-      return Meta;
     }
 
     void SetInitialTempo(uint_t tempo) override
@@ -248,7 +269,7 @@ namespace Module::DigitalMusicMaker
       auto& dst = Data->Mixes[index];
       dst.Period = period;
       dst.Mixin.SetCommandsPool(Data->MixinCommands.get());
-      return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(dst.Mixin));
+      return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new DataChannelBuilder(dst.Mixin));
     }
 
     void SetPositions(Formats::Chiptune::DigitalMusicMaker::Positions positions) override
@@ -256,30 +277,8 @@ namespace Module::DigitalMusicMaker
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
-    {
-      Patterns.SetPattern(index);
-      return Patterns;
-    }
-
-    std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> StartChannel(uint_t index) override
-    {
-      Patterns.SetChannel(index);
-      return std::unique_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(
-          new ChannelBuilder(Patterns.GetChannel()));
-    }
-
-    ModuleData::Ptr CaptureResult()
-    {
-      Data->Patterns = Patterns.CaptureResult();
-      return std::move(Data);
-    }
-
   private:
     DAC::PropertiesHelper& Properties;
-    MetaProperties Meta;
-    PatternsBuilder Patterns;
-    ModuleData::RWPtr Data;
   };
 
   class ChannelState

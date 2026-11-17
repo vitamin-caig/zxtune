@@ -210,6 +210,20 @@ namespace Formats::Chiptune
     static_assert(sizeof(RawSample::Line) * alignof(RawSample::Line) == 4, "Invalid layout");
     static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 2, "Invalid layout");
 
+    class StubChannelBuilder : public StubChannelBuilderImpl<ProTracker3::ChannelBuilder>
+    {
+    public:
+      void SetGlissade(uint_t /*period*/, int_t /*val*/) override {}
+      void SetNoteGliss(uint_t /*period*/, int_t /*val*/, uint_t /*limit*/) override {}
+      void SetSampleOffset(uint_t /*offset*/) override {}
+      void SetOrnamentOffset(uint_t /*offset*/) override {}
+      void SetVibrate(uint_t /*ontime*/, uint_t /*offtime*/) override {}
+      void SetEnvelopeSlide(uint_t /*period*/, int_t /*val*/) override {}
+      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
+      void SetNoEnvelope() override {}
+      void SetNoiseBase(uint_t /*val*/) override {}
+    };
+
     class StubBuilder : public Builder
     {
     public:
@@ -226,23 +240,8 @@ namespace Formats::Chiptune
       void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
-        return GetStubPatternBuilder();
+        return GetStubPatternBuilder<StubChannelBuilder>();
       }
-      void StartChannel(uint_t /*index*/) override {}
-      void SetRest() override {}
-      void SetNote(uint_t /*note*/) override {}
-      void SetSample(uint_t /*sample*/) override {}
-      void SetOrnament(uint_t /*ornament*/) override {}
-      void SetVolume(uint_t /*vol*/) override {}
-      void SetGlissade(uint_t /*period*/, int_t /*val*/) override {}
-      void SetNoteGliss(uint_t /*period*/, int_t /*val*/, uint_t /*limit*/) override {}
-      void SetSampleOffset(uint_t /*offset*/) override {}
-      void SetOrnamentOffset(uint_t /*offset*/) override {}
-      void SetVibrate(uint_t /*ontime*/, uint_t /*offtime*/) override {}
-      void SetEnvelopeSlide(uint_t /*period*/, int_t /*val*/) override {}
-      void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
-      void SetNoEnvelope() override {}
-      void SetNoiseBase(uint_t /*val*/) override {}
     };
 
     class RangesMap
@@ -577,8 +576,8 @@ namespace Formats::Chiptune
             patBuilder.Finish(std::max<uint_t>(lineIdx, MIN_PATTERN_SIZE));
             break;
           }
-          patBuilder.StartLine(lineIdx);
-          ParseLine(state, patBuilder, builder);
+          auto& line = patBuilder.StartLine(lineIdx);
+          ParseLine(state, line);
         }
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
@@ -613,7 +612,7 @@ namespace Formats::Chiptune
         return true;
       }
 
-      void ParseLine(ParserState& src, PatternBuilder& patBuilder, Builder& builder) const
+      void ParseLine(ParserState& src, LineBuilder& line) const
       {
         for (uint_t chan = 0; chan < 3; ++chan)
         {
@@ -623,13 +622,13 @@ namespace Formats::Chiptune
             --state.Counter;
             continue;
           }
-          builder.StartChannel(chan);
-          ParseChannel(state, patBuilder, builder);
+          auto& channel = line.StartChannel(chan);
+          ParseChannel(state, channel);
           state.Counter = state.Period;
         }
       }
 
-      void ParseChannel(ParserState::ChannelState& state, PatternBuilder& patBuilder, Builder& builder) const
+      void ParseChannel(ParserState::ChannelState& state, ChannelBuilder& builder) const
       {
         std::vector<uint_t> commands;
         int_t note = -1;
@@ -764,7 +763,7 @@ namespace Formats::Chiptune
           case 9:  // tempo
           {
             const uint_t tempo = PeekByte(state.Offset++);
-            patBuilder.SetTempo(tempo);
+            builder.SetTempo(tempo);
           }
           break;
           }

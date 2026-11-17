@@ -29,7 +29,9 @@ namespace Formats::Chiptune::SoundTracker
   const uint_t MAX_SAMPLES_COUNT = 16;
   const uint_t MAX_ORNAMENTS_COUNT = 16;
 
-  class StatisticCollectingBuilder : public Builder
+  class StatisticCollectingBuilder
+    : public Builder
+    , public PatternBuilderProxy<SoundTracker::ChannelBuilder>
   {
   public:
     explicit StatisticCollectingBuilder(Builder& delegate)
@@ -77,27 +79,22 @@ namespace Formats::Chiptune::SoundTracker
       Require(!UsedPatterns.Empty());
       return Delegate.SetPositions(std::move(positions));
     }
-
-    PatternBuilder& StartPattern(uint_t index) override
+    SoundTracker::PatternBuilder& StartPattern(uint_t index) override
     {
       assert(UsedPatterns.Contain(index));
-      return Delegate.StartPattern(index);
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      return Delegate.StartChannel(index);
+      BindPattern(Delegate.StartPattern(index));
+      return *this;
     }
 
     void SetRest() override
     {
-      return Delegate.SetRest();
+      return GetChannel().SetRest();
     }
 
     void SetNote(uint_t note) override
     {
       NonEmptyPatterns = true;
-      return Delegate.SetNote(note);
+      return GetChannel().SetNote(note);
     }
 
     void SetSample(uint_t sample) override
@@ -107,30 +104,30 @@ namespace Formats::Chiptune::SoundTracker
         NonEmptyPatterns = true;
       }
       UsedSamples.Insert(sample);
-      return Delegate.SetSample(sample);
+      return GetChannel().SetSample(sample);
     }
 
     void SetOrnament(uint_t ornament) override
     {
       UsedOrnaments.Insert(ornament);
-      return Delegate.SetOrnament(ornament);
+      return GetChannel().SetOrnament(ornament);
     }
 
     void SetVolume(uint_t volume) override
     {
-      return Delegate.SetVolume(volume);
+      return GetChannel().SetVolume(volume);
     }
 
     void SetEnvelope(uint_t type, uint_t value) override
     {
       NonEmptyPatterns = true;
-      return Delegate.SetEnvelope(type, value);
+      return GetChannel().SetEnvelope(type, value);
     }
 
     void SetNoEnvelope() override
     {
       NonEmptyPatterns = true;
-      return Delegate.SetNoEnvelope();
+      return GetChannel().SetNoEnvelope();
     }
 
     const Indices& GetUsedPatterns() const
@@ -179,4 +176,5 @@ namespace Formats::Chiptune::SoundTracker
     bool NonEmptyPatterns = false;
     bool NonEmptySamples = false;
   };
+
 }  // namespace Formats::Chiptune::SoundTracker

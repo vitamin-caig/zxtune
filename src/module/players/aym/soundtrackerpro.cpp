@@ -45,7 +45,31 @@ namespace Module::SoundTrackerPro
 
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::SoundTrackerPro::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::SoundTrackerPro::ChannelBuilder>
+  {
+  public:
+    void SetOrnament(uint_t ornament) override
+    {
+      auto& chan = GetCell();
+      // Keep the cell field for the generic representation, but also emit an
+      // ordered command so playback can reproduce the native state machine.
+      chan.SetOrnament(ornament);
+      chan.GetCommands().AddOrReplace(ORNAMENT, ornament);
+    }
+    void SetEnvelope(uint_t type, uint_t value) override
+    {
+      GetCommands().AddOrReplace(ENVELOPE, type, value);
+    }
+    void SetGliss(int_t step) override
+    {
+      GetCommands().AddOrReplace(GLISS, 0, step);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::SoundTrackerPro::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::SoundTrackerPro::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::SoundTrackerPro::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
@@ -73,25 +97,6 @@ namespace Module::SoundTrackerPro
     void SetPositions(Formats::Chiptune::SoundTrackerPro::Positions positions) override
     {
       Data->Order = MakePtr<OrderListWithTransposition>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetOrnament(uint_t ornament) override
-    {
-      auto& chan = Patterns.GetChannel();
-      // Keep the cell field for the generic representation, but also emit an
-      // ordered command so playback can reproduce the native state machine.
-      chan.SetOrnament(ornament);
-      chan.GetCommands().AddOrReplace(ORNAMENT, ornament);
-    }
-
-    void SetEnvelope(uint_t type, uint_t value) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, value);
-    }
-
-    void SetGliss(int_t step) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, 0, step);
     }
 
   private:

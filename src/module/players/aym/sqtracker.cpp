@@ -118,6 +118,60 @@ namespace Module::SQTracker
     StorageType Storage;
   };
 
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::SQTracker::ChannelBuilder>
+  {
+  public:
+    void SetNote(uint_t note) override
+    {
+      GetCell().SetNote(note);
+    }
+
+    void SetSample(uint_t sample) override
+    {
+      auto& cell = GetCell();
+      cell.SetEnabled(true);
+      cell.SetSample(sample);
+    }
+
+    void SetTempoAddon(uint_t addon) override
+    {
+      GetCommands().Add(TEMPO_ADDON, addon);
+    }
+
+    void SetEnvelope(uint_t type, uint_t value) override
+    {
+      GetCommands().AddOrUpdate(ENVELOPE, type, value);
+    }
+
+    void SetGlissade(int_t val) override
+    {
+      GetCommands().AddOrUpdate(GLISS, 0, val);
+    }
+
+    void SetAttenuation(uint_t att) override
+    {
+      GetCommands().AddOrUpdate(ATTENUATION, att);
+    }
+
+    void SetAttenuationAddon(int_t add) override
+    {
+      GetCommands().AddOrUpdate(ATTENUATION_ADDON, 0, add);
+    }
+
+    void SetGlobalAttenuation(uint_t att) override
+    {
+      GetCommands().AddOrUpdate(GLOBAL_ATTENUATION, att);
+    }
+
+    void SetGlobalAttenuationAddon(int_t add) override
+    {
+      GetCommands().AddOrUpdate(GLOBAL_ATTENUATION_ADDON, 0, add);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::SQTracker::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::SQTracker::ChannelBuilder, DataChannelBuilder>;
+
   class ModuleData : public TrackModel
   {
   public:
@@ -262,7 +316,7 @@ namespace Module::SQTracker
       {
         if (!CurrentLine)
         {
-          Pattern.SetLine(Row);
+          Pattern.StartLine(Row);
           CurrentLine = &Pattern.GetLine();
         }
         return *CurrentLine;
@@ -308,7 +362,7 @@ namespace Module::SQTracker
         }
         outPattern.SetTempo(tempo);
       }
-      builder.FinishPattern(maxLines);
+      builder.Finish(maxLines);
     }
 
     static void ConvertLine(const MultiLine& inLine, const Formats::Chiptune::SQTracker::PositionEntry& patAttrs,
@@ -388,18 +442,7 @@ namespace Module::SQTracker
     mutable std::optional<PatternsSet> FlatPatterns;
   };
 
-  class SingleChannelPatternsBuilder : public PatternsBuilder
-  {
-  public:
-    void StartLine(uint_t index) override
-    {
-      PatternsBuilder::StartLine(index);
-      SetChannel(0);
-    }
-  };
-
-  class DataBuilder
-    : public TrackDataBuilder<Formats::Chiptune::SQTracker::Builder, ModuleData, SingleChannelPatternsBuilder>
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::SQTracker::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
@@ -422,59 +465,6 @@ namespace Module::SQTracker
     void SetPositions(Formats::Chiptune::SQTracker::Positions positions) override
     {
       Data->Positions = std::move(positions);
-    }
-
-    void SetTempoAddon(uint_t addon) override
-    {
-      Patterns.GetChannel().GetCommands().Add(TEMPO_ADDON, addon);
-    }
-
-    void SetNote(uint_t note) override
-    {
-      auto& channel = Patterns.GetChannel();
-      channel.SetNote(note);
-    }
-
-    void SetSample(uint_t sample) override
-    {
-      auto& chan = Patterns.GetChannel();
-      chan.SetEnabled(true);
-      chan.SetSample(sample);
-    }
-
-    void SetOrnament(uint_t ornament) override
-    {
-      Patterns.GetChannel().SetOrnament(ornament);
-    }
-
-    void SetEnvelope(uint_t type, uint_t value) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(ENVELOPE, type, value);
-    }
-
-    void SetGlissade(int_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(GLISS, 0, val);
-    }
-
-    void SetAttenuation(uint_t att) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(ATTENUATION, att);
-    }
-
-    void SetAttenuationAddon(int_t add) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(ATTENUATION_ADDON, 0, add);
-    }
-
-    void SetGlobalAttenuation(uint_t att) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(GLOBAL_ATTENUATION, att);
-    }
-
-    void SetGlobalAttenuationAddon(int_t add) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(GLOBAL_ATTENUATION_ADDON, 0, add);
     }
 
     ModuleData::Ptr CaptureResult()

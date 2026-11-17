@@ -141,14 +141,9 @@ namespace Formats::Chiptune
       FX_DISABLE = 15
     };
 
-    class StubChannelBuilder : public ChannelBuilder
+    class StubChannelBuilder : public StubChannelBuilderImpl<ChannelBuilder>
     {
     public:
-      void SetRest() override {}
-      void SetNote(uint_t /*note*/) override {}
-      void SetSample(uint_t /*sample*/) override {}
-      void SetVolume(uint_t /*volume*/) override {}
-
       void SetFloat(int_t /*direction*/) override {}
       void SetFloatParam(uint_t /*step*/) override {}
       void SetVibrato() override {}
@@ -183,11 +178,7 @@ namespace Formats::Chiptune
       void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
-        return GetStubPatternBuilder();
-      }
-      std::unique_ptr<ChannelBuilder> StartChannel(uint_t /*index*/) override
-      {
-        return std::unique_ptr<ChannelBuilder>(new StubChannelBuilder());
+        return GetStubPatternBuilder<StubChannelBuilder>();
       }
     };
 
@@ -230,11 +221,6 @@ namespace Formats::Chiptune
       PatternBuilder& StartPattern(uint_t index) override
       {
         return Delegate.StartPattern(index);
-      }
-
-      std::unique_ptr<ChannelBuilder> StartChannel(uint_t index) override
-      {
-        return Delegate.StartChannel(index);
       }
 
       const Indices& GetUsedPatterns() const
@@ -412,23 +398,23 @@ namespace Formats::Chiptune
         for (const uint_t lines = std::min(availLines, patternSize); lineNum < lines; ++lineNum)
         {
           const Pattern::Line& srcLine = src.Lines[lineNum];
-          patBuilder.StartLine(lineNum);
-          ParseLine(srcLine, patBuilder, target);
+          auto& dstLine = patBuilder.StartLine(lineNum);
+          ParseLine(srcLine, dstLine);
         }
         const std::size_t patSize = lineNum * sizeof(Pattern::Line);
         AddFixedRange(patStart, patSize);
       }
 
-      static void ParseLine(const Pattern::Line& line, PatternBuilder& patBuilder, Builder& target)
+      static void ParseLine(const Pattern::Line& line, LineBuilder& dstLine)
       {
         for (uint_t chanNum = 0; chanNum < CHANNELS_COUNT; ++chanNum)
         {
           const Pattern::Line::Channel& srcChan = line.Channels[chanNum];
-          std::unique_ptr<ChannelBuilder> dstChan = target.StartChannel(chanNum);
-          ParseChannel(srcChan, *dstChan);
+          auto& dstChan = dstLine.StartChannel(chanNum);
+          ParseChannel(srcChan, dstChan);
           if (srcChan.NoteCommand == SET_TEMPO && srcChan.SampleParam)
           {
-            patBuilder.SetTempo(srcChan.SampleParam);
+            dstChan.SetTempo(srcChan.SampleParam);
           }
         }
       }

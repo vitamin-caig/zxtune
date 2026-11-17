@@ -49,7 +49,39 @@ namespace Module::ProTracker2
 
   using ModuleData = AYM::ModuleData<OrderList, Sample, Ornament>;
 
-  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProTracker2::Builder, ModuleData>
+  class DataChannelBuilder : public TrackChannelBuilder<Formats::Chiptune::ProTracker2::ChannelBuilder>
+  {
+  public:
+    void SetGlissade(int_t val) override
+    {
+      GetCommands().AddOrReplace(GLISS, 0, val);
+    }
+    void SetNoteGliss(int_t val, uint_t /*limit*/) override
+    {
+      GetCommands().AddOrReplace(GLISS_NOTE, 0, val);
+    }
+    void SetNoGliss() override
+    {
+      GetCommands().AddOrReplace(NOGLISS);
+    }
+    void SetEnvelope(uint_t type, uint_t value) override
+    {
+      GetCommands().AddOrReplace(ENVELOPE, type, value);
+    }
+    void SetNoEnvelope() override
+    {
+      GetCommands().AddOrReplace(ENVELOPE_OFF);
+    }
+    void SetNoiseAddon(int_t val) override
+    {
+      GetCommands().AddOrUpdate(NOISE_ADD, 0, val);
+    }
+  };
+
+  using LineBuilder = TrackLineBuilder<Formats::Chiptune::ProTracker2::ChannelBuilder, DataChannelBuilder>;
+  using PatternsBuilder = TrackPatternsBuilder<Formats::Chiptune::ProTracker2::ChannelBuilder, DataChannelBuilder>;
+
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProTracker2::Builder, ModuleData, PatternsBuilder>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
@@ -77,36 +109,6 @@ namespace Module::ProTracker2
     void SetPositions(Formats::Chiptune::ProTracker2::Positions positions) override
     {
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
-    }
-
-    void SetGlissade(int_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS, 0, val);
-    }
-
-    void SetNoteGliss(int_t val, uint_t /*limit*/) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(GLISS_NOTE, 0, val);
-    }
-
-    void SetNoGliss() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(NOGLISS);
-    }
-
-    void SetEnvelope(uint_t type, uint_t value) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, value);
-    }
-
-    void SetNoEnvelope() override
-    {
-      Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE_OFF);
-    }
-
-    void SetNoiseAddon(int_t val) override
-    {
-      Patterns.GetChannel().GetCommands().AddOrUpdate(NOISE_ADD, 0, val);
     }
 
   private:

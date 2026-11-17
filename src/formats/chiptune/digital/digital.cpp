@@ -12,6 +12,8 @@
 
 namespace Formats::Chiptune::Digital
 {
+  using StubChannelBuilder = StubChannelBuilderImpl<Digital::ChannelBuilder>;
+
   class StubBuilder : public Builder
   {
   public:
@@ -27,15 +29,8 @@ namespace Formats::Chiptune::Digital
 
     PatternBuilder& StartPattern(uint_t /*index*/) override
     {
-      return GetStubPatternBuilder();
+      return GetStubPatternBuilder<StubChannelBuilder>();
     }
-
-    void StartChannel(uint_t /*index*/) override {}
-    void SetRest() override {}
-    void SetNote(uint_t /*note*/) override {}
-    void SetSample(uint_t /*sample*/) override {}
-    void SetOrnament(uint_t /*ornament*/) override {}
-    void SetVolume(uint_t /*volume*/) override {}
   };
 
   Builder& GetStubBuilder()

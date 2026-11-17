@@ -229,8 +229,8 @@ namespace Formats::Chiptune
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern {}", patIndex);
-          PatternBuilder& patBuilder = target.StartPattern(patIndex);
-          ParsePattern(Source.Patterns[patIndex], patBuilder, target);
+          Digital::PatternBuilder& patBuilder = target.StartPattern(patIndex);
+          ParsePattern(Source.Patterns[patIndex], patBuilder);
         }
       }
 
@@ -275,7 +275,7 @@ namespace Formats::Chiptune
         }
       }
 
-      static void ParsePattern(const Pattern& src, PatternBuilder& patBuilder, Builder& target)
+      static void ParsePattern(const Pattern& src, Digital::PatternBuilder& patBuilder)
       {
         const uint_t lastLine = MAX_PATTERN_SIZE - 1;
         for (uint_t lineNum = 0; lineNum <= lastLine; ++lineNum)
@@ -285,8 +285,8 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          patBuilder.StartLine(lineNum);
-          if (!ParseLine(srcLine, patBuilder, target))
+          auto& line = patBuilder.StartLine(lineNum);
+          if (!ParseLine(srcLine, line))
           {
             patBuilder.Finish(lineNum + 1);
             break;
@@ -294,7 +294,7 @@ namespace Formats::Chiptune
         }
       }
 
-      static bool ParseLine(const Pattern::Line& srcLine, PatternBuilder& patBuilder, Builder& target)
+      static bool ParseLine(const Pattern::Line& srcLine, Digital::LineBuilder& line)
       {
         bool result = true;
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
@@ -305,17 +305,17 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          target.StartChannel(chanNum);
+          auto& channel = line.StartChannel(chanNum);
           if (note >= NOTE_PAUSE)
           {
             Require((note & 0xf0) == (NOTE_PAUSE & 0xf0));
             if (NOTE_PAUSE == note)
             {
-              target.SetRest();
+              channel.SetRest();
             }
             else if (NOTE_SPEED == note)
             {
-              patBuilder.SetTempo(srcChan.Sample);
+              channel.SetTempo(srcChan.Sample);
             }
             else if (NOTE_END == note)
             {
@@ -324,8 +324,8 @@ namespace Formats::Chiptune
           }
           else
           {
-            target.SetNote(note - NOTE_BASE);
-            target.SetSample(srcChan.Sample);
+            channel.SetNote(note - NOTE_BASE);
+            channel.SetSample(srcChan.Sample);
           }
         }
         return result;

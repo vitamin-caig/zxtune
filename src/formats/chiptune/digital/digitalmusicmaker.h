@@ -22,15 +22,11 @@ namespace Formats::Chiptune
   {
     using Positions = LinesObject<uint_t>;
 
-    class ChannelBuilder
+    class ChannelBuilder : public Formats::Chiptune::ChannelBuilder
     {
     public:
-      virtual ~ChannelBuilder() = default;
-
-      virtual void SetRest() = 0;
-      virtual void SetNote(uint_t note) = 0;
-      virtual void SetSample(uint_t sample) = 0;
-      virtual void SetVolume(uint_t volume) = 0;
+      virtual void SetOrnament(uint_t ornament) = 0;
+      virtual void SetTempo(uint_t tempo) = 0;
 
       virtual void SetFloat(int_t direction) = 0;
       virtual void SetFloatParam(uint_t step) = 0;
@@ -50,6 +46,9 @@ namespace Formats::Chiptune
       virtual void SetNoEffects() = 0;
     };
 
+    using LineBuilder = Tracking<ChannelBuilder>::LineBuilder;
+    using PatternBuilder = Tracking<ChannelBuilder>::PatternBuilder;
+
     class Builder
     {
     public:
@@ -65,8 +64,6 @@ namespace Formats::Chiptune
       virtual void SetPositions(Positions positions) = 0;
 
       virtual PatternBuilder& StartPattern(uint_t index) = 0;
-      //! @invariant Channels are built sequentally
-      virtual std::unique_ptr<ChannelBuilder> StartChannel(uint_t index) = 0;
     };
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);

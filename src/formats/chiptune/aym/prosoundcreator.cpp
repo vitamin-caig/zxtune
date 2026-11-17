@@ -270,6 +270,21 @@ namespace Formats::Chiptune
     static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 2, "Invalid layout");
     static_assert(sizeof(RawSample) * alignof(RawSample) == 6, "Invalid layout");
 
+    class StubChannelBuilder : public StubChannelBuilderImpl<ProSoundCreator::ChannelBuilder>
+    {
+    public:
+      void SetEnvelope(uint_t /*type*/, uint_t /*tone*/) override {}
+      void SetEnvelope() override {}
+      void SetNoEnvelope() override {}
+      void SetNoiseBase(uint_t /*val*/) override {}
+      void SetBreakSample() override {}
+      void SetBreakOrnament() override {}
+      void SetNoOrnament() override {}
+      void SetGliss(uint_t /*absStep*/) override {}
+      void SetSlide(int_t /*delta*/) override {}
+      void SetVolumeSlide(uint_t /*period*/, int_t /*delta*/) override {}
+    };
+
     class StubBuilder : public Builder
     {
     public:
@@ -283,27 +298,13 @@ namespace Formats::Chiptune
       void SetPositions(Positions /*positions*/) override {}
       PatternBuilder& StartPattern(uint_t /*index*/) override
       {
-        return GetStubPatternBuilder();
+        return GetStubPatternBuilder<StubChannelBuilder>();
       }
-      void StartChannel(uint_t /*index*/) override {}
-      void SetRest() override {}
-      void SetNote(uint_t /*note*/) override {}
-      void SetSample(uint_t /*sample*/) override {}
-      void SetOrnament(uint_t /*ornament*/) override {}
-      void SetVolume(uint_t /*vol*/) override {}
-      void SetEnvelope(uint_t /*type*/, uint_t /*tone*/) override {}
-      void SetEnvelope() override {}
-      void SetNoEnvelope() override {}
-      void SetNoiseBase(uint_t /*val*/) override {}
-      void SetBreakSample() override {}
-      void SetBreakOrnament() override {}
-      void SetNoOrnament() override {}
-      void SetGliss(uint_t /*val*/) override {}
-      void SetSlide(int_t /*steps*/) override {}
-      void SetVolumeSlide(uint_t /*period*/, int_t /*delta*/) override {}
     };
 
-    class StatisticCollectingBuilder : public Builder
+    class StatisticCollectingBuilder
+      : public Builder
+      , public PatternBuilderProxy<ProSoundCreator::ChannelBuilder>
     {
     public:
       explicit StatisticCollectingBuilder(Builder& delegate)
@@ -345,92 +346,88 @@ namespace Formats::Chiptune
         return Delegate.SetPositions(std::move(positions));
       }
 
-      PatternBuilder& StartPattern(uint_t index) override
+      ProSoundCreator::PatternBuilder& StartPattern(uint_t index) override
       {
         assert(UsedPatterns.Contain(index));
-        return Delegate.StartPattern(index);
-      }
-
-      void StartChannel(uint_t index) override
-      {
-        return Delegate.StartChannel(index);
+        BindPattern(Delegate.StartPattern(index));
+        return *this;
       }
 
       void SetRest() override
       {
-        return Delegate.SetRest();
+        return GetChannel().SetRest();
       }
 
       void SetNote(uint_t note) override
       {
-        return Delegate.SetNote(note);
+        return GetChannel().SetNote(note);
       }
 
       void SetSample(uint_t sample) override
       {
         UsedSamples.Insert(sample);
-        return Delegate.SetSample(sample);
+        return GetChannel().SetSample(sample);
       }
 
       void SetOrnament(uint_t ornament) override
       {
         UsedOrnaments.Insert(ornament);
-        return Delegate.SetOrnament(ornament);
+        return GetChannel().SetOrnament(ornament);
       }
 
       void SetVolume(uint_t vol) override
       {
-        return Delegate.SetVolume(vol);
+        return GetChannel().SetVolume(vol);
       }
 
       void SetEnvelope(uint_t type, uint_t tone) override
       {
-        return Delegate.SetEnvelope(type, tone);
+        return GetChannel().SetEnvelope(type, tone);
       }
 
       void SetEnvelope() override
       {
-        return Delegate.SetEnvelope();
+        return GetChannel().SetEnvelope();
       }
 
       void SetNoEnvelope() override
       {
-        return Delegate.SetNoEnvelope();
+        return GetChannel().SetNoEnvelope();
       }
 
       void SetNoiseBase(uint_t val) override
       {
-        return Delegate.SetNoiseBase(val);
+        return GetChannel().SetNoiseBase(val);
       }
 
       void SetBreakSample() override
       {
-        return Delegate.SetBreakSample();
+        return GetChannel().SetBreakSample();
       }
 
       void SetBreakOrnament() override
       {
-        return Delegate.SetBreakOrnament();
+        return GetChannel().SetBreakOrnament();
       }
 
       void SetNoOrnament() override
       {
-        return Delegate.SetNoOrnament();
+        return GetChannel().SetNoOrnament();
       }
 
       void SetGliss(uint_t absStep) override
       {
-        return Delegate.SetGliss(absStep);
+        return GetChannel().SetGliss(absStep);
       }
 
       void SetSlide(int_t delta) override
       {
-        return Delegate.SetSlide(delta);
+        return GetChannel().SetSlide(delta);
       }
 
       void SetVolumeSlide(uint_t period, int_t delta) override
       {
-        return Delegate.SetVolumeSlide(period, delta);
+        return GetChannel().SetVolumeSlide(period, delta);
       }
 
       const Indices& GetUsedPatterns() const
@@ -784,8 +781,8 @@ namespace Formats::Chiptune
           }
           else
           {
-            patBuilder.StartLine(lineIdx);
-            ParseLine(state, patBuilder, builder);
+            auto& line = patBuilder.StartLine(lineIdx);
+            ParseLine(state, line);
           }
         }
         patBuilder.Finish(pat.Size);
@@ -805,7 +802,7 @@ namespace Formats::Chiptune
         return lineIdx >= MIN_PATTERN_SIZE;
       }
 
-      void ParseLine(ParserState& src, PatternBuilder& patBuilder, Builder& builder) const
+      void ParseLine(ParserState& src, LineBuilder& line) const
       {
         for (uint_t chan = 0; chan < 3; ++chan)
         {
@@ -815,14 +812,13 @@ namespace Formats::Chiptune
             --state.Counter;
             continue;
           }
-          builder.StartChannel(chan);
-          ParseChannel(chan, state, patBuilder, builder);
+          auto& channel = line.StartChannel(chan);
+          ParseChannel(chan, state, channel);
           state.Counter = state.Period;
         }
       }
 
-      void ParseChannel(uint_t chan, ParserState::ChannelState& state, PatternBuilder& patBuilder,
-                        Builder& builder) const
+      void ParseChannel(uint_t chan, ParserState::ChannelState& state, ChannelBuilder& builder) const
       {
         while (state.Offset < Data.Size())
         {
@@ -887,7 +883,7 @@ namespace Formats::Chiptune
           else if (cmd == 0x6e)
           {
             const uint_t tempo = PeekByte(state.Offset++);
-            patBuilder.SetTempo(tempo);
+            builder.SetTempo(tempo);
           }
           else if (cmd == 0x6d)
           {
