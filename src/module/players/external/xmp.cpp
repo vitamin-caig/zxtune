@@ -11,9 +11,11 @@
 #include "module/players/external/xmp.h"
 
 #include "formats/chiptune/common/decoder.h"
+#include "module/players/generic_presentation.h"
 #include "module/players/properties_helper.h"
 
 #include "core/parameters.h"
+#include "module/track_presentation.h"
 #include "parameters/identifiers_set.h"
 #include "parameters/tracking_helper.h"
 #include "strings/sanitize.h"
@@ -224,11 +226,105 @@ namespace Module::Xmp
     const uint_t ChannelsCount;
   };
 
-  class Holder : public Module::Holder
+  namespace Presentation
+  {
+    using Delimiter = Module::Presentation::Delimiter;
+    using NoteAndOctave = Module::Presentation::NoteAndOctave;
+    using Layout = Module::Presentation::Layout<'.'>;
+
+    template<uint_t Width>
+    struct OptionalHex : Layout::Hex<Width>
+    {
+      using Base = Layout::Hex<Width>;
+
+      constexpr OptionalHex()
+      {
+        this->fill('.');
+      }
+
+      OptionalHex& operator=(uint_t value)
+      {
+        for (uint_t idx = Width; idx; --idx)
+        {
+          (*this)[idx - 1] = Base::Digit(value & 0x0f);
+          value >>= 4;
+        }
+        return *this;
+      }
+    };
+
+    struct Channel
+    {
+      Delimiter Separator;
+      NoteAndOctave Note;
+      char Space = ' ';
+      Layout::Hex<2> Instrument;
+      char VolumeMarker = ' ';
+      Layout::Hex<2> Volume;
+      char Space2 = ' ';
+      Layout::Hex<2> Effect;
+      OptionalHex<2> Param;
+    };
+
+    struct Line
+    {
+      Module::Presentation::Layout<'0'>::Hex<2> Index;
+    };
+
+    void FillNote(NoteAndOctave& txt, uint_t note)
+    {
+      switch (note)
+      {
+      case 0:
+        break;
+      case XMP_KEY_OFF:
+        txt.Note = {'=', '='};
+        txt.Octave = '=';
+        break;
+      case XMP_KEY_CUT:
+        txt.Note = {'^', '^'};
+        txt.Octave = '^';
+        break;
+      case XMP_KEY_FADE:
+        txt.Note = {'~', '~'};
+        txt.Octave = '~';
+        break;
+      default:
+        txt.Set(note - 1);
+      }
+    }
+
+    void FillChannel(const xmp_event& event, Channel& txt)
+    {
+      FillNote(txt.Note, event.note);
+      if (event.ins)
+      {
+        txt.Instrument = event.ins;
+      }
+      if (event.vol)
+      {
+        txt.VolumeMarker = 'v';
+        txt.Volume = event.vol;
+      }
+      const uint_t effectType = event.fxt ? event.fxt : event.f2t;
+      if (effectType)
+      {
+        txt.Effect = effectType;
+        txt.Param = event.fxt ? event.fxp : event.f2p;
+      }
+    }
+  }  // namespace Presentation
+
+  class Holder
+    : public Module::Holder
+    , public TrackPresentation
   {
   public:
-    Holder(Context::Ptr ctx, Information info, Parameters::Accessor::Ptr props)
+    using Ptr = Module::Holder::Ptr;
+
+    Holder(Context::Ptr ctx, const xmp_module& mod, Information info, Parameters::Accessor::Ptr props)
       : Ctx(std::move(ctx))
+      , Mod(mod)
       , Info(std::move(info))
       , Properties(std::move(props))
     {}
@@ -248,8 +344,44 @@ namespace Module::Xmp
       return MakePtr<Renderer>(Info.Track->ChannelsCount, Ctx, samplerate, std::move(params));
     }
 
+    String GetPattern(uint_t index) const override
+    {
+      if (index >= static_cast<uint_t>(Mod.pat))
+      {
+        return {};
+      }
+      const auto* pattern = Mod.xxp[index];
+      if (!pattern || pattern->rows <= 0)
+      {
+        return {};
+      }
+      const auto channels = static_cast<uint_t>(Mod.chn);
+      String result;
+      result.reserve(static_cast<std::size_t>(pattern->rows)
+                     * (1 + sizeof(Presentation::Line) + std::size_t(channels) * sizeof(Presentation::Channel)));
+      for (int row = 0; row != pattern->rows; ++row)
+      {
+        auto& dst = Module::Presentation::AppendLine<Presentation::Line>(result);
+        dst.Index = static_cast<uint_t>(row);
+        for (uint_t channel = 0; channel != channels; ++channel)
+        {
+          auto& cell = Module::Presentation::AppendTo<Presentation::Channel>(result);
+          const auto trackIndex = pattern->index[channel];
+          if (trackIndex >= 0 && trackIndex < Mod.trk)
+          {
+            if (const auto* track = Mod.xxt[trackIndex]; track && row < track->rows)
+            {
+              Presentation::FillChannel(track->event[row], cell);
+            }
+          }
+        }
+      }
+      return result;
+    }
+
   private:
     const Context::Ptr Ctx;
+    const xmp_module& Mod;
     const Information Info;
     const Parameters::Accessor::Ptr Properties;
   };
@@ -299,7 +431,7 @@ namespace Module::Xmp
         props.SetChannels("Ch"sv, modInfo.mod->chn);
         props.SetSupportedParameters(XmpParameters::ALL);
         auto info = MakeInformation(*modInfo.mod, DurationType(frmInfo.total_time));
-        return MakePtr<Holder>(std::move(ctx), std::move(info), std::move(properties));
+        return MakePtr<Holder>(std::move(ctx), *modInfo.mod, std::move(info), std::move(properties));
       }
       catch (const std::exception&)
       {}
