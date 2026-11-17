@@ -162,6 +162,8 @@ namespace Formats::Chiptune
       void SetRest() override {}
       void SetNote(uint_t /*note*/) override {}
       void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
+      void SetVolume(uint_t /*volume*/) override {}
       void SetSlide(int_t /*step*/) override {}
       void SetSampleOffset(uint_t /*offset*/) override {}
     };
@@ -221,6 +223,16 @@ namespace Formats::Chiptune
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
+      }
+
+      void SetOrnament(uint_t ornament) override
+      {
+        return Delegate.SetOrnament(ornament);
+      }
+
+      void SetVolume(uint_t volume) override
+      {
+        return Delegate.SetVolume(volume);
       }
 
       void SetSlide(int_t step) override

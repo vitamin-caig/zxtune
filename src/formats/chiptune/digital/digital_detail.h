@@ -78,6 +78,16 @@ namespace Formats::Chiptune::Digital
       return Delegate.SetSample(sample);
     }
 
+    void SetOrnament(uint_t ornament) override
+    {
+      return Delegate.SetOrnament(ornament);
+    }
+
+    void SetVolume(uint_t volume) override
+    {
+      return Delegate.SetVolume(volume);
+    }
+
     const Indices& GetUsedPatterns() const
     {
       return UsedPatterns;

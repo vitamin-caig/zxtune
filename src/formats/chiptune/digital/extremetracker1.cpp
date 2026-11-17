@@ -223,6 +223,7 @@ namespace Formats::Chiptune
       void SetRest() override {}
       void SetNote(uint_t /*note*/) override {}
       void SetSample(uint_t /*sample*/) override {}
+      void SetOrnament(uint_t /*ornament*/) override {}
       void SetVolume(uint_t /*volume*/) override {}
       void SetGliss(int_t /*gliss*/) override {}
     };
@@ -287,6 +288,11 @@ namespace Formats::Chiptune
       {
         UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
+      }
+
+      void SetOrnament(uint_t ornament) override
+      {
+        return Delegate.SetOrnament(ornament);
       }
 
       void SetVolume(uint_t volume) override

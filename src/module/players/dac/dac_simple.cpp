@@ -33,19 +33,13 @@ namespace Module::DAC
     }
   }
 
-  class SimpleDataBuilderImpl : public SimpleDataBuilder
+  class SimpleDataBuilderImpl : public TrackDataBuilder<SimpleDataBuilder, SimpleModuleData>
   {
   public:
     SimpleDataBuilderImpl(DAC::PropertiesHelper& props, uint_t channels)
-      : Properties(props)
-      , Meta(props)
-      , Data(MakeRWPtr<SimpleModuleData>(channels))
+      : TrackDataBuilder(props, MakeRWPtr<SimpleModuleData>(channels))
+      , Properties(props)
     {}
-
-    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
-    {
-      return Meta;
-    }
 
     void SetInitialTempo(uint_t tempo) override
     {
@@ -68,45 +62,8 @@ namespace Module::DAC
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
-    {
-      Patterns.SetPattern(index);
-      return Patterns;
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      Patterns.SetChannel(index);
-    }
-
-    void SetRest() override
-    {
-      Patterns.GetChannel().SetEnabled(false);
-    }
-
-    void SetNote(uint_t note) override
-    {
-      auto& chan = Patterns.GetChannel();
-      chan.SetEnabled(true);
-      chan.SetNote(note);
-    }
-
-    void SetSample(uint_t sample) override
-    {
-      Patterns.GetChannel().SetSample(sample);
-    }
-
-    SimpleModuleData::Ptr CaptureResult() override
-    {
-      Data->Patterns = Patterns.CaptureResult();
-      return std::move(Data);
-    }
-
   private:
     DAC::PropertiesHelper& Properties;
-    MetaProperties Meta;
-    PatternsBuilder Patterns;
-    SimpleModuleData::RWPtr Data;
   };
 
   SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, uint_t channels)

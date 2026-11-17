@@ -52,19 +52,13 @@ namespace Module::FastTracker
   using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::FastTracker::PositionEntry>;
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 
-  class DataBuilder : public Formats::Chiptune::FastTracker::Builder
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::FastTracker::Builder, ModuleData>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
-      : Properties(props)
-      , Meta(props)
-      , Data(MakeRWPtr<ModuleData>())
+      : TrackDataBuilder(props)
+      , Properties(props)
     {}
-
-    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
-    {
-      return Meta;
-    }
 
     void SetNoteTable(Formats::Chiptune::FastTracker::NoteTable table) override
     {
@@ -102,44 +96,6 @@ namespace Module::FastTracker
       Data->Order = MakePtr<OrderListWithTransposition>(positions.Loop, std::move(positions.Lines));
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
-    {
-      Patterns.SetPattern(index);
-      return Patterns;
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      Patterns.SetChannel(index);
-    }
-
-    void SetRest() override
-    {
-      Patterns.GetChannel().SetEnabled(false);
-    }
-
-    void SetNote(uint_t note) override
-    {
-      auto& channel = Patterns.GetChannel();
-      channel.SetEnabled(true);
-      channel.SetNote(note);
-    }
-
-    void SetSample(uint_t sample) override
-    {
-      Patterns.GetChannel().SetSample(sample);
-    }
-
-    void SetOrnament(uint_t ornament) override
-    {
-      Patterns.GetChannel().SetOrnament(ornament);
-    }
-
-    void SetVolume(uint_t vol) override
-    {
-      Patterns.GetChannel().SetVolume(vol);
-    }
-
     void SetEnvelope(uint_t type, uint_t tone) override
     {
       Patterns.GetChannel().GetCommands().AddOrReplace(ENVELOPE, type, tone);
@@ -170,17 +126,8 @@ namespace Module::FastTracker
       Patterns.GetChannel().GetCommands().Add(SLIDE_NOTE, step);
     }
 
-    ModuleData::Ptr CaptureResult()
-    {
-      Data->Patterns = Patterns.CaptureResult();
-      return std::move(Data);
-    }
-
   private:
     AYM::PropertiesHelper& Properties;
-    MetaProperties Meta;
-    PatternsBuilder Patterns;
-    ModuleData::RWPtr Data;
   };
 
   template<class Object>

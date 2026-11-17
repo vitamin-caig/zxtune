@@ -11,7 +11,7 @@
 #pragma once
 
 #include "formats/chiptune/common/builder_meta.h"
-#include "formats/chiptune/common/builder_pattern.h"
+#include "formats/chiptune/common/builder_track.h"
 #include "formats/chiptune/common/objects.h"
 
 #include "formats/chiptune/decoder.h"
@@ -46,9 +46,12 @@ namespace Formats::Chiptune
 
     using Positions = LinesObject<PositionEntry>;
 
-    class Builder
+    class Builder : public TrackBuilder
     {
     public:
+      using TrackBuilder::SetSample;
+      using TrackBuilder::SetOrnament;
+
       virtual ~Builder() = default;
 
       virtual MetaBuilder& GetMetaBuilder() = 0;
@@ -60,13 +63,6 @@ namespace Formats::Chiptune
       // patterns
       virtual void SetPositions(Positions positions) = 0;
 
-      virtual PatternBuilder& StartPattern(uint_t index) = 0;
-
-      virtual void StartChannel(uint_t index) = 0;
-      virtual void SetRest() = 0;
-      virtual void SetNote(uint_t note) = 0;
-      virtual void SetSample(uint_t sample) = 0;
-      virtual void SetOrnament(uint_t ornament) = 0;
       virtual void SetAttenuation(uint_t vol) = 0;
       virtual void SetSwapSampleChannels(bool swapChannels) = 0;
       virtual void SetEnvelope(uint_t value) = 0;

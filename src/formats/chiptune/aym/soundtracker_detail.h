@@ -116,6 +116,11 @@ namespace Formats::Chiptune::SoundTracker
       return Delegate.SetOrnament(ornament);
     }
 
+    void SetVolume(uint_t volume) override
+    {
+      return Delegate.SetVolume(volume);
+    }
+
     void SetEnvelope(uint_t type, uint_t value) override
     {
       NonEmptyPatterns = true;

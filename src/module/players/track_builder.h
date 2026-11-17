@@ -11,9 +11,11 @@
 #pragma once
 
 #include "formats/chiptune/common/builder_pattern.h"
+#include "module/players/properties_meta.h"
 #include "module/players/track_model.h"
 
 #include "contract.h"
+#include "make_ptr.h"
 
 #include <algorithm>
 #include <memory>
@@ -341,5 +343,73 @@ namespace Module
     MutablePattern* CurPattern;
     MutableLine* CurLine = nullptr;
     MutableCell* CurChannel = nullptr;
+  };
+
+  template<class FormatBuilder, class ModelDataType, class PatternsBuilderType = PatternsBuilder>
+  class TrackDataBuilder : public FormatBuilder
+  {
+  public:
+    explicit TrackDataBuilder(PropertiesHelper& props)
+      : TrackDataBuilder(props, MakeRWPtr<ModelDataType>())
+    {}
+
+    TrackDataBuilder(PropertiesHelper& props, typename ModelDataType::RWPtr data)
+      : Meta(props)
+      , Data(std::move(data))
+    {}
+
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
+    {
+      return Meta;
+    }
+
+    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
+    {
+      Patterns.SetPattern(index);
+      return Patterns;
+    }
+
+    void StartChannel(uint_t index) override
+    {
+      Patterns.SetChannel(index);
+    }
+
+    void SetRest() override
+    {
+      Patterns.GetChannel().SetEnabled(false);
+    }
+
+    void SetNote(uint_t note) override
+    {
+      auto& channel = Patterns.GetChannel();
+      channel.SetEnabled(true);
+      channel.SetNote(note);
+    }
+
+    void SetSample(uint_t sample) override
+    {
+      Patterns.GetChannel().SetSample(sample);
+    }
+
+    void SetOrnament(uint_t ornament) override
+    {
+      Patterns.GetChannel().SetOrnament(ornament);
+    }
+
+    void SetVolume(uint_t volume) override
+    {
+      Patterns.GetChannel().SetVolume(volume);
+    }
+
+    typename ModelDataType::Ptr CaptureResult()
+    {
+      Data->Patterns = Patterns.CaptureResult();
+      return std::move(Data);
+    }
+
+  protected:
+    MetaProperties Meta;
+    PatternsBuilderType Patterns;
+    typename ModelDataType::RWPtr Data;
   };
 }  // namespace Module

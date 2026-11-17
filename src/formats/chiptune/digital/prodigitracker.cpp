@@ -168,6 +168,7 @@ namespace Formats::Chiptune
       void SetNote(uint_t /*note*/) override {}
       void SetSample(uint_t /*sample*/) override {}
       void SetOrnament(uint_t /*ornament*/) override {}
+      void SetVolume(uint_t /*volume*/) override {}
     };
 
     class StatisticCollectionBuilder : public Builder
@@ -238,6 +239,11 @@ namespace Formats::Chiptune
       {
         UsedOrnaments.Insert(ornament);
         return Delegate.SetOrnament(ornament);
+      }
+
+      void SetVolume(uint_t volume) override
+      {
+        return Delegate.SetVolume(volume);
       }
 
       const Indices& GetUsedPatterns() const

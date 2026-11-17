@@ -18,7 +18,7 @@
 
 namespace Module::DAC
 {
-  class SimpleModuleData : public TrackModel
+  class SimpleModuleData : public TrackModelData<OrderList>
   {
   public:
     using Ptr = std::shared_ptr<const SimpleModuleData>;
@@ -33,27 +33,9 @@ namespace Module::DAC
       return ChannelsCount;
     }
 
-    uint_t GetInitialTempo() const override
-    {
-      return InitialTempo;
-    }
-
-    const OrderList& GetOrder() const override
-    {
-      return *Order;
-    }
-
-    const PatternsSet& GetPatterns() const override
-    {
-      return Patterns;
-    }
-
     void SetupSamples(Devices::DAC::Chip& chip) const;
 
     const uint_t ChannelsCount;
-    uint_t InitialTempo = 0;
-    OrderList::Ptr Order;
-    PatternsSet Patterns;
     SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
   };
 

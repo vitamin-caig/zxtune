@@ -398,20 +398,15 @@ namespace Module::SQTracker
     }
   };
 
-  class DataBuilder : public Formats::Chiptune::SQTracker::Builder
+  class DataBuilder
+    : public TrackDataBuilder<Formats::Chiptune::SQTracker::Builder, ModuleData, SingleChannelPatternsBuilder>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
-      : Properties(props)
-      , Meta(props)
-      , Data(MakeRWPtr<ModuleData>())
+      : TrackDataBuilder(props)
+      , Properties(props)
     {
       Properties.SetFrequencyTable(AYM::TABLE_SQTRACKER);
-    }
-
-    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
-    {
-      return Meta;
     }
 
     void SetSample(uint_t index, Formats::Chiptune::SQTracker::Sample sample) override
@@ -429,20 +424,9 @@ namespace Module::SQTracker
       Data->Positions = std::move(positions);
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
-    {
-      Patterns.SetPattern(index);
-      return Patterns;
-    }
-
     void SetTempoAddon(uint_t addon) override
     {
       Patterns.GetChannel().GetCommands().Add(TEMPO_ADDON, addon);
-    }
-
-    void SetRest() override
-    {
-      Patterns.GetChannel().SetEnabled(false);
     }
 
     void SetNote(uint_t note) override
@@ -501,10 +485,7 @@ namespace Module::SQTracker
 
   private:
     AYM::PropertiesHelper& Properties;
-    MetaProperties Meta;
-    SingleChannelPatternsBuilder Patterns;
     std::vector<Formats::Chiptune::SQTracker::PositionEntry> Positions;
-    ModuleData::RWPtr Data;
   };
 
   struct ChannelState

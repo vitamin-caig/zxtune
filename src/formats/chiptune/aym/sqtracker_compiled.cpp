@@ -170,10 +170,12 @@ namespace Formats::Chiptune
         return GetStubPatternBuilder();
       }
       void SetTempoAddon(uint_t /*add*/) override {}
+      void StartChannel(uint_t /*index*/) override {}
       void SetRest() override {}
       void SetNote(uint_t /*note*/) override {}
       void SetSample(uint_t /*sample*/) override {}
       void SetOrnament(uint_t /*ornament*/) override {}
+      void SetVolume(uint_t /*volume*/) override {}
       void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
       void SetGlissade(int_t /*step*/) override {}
       void SetAttenuation(uint_t /*att*/) override {}
@@ -234,6 +236,11 @@ namespace Formats::Chiptune
         return Delegate.SetTempoAddon(add);
       }
 
+      void StartChannel(uint_t index) override
+      {
+        return Delegate.StartChannel(index);
+      }
+
       void SetRest() override
       {
         return Delegate.SetRest();
@@ -254,6 +261,11 @@ namespace Formats::Chiptune
       {
         UsedOrnaments.Insert(ornament);
         return Delegate.SetOrnament(ornament);
+      }
+
+      void SetVolume(uint_t volume) override
+      {
+        return Delegate.SetVolume(volume);
       }
 
       void SetEnvelope(uint_t type, uint_t value) override

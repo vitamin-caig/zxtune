@@ -11,7 +11,7 @@
 #pragma once
 
 #include "formats/chiptune/common/builder_meta.h"
-#include "formats/chiptune/common/builder_pattern.h"
+#include "formats/chiptune/common/builder_track.h"
 #include "formats/chiptune/common/objects.h"
 
 #include "formats/chiptune/decoder.h"
@@ -24,9 +24,12 @@ namespace Formats::Chiptune
 
     using Positions = LinesObject<uint_t>;
 
-    class Builder
+    class Builder : public TrackBuilder
     {
     public:
+      using TrackBuilder::SetSample;
+      using TrackBuilder::SetOrnament;
+
       virtual ~Builder() = default;
 
       virtual MetaBuilder& GetMetaBuilder() = 0;
@@ -37,15 +40,6 @@ namespace Formats::Chiptune
       virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
       // patterns
       virtual void SetPositions(Positions positions) = 0;
-
-      virtual PatternBuilder& StartPattern(uint_t index) = 0;
-
-      //! @invariant Channels are built sequentally
-      virtual void StartChannel(uint_t index) = 0;
-      virtual void SetRest() = 0;
-      virtual void SetNote(uint_t note) = 0;
-      virtual void SetSample(uint_t sample) = 0;
-      virtual void SetOrnament(uint_t ornament) = 0;
     };
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);

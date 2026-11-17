@@ -41,7 +41,7 @@ namespace Module::ETracker
 
   using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::ETracker::PositionEntry>;
 
-  class ModuleData : public TrackModel
+  class ModuleData : public TrackModelData<OrderListWithTransposition>
   {
   public:
     using Ptr = std::shared_ptr<const ModuleData>;
@@ -54,40 +54,16 @@ namespace Module::ETracker
       return SAA::TRACK_CHANNELS;
     }
 
-    uint_t GetInitialTempo() const override
-    {
-      return InitialTempo;
-    }
-
-    const OrderList& GetOrder() const override
-    {
-      return *Order;
-    }
-
-    const PatternsSet& GetPatterns() const override
-    {
-      return Patterns;
-    }
-
-    uint_t InitialTempo = 0;
-    OrderListWithTransposition::Ptr Order;
-    PatternsSet Patterns;
     SparsedObjectsStorage<Sample> Samples;
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  class DataBuilder : public Formats::Chiptune::ETracker::Builder
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ETracker::Builder, ModuleData>
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
-      : Meta(props)
-      , Data(MakeRWPtr<ModuleData>())
+      : TrackDataBuilder(props)
     {}
-
-    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
-    {
-      return Meta;
-    }
 
     void SetInitialTempo(uint_t tempo) override
     {
@@ -109,35 +85,9 @@ namespace Module::ETracker
       Data->Order = MakePtr<OrderListWithTransposition>(positions.Loop, std::move(positions.Lines));
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
-    {
-      Patterns.SetPattern(index);
-      return Patterns;
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      Patterns.SetChannel(index);
-    }
-
-    void SetRest() override
-    {
-      Patterns.GetChannel().SetEnabled(false);
-    }
-
     void SetNote(uint_t note) override
     {
       Patterns.GetChannel().SetNote(note);
-    }
-
-    void SetSample(uint_t sample) override
-    {
-      Patterns.GetChannel().SetSample(sample);
-    }
-
-    void SetOrnament(uint_t ornament) override
-    {
-      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     void SetAttenuation(uint_t vol) override
@@ -159,17 +109,6 @@ namespace Module::ETracker
     {
       Patterns.GetChannel().GetCommands().AddOrReplace(NOISE, type);
     }
-
-    ModuleData::Ptr CaptureResult()
-    {
-      Data->Patterns = Patterns.CaptureResult();
-      return std::move(Data);
-    }
-
-  private:
-    MetaProperties Meta;
-    PatternsBuilder Patterns;
-    ModuleData::RWPtr Data;
   };
 
   template<class Object>

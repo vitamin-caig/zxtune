@@ -34,6 +34,8 @@ namespace Formats::Chiptune::Digital
     void SetRest() override {}
     void SetNote(uint_t /*note*/) override {}
     void SetSample(uint_t /*sample*/) override {}
+    void SetOrnament(uint_t /*ornament*/) override {}
+    void SetVolume(uint_t /*volume*/) override {}
   };
 
   Builder& GetStubBuilder()

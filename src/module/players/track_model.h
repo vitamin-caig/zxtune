@@ -432,4 +432,28 @@ namespace Module
       return nullptr;
     }
   };
+
+  template<class OrderListType>
+  class TrackModelData : public TrackModel
+  {
+  public:
+    uint_t GetInitialTempo() const override
+    {
+      return InitialTempo;
+    }
+
+    const OrderList& GetOrder() const override
+    {
+      return *Order;
+    }
+
+    const PatternsSet& GetPatterns() const override
+    {
+      return Patterns;
+    }
+
+    uint_t InitialTempo = 0;
+    typename OrderListType::Ptr Order;
+    PatternsSet Patterns;
+  };
 }  // namespace Module

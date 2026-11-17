@@ -101,6 +101,7 @@ namespace Formats::Chiptune
       void SetNote(uint_t /*note*/) override {}
       void SetSample(uint_t /*sample*/) override {}
       void SetOrnament(uint_t /*ornament*/) override {}
+      void SetVolume(uint_t /*volume*/) override {}
       void SetAttenuation(uint_t /*vol*/) override {}
       void SetSwapSampleChannels(bool /*swapSamples*/) override {}
       void SetEnvelope(uint_t /*value*/) override {}
@@ -181,6 +182,11 @@ namespace Formats::Chiptune
       {
         UsedOrnaments.Insert(ornament);
         return Delegate.SetOrnament(ornament);
+      }
+
+      void SetVolume(uint_t volume) override
+      {
+        return Delegate.SetVolume(volume);
       }
 
       void SetAttenuation(uint_t vol) override

@@ -56,20 +56,14 @@ namespace Module::ChipTracker
 
   using ModuleData = DAC::SimpleModuleData;
 
-  class DataBuilder : public Formats::Chiptune::ChipTracker::Builder
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ChipTracker::Builder, ModuleData>
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)
-      : Properties(props)
-      , Meta(props)
-      , Data(MakeRWPtr<ModuleData>(CHANNELS_COUNT))
+      : TrackDataBuilder(props, MakeRWPtr<ModuleData>(CHANNELS_COUNT))
+      , Properties(props)
     {
       Properties.SetSamplesFrequency(SAMPLES_FREQ);
-    }
-
-    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
-    {
-      return Meta;
     }
 
     virtual void SetVersion(uint_t major, uint_t minor)
@@ -92,34 +86,6 @@ namespace Module::ChipTracker
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
-    {
-      Patterns.SetPattern(index);
-      return Patterns;
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      Patterns.SetChannel(index);
-    }
-
-    void SetRest() override
-    {
-      Patterns.GetChannel().SetEnabled(false);
-    }
-
-    void SetNote(uint_t note) override
-    {
-      auto& chan = Patterns.GetChannel();
-      chan.SetEnabled(true);
-      chan.SetNote(note);
-    }
-
-    void SetSample(uint_t sample) override
-    {
-      Patterns.GetChannel().SetSample(sample);
-    }
-
     void SetSlide(int_t step) override
     {
       Patterns.GetChannel().GetCommands().AddOrUpdate(SLIDE, 0, step);
@@ -130,17 +96,8 @@ namespace Module::ChipTracker
       Patterns.GetChannel().GetCommands().AddOrUpdate(SAMPLE_OFFSET, 0, offset);
     }
 
-    ModuleData::Ptr CaptureResult()
-    {
-      Data->Patterns = Patterns.CaptureResult();
-      return std::move(Data);
-    }
-
   private:
     DAC::PropertiesHelper& Properties;
-    MetaProperties Meta;
-    PatternsBuilder Patterns;
-    ModuleData::RWPtr Data;
   };
 
   struct GlissData

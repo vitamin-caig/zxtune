@@ -48,19 +48,13 @@ namespace Module::ExtremeTracker1
 
   using ModuleData = DAC::SimpleModuleData;
 
-  class DataBuilder : public Formats::Chiptune::ExtremeTracker1::Builder
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ExtremeTracker1::Builder, ModuleData>
   {
   public:
     explicit DataBuilder(DAC::PropertiesHelper& props)
-      : Properties(props)
-      , Meta(props)
-      , Data(MakeRWPtr<ModuleData>(CHANNELS_COUNT))
+      : TrackDataBuilder(props, MakeRWPtr<ModuleData>(CHANNELS_COUNT))
+      , Properties(props)
     {}
-
-    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
-    {
-      return Meta;
-    }
 
     void SetInitialTempo(uint_t tempo) override
     {
@@ -82,55 +76,13 @@ namespace Module::ExtremeTracker1
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
     }
 
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
-    {
-      Patterns.SetPattern(index);
-      return Patterns;
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      Patterns.SetChannel(index);
-    }
-
-    void SetRest() override
-    {
-      Patterns.GetChannel().SetEnabled(false);
-    }
-
-    void SetNote(uint_t note) override
-    {
-      auto& chan = Patterns.GetChannel();
-      chan.SetEnabled(true);
-      chan.SetNote(note);
-    }
-
-    void SetSample(uint_t sample) override
-    {
-      Patterns.GetChannel().SetSample(sample);
-    }
-
-    void SetVolume(uint_t volume) override
-    {
-      Patterns.GetChannel().SetVolume(volume);
-    }
-
     void SetGliss(int_t gliss) override
     {
       Patterns.GetChannel().GetCommands().AddOrUpdate(GLISS, 0, gliss);
     }
 
-    ModuleData::Ptr CaptureResult()
-    {
-      Data->Patterns = Patterns.CaptureResult();
-      return std::move(Data);
-    }
-
   private:
     DAC::PropertiesHelper& Properties;
-    MetaProperties Meta;
-    PatternsBuilder Patterns;
-    ModuleData::RWPtr Data;
   };
 
   struct GlissData

@@ -51,20 +51,14 @@ namespace Module::ProSoundMaker
 
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 
-  class DataBuilder : public Formats::Chiptune::ProSoundMaker::Builder
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProSoundMaker::Builder, ModuleData>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
-      : Properties(props)
-      , Meta(props)
-      , Data(MakeRWPtr<ModuleData>())
+      : TrackDataBuilder(props)
+      , Properties(props)
     {
       Properties.SetFrequencyTable(AYM::TABLE_PROSOUNDMAKER);
-    }
-
-    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
-    {
-      return Meta;
     }
 
     void SetSample(uint_t index, Formats::Chiptune::ProSoundMaker::Sample sample) override
@@ -80,44 +74,6 @@ namespace Module::ProSoundMaker
     void SetPositions(Formats::Chiptune::ProSoundMaker::Positions positions) override
     {
       Data->Order = MakePtr<OrderListWithTransposition>(positions.Loop, std::move(positions.Lines));
-    }
-
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
-    {
-      Patterns.SetPattern(index);
-      return Patterns;
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      Patterns.SetChannel(index);
-    }
-
-    void SetRest() override
-    {
-      Patterns.GetChannel().SetEnabled(false);
-    }
-
-    void SetNote(uint_t note) override
-    {
-      auto& chan = Patterns.GetChannel();
-      chan.SetEnabled(true);
-      chan.SetNote(note);
-    }
-
-    void SetSample(uint_t sample) override
-    {
-      Patterns.GetChannel().SetSample(sample);
-    }
-
-    void SetOrnament(uint_t ornament) override
-    {
-      Patterns.GetChannel().SetOrnament(ornament);
-    }
-
-    void SetVolume(uint_t volume) override
-    {
-      Patterns.GetChannel().SetVolume(volume);
     }
 
     void DisableOrnament() override
@@ -144,17 +100,8 @@ namespace Module::ProSoundMaker
       channel.GetCommands().Add(ENVELOPE_NOTE, int_t(type), int_t(note));
     }
 
-    ModuleData::Ptr CaptureResult()
-    {
-      Data->Patterns = Patterns.CaptureResult();
-      return std::move(Data);
-    }
-
   private:
     AYM::PropertiesHelper& Properties;
-    MetaProperties Meta;
-    PatternsBuilder Patterns;
-    ModuleData::RWPtr Data;
   };
 
   struct SampleState

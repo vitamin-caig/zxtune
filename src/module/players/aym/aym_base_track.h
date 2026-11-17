@@ -110,7 +110,7 @@ namespace Module::AYM
   };
 
   template<class OrderListType, class SampleType, class OrnamentType>
-  class ModuleData : public TrackModel
+  class ModuleData : public TrackModelData<OrderListType>
   {
   public:
     using Ptr = std::shared_ptr<const ModuleData>;
@@ -123,24 +123,6 @@ namespace Module::AYM
       return TRACK_CHANNELS;
     }
 
-    uint_t GetInitialTempo() const override
-    {
-      return InitialTempo;
-    }
-
-    const OrderList& GetOrder() const override
-    {
-      return *Order;
-    }
-
-    const PatternsSet& GetPatterns() const override
-    {
-      return Patterns;
-    }
-
-    uint_t InitialTempo = 0;
-    typename OrderListType::Ptr Order;
-    PatternsSet Patterns;
     SparsedObjectsStorage<SampleType> Samples;
     SparsedObjectsStorage<OrnamentType> Ornaments;
   };

@@ -30,19 +30,13 @@ namespace Module::ProTracker3
 
   const auto TURBOSOUND_COMMENT = "TurboSound module"sv;
 
-  class DataBuilder : public Formats::Chiptune::ProTracker3::Builder
+  class DataBuilder : public TrackDataBuilder<Formats::Chiptune::ProTracker3::Builder, ModuleData>
   {
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
-      : Properties(props)
-      , Meta(props)
-      , Data(MakeRWPtr<ModuleData>())
+      : TrackDataBuilder(props)
+      , Properties(props)
     {}
-
-    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
-    {
-      return Meta;
-    }
 
     void SetVersion(uint_t version) override
     {
@@ -78,44 +72,6 @@ namespace Module::ProTracker3
     void SetPositions(Formats::Chiptune::ProTracker3::Positions positions) override
     {
       Data->Order = MakePtr<SimpleOrderList>(positions.Loop, std::move(positions.Lines));
-    }
-
-    Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
-    {
-      Patterns.SetPattern(index);
-      return Patterns;
-    }
-
-    void StartChannel(uint_t index) override
-    {
-      Patterns.SetChannel(index);
-    }
-
-    void SetRest() override
-    {
-      Patterns.GetChannel().SetEnabled(false);
-    }
-
-    void SetNote(uint_t note) override
-    {
-      auto& channel = Patterns.GetChannel();
-      channel.SetEnabled(true);
-      channel.SetNote(note);
-    }
-
-    void SetSample(uint_t sample) override
-    {
-      Patterns.GetChannel().SetSample(sample);
-    }
-
-    void SetOrnament(uint_t ornament) override
-    {
-      Patterns.GetChannel().SetOrnament(ornament);
-    }
-
-    void SetVolume(uint_t vol) override
-    {
-      Patterns.GetChannel().SetVolume(vol);
     }
 
     void SetGlissade(uint_t period, int_t val) override
@@ -166,17 +122,8 @@ namespace Module::ProTracker3
       Patterns.GetChannel().GetCommands().AddOrReplace(Vortex::NOISEBASE, val);
     }
 
-    ModuleData::RWPtr CaptureResult()
-    {
-      Data->Patterns = Patterns.CaptureResult();
-      return std::move(Data);
-    }
-
   private:
     AYM::PropertiesHelper& Properties;
-    MetaProperties Meta;
-    PatternsBuilder Patterns;
-    ModuleData::RWPtr Data;
   };
 
   class Chiptune : public AYM::Chiptune

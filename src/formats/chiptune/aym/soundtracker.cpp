@@ -528,6 +528,7 @@ namespace Formats::Chiptune
       void SetNote(uint_t /*note*/) override {}
       void SetSample(uint_t /*sample*/) override {}
       void SetOrnament(uint_t /*ornament*/) override {}
+      void SetVolume(uint_t /*volume*/) override {}
       void SetEnvelope(uint_t /*type*/, uint_t /*value*/) override {}
       void SetNoEnvelope() override {}
     };
