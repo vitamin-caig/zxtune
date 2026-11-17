@@ -15,6 +15,7 @@
 #include "module/players/dac/dac_simple.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
+#include "module/players/track_builder.h"
 #include "module/players/tracking.h"
 
 #include "binary/container.h"

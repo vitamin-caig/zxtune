@@ -17,9 +17,11 @@
 #include "module/players/aym/vortex.h"
 #include "module/players/properties_meta.h"
 #include "module/players/simple_orderlist.h"
+#include "module/players/track_builder.h"
 
 #include "parameters/tracking_helper.h"
 
+#include "make_ptr.h"
 #include "pointers.h"
 
 namespace Module::ProTracker3

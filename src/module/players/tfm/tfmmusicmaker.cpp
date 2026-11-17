@@ -16,6 +16,7 @@
 #include "module/players/streaming.h"
 #include "module/players/tfm/tfm_base.h"
 #include "module/players/tfm/tfm_base_track.h"
+#include "module/players/track_builder.h"
 
 #include "binary/container.h"
 #include "math/fixedpoint.h"

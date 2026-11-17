@@ -16,6 +16,7 @@
 #include "module/players/saa/saa_base.h"
 #include "module/players/saa/saa_parameters.h"
 #include "module/players/simple_orderlist.h"
+#include "module/players/track_builder.h"
 
 #include "make_ptr.h"
 

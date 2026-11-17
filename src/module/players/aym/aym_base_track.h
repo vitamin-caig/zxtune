@@ -15,6 +15,8 @@
 
 #include "parameters/tracking_helper.h"
 
+#include "make_ptr.h"
+
 namespace Module::AYM
 {
   const uint_t TRACK_CHANNELS = 3;
