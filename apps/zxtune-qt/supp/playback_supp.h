@@ -12,6 +12,7 @@
 
 #include "apps/zxtune-qt/playlist/supp/data.h"
 
+#include "module/holder.h"
 #include "sound/backend.h"
 
 #include <QtCore/QThread>
@@ -34,7 +35,7 @@ public:
   virtual void Pause() = 0;
   virtual void Seek(Time::AtMillisecond request) = 0;
 signals:
-  void OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr);
+  void OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr, Module::Holder::Ptr);
   void OnUpdateState();
   void OnPauseModule();
   void OnResumeModule();

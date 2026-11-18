@@ -103,6 +103,7 @@ namespace
     {
       Stop();
       Item.reset();
+      Holder.reset();
       ItemCookie = nullptr;
       Control = StubControl::Instance();
       Backend.reset();
@@ -205,7 +206,7 @@ namespace
     {
       // must not be in UI thread
       Require(!MainThread::IsCurrent());
-      const Module::Holder::Ptr module = item->GetModule();
+      auto module = item->GetModule();
       if (!module || (item.get() != ItemCookie))
       {
         return;
@@ -218,7 +219,8 @@ namespace
         {
           return;
         }
-        SelfThread::Execute(this, &PlaybackSupportImpl::ApplyItem, std::move(item), std::move(backend), play);
+        SelfThread::Execute(this, &PlaybackSupportImpl::ApplyItem, std::move(item), std::move(module),
+                            std::move(backend), play);
       }
       catch (const Error& e)
       {
@@ -226,11 +228,12 @@ namespace
       }
     }
 
-    void ApplyItem(Playlist::Item::Data::Ptr item, Sound::Backend::Ptr backend, bool play)
+    void ApplyItem(Playlist::Item::Data::Ptr item, Module::Holder::Ptr module, Sound::Backend::Ptr backend, bool play)
     {
       // must be in UI thread
       Require(MainThread::IsCurrent());
       ResetItem();
+      Holder = std::move(module);
       Backend = std::move(backend);
       Control = Backend->GetPlaybackControl();
       Item = std::move(item);
@@ -242,7 +245,7 @@ namespace
 
     void EmitStart()
     {
-      emit OnStartModule(Backend, Item);
+      emit OnStartModule(Backend, Item, Holder);
     }
 
     Sound::Backend::Ptr CreateBackend(const Module::Holder::Ptr& module)
@@ -279,6 +282,7 @@ namespace
     const Lazy<Sound::Service::Ptr> Service;
     QTimer Timer;
     Playlist::Item::Data::Ptr Item;
+    Module::Holder::Ptr Holder;
     Sound::Backend::Ptr Backend;
     Sound::PlaybackControl::Ptr Control;
     std::atomic<const void*> ItemCookie;
@@ -292,6 +296,7 @@ PlaybackSupport::PlaybackSupport(QObject& parent)
 PlaybackSupport* PlaybackSupport::Create(QObject& parent, Parameters::Accessor::Ptr sndOptions)
 {
   REGISTER_METATYPE(Sound::Backend::Ptr);
+  REGISTER_METATYPE(Module::Holder::Ptr);
   REGISTER_METATYPE(Error);
   return new PlaybackSupportImpl(parent, std::move(sndOptions));
 }
