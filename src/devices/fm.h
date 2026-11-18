@@ -80,6 +80,8 @@ namespace Devices::FM
 
     /// Render rest data and return result
     virtual Sound::Chunk RenderTill(Stamp till) = 0;
+    /// Apply state immediately and forward clock to the chunk timestamp
+    virtual void UpdateState(const DataChunk& src) = 0;
   };
 
   class ChipParameters

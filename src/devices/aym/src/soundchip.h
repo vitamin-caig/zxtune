@@ -60,6 +60,13 @@ namespace Devices::AYM
       return result;
     }
 
+    void UpdateState(const typename Traits::DataChunkType& src) override
+    {
+      Require(Chunks.ConsumeBefore(src.TimeStamp).empty());
+      Clock.Forward(src.TimeStamp);
+      PSG.SetNewData(src.Data);
+    }
+
   private:
     void SynchronizeParameters()
     {

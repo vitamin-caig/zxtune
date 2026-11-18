@@ -11,11 +11,9 @@
 #pragma once
 
 #include "module/players/dac/dac_chiptune.h"
-#include "module/players/parameters.h"
 #include "module/players/tracking.h"
 
 #include "module/holder.h"
-#include "module/renderer.h"
 
 namespace Module::DAC
 {
@@ -122,9 +120,6 @@ namespace Module::DAC
   private:
     RendererType Renderer;
   };
-
-  Renderer::Ptr CreateRenderer(FrameDurationParameter frameDuration, DataIterator::Ptr iterator,
-                               Devices::DAC::Chip::Ptr device);
 
   Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr properties);
 

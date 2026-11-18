@@ -10,6 +10,7 @@
 
 #include "module/players/aym/turbosound.h"
 
+#include "module/players/framed_renderer.h"
 #include "module/players/parameters.h"
 #include "module/players/streaming.h"
 #include "parameters/src/names_set.h"
@@ -183,63 +184,6 @@ namespace Module::TurboSound
     const AYM::DataIterator::Ptr Second;
   };
 
-  class Renderer : public Module::Renderer
-  {
-  public:
-    Renderer(FrameDurationParameter frameDuration, DataIterator::Ptr iterator, Devices::TurboSound::Chip::Ptr device)
-      : FrameDuration(std::move(frameDuration))
-      , Iterator(std::move(iterator))
-      , Device(std::move(device))
-    {}
-
-    State GetState() const override
-    {
-      return ToState(Iterator->GetState(), FrameDuration.Get());
-    }
-
-    Sound::Chunk Render() override
-    {
-      TransferChunk();
-      FrameDuration.Synchronize();
-      LastChunk.TimeStamp += FrameDuration.Get<Devices::TurboSound::TimeUnit>();
-      return Device->RenderTill(LastChunk.TimeStamp);
-    }
-
-    void Reset() override
-    {
-      Iterator->Reset();
-      Device->Reset();
-      LastChunk.TimeStamp = {};
-    }
-
-    void SetPosition(Time::AtMillisecond request) override
-    {
-      if (request < GetState().At)
-      {
-        Iterator->Reset();
-        Device->Reset();
-        LastChunk.TimeStamp = {};
-      }
-      while (GetState().At < request)
-      {
-        TransferChunk();
-      }
-    }
-
-  private:
-    void TransferChunk()
-    {
-      LastChunk.Data = Iterator->Advance();
-      Device->RenderData(LastChunk);
-    }
-
-  private:
-    FrameDurationParameter FrameDuration;
-    const DataIterator::Ptr Iterator;
-    const Devices::TurboSound::Chip::Ptr Device;
-    Devices::TurboSound::DataChunk LastChunk;
-  };
-
   class MergedChiptune : public Chiptune
   {
   public:
@@ -305,12 +249,10 @@ namespace Module::TurboSound
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      auto rendererParams = params;
       auto iterator =
           Tune->CreateDataIterator(AYM::TrackParameters::Create(params, 0), AYM::TrackParameters::Create(params, 1));
-      auto chip = CreateChip(samplerate, std::move(params));
-      return MakePtr<Renderer>(FrameDurationParameter(std::move(rendererParams), AYM::BASE_FRAME_DURATION),
-                               std::move(iterator), std::move(chip));
+      auto chip = CreateChip(samplerate, params);
+      return CreateFramedRenderer(std::move(params), AYM::BASE_FRAME_DURATION, std::move(iterator), std::move(chip));
     }
 
   private:

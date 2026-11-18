@@ -110,7 +110,7 @@ namespace Devices::DAC
     /// Render state changes
     virtual void RenderData(DataChunk src) = 0;
 
-    /// Same as RenderData
+    /// Apply state immediately and forward clock to the chunk timestamp
     virtual void UpdateState(const DataChunk& src) = 0;
 
     /// reset internal state to initial

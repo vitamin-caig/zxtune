@@ -54,6 +54,22 @@ namespace Devices::Details
       return period ? static_cast<uint_t>((diff + period - 1) / period) : 0;
     }
 
+    //! @brief Jump to the stamp without producing samples
+    void Forward(StampType stamp)
+    {
+      const FastStamp till(stamp.Get());
+      if (till <= CurPsgTime)
+      {
+        return;
+      }
+      // Keep sample grid aligned, but do not emulate the skipped samples
+      if (const auto samples = SamplesTill(stamp))
+      {
+        NextSampleTime += SamplePeriod * samples;
+      }
+      CurPsgTime = till;
+    }
+
     void UpdateNextSampleTime()
     {
       NextSampleTime += SamplePeriod;

@@ -84,6 +84,13 @@ namespace Devices::Beeper
       return result;
     }
 
+    void UpdateState(const DataChunk& src) override
+    {
+      Require(Chunks.ConsumeBefore(src.TimeStamp).empty());
+      Clock.Forward(src.TimeStamp);
+      PSG.SetNewData(src.Level);
+    }
+
   private:
     void SynchronizeParameters()
     {

@@ -48,7 +48,7 @@ namespace Devices::FM::Details
     }
 
     // @return samples to render
-    uint_t AdvanceTo(Stamp stamp)
+    [[maybe_unused]] uint_t AdvanceTo(Stamp stamp)
     {
       if (stamp.Get() <= LastTime.Get())
       {
@@ -139,6 +139,13 @@ namespace Devices::FM::Details
       const auto samples = Clock.AdvanceTo(till);
       Require(samples);
       return Adapter.RenderSamples(samples);
+    }
+
+    void UpdateState(const typename ChipTraits::DataChunkType& src) override
+    {
+      Require(Chunks.ConsumeBefore(src.TimeStamp).empty());
+      Clock.AdvanceTo(src.TimeStamp);
+      Adapter.WriteRegisters(src.Data);
     }
 
   private:

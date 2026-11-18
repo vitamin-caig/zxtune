@@ -494,6 +494,7 @@ namespace Devices::DAC
 
     void UpdateState(const DataChunk& src) override
     {
+      Require(Chunks.ConsumeBefore(src.TimeStamp).empty());
       if (Clock.GetCurrentTime() < src.TimeStamp)
       {
         DropChunksTill(src.TimeStamp);

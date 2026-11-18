@@ -97,6 +97,8 @@ namespace Devices::SAA
     using Ptr = std::unique_ptr<Chip>;
 
     virtual Sound::Chunk RenderTill(Stamp till) = 0;
+    /// Apply state immediately and forward clock to the chunk timestamp
+    virtual void UpdateState(const DataChunk& src) = 0;
   };
 
   enum InterpolationType
