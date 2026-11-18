@@ -16,112 +16,97 @@
 
 #include "async/worker.h"
 #include "debug/log.h"
-#include "sound/render_params.h"
 #include "sound/parameters.h"
+#include "sound/render_params.h"
 
 #include "error_tools.h"
 #include "make_ptr.h"
 #include "pointers.h"
 
 #include <atomic>
+#include <mutex>
 #include <utility>
 
 namespace Sound::BackendBase
 {
   const Debug::Stream Dbg("Sound::Backend::Base");
 
-  class CallbackOverWorker : public BackendCallback
+  class PlaybackState
   {
   public:
-    CallbackOverWorker(BackendCallback::Ptr delegate, BackendWorker::Ptr worker)
-      : Delegate(std::move(delegate))
-      , Worker(std::move(worker))
-    {}
+    using Ptr = std::shared_ptr<PlaybackState>;
 
-    void OnStart() override
+    void ChunkCreated(const Sound::Chunk& chunk)
     {
-      Worker->Startup();
-      Delegate->OnStart();
+      const std::scoped_lock lock(Guard);
+      if (FftAnalyzer)
+      {
+        Pending.assign(chunk.begin(), chunk.end());
+      }
+      else
+      {
+        Pending.clear();
+      }
     }
 
-    void OnFrame(const Module::State& state) override
+    void ChunkCommitted(const Module::State& state)
     {
-      Worker->FrameStart(state);
-      Delegate->OnFrame(state);
+      const std::scoped_lock lock(Guard);
+      State = state;
+      if (FftAnalyzer && !Pending.empty())
+      {
+        FftAnalyzer->FeedSound(Pending.data(), Pending.size());
+        Pending.clear();
+      }
     }
 
-    void OnStop() override
+    Sound::Analyzer::Ptr GetAnalyzer() const
     {
-      Worker->Shutdown();
-      Delegate->OnStop();
+      const std::scoped_lock lock(Guard);
+      if (!FftAnalyzer)
+      {
+        FftAnalyzer = FFTAnalyzer::Create();
+      }
+      return FftAnalyzer;
     }
 
-    void OnPause() override
+    Module::State GetState() const
     {
-      Worker->Pause();
-      Delegate->OnPause();
-    }
-
-    void OnResume() override
-    {
-      Worker->Resume();
-      Delegate->OnResume();
-    }
-
-    void OnFinish() override
-    {
-      Delegate->OnFinish();
+      const std::scoped_lock lock(Guard);
+      return State;
     }
 
   private:
-    const BackendCallback::Ptr Delegate;
-    const BackendWorker::Ptr Worker;
+    mutable std::mutex Guard;
+    mutable FFTAnalyzer::Ptr FftAnalyzer;
+    Module::State State;
+    Sound::Chunk Pending;
   };
 
-  class RendererWrapper : public Module::Renderer
+  class RendererWrapper
   {
   public:
     using Ptr = std::shared_ptr<RendererWrapper>;
+    using Result = std::pair<Module::State, Sound::Chunk>;
 
-    RendererWrapper(Module::Renderer::Ptr delegate, BackendCallback::Ptr callback)
+    explicit RendererWrapper(Module::Renderer::Ptr delegate)
       : Delegate(std::move(delegate))
-      , Callback(std::move(callback))
       , SeekRequest(NO_SEEK)
-      , Analyzer(FFTAnalyzer::Create())
     {}
 
-    Module::State GetState() const override
-    {
-      return CurrentState;
-    }
-
-    Sound::Analyzer::Ptr GetFftAnalyzer() const
-    {
-      return Analyzer;
-    }
-
-    Sound::Chunk Render() override
+    Result Render()
     {
       const auto request = SeekRequest.exchange(NO_SEEK);
       if (request != NO_SEEK)
       {
         Delegate->SetPosition(Time::AtMillisecond(request));
       }
-      CurrentState = Delegate->GetState();
-      Callback->OnFrame(CurrentState);
-      auto result = Delegate->Render();
-      Analyzer->FeedSound(result.data(), result.size());
-      return result;
+      const auto state = Delegate->GetState();
+      auto data = Delegate->Render();
+      return {state, std::move(data)};
     }
 
-    void Reset() override
-    {
-      SeekRequest = NO_SEEK;
-      Delegate->Reset();
-      CurrentState = {};
-    }
-
-    void SetPosition(Time::AtMillisecond request) override
+    void SetPosition(Time::AtMillisecond request)
     {
       SeekRequest = request.Get();
     }
@@ -129,19 +114,18 @@ namespace Sound::BackendBase
   private:
     static const uint_t NO_SEEK = ~uint_t(0);
     const Module::Renderer::Ptr Delegate;
-    const BackendCallback::Ptr Callback;
     std::atomic<uint_t> SeekRequest;
-    const FFTAnalyzer::Ptr Analyzer;
-    Module::State CurrentState;
   };
 
   class AsyncWrapper : public Async::Worker
   {
   public:
-    AsyncWrapper(BackendCallback::Ptr callback, Module::Renderer::Ptr render, BackendWorker::Ptr worker)
+    AsyncWrapper(BackendCallback::Ptr callback, RendererWrapper::Ptr render, BackendWorker::Ptr worker,
+                 PlaybackState::Ptr playback)
       : Callback(std::move(callback))
       , Renderer(std::move(render))
       , Worker(std::move(worker))
+      , State(std::move(playback))
       , Playing(false)
     {}
 
@@ -150,6 +134,7 @@ namespace Sound::BackendBase
       try
       {
         Dbg("Initializing");
+        Worker->Startup();
         Callback->OnStart();
       }
       catch (const Error& e)
@@ -165,6 +150,7 @@ namespace Sound::BackendBase
       catch (const Error& e)
       {
         Dbg("Deinitialize backend worker due to error while rendering initial frame");
+        Worker->Shutdown();
         Callback->OnStop();
         throw Error(THIS_LINE, translate("Failed to initialize playback.")).AddSuberror(e);
       }
@@ -176,6 +162,7 @@ namespace Sound::BackendBase
       {
         Dbg("Finalizing");
         Playing = false;
+        Worker->Shutdown();
         Callback->OnStop();
         Dbg("Finalized");
       }
@@ -190,6 +177,7 @@ namespace Sound::BackendBase
       try
       {
         Dbg("Suspending");
+        Worker->Pause();
         Callback->OnPause();
         Dbg("Suspended");
       }
@@ -204,6 +192,7 @@ namespace Sound::BackendBase
       try
       {
         Dbg("Resuming");
+        Worker->Resume();
         Callback->OnResume();
         Dbg("Resumed");
       }
@@ -232,15 +221,13 @@ namespace Sound::BackendBase
     {
       try
       {
-        auto data = Renderer->Render();
-        if (!data.empty())
+        auto [state, data] = Renderer->Render();
+        if ((Playing = !data.empty()))
         {
-          Playing = true;
-          Worker->FrameFinish(std::move(data));
-        }
-        else
-        {
-          Playing = false;
+          State->ChunkCreated(data);
+          Worker->PlayFrame(state, std::move(data));
+          Callback->OnFrame(state);
+          State->ChunkCommitted(state);
         }
       }
       catch (const std::exception& e)
@@ -256,10 +243,10 @@ namespace Sound::BackendBase
     }
 
   private:
-    const BackendWorker::Ptr Delegate;
     const BackendCallback::Ptr Callback;
-    const Module::Renderer::Ptr Renderer;
+    const RendererWrapper::Ptr Renderer;
     const BackendWorker::Ptr Worker;
+    const PlaybackState::Ptr State;
     std::atomic<bool> Playing;
   };
 
@@ -279,19 +266,21 @@ namespace Sound::BackendBase
     void OnFinish() override {}
   };
 
-  BackendCallback::Ptr CreateCallback(BackendCallback::Ptr callback, BackendWorker::Ptr worker)
+  BackendCallback::Ptr CreateCallback(BackendCallback::Ptr callback)
   {
     static StubBackendCallback STUB;
-    auto&& cb = callback ? std::move(callback) : MakeSingletonPointer(STUB);
-    return MakePtr<CallbackOverWorker>(std::move(cb), std::move(worker));
+    return callback ? std::move(callback) : MakeSingletonPointer(STUB);
   }
 
   class ControlInternal : public PlaybackControl
   {
   public:
-    ControlInternal(Async::Job::Ptr job, Module::Renderer::Ptr renderer)
+    using Ptr = std::shared_ptr<ControlInternal>;
+
+    ControlInternal(Async::Job::Ptr job, RendererWrapper::Ptr renderer, Sound::BackendBase::PlaybackState::Ptr playback)
       : Job(std::move(job))
       , Renderer(std::move(renderer))
+      , State(std::move(playback))
     {}
 
     void Play() override
@@ -328,33 +317,39 @@ namespace Sound::BackendBase
       }
     }
 
-    Module::State GetModuleState() const override
+    Analyzer::Ptr GetAnalyzer() const
     {
-      return Renderer->GetState();
+      return State->GetAnalyzer();
     }
 
-    PlaybackState GetPlaybackState() const override
+    Module::State GetModuleState() const override
+    {
+      return State->GetState();
+    }
+
+    PlaybackControl::PlaybackState GetPlaybackState() const override
     {
       return Job->IsActive() ? (Job->IsPaused() ? PAUSED : STARTED) : STOPPED;
     }
 
   private:
     const Async::Job::Ptr Job;
-    const Module::Renderer::Ptr Renderer;
+    const RendererWrapper::Ptr Renderer;
+    const Sound::BackendBase::PlaybackState::Ptr State;
   };
 
   class BackendInternal : public Backend
   {
   public:
-    BackendInternal(BackendWorker::Ptr worker, RendererWrapper::Ptr renderer, Async::Job::Ptr job)
+    BackendInternal(BackendWorker::Ptr worker, PlaybackState::Ptr playback, RendererWrapper::Ptr renderer,
+                    Async::Job::Ptr job)
       : Worker(std::move(worker))
-      , Renderer(std::move(renderer))
-      , Control(MakePtr<ControlInternal>(std::move(job), Renderer))
+      , Control(MakePtr<ControlInternal>(std::move(job), std::move(renderer), std::move(playback)))
     {}
 
     Analyzer::Ptr GetAnalyzer() const override
     {
-      return Renderer->GetFftAnalyzer();
+      return Control->GetAnalyzer();
     }
 
     PlaybackControl::Ptr GetPlaybackControl() const override
@@ -369,8 +364,7 @@ namespace Sound::BackendBase
 
   private:
     const BackendWorker::Ptr Worker;
-    const RendererWrapper::Ptr Renderer;
-    const PlaybackControl::Ptr Control;
+    const ControlInternal::Ptr Control;
   };
 }  // namespace Sound::BackendBase
 
@@ -380,10 +374,12 @@ namespace Sound
                              BackendCallback::Ptr origCallback, BackendWorker::Ptr worker)
   {
     auto origRenderer = Module::CreatePipelinedRenderer(*holder, std::move(globalParams));
-    auto callback = BackendBase::CreateCallback(std::move(origCallback), worker);
-    auto renderer = MakePtr<BackendBase::RendererWrapper>(std::move(origRenderer), callback);
-    auto asyncWorker = MakePtr<BackendBase::AsyncWrapper>(std::move(callback), renderer, worker);
+    auto callback = BackendBase::CreateCallback(std::move(origCallback));
+    auto renderer = MakePtr<BackendBase::RendererWrapper>(std::move(origRenderer));
+    auto playback = MakePtr<BackendBase::PlaybackState>();
+    auto asyncWorker = MakePtr<BackendBase::AsyncWrapper>(std::move(callback), renderer, worker, playback);
     auto job = Async::CreateJob(std::move(asyncWorker));
-    return MakePtr<BackendBase::BackendInternal>(std::move(worker), std::move(renderer), std::move(job));
+    return MakePtr<BackendBase::BackendInternal>(std::move(worker), std::move(playback), std::move(renderer),
+                                                 std::move(job));
   }
 }  // namespace Sound

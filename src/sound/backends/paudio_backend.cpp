@@ -11,13 +11,13 @@
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/gates/paudio_api.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/parameters.h"
 #include "sound/backends/paudio.h"
 #include "sound/backends/storage.h"
 
 #include "debug/log.h"
 #include "module/attributes.h"
 #include "platform/version/api.h"
-#include "sound/backends/parameters.h"
 #include "sound/render_params.h"
 
 #include "byteorder.h"
@@ -69,9 +69,7 @@ namespace Sound::PulseAudio
       Dbg("Resume");
     }
 
-    void FrameStart(const Module::State& /*state*/) override {}
-
-    void FrameFinish(Chunk buffer) override
+    void PlayFrame(const Module::State& /*state*/, Chunk buffer) override
     {
       int error = 0;
       if (PaApi->pa_simple_write(Device.get(), buffer.data(), buffer.size() * sizeof(buffer.front()), &error) < 0)

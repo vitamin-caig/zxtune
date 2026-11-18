@@ -13,12 +13,12 @@
 #include "sound/backends/aylpt.h"
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/parameters.h"
 #include "sound/backends/storage.h"
 
 #include "debug/log.h"
 #include "devices/aym.h"
 #include "platform/shared_library.h"
-#include "sound/backends/parameters.h"
 
 #include "byteorder.h"
 #include "error_tools.h"
@@ -111,16 +111,12 @@ namespace Sound::AyLpt
 
     void Resume() override {}
 
-    void FrameStart(const Module::State& state) override
+    void PlayFrame(const Module::State& state, Chunk /*buffer*/) override
     {
       WaitForNextFrame();
       const auto frame = state.At.CastTo<Time::Microsecond>().Get() / FrameDuration.count();
       const uint8_t* regs = static_cast<const uint8_t*>(Data->Start()) + frame * Devices::AYM::Registers::TOTAL;
       WriteRegisters(regs);
-    }
-
-    void FrameFinish(Chunk /*buffer*/) override
-    {
       NextFrameTime += FrameDuration;
     }
 

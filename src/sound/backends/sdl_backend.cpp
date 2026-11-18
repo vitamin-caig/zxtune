@@ -229,9 +229,7 @@ namespace Sound::Sdl
       SdlApi->SDL_PauseAudio(0);
     }
 
-    void FrameStart(const Module::State& /*state*/) override {}
-
-    void FrameFinish(Chunk buffer) override
+    void PlayFrame(const Module::State& /*state*/, Chunk buffer) override
     {
       Queue.AddData(buffer);
     }

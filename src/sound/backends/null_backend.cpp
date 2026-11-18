@@ -32,9 +32,7 @@ namespace Sound::Null
 
     void Resume() override {}
 
-    void FrameStart(const Module::State& /*state*/) override {}
-
-    void FrameFinish(Chunk /*buffer*/) override {}
+    void PlayFrame(const Module::State& /*state*/, Chunk /*buffer*/) override {}
 
     VolumeControl::Ptr GetVolumeControl() const override
     {

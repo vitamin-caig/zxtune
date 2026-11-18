@@ -722,9 +722,7 @@ namespace Sound::Alsa
       Objects.Dev->Resume();
     }
 
-    void FrameStart(const Module::State& /*state*/) override {}
-
-    void FrameFinish(Chunk buffer) override
+    void PlayFrame(const Module::State& /*state*/, Chunk buffer) override
     {
       Objects.Dev->Write(buffer);
     }

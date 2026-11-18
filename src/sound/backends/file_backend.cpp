@@ -287,16 +287,12 @@ namespace Sound::File
 
     void Resume() override {}
 
-    void FrameStart(const Module::State& state) override
+    void PlayFrame(const Module::State& state, Chunk buffer) override
     {
       if (const Receiver::Ptr newStream = Source->GetStream(state))
       {
         SetStream(newStream);
       }
-    }
-
-    void FrameFinish(Chunk buffer) override
-    {
       assert(Stream);
       Stream->ApplyData(std::move(buffer));
     }
